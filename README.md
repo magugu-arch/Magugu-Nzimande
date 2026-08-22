@@ -273,6 +273,34 @@ re-rendered from those — which is why the symbol is crisp at 1024px rather tha
 a blurred upscale of a 136px crop. It is still not vector: for print or signage,
 replace the two masters and re-run the script.
 
+### Buttons and colour, to guidelines §22 / §32
+
+`components/ui/Button.tsx` is the whole of §22. Four variants in descending
+emphasis — `primary`, `secondary`, `tertiary`, `text` — three sizes at the
+published heights (56 / 44 / 36) and label sizes (16 / 14 / 13 semibold), and
+all four of §22.3's states defined per variant rather than one shared grey.
+
+Two rules the component enforces so callers cannot break them:
+
+- **44×44 minimum touch target (§22.9)** even though §22.4 makes the small
+  button 36px tall. The shortfall goes into `hitSlop`, not into the box.
+- **Uppercase labels**, matching every CTA in the app mockups, with
+  `preserveCase` for the long or dynamic ones §22.7 cautions against. The
+  accessible name stays in its written case — a screen reader should not shout.
+
+Two it cannot: §22.7's "one primary button per screen" and "don't mix styles in
+the same hierarchy" are composition decisions, so they stay with the reviewer.
+
+Colour is held to §32.3 by `utils/contrast.ts` and a test over every pair the
+theme ships. Writing that test found four real failures in the status palette —
+amber on its own tint missed even the 3:1 large-text bar — so those hues were
+darkened at the same hue. Two departures from the drawings are deliberate and
+marked in the source: disabled primary takes the pressed red for its label
+rather than the white the guidelines draw, because §22.9's own panel scores
+that pairing 2.1:1 and marks it Fail; and the tab bar keeps a filled icon for
+the active tab rather than §23.6's uniform line icons, because that gives the
+active state a signal that is not colour, which is what §32.4 asks for.
+
 ### Key decisions
 
 - **Money never touches raw floats.** All arithmetic in `utils/money.ts` rounds
@@ -334,13 +362,16 @@ the mark from fonts; this is the one place that rule has to hold.
 npm test
 ```
 
-170 tests covering money arithmetic, cart pricing and option resolution, form
+206 tests covering money arithmetic, cart pricing and option resolution, form
 validation, date and scheduling logic, the catalogue's data integrity
 and substitution mapping, the Zustand cart store, all service layers, the UI
 primitives, notification routing (including malformed and off-app payloads),
 the error boundary, and the brand asset set — that every icon app.json names
 exists at the size it claims, and that the ratio `BrandMark` draws at still
-matches the logo master.
+matches the logo master, and the brand guidelines themselves — every colour
+pair the theme ships asserted against §32.3's contrast thresholds, button
+heights and touch targets against §22.4 and §22.9, and every screen read to
+prove no long button label was left to be uppercased against §22.7's advice.
 
 The data-integrity suite is worth knowing about: it asserts that every product
 references a real asset key, that every recommendation points at a real product,

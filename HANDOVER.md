@@ -16,7 +16,7 @@ Africa, built to the supplied brief.
 | Screens | 42 routes covering every journey in brief §4 |
 | Food photography | All 16 catalogue products, own artwork, no placeholders |
 | Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
-| Tests | 170, across 11 suites |
+| Tests | 206, across 12 suites |
 | Branch | `claude/bbq-chicken-app-czgvuz` |
 
 It runs **end to end with no backend**. `EXPO_PUBLIC_USE_MOCK_API` defaults to
@@ -46,7 +46,7 @@ npm run verify      # typecheck → lint → test, the gate before any commit
 
 ---
 
-## 3. The three things to understand
+## 3. The four things to understand
 
 **Business logic is not in screens.** Pricing lives in `utils/cart.ts`,
 commercial rules in `constants/config.ts`, data access behind `services/`.
@@ -59,6 +59,11 @@ only ever drawn by `<BrandMark>`. Both have masters that are never shipped —
 `assets/food/masters/` and `assets/brand/masters/` — and one command each
 (`assets:derive`, `assets:brand`) that regenerates everything downstream.
 Adding or replacing artwork is: drop the file in, run that command.
+
+**The guidelines are enforced, not just followed.** Buttons implement §22
+exactly — four variants, three sizes at the published heights, all four states.
+Colour pairs are asserted against §32.3's 4.5:1 in a test, not eyeballed. If a
+change breaks either, `npm run verify` says so.
 
 **Money never touches raw floats.** All arithmetic rounds through cents, so
 `0.1 + 0.2` is `0.3` and totals never drift. Use the helpers in `utils/money.ts`.
@@ -117,9 +122,25 @@ Also outstanding, and deliberate:
   look at the colour page of the guidelines to confirm which is authoritative —
   if it is the darker value, change `BRAND_RED` in the extract and the theme
   token together, not one of them.
-- **Only §3 of the guidelines was supplied.** Clear space is specified on page
-  05, which I have not seen; the icon uses generous spacing but has not been
-  checked against the actual rule.
+- **Only §3, §22, §23 and §32 of the guidelines were supplied.** Logo clear
+  space is on page 05, which I have not seen; the icon uses generous spacing
+  but has not been checked against the actual rule.
+- **§23.5 says Inter, the app page and §32.4 say Helvetica Neue.** The app uses
+  Helvetica Neue — two sources to one, and the app page is the more specific.
+  Switching is a change to `theme/typography.ts` plus an `expo-font` entry; the
+  scale and weights already match.
+- **§23.4 prints bb.q Black as `#221E1F`**, the app page and the brief as
+  `#221E1E`. One unit of blue apart and identical on screen, but worth settling
+  before anything is printed.
+- **The 24px gutter has not been seen on a device.** §23.7 specifies it and the
+  app now uses it, up from 16px. It is the one change in this pass that wants
+  eyes on real hardware rather than a passing test.
+- **Two departures from the drawings, both deliberate.** Disabled primary
+  buttons use the pressed red for their label rather than the white the
+  guidelines draw, because §22.9's own panel scores that pairing 2.1:1 and
+  marks it Fail. And the tab bar keeps a filled icon for the active tab rather
+  than §23.6's uniform line icons, because that gives the active state a
+  non-colour signal, which is what §32.4 asks for. Both match the app mockups.
 - **iOS `UIBackgroundModes`** omits `remote-notification`. User-facing alerts
   don't need it and Apple rejects apps declaring unused background modes. Add it
   only if the backend starts sending silent pushes.
@@ -156,7 +177,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 170 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, 206 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
@@ -165,6 +186,13 @@ These fail loudly rather than rotting quietly — leave them on.
   set and fails if either differs, catching anyone who edited a generated file
   by hand instead of its master. Icons are the likeliest to be quietly
   retouched in an image editor, which decouples them from the licensed logo.
+- **Contrast is a test.** Every text-on-background pair the theme ships is
+  asserted against §32.3 — 4.5:1 for normal text, 3:1 where the guidelines
+  allow it. This found four real failures in the status palette when it was
+  first written, including one that missed even the large-text bar.
+- **Button labels are checked against §22.7.** The component uppercases by
+  default, so a test reads every screen and fails if a long label was left
+  without `preserveCase`.
 - **Logo proportions are asserted.** `BrandMark` sizes the lock-up from a fixed
   ratio so no caller can stretch it, and a test fails if that ratio stops
   matching the master — the exact thing that would break silently when someone
