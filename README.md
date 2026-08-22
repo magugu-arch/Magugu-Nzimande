@@ -337,12 +337,29 @@ cart bar above the tab bar whenever the basket is non-empty.
 
 ## Design system
 
-| Token | Value |
-|---|---|
-| bb.q Red (primary CTA, active nav) | `#E31937` |
-| bb.q Black (headings, dark surfaces) | `#221E1E` |
-| Headings | Helvetica Neue Bold / platform equivalent |
-| Body | Helvetica Neue Regular / platform equivalent |
+| Token | Value | Source |
+|---|---|---|
+| bb.q Red | `#E31937` | §10.2, §23.4 |
+| bb.q Black | `#221E1F` | §10.2, §23.4 — the app page says `#221E1E` |
+| White / Cream / Light Grey | `#FFFFFF` / `#FFF5E6` / `#F2F2F2` | §23.4 |
+| Headings, buttons, labels | Montserrat, weights per level | §11, §14 |
+| Body copy, captions, data | Arial — system face, not bundled | §12 |
+| Quotes and accents | Playfair Display Italic, sparingly | §13 |
+| Screen gutter / inner gap / tight gap | 24 / 16 / 4 | §23.7 |
+
+Montserrat and the one Playfair italic are bundled and loaded before the first
+frame, imported per weight rather than from the package root — the root barrel
+statically requires all eighteen Montserrat cuts, which Metro then ships. Arial
+is deliberately not bundled: §12 chose it for being universally available, and
+Android substitutes Roboto, which `theme/typography.ts` makes explicit rather
+than leaving to the platform.
+
+§14's point sizes (a 90pt H1) are the print scale. What carries into the app is
+which face and weight each level takes, its casing, and the ratios between
+levels. Caps are reserved for the campaign headline and the section eyebrow;
+§14 sets H1–H3 in caps, but the client's own app mockups read "My Cart" and
+"Popular Menu", and caps on a product name would cost legibility §32.4 asks us
+to protect.
 
 Never hard-code a hex value or font size in a component — import from
 `@/theme`. Every pressable clears the 44pt minimum touch target, and every
@@ -362,7 +379,7 @@ the mark from fonts; this is the one place that rule has to hold.
 npm test
 ```
 
-206 tests covering money arithmetic, cart pricing and option resolution, form
+245 tests covering money arithmetic, cart pricing and option resolution, form
 validation, date and scheduling logic, the catalogue's data integrity
 and substitution mapping, the Zustand cart store, all service layers, the UI
 primitives, notification routing (including malformed and off-app payloads),

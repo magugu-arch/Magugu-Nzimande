@@ -16,7 +16,7 @@ Africa, built to the supplied brief.
 | Screens | 42 routes covering every journey in brief §4 |
 | Food photography | All 16 catalogue products, own artwork, no placeholders |
 | Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
-| Tests | 206, across 12 suites |
+| Tests | 245, across 13 suites |
 | Branch | `claude/bbq-chicken-app-czgvuz` |
 
 It runs **end to end with no backend**. `EXPO_PUBLIC_USE_MOCK_API` defaults to
@@ -62,8 +62,9 @@ Adding or replacing artwork is: drop the file in, run that command.
 
 **The guidelines are enforced, not just followed.** Buttons implement §22
 exactly — four variants, three sizes at the published heights, all four states.
-Colour pairs are asserted against §32.3's 4.5:1 in a test, not eyeballed. If a
-change breaks either, `npm run verify` says so.
+Colour pairs are asserted against §32.3's 4.5:1, and type roles against §11's
+face assignments and §14.3's line-height band. None of it is eyeballed. If a
+change breaks any of it, `npm run verify` says so.
 
 **Money never touches raw floats.** All arithmetic rounds through cents, so
 `0.1 + 0.2` is `0.3` and totals never drift. Use the helpers in `utils/money.ts`.
@@ -117,24 +118,26 @@ Also outstanding, and deliberate:
   they are not vector-derived, so anything larger than an app icon (print,
   signage, a billboard-sized splash) wants the real master. Replacing them is
   the whole job: drop the two files in, run `npm run assets:brand`.
-- **The logo red was normalised to `#E31937`**, the token in the brief. The
-  guidelines page renders it a few points darker, around `#CF101E`. Worth one
-  look at the colour page of the guidelines to confirm which is authoritative —
-  if it is the darker value, change `BRAND_RED` in the extract and the theme
-  token together, not one of them.
-- **Only §3, §22, §23 and §32 of the guidelines were supplied.** Logo clear
-  space is on page 05, which I have not seen; the icon uses generous spacing
-  but has not been checked against the actual rule.
-- **§23.5 says Inter, the app page and §32.4 say Helvetica Neue.** The app uses
-  Helvetica Neue — two sources to one, and the app page is the more specific.
-  Switching is a change to `theme/typography.ts` plus an `expo-font` entry; the
-  scale and weights already match.
-- **§23.4 prints bb.q Black as `#221E1F`**, the app page and the brief as
-  `#221E1E`. One unit of blue apart and identical on screen, but worth settling
-  before anything is printed.
-- **The 24px gutter has not been seen on a device.** §23.7 specifies it and the
-  app now uses it, up from 16px. It is the one change in this pass that wants
-  eyes on real hardware rather than a passing test.
+- **Only §3, §10–§14, §22, §23 and §32 of the guidelines were supplied.** Logo
+  clear space is on page 05, which I have not seen; the icon uses generous
+  spacing but has not been checked against the actual rule. *(Resolved since:
+  §10.2 prints bb.q Red as `#E31937`, confirming the value the logo extract was
+  normalised to — the guidelines page just renders it a few points darker.)*
+- **§23.5 says Inter; §11 says Montserrat.** Resolved in favour of Montserrat —
+  §11, §12, §13 and §14 are four pages of typography spec against one line, and
+  they agree with each other. §23.5 looks like the outlier.
+- **§12.2 puts UI buttons on Arial Bold; §11.2 puts them on Montserrat
+  SemiBold.** Montserrat, since §13.3 and §13.4's callouts say the same.
+- **Two changes have not been seen on a device**, and they are the ones that
+  most want to be. §23.7's 24px gutter replaced a 16px one; and the whole app
+  moved from Helvetica Neue to Montserrat, which is a wider face with a larger
+  x-height, so lines that fitted before may not. Every size is a token in
+  `theme/typography.ts`, so trimming is a one-file change if it reads heavy.
+- **§10.2's 50/30/15/5 digital colour ratio is noted, not applied.** The app is
+  mostly white with red as the accent, which is what the client's own mockups
+  show and what leaves the food photography somewhere to sit. §10.1 allows the
+  adjustment; §10.3's hierarchy — red leads, black supports, white spaces — is
+  what the app follows. Worth a conversation if a designer disagrees.
 - **Two departures from the drawings, both deliberate.** Disabled primary
   buttons use the pressed red for their label rather than the white the
   guidelines draw, because §22.9's own panel scores that pairing 2.1:1 and
@@ -177,7 +180,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 206 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, 245 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
@@ -193,6 +196,11 @@ These fail loudly rather than rotting quietly — leave them on.
 - **Button labels are checked against §22.7.** The component uppercases by
   default, so a test reads every screen and fails if a long label was left
   without `preserveCase`.
+- **Fonts are checked two ways.** A role naming a weight the app never loads
+  would render in the platform fallback and look almost right — a test reads
+  the root layout and fails on it. A second fails if anyone tidies the
+  per-weight imports back into a barrel import, which quietly ships all
+  eighteen Montserrat cuts instead of the seven in use, for 4MB.
 - **Logo proportions are asserted.** `BrandMark` sizes the lock-up from a fixed
   ratio so no caller can stretch it, and a test fails if that ratio stops
   matching the master — the exact thing that would break silently when someone
