@@ -1,0 +1,86 @@
+import { memo, type ReactNode } from 'react';
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing, HIT_SLOP } from '@/theme';
+import { Text } from './Text';
+
+export interface SectionProps {
+  title: string;
+  subtitle?: string;
+  overline?: string;
+  actionLabel?: string;
+  onActionPress?: () => void;
+  children: ReactNode;
+  /** Horizontal padding is dropped so carousels can bleed to the screen edge. */
+  bleed?: boolean;
+  style?: StyleProp<ViewStyle>;
+  onDark?: boolean;
+}
+
+/** Titled content block used on Home, Menu, Rewards and Orders. */
+export const Section = memo(function Section({
+  title,
+  subtitle,
+  overline,
+  actionLabel,
+  onActionPress,
+  children,
+  bleed = false,
+  style,
+  onDark = false,
+}: SectionProps) {
+  const titleColor = onDark ? colors.textOnDark : colors.textPrimary;
+  const subtitleColor = onDark ? colors.textOnDarkMuted : colors.textSecondary;
+
+  return (
+    <View style={[styles.section, style]}>
+      <View style={[styles.header, bleed ? styles.headerBleed : null]}>
+        <View style={styles.headings}>
+          {overline ? (
+            <Text variant="overline" color={colors.primary}>
+              {overline}
+            </Text>
+          ) : null}
+          <Text variant="h2" color={titleColor}>
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text variant="caption" color={subtitleColor}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+
+        {actionLabel && onActionPress ? (
+          <Pressable
+            onPress={onActionPress}
+            hitSlop={HIT_SLOP}
+            accessibilityRole="button"
+            accessibilityLabel={`${actionLabel}, ${title}`}
+            style={styles.action}
+          >
+            <Text variant="captionMedium" color={colors.primary}>
+              {actionLabel}
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+          </Pressable>
+        ) : null}
+      </View>
+
+      {children}
+    </View>
+  );
+});
+
+const styles = StyleSheet.create({
+  section: { gap: spacing.md },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  headerBleed: { paddingHorizontal: spacing.lg },
+  headings: { flex: 1, gap: spacing.xxs },
+  action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs },
+});
