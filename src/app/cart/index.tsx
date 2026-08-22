@@ -207,6 +207,7 @@ export default function CartScreen() {
                   loading={validateVoucher.isPending}
                   disabled={promoCode.trim().length === 0}
                   variant="secondary"
+                  size="sm"
                   fullWidth={false}
                   testID="cart-promo-apply"
                 />
@@ -309,6 +310,10 @@ const styles = StyleSheet.create({
   promoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   promoInput: {
     flex: 1,
+    // Without this the field refuses to shrink below its content width and
+    // pushes Apply off the edge of the card. Yoga does not need it; the web
+    // build does, because a flex item defaults to min-width:auto there.
+    minWidth: 0,
     ...typography.body,
     color: colors.textPrimary,
     paddingHorizontal: spacing.lg,

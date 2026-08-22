@@ -357,6 +357,7 @@ const styles = StyleSheet.create({
   carousel: { gap: spacing.md, paddingHorizontal: spacing.gutter },
   footer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: spacing.md,
     paddingHorizontal: spacing.gutter,
@@ -365,5 +366,10 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
   },
-  cta: { flex: 1 },
+  // minWidth is what makes the wrap happen: below it the CTA drops to its own
+  // row rather than sharing one with the stepper and squeezing to nothing.
+  // 254 is measured, not guessed — "Add to cart" plus a four-figure price plus
+  // §22.4's 32pt padding either side. On a phone that always wraps, which is
+  // the right answer; a tablet has room for both on one row and keeps them.
+  cta: { flex: 1, minWidth: 254 },
 });

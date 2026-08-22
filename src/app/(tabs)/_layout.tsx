@@ -1,4 +1,5 @@
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui';
@@ -11,6 +12,7 @@ import { colors, radius, spacing, typography, TAB_BAR_HEIGHT } from '@/theme';
  */
 export default function TabsLayout() {
   const itemCount = useCartStore((state) => state.getItemCount());
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -19,7 +21,14 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: styles.label,
-        tabBarStyle: styles.bar,
+        // Height comes from the real inset rather than a per-platform guess.
+        // The guess was 24pt on iOS and 8 elsewhere, which left the label about
+        // three points short of its own line box on a device with no home
+        // indicator — enough to shave the descenders off every tab.
+        tabBarStyle: [
+          styles.bar,
+          { height: TAB_BAR_HEIGHT + insets.bottom, paddingBottom: insets.bottom + spacing.xs },
+        ],
         tabBarItemStyle: styles.item,
       }}
     >
@@ -91,15 +100,15 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   bar: {
-    height: TAB_BAR_HEIGHT + (Platform.OS === 'ios' ? 24 : 8),
-    paddingTop: spacing.sm,
-    paddingBottom: Platform.OS === 'ios' ? spacing.xl : spacing.sm,
+    paddingTop: spacing.xs,
     backgroundColor: colors.surface,
     borderTopColor: colors.border,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  item: { paddingVertical: spacing.xxs },
-  label: { ...typography.micro, marginTop: spacing.xxs },
+  item: { paddingVertical: 0 },
+  // Not typography.micro: that carries a 16pt line box for body-adjacent use,
+  // and a tab label needs its ascender-to-descender box, nothing more.
+  label: { ...typography.micro, lineHeight: 13, marginTop: spacing.xxs },
   badge: {
     position: 'absolute',
     top: -5,

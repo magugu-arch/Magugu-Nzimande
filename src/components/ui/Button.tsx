@@ -199,7 +199,8 @@ export const Button = memo(function Button({
           <Text
             variant={dimensions.variant}
             color={resting.text}
-            style={variant === 'text' ? styles.underline : undefined}
+            numberOfLines={1}
+            style={[styles.label, variant === 'text' ? styles.underline : null]}
           >
             {preserveCase ? label : label.toUpperCase()}
           </Text>
@@ -207,7 +208,7 @@ export const Button = memo(function Button({
           {trailingLabel ? (
             <>
               <View style={styles.spacer} />
-              <Text variant={dimensions.variant} color={resting.text}>
+              <Text variant={dimensions.variant} color={resting.text} numberOfLines={1}>
                 {trailingLabel}
               </Text>
             </>
@@ -226,6 +227,9 @@ const styles = StyleSheet.create({
   // §22.2 draws the text button as an inline link, so it carries no box
   // padding and sits flush with the content around it.
   textVariant: { paddingHorizontal: 0, alignSelf: 'flex-start' },
+  // Lets the label give way to a trailing price rather than forcing the row
+  // wider than the button.
+  label: { flexShrink: 1 },
   underline: { textDecorationLine: 'underline' },
   fullWidth: { alignSelf: 'stretch' },
   autoWidth: { alignSelf: 'flex-start' },

@@ -95,11 +95,22 @@ export function useInitialNotificationRoute() {
     if (handled.current) return;
     handled.current = true;
 
-    void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (!response) return;
-      const data = response.notification.request.content.data as
-        Record<string, unknown> | undefined;
-      router.push(routeForNotification(data) as Href);
-    });
+    // Best-effort by nature: this only ever *improves* where the app lands, so
+    // nothing it does should be able to take the launch down with it. Web has
+    // no native module behind this call and throws outright; on a device it can
+    // reject if the notification payload is malformed. Either way, failing here
+    // means landing on Home, which is where the app would have gone anyway.
+    try {
+      void Notifications.getLastNotificationResponseAsync()
+        .then((response) => {
+          if (!response) return;
+          const data = response.notification.request.content.data as
+            Record<string, unknown> | undefined;
+          router.push(routeForNotification(data) as Href);
+        })
+        .catch(() => undefined);
+    } catch {
+      // Thrown synchronously rather than rejected — same outcome.
+    }
   }, [router]);
 }

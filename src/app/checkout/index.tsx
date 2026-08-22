@@ -23,7 +23,7 @@ import { usePlaceOrder } from '@/features/orders/hooks';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod } from '@/services/paymentService';
 import { useCartStore } from '@/store/cartStore';
-import { useFulfilmentStore } from '@/store/fulfilmentStore';
+import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
 import { describeOptions, meetsDeliveryMinimum } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
@@ -54,7 +54,6 @@ export default function CheckoutScreen() {
   const tableNumber = useFulfilmentStore((state) => state.tableNumber);
   const setTableNumber = useFulfilmentStore((state) => state.setTableNumber);
   const scheduledFor = useFulfilmentStore((state) => state.scheduledFor);
-  const missingRequirement = useFulfilmentStore((state) => state.missingRequirement);
   const resetFulfilment = useFulfilmentStore((state) => state.reset);
 
   const paymentMethods = usePaymentMethods();
@@ -104,11 +103,16 @@ export default function CheckoutScreen() {
     if (!meetsDeliveryMinimum(totals.subtotal, fulfilmentType)) {
       return 'Below the delivery minimum';
     }
-    const fulfilmentBlocker = missingRequirement();
+    const fulfilmentBlocker = missingFulfilmentRequirement({
+      fulfilmentType,
+      store,
+      address,
+      tableNumber,
+    });
     if (fulfilmentBlocker) return fulfilmentBlocker;
     if (!selectedPayment) return 'Choose a payment method';
     return null;
-  }, [lines.length, totals.subtotal, fulfilmentType, missingRequirement, selectedPayment]);
+  }, [lines.length, totals.subtotal, fulfilmentType, store, address, tableNumber, selectedPayment]);
 
   const etaMinutes = (store?.preparationMinutes ?? 18) + (fulfilmentType === 'delivery' ? 20 : 0);
 
@@ -386,20 +390,23 @@ export default function CheckoutScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+        {/* The caption says what is missing; the button says what it does.
+            Both carried the blocker text at one point, which stacked the same
+            sentence twice and left a disabled control looking like the action
+            that would fix it. */}
         {blocker ? (
           <Text variant="caption" color={colors.status.warning} align="center">
             {blocker}
           </Text>
         ) : null}
         <Button
-          label={blocker ?? 'Place order'}
+          label="Place order"
           onPress={() => void handlePlaceOrder()}
-          trailingLabel={blocker ? undefined : formatPrice(totals.total)}
+          trailingLabel={formatPrice(totals.total)}
           disabled={Boolean(blocker)}
           loading={submitting}
           size="lg"
           testID="checkout-place-order"
-          preserveCase
         />
       </View>
     </View>

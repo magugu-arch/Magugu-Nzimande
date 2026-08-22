@@ -10,6 +10,37 @@ import type { Coordinates } from '@/utils/geo';
  * between screens.
  */
 
+/** What this order still needs before it can be placed, or null if nothing. */
+export interface FulfilmentRequirements {
+  fulfilmentType: FulfilmentType;
+  store: Store | null;
+  address: Address | null;
+  tableNumber: string;
+}
+
+/**
+ * A pure function, not only a store method, and deliberately so.
+ *
+ * Read through the store it is a stable reference, which makes it invisible to
+ * any `useMemo` that depends on it — the memo caches an answer derived from
+ * state it never declared, and stops updating. Checkout shipped exactly that:
+ * pick a store and the button stayed disabled, still saying "Choose a store".
+ * Taking the state as an argument makes the dependency impossible to miss.
+ */
+export function missingFulfilmentRequirement({
+  fulfilmentType,
+  store,
+  address,
+  tableNumber,
+}: FulfilmentRequirements): string | null {
+  if (!store) return 'Choose a store';
+  if (fulfilmentType === 'delivery' && !address) return 'Add a delivery address';
+  if (fulfilmentType === 'dinein' && tableNumber.trim().length === 0) {
+    return 'Enter your table number';
+  }
+  return null;
+}
+
 interface FulfilmentState {
   fulfilmentType: FulfilmentType;
   store: Store | null;
@@ -86,15 +117,7 @@ export const useFulfilmentStore = create<FulfilmentState>()(
 
       isReadyForCheckout: () => get().missingRequirement() === null,
 
-      missingRequirement: () => {
-        const { fulfilmentType, store, address, tableNumber } = get();
-        if (!store) return 'Choose a store';
-        if (fulfilmentType === 'delivery' && !address) return 'Add a delivery address';
-        if (fulfilmentType === 'dinein' && tableNumber.trim().length === 0) {
-          return 'Enter your table number';
-        }
-        return null;
-      },
+      missingRequirement: () => missingFulfilmentRequirement(get()),
     }),
     {
       name: 'bbq.fulfilment',

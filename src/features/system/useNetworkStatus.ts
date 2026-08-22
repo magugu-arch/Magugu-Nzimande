@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 import { onlineManager } from '@tanstack/react-query';
+import { config } from '@/constants/config';
 
 export interface NetworkStatus {
   /** The device reports a connection. */
@@ -40,6 +41,24 @@ function toStatus(state: NetInfoState): NetworkStatus {
  * query runs.
  */
 export function startNetworkMonitoring(): void {
+  // Out of the box NetInfo decides whether the internet is reachable by
+  // fetching a Google endpoint. That makes "are we online?" mean "can we reach
+  // Google?", which is the wrong question and one that gets the wrong answer on
+  // a filtered corporate network or behind a captive portal — the app would sit
+  // there claiming to be offline while our own API answered fine.
+  //
+  // Pointing the probe at our own API asks the question that actually matters.
+  // Any HTTP response counts, including a 404: we are testing whether packets
+  // reach the host, not whether that path exists. Only a transport-level
+  // failure, where fetch rejects and this never runs, means offline.
+  NetInfo.configure({
+    reachabilityUrl: `${config.apiBaseUrl}/health`,
+    reachabilityTest: () => Promise.resolve(true),
+    reachabilityLongTimeout: 60 * 1000,
+    reachabilityShortTimeout: 5 * 1000,
+    reachabilityRequestTimeout: 10 * 1000,
+  });
+
   onlineManager.setEventListener((setOnline) =>
     NetInfo.addEventListener((state) => {
       const { isOffline } = toStatus(state);

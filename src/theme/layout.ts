@@ -104,4 +104,10 @@ export const absoluteFill = {
 
 /** Height of the sticky cart bar, so scroll views can pad for it. */
 export const CART_BAR_HEIGHT = 64;
-export const TAB_BAR_HEIGHT = 60;
+/**
+ * Tab bar height above the safe-area inset, which the layout adds on top.
+ * 64 rather than 60: a 23pt icon, a 13pt label line box and the padding around
+ * them need it, and at 60 the label lost its descenders on a device with no
+ * home indicator.
+ */
+export const TAB_BAR_HEIGHT = 64;
