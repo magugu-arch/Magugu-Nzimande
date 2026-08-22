@@ -1,8 +1,10 @@
-import { StyleSheet, View } from 'react-native';
-import { Card, Divider, Screen, ScreenHeader, Text, Toggle } from '@/components/ui';
+import { Linking, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Button, Card, Divider, Screen, ScreenHeader, Text, Toggle } from '@/components/ui';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
+import { usePushRegistration } from '@/features/notifications/hooks';
 import { useAuthStore } from '@/store/authStore';
-import { colors, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 /** Preferences + notification channels (brief §4). */
 export default function PreferencesScreen() {
@@ -10,6 +12,8 @@ export default function PreferencesScreen() {
   const setNotificationPreference = useAuthStore((state) => state.setNotificationPreference);
   const preferences = useAuthStore((state) => state.preferences);
   const setPreference = useAuthStore((state) => state.setPreference);
+
+  const { outcome, registerNow } = usePushRegistration();
 
   return (
     <Screen scroll edges={['top', 'bottom']} testID="preferences-screen">
@@ -72,6 +76,42 @@ export default function PreferencesScreen() {
             value={notificationPreferences.channelPush}
             onValueChange={(value) => setNotificationPreference('channelPush', value)}
           />
+
+          {/*
+            A toggle that is on while the OS permission is denied is a lie.
+            Say what actually happened and give them the way to fix it.
+          */}
+          {notificationPreferences.channelPush && outcome && outcome.status !== 'granted' ? (
+            <View style={styles.pushNotice}>
+              <Ionicons name="information-circle" size={16} color={colors.status.warning} />
+              <View style={styles.pushNoticeBody}>
+                <Text variant="caption" color={colors.textSecondary}>
+                  {outcome.status === 'denied'
+                    ? 'Push is switched off for bb.q in your device settings, so these will not arrive.'
+                    : outcome.reason}
+                </Text>
+                {outcome.status === 'denied' ? (
+                  <Button
+                    label="Open device settings"
+                    onPress={() => void Linking.openSettings()}
+                    variant="ghost"
+                    size="sm"
+                    fullWidth={false}
+                    style={styles.pushAction}
+                  />
+                ) : outcome.status === 'error' ? (
+                  <Button
+                    label="Try again"
+                    onPress={() => void registerNow()}
+                    variant="ghost"
+                    size="sm"
+                    fullWidth={false}
+                    style={styles.pushAction}
+                  />
+                ) : null}
+              </View>
+            </View>
+          ) : null}
           <Divider spacingSize="none" />
           <Toggle
             label="Email"
@@ -118,4 +158,14 @@ export default function PreferencesScreen() {
 const styles = StyleSheet.create({
   body: { gap: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.xxxl },
   card: { gap: spacing.sm },
+  pushNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.status.warningSoft,
+  },
+  pushNoticeBody: { flex: 1, gap: spacing.xs },
+  pushAction: { marginLeft: -spacing.md },
 });

@@ -34,6 +34,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run verify` | typecheck → lint → test, in order |
 | `npm run assets:derive` | Derive image crops from masters, then regenerate the asset registry |
 | `npm run assets:audit` | Report which food assets are still outstanding |
+| `npm run assets:brand` | Regenerate the app icon, splash mark and favicon from brand tokens |
 
 ---
 
@@ -171,6 +172,27 @@ src/
 Pricing lives in `utils/cart.ts`, commercial rules in `constants/config.ts`,
 data access in `services/`. Screens compose — they do not calculate.
 
+### Production hardening
+
+| Concern | How it is handled |
+|---|---|
+| **Render crashes** | `ErrorBoundary` wraps the whole tree. A thrown error would otherwise unmount everything and leave a white screen — worst of all mid-checkout. It shows a branded recovery screen, says the cart survived (it is persisted), and gives the support number, because a customer whose order just vanished wants a person rather than a retry button. |
+| **Offline** | `startNetworkMonitoring()` wires NetInfo into TanStack Query's `onlineManager`, so queries pause and resume on reconnect instead of burning retries into an error state. `OfflineBanner` says what still works: browsing and cart-building do, only checkout needs the network. The offline check is deliberately conservative — `isInternetReachable` is null while probing, and treating that as offline flashes a banner on every cold start. |
+| **Push** | `notificationService` registers, syncs the token, and routes taps. Every failure path returns a reason rather than throwing: notifications are a convenience, not a prerequisite for ordering. Registration waits until the customer opts in via Preferences — asking on first launch is the reliable way to get denied permanently — and Preferences explains a denial rather than leaving a toggle that lies. |
+| **Cold-start taps** | `useInitialNotificationRoute` handles the tap that launched the process, which the normal response listener never sees. Without it, tapping "your order is here" on a closed app lands on Home. |
+| **Untrusted payloads** | `routeForNotification` only follows an in-app path. An `href` pointing anywhere else is ignored and the category decides instead. |
+
+### App icon and splash
+
+The Expo template ships a generic blue chevron, which a bb.q app must not carry.
+`npm run assets:brand` draws the launcher icon, splash mark, Android adaptive
+layers and favicon from the same two brand colours the app uses, centring the
+wordmark on its rendered bounding box rather than font metrics — `bb.q` has both
+an ascender and a descender, so metric-centring sits it visibly low.
+
+Replace it with the licensed bb.q logo artwork when that is provisioned: drop
+the files into `assets/` and delete the script.
+
 ### Key decisions
 
 - **Money never touches raw floats.** All arithmetic in `utils/money.ts` rounds
@@ -230,10 +252,11 @@ brand assets are provisioned — it is the only place the mark is drawn.
 npm test
 ```
 
-143 tests covering money arithmetic, cart pricing and option resolution, form
+154 tests covering money arithmetic, cart pricing and option resolution, form
 validation, date and scheduling logic, the catalogue's data integrity
-and substitution mapping, the Zustand cart store, all service layers, and the
-UI primitives.
+and substitution mapping, the Zustand cart store, all service layers, the UI
+primitives, notification routing (including malformed and off-app payloads) and
+the error boundary.
 
 The data-integrity suite is worth knowing about: it asserts that every product
 references a real asset key, that every recommendation points at a real product,
@@ -275,5 +298,11 @@ Honest list of what is stubbed, and where to pick it up:
 - **Address geocoding** anchors new addresses to the city centre. Wire a
   geocoder in `checkout/address.tsx` where the comment marks the spot.
 - **The store map** is schematic (see Key decisions above).
-- **Push notifications** are configured in `app.json` but no token registration
-  runs yet; `config.push.projectId` is the hook-in point.
+- **Push delivery** needs a development build and an EAS project id — Expo Go
+  dropped remote push in SDK 53. Registration, token sync, tap routing and
+  cold-start routing are all built; set `EXPO_PUBLIC_PUSH_PROJECT_ID` and the
+  backend's `/v1/account/push-tokens` endpoint to switch it on.
+- **The app icon** is a generated typographic wordmark, not the licensed bb.q
+  logo (see App icon and splash above).
+- **Crash reporting** has a hook but no provider: pass `onError` to
+  `ErrorBoundary` to wire Sentry or Crashlytics.
