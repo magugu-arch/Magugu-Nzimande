@@ -45,6 +45,7 @@ the app, and if something is wrong you'll see it there first.
 npm run verify        # typecheck → lint → test, the gate before any commit
 npm run preview:web   # the whole app in a browser, no build required
 npm run audit:screens # renders all 26 screens at two widths and reports defects
+npm run smoke:order   # signs in, adds an item and places an order, for real
 ```
 
 The browser preview is the fastest way to see a change. It is not the device —
@@ -212,13 +213,21 @@ These fail loudly rather than rotting quietly — leave them on.
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
   its own photograph, so a new menu item can't ship on a placeholder.
+- **`npm run smoke:order`** places an order: signs in, adds an item, chooses an
+  address, submits, checks the confirmation carries a reference and that
+  tracking shows the first status. Every unit test here checks a piece of that
+  journey; this is the only thing that checks the pieces connect. It runs
+  against the mock layer, so it needs no backend — which also makes it a check
+  that the mock still models the real API.
 - **`npm run audit:screens`** renders every screen at 390pt and 320pt and fails
   on anything sitting past the right edge, a page that scrolls sideways, a
   blank screen, a console error, or a §32.6 gap — an interactive element with
   no accessible name, or a focusable one with no visible focus ring. This is
   the check that found the defects the test suite could not see. It needs
   Playwright's Chromium once (`npx playwright install chromium`), or
-  `CHROMIUM_PATH` pointed at one the machine already has.
+  `CHROMIUM_PATH` pointed at one the machine already has. Both browser checks
+  run in CI as their own job, and neither is part of `npm run verify` — a
+  browser sweep is minutes, and a pre-commit gate should be seconds.
 - **Derivative drift checks** — CI re-derives both the food crops and the icon
   set and fails if either differs, catching anyone who edited a generated file
   by hand instead of its master. Icons are the likeliest to be quietly
