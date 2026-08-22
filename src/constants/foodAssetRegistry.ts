@@ -95,4 +95,16 @@ export const suppliedFoodAssets: Partial<Record<FoodAssetKey, FoodAsset>> = {
     detail: require('@assets/food/detail/cheesling-fries.jpg'),
     banner: require('@assets/food/banner/cheesling-fries.jpg'),
   },
+  ddeokBokki: {
+    thumb: require('@assets/food/thumb/ddeok-bokki.jpg'),
+    card: require('@assets/food/card/ddeok-bokki.jpg'),
+    detail: require('@assets/food/detail/ddeok-bokki.jpg'),
+    banner: require('@assets/food/banner/ddeok-bokki.jpg'),
+  },
+  roseDdeokBokki: {
+    thumb: require('@assets/food/thumb/rose-ddeok-bokki.jpg'),
+    card: require('@assets/food/card/rose-ddeok-bokki.jpg'),
+    detail: require('@assets/food/detail/rose-ddeok-bokki.jpg'),
+    banner: require('@assets/food/banner/rose-ddeok-bokki.jpg'),
+  },
 };

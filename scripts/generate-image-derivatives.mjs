@@ -48,6 +48,12 @@ VARIANTS = {
 #   focus_x     horizontal bias, same shape. A wide promo composition cropped
 #               to a 4:5 card loses most of its width, so this decides which
 #               part of the plate survives.
+#   banner_rect (left, top, right, bottom) used for the banner instead of the
+#               full frame. A 16:9 cut of a 1.25 source can only ever show
+#               ~70% of its height, so a badge sitting below that line gets
+#               sliced mid-word. This pins the banner to a region that holds
+#               the headline whole and leaves the badge out entirely — a
+#               missing badge reads as art direction, a halved one as a bug.
 OVERRIDES = {
     # Supplied as a finished promo composition: a headline across the top-left
     # and two flavour callouts. Cropping a card straight out of that would
@@ -87,6 +93,8 @@ OVERRIDES = {
         # variant to the top keeps the fries above the carton in frame.
         "promo_safe": (0.35, 0.08, 0.81, 0.98),
         "gravity": 0.0,
+        # Badge sits at y 0.55-0.72; the banner stops above it.
+        "banner_rect": (0.0, 0.0, 0.77, 0.54),
     },
     # Headline top-left, badge bottom-left; the tray occupies the right two-thirds.
     "cheesling-fries": {
@@ -95,6 +103,24 @@ OVERRIDES = {
         "promo_safe": (0.30, 0.25, 0.85, 0.96),
         "gravity": {"banner": 0.0},
         "focus_x": 0.0,
+        "banner_rect": (0.0, 0.0, 1.0, 0.635),
+    },
+    # Headline top-left, "spicy chewy irresistible" badge bottom-left.
+    "ddeok-bokki": {
+        "promo_safe": (0.27, 0.28, 0.90, 0.95),
+        "gravity": {"banner": 0.0},
+        "banner_rect": (0.0, 0.0, 1.0, 0.65),
+        # Anchor the banner left so the headline is not clipped.
+        "focus_x": {"banner": 0.0},
+    },
+    # Headline plus a script line running down to y 0.37 on the left, and a
+    # badge bottom-left; the bowl sits right of both.
+    "rose-ddeok-bokki": {
+        "promo_safe": (0.26, 0.28, 0.86, 0.95),
+        "gravity": {"banner": 0.0},
+        "banner_rect": (0.0, 0.0, 1.0, 0.67),
+        # Anchor the banner left so the headline is not clipped.
+        "focus_x": {"banner": 0.0},
     },
 }
 
@@ -157,7 +183,11 @@ for src in sources:
         # Banners may carry campaign text; every other surface must not.
         source = im
         promo_safe = override.get("promo_safe")
-        if promo_safe and variant != "banner":
+        banner_rect = override.get("banner_rect")
+        if variant == "banner":
+            if banner_rect:
+                source = subrect(im, banner_rect)
+        elif promo_safe:
             source = subrect(im, promo_safe)
 
         focus_x = override.get("focus_x", 0.5)

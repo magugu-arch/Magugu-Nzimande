@@ -86,9 +86,13 @@ release build.
 
 ### Current asset status
 
-**14 of 16** catalogue products have supplied artwork. Only Ddeok-Bokki and
-Rose Ddeok-Bokki are outstanding; every chicken, meal and fries product on the
-menu now carries its own photograph.
+**All 16 of 16** catalogue products carry their own supplied bb.q photograph.
+Nothing borrows, nothing renders a placeholder, and `npm run assets:audit`
+exits clean:
+
+```
+All 16 catalogue products have supplied artwork. Cleared for production.
+```
 
 ### Promo compositions and per-master crop overrides
 
@@ -103,9 +107,10 @@ cards, where a naive crop slices the headline mid-word.
 | `promo_safe` | A fractional `(left, top, right, bottom)` region containing food and no campaign text. `thumb`/`card`/`detail` crop inside it; `banner` still uses the full composition. |
 | `gravity` | Vertical bias — a single number, or a dict keyed by variant. Every promo master pins its banner to `0.0` so the top-left headline survives the 16:9 cut. |
 | `focus_x` | Horizontal bias, same shape. A wide promo composition cropped to a 4:5 card loses most of its width, so this decides which part of the plate survives — Chicken & Rice Meal biases right to keep the rice and slaw in frame. |
+| `banner_rect` | A region used for the **banner** instead of the full frame. A 16:9 cut of a 1.25 source can only ever show ~70% of its height, so a badge sitting below that line gets sliced mid-word. This pins the banner to a region holding the headline whole and leaving the badge out entirely — a missing badge reads as art direction, a halved one reads as a bug. |
 
-Eight of the fourteen supplied masters arrived as campaign artwork and carry an
-entry here. Plain food shots need none.
+Ten of the sixteen masters arrived as campaign artwork and carry an entry here.
+Plain food shots need none.
 
 When adding one, derive and then **look at the card**: the rect has to clear
 headline flourishes and land on printed packaging marks rather than through
@@ -118,9 +123,11 @@ same visual family — mapped in `SUBSTITUTE_ASSET_KEYS`, by glaze colour and
 finish rather than by menu section, since that is what a customer actually reads
 in a thumbnail:
 
-| Borrows | Products |
-|---|---|
-| Secret Sauce | Ddeok-Bokki, Rose Ddeok-Bokki — glossy red chilli glaze with fresh chilli and sesame |
+`SUBSTITUTE_ASSET_KEYS` is **empty** — nothing borrows.
+
+The mechanism is kept for the next product added to the menu ahead of its shoot.
+Map the new key to the closest supplied asset by visual family, and it inherits
+both guardrails automatically.
 
 Two guardrails come with this:
 
@@ -136,10 +143,9 @@ Two guardrails come with this:
 soon" — remains the fallback for any product with neither its own artwork nor a
 mapped substitute. Both disappear on their own the moment the master lands.
 
-**Worth flagging:** the brief (§7) asks for clear product recognition and forbids
-placeholder food imagery. Substitution trades against that deliberately, to keep
-the menu looking finished ahead of the full shoot. Two photographs now remove
-the trade-off entirely, and both are the same dish in two sauces — one shoot.
+Earlier batches traded against brief §7 (clear product recognition) by letting
+products borrow a related photograph while their own shoot was outstanding. That
+trade-off is now closed — every product shows itself.
 
 ---
 
@@ -264,8 +270,6 @@ captured by our own form — that belongs inside the gateway's PCI-compliant SDK
 
 Honest list of what is stubbed, and where to pick it up:
 
-- **2 of 16 food assets** are outstanding — Ddeok-Bokki and Rose Ddeok-Bokki,
-  which currently borrow the Secret Sauce photograph (see Substitution above).
 - **Card capture** shows an explanatory alert instead of a form — the gateway
   SDK belongs at that call site in `account/payment-methods.tsx`.
 - **Address geocoding** anchors new addresses to the city centre. Wire a

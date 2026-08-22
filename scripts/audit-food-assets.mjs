@@ -21,10 +21,9 @@ const VARIANTS = ['thumb', 'card', 'detail', 'banner'];
 
 // Kept in step with FOOD_ASSET_FILENAMES in src/constants/foodAssets.ts.
 /** Mirrors SUBSTITUTE_ASSET_KEYS in src/constants/foodAssets.ts. */
-const SUBSTITUTES = {
-  ddeokBokki: 'Secret Sauce',
-  roseDdeokBokki: 'Secret Sauce',
-};
+// Empty while every product has its own artwork; mirrors
+// SUBSTITUTE_ASSET_KEYS in src/constants/foodAssets.ts.
+const SUBSTITUTES = {};
 
 const CATALOGUE = [
   ['goldenOriginal', 'golden-original', 'Golden Original Chicken'],

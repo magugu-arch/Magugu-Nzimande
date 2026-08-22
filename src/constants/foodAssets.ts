@@ -64,32 +64,25 @@ export const foodAssets = suppliedFoodAssets;
 /**
  * Stand-in photography for products whose own shoot has not landed yet.
  *
- * Each pending product borrows the closest supplied asset in the same food
- * family, so the menu reads as finished rather than half-built. Two caveats
- * worth keeping in view:
+ * **Empty, and it should stay that way.** All 16 catalogue products now carry
+ * their own supplied bb.q photograph, so nothing borrows and nothing renders
+ * the placeholder tile.
  *
- *  - A borrowed photo shows a different product. Anything substituted is
- *    flagged `isSubstituted`, and the product detail screen captions it
- *    "Serving suggestion" so a customer inspecting the item closely is not
- *    told it is something it is not.
- *  - `npm run assets:audit` still counts these as outstanding. Substitution
- *    changes what a customer sees, not what the shoot list owes.
- *
- * Mapping is by visual family, not by menu section: glaze colour and finish are
- * what a customer actually reads in a thumbnail.
+ * The mechanism is kept for the next product added to the menu ahead of its
+ * shoot. Map the new key to the closest supplied asset by visual family —
+ * glaze colour and finish, not menu section, since that is what a customer
+ * reads in a thumbnail. Anything mapped here is flagged by `isSubstituted`
+ * and captioned "Serving suggestion" on the product detail screen, and still
+ * counts as outstanding in `npm run assets:audit`: substitution changes what
+ * a customer sees, not what the shoot list owes.
  */
-export const SUBSTITUTE_ASSET_KEYS: Partial<Record<FoodAssetKey, FoodAssetKey>> = {
-  // Glossy red chilli glaze with fresh chilli and sesame — the closest thing
-  // in the catalogue to a saucy rice-cake dish.
-  ddeokBokki: 'secretSauce',
-  roseDdeokBokki: 'secretSauce',
-};
+export const SUBSTITUTE_ASSET_KEYS: Partial<Record<FoodAssetKey, FoodAssetKey>> = {};
 
 /**
- * Products still awaiting their own supplied bb.q artwork.
+ * Products still awaiting their own supplied bb.q artwork. Currently empty.
  *
- * `npm run assets:audit` fails the build while this list is non-empty, so the
- * outstanding shoot list stays visible even though the UI now substitutes.
+ * `npm run assets:audit` fails the build while this list is non-empty, so a
+ * product added to the menu without a photograph cannot ship unnoticed.
  */
 export const PENDING_ASSET_KEYS: readonly FoodAssetKey[] = FOOD_ASSET_KEYS.filter(
   (key) => foodAssets[key] === undefined,

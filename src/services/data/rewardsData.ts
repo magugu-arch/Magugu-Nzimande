@@ -298,6 +298,19 @@ export const promotions: Promotion[] = [
     usePromotionalComposition: true,
   },
   {
+    id: 'promo-ddeok-bokki',
+    headline: 'Ddeok-Bokki, two ways',
+    description:
+      'The fiery original, or the rosé version softened with cream. Chewy rice cakes either way.',
+    assetKey: 'ddeokBokki',
+    ctaLabel: 'Pick your sauce',
+    ctaHref: '/product/ddeok-bokki',
+    validFrom: new Date(Date.now() - 4 * 86_400_000).toISOString(),
+    validUntil: new Date(Date.now() + 45 * 86_400_000).toISOString(),
+    terms: ['Available at participating stores.'],
+    usePromotionalComposition: true,
+  },
+  {
     id: 'promo-free-delivery',
     headline: 'Free delivery over R350',
     description: 'Fill the box, skip the fee. Automatically applied at checkout.',
