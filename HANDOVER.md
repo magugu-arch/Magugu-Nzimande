@@ -16,7 +16,7 @@ Africa, built to the supplied brief.
 | Screens | 42 routes covering every journey in brief §4 |
 | Food photography | All 16 catalogue products, own artwork, no placeholders |
 | Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
-| Tests | 245, across 13 suites |
+| Tests | 246, across 13 suites |
 | Branch | `claude/bbq-chicken-app-czgvuz` |
 
 It runs **end to end with no backend**. `EXPO_PUBLIC_USE_MOCK_API` defaults to
@@ -128,11 +128,15 @@ Also outstanding, and deliberate:
   they agree with each other. §23.5 looks like the outlier.
 - **§12.2 puts UI buttons on Arial Bold; §11.2 puts them on Montserrat
   SemiBold.** Montserrat, since §13.3 and §13.4's callouts say the same.
-- **Two changes have not been seen on a device**, and they are the ones that
-  most want to be. §23.7's 24px gutter replaced a 16px one; and the whole app
-  moved from Helvetica Neue to Montserrat, which is a wider face with a larger
-  x-height, so lines that fitted before may not. Every size is a token in
-  `theme/typography.ts`, so trimming is a one-file change if it reads heavy.
+- **Two changes have not been seen on a device.** §23.7's 24px gutter replaced
+  a 16px one, and the app moved from Helvetica Neue to Montserrat. The riskier
+  half of the second is now measured rather than assumed: `npm run
+  assets:typefit` reads the bundled TTF and checks every static button label
+  against §22.4's geometry at 320pt. Labels came out **30% wider** on average,
+  worst case 42%, and one was overflowing. What measurement cannot settle is
+  how the heavier face *reads* — density, rhythm, whether headings feel
+  oversized. Every size is a token in `theme/typography.ts`, so trimming is a
+  one-file change.
 - **§10.2's 50/30/15/5 digital colour ratio is noted, not applied.** The app is
   mostly white with red as the accent, which is what the client's own mockups
   show and what leaves the food photography somewhere to sit. §10.1 allows the
@@ -180,7 +184,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 245 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, 246 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
@@ -196,6 +200,10 @@ These fail loudly rather than rotting quietly — leave them on.
 - **Button labels are checked against §22.7.** The component uppercases by
   default, so a test reads every screen and fails if a long label was left
   without `preserveCase`.
+- **Button labels are measured, not guessed.** `assets:typefit` computes real
+  advance widths from the font file the app ships, at the narrowest screen
+  worth supporting. React Native truncates an overlong label with an ellipsis
+  rather than complaining, so this is the only way to see it without a device.
 - **Fonts are checked two ways.** A role naming a weight the app never loads
   would render in the platform fallback and look almost right — a test reads
   the root layout and fails on it. A second fails if anyone tidies the
