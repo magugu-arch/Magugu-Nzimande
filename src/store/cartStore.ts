@@ -2,12 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CartLine, CartTotals, FulfilmentType, Product, SelectedOption } from '@/types';
-import {
-  buildCartLine,
-  calculateTotals,
-  cartItemCount,
-  clampQuantity,
-} from '@/utils/cart';
+import { buildCartLine, calculateTotals, cartItemCount, clampQuantity } from '@/utils/cart';
 
 /**
  * Cart state.

@@ -28,6 +28,9 @@ export const spacing = {
   gapTight: 4,
 } as const;
 
+/** bb.q Black. Repeated here because layout must not import colours. */
+const SHADOW_INK = '#221E1F';
+
 export const radius = {
   none: 0,
   sm: 6,
@@ -58,7 +61,7 @@ export const elevation = {
   none: {},
   sm: Platform.select({
     ios: {
-      shadowColor: '#221E1E',
+      shadowColor: SHADOW_INK,
       shadowOpacity: 0.08,
       shadowRadius: 6,
       shadowOffset: { width: 0, height: 2 },
@@ -67,7 +70,7 @@ export const elevation = {
   }) as ViewStyle,
   md: Platform.select({
     ios: {
-      shadowColor: '#221E1E',
+      shadowColor: SHADOW_INK,
       shadowOpacity: 0.12,
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 4 },
@@ -76,7 +79,7 @@ export const elevation = {
   }) as ViewStyle,
   lg: Platform.select({
     ios: {
-      shadowColor: '#221E1E',
+      shadowColor: SHADOW_INK,
       shadowOpacity: 0.16,
       shadowRadius: 20,
       shadowOffset: { width: 0, height: 8 },

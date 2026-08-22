@@ -39,12 +39,7 @@ export interface CartTotals {
 }
 
 export type OrderStatus =
-  | 'received'
-  | 'preparing'
-  | 'ready'
-  | 'out_for_delivery'
-  | 'completed'
-  | 'cancelled';
+  'received' | 'preparing' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
 
 export interface OrderStatusEvent {
   status: OrderStatus;

@@ -55,7 +55,7 @@ export default function OrderConfirmationScreen() {
         <Text variant="display" align="center">
           Order placed
         </Text>
-        <Text variant="bodyLarge" color={colors.textSecondary} align="center">
+        <Text variant="quote" color={colors.textSecondary} align="center">
           Thanks. The kitchen has your order and is getting started.
         </Text>
 

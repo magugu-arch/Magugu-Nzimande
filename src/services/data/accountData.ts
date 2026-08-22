@@ -1,10 +1,4 @@
-import type {
-  Address,
-  AppNotification,
-  PaymentMethod,
-  SupportTopic,
-  UserProfile,
-} from '@/types';
+import type { Address, AppNotification, PaymentMethod, SupportTopic, UserProfile } from '@/types';
 
 export const demoUser: UserProfile = {
   id: 'user-demo',

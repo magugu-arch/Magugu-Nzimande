@@ -45,9 +45,7 @@ export function isSettledOnDelivery(methodType: PaymentMethodType): boolean {
   return methodType === 'cash';
 }
 
-export async function createPaymentIntent(
-  input: AuthorisePaymentInput,
-): Promise<PaymentIntent> {
+export async function createPaymentIntent(input: AuthorisePaymentInput): Promise<PaymentIntent> {
   if (!config.useMockApi) {
     return request<PaymentIntent>('/v1/payments/intents', { method: 'POST', body: input });
   }

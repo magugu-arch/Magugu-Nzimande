@@ -55,7 +55,7 @@ export const PromotionBanner = memo(function PromotionBanner({
           <Badge label="Offer" tone="onImage" />
         )}
 
-        <Text variant={size === 'hero' ? 'h1' : 'h2'} color={colors.textOnDark} numberOfLines={2}>
+        <Text variant={size === 'hero' ? 'hero' : 'h2'} color={colors.textOnDark} numberOfLines={2}>
           {promotion.headline}
         </Text>
         <Text variant="caption" color={colors.textOnDarkMuted} numberOfLines={2}>

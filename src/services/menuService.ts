@@ -70,12 +70,7 @@ export async function searchProducts(query: string): Promise<Product[]> {
 
   const menu = await fetchMenu();
   return menu.products.filter((product) => {
-    const haystack = [
-      product.name,
-      product.shortDescription,
-      product.description,
-      ...product.tags,
-    ]
+    const haystack = [product.name, product.shortDescription, product.description, ...product.tags]
       .join(' ')
       .toLowerCase();
     return haystack.includes(trimmed);

@@ -57,7 +57,10 @@ export async function fetchNearestStore(
 }
 
 /** Trading window for a given weekday, or null when closed that day. */
-export function hoursForDay(store: Store, day: number): { opensAt: string; closesAt: string } | null {
+export function hoursForDay(
+  store: Store,
+  day: number,
+): { opensAt: string; closesAt: string } | null {
   const entry = store.openingHours.find((hours) => hours.day === day);
   return entry ? { opensAt: entry.opensAt, closesAt: entry.closesAt } : null;
 }
@@ -70,7 +73,5 @@ export function isStoreOpenAt(store: Store, when: Date = new Date()): boolean {
   const [closeHour = 0, closeMinute = 0] = hours.closesAt.split(':').map(Number);
   const minutesNow = when.getHours() * 60 + when.getMinutes();
 
-  return (
-    minutesNow >= openHour * 60 + openMinute && minutesNow < closeHour * 60 + closeMinute
-  );
+  return minutesNow >= openHour * 60 + openMinute && minutesNow < closeHour * 60 + closeMinute;
 }

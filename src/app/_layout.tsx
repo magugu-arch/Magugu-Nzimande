@@ -5,6 +5,18 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
+// Imported per weight, not from the package root. The root barrel `require()`s
+// all eighteen Montserrat cuts and both Playfair faces, and Metro follows it —
+// roughly 6MB of fonts to ship the eight the type scale actually names.
+import { Montserrat_300Light } from '@expo-google-fonts/montserrat/300Light';
+import { Montserrat_400Regular } from '@expo-google-fonts/montserrat/400Regular';
+import { Montserrat_500Medium } from '@expo-google-fonts/montserrat/500Medium';
+import { Montserrat_600SemiBold } from '@expo-google-fonts/montserrat/600SemiBold';
+import { Montserrat_700Bold } from '@expo-google-fonts/montserrat/700Bold';
+import { Montserrat_800ExtraBold } from '@expo-google-fonts/montserrat/800ExtraBold';
+import { Montserrat_900Black } from '@expo-google-fonts/montserrat/900Black';
+import { PlayfairDisplay_400Regular_Italic } from '@expo-google-fonts/playfair-display/400Regular_Italic';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/system/OfflineBanner';
 import { startNetworkMonitoring } from '@/features/system/useNetworkStatus';
@@ -43,12 +55,33 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * The brand faces, per guidelines §11 and §13. Arial (§12) is not here because
+ * it is not bundled — it ships with the platform, which is why §12 picked it.
+ */
+const brandFonts = {
+  Montserrat_300Light,
+  Montserrat_400Regular,
+  Montserrat_500Medium,
+  Montserrat_600SemiBold,
+  Montserrat_700Bold,
+  Montserrat_800ExtraBold,
+  Montserrat_900Black,
+  PlayfairDisplay_400Regular_Italic,
+};
+
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(brandFonts);
+
   useEffect(() => {
-    // Nothing async to wait on yet (fonts are system faces), so reveal the app
-    // as soon as the first layout commits.
-    void SplashScreen.hideAsync();
-  }, []);
+    // Hold the splash until the brand faces are in memory, so the first frame
+    // is not a flash of the system font reflowing into Montserrat. A font that
+    // fails to load must not take the app down with it: `useFonts` reports the
+    // error, the app falls back to the platform face, and the splash lifts.
+    if (fontsLoaded || fontError) void SplashScreen.hideAsync();
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -133,7 +133,9 @@ export function discountFor(voucher: Voucher, subtotal: number): number {
   }
 }
 
-export async function redeemReward(rewardId: string): Promise<{ reward: Reward; discount: number }> {
+export async function redeemReward(
+  rewardId: string,
+): Promise<{ reward: Reward; discount: number }> {
   if (!config.useMockApi) {
     return request<{ reward: Reward; discount: number }>('/v1/loyalty/redeem', {
       method: 'POST',

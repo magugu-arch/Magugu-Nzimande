@@ -565,10 +565,20 @@ export const products: Product[] = [
         maxSelect: 4,
         defaultOptionIds: [],
         options: [
-          { id: 'burger-extra-cheese', name: 'Extra cheese slice', priceDelta: 14, available: true },
+          {
+            id: 'burger-extra-cheese',
+            name: 'Extra cheese slice',
+            priceDelta: 14,
+            available: true,
+          },
           { id: 'burger-extra-patty', name: 'Double the fillet', priceDelta: 45, available: true },
           { id: 'burger-extra-bacon', name: 'Crispy bacon', priceDelta: 26, available: true },
-          { id: 'burger-extra-jalapeno', name: 'Pickled jalapeño', priceDelta: 12, available: true },
+          {
+            id: 'burger-extra-jalapeno',
+            name: 'Pickled jalapeño',
+            priceDelta: 12,
+            available: true,
+          },
         ],
       },
       SIDE_GROUP('burger'),

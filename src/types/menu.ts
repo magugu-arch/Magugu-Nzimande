@@ -71,13 +71,7 @@ export interface Product {
 }
 
 export type ProductTag =
-  | 'bestseller'
-  | 'new'
-  | 'spicy'
-  | 'popular'
-  | 'value'
-  | 'sharing'
-  | 'boneless';
+  'bestseller' | 'new' | 'spicy' | 'popular' | 'value' | 'sharing' | 'boneless';
 
 export interface MenuSnapshot {
   categories: Category[];

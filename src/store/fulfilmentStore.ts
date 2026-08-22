@@ -68,8 +68,7 @@ export const useFulfilmentStore = create<FulfilmentState>()(
       },
 
       setStore: (store) => set({ store }),
-      setAddress: (address) =>
-        set({ address, deliveryInstructions: address?.instructions ?? '' }),
+      setAddress: (address) => set({ address, deliveryInstructions: address?.instructions ?? '' }),
       setDeliveryInstructions: (deliveryInstructions) => set({ deliveryInstructions }),
       setTableNumber: (tableNumber) => set({ tableNumber }),
       setScheduledFor: (scheduledFor) => set({ scheduledFor }),

@@ -16,8 +16,7 @@ export function distanceKm(from: Coordinates, to: Coordinates): number {
   const lat1 = toRadians(from.latitude);
   const lat2 = toRadians(to.latitude);
 
-  const a =
-    Math.sin(dLat / 2) ** 2 + Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  const a = Math.sin(dLat / 2) ** 2 + Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Math.round(EARTH_RADIUS_KM * c * 10) / 10;
 }

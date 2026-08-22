@@ -1,10 +1,4 @@
-import type {
-  LoyaltyAccount,
-  Promotion,
-  Reward,
-  TierDefinition,
-  Voucher,
-} from '@/types';
+import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
 
 /** bb.q Rewards tiers (brief §11). */
 export const tiers: TierDefinition[] = [

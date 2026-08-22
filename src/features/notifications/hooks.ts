@@ -69,8 +69,7 @@ export function useNotificationRouting() {
 
     const responded = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       router.push(routeForNotification(data) as Href);
     });
 
@@ -99,8 +98,7 @@ export function useInitialNotificationRoute() {
     void Notifications.getLastNotificationResponseAsync().then((response) => {
       if (!response) return;
       const data = response.notification.request.content.data as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       router.push(routeForNotification(data) as Href);
     });
   }, [router]);

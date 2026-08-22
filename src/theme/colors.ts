@@ -3,16 +3,25 @@
  *
  * Brand source of truth — guidelines v1.0 §23.4 (UI colour usage):
  *   bb.q Red    #E31937
- *   bb.q Black  #221E1E
+ *   bb.q Black  #221E1F
  *   White       #FFFFFF
  *   Cream       #FFF5E6
  *   Light Grey  #F2F2F2
  *
- * One known discrepancy in the guidelines themselves: §23.4 prints bb.q Black
- * as #221E1F while the app page and the brief both give #221E1E. They differ
- * by one unit in blue and are indistinguishable on screen; #221E1E is used
- * here because two of the three sources agree on it. Worth settling before
- * anything goes to print.
+ * bb.q Black is #221E1F: §10.2 prints it that way in all four ratio columns
+ * and §23.4 agrees, against #221E1E on the app page and in the brief. Two
+ * guideline pages to one, so the guidelines win. The two differ by a single
+ * unit of blue and are indistinguishable on screen.
+ *
+ * §10.2 sets a colour ratio for digital of 50% red, 30% black, 15% white and
+ * 5% neutral tint. That is a direction for a designer's eye, not something
+ * code can assert, and it is not what the app currently looks like: these
+ * screens are mostly white with red as the accent. Deliberately so — the
+ * client's own app mockups are light-ground, §10.1 says the ratios "can be
+ * adjusted slightly to suit specific applications", and a food-ordering app
+ * that is half red leaves the photography nowhere to sit. What the app does
+ * honour is §10.3's hierarchy: red leads, black supports, white does the
+ * spacing work, and the status hues stay accents that never compete with red.
  *
  * Never hard-code a hex value in a screen or component. Import from here so a
  * brand refresh is a single-file change.
@@ -29,7 +38,7 @@ const brand = {
   redSoft: '#FDE8EB',
   redTint: '#FBD3D9',
   /** bb.q Black — headings, primary surfaces on dark screens. */
-  black: '#221E1E',
+  black: '#221E1F',
   blackSoft: '#332E2E',
   blackElevated: '#3D3737',
 } as const;
@@ -103,13 +112,13 @@ export const colors = {
   textOnDark: neutral.white,
   textOnDarkMuted: 'rgba(255,255,255,0.72)',
 
-  overlay: 'rgba(34,30,30,0.62)',
-  scrim: 'rgba(34,30,30,0.35)',
+  overlay: 'rgba(34,30,31,0.62)',
+  scrim: 'rgba(34,30,31,0.35)',
   imagePlaceholder: neutral.grey200,
 
   /** Gradient stops used over food photography so text stays legible. */
-  imageScrim: ['rgba(34,30,30,0)', 'rgba(34,30,30,0.78)'] as const,
-  heroScrim: ['rgba(34,30,30,0.10)', 'rgba(34,30,30,0.88)'] as const,
+  imageScrim: ['rgba(34,30,31,0)', 'rgba(34,30,31,0.78)'] as const,
+  heroScrim: ['rgba(34,30,31,0.10)', 'rgba(34,30,31,0.88)'] as const,
 } as const;
 
 export type Colors = typeof colors;

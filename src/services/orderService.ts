@@ -80,7 +80,9 @@ function buildTimeline(
       status,
       label,
       description: STATUS_COPY[status].description,
-      occurredAt: reached ? addMinutes(placedAt, Math.round(stepMinutes * index)).toISOString() : null,
+      occurredAt: reached
+        ? addMinutes(placedAt, Math.round(stepMinutes * index)).toISOString()
+        : null,
     };
   });
 }
@@ -236,7 +238,12 @@ function advance(order: Order): Order {
   return {
     ...order,
     status,
-    timeline: buildTimeline(order.fulfilmentType, status, new Date(order.placedAt), order.etaMinutes),
+    timeline: buildTimeline(
+      order.fulfilmentType,
+      status,
+      new Date(order.placedAt),
+      order.etaMinutes,
+    ),
   };
 }
 
@@ -271,7 +278,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     totals: input.totals,
     storeId: store?.id ?? 'store-sandton',
     storeName: store?.name ?? 'bb.q Chicken',
-    ...(address ? { addressId: address.id, addressSummary: `${address.line1}, ${address.suburb}` } : {}),
+    ...(address
+      ? { addressId: address.id, addressSummary: `${address.line1}, ${address.suburb}` }
+      : {}),
     ...(input.tableNumber ? { tableNumber: input.tableNumber } : {}),
     ...(input.scheduledFor ? { scheduledFor: input.scheduledFor } : {}),
     paymentMethodLabel: payment?.label ?? 'Card',
@@ -335,11 +344,7 @@ export async function cancelOrder(orderId: string): Promise<Order> {
   return delay(cancelled, 300);
 }
 
-export async function rateOrder(
-  orderId: string,
-  rating: number,
-  comment?: string,
-): Promise<Order> {
+export async function rateOrder(orderId: string, rating: number, comment?: string): Promise<Order> {
   if (!config.useMockApi) {
     return request<Order>(`/v1/orders/${encodeURIComponent(orderId)}/rating`, {
       method: 'POST',
