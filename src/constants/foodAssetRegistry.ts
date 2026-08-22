@@ -29,10 +29,40 @@ export const suppliedFoodAssets: Partial<Record<FoodAssetKey, FoodAsset>> = {
     detail: require('@assets/food/detail/soy-garlic.jpg'),
     banner: require('@assets/food/banner/soy-garlic.jpg'),
   },
+  secretSauce: {
+    thumb: require('@assets/food/thumb/secret-sauce.jpg'),
+    card: require('@assets/food/card/secret-sauce.jpg'),
+    detail: require('@assets/food/detail/secret-sauce.jpg'),
+    banner: require('@assets/food/banner/secret-sauce.jpg'),
+  },
   hotSpicy: {
     thumb: require('@assets/food/thumb/hot-spicy.jpg'),
     card: require('@assets/food/card/hot-spicy.jpg'),
     detail: require('@assets/food/detail/hot-spicy.jpg'),
     banner: require('@assets/food/banner/hot-spicy.jpg'),
+  },
+  cheesling: {
+    thumb: require('@assets/food/thumb/cheesling.jpg'),
+    card: require('@assets/food/card/cheesling.jpg'),
+    detail: require('@assets/food/detail/cheesling.jpg'),
+    banner: require('@assets/food/banner/cheesling.jpg'),
+  },
+  goldenOriginalWings: {
+    thumb: require('@assets/food/thumb/golden-original-wings.jpg'),
+    card: require('@assets/food/card/golden-original-wings.jpg'),
+    detail: require('@assets/food/detail/golden-original-wings.jpg'),
+    banner: require('@assets/food/banner/golden-original-wings.jpg'),
+  },
+  boneless: {
+    thumb: require('@assets/food/thumb/boneless.jpg'),
+    card: require('@assets/food/card/boneless.jpg'),
+    detail: require('@assets/food/detail/boneless.jpg'),
+    banner: require('@assets/food/banner/boneless.jpg'),
+  },
+  halfAndHalf: {
+    thumb: require('@assets/food/thumb/half-and-half.jpg'),
+    card: require('@assets/food/card/half-and-half.jpg'),
+    detail: require('@assets/food/detail/half-and-half.jpg'),
+    banner: require('@assets/food/banner/half-and-half.jpg'),
   },
 };

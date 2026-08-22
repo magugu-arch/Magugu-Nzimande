@@ -246,6 +246,19 @@ export const promotions: Promotion[] = [
     usePromotionalComposition: true,
   },
   {
+    id: 'promo-half-and-half',
+    headline: 'Half & Half. Both, obviously.',
+    description:
+      'Golden Original on one side, Hot Spicy on the other. One box, no arguments at the table.',
+    assetKey: 'halfAndHalf',
+    ctaLabel: 'Build your box',
+    ctaHref: '/product/half-and-half',
+    validFrom: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+    validUntil: new Date(Date.now() + 40 * 86_400_000).toISOString(),
+    terms: ['Available in medium and large.', 'Flavour choice subject to availability.'],
+    usePromotionalComposition: true,
+  },
+  {
     id: 'promo-spicy-tuesday',
     headline: 'Spicy Tuesday',
     description: '15% off every Hot Spicy box, every Tuesday. Bring a drink.',

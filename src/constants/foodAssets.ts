@@ -79,22 +79,20 @@ export const foodAssets = suppliedFoodAssets;
  * what a customer actually reads in a thumbnail.
  */
 export const SUBSTITUTE_ASSET_KEYS: Partial<Record<FoodAssetKey, FoodAssetKey>> = {
-  // Dark, glossy lacquered glaze.
-  secretSauce: 'soyGarlic',
-  koreanRiceBowl: 'soyGarlic',
-  // Golden, unglazed, dusted crust.
-  cheesling: 'goldenOriginal',
-  goldenOriginalWings: 'goldenOriginal',
-  boneless: 'goldenOriginal',
+  // Whole crispy pieces, unglazed — reads as "fried chicken on a plate".
   chickenRiceMeal: 'goldenOriginal',
   chickenBurger: 'goldenOriginal',
-  frenchFries: 'goldenOriginal',
-  cheeslingFries: 'goldenOriginal',
-  // Two-flavour box — the amber glaze reads closest to a mixed tray.
-  halfAndHalf: 'honeyGarlic',
-  // Red chilli glaze.
-  ddeokBokki: 'hotSpicy',
-  roseDdeokBokki: 'hotSpicy',
+  // Dark, glossy lacquered glaze over rice.
+  koreanRiceBowl: 'soyGarlic',
+  // Bite-size golden fried pieces in a tray sit far closer to a fries portion
+  // than a whole drumstick does.
+  frenchFries: 'boneless',
+  // Same cheese dusting, so the seasoning itself is accurate.
+  cheeslingFries: 'cheesling',
+  // Glossy red chilli sauce with fresh chilli — the closest thing we have to
+  // a saucy rice-cake dish.
+  ddeokBokki: 'secretSauce',
+  roseDdeokBokki: 'secretSauce',
 };
 
 /**

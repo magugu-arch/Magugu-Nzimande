@@ -86,22 +86,37 @@ release build.
 
 ### Current asset status
 
-4 of the 16 catalogue products have supplied artwork:
+**9 of 16** catalogue products have supplied artwork:
 
 | Supplied | Awaiting artwork |
 |---|---|
-| Golden Original Chicken | Secret Sauce Chicken |
-| Honey Garlic Chicken | Cheesling Chicken |
-| Soy Garlic Chicken | Golden Original Wings |
-| Hot Spicy Chicken | Boneless Chicken |
-| | Half & Half Chicken |
-| | Chicken & Rice Meal |
-| | Chicken Burger |
-| | Korean Rice Bowl |
-| | French Fries |
-| | Cheesling Fries |
-| | Ddeok-Bokki |
-| | Rose Ddeok-Bokki |
+| Golden Original Chicken | Chicken & Rice Meal |
+| Honey Garlic Chicken | Chicken Burger |
+| Soy Garlic Chicken | Korean Rice Bowl |
+| Secret Sauce Chicken | French Fries |
+| Hot Spicy Chicken | Cheesling Fries |
+| Cheesling Chicken | Ddeok-Bokki |
+| Golden Original Wings | Rose Ddeok-Bokki |
+| Boneless Chicken | |
+| Half & Half Chicken | |
+
+All seven outstanding products are sides and meals — every chicken product on
+the menu now carries its own photography.
+
+### Promo compositions and per-master crop overrides
+
+Some masters arrive as finished campaign artwork with headline typography baked
+in (Half & Half is one). Brief §9 allows that on banners but not on catalogue
+cards, where a naive crop slices the headline mid-word.
+
+`OVERRIDES` in `scripts/generate-image-derivatives.mjs` handles this per master:
+
+| Key | Effect |
+|---|---|
+| `promo_safe` | A fractional `(left, top, right, bottom)` region containing food and no campaign text. `thumb`/`card`/`detail` crop inside it; `banner` still uses the full composition. |
+| `gravity` | Vertical bias — a single number, or a dict keyed by variant. Half & Half pins its banner to `0.0` so the headline survives the 16:9 cut. |
+
+Add an entry there when a master carries text; leave it out for plain food shots.
 
 ### Substitution while artwork is outstanding
 
@@ -112,10 +127,11 @@ in a thumbnail:
 
 | Borrows | Products |
 |---|---|
-| Golden Original | Cheesling, Wings, Boneless, Chicken & Rice, Burger, Fries, Cheesling Fries |
-| Soy Garlic | Secret Sauce, Korean Rice Bowl |
-| Honey Garlic | Half & Half |
-| Hot Spicy | Ddeok-Bokki, Rose Ddeok-Bokki |
+| Golden Original | Chicken & Rice Meal, Chicken Burger |
+| Soy Garlic | Korean Rice Bowl |
+| Boneless | French Fries — bite-size golden pieces read far closer to a fries portion than a drumstick |
+| Cheesling | Cheesling Fries — same cheese dusting, so the seasoning itself is accurate |
+| Secret Sauce | Ddeok-Bokki, Rose Ddeok-Bokki |
 
 Two guardrails come with this:
 
@@ -133,8 +149,9 @@ mapped substitute. Both disappear on their own the moment the master lands.
 
 **Worth flagging:** the brief (§7) asks for clear product recognition and forbids
 placeholder food imagery. Substitution trades against that deliberately, to keep
-the menu looking finished ahead of the full shoot. The 12 real photographs
-remove the trade-off entirely.
+the menu looking finished ahead of the full shoot. The 7 remaining photographs
+remove the trade-off entirely — French Fries and the two Ddeok-Bokki are the
+ones to shoot first, since they look least like what currently stands in.
 
 ---
 
@@ -259,8 +276,8 @@ captured by our own form — that belongs inside the gateway's PCI-compliant SDK
 
 Honest list of what is stubbed, and where to pick it up:
 
-- **12 of 16 food assets** are outstanding; those products currently borrow a
-  related product's photograph (see Substitution above).
+- **7 of 16 food assets** are outstanding — all sides and meals; those products
+  currently borrow a related product's photograph (see Substitution above).
 - **Card capture** shows an explanatory alert instead of a form — the gateway
   SDK belongs at that call site in `account/payment-methods.tsx`.
 - **Address geocoding** anchors new addresses to the city centre. Wire a

@@ -37,6 +37,38 @@ VARIANTS = {
     "banner": (16 / 9, 1600, 86, 0.40),
 }
 
+# Per-master overrides, keyed by filename stem.
+#
+#   promo_safe  (left, top, right, bottom) as fractions of the frame, marking
+#               the region that carries food and NO campaign typography.
+#               thumb/card/detail crop inside it; banner still uses the full
+#               composition, where the brief allows promotional text (§9).
+#   gravity     vertical bias override — a number for every variant, or a dict
+#               keyed by variant name for finer control.
+OVERRIDES = {
+    # Supplied as a finished promo composition: a headline across the top-left
+    # and two flavour callouts. Cropping a card straight out of that would
+    # slice the headline mid-word, so catalogue surfaces take the tray only,
+    # while the banner anchors to the top so the headline survives the 16:9 cut.
+    "half-and-half": {
+        "promo_safe": (0.10, 0.30, 0.93, 1.00),
+        "gravity": {"banner": 0.0},
+    },
+}
+
+
+def subrect(im, rect):
+    """Crop to a fractional (left, top, right, bottom) region of the frame."""
+    w, h = im.size
+    left, top, right, bottom = rect
+    box = (
+        int(round(left * w)),
+        int(round(top * h)),
+        int(round(right * w)),
+        int(round(bottom * h)),
+    )
+    return im.crop(box)
+
 
 def cover_crop(im, ratio, gravity):
     """Centre-weighted cover crop to an exact ratio. Never stretches."""
@@ -64,10 +96,25 @@ count = 0
 for src in sources:
     key = os.path.splitext(os.path.basename(src))[0]
     im = Image.open(src).convert("RGB")
+    override = OVERRIDES.get(key, {})
+
     for variant, (ratio, width, quality, gravity) in VARIANTS.items():
         out_dir = os.path.join(root, "assets", "food", variant)
         os.makedirs(out_dir, exist_ok=True)
-        cropped = cover_crop(im, ratio, gravity)
+
+        gravity_override = override.get("gravity")
+        if isinstance(gravity_override, dict):
+            gravity = gravity_override.get(variant, gravity)
+        elif gravity_override is not None:
+            gravity = gravity_override
+
+        # Banners may carry campaign text; every other surface must not.
+        source = im
+        promo_safe = override.get("promo_safe")
+        if promo_safe and variant != "banner":
+            source = subrect(im, promo_safe)
+
+        cropped = cover_crop(source, ratio, gravity)
         height = int(round(width / ratio))
         if cropped.size[0] < width:
             width, height = cropped.size
@@ -75,7 +122,8 @@ for src in sources:
         out = os.path.join(out_dir, key + ".jpg")
         resized.save(out, "JPEG", quality=quality, optimize=True, progressive=True)
         count += 1
-    print("  derived %-24s %s" % (key, " ".join(sorted(VARIANTS))))
+    note = " (promo-safe crop on card surfaces)" if override.get("promo_safe") else ""
+    print("  derived %-24s %s%s" % (key, " ".join(sorted(VARIANTS)), note))
 
 print("Generated %d derivatives from %d masters." % (count, len(sources)))
 `;
