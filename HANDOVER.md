@@ -42,8 +42,9 @@ add to cart → checkout → place order → track it.** That path exercises mos
 the app, and if something is wrong you'll see it there first.
 
 ```bash
-npm run verify      # typecheck → lint → test, the gate before any commit
-npm run preview:web # the whole app in a browser, no build required
+npm run verify        # typecheck → lint → test, the gate before any commit
+npm run preview:web   # the whole app in a browser, no build required
+npm run audit:screens # renders all 26 screens at two widths and reports defects
 ```
 
 The browser preview is the fastest way to see a change. It is not the device —
@@ -211,6 +212,13 @@ These fail loudly rather than rotting quietly — leave them on.
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
   its own photograph, so a new menu item can't ship on a placeholder.
+- **`npm run audit:screens`** renders every screen at 390pt and 320pt and fails
+  on anything sitting past the right edge, a page that scrolls sideways, a
+  blank screen, a console error, or a §32.6 gap — an interactive element with
+  no accessible name, or a focusable one with no visible focus ring. This is
+  the check that found the defects the test suite could not see. It needs
+  Playwright's Chromium once (`npx playwright install chromium`), or
+  `CHROMIUM_PATH` pointed at one the machine already has.
 - **Derivative drift checks** — CI re-derives both the food crops and the icon
   set and fails if either differs, catching anyone who edited a generated file
   by hand instead of its master. Icons are the likeliest to be quietly

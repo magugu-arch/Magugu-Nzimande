@@ -7,7 +7,8 @@ module.exports = defineConfig([
   expoConfig,
   prettierConfig,
   {
-    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'coverage/*'],
+    // .audit-web is a generated web bundle, not source.
+    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'coverage/*', '.audit-web/*'],
   },
   {
     rules: {
