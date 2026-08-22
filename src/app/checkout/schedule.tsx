@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button, Card, Chip, EmptyState, Screen, ScreenHeader, Text } from '@/components/ui';
 import { businessRules } from '@/constants/config';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';

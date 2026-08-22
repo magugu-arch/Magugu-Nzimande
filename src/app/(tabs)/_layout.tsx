@@ -1,6 +1,6 @@
 import { Platform, StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui';
 import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing, typography, TAB_BAR_HEIGHT } from '@/theme';

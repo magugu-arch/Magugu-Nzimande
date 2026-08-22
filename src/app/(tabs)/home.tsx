@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

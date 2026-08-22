@@ -20,12 +20,12 @@ export const spacing = {
   huge: 40,
   giant: 56,
 
-  /** §23.7: 24px, the padding between screen edge and content. */
+  /**
+   * §23.7: 24px, the padding between screen edge and content. The section's
+   * other two values need no alias — its 16px inner gap is `lg` and its 4px
+   * tight gap is `xs`, and a second name for the same number invites drift.
+   */
   gutter: 24,
-  /** §23.7: 16px, the gap between elements inside a card or row. */
-  gap: 16,
-  /** §23.7: 4px, the tightest gap — label to value, icon to text. */
-  gapTight: 4,
 } as const;
 
 /** bb.q Black. Repeated here because layout must not import colours. */

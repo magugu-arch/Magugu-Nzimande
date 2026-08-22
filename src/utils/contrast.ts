@@ -4,9 +4,8 @@
  *   AA   normal text (under 18pt / 24px)   4.5:1
  *   AAA  large text  (18pt+ / 24px+)       3:1
  *
- * Kept as a utility rather than a lint rule because it is checked two ways:
- * a test asserts every pair the theme ships clears its threshold, and screens
- * that colour text over artwork can pick a legible ink at runtime.
+ * Kept as a utility rather than a lint rule so a test can assert that every
+ * pair the theme ships clears its threshold.
  */
 
 /** Threshold for text under 24px. */
@@ -58,15 +57,4 @@ export function contrastRatio(foreground: string, background: string): number {
 
 export function meetsAA(foreground: string, background: string, large = false): boolean {
   return contrastRatio(foreground, background) >= (large ? AA_LARGE : AA_NORMAL);
-}
-
-/**
- * Pick whichever ink reads better on a background.
- *
- * For text over food photography, where the underlying colour is only known
- * once a scrim has been composited.
- */
-export function readableInk(background: string, inks: readonly [string, string]): string {
-  const [first, second] = inks;
-  return contrastRatio(first, background) >= contrastRatio(second, background) ? first : second;
 }

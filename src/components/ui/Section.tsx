@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, HIT_SLOP } from '@/theme';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { colors, spacing, headingGap, HIT_SLOP } from '@/theme';
 import { Text } from './Text';
 
 export interface SectionProps {
@@ -81,6 +81,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   headerBleed: { paddingHorizontal: spacing.gutter },
-  headings: { flex: 1, gap: spacing.xxs },
+  // §14.3 puts 8–12px between a heading and the text supporting it. This
+  // stack is eyebrow over title over subtitle, so it takes the lower bound.
+  headings: { flex: 1, gap: headingGap.h4ToBody },
   action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs },
 });

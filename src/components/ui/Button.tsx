@@ -8,7 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, spacing, MIN_TOUCH_TARGET, elevation } from '@/theme';
 import { Text } from './Text';
 

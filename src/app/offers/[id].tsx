@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { FoodImage } from '@/components/food/FoodImage';

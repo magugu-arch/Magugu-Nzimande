@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { CartTotals, FulfilmentType } from '@/types';
 import { Divider, Text } from '@/components/ui';
 import { businessRules } from '@/constants/config';

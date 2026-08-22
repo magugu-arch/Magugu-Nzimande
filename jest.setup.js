@@ -44,24 +44,24 @@ jest.mock('expo-secure-store', () => {
 // @expo/vector-icons loads its font asynchronously and setStates when it lands,
 // which fires an act() warning on every render. Icons carry no assertions here —
 // accessibility labels live on the pressables around them — so render a stub.
-jest.mock('@expo/vector-icons', () => {
+//
+// The app imports '@expo/vector-icons/Ionicons' rather than the package root,
+// because the root statically requires all nineteen icon fonts and Metro then
+// ships every one. The mock has to follow that path or it silently stops
+// applying, and the act() warnings come back.
+const stubIcon = (family) => {
   const { View } = require('react-native');
   const React = require('react');
-  const makeIcon = (family) => {
-    const Icon = ({ name, ...rest }) =>
-      React.createElement(View, { ...rest, testID: rest.testID ?? `icon-${family}-${name}` });
-    Icon.glyphMap = {};
-    return Icon;
-  };
-  return {
-    Ionicons: makeIcon('ionicons'),
-    MaterialIcons: makeIcon('material'),
-    MaterialCommunityIcons: makeIcon('material-community'),
-    FontAwesome: makeIcon('fontawesome'),
-    Feather: makeIcon('feather'),
-    AntDesign: makeIcon('antdesign'),
-  };
-});
+  const Icon = ({ name, ...rest }) =>
+    React.createElement(View, { ...rest, testID: rest.testID ?? `icon-${family}-${name}` });
+  Icon.glyphMap = {};
+  return Icon;
+};
+
+jest.mock('@expo/vector-icons/Ionicons', () => ({
+  __esModule: true,
+  default: stubIcon('ionicons'),
+}));
 
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(async () => undefined),

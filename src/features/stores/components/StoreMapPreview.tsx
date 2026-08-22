@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Store } from '@/types';
 import { Text } from '@/components/ui';
 import { config } from '@/constants/config';

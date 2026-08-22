@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { PaymentMethod } from '@/types';
 import {
   Badge,

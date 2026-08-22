@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Linking, StyleSheet, TextInput, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Button,

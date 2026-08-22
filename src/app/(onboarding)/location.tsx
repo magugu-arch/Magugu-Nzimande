@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Button, Screen, Text } from '@/components/ui';
 import { useDeviceLocation } from '@/features/stores/hooks';

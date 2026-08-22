@@ -1,6 +1,6 @@
 import { memo, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { colors, spacing, HIT_SLOP, MIN_TOUCH_TARGET } from '@/theme';
 import { Text } from './Text';

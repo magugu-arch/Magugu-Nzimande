@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';

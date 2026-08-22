@@ -3,7 +3,13 @@ import { typography } from './typography';
 import { spacing, radius, elevation, aspect } from './layout';
 
 export { colors, type Colors } from './colors';
-export { typography, fontFamily, fontWeight, type TypographyVariant } from './typography';
+export {
+  typography,
+  fontFamily,
+  fontWeight,
+  headingGap,
+  type TypographyVariant,
+} from './typography';
 export {
   spacing,
   radius,

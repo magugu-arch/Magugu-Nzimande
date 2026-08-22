@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button, Screen, ScreenHeader, Text, TextField } from '@/components/ui';
 import { requestPasswordReset } from '@/services/authService';
 import { colors, radius, spacing } from '@/theme';

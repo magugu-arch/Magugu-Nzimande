@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { FulfilmentType, Store } from '@/types';
 import { Badge, Card, Text } from '@/components/ui';
 import { hoursForDay } from '@/services/storeService';

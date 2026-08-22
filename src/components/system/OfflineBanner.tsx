@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
 import { useNetworkStatus } from '@/features/system/useNetworkStatus';
 import { colors, spacing } from '@/theme';

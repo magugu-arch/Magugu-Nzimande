@@ -134,6 +134,28 @@ describe('every bundled face the type scale names is actually loaded', () => {
     }
   });
 
+  // Same trap, different package: '@expo/vector-icons' re-exports nineteen
+  // icon fonts with static requires, so importing Ionicons from the root ships
+  // all of them — 4MB, on a 19MB bundle, for eighteen sets nothing renders.
+  it('imports Ionicons from its own entry point, not the package root', () => {
+    const offenders: string[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (/\.tsx?$/.test(entry.name)) {
+          const source = fs.readFileSync(full, 'utf8');
+          if (source.includes("from '@expo/vector-icons'")) {
+            offenders.push(path.relative(process.cwd(), full));
+          }
+        }
+      }
+    };
+    walk(path.resolve(__dirname, '..', 'src'));
+
+    expect(offenders).toEqual([]);
+  });
+
   it('does not try to bundle the supporting face', () => {
     // §12 chose Arial because it ships with the platform. Bundling it would
     // add a megabyte for a face that is already there.

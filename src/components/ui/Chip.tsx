@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, spacing, HIT_SLOP, MIN_TOUCH_TARGET } from '@/theme';
 import { Text } from './Text';
 
