@@ -35,6 +35,11 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run assets:derive` | Derive image crops from masters, then regenerate the asset registry |
 | `npm run assets:audit` | Report which food assets are still outstanding |
 | `npm run assets:brand` | Regenerate the app icon, splash mark and favicon from brand tokens |
+| `npm run build:dev` | EAS development build (dev client) for both platforms |
+| `npm run build:preview` | EAS internal-distribution build for review |
+| `npm run build:prod` | EAS store build |
+| `npm run prebuild` | Regenerate the native `ios/` and `android/` projects |
+| `npm run doctor` | `expo-doctor` project health check |
 
 ---
 
@@ -147,6 +152,61 @@ mapped substitute. Both disappear on their own the moment the master lands.
 Earlier batches traded against brief §7 (clear product recognition) by letting
 products borrow a related photograph while their own shoot was outstanding. That
 trade-off is now closed — every product shows itself.
+
+---
+
+## Building for a device (EAS)
+
+The app has been verified in Metro and in tests, but a real QA pass needs it on
+hardware — and push notifications only work in a development build, since Expo
+Go dropped remote push in SDK 53.
+
+### One-time setup
+
+```bash
+npm install -g eas-cli     # the build scripts call `eas`
+eas login
+eas init                   # writes the real projectId into app.json
+```
+
+`eas init` replaces the placeholder `extra.eas.projectId`. Until it does,
+push registration reports "no EAS project id configured" rather than failing
+silently — `resolveProjectId()` rejects the all-zero placeholder on purpose.
+
+### Build profiles
+
+| Profile | Command | What it is |
+|---|---|---|
+| `development` | `npm run build:dev` | Dev client, internal distribution, mock API. The one to install for day-to-day work — it pairs with `npm start`. |
+| `development-simulator` | `npm run build:sim` | Same, as an iOS simulator build. No Apple device registration needed. |
+| `preview` | `npm run build:preview` | Release build, internal distribution, still on the mock API. For stakeholder review without a backend. |
+| `preview-live` | `eas build --profile preview-live --platform all` | Same, pointed at the real API. Use once the backend is up. |
+| `production` | `npm run build:prod` | Store build, auto-incrementing version, live API. |
+
+`appVersionSource` is `remote`, so EAS owns the build number and `production`
+increments it automatically — no version bumps in git.
+
+### Day-to-day
+
+```bash
+npm run build:dev:ios      # once, then install on the device
+npm start                  # open the dev client and it connects
+```
+
+Local native builds (`npm run android` / `npm run ios`) work too if Xcode or
+Android Studio is set up; `npm run prebuild` regenerates the native projects.
+`ios/` and `android/` are gitignored — they are generated, never edited by hand.
+
+### Before the first store submission
+
+- Fill the placeholders in `eas.json` → `submit.production.ios`
+  (`appleId`, `ascAppId`, `appleTeamId`).
+- Replace the generated icon with the licensed bb.q artwork.
+- **Push in the background:** iOS `UIBackgroundModes` deliberately does *not*
+  include `remote-notification`. User-facing alerts do not need it, and Apple
+  rejects apps that declare background modes they do not use. Add it only if
+  the backend starts sending silent content-available pushes to refresh order
+  state.
 
 ---
 

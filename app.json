@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "backgroundColor": "#221E1E",
+    "primaryColor": "#E31937",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -24,7 +25,6 @@
     },
     "android": {
       "package": "za.co.bbqchicken.app",
-      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "backgroundColor": "#E31937",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -40,6 +40,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-dev-client",
       [
         "expo-splash-screen",
         {
@@ -52,6 +53,21 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "bb.q Chicken uses your location to find your nearest store and estimate delivery times."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#E31937",
+          "defaultChannel": "orders"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": { "deploymentTarget": "16.4" },
+          "android": { "compileSdkVersion": 35, "targetSdkVersion": 35, "minSdkVersion": 24 }
         }
       ],
       "expo-secure-store",

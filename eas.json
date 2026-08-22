@@ -1,0 +1,75 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "base": {
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.bbqchicken.co.za"
+      }
+    },
+
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_USE_MOCK_API": "1"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+
+    "development-simulator": {
+      "extends": "development",
+      "ios": {
+        "simulator": true
+      }
+    },
+
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_USE_MOCK_API": "1"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+
+    "preview-live": {
+      "extends": "preview",
+      "env": {
+        "EXPO_PUBLIC_USE_MOCK_API": "0"
+      }
+    },
+
+    "production": {
+      "extends": "base",
+      "distribution": "store",
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_USE_MOCK_API": "0"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "APPLE_ID_PLACEHOLDER",
+        "ascAppId": "ASC_APP_ID_PLACEHOLDER",
+        "appleTeamId": "APPLE_TEAM_ID_PLACEHOLDER"
+      },
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
+  }
+}

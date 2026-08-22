@@ -13,6 +13,7 @@
  *   assets/android-icon-foreground.png    512  adaptive foreground (safe zone)
  *   assets/android-icon-background.png    512  adaptive background, solid red
  *   assets/android-icon-monochrome.png    432  themed-icon silhouette
+ *   assets/notification-icon.png            96  Android notification silhouette
  *   assets/favicon.png                     48  web
  *
  * Replace this with the licensed bb.q logo artwork when it is provisioned —
@@ -134,6 +135,13 @@ mono = Image.new("RGBA", (432, 432), (0, 0, 0, 0))
 place_wordmark(mono, BLACK + (255,), 0.52)
 mono.save(os.path.join(assets, "android-icon-monochrome.png"))
 written.append(("android-icon-monochrome.png", "432 themed silhouette"))
+
+# Android notification icon: the system tints it, so it must be a white
+# silhouette on transparent. Anything coloured comes out as a grey blob.
+notif = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
+place_wordmark(notif, WHITE, 0.86)
+notif.save(os.path.join(assets, "notification-icon.png"))
+written.append(("notification-icon.png", "96 Android notification"))
 
 # Favicon — rounded so it reads as an app tile in a browser tab.
 fav = rounded_square(192, 0.22, RED + (255,))
