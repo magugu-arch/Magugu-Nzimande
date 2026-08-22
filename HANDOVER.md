@@ -15,7 +15,8 @@ Africa, built to the supplied brief.
 | Stack | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
 | Screens | 42 routes covering every journey in brief §4 |
 | Food photography | All 16 catalogue products, own artwork, no placeholders |
-| Tests | 154, across 10 suites |
+| Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
+| Tests | 170, across 11 suites |
 | Branch | `claude/bbq-chicken-app-czgvuz` |
 
 It runs **end to end with no backend**. `EXPO_PUBLIC_USE_MOCK_API` defaults to
@@ -52,11 +53,12 @@ commercial rules in `constants/config.ts`, data access behind `services/`.
 Screens compose; they don't calculate. If you find yourself doing arithmetic in
 a component, it belongs one layer down.
 
-**Food imagery resolves through one module.** Screens pass a `FoodAssetKey` to
-`<FoodImage>` and never `require()` an image. Masters live in
-`assets/food/masters/`, are never shipped, and `npm run assets:derive`
-regenerates four responsive crops plus the static require registry. Adding
-artwork is: drop the file in, run that command.
+**Imagery resolves through one module, never a screen.** Screens pass a
+`FoodAssetKey` to `<FoodImage>` and never `require()` a photograph; the logo is
+only ever drawn by `<BrandMark>`. Both have masters that are never shipped —
+`assets/food/masters/` and `assets/brand/masters/` — and one command each
+(`assets:derive`, `assets:brand`) that regenerates everything downstream.
+Adding or replacing artwork is: drop the file in, run that command.
 
 **Money never touches raw floats.** All arithmetic rounds through cents, so
 `0.1 + 0.2` is `0.3` and totals never drift. Use the helpers in `utils/money.ts`.
@@ -102,9 +104,22 @@ Four integrations need something external. Each has a marked hook-in point.
 
 Also outstanding, and deliberate:
 
-- **The app icon** is a generated typographic wordmark, not the licensed bb.q
-  logo. `npm run assets:brand` draws it from brand tokens. Replace the files in
-  `assets/` with the real artwork and delete the script.
+- **The logo masters are raster, lifted from the guidelines page.** Brand
+  guidelines v1.0 was supplied as an image, not as artwork files, so
+  `assets/brand/masters/` holds the lock-up and symbol separated out of that
+  page rather than exported from the original. They are clean and hold at
+  1024px — the symbol is redrawn from its coverage maps, not upscaled — but
+  they are not vector-derived, so anything larger than an app icon (print,
+  signage, a billboard-sized splash) wants the real master. Replacing them is
+  the whole job: drop the two files in, run `npm run assets:brand`.
+- **The logo red was normalised to `#E31937`**, the token in the brief. The
+  guidelines page renders it a few points darker, around `#CF101E`. Worth one
+  look at the colour page of the guidelines to confirm which is authoritative —
+  if it is the darker value, change `BRAND_RED` in the extract and the theme
+  token together, not one of them.
+- **Only §3 of the guidelines was supplied.** Clear space is specified on page
+  05, which I have not seen; the icon uses generous spacing but has not been
+  checked against the actual rule.
 - **iOS `UIBackgroundModes`** omits `remote-notification`. User-facing alerts
   don't need it and Apple rejects apps declaring unused background modes. Add it
   only if the backend starts sending silent pushes.
@@ -141,13 +156,19 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 154 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, 170 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
   its own photograph, so a new menu item can't ship on a placeholder.
-- **Derivative drift check** — re-derives crops in CI and fails if they differ,
-  catching anyone who edited a derivative by hand instead of the master.
+- **Derivative drift checks** — CI re-derives both the food crops and the icon
+  set and fails if either differs, catching anyone who edited a generated file
+  by hand instead of its master. Icons are the likeliest to be quietly
+  retouched in an image editor, which decouples them from the licensed logo.
+- **Logo proportions are asserted.** `BrandMark` sizes the lock-up from a fixed
+  ratio so no caller can stretch it, and a test fails if that ratio stops
+  matching the master — the exact thing that would break silently when someone
+  drops in replacement artwork.
 - **Data-integrity tests** assert every product references a real asset key,
   every recommendation points at a real product, option-group defaults are
   valid, and no category is empty. A malformed product fails the build.

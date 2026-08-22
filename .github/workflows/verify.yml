@@ -82,3 +82,15 @@ jobs:
             git --no-pager diff --stat -- assets/food src/constants/foodAssetRegistry.ts
             exit 1
           fi
+
+      # Same rule for the logo. Icons are the assets most likely to be edited
+      # in an image editor and pasted back, which silently decouples them from
+      # the licensed master they are supposed to be reproducing.
+      - name: Check brand assets are up to date
+        run: |
+          npm run assets:brand
+          if ! git diff --quiet -- assets/icon.png assets/splash-icon.png assets/favicon.png assets/notification-icon.png assets/android-icon-*.png assets/brand; then
+            echo "::error::Brand assets are stale. Run 'npm run assets:brand' and commit the result."
+            git --no-pager diff --stat -- assets assets/brand
+            exit 1
+          fi

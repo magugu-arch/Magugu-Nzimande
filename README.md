@@ -37,7 +37,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run verify` | typecheck → lint → test, in order |
 | `npm run assets:derive` | Derive image crops from masters, then regenerate the asset registry |
 | `npm run assets:audit` | Report which food assets are still outstanding |
-| `npm run assets:brand` | Regenerate the app icon, splash mark and favicon from brand tokens |
+| `npm run assets:brand` | Regenerate every icon and in-app logo from the logo masters |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |
 | `npm run build:prod` | EAS store build |
@@ -221,7 +221,7 @@ src/
   components/
     ui/           Primitives: Text, Button, Card, Chip, TextField, …
     food/         FoodImage + branded placeholder
-    brand/        bb.q wordmark
+    brand/        BrandMark — the licensed lock-up, the only place it is drawn
   features/       Feature modules: menu, cart, home, orders, rewards, stores,
                   account, auth — each owns its hooks and components
   services/       Typed API client, per-domain services, seed data
@@ -245,16 +245,33 @@ data access in `services/`. Screens compose — they do not calculate.
 | **Cold-start taps** | `useInitialNotificationRoute` handles the tap that launched the process, which the normal response listener never sees. Without it, tapping "your order is here" on a closed app lands on Home. |
 | **Untrusted payloads** | `routeForNotification` only follows an in-app path. An `href` pointing anywhere else is ignored and the category decides instead. |
 
-### App icon and splash
+### The logo
 
-The Expo template ships a generic blue chevron, which a bb.q app must not carry.
-`npm run assets:brand` draws the launcher icon, splash mark, Android adaptive
-layers and favicon from the same two brand colours the app uses, centring the
-wordmark on its rendered bounding box rather than font metrics — `bb.q` has both
-an ascender and a descender, so metric-centring sits it visibly low.
+Two master files in `assets/brand/masters/` are the source of truth — the full
+lock-up and the symbol mark, each tight-cropped with a transparent ground.
+`npm run assets:brand` derives everything else from them, so the mark is drawn
+once and every size agrees.
 
-Replace it with the licensed bb.q logo artwork when that is provisioned: drop
-the files into `assets/` and delete the script.
+| Output | From |
+|---|---|
+| `icon.png`, `favicon.png` | Symbol, reversed on bb.q Red — the lock-up is 5.6:1 and would vanish in a square |
+| `android-icon-{foreground,background,monochrome}.png` | Symbol inside the adaptive safe zone, over solid red |
+| `notification-icon.png` | Symbol, strokes thickened for 24dp |
+| `splash-icon.png` | Reversed lock-up, transparent, over the red splash ground |
+| `brand/lockup{,-reversed}{,@2x,@3x}.png` | What `BrandMark` renders |
+
+Nothing here rearranges or recolours the logo. The two variants are the two the
+guidelines show: full colour on light grounds, all-white reversed on red and
+black. The one deliberate exception is the notification badge, whose strokes are
+thickened because at 24dp the line weight collapses into a smudge — an optical
+correction at a single size, measured rather than guessed.
+
+The masters were separated out of the supplied guidelines page rather than
+exported from the original artwork, which is a raster. The art is flat
+three-colour, so each pixel was unmixed into red and black coverage maps and
+re-rendered from those — which is why the symbol is crisp at 1024px rather than
+a blurred upscale of a 136px crop. It is still not vector: for print or signage,
+replace the two masters and re-run the script.
 
 ### Key decisions
 
@@ -303,9 +320,11 @@ Never hard-code a hex value or font size in a component — import from
 `@/theme`. Every pressable clears the 44pt minimum touch target, and every
 interactive element carries an accessibility label and state.
 
-The wordmark is drawn in type (`components/brand/BrandMark.tsx`) so it stays
-crisp at any size and inverts cleanly. Swap in the licensed logo file there when
-brand assets are provisioned — it is the only place the mark is drawn.
+The logo is only ever drawn by `components/brand/BrandMark.tsx`, which picks
+between the two approved variants and sizes them from the master's own aspect
+ratio — so no caller can stretch the lock-up, whatever it passes in `style`.
+Guidelines v1.0 §3.1 requires the official master file and forbids rebuilding
+the mark from fonts; this is the one place that rule has to hold.
 
 ---
 
@@ -315,11 +334,13 @@ brand assets are provisioned — it is the only place the mark is drawn.
 npm test
 ```
 
-154 tests covering money arithmetic, cart pricing and option resolution, form
+170 tests covering money arithmetic, cart pricing and option resolution, form
 validation, date and scheduling logic, the catalogue's data integrity
 and substitution mapping, the Zustand cart store, all service layers, the UI
-primitives, notification routing (including malformed and off-app payloads) and
-the error boundary.
+primitives, notification routing (including malformed and off-app payloads),
+the error boundary, and the brand asset set — that every icon app.json names
+exists at the size it claims, and that the ratio `BrandMark` draws at still
+matches the logo master.
 
 The data-integrity suite is worth knowing about: it asserts that every product
 references a real asset key, that every recommendation points at a real product,
@@ -365,7 +386,8 @@ Honest list of what is stubbed, and where to pick it up:
   dropped remote push in SDK 53. Registration, token sync, tap routing and
   cold-start routing are all built; set `EXPO_PUBLIC_PUSH_PROJECT_ID` and the
   backend's `/v1/account/push-tokens` endpoint to switch it on.
-- **The app icon** is a generated typographic wordmark, not the licensed bb.q
-  logo (see App icon and splash above).
+- **The logo masters are raster**, lifted from the supplied guidelines page
+  rather than exported from the original artwork (see The logo above). Fine for
+  screens, not for print.
 - **Crash reporting** has a hook but no provider: pass `onError` to
   `ErrorBoundary` to wire Sentry or Crashlytics.
