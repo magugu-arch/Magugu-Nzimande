@@ -20,6 +20,7 @@
     "assets:audit:warn": "node scripts/audit-food-assets.mjs --warn",
     "assets:registry": "node scripts/generate-asset-registry.mjs",
     "assets:brand": "node scripts/generate-brand-assets.mjs",
+    "assets:typefit": "node scripts/audit-type-fit.mjs",
     "build:dev": "eas build --profile development --platform all",
     "build:dev:ios": "eas build --profile development --platform ios",
     "build:dev:android": "eas build --profile development --platform android",

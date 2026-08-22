@@ -142,6 +142,7 @@ export default function PaymentMethodsScreen() {
             variant="tertiary"
             iconLeft="add"
             testID="payment-add"
+            preserveCase
           />
 
           <View style={styles.securityNote}>

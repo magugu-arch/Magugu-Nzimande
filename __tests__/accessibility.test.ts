@@ -83,8 +83,13 @@ describe('theme colour pairs meet §32.3', () => {
 /**
  * §22.7: do not use all caps for long button text.
  *
- * Button uppercases by default, so a long label has to opt out via
- * `preserveCase`. This reads the screens to prove none has forgotten.
+ * This checks the readability half of that rule — a long sentence in caps
+ * reads as shouting — and nothing more. Whether a label physically *fits* is a
+ * different question that character count cannot answer: a 20-character label
+ * clears the small button and overflows the medium one, because the two have
+ * different padding. `npm run assets:typefit` settles that by measuring the
+ * bundled Montserrat against §22.4's geometry, and the last test here makes
+ * sure that check stays wired into CI.
  */
 describe('button labels obey §22.7', () => {
   const MAX_UPPERCASE = 21;
@@ -125,5 +130,21 @@ describe('button labels obey §22.7', () => {
       .map((b) => `${b.file}:${b.line} "${b.label}" (${b.label.length} chars)`);
 
     expect(offenders).toEqual([]);
+  });
+
+  // The fit check lives in a script because it needs to measure the real font
+  // file. That makes it easy to drop from CI without anyone noticing, so the
+  // wiring is asserted here.
+  it('keeps the width audit wired into CI', () => {
+    const workflow = fs.readFileSync(
+      path.resolve(__dirname, '..', '.github', 'workflows', 'verify.yml'),
+      'utf8',
+    );
+    expect(workflow).toContain('npm run assets:typefit');
+
+    const pkg = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'),
+    ) as { scripts: Record<string, string> };
+    expect(pkg.scripts['assets:typefit']).toBe('node scripts/audit-type-fit.mjs');
   });
 });

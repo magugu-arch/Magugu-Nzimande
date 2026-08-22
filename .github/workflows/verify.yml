@@ -57,6 +57,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
+      # The type-fit audit measures the bundled Montserrat TTF, so this job
+      # needs node_modules as well as Pillow.
+      - name: Install dependencies
+        run: npm ci
 
       - uses: actions/setup-python@v5
         with:
@@ -82,6 +88,12 @@ jobs:
             git --no-pager diff --stat -- assets/food src/constants/foodAssetRegistry.ts
             exit 1
           fi
+
+      # Montserrat runs ~30% wider than the Helvetica metrics it replaced once
+      # §22.7's uppercase CTAs are applied, and React Native truncates rather
+      # than complaining. Measured off the bundled TTF at the narrowest screen.
+      - name: Check button labels still fit
+        run: npm run assets:typefit
 
       # Same rule for the logo. Icons are the assets most likely to be edited
       # in an image editor and pasted back, which silently decouples them from
