@@ -20,6 +20,22 @@ const mastersDir = path.join(root, 'assets', 'food', 'masters');
 const VARIANTS = ['thumb', 'card', 'detail', 'banner'];
 
 // Kept in step with FOOD_ASSET_FILENAMES in src/constants/foodAssets.ts.
+/** Mirrors SUBSTITUTE_ASSET_KEYS in src/constants/foodAssets.ts. */
+const SUBSTITUTES = {
+  secretSauce: 'Soy Garlic',
+  koreanRiceBowl: 'Soy Garlic',
+  cheesling: 'Golden Original',
+  goldenOriginalWings: 'Golden Original',
+  boneless: 'Golden Original',
+  chickenRiceMeal: 'Golden Original',
+  chickenBurger: 'Golden Original',
+  frenchFries: 'Golden Original',
+  cheeslingFries: 'Golden Original',
+  halfAndHalf: 'Honey Garlic',
+  ddeokBokki: 'Hot Spicy',
+  roseDdeokBokki: 'Hot Spicy',
+};
+
 const CATALOGUE = [
   ['goldenOriginal', 'golden-original', 'Golden Original Chicken'],
   ['honeyGarlic', 'honey-garlic', 'Honey Garlic Chicken'],
@@ -84,9 +100,11 @@ if (missingDerivatives.length > 0) {
 
 if (missingMaster.length > 0) {
   console.log('Awaiting supplied bb.q artwork — drop the master into assets/food/masters/:');
-  missingMaster.forEach(({ filename, label }) =>
-    console.log(`  ✗ ${label.padEnd(26)} → ${filename}.jpg`),
-  );
+  missingMaster.forEach(({ key, filename, label }) => {
+    const standIn = SUBSTITUTES[key];
+    const note = standIn ? `borrowing ${standIn}` : 'branded placeholder';
+    console.log(`  ✗ ${label.padEnd(26)} → ${filename.padEnd(22)} (${note})`);
+  });
   console.log('');
 }
 
@@ -97,8 +115,10 @@ if (outstanding === 0) {
   process.exit(0);
 }
 
+const borrowing = missingMaster.filter(({ key }) => SUBSTITUTES[key]).length;
 console.log(
-  `${outstanding} product${outstanding === 1 ? '' : 's'} still render the branded placeholder tile.`,
+  `${outstanding} product${outstanding === 1 ? '' : 's'} still owe a shoot ` +
+    `(${borrowing} borrowing a related photo, ${outstanding - borrowing} on the branded placeholder).`,
 );
 
 if (warnOnly) {

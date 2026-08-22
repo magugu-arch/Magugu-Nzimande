@@ -1,4 +1,5 @@
 import type { ImageSourcePropType } from 'react-native';
+import { suppliedFoodAssets } from './foodAssetRegistry';
 
 /**
  * Central bb.q Chicken food asset catalogue (brief §8 / §14).
@@ -16,11 +17,11 @@ import type { ImageSourcePropType } from 'react-native';
  *   detail  4:5  1200px   product detail hero
  *   banner 16:9  1600px   home promotions, offer banners
  *
- * ── Adding a supplied asset ────────────────────────────────────────────────
+ * ── Adding supplied artwork ────────────────────────────────────────────────
  *   1. Drop the master into assets/food/masters/<kebab-key>.jpg
  *   2. Run `npm run assets:derive`
- *   3. Move the key from PENDING_ASSET_KEYS into `foodAssets` below
- * No screen code changes.
+ * That regenerates the crops and the static require() registry. No hand-editing
+ * and no screen changes — the product stops substituting on the next build.
  */
 
 /** The 16 products the brief requires artwork for. */
@@ -55,64 +56,86 @@ export interface FoodAsset {
 }
 
 /**
- * Supplied high-resolution bb.q Chicken assets.
- *
- * `require` paths must be static literals — Metro resolves them at build time,
- * so this map cannot be generated from a loop.
+ * Products with their own supplied photography, from the generated registry.
+ * `hasFoodAsset` reports against this — not against the substitution below.
  */
-export const foodAssets: Partial<Record<FoodAssetKey, FoodAsset>> = {
-  goldenOriginal: {
-    thumb: require('@assets/food/thumb/golden-original.jpg'),
-    card: require('@assets/food/card/golden-original.jpg'),
-    detail: require('@assets/food/detail/golden-original.jpg'),
-    banner: require('@assets/food/banner/golden-original.jpg'),
-  },
-  honeyGarlic: {
-    thumb: require('@assets/food/thumb/honey-garlic.jpg'),
-    card: require('@assets/food/card/honey-garlic.jpg'),
-    detail: require('@assets/food/detail/honey-garlic.jpg'),
-    banner: require('@assets/food/banner/honey-garlic.jpg'),
-  },
-  soyGarlic: {
-    thumb: require('@assets/food/thumb/soy-garlic.jpg'),
-    card: require('@assets/food/card/soy-garlic.jpg'),
-    detail: require('@assets/food/detail/soy-garlic.jpg'),
-    banner: require('@assets/food/banner/soy-garlic.jpg'),
-  },
-  hotSpicy: {
-    thumb: require('@assets/food/thumb/hot-spicy.jpg'),
-    card: require('@assets/food/card/hot-spicy.jpg'),
-    detail: require('@assets/food/detail/hot-spicy.jpg'),
-    banner: require('@assets/food/banner/hot-spicy.jpg'),
-  },
+export const foodAssets = suppliedFoodAssets;
+
+/**
+ * Stand-in photography for products whose own shoot has not landed yet.
+ *
+ * Each pending product borrows the closest supplied asset in the same food
+ * family, so the menu reads as finished rather than half-built. Two caveats
+ * worth keeping in view:
+ *
+ *  - A borrowed photo shows a different product. Anything substituted is
+ *    flagged `isSubstituted`, and the product detail screen captions it
+ *    "Serving suggestion" so a customer inspecting the item closely is not
+ *    told it is something it is not.
+ *  - `npm run assets:audit` still counts these as outstanding. Substitution
+ *    changes what a customer sees, not what the shoot list owes.
+ *
+ * Mapping is by visual family, not by menu section: glaze colour and finish are
+ * what a customer actually reads in a thumbnail.
+ */
+export const SUBSTITUTE_ASSET_KEYS: Partial<Record<FoodAssetKey, FoodAssetKey>> = {
+  // Dark, glossy lacquered glaze.
+  secretSauce: 'soyGarlic',
+  koreanRiceBowl: 'soyGarlic',
+  // Golden, unglazed, dusted crust.
+  cheesling: 'goldenOriginal',
+  goldenOriginalWings: 'goldenOriginal',
+  boneless: 'goldenOriginal',
+  chickenRiceMeal: 'goldenOriginal',
+  chickenBurger: 'goldenOriginal',
+  frenchFries: 'goldenOriginal',
+  cheeslingFries: 'goldenOriginal',
+  // Two-flavour box — the amber glaze reads closest to a mixed tray.
+  halfAndHalf: 'honeyGarlic',
+  // Red chilli glaze.
+  ddeokBokki: 'hotSpicy',
+  roseDdeokBokki: 'hotSpicy',
 };
 
 /**
- * Products still awaiting supplied bb.q artwork.
+ * Products still awaiting their own supplied bb.q artwork.
  *
- * These render the branded <FoodImagePlaceholder> — a bb.q Black/Red tile with
- * the product name. It is deliberately NOT stock food photography: the brief
- * forbids generic or placeholder food imagery in production UI, so an obviously
- * non-photographic brand tile is the only compliant stand-in until the real
- * masters land. `npm run assets:audit` fails the build while this list is
- * non-empty, so nothing ships half-dressed by accident.
+ * `npm run assets:audit` fails the build while this list is non-empty, so the
+ * outstanding shoot list stays visible even though the UI now substitutes.
  */
 export const PENDING_ASSET_KEYS: readonly FoodAssetKey[] = FOOD_ASSET_KEYS.filter(
   (key) => foodAssets[key] === undefined,
 );
 
+/** True only when the product has its OWN photography. */
 export function hasFoodAsset(key: FoodAssetKey): boolean {
   return foodAssets[key] !== undefined;
 }
 
-/** Resolve one derivative, or `null` when the asset has not been supplied yet. */
+/** True when the product is borrowing another product's photograph. */
+export function isSubstituted(key: FoodAssetKey): boolean {
+  return !hasFoodAsset(key) && resolveSubstitute(key) !== null;
+}
+
+/** The key actually rendered for a product: itself, or its stand-in. */
+export function resolveSubstitute(key: FoodAssetKey): FoodAssetKey | null {
+  if (foodAssets[key]) return key;
+  const substitute = SUBSTITUTE_ASSET_KEYS[key];
+  return substitute && foodAssets[substitute] ? substitute : null;
+}
+
+/**
+ * Resolve one derivative. Falls back to the substitute photograph, and returns
+ * `null` only when neither the product nor its stand-in has artwork — in which
+ * case the branded placeholder tile renders instead.
+ */
 export function resolveFoodAsset(
   key: FoodAssetKey,
   variant: ImageVariant,
 ): ImageSourcePropType | null {
-  const asset = foodAssets[key];
-  if (!asset) return null;
-  return asset[variant];
+  const resolved = resolveSubstitute(key);
+  if (!resolved) return null;
+  return foodAssets[resolved]?.[variant] ?? null;
 }
 
 /** Human-readable product names, used by the placeholder tile and alt text. */

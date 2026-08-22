@@ -3,9 +3,12 @@ import {
   FOOD_ASSET_KEYS,
   FOOD_ASSET_LABELS,
   PENDING_ASSET_KEYS,
+  SUBSTITUTE_ASSET_KEYS,
   foodAssets,
   hasFoodAsset,
+  isSubstituted,
   resolveFoodAsset,
+  resolveSubstitute,
   type ImageVariant,
 } from '@/constants/foodAssets';
 import { menuSnapshot } from '@/services/data/menuData';
@@ -40,12 +43,52 @@ describe('food asset catalogue', () => {
     });
   });
 
-  it('lists exactly the keys with no artwork as pending', () => {
+  it('lists exactly the keys with no artwork of their own as pending', () => {
     const expected = FOOD_ASSET_KEYS.filter((key) => foodAssets[key] === undefined);
     expect([...PENDING_ASSET_KEYS]).toEqual(expected);
     PENDING_ASSET_KEYS.forEach((key) => {
       expect(hasFoodAsset(key)).toBe(false);
-      expect(resolveFoodAsset(key, 'card')).toBeNull();
+    });
+  });
+});
+
+describe('substitution', () => {
+  it('points every substitute at a product that has real artwork', () => {
+    Object.entries(SUBSTITUTE_ASSET_KEYS).forEach(([, substitute]) => {
+      expect(FOOD_ASSET_KEYS).toContain(substitute);
+    });
+  });
+
+  it('never substitutes a product for itself', () => {
+    Object.entries(SUBSTITUTE_ASSET_KEYS).forEach(([key, substitute]) => {
+      expect(substitute).not.toBe(key);
+    });
+  });
+
+  it('leaves products with their own artwork untouched', () => {
+    FOOD_ASSET_KEYS.filter(hasFoodAsset).forEach((key) => {
+      expect(isSubstituted(key)).toBe(false);
+      expect(resolveSubstitute(key)).toBe(key);
+    });
+  });
+
+  it('resolves a pending product to its stand-in photograph', () => {
+    PENDING_ASSET_KEYS.forEach((key) => {
+      const substitute = SUBSTITUTE_ASSET_KEYS[key];
+      if (!substitute || !hasFoodAsset(substitute)) return;
+
+      expect(isSubstituted(key)).toBe(true);
+      expect(resolveSubstitute(key)).toBe(substitute);
+      // The rendered image is literally the substitute's, variant for variant.
+      VARIANTS.forEach((variant) => {
+        expect(resolveFoodAsset(key, variant)).toBe(resolveFoodAsset(substitute, variant));
+      });
+    });
+  });
+
+  it('gives every product a resolvable image so nothing renders bare', () => {
+    FOOD_ASSET_KEYS.forEach((key) => {
+      expect(resolveFoodAsset(key, 'card')).not.toBeNull();
     });
   });
 });

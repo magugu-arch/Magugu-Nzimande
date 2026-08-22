@@ -2,7 +2,12 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { FoodImage } from '@/components/food/FoodImage';
 import { Button, QuantityStepper, Text } from '@/components/ui';
 import { businessRules } from '@/constants/config';
-import { PENDING_ASSET_KEYS, hasFoodAsset } from '@/constants/foodAssets';
+import {
+  FOOD_ASSET_LABELS,
+  PENDING_ASSET_KEYS,
+  hasFoodAsset,
+  isSubstituted,
+} from '@/constants/foodAssets';
 
 describe('Text', () => {
   it('renders its children', () => {
@@ -84,14 +89,12 @@ describe('FoodImage', () => {
     expect(screen.getByLabelText('Golden Original Chicken')).toBeTruthy();
   });
 
-  it('falls back to the branded placeholder when artwork is pending', () => {
-    const pending = PENDING_ASSET_KEYS[0];
-    if (!pending) {
-      // Every asset has landed — the placeholder path is no longer reachable.
-      return;
-    }
+  it('labels a substituted product with its own name, not the stand-in\'s', () => {
+    const pending = PENDING_ASSET_KEYS.find(isSubstituted);
+    if (!pending) return; // Every product has its own artwork now.
 
     render(<FoodImage assetKey={pending} variant="card" />);
-    expect(screen.getByLabelText(/photography coming soon/i)).toBeTruthy();
+    // The photo is borrowed, but the alt text must describe what was ordered.
+    expect(screen.getByLabelText(FOOD_ASSET_LABELS[pending])).toBeTruthy();
   });
 });

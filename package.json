@@ -15,9 +15,10 @@
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "verify": "npm run typecheck && npm run lint && npm test",
-    "assets:derive": "node scripts/generate-image-derivatives.mjs",
+    "assets:derive": "node scripts/generate-image-derivatives.mjs && node scripts/generate-asset-registry.mjs",
     "assets:audit": "node scripts/audit-food-assets.mjs",
-    "assets:audit:warn": "node scripts/audit-food-assets.mjs --warn"
+    "assets:audit:warn": "node scripts/audit-food-assets.mjs --warn",
+    "assets:registry": "node scripts/generate-asset-registry.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

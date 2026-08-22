@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
+import { isSubstituted } from '@/constants/foodAssets';
 import { FoodImage } from '@/components/food/FoodImage';
 import {
   Badge,
@@ -158,6 +159,20 @@ export default function ProductDetailScreen() {
           >
             <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
           </Pressable>
+
+          {/*
+            This product is borrowing a related product's photograph until its
+            own shoot lands. Say so plainly rather than implying the pictured
+            item is what arrives.
+          */}
+          {isSubstituted(item.assetKey) ? (
+            <View style={styles.servingSuggestion}>
+              <Ionicons name="camera-outline" size={12} color={colors.textOnDark} />
+              <Text variant="micro" color={colors.textOnDark}>
+                SERVING SUGGESTION
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.sheet}>
@@ -287,6 +302,18 @@ const styles = StyleSheet.create({
   stateAction: { padding: spacing.lg },
   content: { paddingBottom: spacing.giant },
   hero: { width: SCREEN_WIDTH },
+  servingSuggestion: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.xxl + spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 1,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(34,30,30,0.72)',
+  },
   floatingButton: {
     position: 'absolute',
     left: spacing.lg,

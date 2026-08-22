@@ -32,7 +32,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run lint` | ESLint (Expo config + Prettier) |
 | `npm test` | Jest test suite |
 | `npm run verify` | typecheck → lint → test, in order |
-| `npm run assets:derive` | Regenerate image derivatives from masters |
+| `npm run assets:derive` | Derive image crops from masters, then regenerate the asset registry |
 | `npm run assets:audit` | Report which food assets are still outstanding |
 
 ---
@@ -66,20 +66,23 @@ food blocks. The codebase enforces this rather than trusting discipline.
 
 ### Adding a supplied asset
 
+Artwork arrives in batches, so adding a batch is one command:
+
 ```bash
-# 1. Drop the master in
-cp secret-sauce.jpg assets/food/masters/secret-sauce.jpg
+# 1. Drop the masters in, named by their catalogue stem
+cp secret-sauce.jpg cheesling.jpg assets/food/masters/
 
-# 2. Generate derivatives
+# 2. Derive the crops and regenerate the static require() registry
 npm run assets:derive
-
-# 3. Move the key from PENDING to `foodAssets` in src/constants/foodAssets.ts
-#    (the require() paths must be static literals for Metro)
 ```
 
-No screen code changes. Run `npm run assets:audit` to see what is outstanding —
-it exits non-zero while any of the 16 catalogue products lack artwork, so it can
-gate a release build.
+No hand-editing and no screen changes. Metro needs literal `require()` paths, so
+`src/constants/foodAssetRegistry.ts` is **generated** by that command from
+whichever masters are on disk — never edit it by hand.
+
+Run `npm run assets:audit` to see what is still outstanding. It exits non-zero
+while any of the 16 catalogue products lack their own artwork, so it can gate a
+release build.
 
 ### Current asset status
 
@@ -100,11 +103,38 @@ gate a release build.
 | | Ddeok-Bokki |
 | | Rose Ddeok-Bokki |
 
-Products without artwork render `<FoodImagePlaceholder>` — a bb.q Black/Red tile
-carrying the product name and "Photography coming soon". This is deliberately
-**not** photographic: the brief forbids stock food imagery and placeholder food
-blocks, so an unmistakably non-photographic brand tile is the only compliant
-stand-in. It disappears on its own the moment the master lands.
+### Substitution while artwork is outstanding
+
+Products without their own photography borrow the closest supplied asset in the
+same visual family — mapped in `SUBSTITUTE_ASSET_KEYS`, by glaze colour and
+finish rather than by menu section, since that is what a customer actually reads
+in a thumbnail:
+
+| Borrows | Products |
+|---|---|
+| Golden Original | Cheesling, Wings, Boneless, Chicken & Rice, Burger, Fries, Cheesling Fries |
+| Soy Garlic | Secret Sauce, Korean Rice Bowl |
+| Honey Garlic | Half & Half |
+| Hot Spicy | Ddeok-Bokki, Rose Ddeok-Bokki |
+
+Two guardrails come with this:
+
+- A borrowed photo shows a different product. Substituted items are flagged by
+  `isSubstituted()` and the **product detail** screen captions the hero
+  "Serving suggestion", so a customer inspecting the item closely is never told
+  it is something it is not. Alt text always names the product ordered, not the
+  product pictured.
+- `npm run assets:audit` still counts substituted products as outstanding.
+  Substitution changes what a customer sees, not what the shoot list owes.
+
+`<FoodImagePlaceholder>` — a bb.q Black/Red tile reading "Photography coming
+soon" — remains the fallback for any product with neither its own artwork nor a
+mapped substitute. Both disappear on their own the moment the master lands.
+
+**Worth flagging:** the brief (§7) asks for clear product recognition and forbids
+placeholder food imagery. Substitution trades against that deliberately, to keep
+the menu looking finished ahead of the full shoot. The 12 real photographs
+remove the trade-off entirely.
 
 ---
 
@@ -189,9 +219,10 @@ brand assets are provisioned — it is the only place the mark is drawn.
 npm test
 ```
 
-138 tests covering money arithmetic, cart pricing and option resolution, form
-validation, date and scheduling logic, the catalogue's data integrity, the
-Zustand cart store, all service layers, and the UI primitives.
+143 tests covering money arithmetic, cart pricing and option resolution, form
+validation, date and scheduling logic, the catalogue's data integrity
+and substitution mapping, the Zustand cart store, all service layers, and the
+UI primitives.
 
 The data-integrity suite is worth knowing about: it asserts that every product
 references a real asset key, that every recommendation points at a real product,
@@ -228,7 +259,8 @@ captured by our own form — that belongs inside the gateway's PCI-compliant SDK
 
 Honest list of what is stubbed, and where to pick it up:
 
-- **12 of 16 food assets** are outstanding (see the table above).
+- **12 of 16 food assets** are outstanding; those products currently borrow a
+  related product's photograph (see Substitution above).
 - **Card capture** shows an explanatory alert instead of a form — the gateway
   SDK belongs at that call site in `account/payment-methods.tsx`.
 - **Address geocoding** anchors new addresses to the city centre. Wire a
