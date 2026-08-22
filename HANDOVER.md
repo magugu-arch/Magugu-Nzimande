@@ -16,7 +16,8 @@ Africa, built to the supplied brief.
 | Screens | 42 routes covering every journey in brief §4 |
 | Food photography | All 16 catalogue products, own artwork, no placeholders |
 | Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
-| Tests | 246, across 13 suites |
+| Tests | 272, across 15 suites |
+| Bundle | 19.1 MB exported, of which 4.4 MB JavaScript |
 | Branch | `claude/bbq-chicken-app-czgvuz` |
 
 It runs **end to end with no backend**. `EXPO_PUBLIC_USE_MOCK_API` defaults to
@@ -91,9 +92,17 @@ Profiles are in `eas.json`: `development`, `development-simulator`, `preview`
 
 > I could not run the build myself. This environment's egress policy returns 403
 > for `api.expo.dev`, `cdp.expo.dev` and `dl.google.com`, which blocks both EAS
-> and a local Android SDK install. Everything upstream of the build server is
-> verified: both platforms prebuild clean, native dependencies match the SDK 57
-> bundle exactly, and the production Metro bundle compiles for both platforms.
+> and a local Android SDK install.
+>
+> Everything upstream of the build server is verified. Both platforms prebuild
+> clean and the generated manifests were read, not assumed. `expo-doctor` passes
+> 19 of 21 checks — including the two that matter, native dependency versions
+> and store-submission requirements. The two failures are this sandbox blocking
+> `exp.host` and `reactnative.directory`; both are network checks, and both pass
+> their local equivalents. Production bundles compile for both platforms with
+> `EXPO_PUBLIC_USE_MOCK_API=0`.
+>
+> What remains genuinely unknown is how it looks and feels running on a handset.
 
 ---
 
@@ -184,7 +193,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 246 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, 272 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
@@ -219,7 +228,24 @@ These fail loudly rather than rotting quietly — leave them on.
 
 ---
 
-## 8. If I were picking this up
+## 8. Before the first store submission
+
+A short list, because these are the things that fail a review rather than a
+test. Everything here is already done except where marked.
+
+| | |
+|---|---|
+| Android permissions | Location, internet, vibrate. Nothing else — the three the toolchain adds unasked are blocked, and a test holds that line |
+| iOS background modes | None declared. Apple rejects apps claiming `remote-notification` without silent pushes |
+| Export compliance | `ITSAppUsesNonExemptEncryption: false`, so submission does not stall on the encryption question |
+| Card data | Never captured by our code. A test greps the whole app for card, CVV and expiry fields |
+| Credentials | Keychain via `expo-secure-store`. AsyncStorage holds profile and preferences only, enforced by `partialize` and asserted |
+| Bundle secrets | Only `EXPO_PUBLIC_*` values, which are inlined and therefore public by definition. A test rejects any name implying a secret |
+| **Still to do** | Fill the `appleId`, `ascAppId` and `appleTeamId` placeholders in `eas.json`, and run `eas init` for a real project id |
+
+---
+
+## 9. If I were picking this up
 
 In order:
 
