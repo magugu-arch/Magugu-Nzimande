@@ -16,7 +16,7 @@ Africa, built to the supplied brief.
 | Screens | 42 routes covering every journey in brief §4 |
 | Food photography | All 16 catalogue products, own artwork, no placeholders |
 | Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
-| Tests | 272, across 15 suites |
+| Tests | 279, across 16 suites |
 | Bundle | 19.1 MB exported, of which 4.4 MB JavaScript |
 | Branch | `claude/bbq-chicken-app-czgvuz` |
 
@@ -43,7 +43,12 @@ the app, and if something is wrong you'll see it there first.
 
 ```bash
 npm run verify      # typecheck → lint → test, the gate before any commit
+npm run preview:web # the whole app in a browser, no build required
 ```
+
+The browser preview is the fastest way to see a change. It is not the device —
+gestures, haptics and push do not apply — but layout and typography are honest,
+and it needs no Apple account, no EAS and no cable.
 
 ---
 
@@ -102,7 +107,16 @@ Profiles are in `eas.json`: `development`, `development-simulator`, `preview`
 > their local equivalents. Production bundles compile for both platforms with
 > `EXPO_PUBLIC_USE_MOCK_API=0`.
 >
-> What remains genuinely unknown is how it looks and feels running on a handset.
+> It has also been **run**, not only bundled. `npm run preview:web` renders it
+> in a browser; driving the real ordering journey through it found six defects
+> no test had caught, including a stale memo that left checkout permanently
+> disabled once you picked a store. All six are fixed.
+>
+> React Native Web is not a device — gestures, haptics, push and native
+> scrolling all differ. But for layout, typography and flow it is a far better
+> proxy than a green test suite, and it costs nothing to look.
+>
+> What remains genuinely unknown is how it feels in the hand.
 
 ---
 
@@ -137,15 +151,14 @@ Also outstanding, and deliberate:
   they agree with each other. §23.5 looks like the outlier.
 - **§12.2 puts UI buttons on Arial Bold; §11.2 puts them on Montserrat
   SemiBold.** Montserrat, since §13.3 and §13.4's callouts say the same.
-- **Two changes have not been seen on a device.** §23.7's 24px gutter replaced
-  a 16px one, and the app moved from Helvetica Neue to Montserrat. The riskier
-  half of the second is now measured rather than assumed: `npm run
-  assets:typefit` reads the bundled TTF and checks every static button label
-  against §22.4's geometry at 320pt. Labels came out **30% wider** on average,
-  worst case 42%, and one was overflowing. What measurement cannot settle is
-  how the heavier face *reads* — density, rhythm, whether headings feel
-  oversized. Every size is a token in `theme/typography.ts`, so trimming is a
-  one-file change.
+- **The type and spacing changes have been measured and seen, but not held.**
+  §23.7's 24px gutter replaced a 16px one, and the app moved from Helvetica
+  Neue to Montserrat. `npm run assets:typefit` measures every static button
+  label against §22.4's geometry — labels came out **30% wider** on average,
+  worst case 42% — and the browser preview showed the rest: a wrapping CTA, a
+  clipped tab label, an overflowing Apply button, all now fixed. What neither
+  settles is how the heavier face reads in the hand. Every size is a token in
+  `theme/typography.ts`, so trimming is a one-file change.
 - **§10.2's 50/30/15/5 digital colour ratio is noted, not applied.** The app is
   mostly white with red as the accent, which is what the client's own mockups
   show and what leaves the food photography somewhere to sit. §10.1 allows the
@@ -193,7 +206,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 272 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, 279 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks

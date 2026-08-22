@@ -39,6 +39,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run assets:audit` | Report which food assets are still outstanding |
 | `npm run assets:brand` | Regenerate every icon and in-app logo from the logo masters |
 | `npm run assets:typefit` | Measure every button label against §22.4's geometry and fail on overflow |
+| `npm run preview:web` | Run the whole app in a browser — layout and type, no build needed |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |
 | `npm run build:prod` | EAS store build |
@@ -380,7 +381,7 @@ the mark from fonts; this is the one place that rule has to hold.
 npm test
 ```
 
-272 tests covering money arithmetic, cart pricing and option resolution, form
+279 tests covering money arithmetic, cart pricing and option resolution, form
 validation, date and scheduling logic, the catalogue's data integrity
 and substitution mapping, the Zustand cart store, all service layers, the UI
 primitives, notification routing (including malformed and off-app payloads),

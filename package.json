@@ -21,6 +21,7 @@
     "assets:registry": "node scripts/generate-asset-registry.mjs",
     "assets:brand": "node scripts/generate-brand-assets.mjs",
     "assets:typefit": "node scripts/audit-type-fit.mjs",
+    "preview:web": "expo start --web",
     "build:dev": "eas build --profile development --platform all",
     "build:dev:ios": "eas build --profile development --platform ios",
     "build:dev:android": "eas build --profile development --platform android",
