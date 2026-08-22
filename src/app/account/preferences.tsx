@@ -94,7 +94,7 @@ export default function PreferencesScreen() {
                   <Button
                     label="Open device settings"
                     onPress={() => void Linking.openSettings()}
-                    variant="ghost"
+                    variant="text"
                     size="sm"
                     fullWidth={false}
                     style={styles.pushAction}
@@ -103,7 +103,7 @@ export default function PreferencesScreen() {
                   <Button
                     label="Try again"
                     onPress={() => void registerNow()}
-                    variant="ghost"
+                    variant="text"
                     size="sm"
                     fullWidth={false}
                     style={styles.pushAction}

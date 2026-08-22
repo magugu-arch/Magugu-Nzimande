@@ -1,7 +1,10 @@
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { FoodImage } from '@/components/food/FoodImage';
+import { OrderTimeline } from '@/features/orders/components/OrderTimeline';
 import { Button, QuantityStepper, Text } from '@/components/ui';
 import { businessRules } from '@/constants/config';
+import { MIN_TOUCH_TARGET } from '@/theme';
 import {
   FOOD_ASSET_LABELS,
   PENDING_ASSET_KEYS,
@@ -47,6 +50,46 @@ describe('Button', () => {
     );
     expect(screen.getByLabelText('Place order, R 237.00')).toBeTruthy();
   });
+
+  // §22.7 asks for uppercase CTAs but warns off it for long text, so the
+  // default and the escape hatch both need to hold.
+  it('uppercases the label by default', () => {
+    render(<Button label="Order now" onPress={jest.fn()} testID="cta" />);
+    expect(screen.getByText('ORDER NOW')).toBeTruthy();
+  });
+
+  it('leaves the label alone when asked to preserve case', () => {
+    render(<Button label="Need help with this order?" onPress={jest.fn()} preserveCase />);
+    expect(screen.getByText('Need help with this order?')).toBeTruthy();
+  });
+
+  it('keeps the accessible name in its written case', () => {
+    // Uppercase is a visual treatment; a screen reader should not shout.
+    render(<Button label="Order now" onPress={jest.fn()} testID="cta" />);
+    expect(screen.getByLabelText('Order now')).toBeTruthy();
+  });
+
+  // §22.4 gives exact heights, and §22.9 an exact minimum touch target. The
+  // small button is deliberately shorter than the target, so the two rules
+  // only both hold if the shortfall lands in hitSlop.
+  it.each([
+    ['lg', 56],
+    ['md', 44],
+    ['sm', 36],
+  ] as const)('renders %s at %ipx and still clears 44pt of touch target', (size, height) => {
+    render(<Button label="Order now" onPress={jest.fn()} size={size} testID="cta" />);
+
+    const button = screen.getByTestId('cta');
+    const style = StyleSheet.flatten(
+      typeof button.props.style === 'function'
+        ? button.props.style({ pressed: false })
+        : button.props.style,
+    );
+    expect(style.height).toBe(height);
+
+    const slop = button.props.hitSlop as { top: number; bottom: number };
+    expect(height + slop.top + slop.bottom).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+  });
 });
 
 describe('QuantityStepper', () => {
@@ -73,12 +116,48 @@ describe('QuantityStepper', () => {
 
   it('will not increment past the maximum', () => {
     const onChange = jest.fn();
-    render(
-      <QuantityStepper quantity={businessRules.maxQuantityPerLine} onChange={onChange} />,
-    );
+    render(<QuantityStepper quantity={businessRules.maxQuantityPerLine} onChange={onChange} />);
 
     fireEvent.press(screen.getByLabelText('Increase quantity'));
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('OrderTimeline', () => {
+  const timeline = [
+    {
+      status: 'received' as const,
+      label: 'Received',
+      description: 'We have your order.',
+      occurredAt: '2026-08-22T10:15:00.000Z',
+    },
+    {
+      status: 'preparing' as const,
+      label: 'Preparing',
+      description: 'Your order is with the kitchen.',
+      occurredAt: '2026-08-22T10:20:00.000Z',
+    },
+    {
+      status: 'ready' as const,
+      label: 'Ready',
+      description: 'Waiting for the driver.',
+      occurredAt: null,
+    },
+  ];
+
+  // §32.4: colour must never be the only thing carrying meaning. Sighted users
+  // read the state off a filled node; everyone else needs it in words.
+  it('says in words whether each step is done, current or still to come', () => {
+    render(<OrderTimeline timeline={timeline} currentStatus="preparing" />);
+
+    expect(screen.getByLabelText(/Received, done at/)).toBeTruthy();
+    expect(screen.getByLabelText(/Preparing, in progress now/)).toBeTruthy();
+    expect(screen.getByLabelText(/Ready, not yet/)).toBeTruthy();
+  });
+
+  it('announces each step as one element, with its position', () => {
+    render(<OrderTimeline timeline={timeline} currentStatus="preparing" />);
+    expect(screen.getByLabelText(/^Step 2 of 3\. Preparing/)).toBeTruthy();
   });
 });
 
@@ -89,7 +168,7 @@ describe('FoodImage', () => {
     expect(screen.getByLabelText('Golden Original Chicken')).toBeTruthy();
   });
 
-  it('labels a substituted product with its own name, not the stand-in\'s', () => {
+  it("labels a substituted product with its own name, not the stand-in's", () => {
     const pending = PENDING_ASSET_KEYS.find(isSubstituted);
     if (!pending) return; // Every product has its own artwork now.
 

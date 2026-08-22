@@ -10,11 +10,7 @@ export interface DividerProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export const Divider = memo(function Divider({
-  label,
-  spacingSize = 'lg',
-  style,
-}: DividerProps) {
+export const Divider = memo(function Divider({ label, spacingSize = 'lg', style }: DividerProps) {
   if (!label) {
     return <View style={[styles.rule, { marginVertical: spacing[spacingSize] }, style]} />;
   }

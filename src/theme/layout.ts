@@ -1,6 +1,12 @@
 import { Platform, type ViewStyle } from 'react-native';
 
-/** 4pt spacing scale. */
+/**
+ * 4pt spacing scale.
+ *
+ * The three values guidelines §23.7 names are aliased below with the meaning
+ * the diagram gives them, so layout code can say what it is doing rather than
+ * pick a t-shirt size and hope it was the right one.
+ */
 export const spacing = {
   none: 0,
   xxs: 2,
@@ -13,6 +19,13 @@ export const spacing = {
   xxxl: 32,
   huge: 40,
   giant: 56,
+
+  /** §23.7: 24px, the padding between screen edge and content. */
+  gutter: 24,
+  /** §23.7: 16px, the gap between elements inside a card or row. */
+  gap: 16,
+  /** §23.7: 4px, the tightest gap — label to value, icon to text. */
+  gapTight: 4,
 } as const;
 
 export const radius = {

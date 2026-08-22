@@ -34,10 +34,7 @@ export function OfflineBanner() {
       pointerEvents="none"
       accessibilityRole="alert"
       accessibilityLabel={isOffline ? 'You are offline' : ''}
-      style={[
-        styles.banner,
-        { paddingTop: insets.top + spacing.sm, transform: [{ translateY }] },
-      ]}
+      style={[styles.banner, { paddingTop: insets.top + spacing.sm, transform: [{ translateY }] }]}
       testID="offline-banner"
     >
       <Ionicons name="cloud-offline-outline" size={16} color={colors.textOnDark} />

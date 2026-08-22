@@ -83,7 +83,11 @@ export default function VoucherWalletScreen() {
           selected={filter === 'active'}
           onPress={() => setFilter('active')}
         />
-        <Chip label="Used & expired" selected={filter === 'used'} onPress={() => setFilter('used')} />
+        <Chip
+          label="Used & expired"
+          selected={filter === 'used'}
+          onPress={() => setFilter('used')}
+        />
       </View>
 
       {visible.length === 0 ? (
@@ -112,8 +116,7 @@ export default function VoucherWalletScreen() {
                     : () => {
                         applyVoucher({
                           code: voucher.code,
-                          discount:
-                            voucher.discountType === 'fixed' ? voucher.discountValue : 0,
+                          discount: voucher.discountType === 'fixed' ? voucher.discountValue : 0,
                           freeDelivery: voucher.discountType === 'freeDelivery',
                         });
                         router.push(cartLines.length > 0 ? '/cart' : '/(tabs)/menu');
@@ -141,10 +144,7 @@ export default function VoucherWalletScreen() {
                     </Text>
                   </View>
 
-                  <Badge
-                    label={describeDiscount(voucher)}
-                    tone={spent ? 'neutral' : 'primary'}
-                  />
+                  <Badge label={describeDiscount(voucher)} tone={spent ? 'neutral' : 'primary'} />
                 </View>
 
                 <View style={styles.codeRow}>

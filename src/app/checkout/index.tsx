@@ -110,8 +110,7 @@ export default function CheckoutScreen() {
     return null;
   }, [lines.length, totals.subtotal, fulfilmentType, missingRequirement, selectedPayment]);
 
-  const etaMinutes =
-    (store?.preparationMinutes ?? 18) + (fulfilmentType === 'delivery' ? 20 : 0);
+  const etaMinutes = (store?.preparationMinutes ?? 18) + (fulfilmentType === 'delivery' ? 20 : 0);
 
   const handlePlaceOrder = useCallback(async () => {
     if (blocker || !store || !selectedPayment) return;
@@ -197,7 +196,10 @@ export default function CheckoutScreen() {
       <StatusBar style="dark" />
 
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <ScreenHeader title="Checkout" subtitle={`${lines.length} item${lines.length === 1 ? '' : 's'}`} />
+        <ScreenHeader
+          title="Checkout"
+          subtitle={`${lines.length} item${lines.length === 1 ? '' : 's'}`}
+        />
       </View>
 
       <ScrollView
@@ -283,47 +285,48 @@ export default function CheckoutScreen() {
           <Text variant="h3">Payment</Text>
 
           {offeredPaymentMethods.map((method) => {
-              const selected = method.id === selectedPaymentId;
-              return (
-                <Pressable
-                  key={method.id}
-                  onPress={() => setChosenPaymentId(method.id)}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={method.label}
-                  testID={`payment-${method.id}`}
-                  style={({ pressed }) => [
-                    styles.paymentRow,
-                    selected ? styles.paymentRowSelected : null,
-                    pressed ? styles.pressed : null,
-                  ]}
-                >
-                  <Ionicons
-                    name={paymentIcon(method)}
-                    size={20}
-                    color={selected ? colors.primary : colors.textSecondary}
-                  />
-                  <View style={styles.paymentBody}>
-                    <Text variant="bodyMedium">{method.label}</Text>
-                    <Text variant="caption" color={colors.textSecondary}>
-                      {method.expiry
-                        ? `Expires ${method.expiry}`
-                        : describePaymentMethod(method.type)}
-                    </Text>
-                  </View>
-                  {method.isDefault ? <Badge label="Default" tone="neutral" /> : null}
-                  <View style={[styles.radio, selected ? styles.radioSelected : null]}>
-                    {selected ? <Ionicons name="ellipse" size={10} color={colors.onPrimary} /> : null}
-                  </View>
-                </Pressable>
-              );
-            })}
+            const selected = method.id === selectedPaymentId;
+            return (
+              <Pressable
+                key={method.id}
+                onPress={() => setChosenPaymentId(method.id)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected }}
+                accessibilityLabel={method.label}
+                testID={`payment-${method.id}`}
+                style={({ pressed }) => [
+                  styles.paymentRow,
+                  selected ? styles.paymentRowSelected : null,
+                  pressed ? styles.pressed : null,
+                ]}
+              >
+                <Ionicons
+                  name={paymentIcon(method)}
+                  size={20}
+                  color={selected ? colors.primary : colors.textSecondary}
+                />
+                <View style={styles.paymentBody}>
+                  <Text variant="bodyMedium">{method.label}</Text>
+                  <Text variant="caption" color={colors.textSecondary}>
+                    {method.expiry
+                      ? `Expires ${method.expiry}`
+                      : describePaymentMethod(method.type)}
+                  </Text>
+                </View>
+                {method.isDefault ? <Badge label="Default" tone="neutral" /> : null}
+                <View style={[styles.radio, selected ? styles.radioSelected : null]}>
+                  {selected ? <Ionicons name="ellipse" size={10} color={colors.onPrimary} /> : null}
+                </View>
+              </Pressable>
+            );
+          })}
 
           <Button
             label="Manage payment methods"
             onPress={() => router.push('/account/payment-methods')}
-            variant="ghost"
+            variant="text"
             size="sm"
+            preserveCase
           />
         </Card>
 
@@ -359,12 +362,7 @@ export default function CheckoutScreen() {
             </View>
           ))}
 
-          <Button
-            label="Edit cart"
-            onPress={() => router.push('/cart')}
-            variant="ghost"
-            size="sm"
-          />
+          <Button label="Edit cart" onPress={() => router.push('/cart')} variant="text" size="sm" />
         </Card>
 
         {/* Totals */}
@@ -401,6 +399,7 @@ export default function CheckoutScreen() {
           loading={submitting}
           size="lg"
           testID="checkout-place-order"
+          preserveCase
         />
       </View>
     </View>
@@ -436,11 +435,7 @@ function SummaryRow({ icon, label, value, detail, complete }: SummaryRowProps) {
   return (
     <View style={styles.summaryRow}>
       <View style={[styles.summaryIcon, complete ? null : styles.summaryIconIncomplete]}>
-        <Ionicons
-          name={icon}
-          size={19}
-          color={complete ? colors.primary : colors.status.warning}
-        />
+        <Ionicons name={icon} size={19} color={complete ? colors.primary : colors.status.warning} />
       </View>
 
       <View style={styles.summaryBody}>
@@ -465,7 +460,7 @@ function SummaryRow({ icon, label, value, detail, complete }: SummaryRowProps) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.backgroundAlt },
   header: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
@@ -518,7 +513,7 @@ const styles = StyleSheet.create({
   errorText: { flex: 1 },
   footer: {
     gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,

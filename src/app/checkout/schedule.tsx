@@ -130,7 +130,7 @@ export default function ScheduleScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,

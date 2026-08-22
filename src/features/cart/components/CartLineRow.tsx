@@ -21,7 +21,8 @@ export const CartLineRow = memo(function CartLineRow({
   onQuantityChange,
   onRemove,
   onEdit,
-  testID}: CartLineRowProps) {
+  testID,
+}: CartLineRowProps) {
   const optionSummary = describeOptions(line);
 
   return (
@@ -51,7 +52,12 @@ export const CartLineRow = memo(function CartLineRow({
         {line.specialInstructions ? (
           <View style={styles.note}>
             <Ionicons name="chatbubble-ellipses-outline" size={12} color={colors.textMuted} />
-            <Text variant="caption" color={colors.textMuted} numberOfLines={2} style={styles.noteText}>
+            <Text
+              variant="caption"
+              color={colors.textMuted}
+              numberOfLines={2}
+              style={styles.noteText}
+            >
               {line.specialInstructions}
             </Text>
           </View>

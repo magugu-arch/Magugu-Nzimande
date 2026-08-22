@@ -5,13 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { CategoryId, Product } from '@/types';
-import {
-  Chip,
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  Text,
-} from '@/components/ui';
+import { Chip, EmptyState, ErrorState, LoadingState, Text } from '@/components/ui';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { ProductRow } from '@/features/menu/components/ProductRow';
 import { useCategories, useMenu, useProductSearch } from '@/features/menu/hooks';
@@ -61,7 +55,8 @@ export default function MenuScreen() {
   );
 
   const sectionTitle = useMemo(() => {
-    if (isSearching) return `${listedProducts.length} result${listedProducts.length === 1 ? '' : 's'}`;
+    if (isSearching)
+      return `${listedProducts.length} result${listedProducts.length === 1 ? '' : 's'}`;
     if (activeCategory === 'all') return 'Everything on the menu';
     return categories.data?.find((category) => category.id === activeCategory)?.name ?? 'Menu';
   }, [isSearching, listedProducts.length, activeCategory, categories.data]);
@@ -173,7 +168,9 @@ export default function MenuScreen() {
           />
         )}
 
-        {isSearching && listedProducts.length === 0 && !search.isLoading ? null : isSearching ? null : (
+        {isSearching &&
+        listedProducts.length === 0 &&
+        !search.isLoading ? null : isSearching ? null : (
           <View style={styles.suggestions}>
             <Text variant="micro" color={colors.textMuted}>
               POPULAR SEARCHES
@@ -208,7 +205,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   header: {
     gap: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -237,7 +234,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     backgroundColor: colors.surfaceAlt,
   },
-  body: { flex: 1, paddingHorizontal: spacing.lg },
+  body: { flex: 1, paddingHorizontal: spacing.gutter },
   listContent: { paddingTop: spacing.md },
   listTitle: { paddingBottom: spacing.sm },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: colors.divider },

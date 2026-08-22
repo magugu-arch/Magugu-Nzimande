@@ -64,11 +64,7 @@ export const FoodImage = memo(function FoodImage({
   return (
     <View
       testID={testID}
-      style={[
-        styles.container,
-        { aspectRatio: ratio, borderRadius: radius[rounded] },
-        style,
-      ]}
+      style={[styles.container, { aspectRatio: ratio, borderRadius: radius[rounded] }, style]}
     >
       {source ? (
         <Image

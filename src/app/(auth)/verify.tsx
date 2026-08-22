@@ -86,8 +86,8 @@ export default function VerifyScreen() {
       <View style={styles.body}>
         <Text variant="body" color={colors.textSecondary}>
           We sent a 4-digit code to{' '}
-          <Text variant="bodyMedium">{phone ? toE164(String(phone)) : 'your number'}</Text>. Enter it
-          below to finish setting up your account.
+          <Text variant="bodyMedium">{phone ? toE164(String(phone)) : 'your number'}</Text>. Enter
+          it below to finish setting up your account.
         </Text>
 
         <View style={styles.codeRow}>
@@ -115,7 +115,12 @@ export default function VerifyScreen() {
         </View>
 
         {error ? (
-          <Text variant="caption" color={colors.status.error} align="center" accessibilityRole="alert">
+          <Text
+            variant="caption"
+            color={colors.status.error}
+            align="center"
+            accessibilityRole="alert"
+          >
             {error}
           </Text>
         ) : null}
@@ -140,8 +145,9 @@ export default function VerifyScreen() {
         <Button
           label={secondsLeft > 0 ? `Resend code in ${secondsLeft}s` : 'Resend code'}
           onPress={() => void handleResend()}
-          variant="ghost"
+          variant="text"
           disabled={secondsLeft > 0}
+          preserveCase
         />
       </View>
     </Screen>

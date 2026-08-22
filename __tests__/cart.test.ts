@@ -64,22 +64,58 @@ const product: Product = {
 describe('buildLineId', () => {
   it('produces the same id regardless of option ordering', () => {
     const a = buildLineId('golden-original', [
-      { groupId: 'size', groupName: 'Size', optionId: 'size-medium', optionName: 'Medium', priceDelta: 60 },
-      { groupId: 'addons', groupName: 'Dips', optionId: 'dip-soy', optionName: 'Soy', priceDelta: 18 },
+      {
+        groupId: 'size',
+        groupName: 'Size',
+        optionId: 'size-medium',
+        optionName: 'Medium',
+        priceDelta: 60,
+      },
+      {
+        groupId: 'addons',
+        groupName: 'Dips',
+        optionId: 'dip-soy',
+        optionName: 'Soy',
+        priceDelta: 18,
+      },
     ]);
     const b = buildLineId('golden-original', [
-      { groupId: 'addons', groupName: 'Dips', optionId: 'dip-soy', optionName: 'Soy', priceDelta: 18 },
-      { groupId: 'size', groupName: 'Size', optionId: 'size-medium', optionName: 'Medium', priceDelta: 60 },
+      {
+        groupId: 'addons',
+        groupName: 'Dips',
+        optionId: 'dip-soy',
+        optionName: 'Soy',
+        priceDelta: 18,
+      },
+      {
+        groupId: 'size',
+        groupName: 'Size',
+        optionId: 'size-medium',
+        optionName: 'Medium',
+        priceDelta: 60,
+      },
     ]);
     expect(a).toBe(b);
   });
 
   it('distinguishes different configurations of the same product', () => {
     const medium = buildLineId('golden-original', [
-      { groupId: 'size', groupName: 'Size', optionId: 'size-medium', optionName: 'Medium', priceDelta: 60 },
+      {
+        groupId: 'size',
+        groupName: 'Size',
+        optionId: 'size-medium',
+        optionName: 'Medium',
+        priceDelta: 60,
+      },
     ]);
     const small = buildLineId('golden-original', [
-      { groupId: 'size', groupName: 'Size', optionId: 'size-small', optionName: 'Small', priceDelta: 0 },
+      {
+        groupId: 'size',
+        groupName: 'Size',
+        optionId: 'size-small',
+        optionName: 'Small',
+        priceDelta: 0,
+      },
     ]);
     expect(medium).not.toBe(small);
   });
@@ -208,7 +244,9 @@ describe('calculateTotals', () => {
   });
 
   it('never charges delivery on collection or dine-in', () => {
-    expect(calculateTotals({ lines: [line(120)], fulfilmentType: 'collection' }).deliveryFee).toBe(0);
+    expect(calculateTotals({ lines: [line(120)], fulfilmentType: 'collection' }).deliveryFee).toBe(
+      0,
+    );
     expect(calculateTotals({ lines: [line(120)], fulfilmentType: 'dinein' }).deliveryFee).toBe(0);
   });
 
@@ -272,7 +310,9 @@ describe('cartItemCount', () => {
   it('counts units, not lines', () => {
     const lines: CartLine[] = [
       { ...buildCartLine(product, [], 2) },
-      { ...buildCartLine(product, resolveSelectedOptions([sizeGroup], { size: ['size-small'] }), 3) },
+      {
+        ...buildCartLine(product, resolveSelectedOptions([sizeGroup], { size: ['size-small'] }), 3),
+      },
     ];
     expect(cartItemCount(lines)).toBe(5);
   });

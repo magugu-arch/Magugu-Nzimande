@@ -99,9 +99,7 @@ export default function RateOrderScreen() {
 
         {tags.length > 0 ? (
           <View style={styles.tagBlock}>
-            <Text variant="h3">
-              {rating >= 4 ? 'What went well?' : 'What went wrong?'}
-            </Text>
+            <Text variant="h3">{rating >= 4 ? 'What went well?' : 'What went wrong?'}</Text>
             <View style={styles.tagRow}>
               {tags.map((tag) => (
                 <Chip
@@ -140,7 +138,7 @@ export default function RateOrderScreen() {
           size="lg"
           testID="rate-submit"
         />
-        <Button label="Not now" onPress={() => router.back()} variant="ghost" />
+        <Button label="Not now" onPress={() => router.back()} variant="text" />
       </View>
     </Screen>
   );

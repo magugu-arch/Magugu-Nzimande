@@ -42,12 +42,8 @@ export default function OrdersScreen() {
   const { active, past } = useMemo(() => {
     const list = orders.data ?? [];
     return {
-      active: list.filter(
-        (order) => order.status !== 'completed' && order.status !== 'cancelled',
-      ),
-      past: list.filter(
-        (order) => order.status === 'completed' || order.status === 'cancelled',
-      ),
+      active: list.filter((order) => order.status !== 'completed' && order.status !== 'cancelled'),
+      past: list.filter((order) => order.status === 'completed' || order.status === 'cancelled'),
     };
   }, [orders.data]);
 
@@ -112,10 +108,7 @@ export default function OrdersScreen() {
           />
         )}
         ItemSeparatorComponent={() => <View style={styles.gap} />}
-        contentContainerStyle={[
-          styles.list,
-          { paddingBottom: TAB_BAR_HEIGHT + CART_BAR_HEIGHT },
-        ]}
+        contentContainerStyle={[styles.list, { paddingBottom: TAB_BAR_HEIGHT + CART_BAR_HEIGHT }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -250,7 +243,7 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
             <Button
               label="Rate"
               onPress={onRate}
-              variant="outline"
+              variant="tertiary"
               size="sm"
               iconLeft="star-outline"
               fullWidth={false}
@@ -274,7 +267,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.backgroundAlt },
   header: {
     gap: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,

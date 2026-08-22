@@ -94,7 +94,7 @@ export default function MoreScreen() {
               <Button
                 label="Create an account"
                 onPress={() => router.push('/(auth)/register')}
-                variant="outline"
+                variant="tertiary"
               />
             </View>
           </Card>
@@ -214,7 +214,7 @@ export default function MoreScreen() {
           <Button
             label="Sign out"
             onPress={handleSignOut}
-            variant="outline"
+            variant="tertiary"
             iconLeft="log-out-outline"
             style={styles.signOut}
             testID="more-sign-out"
@@ -240,7 +240,7 @@ export default function MoreScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.backgroundAlt },
-  content: { paddingHorizontal: spacing.lg, gap: spacing.xl },
+  content: { paddingHorizontal: spacing.gutter, gap: spacing.xl },
   profileCard: { gap: spacing.sm },
   profileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: {

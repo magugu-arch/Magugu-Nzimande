@@ -39,26 +39,22 @@ export const TextField = memo(function TextField({
   const [focused, setFocused] = useState(false);
   const [obscured, setObscured] = useState(secure);
 
-  const borderColor = error
-    ? colors.status.error
-    : focused
-      ? colors.primary
-      : colors.border;
+  const borderColor = error ? colors.status.error : focused ? colors.primary : colors.border;
 
   return (
     <View style={[styles.container, containerStyle]}>
       <Text variant="captionMedium" color={colors.textSecondary}>
         {label}
-        {required ? <Text variant="captionMedium" color={colors.primary}>{' *'}</Text> : null}
+        {required ? (
+          <Text variant="captionMedium" color={colors.primary}>
+            {' *'}
+          </Text>
+        ) : null}
       </Text>
 
       <View style={[styles.inputRow, { borderColor }]}>
         {iconLeft ? (
-          <Ionicons
-            name={iconLeft}
-            size={18}
-            color={focused ? colors.primary : colors.textMuted}
-          />
+          <Ionicons name={iconLeft} size={18} color={focused ? colors.primary : colors.textMuted} />
         ) : null}
 
         <TextInput

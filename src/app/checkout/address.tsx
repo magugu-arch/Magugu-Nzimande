@@ -282,13 +282,13 @@ export default function AddressScreen() {
               size="lg"
               testID="address-save"
             />
-            <Button label="Cancel" onPress={() => setAdding(false)} variant="ghost" />
+            <Button label="Cancel" onPress={() => setAdding(false)} variant="text" />
           </View>
         ) : (
           <Button
             label="Add a new address"
             onPress={() => setAdding(true)}
-            variant="outline"
+            variant="tertiary"
             iconLeft="add"
             testID="address-add"
           />

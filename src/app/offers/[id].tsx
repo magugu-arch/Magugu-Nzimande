@@ -76,7 +76,9 @@ export default function OfferDetailScreen() {
 
       <View style={styles.body}>
         <View style={styles.titleBlock}>
-          {data.promoCode ? <Badge label="Promo code offer" tone="primary" icon="pricetag" /> : null}
+          {data.promoCode ? (
+            <Badge label="Promo code offer" tone="primary" icon="pricetag" />
+          ) : null}
           <Text variant="h1">{data.headline}</Text>
           <Text variant="bodyLarge" color={colors.textSecondary}>
             {data.description}
@@ -97,10 +99,11 @@ export default function OfferDetailScreen() {
               <Button
                 label={copied ? 'Copied' : 'Copy'}
                 onPress={() => void handleCopyCode(data.promoCode as string)}
-                variant={copied ? 'secondary' : 'outline'}
+                variant={copied ? 'secondary' : 'tertiary'}
                 iconLeft={copied ? 'checkmark' : 'copy-outline'}
                 fullWidth={false}
                 testID="offer-copy-code"
+                preserveCase
               />
             </View>
           </Card>
@@ -134,6 +137,7 @@ export default function OfferDetailScreen() {
           onPress={() => router.push(data.ctaHref as Href)}
           size="lg"
           testID="offer-cta"
+          preserveCase
         />
       </View>
     </Screen>
@@ -141,7 +145,7 @@ export default function OfferDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerWrap: { paddingHorizontal: spacing.lg },
+  headerWrap: { paddingHorizontal: spacing.gutter },
   hero: { width: SCREEN_WIDTH },
   body: { gap: spacing.lg, padding: spacing.lg, paddingBottom: spacing.xxxl },
   titleBlock: { gap: spacing.sm },

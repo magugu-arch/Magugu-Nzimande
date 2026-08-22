@@ -140,6 +140,7 @@ export default function WelcomeScreen() {
           size="lg"
           iconRight={isLastSlide ? undefined : 'arrow-forward'}
           testID="onboarding-next"
+          preserveCase
         />
       </View>
     </View>
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
   },
   panel: {
     position: 'absolute',

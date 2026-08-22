@@ -157,7 +157,7 @@ export default function CartScreen() {
           <Button
             label="Add more items"
             onPress={() => router.push('/(tabs)/menu')}
-            variant="outline"
+            variant="tertiary"
             iconLeft="add"
             style={styles.addMore}
           />
@@ -297,7 +297,7 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.backgroundAlt },
   header: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   rewardBody: { flex: 1, gap: spacing.xxs },
   footer: {
     gap: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,

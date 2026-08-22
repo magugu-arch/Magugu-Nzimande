@@ -16,7 +16,13 @@ import {
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { PromotionBanner } from '@/features/home/components/PromotionBanner';
 import { RewardCard } from '@/features/rewards/components/RewardCard';
-import { useLoyaltyAccount, usePromotions, useRewards, useTiers, useVouchers } from '@/features/rewards/hooks';
+import {
+  useLoyaltyAccount,
+  usePromotions,
+  useRewards,
+  useTiers,
+  useVouchers,
+} from '@/features/rewards/hooks';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatRelativeDay } from '@/utils/datetime';
 
@@ -292,7 +298,7 @@ const styles = StyleSheet.create({
   content: { backgroundColor: colors.primary },
   hero: {
     gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingBottom: spacing.xxl,
     backgroundColor: colors.primary,
   },
@@ -310,7 +316,7 @@ const styles = StyleSheet.create({
   },
   card: { gap: spacing.sm },
   section: { marginHorizontal: -spacing.lg },
-  carousel: { gap: spacing.md, paddingHorizontal: spacing.lg },
+  carousel: { gap: spacing.md, paddingHorizontal: spacing.gutter },
   perksHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -319,7 +325,7 @@ const styles = StyleSheet.create({
   },
   perkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   perkText: { flex: 1 },
-  emptyBlock: { paddingHorizontal: spacing.lg },
+  emptyBlock: { paddingHorizontal: spacing.gutter },
   walletRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   walletIcon: {
     width: 42,

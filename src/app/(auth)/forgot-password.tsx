@@ -46,8 +46,8 @@ export default function ForgotPasswordScreen() {
             Reset link sent
           </Text>
           <Text variant="body" color={colors.textSecondary} align="center">
-            If an account exists for {sentTo}, we have sent a link to reset your password. It expires
-            in 30 minutes.
+            If an account exists for {sentTo}, we have sent a link to reset your password. It
+            expires in 30 minutes.
           </Text>
           <Button label="Back to sign in" onPress={() => router.replace('/(auth)/sign-in')} />
         </View>

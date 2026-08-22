@@ -186,7 +186,7 @@ export default function ProfileScreen() {
               onPress={() =>
                 router.push({ pathname: '/(auth)/verify', params: { phone: values.phone } })
               }
-              variant="ghost"
+              variant="text"
               size="sm"
               fullWidth={false}
             />
@@ -220,7 +220,7 @@ export default function ProfileScreen() {
           <Button
             label="Delete account"
             onPress={handleDelete}
-            variant="outline"
+            variant="tertiary"
             iconLeft="trash-outline"
             testID="profile-delete"
           />

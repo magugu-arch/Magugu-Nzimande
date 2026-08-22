@@ -60,7 +60,13 @@ export const EmptyState = memo(function EmptyState({
         {message}
       </Text>
       {actionLabel && onActionPress ? (
-        <Button label={actionLabel} onPress={onActionPress} fullWidth={false} style={styles.cta} />
+        <Button
+          label={actionLabel}
+          onPress={onActionPress}
+          fullWidth={false}
+          style={styles.cta}
+          preserveCase
+        />
       ) : null}
     </View>
   );
@@ -96,7 +102,7 @@ export const ErrorState = memo(function ErrorState({
         <Button
           label="Try again"
           onPress={onRetry}
-          variant="outline"
+          variant="tertiary"
           fullWidth={false}
           iconLeft="refresh"
           style={styles.cta}

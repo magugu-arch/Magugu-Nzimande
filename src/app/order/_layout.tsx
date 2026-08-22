@@ -10,7 +10,10 @@ export default function OrderLayout() {
       }}
     >
       {/* Confirmation replaces checkout, so it must not slide back into it. */}
-      <Stack.Screen name="[id]/confirmation" options={{ animation: 'fade', gestureEnabled: false }} />
+      <Stack.Screen
+        name="[id]/confirmation"
+        options={{ animation: 'fade', gestureEnabled: false }}
+      />
     </Stack>
   );
 }

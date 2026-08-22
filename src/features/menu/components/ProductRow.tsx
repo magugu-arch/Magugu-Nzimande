@@ -14,11 +14,7 @@ export interface ProductRowProps {
 }
 
 /** Dense list row for menu category listings and search results. */
-export const ProductRow = memo(function ProductRow({
-  product,
-  onPress,
-  testID,
-}: ProductRowProps) {
+export const ProductRow = memo(function ProductRow({ product, onPress, testID }: ProductRowProps) {
   return (
     <Pressable
       testID={testID}

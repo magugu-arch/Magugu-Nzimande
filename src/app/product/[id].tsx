@@ -1,12 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import {
-  Dimensions,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -129,7 +122,8 @@ export default function ProductDetailScreen() {
   }
 
   const item = product.data;
-  const ctaLabel = unmetGroups.length > 0 ? `Choose ${unmetGroups[0]?.name.toLowerCase()}` : 'Add to cart';
+  const ctaLabel =
+    unmetGroups.length > 0 ? `Choose ${unmetGroups[0]?.name.toLowerCase()}` : 'Add to cart';
 
   return (
     <View style={styles.root}>
@@ -290,6 +284,7 @@ export default function ProductDetailScreen() {
           size="lg"
           style={styles.cta}
           testID="product-add-to-cart"
+          preserveCase
         />
       </View>
     </View>
@@ -326,7 +321,7 @@ const styles = StyleSheet.create({
   },
   sheet: {
     marginTop: -spacing.xxl,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingTop: spacing.xl,
     gap: spacing.xl,
     borderTopLeftRadius: radius.xxl,
@@ -359,12 +354,12 @@ const styles = StyleSheet.create({
   },
   allergenText: { flex: 1 },
   recommended: { marginHorizontal: -spacing.lg },
-  carousel: { gap: spacing.md, paddingHorizontal: spacing.lg },
+  carousel: { gap: spacing.md, paddingHorizontal: spacing.gutter },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,

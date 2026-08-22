@@ -1,10 +1,17 @@
 import { Platform, type TextStyle } from 'react-native';
 
 /**
- * bb.q Chicken typography (brief §6).
+ * bb.q Chicken typography.
  *
  * Headings   — Helvetica Neue Bold / platform equivalent
  * Supporting — Helvetica Neue Regular / platform equivalent
+ *
+ * The guidelines disagree with themselves here, so this is a decision, not a
+ * transcription. The app page and §32.4 both name Helvetica Neue for digital;
+ * §23.5 names Inter, with weights Bold / Semibold / Medium / Regular. Two
+ * sources to one, and the app-specific page is the more specific of them, so
+ * Helvetica Neue it is. Switching to Inter later is a change to `family`
+ * below plus an `expo-font` entry — the scale and weights already line up.
  *
  * Helvetica Neue ships with iOS. On Android the closest metric-compatible
  * system face is Roboto, so we map to it rather than bundling a licensed
@@ -115,6 +122,31 @@ export const typography = {
     lineHeight: 23,
     fontWeight: fontWeight.bold,
     letterSpacing: -0.2,
+  },
+
+  // Button labels are specified separately from the text scale in guidelines
+  // §22.4 — 16 / 14 / 13, all semibold — so they live here as their own roles
+  // rather than borrowing the nearest body size.
+  buttonLg: {
+    fontFamily: family.medium,
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: 0.2,
+  },
+  buttonMd: {
+    fontFamily: family.medium,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: 0.2,
+  },
+  buttonSm: {
+    fontFamily: family.medium,
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: 0.2,
   },
 } as const satisfies Record<string, TextStyle>;
 

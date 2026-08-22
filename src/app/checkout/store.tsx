@@ -105,7 +105,7 @@ export default function StoreSelectionScreen() {
                 <Button
                   label="Use my location"
                   onPress={() => void requestLocation()}
-                  variant="ghost"
+                  variant="text"
                   fullWidth={false}
                   size="sm"
                 />
@@ -136,7 +136,7 @@ export default function StoreSelectionScreen() {
 const styles = StyleSheet.create({
   header: {
     gap: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,

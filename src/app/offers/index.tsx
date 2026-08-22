@@ -1,13 +1,6 @@
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  Screen,
-  ScreenHeader,
-  Text,
-} from '@/components/ui';
+import { EmptyState, ErrorState, LoadingState, Screen, ScreenHeader, Text } from '@/components/ui';
 import { PromotionBanner } from '@/features/home/components/PromotionBanner';
 import { usePromotions } from '@/features/rewards/hooks';
 import { colors, spacing } from '@/theme';

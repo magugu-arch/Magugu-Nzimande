@@ -18,9 +18,7 @@ export interface StickyCartBarProps {
  * Persistent cart affordance (brief §5 — "keep the cart visually prominent").
  * Renders nothing when the basket is empty so it never nags.
  */
-export const StickyCartBar = memo(function StickyCartBar({
-  offsetBottom = 0,
-}: StickyCartBarProps) {
+export const StickyCartBar = memo(function StickyCartBar({ offsetBottom = 0 }: StickyCartBarProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const lines = useCartStore((state) => state.lines);
@@ -77,7 +75,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     borderRadius: radius.pill,
     backgroundColor: colors.primary,
     ...elevation.lg,

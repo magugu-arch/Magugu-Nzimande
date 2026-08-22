@@ -70,5 +70,5 @@ export function Screen({
 const styles = StyleSheet.create({
   root: { flex: 1 },
   flex: { flex: 1 },
-  padded: { paddingHorizontal: spacing.lg },
+  padded: { paddingHorizontal: spacing.gutter },
 });

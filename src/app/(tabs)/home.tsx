@@ -7,15 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { Product } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
-import {
-  Badge,
-  Card,
-  ErrorState,
-  LoadingState,
-  ProgressBar,
-  Section,
-  Text,
-} from '@/components/ui';
+import { Badge, Card, ErrorState, LoadingState, ProgressBar, Section, Text } from '@/components/ui';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { PromotionBanner } from '@/features/home/components/PromotionBanner';
@@ -59,8 +51,7 @@ export default function HomeScreen() {
   const isLoading =
     categories.isLoading || popular.isLoading || promotions.isLoading || bestSellers.isLoading;
   const isError = categories.isError || popular.isError || promotions.isError;
-  const isRefreshing =
-    categories.isRefetching || popular.isRefetching || promotions.isRefetching;
+  const isRefreshing = categories.isRefetching || popular.isRefetching || promotions.isRefetching;
 
   const handleRefresh = useCallback(() => {
     void queryClient.invalidateQueries();
@@ -157,9 +148,7 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => router.push('/checkout/store')}
             accessibilityRole="button"
-            accessibilityLabel={
-              store ? `Change store, currently ${store.name}` : 'Choose a store'
-            }
+            accessibilityLabel={store ? `Change store, currently ${store.name}` : 'Choose a store'}
             style={styles.storeRow}
           >
             <Ionicons name="location" size={17} color={colors.primary} />
@@ -280,7 +269,9 @@ export default function HomeScreen() {
                 <Text variant="overline" color={colors.primary}>
                   bb.q Rewards
                 </Text>
-                <Text variant="h2">{loyalty.data.pointsBalance.toLocaleString('en-ZA')} points</Text>
+                <Text variant="h2">
+                  {loyalty.data.pointsBalance.toLocaleString('en-ZA')} points
+                </Text>
               </View>
               <Badge label={loyalty.data.tierName} tone="dark" icon="star" />
             </View>
@@ -357,7 +348,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   stateContainer: { flex: 1, backgroundColor: colors.background },
-  content: { gap: spacing.xxl, paddingHorizontal: spacing.lg },
+  content: { gap: spacing.xxl, paddingHorizontal: spacing.gutter },
   header: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   greeting: { flex: 1, gap: spacing.xxs },
   headerActions: { flexDirection: 'row', gap: spacing.sm },

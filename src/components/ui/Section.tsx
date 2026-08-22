@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.md,
   },
-  headerBleed: { paddingHorizontal: spacing.lg },
+  headerBleed: { paddingHorizontal: spacing.gutter },
   headings: { flex: 1, gap: spacing.xxs },
   action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs },
 });

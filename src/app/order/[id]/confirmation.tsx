@@ -43,9 +43,7 @@ export default function OrderConfirmationScreen() {
         ? 'Collect from'
         : 'Dining in at';
   const fulfilmentValue =
-    data.fulfilmentType === 'delivery'
-      ? (data.addressSummary ?? 'Your address')
-      : data.storeName;
+    data.fulfilmentType === 'delivery' ? (data.addressSummary ?? 'Your address') : data.storeName;
 
   return (
     <Screen scroll edges={['top', 'bottom']} testID="order-confirmation-screen">
@@ -74,9 +72,7 @@ export default function OrderConfirmationScreen() {
           icon="time-outline"
           label={data.scheduledFor ? 'Scheduled for' : readyLabelFor(data.fulfilmentType)}
           value={
-            data.scheduledFor
-              ? formatDateTime(data.scheduledFor)
-              : formatEtaWindow(data.etaMinutes)
+            data.scheduledFor ? formatDateTime(data.scheduledFor) : formatEtaWindow(data.etaMinutes)
           }
         />
         <DetailRow
@@ -91,11 +87,7 @@ export default function OrderConfirmationScreen() {
       </Card>
 
       <Card style={styles.card}>
-        <OrderTotals
-          totals={data.totals}
-          fulfilmentType={data.fulfilmentType}
-          showNudge={false}
-        />
+        <OrderTotals totals={data.totals} fulfilmentType={data.fulfilmentType} showNudge={false} />
       </Card>
 
       <View style={styles.actions}>
@@ -109,7 +101,7 @@ export default function OrderConfirmationScreen() {
         <Button
           label="Back to home"
           onPress={() => router.replace('/(tabs)/home')}
-          variant="ghost"
+          variant="text"
         />
       </View>
     </Screen>

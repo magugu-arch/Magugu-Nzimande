@@ -29,7 +29,7 @@ describe('brand masters', () => {
   // BrandMark derives its height from a hardcoded ratio so a caller can never
   // stretch the lock-up. That is only true while the constant agrees with the
   // artwork, and replacing the master is exactly when it would stop agreeing.
-  it("matches the aspect ratio BrandMark draws at", () => {
+  it('matches the aspect ratio BrandMark draws at', () => {
     const { width, height } = pngSize(path.join(assets, 'brand', 'masters', 'bbq-lockup.png'));
     const source = fs.readFileSync(
       path.resolve(__dirname, '..', 'src', 'components', 'brand', 'BrandMark.tsx'),
@@ -51,7 +51,7 @@ describe('brand masters', () => {
 describe('generated brand assets', () => {
   // Every one of these is named in app.json. A missing or wrongly sized file
   // fails at prebuild, which is a slower and much less obvious place to learn.
-  const expected: Array<[string, number, number]> = [
+  const expected: [string, number, number][] = [
     ['icon.png', 1024, 1024],
     ['android-icon-foreground.png', 1024, 1024],
     ['android-icon-background.png', 1024, 1024],

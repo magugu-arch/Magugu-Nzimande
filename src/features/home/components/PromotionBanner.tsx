@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs + 2,
     marginTop: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.gutter,
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.pill,
     backgroundColor: colors.primary,

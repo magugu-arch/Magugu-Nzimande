@@ -102,9 +102,7 @@ export default function NotificationsScreen() {
               testID={`notification-${notification.id}`}
             >
               <View style={styles.row}>
-                <View
-                  style={[styles.icon, notification.read ? styles.iconRead : null]}
-                >
+                <View style={[styles.icon, notification.read ? styles.iconRead : null]}>
                   <Ionicons
                     name={CATEGORY_ICONS[notification.category]}
                     size={18}

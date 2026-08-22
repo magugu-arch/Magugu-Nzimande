@@ -35,9 +35,24 @@ export const OrderTimeline = memo(function OrderTimeline({
         const isCurrent = event.status === currentStatus;
         const isLast = index === timeline.length - 1;
 
+        // Sighted users read this rail off a filled node and a bolder label.
+        // §32.4 asks that colour never carries meaning on its own, so the
+        // state goes into words as well, and each step is announced whole
+        // rather than as four loose fragments.
+        const state = isCurrent
+          ? 'in progress now'
+          : reached
+            ? `done${event.occurredAt ? ` at ${formatTime(event.occurredAt)}` : ''}`
+            : 'not yet';
+
         return (
-          <View key={event.status} style={styles.step}>
-            <View style={styles.rail}>
+          <View
+            key={event.status}
+            style={styles.step}
+            accessible
+            accessibilityLabel={`Step ${index + 1} of ${timeline.length}. ${event.label}, ${state}. ${event.description}`}
+          >
+            <View style={styles.rail} importantForAccessibility="no-hide-descendants">
               <View
                 style={[
                   styles.node,
@@ -71,10 +86,7 @@ export const OrderTimeline = memo(function OrderTimeline({
                 ) : null}
               </View>
 
-              <Text
-                variant="caption"
-                color={reached ? colors.textSecondary : colors.textDisabled}
-              >
+              <Text variant="caption" color={reached ? colors.textSecondary : colors.textDisabled}>
                 {event.description}
               </Text>
             </View>

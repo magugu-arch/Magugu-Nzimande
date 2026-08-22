@@ -109,7 +109,9 @@ describe('cart store', () => {
   it('drops the voucher and reward when the last line is removed', () => {
     act(() => {
       useCartStore.getState().addLine(product, medium(), 1);
-      useCartStore.getState().applyVoucher({ code: 'WELCOME50', discount: 50, freeDelivery: false });
+      useCartStore
+        .getState()
+        .applyVoucher({ code: 'WELCOME50', discount: 50, freeDelivery: false });
       useCartStore.getState().applyReward({
         rewardId: 'reward-fries',
         name: 'Free French Fries',
@@ -132,7 +134,9 @@ describe('cart store', () => {
   it('applies a voucher discount to the total', () => {
     act(() => {
       useCartStore.getState().addLine(product, medium(), 1);
-      useCartStore.getState().applyVoucher({ code: 'WELCOME50', discount: 50, freeDelivery: false });
+      useCartStore
+        .getState()
+        .applyVoucher({ code: 'WELCOME50', discount: 50, freeDelivery: false });
     });
 
     const totals = useCartStore.getState().getTotals();

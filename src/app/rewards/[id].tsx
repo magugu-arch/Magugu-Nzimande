@@ -182,12 +182,13 @@ export default function RewardDetailScreen() {
           loading={redeemReward.isPending}
           size="lg"
           testID="reward-redeem"
+          preserveCase
         />
 
         <Button
           label="Browse the menu"
           onPress={() => router.push('/(tabs)/menu')}
-          variant="ghost"
+          variant="text"
         />
       </View>
     </Screen>
@@ -195,7 +196,7 @@ export default function RewardDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerWrap: { paddingHorizontal: spacing.lg },
+  headerWrap: { paddingHorizontal: spacing.gutter },
   hero: { width: SCREEN_WIDTH },
   iconHero: {
     width: SCREEN_WIDTH,

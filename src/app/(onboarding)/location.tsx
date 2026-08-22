@@ -81,7 +81,7 @@ export default function LocationPermissionScreen() {
           iconLeft="navigate"
           testID="location-allow"
         />
-        <Button label="Not now" onPress={handleSkip} variant="ghost" testID="location-skip" />
+        <Button label="Not now" onPress={handleSkip} variant="text" testID="location-skip" />
         <Text variant="caption" color={colors.textMuted} align="center">
           We only use your location while the app is open, and never share it.
         </Text>

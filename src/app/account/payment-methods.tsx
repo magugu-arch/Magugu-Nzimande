@@ -107,7 +107,9 @@ export default function PaymentMethodsScreen() {
                     {method.isDefault ? <Badge label="Default" tone="neutral" /> : null}
                   </View>
                   <Text variant="caption" color={colors.textSecondary}>
-                    {method.expiry ? `Expires ${method.expiry}` : describePaymentMethod(method.type)}
+                    {method.expiry
+                      ? `Expires ${method.expiry}`
+                      : describePaymentMethod(method.type)}
                   </Text>
                 </View>
 
@@ -125,7 +127,7 @@ export default function PaymentMethodsScreen() {
                 <Button
                   label="Make this my default"
                   onPress={() => setDefault.mutate(method.id)}
-                  variant="ghost"
+                  variant="text"
                   size="sm"
                   fullWidth={false}
                   style={styles.defaultButton}
@@ -137,7 +139,7 @@ export default function PaymentMethodsScreen() {
           <Button
             label="Add a payment method"
             onPress={handleAdd}
-            variant="outline"
+            variant="tertiary"
             iconLeft="add"
             testID="payment-add"
           />

@@ -127,7 +127,9 @@ export default function OrderTrackingScreen() {
       <Card style={[styles.statusCard, data.status === 'cancelled' ? styles.cancelledCard : null]}>
         <View style={styles.statusHeader}>
           <Badge
-            label={isActive ? 'In progress' : data.status === 'cancelled' ? 'Cancelled' : 'Completed'}
+            label={
+              isActive ? 'In progress' : data.status === 'cancelled' ? 'Cancelled' : 'Completed'
+            }
             tone={isActive ? 'primary' : data.status === 'cancelled' ? 'warning' : 'success'}
           />
           <Text variant="caption" color={colors.textOnDarkMuted}>
@@ -212,11 +214,7 @@ export default function OrderTrackingScreen() {
 
         <Divider spacingSize="sm" />
 
-        <OrderTotals
-          totals={data.totals}
-          fulfilmentType={data.fulfilmentType}
-          showNudge={false}
-        />
+        <OrderTotals totals={data.totals} fulfilmentType={data.fulfilmentType} showNudge={false} />
       </Card>
 
       {/* Store contact */}
@@ -245,7 +243,7 @@ export default function OrderTrackingScreen() {
           <Button
             label="Cancel order"
             onPress={handleCancel}
-            variant="outline"
+            variant="tertiary"
             loading={cancelOrder.isPending}
             testID="order-cancel"
           />
@@ -272,7 +270,7 @@ export default function OrderTrackingScreen() {
         <Button
           label="Order this again"
           onPress={handleReorder}
-          variant={data.status === 'completed' ? 'primary' : 'outline'}
+          variant={data.status === 'completed' ? 'primary' : 'tertiary'}
           iconLeft="repeat"
           testID="order-reorder"
         />
@@ -280,7 +278,8 @@ export default function OrderTrackingScreen() {
         <Button
           label="Need help with this order?"
           onPress={() => router.push(`/account/contact?order=${data.reference}`)}
-          variant="ghost"
+          variant="text"
+          preserveCase
         />
       </View>
     </Screen>

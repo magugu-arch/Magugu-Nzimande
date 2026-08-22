@@ -31,11 +31,7 @@ export const FoodImagePlaceholder = memo(function FoodImagePlaceholder({
       accessibilityLabel={`${label} — product photography coming soon`}
     >
       <View style={styles.mark}>
-        <Ionicons
-          name="camera-outline"
-          size={compact ? 16 : 22}
-          color={colors.brand.red}
-        />
+        <Ionicons name="camera-outline" size={compact ? 16 : 22} color={colors.brand.red} />
       </View>
       {!compact ? (
         <>

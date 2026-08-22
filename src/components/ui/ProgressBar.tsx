@@ -30,10 +30,7 @@ export const ProgressBar = memo(function ProgressBar({
       accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}
     >
       <View
-        style={[
-          styles.fill,
-          { width: `${clamped * 100}%`, backgroundColor: fillColor, height },
-        ]}
+        style={[styles.fill, { width: `${clamped * 100}%`, backgroundColor: fillColor, height }]}
       />
     </View>
   );

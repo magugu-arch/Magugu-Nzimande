@@ -97,10 +97,7 @@ describe('validateFields', () => {
   });
 
   it('returns an empty object when everything passes', () => {
-    const errors = validateFields(
-      { email: 'thandi@example.co.za' },
-      { email: validateEmail },
-    );
+    const errors = validateFields({ email: 'thandi@example.co.za' }, { email: validateEmail });
     expect(errors).toEqual({});
   });
 

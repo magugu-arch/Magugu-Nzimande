@@ -129,14 +129,14 @@ export default function SignInScreen() {
           <Button
             label="Create an account"
             onPress={() => router.push('/(auth)/register')}
-            variant="outline"
+            variant="tertiary"
             size="lg"
           />
 
           <Button
             label="Continue as guest"
             onPress={handleGuest}
-            variant="ghost"
+            variant="text"
             testID="sign-in-guest"
           />
         </View>
