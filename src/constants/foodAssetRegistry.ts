@@ -65,4 +65,34 @@ export const suppliedFoodAssets: Partial<Record<FoodAssetKey, FoodAsset>> = {
     detail: require('@assets/food/detail/half-and-half.jpg'),
     banner: require('@assets/food/banner/half-and-half.jpg'),
   },
+  chickenRiceMeal: {
+    thumb: require('@assets/food/thumb/chicken-rice-meal.jpg'),
+    card: require('@assets/food/card/chicken-rice-meal.jpg'),
+    detail: require('@assets/food/detail/chicken-rice-meal.jpg'),
+    banner: require('@assets/food/banner/chicken-rice-meal.jpg'),
+  },
+  chickenBurger: {
+    thumb: require('@assets/food/thumb/chicken-burger.jpg'),
+    card: require('@assets/food/card/chicken-burger.jpg'),
+    detail: require('@assets/food/detail/chicken-burger.jpg'),
+    banner: require('@assets/food/banner/chicken-burger.jpg'),
+  },
+  koreanRiceBowl: {
+    thumb: require('@assets/food/thumb/korean-rice-bowl.jpg'),
+    card: require('@assets/food/card/korean-rice-bowl.jpg'),
+    detail: require('@assets/food/detail/korean-rice-bowl.jpg'),
+    banner: require('@assets/food/banner/korean-rice-bowl.jpg'),
+  },
+  frenchFries: {
+    thumb: require('@assets/food/thumb/french-fries.jpg'),
+    card: require('@assets/food/card/french-fries.jpg'),
+    detail: require('@assets/food/detail/french-fries.jpg'),
+    banner: require('@assets/food/banner/french-fries.jpg'),
+  },
+  cheeslingFries: {
+    thumb: require('@assets/food/thumb/cheesling-fries.jpg'),
+    card: require('@assets/food/card/cheesling-fries.jpg'),
+    detail: require('@assets/food/detail/cheesling-fries.jpg'),
+    banner: require('@assets/food/banner/cheesling-fries.jpg'),
+  },
 };

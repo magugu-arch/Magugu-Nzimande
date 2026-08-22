@@ -45,6 +45,9 @@ VARIANTS = {
 #               composition, where the brief allows promotional text (§9).
 #   gravity     vertical bias override — a number for every variant, or a dict
 #               keyed by variant name for finer control.
+#   focus_x     horizontal bias, same shape. A wide promo composition cropped
+#               to a 4:5 card loses most of its width, so this decides which
+#               part of the plate survives.
 OVERRIDES = {
     # Supplied as a finished promo composition: a headline across the top-left
     # and two flavour callouts. Cropping a card straight out of that would
@@ -53,6 +56,45 @@ OVERRIDES = {
     "half-and-half": {
         "promo_safe": (0.10, 0.30, 0.93, 1.00),
         "gravity": {"banner": 0.0},
+    },
+    # Headline top-left, "100% real chicken" badge bottom-right. The plate
+    # sits between them.
+    "chicken-rice-meal": {
+        "promo_safe": (0.06, 0.32, 0.82, 0.99),
+        "gravity": {"banner": 0.0},
+        # Bias right so the rice and slaw stay in frame — this is a meal, not
+        # a chicken box, and the card has to read as a composed plate.
+        "focus_x": 0.72,
+    },
+    # Callout upper-left, "Made fresh" badge and the wordmark along the bottom.
+    # Cropping above the bottom band keeps the whole burger.
+    "chicken-burger": {
+        # Top edge sits below the cup's wordmark so no logo is sliced.
+        "promo_safe": (0.20, 0.21, 0.74, 0.84),
+        "gravity": {"banner": 0.0},
+    },
+    # Headline top-left, a badge in each bottom corner. The bowl is the middle.
+    "korean-rice-bowl": {
+        "promo_safe": (0.20, 0.28, 0.84, 0.99),
+        "gravity": {"banner": 0.0},
+        # Slightly right of centre keeps the kimchi and greens beside the
+        # chicken, which is what makes it read as a bowl.
+        "focus_x": 0.58,
+    },
+    # Headline top-left, badge on the left edge — the carton is right of both.
+    "french-fries": {
+        # Left edge clears the headline's spark flourish; anchoring every
+        # variant to the top keeps the fries above the carton in frame.
+        "promo_safe": (0.35, 0.08, 0.81, 0.98),
+        "gravity": 0.0,
+    },
+    # Headline top-left, badge bottom-left; the tray occupies the right two-thirds.
+    "cheesling-fries": {
+        # Left edge lands on the tray's printed mark rather than through it,
+        # and sits below the red headline.
+        "promo_safe": (0.30, 0.25, 0.85, 0.96),
+        "gravity": {"banner": 0.0},
+        "focus_x": 0.0,
     },
 }
 
@@ -70,14 +112,18 @@ def subrect(im, rect):
     return im.crop(box)
 
 
-def cover_crop(im, ratio, gravity):
-    """Centre-weighted cover crop to an exact ratio. Never stretches."""
+def cover_crop(im, ratio, gravity, focus_x=0.5):
+    """Cover crop to an exact ratio. Never stretches.
+
+    gravity biases the vertical cut, focus_x the horizontal one; 0.5 is centred.
+    """
     w, h = im.size
     target = ratio
     current = w / h
     if current > target:
         new_w = int(round(h * target))
-        left = (w - new_w) // 2
+        left = int(round((w - new_w) * focus_x))
+        left = max(0, min(left, w - new_w))
         box = (left, 0, left + new_w, h)
     else:
         new_h = int(round(w / target))
@@ -114,7 +160,11 @@ for src in sources:
         if promo_safe and variant != "banner":
             source = subrect(im, promo_safe)
 
-        cropped = cover_crop(source, ratio, gravity)
+        focus_x = override.get("focus_x", 0.5)
+        if isinstance(focus_x, dict):
+            focus_x = focus_x.get(variant, 0.5)
+
+        cropped = cover_crop(source, ratio, gravity, focus_x)
         height = int(round(width / ratio))
         if cropped.size[0] < width:
             width, height = cropped.size

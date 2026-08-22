@@ -79,18 +79,8 @@ export const foodAssets = suppliedFoodAssets;
  * what a customer actually reads in a thumbnail.
  */
 export const SUBSTITUTE_ASSET_KEYS: Partial<Record<FoodAssetKey, FoodAssetKey>> = {
-  // Whole crispy pieces, unglazed — reads as "fried chicken on a plate".
-  chickenRiceMeal: 'goldenOriginal',
-  chickenBurger: 'goldenOriginal',
-  // Dark, glossy lacquered glaze over rice.
-  koreanRiceBowl: 'soyGarlic',
-  // Bite-size golden fried pieces in a tray sit far closer to a fries portion
-  // than a whole drumstick does.
-  frenchFries: 'boneless',
-  // Same cheese dusting, so the seasoning itself is accurate.
-  cheeslingFries: 'cheesling',
-  // Glossy red chilli sauce with fresh chilli — the closest thing we have to
-  // a saucy rice-cake dish.
+  // Glossy red chilli glaze with fresh chilli and sesame — the closest thing
+  // in the catalogue to a saucy rice-cake dish.
   ddeokBokki: 'secretSauce',
   roseDdeokBokki: 'secretSauce',
 };

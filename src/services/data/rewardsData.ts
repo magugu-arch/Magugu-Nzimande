@@ -272,6 +272,32 @@ export const promotions: Promotion[] = [
     usePromotionalComposition: true,
   },
   {
+    id: 'promo-korean-rice-bowl',
+    headline: 'The Korean Rice Bowl has landed',
+    description:
+      'Glazed chicken over steamed rice with kimchi, cucumber, carrot and a fried egg. One bowl, everything in it.',
+    assetKey: 'koreanRiceBowl',
+    ctaLabel: 'Try the bowl',
+    ctaHref: '/product/korean-rice-bowl',
+    validFrom: new Date(Date.now() - 7 * 86_400_000).toISOString(),
+    validUntil: new Date(Date.now() + 50 * 86_400_000).toISOString(),
+    terms: ['Available at participating stores.'],
+    usePromotionalComposition: true,
+  },
+  {
+    id: 'promo-cheesling-fries',
+    headline: 'Cheesling Fries, loaded',
+    description:
+      'Our fries under cheese sauce, spring onion and chilli. Add them to any box for R55.',
+    assetKey: 'cheeslingFries',
+    ctaLabel: 'Add to my order',
+    ctaHref: '/product/cheesling-fries',
+    validFrom: new Date(Date.now() - 14 * 86_400_000).toISOString(),
+    validUntil: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+    terms: ['Add-on price applies with any chicken box.', 'While stocks last.'],
+    usePromotionalComposition: true,
+  },
+  {
     id: 'promo-free-delivery',
     headline: 'Free delivery over R350',
     description: 'Fill the box, skip the fee. Automatically applied at checkout.',

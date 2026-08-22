@@ -22,11 +22,6 @@ const VARIANTS = ['thumb', 'card', 'detail', 'banner'];
 // Kept in step with FOOD_ASSET_FILENAMES in src/constants/foodAssets.ts.
 /** Mirrors SUBSTITUTE_ASSET_KEYS in src/constants/foodAssets.ts. */
 const SUBSTITUTES = {
-  chickenRiceMeal: 'Golden Original',
-  chickenBurger: 'Golden Original',
-  koreanRiceBowl: 'Soy Garlic',
-  frenchFries: 'Boneless',
-  cheeslingFries: 'Cheesling',
   ddeokBokki: 'Secret Sauce',
   roseDdeokBokki: 'Secret Sauce',
 };
