@@ -1,0 +1,84 @@
+name: Verify
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # A new push supersedes an in-flight run on the same branch.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` installs exactly the lockfile, so CI cannot drift from local.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test -- --ci
+
+      # Metro compiling is the last thing that can fail before a build server
+      # is involved, so it is worth catching here rather than 15 minutes into
+      # an EAS build.
+      - name: Bundle for both platforms
+        run: |
+          npx expo export --platform ios --output-dir /tmp/export-ios
+          npx expo export --platform android --output-dir /tmp/export-android
+
+  assets:
+    name: Food asset catalogue
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Pinned: JPEG encoding is deterministic within a Pillow version but can
+      # shift between them, which would fail the drift check below spuriously.
+      - name: Install Pillow
+        run: pip install --quiet 'pillow==12.3.0'
+
+      # Fails while any of the 16 products lacks its own photograph, so a new
+      # menu item cannot ship on a placeholder unnoticed.
+      - name: Audit supplied artwork
+        run: npm run assets:audit
+
+      # Derivatives are generated, so they must match their masters. A drifted
+      # crop means someone edited a derivative by hand instead of the source.
+      - name: Check derivatives are up to date
+        run: |
+          npm run assets:derive
+          if ! git diff --quiet -- assets/food src/constants/foodAssetRegistry.ts; then
+            echo "::error::Derivatives are stale. Run 'npm run assets:derive' and commit the result."
+            git --no-pager diff --stat -- assets/food src/constants/foodAssetRegistry.ts
+            exit 1
+          fi
