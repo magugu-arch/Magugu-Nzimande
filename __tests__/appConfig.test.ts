@@ -84,6 +84,41 @@ describe('ios configuration', () => {
     expect(reason.length).toBeGreaterThan(30);
     expect(reason).toMatch(/bb\.q/);
   });
+
+  /**
+   * Four purpose strings the app never earns.
+   *
+   * `expo prebuild` showed the built Info.plist asking for Face ID, always-on
+   * location and motion activity, each with the plugin's own boilerplate:
+   * "Allow $(PRODUCT_NAME) to access your Face ID biometric data." None of it
+   * was visible from app.json — the plugins add these by default, and only
+   * the when-in-use string had ever been configured.
+   *
+   * Apple rejects generic purpose strings and scrutinises always-on location
+   * hard, so a chicken app asking for it is a review conversation nobody
+   * wants. Each `false` deletes the key rather than rewording it.
+   */
+  describe('asks for nothing it does not use', () => {
+    const location = plugin('expo-location') as Record<string, unknown>;
+
+    it('wants location only while the app is open', () => {
+      // The store finder calls requestForegroundPermissionsAsync and nothing
+      // in the app ever asks for background location.
+      expect(location.locationAlwaysAndWhenInUsePermission).toBe(false);
+      expect(location.locationAlwaysPermission).toBe(false);
+    });
+
+    it('does not claim the motion coprocessor', () => {
+      expect(location.motionUsagePermission).toBe(false);
+    });
+
+    it('does not claim Face ID', () => {
+      // Secure storage here holds tokens, and never passes
+      // `requiresAuthentication`, so no biometric prompt is ever shown.
+      const secureStore = plugin('expo-secure-store') as Record<string, unknown>;
+      expect(secureStore.faceIDPermission).toBe(false);
+    });
+  });
 });
 
 describe('every asset app.json names exists', () => {

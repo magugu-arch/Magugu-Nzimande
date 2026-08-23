@@ -46,6 +46,20 @@ jobs:
           npx expo export --platform ios --output-dir /tmp/export-ios
           npx expo export --platform android --output-dir /tmp/export-android
 
+      # app.json is not the whole story: config plugins add Info.plist keys and
+      # manifest permissions of their own, and the defaults they add are the
+      # ones that get an app rejected. This runs a real prebuild and reads what
+      # actually came out — Pillow is for the app-icon alpha check.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Pillow
+        run: pip install --quiet 'pillow==12.3.0'
+
+      - name: Audit the native projects
+        run: npm run audit:native
+
   # Rendering the app catches what unit tests structurally cannot: overflow,
   # clipped labels, a screen that renders blank, a journey that no longer
   # connects. Kept out of `npm run verify` because a browser sweep is minutes,

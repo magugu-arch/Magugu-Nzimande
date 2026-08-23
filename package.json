@@ -32,7 +32,8 @@
     "build:prod": "eas build --profile production --platform all",
     "submit:prod": "eas submit --profile production --platform all",
     "prebuild": "expo prebuild --clean",
-    "doctor": "npx expo-doctor"
+    "doctor": "npx expo-doctor",
+    "audit:native": "node scripts/audit-native.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",
