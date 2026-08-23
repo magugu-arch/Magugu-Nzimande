@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Address, FulfilmentType, Store } from '@/types';
 import { distanceKm, type Coordinates } from '@/utils/geo';
 import { formatShortDate } from '@/utils/datetime';
+import { isTradingNow } from '@/utils/tradingHours';
 
 /**
  * Where and how this order is being fulfilled: type, store, address, table and
@@ -79,7 +80,13 @@ export function missingFulfilmentRequirement({
   // store before this — the screens showed "Closed" on the store card and then
   // took the money anyway. Scheduling for later is the exception: that is
   // exactly what a customer ordering out of hours wants to do.
-  if (!store.isOpenNow && !scheduledFor) return `${store.name} is closed — schedule for later`;
+  //
+  // Asked of the timetable, not of `store.isOpenNow` alone. This store is
+  // persisted whole, so the flag here can be days old — and while it was
+  // trusted, the guard could not fire at all: an order placed at 03:30 went
+  // through against a branch that shut at 22:00.
+  const trading = isTradingNow(store, now);
+  if (!trading && !scheduledFor) return `${store.name} is closed — schedule for later`;
 
   if (fulfilmentType === 'delivery' && !address) return 'Add a delivery address';
 
@@ -96,7 +103,7 @@ export function missingFulfilmentRequirement({
 
   // Dine-in at a closed store makes no sense even scheduled: there is nowhere
   // to sit until it opens.
-  if (fulfilmentType === 'dinein' && !store.isOpenNow) {
+  if (fulfilmentType === 'dinein' && !trading) {
     return `${store.name} is closed`;
   }
 

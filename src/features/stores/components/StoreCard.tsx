@@ -3,11 +3,11 @@ import { StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { FulfilmentType, Store } from '@/types';
 import { Badge, Card, Text } from '@/components/ui';
-import { hoursForDay } from '@/services/storeService';
 import { isOpeningLater } from '@/store/fulfilmentStore';
 import { colors, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import { formatDistance } from '@/utils/geo';
+import { hoursForDay, isTradingNow } from '@/utils/tradingHours';
 
 export interface StoreCardProps {
   store: Store;
@@ -36,6 +36,10 @@ export const StoreCard = memo(function StoreCard({
   // and no fulfilment type is available at it. Selecting it would only produce
   // a blocker at checkout, so the card refuses the tap here instead.
   const openingLater = isOpeningLater(store);
+  // Derived, not read off the record: the card can be handed a store that came
+  // out of storage rather than off the wire, and `isOpenNow` there is only as
+  // fresh as whenever it was last saved.
+  const trading = isTradingNow(store);
   const supported =
     !openingLater && (fulfilmentType ? supportsFulfilment(store, fulfilmentType) : true);
 
@@ -77,7 +81,7 @@ export const StoreCard = memo(function StoreCard({
             color={
               openingLater
                 ? colors.status.info
-                : store.isOpenNow
+                : trading
                   ? colors.status.success
                   : colors.status.error
             }
@@ -87,14 +91,14 @@ export const StoreCard = memo(function StoreCard({
             color={
               openingLater
                 ? colors.status.info
-                : store.isOpenNow
+                : trading
                   ? colors.status.success
                   : colors.status.error
             }
           >
             {openingLater
               ? `Opening ${formatShortDate(store.opensOn!)}`
-              : store.isOpenNow
+              : trading
                 ? 'Open now'
                 : 'Closed'}
           </Text>

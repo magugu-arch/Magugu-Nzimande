@@ -261,3 +261,77 @@ describe('the blocker keeps up with the store', () => {
     );
   });
 });
+
+/**
+ * The selected store is persisted whole — `isOpenNow` and all — and rehydrated
+ * on the next launch without ever being checked against the live list. So the
+ * closed-store guard was reading a flag that could be days old, and in the
+ * seeded data was hardcoded `true` and never recomputed on fetch besides.
+ *
+ * It was not a theoretical hole. Driven in a browser with the clock pinned to
+ * 03:30 in Johannesburg, every branch showed "Open now", checkout did not
+ * block, and order BBQ-4823 was placed with a kitchen that shut at 22:00.
+ */
+describe('a store that has shut since it was chosen', () => {
+  const TRADING_HOURS = Array.from({ length: 7 }, (_, day) => ({
+    day,
+    opensAt: '10:00',
+    closesAt: '22:00',
+  }));
+
+  /** Saved while the branch was open, and still claiming so. */
+  const stale: Store = { ...store, openingHours: TRADING_HOURS, isOpenNow: true };
+
+  // Built in the running process's own zone: published hours are compared
+  // against the device's wall clock, so a pinned offset here would be testing
+  // the harness's timezone rather than the rule.
+  const middleOfTheNight = new Date(2026, 7, 24, 3, 30);
+  const lunchtime = new Date(2026, 7, 24, 14, 0);
+
+  it('refuses the order rather than trusting the saved flag', () => {
+    expect(
+      missingFulfilmentRequirement({
+        ...base,
+        store: stale,
+        address,
+        now: middleOfTheNight,
+      }),
+    ).toBe('bb.q Chicken Rosebank is closed — schedule for later');
+  });
+
+  it('takes the order during trading hours', () => {
+    expect(
+      missingFulfilmentRequirement({ ...base, store: stale, address, now: lunchtime }),
+    ).toBeNull();
+  });
+
+  /**
+   * Scheduling is the whole point of ordering out of hours, so it still
+   * rescues a closed branch — this guard must not take that away.
+   */
+  it('still lets a closed branch be scheduled for later', () => {
+    expect(
+      missingFulfilmentRequirement({
+        ...base,
+        store: stale,
+        address,
+        scheduledFor: '2026-08-24T12:00:00+02:00',
+        now: middleOfTheNight,
+      }),
+    ).toBeNull();
+  });
+
+  /** There is nowhere to sit at three in the morning, scheduled or not. */
+  it('refuses dine-in at a shut branch even when scheduled', () => {
+    expect(
+      missingFulfilmentRequirement({
+        ...base,
+        fulfilmentType: 'dinein',
+        store: stale,
+        tableNumber: '12',
+        scheduledFor: '2026-08-24T12:00:00+02:00',
+        now: middleOfTheNight,
+      }),
+    ).toBe('bb.q Chicken Rosebank is closed');
+  });
+});
