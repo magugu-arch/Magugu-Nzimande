@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { CategoryId, Product } from '@/types';
 import { Chip, EmptyState, ErrorState, LoadingState, Text } from '@/components/ui';
+import { useFavouritesStore } from '@/store/favouritesStore';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { ProductRow } from '@/features/menu/components/ProductRow';
 import { useCategories, useMenu, useProductSearch } from '@/features/menu/hooks';
@@ -32,9 +33,13 @@ export default function MenuScreen() {
    * one themselves. Derived rather than synced through an effect, so a tap on
    * Home lands on the right category in the first render — no filter flash.
    */
-  const [chosenCategory, setChosenCategory] = useState<CategoryId | 'all' | null>(null);
-  const activeCategory: CategoryId | 'all' =
+  const [chosenCategory, setChosenCategory] = useState<CategoryId | 'all' | 'favourites' | null>(
+    null,
+  );
+  const activeCategory: CategoryId | 'all' | 'favourites' =
     chosenCategory ?? (params.category ? (params.category as CategoryId) : 'all');
+
+  const favouriteIds = useFavouritesStore((state) => state.productIds);
 
   const [query, setQuery] = useState('');
   const search = useProductSearch(query);
@@ -44,10 +49,15 @@ export default function MenuScreen() {
   const listedProducts: Product[] = useMemo(() => {
     if (isSearching) return search.data ?? [];
     const all = menu.data?.products ?? [];
-    return activeCategory === 'all'
-      ? all
-      : all.filter((product) => product.categoryId === activeCategory);
-  }, [isSearching, search.data, menu.data, activeCategory]);
+    if (activeCategory === 'all') return all;
+    if (activeCategory === 'favourites') {
+      // Ordered by when they were hearted, newest first, not by menu order.
+      return favouriteIds
+        .map((id) => all.find((product) => product.id === id))
+        .filter((product): product is Product => Boolean(product));
+    }
+    return all.filter((product) => product.categoryId === activeCategory);
+  }, [isSearching, search.data, menu.data, activeCategory, favouriteIds]);
 
   const openProduct = useCallback(
     (product: Product) => router.push(`/product/${product.id}`),
@@ -58,6 +68,7 @@ export default function MenuScreen() {
     if (isSearching)
       return `${listedProducts.length} result${listedProducts.length === 1 ? '' : 's'}`;
     if (activeCategory === 'all') return 'Everything on the menu';
+    if (activeCategory === 'favourites') return 'Your favourites';
     return categories.data?.find((category) => category.id === activeCategory)?.name ?? 'Menu';
   }, [isSearching, listedProducts.length, activeCategory, categories.data]);
 
@@ -76,6 +87,16 @@ export default function MenuScreen() {
           actionLabel="Clear search"
           onActionPress={() => setQuery('')}
           testID="menu-search-empty"
+        />
+      ) : activeCategory === 'favourites' ? (
+        // Reachable only if every hearted product has since left the menu.
+        <EmptyState
+          icon="heart-outline"
+          title="Nothing saved right now"
+          message="The items you hearted are not on the menu at the moment. Browse what is."
+          actionLabel="See the full menu"
+          onActionPress={() => setChosenCategory('all')}
+          testID="menu-favourites-empty"
         />
       ) : (
         <EmptyState
@@ -148,6 +169,12 @@ export default function MenuScreen() {
           <FlatList
             data={[
               { id: 'all' as const, name: 'All' },
+              // Only offered once there is something in it: an empty filter is
+              // a dead end, and a chip that leads nowhere teaches people to
+              // stop tapping chips.
+              ...(favouriteIds.length > 0
+                ? [{ id: 'favourites' as const, name: `Favourites (${favouriteIds.length})` }]
+                : []),
               ...(categories.data ?? []).map((category) => ({
                 id: category.id,
                 name: category.name,

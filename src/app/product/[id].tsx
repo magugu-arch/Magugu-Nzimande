@@ -12,6 +12,7 @@ import {
   Button,
   Divider,
   ErrorState,
+  FavouriteButton,
   LoadingState,
   QuantityStepper,
   Section,
@@ -153,6 +154,14 @@ export default function ProductDetailScreen() {
           >
             <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
           </Pressable>
+
+          <FavouriteButton
+            productId={item.id}
+            productName={item.name}
+            onImage
+            style={[styles.floatingButton, styles.favourite, { top: insets.top + spacing.sm }]}
+            testID="product-favourite"
+          />
 
           {/*
             This product is borrowing a related product's photograph until its
@@ -311,7 +320,7 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    left: spacing.lg,
+    left: spacing.gutter,
     width: 40,
     height: 40,
     borderRadius: radius.pill,
@@ -319,6 +328,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.94)',
   },
+  // Mirrors the back button across the hero. The scrim comes from onImage,
+  // so the white pill is overridden here rather than inherited.
+  favourite: { left: undefined, right: spacing.gutter, backgroundColor: colors.scrim },
   sheet: {
     marginTop: -spacing.xxl,
     paddingHorizontal: spacing.gutter,

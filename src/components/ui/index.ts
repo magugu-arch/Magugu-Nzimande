@@ -3,6 +3,7 @@ export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from '.
 export { Card, type CardProps } from './Card';
 export { Chip, type ChipProps } from './Chip';
 export { Divider, type DividerProps } from './Divider';
+export { FavouriteButton, type FavouriteButtonProps } from './FavouriteButton';
 export { ListRow, type ListRowProps } from './ListRow';
 export { ProgressBar, type ProgressBarProps } from './ProgressBar';
 export { QuantityStepper, type QuantityStepperProps } from './QuantityStepper';

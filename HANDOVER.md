@@ -16,7 +16,7 @@ Africa, built to the supplied brief.
 | Screens | 42 routes covering every journey in brief §4 |
 | Food photography | All 16 catalogue products, own artwork, no placeholders |
 | Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
-| Tests | 279, across 16 suites |
+| Tests | 287, across 17 suites |
 | Bundle | 19.1 MB exported, of which 4.4 MB JavaScript |
 | Branch | `claude/bbq-chicken-app-czgvuz` |
 
@@ -39,7 +39,8 @@ Sign in with any valid email and a password of 8+ characters. The OTP is always
 
 Then walk the journey that matters: **Menu → a chicken product → customise →
 add to cart → checkout → place order → track it.** That path exercises most of
-the app, and if something is wrong you'll see it there first.
+the app, and if something is wrong you'll see it there first. Heart a couple of
+products on the way and they turn up on Home and behind a Menu filter.
 
 ```bash
 npm run verify        # typecheck → lint → test, the gate before any commit
@@ -132,6 +133,7 @@ Four integrations need something external. Each has a marked hook-in point.
 | **Address geocoding** | `app/checkout/address.tsx` — anchors new addresses to the city centre | A geocoder key |
 | **Store map** | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes |
 | **Crash reporting** | `ErrorBoundary` takes an `onError` | Sentry or Crashlytics |
+| **Favourites sync** | `store/favouritesStore.ts` — local and persisted | `POST /v1/account/favourites`, so a heart follows the account to a new phone |
 
 Also outstanding, and deliberate:
 
@@ -208,7 +210,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 279 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, 287 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks

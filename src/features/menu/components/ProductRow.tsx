@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Product } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
-import { Badge, Text } from '@/components/ui';
+import { Badge, FavouriteButton, Text } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 import { formatPrice } from '@/utils/money';
 
@@ -57,7 +57,9 @@ export const ProductRow = memo(function ProductRow({ product, onPress, testID }:
         </View>
       </View>
 
-      <Ionicons name="chevron-forward" size={18} color={colors.textDisabled} />
+      {/* The row itself navigates, so the chevron said nothing the row did
+          not. The heart is the one action here worth its own target. */}
+      <FavouriteButton productId={product.id} productName={product.name} size="sm" />
     </Pressable>
   );
 });

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -12,7 +12,13 @@ import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { PromotionBanner } from '@/features/home/components/PromotionBanner';
 import { ProductCard } from '@/features/menu/components/ProductCard';
-import { useBestSellers, useCategories, usePopularProducts } from '@/features/menu/hooks';
+import {
+  useBestSellers,
+  useCategories,
+  usePopularProducts,
+  useProductsByIds,
+} from '@/features/menu/hooks';
+import { useFavouritesStore } from '@/store/favouritesStore';
 import { useActiveOrder } from '@/features/orders/hooks';
 import { useLoyaltyAccount, usePromotions } from '@/features/rewards/hooks';
 import { statusCopy } from '@/services/orderService';
@@ -47,6 +53,17 @@ export default function HomeScreen() {
   const promotions = usePromotions();
   const loyalty = useLoyaltyAccount();
   const activeOrder = useActiveOrder();
+
+  const favouriteIds = useFavouritesStore((state) => state.productIds);
+  const favouriteProducts = useProductsByIds(favouriteIds);
+  // Keep the store's order — newest hearted first — rather than whatever order
+  // the lookup came back in.
+  const favourites = useMemo(() => {
+    const found = favouriteProducts.data ?? [];
+    return favouriteIds
+      .map((id) => found.find((product) => product.id === id))
+      .filter((product): product is Product => Boolean(product));
+  }, [favouriteIds, favouriteProducts.data]);
 
   const isLoading =
     categories.isLoading || popular.isLoading || promotions.isLoading || bestSellers.isLoading;
@@ -233,6 +250,34 @@ export default function HomeScreen() {
             ))}
           </View>
         </Section>
+
+        {/* Favourites. Onboarding promises them "one tap away", and from here
+            that has to mean here, not two taps into the Menu tab. Hidden until
+            there is something in it — an empty row teaches people to scroll
+            past that spot. */}
+        {favourites.length > 0 ? (
+          <Section
+            title="Your favourites"
+            subtitle="Straight back to what you liked"
+            actionLabel="See all"
+            onActionPress={() => router.push('/(tabs)/menu?category=favourites')}
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carousel}
+            >
+              {favourites.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  width={CARD_WIDTH}
+                  onPress={() => openProduct(product)}
+                />
+              ))}
+            </ScrollView>
+          </Section>
+        ) : null}
 
         {/* Popular */}
         <Section
