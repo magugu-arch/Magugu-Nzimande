@@ -42,6 +42,21 @@ interface CartState {
   removeLine: (lineId: string) => void;
   /** Swap a line's configuration wholesale — used when editing from the cart. */
   replaceLine: (lineId: string, next: CartLine) => void;
+  /**
+   * Replace every line at once, with a note explaining why. Only for
+   * reconciling a saved basket against the live menu — see `reconcileCart`.
+   * Any applied voucher is dropped along with it, because a code validated
+   * against the old subtotal may no longer qualify against the new one.
+   */
+  setLines: (lines: CartLine[], notice: string | null) => void;
+  /**
+   * What reconciliation last changed, in words, or null. Lives here rather
+   * than in a screen's state so the customer still sees it if the basket was
+   * reconciled on the way to somewhere else. Never persisted: it describes one
+   * moment, not the basket.
+   */
+  reconciliationNotice: string | null;
+  dismissReconciliationNotice: () => void;
   clear: () => void;
 
   setFulfilmentType: (fulfilmentType: FulfilmentType) => void;
@@ -141,6 +156,16 @@ export const useCartStore = create<CartState>()(
           return { lines: [...lines, next] };
         });
       },
+
+      // Only called when reconciliation actually found a difference, so the
+      // voucher and reward always go: both were validated against a basket
+      // that no longer exists, and a promo that no longer qualifies must be
+      // re-earned rather than carried over unchecked.
+      setLines: (lines, notice) =>
+        set({ lines, voucher: null, reward: null, reconciliationNotice: notice }),
+
+      reconciliationNotice: null,
+      dismissReconciliationNotice: () => set({ reconciliationNotice: null }),
 
       clear: () => set({ lines: [], voucher: null, reward: null }),
 

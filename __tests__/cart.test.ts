@@ -9,10 +9,12 @@ import {
   defaultSelectionFor,
   describeOptions,
   meetsDeliveryMinimum,
+  reconcileCart,
   resolveSelectedOptions,
   unmetOptionGroups,
   unitPriceFor,
 } from '@/utils/cart';
+import { describeReconciliation } from '@/features/cart/useCartReconciliation';
 
 const sizeGroup: OptionGroup = {
   id: 'size',
@@ -338,5 +340,197 @@ describe('meetsDeliveryMinimum', () => {
   it('does not gate collection or dine-in', () => {
     expect(meetsDeliveryMinimum(10, 'collection')).toBe(true);
     expect(meetsDeliveryMinimum(10, 'dinein')).toBe(true);
+  });
+});
+
+describe('reconcileCart', () => {
+  const saved = buildCartLine(
+    product,
+    resolveSelectedOptions([sizeGroup], { size: ['size-medium'] }),
+    2,
+  );
+
+  it('leaves an up-to-date basket alone', () => {
+    const result = reconcileCart([saved], [product]);
+
+    expect(result.changed).toBe(false);
+    expect(result.lines).toEqual([saved]);
+    expect(result.dropped).toEqual([]);
+    expect(result.repriced).toEqual([]);
+  });
+
+  /**
+   * The whole point. The cart persists to disk with every price baked in, so a
+   * basket left overnight would otherwise check out at yesterday's prices.
+   */
+  it('reprices a line when the base price has moved', () => {
+    const dearer: Product = { ...product, basePrice: 169 };
+    const result = reconcileCart([saved], [dearer]);
+
+    expect(result.changed).toBe(true);
+    expect(result.lines[0]?.unitPrice).toBe(229); // 169 + 60
+    expect(result.lines[0]?.lineTotal).toBe(458); // × 2
+    expect(result.repriced[0]?.previousUnitPrice).toBe(saved.unitPrice);
+  });
+
+  it('reprices when an option delta has moved, not just the base', () => {
+    const dearerOption: Product = {
+      ...product,
+      optionGroups: [
+        {
+          ...sizeGroup,
+          options: sizeGroup.options.map((option) =>
+            option.id === 'size-medium' ? { ...option, priceDelta: 75 } : option,
+          ),
+        },
+        addonGroup,
+      ],
+    };
+
+    const result = reconcileCart([saved], [dearerOption]);
+    expect(result.lines[0]?.unitPrice).toBe(224); // 149 + 75
+    expect(result.repriced).toHaveLength(1);
+  });
+
+  it('drops a product that has left the menu', () => {
+    const result = reconcileCart([saved], []);
+
+    expect(result.lines).toEqual([]);
+    expect(result.dropped[0]?.reason).toBe('off-menu');
+  });
+
+  it('drops a product still listed but sold out', () => {
+    const result = reconcileCart([saved], [{ ...product, available: false }]);
+    expect(result.dropped[0]?.reason).toBe('unavailable');
+  });
+
+  /**
+   * Dropping just the option and keeping the line would cook something the
+   * customer did not order — a large that is quietly now a small.
+   */
+  it('drops the whole line when a chosen option is withdrawn', () => {
+    const withoutMedium: Product = {
+      ...product,
+      optionGroups: [
+        { ...sizeGroup, options: sizeGroup.options.filter((o) => o.id !== 'size-medium') },
+        addonGroup,
+      ],
+    };
+
+    const result = reconcileCart([saved], [withoutMedium]);
+    expect(result.dropped[0]?.reason).toBe('option-gone');
+    expect(result.lines).toEqual([]);
+  });
+
+  it('drops the line when a chosen option is marked unavailable', () => {
+    const soldOutMedium: Product = {
+      ...product,
+      optionGroups: [
+        {
+          ...sizeGroup,
+          options: sizeGroup.options.map((option) =>
+            option.id === 'size-medium' ? { ...option, available: false } : option,
+          ),
+        },
+        addonGroup,
+      ],
+    };
+
+    expect(reconcileCart([saved], [soldOutMedium]).dropped[0]?.reason).toBe('option-gone');
+  });
+
+  it('carries a rename through without calling it a price change', () => {
+    const renamed: Product = { ...product, name: 'Golden Original' };
+    const result = reconcileCart([saved], [renamed]);
+
+    expect(result.changed).toBe(true);
+    expect(result.lines[0]?.name).toBe('Golden Original');
+    expect(result.repriced).toEqual([]);
+  });
+
+  it('keeps the quantity and the special instructions it was saved with', () => {
+    const withNote = buildCartLine(
+      product,
+      resolveSelectedOptions([sizeGroup], { size: ['size-medium'] }),
+      3,
+      'extra crispy',
+    );
+
+    const result = reconcileCart([withNote], [{ ...product, basePrice: 169 }]);
+    expect(result.lines[0]?.quantity).toBe(3);
+    expect(result.lines[0]?.specialInstructions).toBe('extra crispy');
+  });
+
+  it('handles a mixed basket without losing the good lines', () => {
+    const other: Product = { ...product, id: 'soy-garlic', name: 'Soy Garlic Chicken' };
+    const otherLine = buildCartLine(other, [], 1);
+
+    const result = reconcileCart([saved, otherLine], [product]);
+
+    expect(result.lines.map((line) => line.productId)).toEqual(['golden-original']);
+    expect(result.dropped.map(({ line }) => line.productId)).toEqual(['soy-garlic']);
+  });
+});
+
+describe('describeReconciliation', () => {
+  const line = buildCartLine(product, [], 1);
+
+  it('says nothing when nothing changed', () => {
+    expect(
+      describeReconciliation({ lines: [line], dropped: [], repriced: [], changed: false }),
+    ).toBeNull();
+  });
+
+  it('names a single removed item', () => {
+    const notice = describeReconciliation({
+      lines: [],
+      dropped: [{ line, reason: 'unavailable' }],
+      repriced: [],
+      changed: true,
+    });
+
+    expect(notice).toBe('Golden Original Chicken is no longer available, so we removed it.');
+  });
+
+  it('lists several removed items readably', () => {
+    const second = buildCartLine({ ...product, id: 'b', name: 'Cheesling Fries' }, [], 1);
+    const notice = describeReconciliation({
+      lines: [],
+      dropped: [
+        { line, reason: 'unavailable' },
+        { line: second, reason: 'off-menu' },
+      ],
+      repriced: [],
+      changed: true,
+    });
+
+    expect(notice).toContain('Golden Original Chicken and Cheesling Fries');
+    expect(notice).toContain('are no longer available');
+  });
+
+  it('gives both prices when one item has changed', () => {
+    const notice = describeReconciliation({
+      lines: [line],
+      dropped: [],
+      repriced: [{ line, previousUnitPrice: 129 }],
+      changed: true,
+    });
+
+    expect(notice).toContain('R 149.00');
+    expect(notice).toContain('R 129.00');
+  });
+
+  it('counts rather than lists when several prices moved', () => {
+    const notice = describeReconciliation({
+      lines: [line],
+      dropped: [],
+      repriced: [
+        { line, previousUnitPrice: 129 },
+        { line, previousUnitPrice: 100 },
+      ],
+      changed: true,
+    });
+
+    expect(notice).toBe('2 items have changed price since you added them.');
   });
 });

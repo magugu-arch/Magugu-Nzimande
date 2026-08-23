@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { CartLineRow } from '@/features/cart/components/CartLineRow';
 import { OrderTotals } from '@/features/cart/components/OrderTotals';
+import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { useValidateVoucher } from '@/features/rewards/hooks';
 import { businessRules } from '@/constants/config';
@@ -47,6 +48,10 @@ export default function CartScreen() {
 
   const fulfilmentType = useFulfilmentStore((state) => state.fulfilmentType);
   const setFulfilmentType = useFulfilmentStore((state) => state.setFulfilmentType);
+
+  // A saved basket carries the prices it was saved with, so it has to be
+  // brought back into agreement with the menu before anything is totalled.
+  const reconciliation = useCartReconciliation();
 
   const [promoCode, setPromoCode] = useState('');
   const [promoError, setPromoError] = useState<string | null>(null);
@@ -133,6 +138,24 @@ export default function CartScreen() {
         keyboardShouldPersistTaps="handled"
         testID="cart-screen"
       >
+        {/* What the menu changed underneath them while the basket sat saved */}
+        {reconciliation.notice ? (
+          <View style={styles.notice} testID="cart-reconciliation-notice">
+            <Ionicons name="information-circle" size={18} color={colors.status.info} />
+            <Text variant="caption" color={colors.textSecondary} style={styles.noticeBody}>
+              {reconciliation.notice}
+            </Text>
+            <Pressable
+              onPress={reconciliation.dismiss}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss menu update notice"
+            >
+              <Ionicons name="close" size={16} color={colors.textMuted} />
+            </Pressable>
+          </View>
+        ) : null}
+
         {/* Fulfilment */}
         <View style={styles.block}>
           <Text variant="h3">How are you getting it?</Text>
@@ -304,6 +327,15 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl },
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.status.infoSoft,
+  },
+  noticeBody: { flex: 1 },
   block: { gap: spacing.md },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: colors.divider },
   addMore: { marginTop: spacing.sm },
