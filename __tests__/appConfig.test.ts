@@ -153,4 +153,37 @@ describe('eas configuration', () => {
   it('keeps the mock on for the profile stakeholders review', () => {
     expect(eas.build.preview?.env?.EXPO_PUBLIC_USE_MOCK_API).toBe('1');
   });
+
+  /**
+   * Belt as well as braces. The profiles above set the value explicitly, but
+   * the source default is what governs any build that does not — and it used
+   * to be plain `true`, so a release build that forgot the variable would have
+   * reached a store quoting invented prices and accepting orders no kitchen
+   * would ever see, silently, because a fake backend never errors.
+   *
+   * Read as source rather than imported: `__DEV__` is true under Jest, so
+   * evaluating `config.useMockApi` here would report the development answer
+   * and prove nothing about a release build.
+   */
+  it('never falls back to the mock layer in a release build', () => {
+    const source = fs.readFileSync(path.join(root, 'src/constants/config.ts'), 'utf8');
+    const fallback = /useMockApi:\s*bool\(\s*process\.env\.EXPO_PUBLIC_USE_MOCK_API,\s*([^)]+)\)/
+      .exec(source)?.[1]
+      ?.trim();
+
+    expect(fallback).toBe('__DEV__');
+  });
+
+  it('lets every profile name its own answer, rather than relying on that', () => {
+    for (const [name, profile] of Object.entries(eas.build)) {
+      if (name === 'base') continue;
+      // Inherited through `extends` counts; only a profile that names neither
+      // itself nor a parent is trusting the default.
+      const chain = [profile.env?.EXPO_PUBLIC_USE_MOCK_API, eas.build.base?.env?.EXPO_PUBLIC_USE_MOCK_API];
+      const named =
+        chain.some((v) => v !== undefined) ||
+        Boolean(eas.build[(profile as { extends?: string }).extends ?? '']?.env?.EXPO_PUBLIC_USE_MOCK_API);
+      expect(named).toBe(true);
+    }
+  });
 });

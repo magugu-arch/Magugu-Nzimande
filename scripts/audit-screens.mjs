@@ -12,7 +12,8 @@
  * Checks, per route, at both a normal and a narrow phone width:
  *   · the page never scrolls sideways, and nothing sits past the right edge
  *     (carousels excluded — they are supposed to)
- *   · the screen rendered something
+ *   · the screen rendered something, and the content routes rendered the
+ *     data they exist to show — not just an empty state
  *   · no console errors or uncaught exceptions
  *   · §32.6: every interactive element has an accessible name, and every
  *     focusable one shows a visible focus ring
@@ -49,6 +50,39 @@ const ROUTES = [
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
 const A11Y_ROUTES = ['/menu', '/sign-in', '/account/preferences'];
+
+/**
+ * What each content-bearing route must actually be showing.
+ *
+ * The blank check below only asks whether *some* text rendered, and an empty
+ * state is plenty of text. That gap was found by accident: turning the mock
+ * layer off left every screen with no data at all — an empty menu, an empty
+ * rewards page — and this sweep called all 29 routes clean. It was verifying
+ * that screens laid out, never that they had anything in them.
+ *
+ * Deliberately a handful of routes, not all of them. These are the ones whose
+ * whole purpose is to show data that came from somewhere.
+ */
+const MUST_SHOW = {
+  '/menu': /Golden Original|Soy Garlic|Half & Half/,
+  '/home': /Golden Original|Soy Garlic|Wings|Chicken/,
+  '/product/golden-original': /R\s?\d/,
+  // Not /orders: it opens on the Active tab, and a cold app has nothing
+  // cooking — both seeded orders are completed and sit under Past orders. An
+  // empty Active tab is the correct screen, so asserting a reference here
+  // would be asserting a bug. /order/order-4821 covers an order rendering.
+  '/order/order-4821': /BBQ-4821/,
+  '/rewards': /\d+\s*(points|pts)|Gold|Silver|Bronze/i,
+  '/offers': /R\s?\d|%/,
+};
+
+/**
+ * Copy that means a screen gave up, as opposed to a screen with nothing in it
+ * yet. Only genuine error states: "Nothing here yet" belongs to an empty
+ * notifications list on a cold app, which is correct, and the menu's own empty
+ * case is already covered by MUST_SHOW above.
+ */
+const FAILURE_COPY = /Something went wrong|Our kitchen is having a moment|We can't reach bb\.q/;
 
 const WIDTHS = [390, 320];
 
@@ -94,6 +128,7 @@ const probe = (viewportWidth) => {
     scrollsSideways: Math.max(0, document.documentElement.scrollWidth - viewportWidth),
     past: past.filter((c) => !seen.has(c.txt) && seen.add(c.txt)).sort((a, b) => b.px - a.px).slice(0, 3),
     blank: (document.body.innerText ?? '').trim().length < 12,
+    text: (document.body.innerText ?? '').trim(),
   };
 };
 
@@ -147,6 +182,10 @@ console.log('Building the web bundle…');
 execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT, '--clear'], {
   cwd: root,
   stdio: ['ignore', 'ignore', 'inherit'],
+  // `expo export` is a release build, where the mock layer is off by default.
+  // This sweep has no backend to talk to, so it asks for the mock by name —
+  // the same thing eas.json's preview profile does, and for the same reason.
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
 });
 
 const server = await serve();
@@ -192,6 +231,15 @@ try {
         findings.push(`${route} @${width} — page scrolls ${r.scrollsSideways}px sideways`);
       }
       for (const c of r.past) findings.push(`${route} @${width} — "${c.txt}" sits ${c.px}px past the edge`);
+
+      // Laid out is not the same as populated. A screen full of empty states
+      // passes every check above.
+      const expected = MUST_SHOW[route];
+      if (expected && !expected.test(r.text)) {
+        findings.push(`${route} @${width} — rendered, but shows no ${expected.source.split('|')[0]}`);
+      }
+      const failure = FAILURE_COPY.exec(r.text);
+      if (failure) findings.push(`${route} @${width} — shows "${failure[0]}"`);
       for (const e of [...new Set(errors)]) findings.push(`${route} @${width} — ${e}`);
 
       if (width === WIDTHS[0] && A11Y_ROUTES.includes(route)) {

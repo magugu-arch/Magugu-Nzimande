@@ -35,10 +35,22 @@ export const config = {
   ),
   apiTimeoutMs: num(process.env.EXPO_PUBLIC_API_TIMEOUT_MS, 15_000),
   /**
-   * Ships true so the app is fully explorable before the backend exists.
-   * Set EXPO_PUBLIC_USE_MOCK_API=0 to hit the real API.
+   * The mock layer, which makes the app fully explorable before the backend
+   * exists. On in development; off in any release build unless something asks
+   * for it by name.
+   *
+   * The default used to be plain `true`, which meant a release build that
+   * forgot `EXPO_PUBLIC_USE_MOCK_API` would ship to a store quoting invented
+   * prices and accepting orders no kitchen would ever see — silently, because
+   * a fake backend never errors. Defaulting to `__DEV__` inverts that: the
+   * worst a missing variable can now do is show error states against a
+   * backend that is not there yet, which is loud and obviously wrong.
+   *
+   * Every profile in eas.json still sets the value explicitly, so nothing
+   * about the intended builds changes. This only governs the case nobody
+   * intended.
    */
-  useMockApi: bool(process.env.EXPO_PUBLIC_USE_MOCK_API, true),
+  useMockApi: bool(process.env.EXPO_PUBLIC_USE_MOCK_API, __DEV__),
 
   maps: {
     provider: str(process.env.EXPO_PUBLIC_MAPS_PROVIDER, 'google'),

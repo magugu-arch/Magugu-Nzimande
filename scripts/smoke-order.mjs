@@ -55,6 +55,10 @@ console.log('Building the web bundle…');
 execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT, '--clear'], {
   cwd: root,
   stdio: ['ignore', 'ignore', 'inherit'],
+  // `expo export` is a release build, where the mock layer is off by default.
+  // This sweep has no backend to talk to, so it asks for the mock by name —
+  // the same thing eas.json's preview profile does, and for the same reason.
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
 });
 
 const server = await serve();
