@@ -212,3 +212,42 @@ export const typography = {
 } as const satisfies Record<string, TextStyle>;
 
 export type TypographyVariant = keyof typeof typography;
+
+/**
+ * How far each role may follow the OS text-size setting.
+ *
+ * React Native scales every `Text` by the device font scale unless told
+ * otherwise, and nothing in this app told it otherwise. iOS reaches about 3.1×
+ * at the largest accessibility size, Android 2.0 — enough to burst any box with
+ * a fixed height.
+ *
+ * The split is between text people read and text that labels a control:
+ *
+ * - **Content** — headings, body, captions, prices — is uncapped. It is the
+ *   reason someone turned the setting up, and it sits in boxes that grow.
+ * - **Chrome** — button labels, tab labels, badges, eyebrows — is capped at
+ *   2×, matching WCAG 1.4.4's 200%. These live in fixed geometry and mostly
+ *   cannot wrap, so past that they truncate rather than inform.
+ *
+ * 2× is not comfortable for a button label on its own: `npm run assets:typefit`
+ * measures the real Montserrat advance widths at 320pt and finds the tightest
+ * CTA ("TRACK THIS ORDER") has only 1.07× of horizontal headroom on one line.
+ * That is why Button pairs this cap with a second line and a minimum rather
+ * than a fixed height — the cap bounds the growth, the wrapping absorbs it.
+ */
+export const CHROME_FONT_SCALE_CAP = 2;
+
+const CAPPED_VARIANTS: ReadonlySet<TypographyVariant> = new Set([
+  'buttonLg',
+  'buttonMd',
+  'buttonSm',
+  'overline',
+  'micro',
+]);
+
+/**
+ * `undefined` means "no limit" to React Native, which is what content wants.
+ */
+export function fontScaleCapFor(variant: TypographyVariant): number | undefined {
+  return CAPPED_VARIANTS.has(variant) ? CHROME_FONT_SCALE_CAP : undefined;
+}

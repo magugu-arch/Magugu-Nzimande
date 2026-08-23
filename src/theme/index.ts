@@ -8,6 +8,8 @@ export {
   fontFamily,
   fontWeight,
   headingGap,
+  fontScaleCapFor,
+  CHROME_FONT_SCALE_CAP,
   type TypographyVariant,
 } from './typography';
 export {

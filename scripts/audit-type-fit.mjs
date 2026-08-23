@@ -98,18 +98,26 @@ const measured = JSON.parse(
   }),
 );
 
+/**
+ * Space for the label, in points, on the narrowest supported screen.
+ *
+ * Padding, icons and gaps are fixed chrome — they do not grow with the text
+ * size — so only the label itself scales.
+ */
+function availableFor(b) {
+  const spec = SIZES[b.size];
+  const content = SCREEN - GUTTER * 2;
+  return (
+    content - spec.paddingH * 2 - b.icons * (ICON + GAP[b.size]) - (b.trailing ? GAP[b.size] : 0)
+  );
+}
+
 let overflows = 0;
 let worstRatio = 1;
 const rows = [];
 
 for (const b of measured) {
-  const spec = SIZES[b.size];
-  const content = SCREEN - GUTTER * 2;
-  const available =
-    (b.fullWidth ? content : content) -
-    spec.paddingH * 2 -
-    b.icons * (ICON + GAP[b.size]) -
-    (b.trailing ? GAP[b.size] : 0);
+  const available = availableFor(b);
 
   const ratio = b.width / b.before;
   worstRatio = Math.max(worstRatio, ratio);
@@ -118,6 +126,23 @@ for (const b of measured) {
     overflows += 1;
     rows.push({ ...b, available, over: b.width - available });
   }
+}
+
+/**
+ * The largest OS text-size multiplier every label survives.
+ *
+ * iOS reaches about 3.1× at the largest accessibility size and Android 2.0,
+ * and a button label is capped rather than allowed to run because it cannot
+ * wrap — `numberOfLines={1}` means overflow is silent truncation. This is what
+ * decides the cap in the type scale: it is measured from the bundled TTF at
+ * 320pt, not picked because it sounded reasonable.
+ */
+function largestFittingScale() {
+  for (let scale = 3.0; scale >= 1.0; scale -= 0.05) {
+    const fits = measured.every((b) => b.width * scale <= availableFor(b));
+    if (fits) return Math.round(scale * 100) / 100;
+  }
+  return 1;
 }
 
 const growth = measured.reduce((sum, b) => sum + b.width / b.before, 0) / measured.length;
@@ -129,7 +154,17 @@ console.log(
 );
 
 if (overflows === 0) {
-  console.log('\nAll labels fit. Cleared.');
+  const headroom = largestFittingScale();
+  const tightest = measured
+    .map((b) => ({ ...b, headroom: availableFor(b) / b.width }))
+    .sort((a, b) => a.headroom - b.headroom)[0];
+
+  console.log(
+    `\nEvery label still fits with the OS text size at ${headroom.toFixed(2)}×. ` +
+      `Tightest: "${tightest.preserveCase ? tightest.label : tightest.label.toUpperCase()}" ` +
+      `(${tightest.file}:${tightest.line}) at ${tightest.headroom.toFixed(2)}×.`,
+  );
+  console.log('All labels fit. Cleared.');
   process.exit(0);
 }
 

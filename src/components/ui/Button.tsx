@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
+  useWindowDimensions,
   View,
   type StyleProp,
   type ViewStyle,
@@ -138,6 +139,20 @@ export const Button = memo(function Button({
   const isInactive = disabled || loading;
   const dimensions = SIZES[size];
 
+  /**
+   * How the button behaves when the customer has enlarged the OS text size.
+   *
+   * `assets:typefit` measures the real Montserrat advance widths at 320pt and
+   * finds the tightest CTA has 1.07× of headroom on a single line — so there
+   * is no cap worth having that also keeps every label on one line. Rather
+   * than choose between truncating labels and refusing to scale at all, the
+   * button keeps its single line and exact §22.4 height at normal text size,
+   * and is allowed a second line and a taller box once the setting is turned
+   * up. The cap in the type scale bounds how tall that can get.
+   */
+  const { fontScale } = useWindowDimensions();
+  const enlarged = fontScale > 1;
+
   const handlePress = useCallback(() => {
     if (isInactive) return;
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -177,8 +192,14 @@ export const Button = memo(function Button({
         return [
           styles.base,
           {
-            height: dimensions.height,
+            // §22.4's exact height, expressed as a minimum: at normal text
+            // size it is the height, and at an enlarged one the box grows
+            // rather than clipping the label inside it.
+            minHeight: dimensions.height,
             paddingHorizontal: dimensions.paddingH,
+            // Vertical padding only matters once the label is taller than the
+            // box; at normal size `minHeight` is already the larger of the two.
+            paddingVertical: enlarged ? spacing.sm : 0,
             borderRadius: dimensions.radius,
             backgroundColor: tone.background,
             borderColor: tone.border,
@@ -199,7 +220,7 @@ export const Button = memo(function Button({
           <Text
             variant={dimensions.variant}
             color={resting.text}
-            numberOfLines={1}
+            numberOfLines={enlarged ? 2 : 1}
             style={[styles.label, variant === 'text' ? styles.underline : null]}
           >
             {preserveCase ? label : label.toUpperCase()}

@@ -1,6 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { montserrat, playfair, supporting, typography } from '@/theme/typography';
+import {
+  CHROME_FONT_SCALE_CAP,
+  fontScaleCapFor,
+  montserrat,
+  playfair,
+  supporting,
+  typography,
+  type TypographyVariant,
+} from '@/theme/typography';
 
 const MONTSERRAT = new Set<string>(Object.values(montserrat));
 const PLAYFAIR = new Set<string>(Object.values(playfair));
@@ -161,6 +169,39 @@ describe('every bundled face the type scale names is actually loaded', () => {
     // add a megabyte for a face that is already there.
     for (const family of SUPPORTING) {
       expect(layout).not.toContain(`'${family}'`);
+    }
+  });
+});
+
+describe('how far each role follows the OS text size', () => {
+  /**
+   * React Native scales every `Text` by the device font scale unless told
+   * otherwise, and nothing in this app told it otherwise. iOS reaches about
+   * 3.1× at the largest accessibility size — enough to burst any fixed box.
+   */
+  it('caps the labels that live in fixed geometry', () => {
+    for (const variant of ['buttonLg', 'buttonMd', 'buttonSm', 'overline', 'micro'] as const) {
+      expect(fontScaleCapFor(variant)).toBe(CHROME_FONT_SCALE_CAP);
+    }
+  });
+
+  it('lets the text people actually read scale without limit', () => {
+    // Capping body copy would defeat the point of the setting.
+    for (const variant of ['body', 'bodyMedium', 'caption', 'h1', 'h2', 'h3', 'price'] as const) {
+      expect(fontScaleCapFor(variant)).toBeUndefined();
+    }
+  });
+
+  it('caps at 200%, the figure WCAG 1.4.4 asks for', () => {
+    expect(CHROME_FONT_SCALE_CAP).toBe(2);
+  });
+
+  it('gives every variant an answer', () => {
+    // A variant added later must be a deliberate choice, not an omission — so
+    // this walks the real scale rather than a hand-written list.
+    for (const variant of Object.keys(typography) as TypographyVariant[]) {
+      const cap = fontScaleCapFor(variant);
+      expect(cap === undefined || cap >= 1).toBe(true);
     }
   });
 });
