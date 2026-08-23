@@ -40,6 +40,11 @@ const ROUTES = [
   '/checkout/address', '/checkout/schedule', '/offers', '/rewards/vouchers',
   '/account/profile', '/account/preferences', '/account/notifications',
   '/account/payment-methods', '/account/contact', '/account/help', '/account/legal',
+  // Tracking needs an order to track, so these were missing from the sweep
+  // until the seeded ledger was noticed: `fetchOrder` seeds on first call, so
+  // both are reachable cold. 4821 is a delivery and 4610 a collection, which
+  // is the branch that decides whether the store rows render.
+  '/order/order-4821', '/order/order-4610', '/order/order-4610/rate',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */

@@ -184,6 +184,52 @@ describe('orderService', () => {
     expect(order.paymentMethodLabel).toBe('Visa ending 4821');
   });
 
+  /**
+   * The order used to carry the store's name and nothing else, so the tracking
+   * screen's "Call the store" dialled `tel:bb.q Chicken Sandton City`. The
+   * snapshot has to agree with the store record, not merely exist.
+   */
+  it('carries the branch a customer would have to phone or drive to', async () => {
+    const [store] = await fetchStores();
+    expect(store).toBeDefined();
+
+    const order = await placeOrder({
+      lines: [],
+      totals: {
+        subtotal: 200,
+        deliveryFee: 0,
+        serviceFee: 5,
+        discount: 0,
+        rewardsDiscount: 0,
+        total: 205,
+        pointsEarned: 200,
+      },
+      fulfilmentType: 'collection',
+      storeId: store!.id,
+      paymentMethodId: 'payment-visa',
+    });
+
+    expect(order.storeName).toBe(store!.name);
+    expect(order.storePhone).toBe(store!.phone);
+    expect(order.storeAddress).toContain(store!.addressLine);
+    expect(order.storeLatitude).toBe(store!.latitude);
+    expect(order.storeLongitude).toBe(store!.longitude);
+  });
+
+  it('gives seeded history the same branch details as a fresh order', async () => {
+    const orders = await fetchOrders();
+    const stores = await fetchStores();
+
+    // Seeded orders are written by hand in the service. Left to drift they
+    // would show a phone number no longer belonging to that branch.
+    for (const order of orders) {
+      const store = stores.find((candidate) => candidate.id === order.storeId);
+      if (!store) continue;
+      expect(order.storePhone).toBe(store.phone);
+      expect(order.storeName).toBe(store.name);
+    }
+  });
+
   it('surfaces the newly placed order as the active one', async () => {
     const active = await fetchActiveOrder();
     expect(active).not.toBeNull();

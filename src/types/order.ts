@@ -114,6 +114,17 @@ export interface Order {
   totals: CartTotals;
   storeId: string;
   storeName: string;
+  /**
+   * A snapshot of how to reach and find the store, taken when the order was
+   * placed. Carried on the order rather than looked up from the store list,
+   * because tracking must still work for a store that has since closed or
+   * moved — and because the tracking screen has no reason to fetch the whole
+   * network to render one phone number.
+   */
+  storePhone: string;
+  storeAddress: string;
+  storeLatitude: number;
+  storeLongitude: number;
   addressId?: string;
   addressSummary?: string;
   tableNumber?: string;

@@ -91,6 +91,28 @@ function buildTimeline(
 const ledger: Order[] = [];
 let referenceCounter = 4822;
 
+/**
+ * The store details an order carries with it: how to phone the branch and how
+ * to drive to it. Derived from the store record rather than typed out at each
+ * call site, so a seeded order and a freshly placed one can never disagree
+ * about where the same branch is.
+ */
+function storeSnapshot(storeId: string): Pick<
+  Order,
+  'storeId' | 'storeName' | 'storePhone' | 'storeAddress' | 'storeLatitude' | 'storeLongitude'
+> {
+  const store = stores.find((candidate) => candidate.id === storeId) ?? stores[0];
+
+  return {
+    storeId: store?.id ?? storeId,
+    storeName: store?.name ?? 'bb.q Chicken',
+    storePhone: store?.phone ?? '',
+    storeAddress: store ? `${store.addressLine}, ${store.suburb}` : '',
+    storeLatitude: store?.latitude ?? 0,
+    storeLongitude: store?.longitude ?? 0,
+  };
+}
+
 function seedHistory(): void {
   if (ledger.length > 0) return;
 
@@ -151,8 +173,7 @@ function seedHistory(): void {
       total: 324,
       pointsEarned: 287,
     },
-    storeId: 'store-sandton',
-    storeName: 'bb.q Chicken Sandton City',
+    ...storeSnapshot('store-sandton'),
     addressId: 'address-home',
     addressSummary: '14 Acacia Road, Melrose Arch',
     paymentMethodLabel: 'Visa ending 4821',
@@ -213,8 +234,7 @@ function seedHistory(): void {
       total: 309,
       pointsEarned: 304,
     },
-    storeId: 'store-rosebank',
-    storeName: 'bb.q Chicken Rosebank',
+    ...storeSnapshot('store-rosebank'),
     paymentMethodLabel: 'Mastercard ending 7702',
     etaMinutes: 25,
     rating: 4,
@@ -276,8 +296,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     timeline: buildTimeline(input.fulfilmentType, 'received', placedAt, etaMinutes),
     lines: input.lines,
     totals: input.totals,
-    storeId: store?.id ?? 'store-sandton',
-    storeName: store?.name ?? 'bb.q Chicken',
+    ...storeSnapshot(input.storeId),
     ...(address
       ? { addressId: address.id, addressSummary: `${address.line1}, ${address.suburb}` }
       : {}),

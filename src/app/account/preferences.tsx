@@ -1,10 +1,11 @@
-import { Linking, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button, Card, Divider, Screen, ScreenHeader, Text, Toggle } from '@/components/ui';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { usePushRegistration } from '@/features/notifications/hooks';
 import { useAuthStore } from '@/store/authStore';
 import { colors, radius, spacing } from '@/theme';
+import { openAppSettings } from '@/utils/linking';
 
 /** Preferences + notification channels (brief §4). */
 export default function PreferencesScreen() {
@@ -93,7 +94,7 @@ export default function PreferencesScreen() {
                 {outcome.status === 'denied' ? (
                   <Button
                     label="Open device settings"
-                    onPress={() => void Linking.openSettings()}
+                    onPress={() => void openAppSettings()}
                     variant="text"
                     size="sm"
                     fullWidth={false}

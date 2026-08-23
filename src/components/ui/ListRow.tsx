@@ -13,6 +13,12 @@ export interface ListRowProps {
   right?: ReactNode;
   showChevron?: boolean;
   destructive?: boolean;
+  /**
+   * Overrides the label composed from title and subtitle. Worth setting when
+   * the subtitle is punctuated for the eye — a middot between a store name and
+   * its phone number reads as a pause, or as nothing at all.
+   */
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -27,6 +33,7 @@ export const ListRow = memo(function ListRow({
   right,
   showChevron = true,
   destructive = false,
+  accessibilityLabel,
   style,
   testID,
 }: ListRowProps) {
@@ -70,7 +77,7 @@ export const ListRow = memo(function ListRow({
       testID={testID}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
+      accessibilityLabel={accessibilityLabel ?? (subtitle ? `${title}. ${subtitle}` : title)}
       style={({ pressed }) => [styles.row, pressed ? styles.pressed : null, style]}
     >
       {content}

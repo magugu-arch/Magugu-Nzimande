@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Linking, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -15,6 +15,7 @@ import {
 import { useSendContactMessage } from '@/features/account/hooks';
 import { SUPPORT } from '@/constants/config';
 import { colors, radius, spacing, typography } from '@/theme';
+import { callNumber, openExternal } from '@/utils/linking';
 import { required, validateFields } from '@/utils/validation';
 
 const SUBJECTS = [
@@ -88,20 +89,29 @@ export default function ContactScreen() {
           title="Call us"
           subtitle={`${SUPPORT.phone} · ${SUPPORT.hours}`}
           icon="call-outline"
-          onPress={() => void Linking.openURL(`tel:${SUPPORT.phone.replace(/\s/g, '')}`)}
+          accessibilityLabel={`Call support on ${SUPPORT.phone}, ${SUPPORT.hours}`}
+          onPress={() => void callNumber(SUPPORT.phone)}
         />
         <ListRow
           title="Email us"
           subtitle={SUPPORT.email}
           icon="mail-outline"
-          onPress={() => void Linking.openURL(`mailto:${SUPPORT.email}`)}
+          onPress={() =>
+            void openExternal(`mailto:${SUPPORT.email}`, {
+              failureTitle: 'Could not open your mail app',
+              failureMessage: `Write to ${SUPPORT.email} instead.`,
+            })
+          }
         />
         <ListRow
           title="WhatsApp"
           subtitle={SUPPORT.whatsapp}
           icon="logo-whatsapp"
           onPress={() =>
-            void Linking.openURL(`https://wa.me/${SUPPORT.whatsapp.replace(/[^0-9]/g, '')}`)
+            void openExternal(`https://wa.me/${SUPPORT.whatsapp.replace(/\D/g, '')}`, {
+              failureTitle: 'Could not open WhatsApp',
+              failureMessage: `Message ${SUPPORT.whatsapp} from WhatsApp instead.`,
+            })
           }
         />
       </Card>

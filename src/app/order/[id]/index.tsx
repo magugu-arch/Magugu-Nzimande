@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Alert, Linking, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { Product } from '@/types';
@@ -10,6 +10,7 @@ import {
   Card,
   Divider,
   ErrorState,
+  ListRow,
   LoadingState,
   ProgressBar,
   Screen,
@@ -25,6 +26,7 @@ import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
 import { describeOptions } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
+import { callNumber, isDiallable, openDirections } from '@/utils/linking';
 import { formatPrice } from '@/utils/money';
 
 /** Live Order Tracking + Order Details + Re-order (brief §4). */
@@ -118,6 +120,11 @@ export default function OrderTrackingScreen() {
   const isActive = data.status !== 'completed' && data.status !== 'cancelled';
   const completedSteps = data.timeline.filter((event) => event.occurredAt !== null).length;
   const progress = completedSteps / Math.max(1, data.timeline.length);
+
+  const canCall = isDiallable(data.storePhone);
+  // A delivery is coming to the customer; directions to the kitchen are noise.
+  // Collection and dine-in are the orders someone has to travel to.
+  const canNavigate = data.fulfilmentType !== 'delivery' && data.storeAddress.length > 0;
 
   return (
     <Screen scroll edges={['top', 'bottom']} testID="order-tracking-screen">
@@ -217,25 +224,45 @@ export default function OrderTrackingScreen() {
         <OrderTotals totals={data.totals} fulfilmentType={data.fulfilmentType} showNudge={false} />
       </Card>
 
-      {/* Store contact */}
-      <Card
-        onPress={() => void Linking.openURL(`tel:${data.storeName}`)}
-        style={styles.card}
-        accessibilityLabel={`Call ${data.storeName}`}
-      >
-        <View style={styles.contactRow}>
-          <View style={styles.contactIcon}>
-            <Ionicons name="call-outline" size={19} color={colors.primary} />
+      {/* Reaching the store */}
+      {canCall || canNavigate ? (
+        <Card style={styles.card} padded={false}>
+          <View style={styles.contactRows}>
+            {canCall ? (
+              <ListRow
+                title="Call the store"
+                // The number alone, not "name · number": the pair wrapped and
+                // broke the number across two lines, and the branch is already
+                // named in the status card at the top of this screen.
+                subtitle={data.storePhone}
+                icon="call-outline"
+                onPress={() => void callNumber(data.storePhone)}
+                accessibilityLabel={`Call ${data.storeName} on ${data.storePhone}`}
+                testID="order-call-store"
+              />
+            ) : null}
+
+            {canCall && canNavigate ? <Divider spacingSize="none" /> : null}
+
+            {canNavigate ? (
+              <ListRow
+                title="Get directions"
+                subtitle={data.storeAddress}
+                icon="navigate-outline"
+                onPress={() =>
+                  void openDirections({
+                    latitude: data.storeLatitude,
+                    longitude: data.storeLongitude,
+                    label: data.storeName,
+                  })
+                }
+                accessibilityLabel={`Directions to ${data.storeName}, ${data.storeAddress}`}
+                testID="order-directions"
+              />
+            ) : null}
           </View>
-          <View style={styles.contactBody}>
-            <Text variant="bodyMedium">Call the store</Text>
-            <Text variant="caption" color={colors.textSecondary}>
-              {data.storeName}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textDisabled} />
-        </View>
-      </Card>
+        </Card>
+      ) : null}
 
       {/* Actions */}
       <View style={styles.actions}>
@@ -323,16 +350,11 @@ const styles = StyleSheet.create({
   line: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   lineImage: { width: 48, borderRadius: radius.sm },
   lineBody: { flex: 1, gap: spacing.xxs },
-  contactRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  contactIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primarySoft,
-  },
-  contactBody: { flex: 1, gap: spacing.xxs },
+  // ListRow brings its own vertical padding and a 52pt minimum height, so the
+  // card is unpadded and only the horizontal inset is applied here — padding
+  // the card as well would give these two rows twice the breathing room of
+  // every other row in the app.
+  contactRows: { paddingHorizontal: spacing.lg },
   actions: { gap: spacing.sm, paddingBottom: spacing.xxxl },
   ratedRow: {
     flexDirection: 'row',
