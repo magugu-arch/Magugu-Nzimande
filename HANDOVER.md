@@ -16,7 +16,7 @@ Africa, built to the supplied brief.
 | Screens | 42 routes covering every journey in brief §4 |
 | Food photography | All 16 catalogue products, own artwork, no placeholders |
 | Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
-| Tests | 287, across 17 suites |
+| Tests | 289, across 18 suites |
 | Bundle | 19.1 MB exported, of which 4.4 MB JavaScript |
 | Branch | `claude/bbq-chicken-app-czgvuz` |
 
@@ -210,7 +210,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 287 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, 289 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, plus two asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
@@ -245,6 +245,10 @@ These fail loudly rather than rotting quietly — leave them on.
   advance widths from the font file the app ships, at the narrowest screen
   worth supporting. React Native truncates an overlong label with an ellipsis
   rather than complaining, so this is the only way to see it without a device.
+- **No screen can be orphaned.** A test walks the route tree and every string
+  literal that looks like a route, and fails if a screen has no way in. Deleting
+  the one link to a screen is easy and leaves working code that nobody can
+  reach.
 - **Fonts are checked two ways.** A role naming a weight the app never loads
   would render in the platform fallback and look almost right — a test reads
   the root layout and fails on it. A second fails if anyone tidies the
