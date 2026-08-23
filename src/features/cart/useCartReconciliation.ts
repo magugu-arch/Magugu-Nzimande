@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { CartReconciliation } from '@/utils/cart';
 import { useMenu } from '@/features/menu/hooks';
 import { useCartStore } from '@/store/cartStore';
+import { announce } from '@/utils/accessibility';
 import { reconcileCart } from '@/utils/cart';
 import { formatPrice } from '@/utils/money';
 
@@ -82,7 +83,13 @@ export function useCartReconciliation(): CartReconciliationState {
     const result = reconcileCart(lines, products);
     if (!result.changed) return;
 
-    setLines(result.lines, describeReconciliation(result));
+    const notice = describeReconciliation(result);
+    setLines(result.lines, notice);
+
+    // Nobody asked for this: the basket changes the moment the menu loads. A
+    // sighted customer sees the notice appear; without this, everyone else
+    // reaches checkout at a total they were never told about.
+    if (notice) announce(notice);
   }, [menu.isSuccess, menu.data, lines, setLines]);
 
   return { notice, dismiss };

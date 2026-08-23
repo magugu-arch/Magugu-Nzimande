@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import type { Product } from '@/types';
+import type { OrderStatus, Product } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
 import {
   Badge,
@@ -26,6 +26,7 @@ import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
 import { describeOptions } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
+import { announce } from '@/utils/accessibility';
 import { callNumber, isDiallable, openDirections } from '@/utils/linking';
 import { formatPrice } from '@/utils/money';
 
@@ -77,6 +78,31 @@ export default function OrderTrackingScreen() {
 
     router.push('/cart');
   }, [order.data, menu.data, addLine, router]);
+
+  /**
+   * Live tracking polls every fifteen seconds and the hero copy changes under
+   * the customer — from Preparing to Ready to Out for delivery. That is the
+   * entire purpose of the screen, and a screen reader announces none of it: it
+   * reads what was on screen when it last looked. Without this, the only way
+   * to find out the food is ready is to swipe back through the page again.
+   */
+  const announcedStatus = useRef<OrderStatus | null>(null);
+  const status = order.data?.status;
+
+  useEffect(() => {
+    if (!status) return;
+    // The first read is what the screen opened on, which the reader is about
+    // to announce anyway.
+    if (announcedStatus.current === null) {
+      announcedStatus.current = status;
+      return;
+    }
+    if (announcedStatus.current === status) return;
+    announcedStatus.current = status;
+
+    const copy = statusCopy(status);
+    announce(`${copy.label}. ${copy.description}`);
+  }, [status]);
 
   const handleCancel = useCallback(() => {
     if (!order.data) return;

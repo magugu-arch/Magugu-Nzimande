@@ -20,6 +20,7 @@ import { PlayfairDisplay_400Regular_Italic } from '@expo-google-fonts/playfair-d
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/system/OfflineBanner';
 import { useAppFocus } from '@/features/system/useAppFocus';
+import { useReduceMotion } from '@/features/system/useReduceMotion';
 import { useSessionExpiry } from '@/features/system/useSessionExpiry';
 import { startNetworkMonitoring } from '@/features/system/useNetworkStatus';
 import {
@@ -109,6 +110,13 @@ export default function RootLayout() {
  */
 function AppShell() {
   useAppFocus();
+  // Reduce Motion is on for vestibular disorders and motion sickness. A screen
+  // sliding in from the edge is exactly what that setting exists to stop, so
+  // the whole stack cross-fades instead. 'none' would be the other reading,
+  // but a fade still shows that the screen changed.
+  const reduceMotion = useReduceMotion();
+  const transition = reduceMotion ? 'fade' : 'slide_from_right';
+
   useSessionExpiry();
   usePushRegistration();
   useNotificationRouting();
@@ -120,7 +128,7 @@ function AppShell() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: colors.background },
-          animation: 'slide_from_right',
+          animation: transition,
         }}
       >
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
@@ -128,7 +136,10 @@ function AppShell() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="product/[id]" />
-        <Stack.Screen name="cart" options={{ animation: 'slide_from_bottom' }} />
+        <Stack.Screen
+          name="cart"
+          options={{ animation: reduceMotion ? 'fade' : 'slide_from_bottom' }}
+        />
         <Stack.Screen name="checkout" />
         <Stack.Screen name="order" />
         <Stack.Screen name="account" />

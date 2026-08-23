@@ -4,7 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
 import { useNetworkStatus } from '@/features/system/useNetworkStatus';
+import { useReduceMotion } from '@/features/system/useReduceMotion';
 import { colors, spacing } from '@/theme';
+import { announce } from '@/utils/accessibility';
 
 /**
  * Persistent offline notice (brief §12).
@@ -32,6 +34,7 @@ import { colors, spacing } from '@/theme';
 export function OfflineBanner() {
   const { isOffline } = useNetworkStatus();
   const insets = useSafeAreaInsets();
+  const reduceMotion = useReduceMotion();
 
   // Lazy state initialiser rather than a ref: the value is created once and
   // read during render, which a ref is not allowed to be.
@@ -41,10 +44,33 @@ export function OfflineBanner() {
   useEffect(() => {
     Animated.timing(height, {
       toValue: isOffline ? measured.current : 0,
-      duration: 220,
+      // The slide is the point of the animation, so under Reduce Motion the
+      // bar simply appears rather than sliding in slower.
+      duration: reduceMotion ? 0 : 220,
       useNativeDriver: false,
     }).start();
-  }, [isOffline, height]);
+  }, [isOffline, height, reduceMotion]);
+
+  const announcedFor = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    // Losing the connection is not something the customer did, so nothing else
+    // would tell them. `accessibilityRole="alert"` covers a bar already present
+    // when a screen mounts; this covers one that arrives while they are reading.
+    //
+    // Only on a change, never on the first run — otherwise every launch opens
+    // with "Back online", which is both untrue and startling.
+    if (announcedFor.current === null) {
+      announcedFor.current = isOffline;
+      return;
+    }
+    if (announcedFor.current === isOffline) return;
+    announcedFor.current = isOffline;
+
+    announce(
+      isOffline ? "You're offline. You can still browse and build your cart." : 'Back online.',
+    );
+  }, [isOffline]);
 
   const onMeasure = (event: LayoutChangeEvent) => {
     const next = event.nativeEvent.layout.height;
