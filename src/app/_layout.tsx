@@ -19,6 +19,7 @@ import { Montserrat_900Black } from '@expo-google-fonts/montserrat/900Black';
 import { PlayfairDisplay_400Regular_Italic } from '@expo-google-fonts/playfair-display/400Regular_Italic';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/system/OfflineBanner';
+import { useAppFocus } from '@/features/system/useAppFocus';
 import { startNetworkMonitoring } from '@/features/system/useNetworkStatus';
 import {
   useInitialNotificationRoute,
@@ -39,6 +40,10 @@ startNetworkMonitoring();
  * Query defaults tuned for a mobile ordering app: retry transient failures
  * twice, keep data warm across screen changes, and never refetch on every
  * focus (which would burn data on a metered connection).
+ *
+ * `refetchOnWindowFocus: false` covers returning to the app. What it does not
+ * cover is polling while away — that is decided by the focus manager, which
+ * `useAppFocus` wires to AppState below.
  */
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -102,6 +107,7 @@ export default function RootLayout() {
  * sitting inside its own provider tree.
  */
 function AppShell() {
+  useAppFocus();
   usePushRegistration();
   useNotificationRouting();
   useInitialNotificationRoute();
