@@ -20,6 +20,25 @@ export interface OpeningStatus {
   nextOpening: string | null;
 }
 
+/**
+ * The store to pre-select for someone who has not chosen one.
+ *
+ * Checkout picked the nearest branch outright. With every branch trading that
+ * was fine; with one opening in November it means a customer arrives at
+ * checkout, finds a store silently chosen for them, and is blocked on it —
+ * "bb.q Chicken Gateway opens on Sun, 1 Nov" — for a store they never picked.
+ * The message is true and the obvious next action is not the one it suggests.
+ *
+ * So: the nearest branch that could actually take the order, and only if none
+ * can, the nearest branch at all. Falling back rather than returning nothing
+ * matters — "opens on 1 November" tells a customer something, and "Choose a
+ * store" from an empty list tells them nothing.
+ */
+export function preferredStore(stores: Store[], now: Date = new Date()): Store | undefined {
+  // The list arrives sorted by distance, so first match is nearest match.
+  return stores.find((store) => !isOpeningLater(store, now)) ?? stores[0];
+}
+
 export function openingStatus(stores: Store[], now: Date = new Date()): OpeningStatus {
   // No stores at all is a loading or failed fetch, not a closed business.
   // Claiming "we open soon" on a network blip would be worse than saying

@@ -1,5 +1,5 @@
 import type { Store } from '@/types';
-import { openingStatus } from '@/features/stores/opening';
+import { openingStatus, preferredStore } from '@/features/stores/opening';
 
 const branch = (id: string, opensOn?: string): Store =>
   ({
@@ -79,5 +79,49 @@ describe('openingStatus', () => {
 
     expect(status.anyTrading).toBe(true);
     expect(status.nextOpening).toBeNull();
+  });
+});
+
+/**
+ * Checkout pre-selects a store for anyone who has not chosen one. It picked
+ * the nearest branch outright, which with a branch opening in November means
+ * arriving at checkout to find a store silently chosen and immediately
+ * blocked on it — for a store the customer never picked.
+ */
+describe('preferredStore', () => {
+  it('skips a branch that has not opened, however near it is', () => {
+    // The list arrives sorted by distance: the nearest is the one not yet open.
+    const nearest = branch('nearest-but-closed', NOVEMBER);
+    const trading = branch('further-but-open');
+
+    expect(preferredStore([nearest, trading], between)?.id).toBe('further-but-open');
+  });
+
+  it('takes the nearest when everything is trading', () => {
+    expect(preferredStore([branch('a'), branch('b')], between)?.id).toBe('a');
+  });
+
+  /**
+   * Falling back rather than returning nothing matters: "opens on 1 November"
+   * tells a customer something, and an empty "Choose a store" tells them
+   * nothing about why.
+   */
+  it('falls back to the nearest when no branch is trading yet', () => {
+    const first = branch('october', OCTOBER);
+    const second = branch('november', NOVEMBER);
+
+    expect(preferredStore([first, second], beforeBoth)?.id).toBe('october');
+  });
+
+  it('has nothing to suggest from an empty list', () => {
+    expect(preferredStore([], between)).toBeUndefined();
+  });
+
+  it('starts suggesting a branch the day it opens', () => {
+    const opening = branch('october', OCTOBER);
+    const other = branch('other', NOVEMBER);
+
+    expect(preferredStore([opening, other], beforeBoth)?.id).toBe('october');
+    expect(preferredStore([opening, other], between)?.id).toBe('october');
   });
 });

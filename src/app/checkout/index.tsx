@@ -24,6 +24,7 @@ import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
 import { submitOrder } from '@/features/checkout/submitOrder';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
+import { preferredStore } from '@/features/stores/opening';
 import { useCartStore } from '@/store/cartStore';
 import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
@@ -103,12 +104,14 @@ export default function CheckoutScreen() {
 
   const selectedPaymentId = selectedPayment?.id ?? null;
 
-  // Pre-selecting the nearest store is a store-level side effect, not render
-  // state, so it stays in an effect — but only fires when nothing is chosen.
+  // Pre-selecting a store is a store-level side effect, not render state, so
+  // it stays in an effect — but only fires when nothing is chosen, and picks
+  // the nearest branch that can actually take the order rather than the
+  // nearest branch full stop. See `preferredStore`.
   useEffect(() => {
     if (store) return;
-    const nearest = availableStores.data?.[0];
-    if (nearest) setStore(nearest);
+    const suggested = preferredStore(availableStores.data ?? []);
+    if (suggested) setStore(suggested);
   }, [store, availableStores.data, setStore]);
 
   const blocker = useMemo(() => {
