@@ -5,7 +5,12 @@ import {
   resetSessionState,
   setSessionExpiredHandler,
 } from '@/services/apiClient';
-import { clearTokens, getAccessToken, getRefreshToken, storeTokens } from '@/services/secureStorage';
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  storeTokens,
+} from '@/services/secureStorage';
 
 /**
  * Everything here is about the unauthenticated path, which mock mode never
@@ -63,9 +68,7 @@ describe('an expired access token', () => {
 
     fetchMock
       .mockResolvedValueOnce(jsonResponse(401))
-      .mockResolvedValueOnce(
-        jsonResponse(200, { accessToken: 'fresh', refreshToken: 'refresh-2' }),
-      )
+      .mockResolvedValueOnce(jsonResponse(200, { accessToken: 'fresh', refreshToken: 'refresh-2' }))
       .mockResolvedValueOnce(jsonResponse(200, { points: 420 }));
 
     await expect(request('/v1/loyalty')).resolves.toEqual({ points: 420 });
@@ -86,9 +89,7 @@ describe('an expired access token', () => {
 
     fetchMock
       .mockResolvedValueOnce(jsonResponse(401))
-      .mockResolvedValueOnce(
-        jsonResponse(200, { accessToken: 'fresh', refreshToken: 'refresh-2' }),
-      )
+      .mockResolvedValueOnce(jsonResponse(200, { accessToken: 'fresh', refreshToken: 'refresh-2' }))
       .mockResolvedValueOnce(jsonResponse(200, {}));
 
     await request('/v1/loyalty');
@@ -141,9 +142,7 @@ describe('an expired access token', () => {
     const onExpired = jest.fn();
     setSessionExpiredHandler(onExpired);
 
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse(401))
-      .mockResolvedValueOnce(jsonResponse(401)); // the refresh
+    fetchMock.mockResolvedValueOnce(jsonResponse(401)).mockResolvedValueOnce(jsonResponse(401)); // the refresh
 
     await expect(request('/v1/loyalty')).rejects.toMatchObject({ code: 'session_expired' });
     expect(onExpired).toHaveBeenCalledTimes(1);

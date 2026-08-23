@@ -4,6 +4,7 @@ import {
   dayName,
   formatEtaWindow,
   formatRelativeDay,
+  formatShortDate,
   formatTime,
 } from '@/utils/datetime';
 import { businessRules } from '@/constants/config';
@@ -16,6 +17,52 @@ describe('formatTime', () => {
 
   it('returns an empty string for an invalid date', () => {
     expect(formatTime('not a date')).toBe('');
+  });
+});
+
+/**
+ * Built by hand rather than through `toLocaleDateString`, for the same reason
+ * `groupDigits` exists in utils/money: Hermes ships without full ICU on some
+ * builds, and the locale is then quietly ignored — `8/21/2026` where the
+ * design says `Fri, 21 Aug`. Day-month and month-day are the same digits with
+ * opposite meanings, so an order dated wrongly is worse than one dated ugly.
+ */
+describe('formatShortDate', () => {
+  it('puts the day before the month, South African style', () => {
+    expect(formatShortDate(new Date(2026, 7, 21))).toBe('Fri, 21 Aug');
+  });
+
+  it('does not pad the day', () => {
+    expect(formatShortDate(new Date(2026, 0, 5))).toBe('Mon, 5 Jan');
+  });
+
+  it('handles every month', () => {
+    const months = Array.from({ length: 12 }, (_, m) => formatShortDate(new Date(2026, m, 15)));
+    expect(months.map((m) => m.split(' ').at(-1))).toEqual([
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ]);
+  });
+
+  it('gives nothing back for an invalid date rather than "Invalid Date"', () => {
+    expect(formatShortDate('not-a-date')).toBe('');
+  });
+
+  it('never renders a US-style numeric date', () => {
+    // The failure mode being guarded: a fallback that ignores the locale.
+    for (let month = 0; month < 12; month += 1) {
+      expect(formatShortDate(new Date(2026, month, 21))).not.toMatch(/\d+\/\d+/);
+    }
   });
 });
 

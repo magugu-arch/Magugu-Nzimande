@@ -97,7 +97,9 @@ let referenceCounter = 4822;
  * call site, so a seeded order and a freshly placed one can never disagree
  * about where the same branch is.
  */
-function storeSnapshot(storeId: string): Pick<
+function storeSnapshot(
+  storeId: string,
+): Pick<
   Order,
   'storeId' | 'storeName' | 'storePhone' | 'storeAddress' | 'storeLatitude' | 'storeLongitude'
 > {

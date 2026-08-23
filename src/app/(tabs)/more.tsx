@@ -12,6 +12,7 @@ import { useLoyaltyAccount } from '@/features/rewards/hooks';
 import { SUPPORT } from '@/constants/config';
 import { useAuthStore } from '@/store/authStore';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
+import { groupDigits } from '@/utils/money';
 
 /** More tab — Account hub (brief §4). */
 export default function MoreScreen() {
@@ -74,7 +75,7 @@ export default function MoreScreen() {
                 </Text>
                 {loyalty.data ? (
                   <Badge
-                    label={`${loyalty.data.tierName} · ${loyalty.data.pointsBalance.toLocaleString('en-ZA')} pts`}
+                    label={`${loyalty.data.tierName} · ${groupDigits(loyalty.data.pointsBalance)} pts`}
                     tone="primary"
                     icon="star"
                     style={styles.profileBadge}

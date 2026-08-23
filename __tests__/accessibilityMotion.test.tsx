@@ -58,12 +58,13 @@ describe('useReduceMotion', () => {
   it('follows the setting being changed while the app is open', async () => {
     let notify: ((enabled: boolean) => void) | undefined;
     jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(false);
-    jest
-      .spyOn(AccessibilityInfo, 'addEventListener')
-      .mockImplementation(((_event: string, handler: (enabled: boolean) => void) => {
-        notify = handler;
-        return { remove: jest.fn() };
-      }) as unknown as typeof AccessibilityInfo.addEventListener);
+    jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation(((
+      _event: string,
+      handler: (enabled: boolean) => void,
+    ) => {
+      notify = handler;
+      return { remove: jest.fn() };
+    }) as unknown as typeof AccessibilityInfo.addEventListener);
 
     const { result } = renderHook(() => useReduceMotion());
     await waitFor(() => expect(result.current).toBe(false));

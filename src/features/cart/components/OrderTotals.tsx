@@ -5,7 +5,7 @@ import type { CartTotals, FulfilmentType } from '@/types';
 import { Divider, Text } from '@/components/ui';
 import { businessRules } from '@/constants/config';
 import { colors, radius, spacing } from '@/theme';
-import { formatPrice } from '@/utils/money';
+import { formatPrice, groupDigits } from '@/utils/money';
 
 export interface OrderTotalsProps {
   totals: CartTotals;
@@ -98,7 +98,7 @@ export const OrderTotals = memo(function OrderTotals({
         <View style={styles.points}>
           <Ionicons name="star" size={13} color={colors.primary} />
           <Text variant="caption" color={colors.textSecondary}>
-            You&apos;ll earn {totals.pointsEarned.toLocaleString('en-ZA')} bb.q points on this order
+            You&apos;ll earn {groupDigits(totals.pointsEarned)} bb.q points on this order
           </Text>
         </View>
       ) : null}

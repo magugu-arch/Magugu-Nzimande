@@ -25,6 +25,7 @@ import {
 } from '@/features/rewards/hooks';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatRelativeDay } from '@/utils/datetime';
+import { groupDigits } from '@/utils/money';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const REWARD_CARD_WIDTH = Math.min(210, SCREEN_WIDTH * 0.56);
@@ -96,7 +97,7 @@ export default function RewardsScreen() {
 
           <View style={styles.balanceRow}>
             <Text variant="display" color={colors.textOnDark}>
-              {account.pointsBalance.toLocaleString('en-ZA')}
+              {groupDigits(account.pointsBalance)}
             </Text>
             <Text variant="h3" color={colors.textOnDarkMuted} style={styles.pointsLabel}>
               points
@@ -106,7 +107,7 @@ export default function RewardsScreen() {
           <View style={styles.tierRow}>
             <Badge label={`${account.tierName} member`} tone="onImage" icon="star" />
             <Text variant="caption" color={colors.textOnDarkMuted}>
-              {account.lifetimePoints.toLocaleString('en-ZA')} lifetime
+              {groupDigits(account.lifetimePoints)} lifetime
             </Text>
           </View>
 
@@ -119,7 +120,7 @@ export default function RewardsScreen() {
             />
             <Text variant="caption" color={colors.textOnDark}>
               {account.nextTier
-                ? `${account.pointsToNextTier.toLocaleString('en-ZA')} points to ${
+                ? `${groupDigits(account.pointsToNextTier)} points to ${
                     account.nextTier.charAt(0).toUpperCase() + account.nextTier.slice(1)
                   }`
                 : "You're at our top tier"}
@@ -271,7 +272,7 @@ export default function RewardsScreen() {
                         color={entry.points >= 0 ? colors.status.success : colors.textSecondary}
                       >
                         {entry.points >= 0 ? '+' : ''}
-                        {entry.points.toLocaleString('en-ZA')}
+                        {groupDigits(entry.points)}
                       </Text>
                     }
                     style={styles.historyRow}

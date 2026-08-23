@@ -27,6 +27,7 @@ import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { absoluteFill, colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatEtaWindow } from '@/utils/datetime';
+import { groupDigits } from '@/utils/money';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = Math.min(200, SCREEN_WIDTH * 0.52);
@@ -314,9 +315,7 @@ export default function HomeScreen() {
                 <Text variant="overline" color={colors.primary}>
                   bb.q Rewards
                 </Text>
-                <Text variant="h2">
-                  {loyalty.data.pointsBalance.toLocaleString('en-ZA')} points
-                </Text>
+                <Text variant="h2">{groupDigits(loyalty.data.pointsBalance)} points</Text>
               </View>
               <Badge label={loyalty.data.tierName} tone="dark" icon="star" />
             </View>
@@ -328,7 +327,7 @@ export default function HomeScreen() {
 
             <Text variant="caption" color={colors.textSecondary}>
               {loyalty.data.nextTier
-                ? `${loyalty.data.pointsToNextTier.toLocaleString('en-ZA')} points to ${
+                ? `${groupDigits(loyalty.data.pointsToNextTier)} points to ${
                     loyalty.data.nextTier.charAt(0).toUpperCase() + loyalty.data.nextTier.slice(1)
                   }`
                 : "You're at our top tier. Enjoy it."}

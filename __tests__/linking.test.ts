@@ -1,11 +1,5 @@
 import { Alert, Linking, Platform } from 'react-native';
-import {
-  callNumber,
-  directionsUrl,
-  isDiallable,
-  openExternal,
-  telUrl,
-} from '@/utils/linking';
+import { callNumber, directionsUrl, isDiallable, openExternal, telUrl } from '@/utils/linking';
 
 describe('telUrl', () => {
   /**

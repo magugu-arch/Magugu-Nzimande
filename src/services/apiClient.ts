@@ -170,11 +170,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   return execute<T>(path, options, true);
 }
 
-async function execute<T>(
-  path: string,
-  options: RequestOptions,
-  mayRefresh: boolean,
-): Promise<T> {
+async function execute<T>(path: string, options: RequestOptions, mayRefresh: boolean): Promise<T> {
   const { method = 'GET', body, headers = {}, anonymous = false, signal } = options;
 
   const controller = new AbortController();

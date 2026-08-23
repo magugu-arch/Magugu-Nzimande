@@ -18,7 +18,7 @@ import { useLoyaltyAccount, useRedeemReward, useReward } from '@/features/reward
 import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
-import { formatPrice } from '@/utils/money';
+import { formatPrice, groupDigits } from '@/utils/money';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -109,7 +109,7 @@ export default function RewardDetailScreen() {
             <Badge label="Birthday gift" tone="primary" icon="gift" />
           ) : (
             <Badge
-              label={`${data.pointsCost.toLocaleString('en-ZA')} points`}
+              label={`${groupDigits(data.pointsCost)} points`}
               tone={data.redeemable ? 'primary' : 'neutral'}
               icon="star"
             />
@@ -128,7 +128,7 @@ export default function RewardDetailScreen() {
               Your balance
             </Text>
             <Text variant="bodyMedium">
-              {balance.toLocaleString('en-ZA')} / {data.pointsCost.toLocaleString('en-ZA')} pts
+              {groupDigits(balance)} / {groupDigits(data.pointsCost)} pts
             </Text>
           </View>
 
@@ -145,7 +145,7 @@ export default function RewardDetailScreen() {
               ? 'Unlocks automatically during your birthday month.'
               : data.redeemable
                 ? 'You have enough points. Redeem it whenever you like.'
-                : `${shortfall.toLocaleString('en-ZA')} points to go — roughly ${formatPrice(shortfall)} of spending.`}
+                : `${groupDigits(shortfall)} points to go — roughly ${formatPrice(shortfall)} of spending.`}
           </Text>
         </Card>
 

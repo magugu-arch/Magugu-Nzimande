@@ -35,6 +35,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Formatting is not enforced by eslint here, so it drifted unnoticed
+      # across several files before this was added.
+      - name: Check formatting
+        run: npm run format:check
+
       - name: Test
         run: npm test -- --ci
 

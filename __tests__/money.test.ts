@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   formatPrice,
   formatPriceDelta,
@@ -61,5 +63,61 @@ describe('points conversion', () => {
   it('converts points back to rand at the configured rate', () => {
     expect(pointsToRand(1000)).toBe(50);
     expect(pointsToRand(400)).toBe(20);
+  });
+});
+
+/**
+ * The rule this enforces, and why it needs enforcing.
+ *
+ * `groupDigits` and the hand-built date formatter both exist because Hermes
+ * ships without full ICU on some builds: `Intl` and the `toLocale*` family
+ * then silently fall back — a comma where a space belongs, or US month-day
+ * ordering where the design says `Fri, 21 Aug`. Neither throws. It renders
+ * differently on two phones and nobody reports it.
+ *
+ * Three separate places drifted back onto `toLocaleString` after the rule was
+ * written down: the nutrition panel, and then every points figure in the app,
+ * fifteen of them. A comment in one util was not enough.
+ */
+describe('nothing in the app formats numbers or dates through Intl', () => {
+  const root = path.resolve(__dirname, '..');
+
+  function sourceFiles(dir: string): string[] {
+    const out: string[] = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...sourceFiles(full));
+      else if (/\.tsx?$/.test(entry.name)) out.push(full);
+    }
+    return out;
+  }
+
+  /** Comments explain the trap; only executable code can fall into it. */
+  const stripComments = (source: string) =>
+    source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  const offenders: string[] = [];
+
+  for (const file of sourceFiles(path.join(root, 'src'))) {
+    const code = stripComments(fs.readFileSync(file, 'utf8'));
+    for (const pattern of [
+      /\.toLocaleString\s*\(/,
+      /\.toLocaleDateString\s*\(/,
+      /\.toLocaleTimeString\s*\(/,
+      /\bIntl\s*\./,
+    ]) {
+      if (pattern.test(code)) {
+        offenders.push(`${path.relative(root, file)} — ${pattern.source}`);
+      }
+    }
+  }
+
+  it('uses groupDigits and the hand-built date formatters instead', () => {
+    expect(offenders).toEqual([]);
+  });
+
+  it('is looking at the real source tree, not an empty one', () => {
+    // A walker that finds nothing would pass the check above forever.
+    expect(sourceFiles(path.join(root, 'src')).length).toBeGreaterThan(50);
   });
 });

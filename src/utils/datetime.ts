@@ -11,15 +11,36 @@ export function formatTime(value: string | Date): string {
   return `${hours}:${minutes}`;
 }
 
-/** `Fri, 21 Aug` */
+const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const SHORT_MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/**
+ * `Fri, 21 Aug`
+ *
+ * Built by hand for the same reason `formatTime` above is, and `groupDigits`
+ * in utils/money: Hermes ships without full ICU on some builds, and
+ * `toLocaleDateString('en-ZA', …)` then quietly falls back to US formatting —
+ * `8/21/2026` where the design says `Fri, 21 Aug`. The day and month before
+ * the number is not decoration; `21/8` and `8/21` are the same string with
+ * opposite meanings, and an order dated wrongly is worse than one dated ugly.
+ */
 export function formatShortDate(value: string | Date): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString(businessRules.locale, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  });
+  return `${SHORT_DAYS[date.getDay()]}, ${date.getDate()} ${SHORT_MONTHS[date.getMonth()]}`;
 }
 
 /** `Fri, 21 Aug · 14:35` */

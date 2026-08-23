@@ -179,10 +179,15 @@ describe('eas configuration', () => {
       if (name === 'base') continue;
       // Inherited through `extends` counts; only a profile that names neither
       // itself nor a parent is trusting the default.
-      const chain = [profile.env?.EXPO_PUBLIC_USE_MOCK_API, eas.build.base?.env?.EXPO_PUBLIC_USE_MOCK_API];
+      const chain = [
+        profile.env?.EXPO_PUBLIC_USE_MOCK_API,
+        eas.build.base?.env?.EXPO_PUBLIC_USE_MOCK_API,
+      ];
       const named =
         chain.some((v) => v !== undefined) ||
-        Boolean(eas.build[(profile as { extends?: string }).extends ?? '']?.env?.EXPO_PUBLIC_USE_MOCK_API);
+        Boolean(
+          eas.build[(profile as { extends?: string }).extends ?? '']?.env?.EXPO_PUBLIC_USE_MOCK_API,
+        );
       expect(named).toBe(true);
     }
   });

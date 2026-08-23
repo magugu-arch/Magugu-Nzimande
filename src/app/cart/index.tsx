@@ -24,7 +24,7 @@ import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing, typography } from '@/theme';
 import { meetsDeliveryMinimum } from '@/utils/cart';
-import { formatPrice } from '@/utils/money';
+import { formatPrice, groupDigits } from '@/utils/money';
 
 /**
  * Cart (brief §11): product, image, quantity, edit, remove, add more, promo
@@ -259,7 +259,7 @@ export default function CartScreen() {
               <Text variant="bodyMedium">{reward ? reward.name : 'Use a reward'}</Text>
               <Text variant="caption" color={colors.textSecondary}>
                 {reward
-                  ? `${formatPrice(reward.discount)} off · ${reward.pointsCost.toLocaleString('en-ZA')} points`
+                  ? `${formatPrice(reward.discount)} off · ${groupDigits(reward.pointsCost)} points`
                   : 'Spend your bb.q points on this order'}
               </Text>
             </View>

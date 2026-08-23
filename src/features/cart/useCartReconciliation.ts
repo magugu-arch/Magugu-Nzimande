@@ -16,7 +16,8 @@ export function describeReconciliation(result: CartReconciliation): string | nul
 
   if (result.dropped.length > 0) {
     const names = result.dropped.map(({ line }) => line.name);
-    const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+    const list =
+      names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
     parts.push(
       `${list} ${names.length === 1 ? 'is' : 'are'} no longer available, so we removed ${
         names.length === 1 ? 'it' : 'them'

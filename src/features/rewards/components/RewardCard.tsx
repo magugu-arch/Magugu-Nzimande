@@ -5,6 +5,7 @@ import type { Reward } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
 import { Badge, Text } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
+import { groupDigits } from '@/utils/money';
 
 export interface RewardCardProps {
   reward: Reward;
@@ -80,7 +81,7 @@ export const RewardCard = memo(function RewardCard({
             <Badge label="Birthday gift" tone="neutral" icon="gift" />
           ) : (
             <Badge
-              label={`${reward.pointsCost.toLocaleString('en-ZA')} pts`}
+              label={`${groupDigits(reward.pointsCost)} pts`}
               tone={locked ? 'neutral' : 'primary'}
               icon="star"
             />
@@ -88,7 +89,7 @@ export const RewardCard = memo(function RewardCard({
 
           {locked && shortfall > 0 ? (
             <Text variant="micro" color={colors.textMuted}>
-              {shortfall.toLocaleString('en-ZA')} MORE
+              {groupDigits(shortfall)} MORE
             </Text>
           ) : null}
         </View>

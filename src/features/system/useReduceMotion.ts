@@ -25,10 +25,7 @@ export function useReduceMotion(): boolean {
 
     // The setting can be changed while the app is open — iOS has it in Control
     // Centre — so a one-off read is not enough.
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      setReduceMotion,
-    );
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
 
     return () => {
       cancelled = true;
