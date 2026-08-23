@@ -139,6 +139,19 @@ export interface Order {
 
 export interface PlaceOrderInput {
   lines: CartLine[];
+  /**
+   * What the client believes the order costs — to be checked, never trusted.
+   *
+   * Everything needed to work the total out independently is already in this
+   * payload: the lines carry product ids, chosen options and quantities, and
+   * `voucherCode`, `redeemedRewardId`, `fulfilmentType` and `storeId` supply
+   * the rest. The server should recompute from those and reject the order if
+   * this disagrees, rather than charging what it was told to charge.
+   *
+   * Anything a customer's device can edit, a customer's device can lie about.
+   * The endpoint does not exist yet, which is the reason to write this down
+   * now rather than after it is built.
+   */
   totals: CartTotals;
   fulfilmentType: FulfilmentType;
   storeId: string;

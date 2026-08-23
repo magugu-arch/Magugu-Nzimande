@@ -23,6 +23,7 @@ import { usePlaceOrder } from '@/features/orders/hooks';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
 import { submitOrder } from '@/features/checkout/submitOrder';
+import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { useCartStore } from '@/store/cartStore';
 import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
@@ -60,6 +61,17 @@ export default function CheckoutScreen() {
   const paymentMethods = usePaymentMethods();
   const availableStores = useStoresForFulfilment(fulfilmentType);
   const placeOrder = usePlaceOrder();
+
+  /**
+   * Checkout reconciles too, not only the cart.
+   *
+   * This is the screen where the totals become a charge, and a customer can
+   * reach it without the cart having reconciled recently — deep-linked, or
+   * left sitting here while the menu moved. Running it again costs nothing
+   * when the basket already agrees, and the notice it produces is stored, so
+   * they still see what changed.
+   */
+  const reconciliation = useCartReconciliation();
 
   const [chosenPaymentId, setChosenPaymentId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -393,6 +405,17 @@ export default function CheckoutScreen() {
             {...(reward ? { rewardName: reward.name } : {})}
           />
         </Card>
+
+        {/* A basket repriced on the way to payment must not be repriced
+            silently — this is the screen where the number becomes a charge. */}
+        {reconciliation.notice ? (
+          <View style={styles.errorBox} accessibilityRole="alert" testID="checkout-reprice-notice">
+            <Ionicons name="information-circle" size={17} color={colors.status.info} />
+            <Text variant="caption" color={colors.textSecondary} style={styles.errorText}>
+              {reconciliation.notice}
+            </Text>
+          </View>
+        ) : null}
 
         {submitError ? (
           <View style={styles.errorBox} accessibilityRole="alert">
