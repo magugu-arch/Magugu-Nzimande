@@ -24,6 +24,12 @@ interface AppConfig {
 const config = JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8')) as AppConfig;
 const { expo } = config;
 
+const eas = JSON.parse(fs.readFileSync(path.join(root, 'eas.json'), 'utf8')) as {
+  cli: { appVersionSource: string };
+  build: Record<string, { env?: Record<string, string>; distribution?: string; channel?: string }>;
+  submit?: { production?: { ios?: Record<string, string> } };
+};
+
 function plugin(name: string) {
   const found = expo.plugins.find((p) => (Array.isArray(p) ? p[0] === name : p === name));
   return Array.isArray(found) ? found[1] : found;
@@ -121,6 +127,63 @@ describe('ios configuration', () => {
   });
 });
 
+/**
+ * Over-the-air updates.
+ *
+ * This capability has to be in the binary — an app already in a store cannot
+ * be given the ability to update itself over the air, because doing so is
+ * itself a native change. With a first store opening and a fast-moving menu,
+ * a price fix that needs a full store release is days, not minutes.
+ */
+describe('over-the-air updates', () => {
+  const updates = expo.updates as Record<string, unknown> | undefined;
+  const runtime = expo.runtimeVersion as { policy?: string } | undefined;
+
+  it('is configured at all', () => {
+    expect(updates?.url).toEqual(expect.stringContaining('u.expo.dev'));
+  });
+
+  /**
+   * The setting that decides whether an update can crash every installed app.
+   *
+   * `appVersion` ties compatibility to a number a human remembers to bump. Add
+   * a native module — a payment SDK, maps, analytics — without bumping it, and
+   * an update carrying JS that calls that module is served to binaries which
+   * do not contain it. Every one of them crashes on launch, and the fix is
+   * another store release.
+   *
+   * `fingerprint` computes the runtime version from the native project, so
+   * that mistake stops being possible.
+   */
+  it('decides compatibility from the native project, not from a version someone remembers to bump', () => {
+    expect(runtime?.policy).toBe('fingerprint');
+  });
+
+  it('never blocks launch waiting for the network', () => {
+    // A customer opening the app in a queue must not wait on a download. The
+    // update applies on the next launch instead.
+    expect(updates?.fallbackToCacheTimeout).toBe(0);
+  });
+
+  it('gives every build profile a channel to receive updates on', () => {
+    // Without one, a build cannot be targeted and silently never updates.
+    // Named rather than asserted one at a time, so a failure says which.
+    const withoutChannel = Object.entries(eas.build)
+      .filter(([name]) => name !== 'base')
+      .filter(([, profile]) => !(profile as { channel?: string }).channel)
+      .map(([name]) => name);
+
+    expect(withoutChannel).toEqual([]);
+  });
+
+  it('keeps production and preview on separate channels', () => {
+    // Otherwise a stakeholder preview update reaches paying customers.
+    expect((eas.build.production as { channel?: string }).channel).not.toBe(
+      (eas.build.preview as { channel?: string }).channel,
+    );
+  });
+});
+
 describe('every asset app.json names exists', () => {
   const referenced = [
     expo.icon,
@@ -135,11 +198,6 @@ describe('every asset app.json names exists', () => {
 });
 
 describe('eas configuration', () => {
-  const eas = JSON.parse(fs.readFileSync(path.join(root, 'eas.json'), 'utf8')) as {
-    cli: { appVersionSource: string };
-    build: Record<string, { env?: Record<string, string>; distribution?: string }>;
-  };
-
   it('lets EAS own the build number', () => {
     // Otherwise two builds from different machines collide on version code.
     expect(eas.cli.appVersionSource).toBe('remote');

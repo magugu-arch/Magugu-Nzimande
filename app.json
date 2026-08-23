@@ -3,6 +3,14 @@
     "name": "bb.q Chicken",
     "slug": "bbq-chicken-sa",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/00000000-0000-0000-0000-000000000000",
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "bbqchicken",
@@ -74,11 +82,22 @@
       [
         "expo-build-properties",
         {
-          "ios": { "deploymentTarget": "16.4" },
-          "android": { "compileSdkVersion": 35, "targetSdkVersion": 35, "minSdkVersion": 24 }
+          "ios": {
+            "deploymentTarget": "16.4"
+          },
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24
+          }
         }
       ],
-      ["expo-secure-store", { "faceIDPermission": false }],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       "expo-font"
     ],
     "experiments": {

@@ -29,12 +29,13 @@
     "build:dev:android": "eas build --profile development --platform android",
     "build:sim": "eas build --profile development-simulator --platform ios",
     "build:preview": "eas build --profile preview --platform all",
-    "build:prod": "eas build --profile production --platform all",
+    "build:prod": "npm run audit:launch -- --production && eas build --profile production --platform all",
     "submit:prod": "eas submit --profile production --platform all",
     "prebuild": "expo prebuild --clean",
     "doctor": "npx expo-doctor",
     "audit:native": "node scripts/audit-native.mjs",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\"",
+    "audit:launch": "node scripts/audit-launch-readiness.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",
@@ -61,6 +62,7 @@
     "expo-splash-screen": "~57.0.7",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.2",
+    "expo-updates": "~57.0.16",
     "react": "19.2.3",
     "react-native": "0.86.2",
     "react-native-gesture-handler": "~2.32.0",

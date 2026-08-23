@@ -9,9 +9,9 @@
         "EXPO_PUBLIC_API_BASE_URL": "https://api.bbqchicken.co.za"
       }
     },
-
     "development": {
       "extends": "base",
+      "channel": "development",
       "developmentClient": true,
       "distribution": "internal",
       "env": {
@@ -21,16 +21,16 @@
         "buildType": "apk"
       }
     },
-
     "development-simulator": {
       "extends": "development",
+      "channel": "development",
       "ios": {
         "simulator": true
       }
     },
-
     "preview": {
       "extends": "base",
+      "channel": "preview",
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_USE_MOCK_API": "1"
@@ -39,16 +39,16 @@
         "buildType": "apk"
       }
     },
-
     "preview-live": {
       "extends": "preview",
+      "channel": "preview",
       "env": {
         "EXPO_PUBLIC_USE_MOCK_API": "0"
       }
     },
-
     "production": {
       "extends": "base",
+      "channel": "production",
       "distribution": "store",
       "autoIncrement": true,
       "env": {
