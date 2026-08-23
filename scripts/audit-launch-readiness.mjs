@@ -66,10 +66,38 @@ if (storeNames.length > 0) {
   note(
     'Store list',
     `${storeNames.length} branches are seeded demo data (${storeNames.slice(0, 2).join(', ')}…) ` +
-      `with invented phone numbers (${storePhones[0]}). A customer tapping "Call the store" ` +
-      'reaches a stranger. Replace with the real branch, or serve stores from the API.',
+      `with invented phone numbers (${storePhones[0]}). Two branches open this year — ` +
+      '1 October and 1 November — so this list is wrong in count as well as detail. A customer ' +
+      'tapping "Call the store" reaches a stranger.',
     'you',
   );
+}
+
+// The radius decides who is offered delivery at all. A placeholder here is a
+// promise to drive somewhere nobody has agreed to drive.
+const radii = [...new Set([...storeData.matchAll(/deliveryRadiusKm: (\d+)/g)].map((m) => m[1]))];
+if (radii.length === 1) {
+  note(
+    'Delivery radius',
+    `Every branch carries the same seeded ${radii[0]} km radius. Each one's real range depends ` +
+      'on its drivers and its area, and this is what decides whether a customer is offered ' +
+      'delivery at all.',
+    'you',
+  );
+}
+
+// An opening date that has passed silently turns into "open for business".
+const openings = [...storeData.matchAll(/opensOn: '([^']+)'/g)].map((m) => m[1]);
+for (const opening of openings) {
+  const when = new Date(opening);
+  if (!Number.isNaN(when.getTime()) && when.getTime() < Date.now()) {
+    note(
+      'Opening dates',
+      `A branch is marked as opening on ${opening}, which has passed — it will now be treated ` +
+        'as trading. Confirm that is true before a build.',
+      'you',
+    );
+  }
 }
 
 // The menu prices are what a customer is charged. Fictional ones are worse

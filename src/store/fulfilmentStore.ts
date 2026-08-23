@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Address, FulfilmentType, Store } from '@/types';
-import type { Coordinates } from '@/utils/geo';
+import { distanceKm, type Coordinates } from '@/utils/geo';
+import { formatShortDate } from '@/utils/datetime';
 
 /**
  * Where and how this order is being fulfilled: type, store, address, table and
@@ -18,6 +19,32 @@ export interface FulfilmentRequirements {
   tableNumber: string;
   /** ISO timestamp, or null for "as soon as possible". */
   scheduledFor?: string | null;
+  /** Injected so the opening-date rule is testable without mocking the clock. */
+  now?: Date;
+}
+
+/** Whether this branch is listed but not yet trading. */
+export function isOpeningLater(store: Store, now: Date = new Date()): boolean {
+  if (!store.opensOn) return false;
+  const opens = new Date(store.opensOn);
+  if (Number.isNaN(opens.getTime())) return false;
+  return opens.getTime() > now.getTime();
+}
+
+/**
+ * Whether a branch will deliver to an address, by straight-line distance.
+ *
+ * Straight-line understates road distance, so this is generous by design — the
+ * point is to refuse the order from another province, not to shave the last
+ * kilometre off a delivery the driver would have taken.
+ */
+export function deliversTo(store: Store, address: Address): boolean {
+  return (
+    distanceKm(
+      { latitude: store.latitude, longitude: store.longitude },
+      { latitude: address.latitude, longitude: address.longitude },
+    ) <= store.deliveryRadiusKm
+  );
 }
 
 /**
@@ -35,8 +62,18 @@ export function missingFulfilmentRequirement({
   address,
   tableNumber,
   scheduledFor = null,
+  now = new Date(),
 }: FulfilmentRequirements): string | null {
   if (!store) return 'Choose a store';
+
+  // A branch that has not opened yet cannot cook, and scheduling does not help
+  // if the schedule horizon ends before the opening date. Checked before the
+  // trading-hours rule below, which would otherwise report it as "closed" — a
+  // store that opens in six weeks is not the same thing as one that shut at
+  // ten last night, and telling a customer to schedule for later is wrong.
+  if (isOpeningLater(store, now)) {
+    return `${store.name} opens on ${formatShortDate(store.opensOn!)}`;
+  }
 
   // A shut kitchen cannot cook. Nothing stopped an order going to a closed
   // store before this — the screens showed "Closed" on the store card and then
@@ -45,6 +82,14 @@ export function missingFulfilmentRequirement({
   if (!store.isOpenNow && !scheduledFor) return `${store.name} is closed — schedule for later`;
 
   if (fulfilmentType === 'delivery' && !address) return 'Add a delivery address';
+
+  // How far the branch will actually drive. Nothing enforced this, which did
+  // not show while the seeded store list covered four cities; against a real
+  // network of two, most addresses in the country are out of range and were
+  // being quoted a delivery anyway.
+  if (fulfilmentType === 'delivery' && address && !deliversTo(store, address)) {
+    return `${store.name} does not deliver to ${address.suburb} — collect instead`;
+  }
   if (fulfilmentType === 'dinein' && tableNumber.trim().length === 0) {
     return 'Enter your table number';
   }

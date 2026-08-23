@@ -79,8 +79,26 @@ export interface Store {
   supportsDelivery: boolean;
   supportsCollection: boolean;
   supportsDineIn: boolean;
+  /**
+   * How far this branch will deliver, in kilometres.
+   *
+   * There was no such limit, which was invisible while the seeded store list
+   * spanned four cities — almost anyone was plausibly near one. With a real
+   * network of two branches, most of the country is nowhere near either, and
+   * without this a customer four hundred kilometres away is shown the
+   * "nearest" store and allowed to order delivery from it.
+   */
+  deliveryRadiusKm: number;
   preparationMinutes: number;
   isOpenNow: boolean;
+  /**
+   * ISO date this branch starts trading, when that is still in the future.
+   *
+   * A second store opening a month after the first is a state the app has to
+   * hold: listed, findable, obviously coming — and not taking orders. Absent
+   * on a branch that is already trading.
+   */
+  opensOn?: string;
 }
 
 export interface OpeningHours {

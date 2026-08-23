@@ -4,7 +4,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import type { FulfilmentType, Store } from '@/types';
 import { Badge, Card, Text } from '@/components/ui';
 import { hoursForDay } from '@/services/storeService';
+import { isOpeningLater } from '@/store/fulfilmentStore';
 import { colors, spacing } from '@/theme';
+import { formatShortDate } from '@/utils/datetime';
 import { formatDistance } from '@/utils/geo';
 
 export interface StoreCardProps {
@@ -30,7 +32,12 @@ export const StoreCard = memo(function StoreCard({
   testID,
 }: StoreCardProps) {
   const today = hoursForDay(store, new Date().getDay());
-  const supported = fulfilmentType ? supportsFulfilment(store, fulfilmentType) : true;
+  // A branch that has not opened yet is not "closed" — it has never been open,
+  // and no fulfilment type is available at it. Selecting it would only produce
+  // a blocker at checkout, so the card refuses the tap here instead.
+  const openingLater = isOpeningLater(store);
+  const supported =
+    !openingLater && (fulfilmentType ? supportsFulfilment(store, fulfilmentType) : true);
 
   return (
     <Card
@@ -38,7 +45,11 @@ export const StoreCard = memo(function StoreCard({
       selected={selected}
       raised={selected}
       testID={testID}
-      accessibilityLabel={`${store.name}, ${formatDistance(store.distanceKm)} away`}
+      accessibilityLabel={
+        openingLater
+          ? `${store.name}, opening ${formatShortDate(store.opensOn!)}, not yet taking orders`
+          : `${store.name}, ${formatDistance(store.distanceKm)} away`
+      }
       style={supported ? undefined : styles.unavailable}
     >
       <View style={styles.header}>
@@ -63,13 +74,29 @@ export const StoreCard = memo(function StoreCard({
           <Ionicons
             name="ellipse"
             size={8}
-            color={store.isOpenNow ? colors.status.success : colors.status.error}
+            color={
+              openingLater
+                ? colors.status.info
+                : store.isOpenNow
+                  ? colors.status.success
+                  : colors.status.error
+            }
           />
           <Text
             variant="caption"
-            color={store.isOpenNow ? colors.status.success : colors.status.error}
+            color={
+              openingLater
+                ? colors.status.info
+                : store.isOpenNow
+                  ? colors.status.success
+                  : colors.status.error
+            }
           >
-            {store.isOpenNow ? 'Open now' : 'Closed'}
+            {openingLater
+              ? `Opening ${formatShortDate(store.opensOn!)}`
+              : store.isOpenNow
+                ? 'Open now'
+                : 'Closed'}
           </Text>
         </View>
 
@@ -93,7 +120,13 @@ export const StoreCard = memo(function StoreCard({
         {store.supportsDineIn ? <Badge label="Dine-in" tone="neutral" /> : null}
       </View>
 
-      {!supported && fulfilmentType ? (
+      {openingLater ? (
+        <Text variant="caption" color={colors.status.info}>
+          Not taking orders yet.
+        </Text>
+      ) : null}
+
+      {!supported && !openingLater && fulfilmentType ? (
         <Text variant="caption" color={colors.status.warning}>
           This store does not offer {fulfilmentType === 'dinein' ? 'dine-in' : fulfilmentType}.
         </Text>

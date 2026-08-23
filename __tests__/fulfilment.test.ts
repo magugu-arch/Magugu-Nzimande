@@ -1,6 +1,8 @@
 import { act } from '@testing-library/react-native';
 import type { Address, Store } from '@/types';
 import {
+  deliversTo,
+  isOpeningLater,
   missingFulfilmentRequirement,
   useFulfilmentStore,
   type FulfilmentRequirements,
@@ -20,6 +22,7 @@ const store: Store = {
   supportsDelivery: true,
   supportsCollection: true,
   supportsDineIn: true,
+  deliveryRadiusKm: 10,
   preparationMinutes: 18,
   openingHours: [],
   isOpenNow: true,
@@ -102,6 +105,98 @@ describe('missingFulfilmentRequirement', () => {
 
     it('says nothing about opening hours when the store is open', () => {
       expect(missingFulfilmentRequirement({ ...base, store, address })).toBeNull();
+    });
+  });
+
+  /**
+   * Two branches open later this year, a month apart. Between the first
+   * opening and the second, the app has to hold a store that exists, is
+   * findable, and cannot take an order.
+   */
+  describe('a branch that has not opened yet', () => {
+    const openingLater = { ...store, opensOn: '2026-11-01T09:00:00+02:00' };
+    const before = new Date('2026-10-15T12:00:00+02:00');
+    const after = new Date('2026-11-02T12:00:00+02:00');
+
+    it('refuses the order and says when it opens', () => {
+      expect(
+        missingFulfilmentRequirement({ ...base, store: openingLater, address, now: before }),
+      ).toBe('bb.q Chicken Rosebank opens on Sun, 1 Nov');
+    });
+
+    /**
+     * Not "closed — schedule for later". A branch opening in six weeks is not
+     * a kitchen that shut at ten last night, and inviting someone to schedule
+     * around it is wrong: the scheduling horizon is five days.
+     */
+    it('does not offer to schedule around an opening date', () => {
+      const message = missingFulfilmentRequirement({
+        ...base,
+        store: { ...openingLater, isOpenNow: false },
+        address,
+        now: before,
+      });
+      expect(message).not.toMatch(/schedule/i);
+      expect(message).toMatch(/opens on/);
+    });
+
+    it('takes orders normally once the date has passed', () => {
+      expect(
+        missingFulfilmentRequirement({ ...base, store: openingLater, address, now: after }),
+      ).toBeNull();
+    });
+
+    it('ignores an opening date on a branch already trading', () => {
+      expect(missingFulfilmentRequirement({ ...base, store, address, now: after })).toBeNull();
+      expect(isOpeningLater(store, after)).toBe(false);
+    });
+
+    it('treats an unparseable opening date as already trading, rather than blocking', () => {
+      // A bad date from the API must not make a working branch unorderable.
+      expect(isOpeningLater({ ...store, opensOn: 'not-a-date' }, before)).toBe(false);
+    });
+  });
+
+  /**
+   * There was no delivery radius at all. Invisible while the seeded list
+   * spanned four cities; against two real branches, most of the country is out
+   * of range and was being quoted a delivery regardless.
+   */
+  describe('an address outside the delivery radius', () => {
+    // Rosebank is in Johannesburg; this is Cape Town, ~1 260 km away.
+    const capeTown: Address = {
+      ...address,
+      suburb: 'Sea Point',
+      city: 'Cape Town',
+      latitude: -33.9249,
+      longitude: 18.4241,
+    };
+
+    it('refuses delivery and points at collection', () => {
+      expect(missingFulfilmentRequirement({ ...base, store, address: capeTown })).toBe(
+        'bb.q Chicken Rosebank does not deliver to Sea Point — collect instead',
+      );
+    });
+
+    it('still allows collection, which the customer travels for', () => {
+      expect(
+        missingFulfilmentRequirement({
+          ...base,
+          fulfilmentType: 'collection',
+          store,
+          address: capeTown,
+        }),
+      ).toBeNull();
+    });
+
+    it('delivers to an address inside the radius', () => {
+      // The seeded home address is a few hundred metres from the store.
+      expect(missingFulfilmentRequirement({ ...base, store, address })).toBeNull();
+    });
+
+    it('is generous rather than exact, because straight-line understates roads', () => {
+      expect(deliversTo({ ...store, deliveryRadiusKm: 10 }, address)).toBe(true);
+      expect(deliversTo({ ...store, deliveryRadiusKm: 0 }, capeTown)).toBe(false);
     });
   });
 
