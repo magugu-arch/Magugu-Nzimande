@@ -1,5 +1,6 @@
 import { config } from '@/constants/config';
 import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
+import { voucherDiscount } from '@/utils/cart';
 import { delay, request } from './apiClient';
 import { loyaltyAccount, promotions, rewards, tiers, vouchers } from './data/rewardsData';
 
@@ -119,18 +120,15 @@ export async function validateVoucherCode(
   };
 }
 
-/** Rand value a voucher removes from a given subtotal. */
+/**
+ * Rand value a voucher removes from a given subtotal.
+ *
+ * Delegates to utils/cart so the rule has one implementation. A second copy
+ * here would let a code be worth one amount when it is entered and another
+ * when the basket is totalled.
+ */
 export function discountFor(voucher: Voucher, subtotal: number): number {
-  switch (voucher.discountType) {
-    case 'fixed':
-      return Math.min(voucher.discountValue, subtotal);
-    case 'percentage':
-      return Math.round(subtotal * (voucher.discountValue / 100) * 100) / 100;
-    case 'freeItem':
-      return Math.min(voucher.discountValue, subtotal);
-    case 'freeDelivery':
-      return 0;
-  }
+  return voucherDiscount(voucher, subtotal);
 }
 
 export async function redeemReward(

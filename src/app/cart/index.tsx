@@ -23,7 +23,7 @@ import { businessRules } from '@/constants/config';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing, typography } from '@/theme';
-import { meetsDeliveryMinimum } from '@/utils/cart';
+import { meetsDeliveryMinimum, voucherQualifies } from '@/utils/cart';
 import { formatPrice, groupDigits } from '@/utils/money';
 
 /**
@@ -75,10 +75,12 @@ export default function CartScreen() {
         code: promoCode,
         subtotal: totals.subtotal,
       });
+      // The terms, not the number they produced — see `VoucherTerms`.
       applyVoucher({
         code: result.voucher.code,
-        discount: result.discount,
-        freeDelivery: result.freeDelivery,
+        discountType: result.voucher.discountType,
+        discountValue: result.voucher.discountValue,
+        minimumSpend: result.voucher.minimumSpend,
       });
       setPromoCode('');
     } catch (error) {
@@ -194,9 +196,13 @@ export default function CartScreen() {
             <View style={styles.appliedRow}>
               <Badge label={voucher.code} tone="success" icon="checkmark-circle" />
               <Text variant="caption" color={colors.textSecondary} style={styles.appliedText}>
-                {voucher.freeDelivery
-                  ? 'Free delivery applied'
-                  : `${formatPrice(voucher.discount)} off applied`}
+                {voucherQualifies(voucher, totals.subtotal)
+                  ? voucher.discountType === 'freeDelivery'
+                    ? 'Free delivery applied'
+                    : `${formatPrice(totals.discount)} off applied`
+                  : // Applied, but the basket has since dropped below what the
+                    // code asks for. Saying so beats silently charging full price.
+                    `Spend ${formatPrice(voucher.minimumSpend)} to use this code`}
               </Text>
               <Pressable
                 onPress={removeVoucher}

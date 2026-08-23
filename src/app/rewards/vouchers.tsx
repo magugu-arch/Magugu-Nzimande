@@ -114,10 +114,14 @@ export default function VoucherWalletScreen() {
                   spent
                     ? undefined
                     : () => {
+                        // Was applying `discountValue` only for fixed codes,
+                        // so a percentage voucher taken from this screen was
+                        // worth nothing — and no minimum spend was checked.
                         applyVoucher({
                           code: voucher.code,
-                          discount: voucher.discountType === 'fixed' ? voucher.discountValue : 0,
-                          freeDelivery: voucher.discountType === 'freeDelivery',
+                          discountType: voucher.discountType,
+                          discountValue: voucher.discountValue,
+                          minimumSpend: voucher.minimumSpend,
                         });
                         router.push(cartLines.length > 0 ? '/cart' : '/(tabs)/menu');
                       }

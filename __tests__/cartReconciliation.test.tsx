@@ -154,7 +154,7 @@ describe('useCartReconciliation', () => {
     seedCart();
     act(() => {
       useCartStore.setState({
-        voucher: { code: 'BBQ50', discount: 50, freeDelivery: false },
+        voucher: { code: 'BBQ50', discountType: 'fixed', discountValue: 50, minimumSpend: 0 },
       });
     });
     fetchMenu.mockResolvedValue(menuOf([{ ...product, basePrice: 169 }]));

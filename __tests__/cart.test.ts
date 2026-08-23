@@ -10,6 +10,10 @@ import {
   describeOptions,
   meetsDeliveryMinimum,
   reconcileCart,
+  voucherDiscount,
+  voucherFreesDelivery,
+  voucherQualifies,
+  type VoucherTerms,
   resolveSelectedOptions,
   unmetOptionGroups,
   unitPriceFor,
@@ -532,5 +536,70 @@ describe('describeReconciliation', () => {
     });
 
     expect(notice).toBe('2 items have changed price since you added them.');
+  });
+});
+
+/**
+ * What freezing the discount allowed.
+ *
+ * The cart stored the number a voucher produced and threw the terms away.
+ * Apply a 15% code to a R596 basket for R89.40 off, then take items out until
+ * the basket is R149 — below the code's own R150 minimum — and the R89.40
+ * still came off: a 60% discount on an order that no longer qualified for the
+ * voucher at all. Verified in the browser before this was written.
+ */
+describe('voucherDiscount', () => {
+  const fifteenPercent: VoucherTerms = {
+    code: 'SPICY15',
+    discountType: 'percentage',
+    discountValue: 15,
+    minimumSpend: 150,
+  };
+
+  const fiftyOff: VoucherTerms = {
+    code: 'WELCOME50',
+    discountType: 'fixed',
+    discountValue: 50,
+    minimumSpend: 200,
+  };
+
+  it('is a percentage of the basket as it stands, not as it was', () => {
+    expect(voucherDiscount(fifteenPercent, 596)).toBe(89.4);
+    expect(voucherDiscount(fifteenPercent, 200)).toBe(30);
+  });
+
+  it('stops applying the moment the basket drops below the minimum', () => {
+    expect(voucherDiscount(fifteenPercent, 150)).toBe(22.5);
+    expect(voucherDiscount(fifteenPercent, 149)).toBe(0);
+  });
+
+  it('never takes more than the basket is worth', () => {
+    // A R50 code against R30 of food must not produce a negative total.
+    expect(voucherDiscount({ ...fiftyOff, minimumSpend: 0 }, 30)).toBe(30);
+  });
+
+  it('leaves the subtotal alone for free delivery, which is carried by the fee', () => {
+    expect(
+      voucherDiscount(
+        { code: 'FREEDEL', discountType: 'freeDelivery', discountValue: 0, minimumSpend: 150 },
+        400,
+      ),
+    ).toBe(0);
+  });
+
+  it('withdraws free delivery too when the basket stops qualifying', () => {
+    const freeDel: VoucherTerms = {
+      code: 'FREEDEL',
+      discountType: 'freeDelivery',
+      discountValue: 0,
+      minimumSpend: 150,
+    };
+    expect(voucherFreesDelivery(freeDel, 150)).toBe(true);
+    expect(voucherFreesDelivery(freeDel, 149)).toBe(false);
+  });
+
+  it('says whether the basket qualifies at all', () => {
+    expect(voucherQualifies(fiftyOff, 200)).toBe(true);
+    expect(voucherQualifies(fiftyOff, 199.99)).toBe(false);
   });
 });

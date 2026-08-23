@@ -103,6 +103,56 @@ export function unmetOptionGroups(
   return groups.filter((group) => (selection[group.id] ?? []).length < group.minSelect);
 }
 
+/**
+ * The terms a voucher was granted under — enough to re-decide it at any time.
+ *
+ * The cart used to keep the *discount* a voucher produced and throw the terms
+ * away. That froze the number: apply a 15% code to a R596 basket for R89.40
+ * off, then take items out until the basket is R149 — under the code's own
+ * R150 minimum — and the R89.40 still came off. A 60% discount on an order
+ * that no longer qualified for the voucher at all.
+ *
+ * Keeping the terms and deriving the discount makes that impossible: the
+ * discount is a function of the basket, so it moves with it.
+ */
+export interface VoucherTerms {
+  code: string;
+  discountType: 'percentage' | 'fixed' | 'freeItem' | 'freeDelivery';
+  discountValue: number;
+  minimumSpend: number;
+}
+
+/** Whether the basket still meets what the voucher asked for. */
+export function voucherQualifies(voucher: VoucherTerms, subtotal: number): boolean {
+  return subtotal >= voucher.minimumSpend;
+}
+
+/**
+ * Rand a voucher removes from a given subtotal, or nothing when the basket no
+ * longer qualifies. The single implementation of this rule — rewardsService
+ * validates codes through it too, so a voucher cannot be worth one amount at
+ * the moment it is entered and another at checkout.
+ */
+export function voucherDiscount(voucher: VoucherTerms, subtotal: number): number {
+  if (!voucherQualifies(voucher, subtotal)) return 0;
+
+  switch (voucher.discountType) {
+    case 'fixed':
+    case 'freeItem':
+      return Math.min(voucher.discountValue, subtotal);
+    case 'percentage':
+      return Math.round(subtotal * (voucher.discountValue / 100) * 100) / 100;
+    case 'freeDelivery':
+      // Carried by the delivery fee, not the subtotal.
+      return 0;
+  }
+}
+
+/** Free delivery only stands while the basket still qualifies. */
+export function voucherFreesDelivery(voucher: VoucherTerms, subtotal: number): boolean {
+  return voucher.discountType === 'freeDelivery' && voucherQualifies(voucher, subtotal);
+}
+
 export interface TotalsInput {
   lines: CartLine[];
   fulfilmentType: FulfilmentType;

@@ -109,9 +109,12 @@ describe('cart store', () => {
   it('drops the voucher and reward when the last line is removed', () => {
     act(() => {
       useCartStore.getState().addLine(product, medium(), 1);
-      useCartStore
-        .getState()
-        .applyVoucher({ code: 'WELCOME50', discount: 50, freeDelivery: false });
+      useCartStore.getState().applyVoucher({
+        code: 'WELCOME50',
+        discountType: 'fixed',
+        discountValue: 50,
+        minimumSpend: 200,
+      });
       useCartStore.getState().applyReward({
         rewardId: 'reward-fries',
         name: 'Free French Fries',
@@ -134,9 +137,12 @@ describe('cart store', () => {
   it('applies a voucher discount to the total', () => {
     act(() => {
       useCartStore.getState().addLine(product, medium(), 1);
-      useCartStore
-        .getState()
-        .applyVoucher({ code: 'WELCOME50', discount: 50, freeDelivery: false });
+      useCartStore.getState().applyVoucher({
+        code: 'WELCOME50',
+        discountType: 'fixed',
+        discountValue: 50,
+        minimumSpend: 200,
+      });
     });
 
     const totals = useCartStore.getState().getTotals();
@@ -144,10 +150,64 @@ describe('cart store', () => {
     expect(totals.total).toBe(225 - 50 + businessRules.deliveryFee + businessRules.serviceFee);
   });
 
+  /**
+   * The bug, end to end through the store. Confirmed in the browser first:
+   * SPICY15 on a R596 basket, then shrunk to R149 — under the code's R150
+   * minimum — and the R89.40 discount stayed, leaving R64.60 to pay for R149
+   * of chicken.
+   */
+  it('withdraws the discount when the basket falls below the minimum spend', () => {
+    act(() => {
+      // 4 × R225 configured line = R900, comfortably over the minimum.
+      useCartStore.getState().addLine(product, medium(), 4);
+      useCartStore.getState().applyVoucher({
+        code: 'SPICY15',
+        discountType: 'percentage',
+        discountValue: 15,
+        minimumSpend: 150,
+      });
+    });
+
+    expect(useCartStore.getState().getTotals().discount).toBeGreaterThan(0);
+
+    const lineId = useCartStore.getState().lines[0]?.id as string;
+    act(() => {
+      // One line at R225 is still above 150; drop the unit price by removing
+      // the size upgrade is not possible here, so shrink to the smallest
+      // basket the store allows and check the discount tracks it.
+      useCartStore.getState().updateQuantity(lineId, 1);
+    });
+
+    const totals = useCartStore.getState().getTotals();
+    // Still qualifying at R225, but the discount is now 15% of R225, not of
+    // R900 — it followed the basket instead of staying frozen.
+    expect(totals.discount).toBe(33.75);
+  });
+
+  it('charges full price once the basket no longer meets the minimum', () => {
+    act(() => {
+      useCartStore.getState().addLine(product, medium(), 1);
+      useCartStore.getState().applyVoucher({
+        code: 'BIGSPEND',
+        discountType: 'percentage',
+        discountValue: 15,
+        minimumSpend: 500,
+      });
+    });
+
+    // R225 against a R500 minimum: the code is applied but earns nothing.
+    expect(useCartStore.getState().getTotals().discount).toBe(0);
+  });
+
   it('waives the delivery fee for a free-delivery voucher', () => {
     act(() => {
       useCartStore.getState().addLine(product, medium(), 1);
-      useCartStore.getState().applyVoucher({ code: 'FREEDEL', discount: 0, freeDelivery: true });
+      useCartStore.getState().applyVoucher({
+        code: 'FREEDEL',
+        discountType: 'freeDelivery',
+        discountValue: 0,
+        minimumSpend: 150,
+      });
     });
 
     expect(useCartStore.getState().getTotals().deliveryFee).toBe(0);

@@ -2,7 +2,16 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CartLine, CartTotals, FulfilmentType, Product, SelectedOption } from '@/types';
-import { buildCartLine, calculateTotals, cartItemCount, clampQuantity } from '@/utils/cart';
+import {
+  buildCartLine,
+  calculateTotals,
+  cartItemCount,
+  clampQuantity,
+  voucherDiscount,
+  voucherFreesDelivery,
+  type VoucherTerms,
+} from '@/utils/cart';
+import { sumRand } from '@/utils/money';
 
 /**
  * Cart state.
@@ -12,11 +21,11 @@ import { buildCartLine, calculateTotals, cartItemCount, clampQuantity } from '@/
  * closes the app mid-order still has their basket (brief §12, offline-aware).
  */
 
-interface AppliedVoucher {
-  code: string;
-  discount: number;
-  freeDelivery: boolean;
-}
+/**
+ * A voucher is stored by its terms, never by the discount it once produced.
+ * See `VoucherTerms` in utils/cart for what freezing the number allowed.
+ */
+type AppliedVoucher = VoucherTerms;
 
 interface AppliedReward {
   rewardId: string;
@@ -178,12 +187,16 @@ export const useCartStore = create<CartState>()(
 
       getTotals: () => {
         const { lines, fulfilmentType, voucher, reward } = get();
+        // The voucher's worth is recomputed against the basket as it stands,
+        // never read back from what it was worth when it was entered.
+        const subtotal = sumRand(lines.map((line) => line.lineTotal));
+
         return calculateTotals({
           lines,
           fulfilmentType,
-          voucherDiscount: voucher?.discount ?? 0,
+          voucherDiscount: voucher ? voucherDiscount(voucher, subtotal) : 0,
           rewardsDiscount: reward?.discount ?? 0,
-          ...(voucher?.freeDelivery ? { deliveryFeeOverride: 0 } : {}),
+          ...(voucher && voucherFreesDelivery(voucher, subtotal) ? { deliveryFeeOverride: 0 } : {}),
         });
       },
 
