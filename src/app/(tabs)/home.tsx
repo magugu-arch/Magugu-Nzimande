@@ -10,6 +10,9 @@ import { FoodImage } from '@/components/food/FoodImage';
 import { Badge, Card, ErrorState, LoadingState, ProgressBar, Section, Text } from '@/components/ui';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
+import { OpeningSoonBanner } from '@/features/stores/components/OpeningSoonBanner';
+import { openingStatus } from '@/features/stores/opening';
+import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { PromotionBanner } from '@/features/home/components/PromotionBanner';
 import { ProductCard } from '@/features/menu/components/ProductCard';
 import {
@@ -46,6 +49,11 @@ export default function HomeScreen() {
   const fulfilmentType = useFulfilmentStore((state) => state.fulfilmentType);
   const setFulfilmentType = useFulfilmentStore((state) => state.setFulfilmentType);
   const store = useFulfilmentStore((state) => state.store);
+
+  // Whether anything is trading yet, across the whole network — not just the
+  // branch this customer happens to have selected.
+  const storesForType = useStoresForFulfilment(fulfilmentType);
+  const opening = openingStatus(storesForType.data ?? []);
   const setCartFulfilment = useCartStore((state) => state.setFulfilmentType);
 
   const categories = useCategories();
@@ -158,6 +166,12 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </View>
+
+        {/* Not open yet — said here, before the menu invites an order that
+            cannot be placed. */}
+        {opening.nextOpening && !opening.anyTrading ? (
+          <OpeningSoonBanner opensOn={opening.nextOpening} />
+        ) : null}
 
         {/* Fulfilment + store */}
         <View style={styles.fulfilment}>
