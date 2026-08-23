@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import type { PaymentMethod, PlaceOrderInput } from '@/types';
+import type { PaymentMethod } from '@/types';
 import {
   Badge,
   Button,
@@ -21,7 +21,8 @@ import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelecto
 import { usePaymentMethods } from '@/features/account/hooks';
 import { usePlaceOrder } from '@/features/orders/hooks';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
-import { authorisePayment, describePaymentMethod } from '@/services/paymentService';
+import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
+import { submitOrder } from '@/features/checkout/submitOrder';
 import { useCartStore } from '@/store/cartStore';
 import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
@@ -133,42 +134,46 @@ export default function CheckoutScreen() {
     setSubmitError(null);
 
     try {
-      const authorisation = await authorisePayment({
-        amount: totals.total,
-        paymentMethodId: selectedPayment.id,
-        methodType: selectedPayment.type,
-        orderReference: 'pending',
-      });
+      // Authorise, create the order, and give the money back if the order does
+      // not happen. The sequence lives in `submitOrder` because it is the one
+      // place in the app where getting it wrong costs a customer money, and it
+      // needs to be testable without a screen.
+      const outcome = await submitOrder(
+        {
+          amount: totals.total,
+          paymentMethodId: selectedPayment.id,
+          methodType: selectedPayment.type,
+          orderReference: 'pending',
+        },
+        {
+          lines,
+          totals,
+          fulfilmentType,
+          storeId: store.id,
+          ...(address ? { addressId: address.id } : {}),
+          ...(fulfilmentType === 'dinein' ? { tableNumber } : {}),
+          ...(scheduledFor ? { scheduledFor } : {}),
+          paymentMethodId: selectedPayment.id,
+          ...(voucher ? { voucherCode: voucher.code } : {}),
+          ...(reward ? { redeemedRewardId: reward.rewardId } : {}),
+        },
+        {
+          authorise: authorisePayment,
+          place: (input) => placeOrder.mutateAsync(input),
+          release: voidPayment,
+        },
+      );
 
-      if (!authorisation.success) {
-        setSubmitError(authorisation.message ?? 'That payment did not go through.');
+      if (outcome.status !== 'placed') {
+        setSubmitError(outcome.message);
         return;
       }
-
-      const input: PlaceOrderInput = {
-        lines,
-        totals,
-        fulfilmentType,
-        storeId: store.id,
-        ...(address ? { addressId: address.id } : {}),
-        ...(fulfilmentType === 'dinein' ? { tableNumber } : {}),
-        ...(scheduledFor ? { scheduledFor } : {}),
-        paymentMethodId: selectedPayment.id,
-        ...(voucher ? { voucherCode: voucher.code } : {}),
-        ...(reward ? { redeemedRewardId: reward.rewardId } : {}),
-      };
-
-      const order = await placeOrder.mutateAsync(input);
 
       // The basket has become an order — clear it before navigating so back
       // navigation can never resubmit.
       clearCart();
       resetFulfilment();
-      router.replace(`/order/${order.id}/confirmation`);
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : 'We could not place that order. Please try again.',
-      );
+      router.replace(`/order/${outcome.order.id}/confirmation`);
     } finally {
       setSubmitting(false);
     }

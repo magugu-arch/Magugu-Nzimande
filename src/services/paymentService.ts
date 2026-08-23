@@ -76,6 +76,37 @@ export async function authorisePayment(input: AuthorisePaymentInput): Promise<Pa
   return { success: true, intentId: intent.intentId };
 }
 
+/**
+ * Release an authorisation that was taken for an order which never existed.
+ *
+ * Checkout authorises the card and then creates the order. Anything between
+ * those two calls — a dropped connection, a 500, an expired session — used to
+ * leave the customer holding an authorisation with no order against it, and
+ * the error they were shown invited them to try again, which would authorise a
+ * second time.
+ *
+ * Cash needs no void because nothing was ever authorised.
+ *
+ * @returns whether the release was confirmed. False is not a crash: the money
+ * is the gateway's to release either way, and most will drop an uncaptured
+ * authorisation on their own. It decides what the customer is told.
+ */
+export async function voidPayment(intentId: string): Promise<boolean> {
+  if (intentId === 'cash') return true;
+
+  if (!config.useMockApi) {
+    try {
+      await request<void>(`/v1/payments/${encodeURIComponent(intentId)}/void`, { method: 'POST' });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  await delay(null, 300);
+  return true;
+}
+
 /** Human label for a payment rail, used on checkout and order summaries. */
 export function describePaymentMethod(methodType: PaymentMethodType): string {
   switch (methodType) {

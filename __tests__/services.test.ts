@@ -26,7 +26,12 @@ import {
   fetchVouchers,
   validateVoucherCode,
 } from '@/services/rewardsService';
-import { authorisePayment, isSettledOnDelivery, requiresRedirect } from '@/services/paymentService';
+import {
+  authorisePayment,
+  isSettledOnDelivery,
+  requiresRedirect,
+  voidPayment,
+} from '@/services/paymentService';
 import { stores } from '@/services/data/storeData';
 import { vouchers } from '@/services/data/rewardsData';
 import type { Voucher } from '@/types';
@@ -331,6 +336,26 @@ describe('paymentService', () => {
       orderReference: 'BBQ-1',
     });
     expect(result).toEqual({ success: true, intentId: 'cash' });
+  });
+
+  /**
+   * Checkout authorises the card and then creates the order. Anything between
+   * the two — a dropped connection, a 500, an expired session — used to leave
+   * a hold against an order that never existed, with nothing to release it.
+   */
+  it('releases an authorisation for an order that never happened', async () => {
+    const authorisation = await authorisePayment({
+      amount: 237,
+      paymentMethodId: 'payment-visa',
+      methodType: 'card',
+      orderReference: 'pending',
+    });
+
+    await expect(voidPayment(authorisation.intentId)).resolves.toBe(true);
+  });
+
+  it('has nothing to release for cash, which was never authorised', async () => {
+    await expect(voidPayment('cash')).resolves.toBe(true);
   });
 
   it('authorises a card payment and returns an intent id', async () => {
