@@ -20,6 +20,7 @@ import { PlayfairDisplay_400Regular_Italic } from '@expo-google-fonts/playfair-d
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/system/OfflineBanner';
 import { useAppFocus } from '@/features/system/useAppFocus';
+import { useSessionExpiry } from '@/features/system/useSessionExpiry';
 import { startNetworkMonitoring } from '@/features/system/useNetworkStatus';
 import {
   useInitialNotificationRoute,
@@ -108,6 +109,7 @@ export default function RootLayout() {
  */
 function AppShell() {
   useAppFocus();
+  useSessionExpiry();
   usePushRegistration();
   useNotificationRouting();
   useInitialNotificationRoute();

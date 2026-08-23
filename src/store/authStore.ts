@@ -40,6 +40,12 @@ interface AuthState {
   setUser: (user: UserProfile) => void;
   continueAsGuest: () => void;
   signOut: () => Promise<void>;
+  /**
+   * Drop the session without telling the server. For an expired session,
+   * where the sign-out call would only 401 again and the tokens have already
+   * been cleared by the API client.
+   */
+  signOutLocally: () => void;
   completeOnboarding: () => void;
   setNotificationPreference: <K extends keyof NotificationPreferences>(
     key: K,
@@ -70,6 +76,8 @@ export const useAuthStore = create<AuthState>()(
         await signOutService();
         set({ user: null, isAuthenticated: false, isGuest: false });
       },
+
+      signOutLocally: () => set({ user: null, isAuthenticated: false, isGuest: false }),
 
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 

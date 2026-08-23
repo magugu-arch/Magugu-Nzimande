@@ -1,6 +1,6 @@
 import { config } from '@/constants/config';
 import type { ApiError } from '@/types';
-import { getAccessToken } from './secureStorage';
+import { clearTokens, getAccessToken, getRefreshToken, storeTokens } from './secureStorage';
 
 /**
  * Thin typed fetch wrapper.
@@ -79,7 +79,102 @@ async function parseError(response: Response): Promise<ApiError> {
   };
 }
 
+/**
+ * Expired-session handling.
+ *
+ * The refresh token has been written to the keychain on every sign-in since
+ * the beginning and was never once read back: `getRefreshToken` had no
+ * callers, and a 401 was parsed into the same "Something went wrong" as a 500.
+ * Against a real backend that means the moment the access token expires, every
+ * screen shows an error, the app still believes it is signed in, and the only
+ * way out is finding Sign out in the account menu.
+ */
+
+type SessionExpiredHandler = () => void;
+
+let sessionExpiredHandler: SessionExpiredHandler | null = null;
+
+/**
+ * Called once when refreshing fails and the customer has to sign in again.
+ * The app registers a handler that clears local auth state and routes to
+ * sign-in; keeping it a callback stops this module from importing a store.
+ */
+export function setSessionExpiredHandler(handler: SessionExpiredHandler | null): void {
+  sessionExpiredHandler = handler;
+}
+
+/**
+ * The refresh currently in progress, if any.
+ *
+ * Queries fail in bunches — open the app on a stale token and the menu, the
+ * loyalty balance and the active order all 401 within the same tick. Without
+ * this, each would start its own refresh, and a backend that rotates refresh
+ * tokens would invalidate the other two mid-flight. One refresh, everyone
+ * waits for it.
+ */
+let refreshInFlight: Promise<string | null> | null = null;
+
+function isRefreshResponse(value: unknown): value is { accessToken: string; refreshToken: string } {
+  return (
+    isRecord(value) &&
+    typeof value.accessToken === 'string' &&
+    value.accessToken.length > 0 &&
+    typeof value.refreshToken === 'string' &&
+    value.refreshToken.length > 0
+  );
+}
+
+async function performRefresh(): Promise<string | null> {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return null;
+
+  try {
+    // A bare fetch, not `request`: the refresh call must never be subject to
+    // the 401 handling below, or a rejected refresh would try to refresh
+    // itself.
+    const response = await fetch(`${config.apiBaseUrl}/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) return null;
+
+    const payload: unknown = await response.json();
+    if (!isRefreshResponse(payload)) return null;
+
+    await storeTokens(payload.accessToken, payload.refreshToken);
+    return payload.accessToken;
+  } catch {
+    // A refresh that cannot reach the server is not an expired session — but
+    // the caller's original request has already failed, so there is nothing
+    // to retry with either.
+    return null;
+  }
+}
+
+function refreshAccessToken(): Promise<string | null> {
+  refreshInFlight ??= performRefresh().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
+}
+
+/** Test seam: forget any in-flight refresh between cases. */
+export function resetSessionState(): void {
+  refreshInFlight = null;
+  sessionExpiredHandler = null;
+}
+
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  return execute<T>(path, options, true);
+}
+
+async function execute<T>(
+  path: string,
+  options: RequestOptions,
+  mayRefresh: boolean,
+): Promise<T> {
   const { method = 'GET', body, headers = {}, anonymous = false, signal } = options;
 
   const controller = new AbortController();
@@ -106,6 +201,26 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       signal: controller.signal,
     });
+
+    if (response.status === 401 && !anonymous) {
+      clearTimeout(timeout);
+
+      // One attempt, then give up. `mayRefresh` is false on the retry, so a
+      // token that is refused immediately after being minted ends the session
+      // rather than looping.
+      if (mayRefresh && (await refreshAccessToken())) {
+        return execute<T>(path, options, false);
+      }
+
+      await clearTokens();
+      sessionExpiredHandler?.();
+
+      throw new ApiRequestError({
+        code: 'session_expired',
+        message: 'Your session has expired. Please sign in again.',
+        status: 401,
+      });
+    }
 
     if (!response.ok) {
       throw new ApiRequestError(await parseError(response));
