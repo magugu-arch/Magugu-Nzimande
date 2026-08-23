@@ -18,6 +18,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
+import { NutritionPanel } from '@/features/menu/components/NutritionPanel';
 import { OptionGroupPicker } from '@/features/menu/components/OptionGroupPicker';
 import { ProductCard } from '@/features/menu/components/ProductCard';
 import { useProduct, useProductsByIds } from '@/features/menu/hooks';
@@ -259,6 +260,12 @@ export default function ProductDetailScreen() {
                 handles other allergens.
               </Text>
             </View>
+          ) : null}
+
+          {/* Nutrition. Present for every product in the catalogue and, until
+              now, shown for none of them. */}
+          {item.nutrition ? (
+            <NutritionPanel nutrition={item.nutrition} serves={item.serves} />
           ) : null}
 
           {/* Recommended add-ons */}

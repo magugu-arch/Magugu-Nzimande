@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { FoodImage } from '@/components/food/FoodImage';
+import { NutritionPanel } from '@/features/menu/components/NutritionPanel';
 import { OrderTimeline } from '@/features/orders/components/OrderTimeline';
 import { Button, QuantityStepper, Text } from '@/components/ui';
 import { businessRules } from '@/constants/config';
@@ -120,6 +121,36 @@ describe('QuantityStepper', () => {
 
     fireEvent.press(screen.getByLabelText('Increase quantity'));
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('NutritionPanel', () => {
+  const nutrition = { kilojoules: 2480, protein: 44, carbs: 32, fat: 34 };
+
+  // The figures are hidden from assistive tech on purpose — the panel carries
+  // one composed label instead — so these queries have to opt into hidden
+  // elements. Finding them without that flag would mean the panel was
+  // announcing eight loose fragments.
+  const visible = { includeHiddenElements: true } as const;
+
+  it('shows all four figures with their units', () => {
+    render(<NutritionPanel nutrition={nutrition} serves="Serves 2 – 3" />);
+
+    // A space, not a comma: en-ZA groups thousands with a space, and this
+    // comes from the app's own formatter rather than Intl.
+    expect(screen.getByText('2 480 kJ', visible)).toBeTruthy();
+    expect(screen.getByText('44 g', visible)).toBeTruthy();
+    expect(screen.getByText('32 g', visible)).toBeTruthy();
+    expect(screen.getByText('34 g', visible)).toBeTruthy();
+  });
+
+  it('reads as one sentence rather than eight loose fragments', () => {
+    render(<NutritionPanel nutrition={nutrition} serves="Serves 2 – 3" />);
+    expect(
+      screen.getByLabelText(
+        'Nutrition, serves 2 – 3. Energy 2 480 kJ, Protein 44 g, Carbs 32 g, Fat 34 g.',
+      ),
+    ).toBeTruthy();
   });
 });
 

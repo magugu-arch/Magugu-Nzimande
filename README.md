@@ -383,7 +383,7 @@ the mark from fonts; this is the one place that rule has to hold.
 npm test
 ```
 
-289 tests covering money arithmetic, cart pricing and option resolution, form
+295 tests covering money arithmetic, cart pricing and option resolution, form
 validation, date and scheduling logic, the catalogue's data integrity
 and substitution mapping, the Zustand cart store, all service layers, the UI
 primitives, notification routing (including malformed and off-app payloads),

@@ -16,6 +16,8 @@ export interface FulfilmentRequirements {
   store: Store | null;
   address: Address | null;
   tableNumber: string;
+  /** ISO timestamp, or null for "as soon as possible". */
+  scheduledFor?: string | null;
 }
 
 /**
@@ -32,12 +34,27 @@ export function missingFulfilmentRequirement({
   store,
   address,
   tableNumber,
+  scheduledFor = null,
 }: FulfilmentRequirements): string | null {
   if (!store) return 'Choose a store';
+
+  // A shut kitchen cannot cook. Nothing stopped an order going to a closed
+  // store before this — the screens showed "Closed" on the store card and then
+  // took the money anyway. Scheduling for later is the exception: that is
+  // exactly what a customer ordering out of hours wants to do.
+  if (!store.isOpenNow && !scheduledFor) return `${store.name} is closed — schedule for later`;
+
   if (fulfilmentType === 'delivery' && !address) return 'Add a delivery address';
   if (fulfilmentType === 'dinein' && tableNumber.trim().length === 0) {
     return 'Enter your table number';
   }
+
+  // Dine-in at a closed store makes no sense even scheduled: there is nowhere
+  // to sit until it opens.
+  if (fulfilmentType === 'dinein' && !store.isOpenNow) {
+    return `${store.name} is closed`;
+  }
+
   return null;
 }
 

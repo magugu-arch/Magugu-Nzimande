@@ -108,11 +108,21 @@ export default function CheckoutScreen() {
       store,
       address,
       tableNumber,
+      scheduledFor,
     });
     if (fulfilmentBlocker) return fulfilmentBlocker;
     if (!selectedPayment) return 'Choose a payment method';
     return null;
-  }, [lines.length, totals.subtotal, fulfilmentType, store, address, tableNumber, selectedPayment]);
+  }, [
+    lines.length,
+    totals.subtotal,
+    fulfilmentType,
+    store,
+    address,
+    tableNumber,
+    scheduledFor,
+    selectedPayment,
+  ]);
 
   const etaMinutes = (store?.preparationMinutes ?? 18) + (fulfilmentType === 'delivery' ? 20 : 0);
 

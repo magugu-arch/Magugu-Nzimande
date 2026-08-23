@@ -23,6 +23,18 @@ export function multiplyRand(value: number, quantity: number): number {
   return fromCents(toCents(value) * quantity);
 }
 
+/**
+ * Thousands grouped South African style, with a space.
+ *
+ * Done by hand rather than through `Intl`: Hermes ships without full ICU on
+ * some builds, and `toLocaleString('en-ZA')` then silently falls back to a
+ * comma or to no grouping at all. A price that renders differently on two
+ * phones is the kind of bug nobody reports and everybody notices.
+ */
+export function groupDigits(value: number): string {
+  return String(Math.trunc(Math.abs(value))).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
 /** `R 129.90` — the South African convention used across the app. */
 export function formatPrice(rand: number): string {
   const safe = Number.isFinite(rand) ? rand : 0;

@@ -64,6 +64,47 @@ describe('missingFulfilmentRequirement', () => {
     ).toBeNull();
   });
 
+  /**
+   * The hole this closes: every screen showed "Closed" on the store card and
+   * then let the order through anyway. A shut kitchen cannot cook.
+   */
+  describe('a closed store', () => {
+    const closed = { ...store, isOpenNow: false };
+
+    it('blocks an order meant for now', () => {
+      expect(missingFulfilmentRequirement({ ...base, store: closed, address })).toBe(
+        'bb.q Chicken Rosebank is closed — schedule for later',
+      );
+    });
+
+    it('allows one scheduled for later, which is the point of scheduling', () => {
+      expect(
+        missingFulfilmentRequirement({
+          ...base,
+          store: closed,
+          address,
+          scheduledFor: '2026-08-23T18:30:00.000Z',
+        }),
+      ).toBeNull();
+    });
+
+    it('still refuses dine-in, scheduled or not — there is nowhere to sit', () => {
+      expect(
+        missingFulfilmentRequirement({
+          ...base,
+          fulfilmentType: 'dinein',
+          store: closed,
+          tableNumber: '14',
+          scheduledFor: '2026-08-23T18:30:00.000Z',
+        }),
+      ).toBe('bb.q Chicken Rosebank is closed');
+    });
+
+    it('says nothing about opening hours when the store is open', () => {
+      expect(missingFulfilmentRequirement({ ...base, store, address })).toBeNull();
+    });
+  });
+
   it('wants a table number for dine-in, and not whitespace', () => {
     const dinein = { ...base, fulfilmentType: 'dinein' as const, store };
     expect(missingFulfilmentRequirement(dinein)).toBe('Enter your table number');
