@@ -134,6 +134,24 @@ if (priceCount > 0) {
   );
 }
 
+// Rewards now honour an expiry date, and not one seeded reward carries one —
+// so every reward in the app is open-ended forever. That is a policy call, not
+// a code one, and the birthday reward makes it concrete: a birthday treat with
+// no window can be claimed any day of the year.
+const rewardsData = read('src/services/data/rewardsData.ts');
+const rewardBlock = rewardsData.slice(0, rewardsData.indexOf('export const vouchers'));
+const rewardCount = [...rewardBlock.matchAll(/pointsCost: \d+/g)].length;
+const rewardExpiries = [...rewardBlock.matchAll(/expiresAt:/g)].length;
+if (rewardCount > 0 && rewardExpiries === 0) {
+  note(
+    'Reward expiry',
+    `None of the ${rewardCount} seeded rewards carries an expiry date, so each one stands ` +
+      'forever. The app enforces `expiresAt` now — it just has nothing to enforce. Decide how ' +
+      'long each reward should stand, the birthday one especially.',
+    'you',
+  );
+}
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {

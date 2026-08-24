@@ -73,6 +73,22 @@ export function dayName(day: number): string {
   return DAY_NAMES[((day % 7) + 7) % 7] ?? '';
 }
 
+/**
+ * Whether an ISO date has already gone by.
+ *
+ * One implementation, because expiry keeps turning out to be the term nobody
+ * carried: a voucher kept discounting six days after it died, and a reward's
+ * expiry was printed on screen and enforced nowhere. An unreadable date has
+ * *not* passed — that is somebody's data fault, and taking a benefit away from
+ * a customer over a malformed string is the wrong way to fail.
+ */
+export function hasPassed(value: string | undefined, now: Date = new Date()): boolean {
+  if (!value) return false;
+  const at = new Date(value);
+  if (Number.isNaN(at.getTime())) return false;
+  return at.getTime() <= now.getTime();
+}
+
 export function addMinutes(date: Date, minutes: number): Date {
   return new Date(date.getTime() + minutes * 60_000);
 }

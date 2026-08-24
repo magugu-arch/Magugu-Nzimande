@@ -7,6 +7,7 @@ import type {
   Product,
   SelectedOption,
 } from '@/types';
+import { hasPassed } from './datetime';
 import { multiplyRand, randToPoints, sumRand } from './money';
 
 /**
@@ -137,12 +138,7 @@ export interface VoucherTerms {
 
 /** Whether the voucher is past its date. No date means it never is. */
 export function voucherExpired(voucher: VoucherTerms, now: Date = new Date()): boolean {
-  if (!voucher.expiresAt) return false;
-  const at = new Date(voucher.expiresAt);
-  // An unparseable date is a data fault, not an expiry. Refusing a discount
-  // over one would take money off a customer for someone else's typo.
-  if (Number.isNaN(at.getTime())) return false;
-  return at.getTime() <= now.getTime();
+  return hasPassed(voucher.expiresAt, now);
 }
 
 /**

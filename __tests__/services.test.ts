@@ -24,6 +24,7 @@ import {
   discountFor,
   fetchActiveVouchers,
   fetchVouchers,
+  rewardExpired,
   validateVoucherCode,
 } from '@/services/rewardsService';
 import {
@@ -34,7 +35,7 @@ import {
 } from '@/services/paymentService';
 import { stores } from '@/services/data/storeData';
 import { vouchers } from '@/services/data/rewardsData';
-import type { Voucher } from '@/types';
+import type { Reward, Voucher } from '@/types';
 import { DEFAULT_COORDINATES, distanceKm, formatDistance } from '@/utils/geo';
 
 describe('menuService', () => {
@@ -367,5 +368,49 @@ describe('paymentService', () => {
     });
     expect(result.success).toBe(true);
     expect(result.intentId).toMatch(/^pi_/);
+  });
+});
+
+/**
+ * `Reward.expiresAt` was declared on the type and printed on the reward screen
+ * — "Expires 12 Sep" — and enforced by nothing at all. An app that states a
+ * rule and does not keep it is worse than one that never mentioned it: the
+ * customer reads the date, believes it, and gets the reward regardless.
+ *
+ * No seeded reward carries a date yet, so this is the check that stops the
+ * gap re-opening the day one does.
+ */
+describe('rewardExpired', () => {
+  const reward: Reward = {
+    id: 'reward-birthday',
+    name: 'Birthday treat',
+    description: '',
+    pointsCost: 0,
+    category: 'birthday',
+    redeemable: true,
+    termsAndConditions: [],
+  };
+
+  const now = new Date(2026, 7, 24, 12, 0);
+
+  it('lets a reward with no date through, which is what open-ended means', () => {
+    expect(rewardExpired(reward, now)).toBe(false);
+  });
+
+  it('holds a reward that still has time on it', () => {
+    const live = { ...reward, expiresAt: new Date(2026, 7, 31).toISOString() };
+    expect(rewardExpired(live, now)).toBe(false);
+  });
+
+  it('refuses one whose date has gone by', () => {
+    const lapsed = { ...reward, expiresAt: new Date(2026, 7, 20).toISOString() };
+    expect(rewardExpired(lapsed, now)).toBe(true);
+  });
+
+  /** Same rule as the voucher: a malformed date is not a reason to take a
+   * benefit away from a customer. */
+  it('does not expire a reward over an unreadable date', () => {
+    const broken = { ...reward, expiresAt: 'next Tuesday-ish' };
+    expect(rewardExpired(broken, now)).toBe(false);
   });
 });

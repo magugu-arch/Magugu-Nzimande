@@ -15,6 +15,8 @@ import {
   Text,
 } from '@/components/ui';
 import { useLoyaltyAccount, useRedeemReward, useReward } from '@/features/rewards/hooks';
+import { useNow } from '@/features/system/useNow';
+import { rewardExpired } from '@/services/rewardsService';
 import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
@@ -33,6 +35,7 @@ export default function RewardDetailScreen() {
   const applyReward = useCartStore((state) => state.applyReward);
   const cartLines = useCartStore((state) => state.lines);
 
+  const now = useNow();
   const [error, setError] = useState<string | null>(null);
 
   const handleRedeem = useCallback(async () => {
@@ -79,6 +82,9 @@ export default function RewardDetailScreen() {
   }
 
   const data = reward.data;
+  // Derived here rather than trusted off the record: this screen can sit open
+  // across the moment a reward lapses.
+  const expired = rewardExpired(data, now);
   const balance = loyalty.data.pointsBalance;
   const shortfall = Math.max(0, data.pointsCost - balance);
   const progress = data.pointsCost > 0 ? Math.min(1, balance / data.pointsCost) : 1;
@@ -176,7 +182,16 @@ export default function RewardDetailScreen() {
         ) : null}
 
         <Button
-          label={data.redeemable ? 'Redeem this reward' : 'Not enough points yet'}
+          label={
+            // "Not enough points" is the wrong reason for an expired reward,
+            // and points are not something the customer can do anything about
+            // here. Say which wall they have hit.
+            expired
+              ? 'This reward has expired'
+              : data.redeemable
+                ? 'Redeem this reward'
+                : 'Not enough points yet'
+          }
           onPress={() => void handleRedeem()}
           disabled={!data.redeemable}
           loading={redeemReward.isPending}

@@ -1,6 +1,7 @@
 import { config } from '@/constants/config';
 import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
 import { voucherDiscount } from '@/utils/cart';
+import { hasPassed } from '@/utils/datetime';
 import { delay, request } from './apiClient';
 import { loyaltyAccount, promotions, rewards, tiers, vouchers } from './data/rewardsData';
 
@@ -9,16 +10,41 @@ export async function fetchLoyaltyAccount(): Promise<LoyaltyAccount> {
   return request<LoyaltyAccount>('/v1/loyalty/account');
 }
 
+/**
+ * Whether a reward has run out of time.
+ *
+ * `Reward.expiresAt` was declared on the type and printed on the reward
+ * screen — "Expires 12 Sep" — and enforced by nothing at all. An app that
+ * states a rule and does not keep it is worse than one that never mentioned
+ * it: the customer reads the date, believes it, and the app hands over the
+ * reward anyway. Birthday rewards are the obvious case, and the seeded list
+ * has one.
+ */
+export function rewardExpired(reward: Reward, now: Date = new Date()): boolean {
+  return hasPassed(reward.expiresAt, now);
+}
+
 export async function fetchRewards(): Promise<Reward[]> {
   if (config.useMockApi) {
     const account = await fetchLoyaltyAccount();
     // Redeemability is a function of the live balance, never a static flag.
     return rewards.map((reward) => ({
       ...reward,
-      redeemable: reward.category !== 'birthday' && account.pointsBalance >= reward.pointsCost,
+      redeemable:
+        !rewardExpired(reward) &&
+        reward.category !== 'birthday' &&
+        account.pointsBalance >= reward.pointsCost,
     }));
   }
-  return request<Reward[]>('/v1/loyalty/rewards');
+
+  // The server owns the balance judgement; expiry is a veto the client can
+  // apply from data it already holds. Same shape as `isTradingNow`: both
+  // sources can close a door, neither can force one open.
+  const remote = await request<Reward[]>('/v1/loyalty/rewards');
+  return remote.map((reward) => ({
+    ...reward,
+    redeemable: reward.redeemable && !rewardExpired(reward),
+  }));
 }
 
 export async function fetchReward(rewardId: string): Promise<Reward> {
@@ -142,6 +168,10 @@ export async function redeemReward(
   }
 
   const reward = await fetchReward(rewardId);
+  // Checked before redeemability, which is now false for an expired reward
+  // too — without this the customer would be told they are short of points
+  // when the points were never the problem.
+  if (rewardExpired(reward)) throw new Error('That reward has expired.');
   if (!reward.redeemable) throw new Error('You do not have enough points for this reward yet.');
 
   // Food rewards are worth their points at the standard conversion rate.
