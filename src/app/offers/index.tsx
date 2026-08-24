@@ -1,6 +1,15 @@
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { EmptyState, ErrorState, LoadingState, Screen, ScreenHeader, Text } from '@/components/ui';
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  OfflineState,
+  Screen,
+  ScreenHeader,
+  Text,
+} from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { PromotionBanner } from '@/features/home/components/PromotionBanner';
 import { usePromotions } from '@/features/rewards/hooks';
 import { colors, spacing } from '@/theme';
@@ -20,6 +29,14 @@ export default function OffersScreen() {
         <LoadingState />
       </Screen>
     );
+  }
+
+  // Offline is not empty and not broken. Without this the screen falls
+
+  // through to a factual claim it cannot back up.
+
+  if (isOfflinePending(promotions)) {
+    return <OfflineState onRetry={() => void promotions.refetch()} />;
   }
 
   if (promotions.isError) {

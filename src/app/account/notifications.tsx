@@ -8,10 +8,12 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  OfflineState,
   Screen,
   ScreenHeader,
   Text,
 } from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
@@ -50,6 +52,14 @@ export default function NotificationsScreen() {
         <LoadingState />
       </Screen>
     );
+  }
+
+  // Offline is not empty and not broken. Without this the screen falls
+
+  // through to a factual claim it cannot back up.
+
+  if (isOfflinePending(notifications)) {
+    return <OfflineState onRetry={() => void notifications.refetch()} />;
   }
 
   if (notifications.isError) {

@@ -14,10 +14,13 @@ import {
   ErrorState,
   FavouriteButton,
   LoadingState,
+  OfflineState,
   QuantityStepper,
   Section,
   Text,
 } from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
+import { isNotFound } from '@/services/apiClient';
 import { NutritionPanel } from '@/features/menu/components/NutritionPanel';
 import { OptionGroupPicker } from '@/features/menu/components/OptionGroupPicker';
 import { ProductCard } from '@/features/menu/components/ProductCard';
@@ -107,15 +110,37 @@ export default function ProductDetailScreen() {
     );
   }
 
-  if (product.isError || !product.data) {
+  // Offline is not "this item is gone".
+  if (isOfflinePending(product)) {
     return (
       <View style={styles.stateRoot}>
         <StatusBar style="dark" />
-        <ErrorState
-          title="We can't find that item"
-          message="It may have come off the menu. Browse what we have instead."
-          onRetry={() => void product.refetch()}
-        />
+        <OfflineState onRetry={() => void product.refetch()} />
+        <View style={styles.stateAction}>
+          <Button label="Back to the menu" onPress={() => router.replace('/(tabs)/menu')} />
+        </View>
+      </View>
+    );
+  }
+
+  if (product.isError || !product.data) {
+    // Only a 404 licenses the claim that the item was delisted. Every other
+    // failure — a timeout, a dead host, a 500 — is the app's problem, and
+    // saying "it may have come off the menu" invents a fact to explain it.
+    const delisted = isNotFound(product.error) || (!product.isError && !product.data);
+
+    return (
+      <View style={styles.stateRoot}>
+        <StatusBar style="dark" />
+        {delisted ? (
+          <ErrorState
+            title="We can't find that item"
+            message="It may have come off the menu. Browse what we have instead."
+            onRetry={() => void product.refetch()}
+          />
+        ) : (
+          <ErrorState onRetry={() => void product.refetch()} />
+        )}
         <View style={styles.stateAction}>
           <Button label="Back to the menu" onPress={() => router.replace('/(tabs)/menu')} />
         </View>

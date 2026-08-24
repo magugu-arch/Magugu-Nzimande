@@ -10,6 +10,18 @@ import { clearTokens, getAccessToken, getRefreshToken, storeTokens } from './sec
  * means rewriting this file, not every caller.
  */
 
+/**
+ * Whether a failure means "that thing is not there" rather than "we could not
+ * ask".
+ *
+ * The product screen answered both with "It may have come off the menu", which
+ * is true for the first and a fabrication for the second — it told customers
+ * the item was delisted when the app had simply failed to reach the server.
+ */
+export function isNotFound(error: unknown): boolean {
+  return error instanceof ApiRequestError && error.status === 404;
+}
+
 export class ApiRequestError extends Error {
   readonly code: string;
   readonly status: number | undefined;

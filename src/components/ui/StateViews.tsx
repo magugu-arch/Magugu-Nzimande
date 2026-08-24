@@ -112,6 +112,45 @@ export const ErrorState = memo(function ErrorState({
   );
 });
 
+/**
+ * Offline is not the same as broken, and neither is the same as empty.
+ *
+ * Its own component rather than an `ErrorState` with different words, because
+ * eight screens need to say this and they need to say it identically — and
+ * because "Something went wrong" is wrong here. Nothing went wrong; the phone
+ * is out of signal, which the customer can do something about.
+ */
+export const OfflineState = memo(function OfflineState({
+  message = "We'll load this as soon as you're back on the network.",
+  onRetry,
+  style,
+  testID,
+}: Omit<ErrorStateProps, 'title'>) {
+  return (
+    <View testID={testID} style={[styles.centered, styles.padded, style]} accessibilityRole="alert">
+      <View style={[styles.iconWell, styles.errorWell]}>
+        <Ionicons name="wifi-outline" size={30} color={colors.status.warning} />
+      </View>
+      <Text variant="h2" align="center">
+        You&apos;re offline
+      </Text>
+      <Text variant="body" color={colors.textSecondary} align="center">
+        {message}
+      </Text>
+      {onRetry ? (
+        <Button
+          label="Try again"
+          onPress={onRetry}
+          variant="tertiary"
+          fullWidth={false}
+          iconLeft="refresh"
+          style={styles.cta}
+        />
+      ) : null}
+    </View>
+  );
+});
+
 const styles = StyleSheet.create({
   centered: {
     flex: 1,

@@ -14,6 +14,7 @@ export { StarRating, type StarRatingProps } from './StarRating';
 export {
   EmptyState,
   ErrorState,
+  OfflineState,
   LoadingState,
   type EmptyStateProps,
   type ErrorStateProps,

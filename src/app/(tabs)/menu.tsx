@@ -5,7 +5,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { CategoryId, Product } from '@/types';
-import { Chip, EmptyState, ErrorState, LoadingState, Text } from '@/components/ui';
+import { OfflineState, Chip, EmptyState, ErrorState, LoadingState, Text } from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { useFavouritesStore } from '@/store/favouritesStore';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { ProductRow } from '@/features/menu/components/ProductRow';
@@ -74,6 +75,9 @@ export default function MenuScreen() {
 
   const renderBody = () => {
     if (menu.isLoading) return <LoadingState message="Loading the menu…" />;
+    // Offline is not empty and not broken. Without this the screen falls
+    // through to a factual claim it cannot back up.
+    if (isOfflinePending(menu)) return <OfflineState onRetry={() => void menu.refetch()} />;
     if (menu.isError) return <ErrorState onRetry={() => void menu.refetch()} />;
 
     if (isSearching && search.isLoading) return <LoadingState message="Searching…" />;

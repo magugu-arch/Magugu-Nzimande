@@ -7,10 +7,12 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  OfflineState,
   Screen,
   ScreenHeader,
   Text,
 } from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { StoreCard } from '@/features/stores/components/StoreCard';
 import { StoreMapPreview } from '@/features/stores/components/StoreMapPreview';
@@ -58,6 +60,9 @@ export default function StoreSelectionScreen() {
 
   const renderBody = () => {
     if (stores.isLoading) return <LoadingState message="Finding stores near you…" />;
+    // Offline is not empty and not broken. Without this the screen falls
+    // through to a factual claim it cannot back up.
+    if (isOfflinePending(stores)) return <OfflineState onRetry={() => void stores.refetch()} />;
     if (stores.isError) return <ErrorState onRetry={() => void stores.refetch()} />;
 
     const list = stores.data ?? [];

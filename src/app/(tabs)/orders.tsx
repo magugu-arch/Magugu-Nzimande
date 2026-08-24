@@ -14,9 +14,11 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  OfflineState,
   ProgressBar,
   Text,
 } from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { useMenu } from '@/features/menu/hooks';
 import { useOrders } from '@/features/orders/hooks';
@@ -71,6 +73,9 @@ export default function OrdersScreen() {
 
   const renderBody = () => {
     if (orders.isLoading) return <LoadingState message="Fetching your orders…" />;
+    // Offline is not empty and not broken. Without this the screen falls
+    // through to a factual claim it cannot back up.
+    if (isOfflinePending(orders)) return <OfflineState onRetry={() => void orders.refetch()} />;
     if (orders.isError) return <ErrorState onRetry={() => void orders.refetch()} />;
 
     if (visible.length === 0) {

@@ -10,10 +10,12 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  OfflineState,
   Screen,
   ScreenHeader,
   Text,
 } from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { useVouchers } from '@/features/rewards/hooks';
 import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
@@ -62,6 +64,14 @@ export default function VoucherWalletScreen() {
         <LoadingState />
       </Screen>
     );
+  }
+
+  // Offline is not empty and not broken. Without this the screen falls
+
+  // through to a factual claim it cannot back up.
+
+  if (isOfflinePending(vouchers)) {
+    return <OfflineState onRetry={() => void vouchers.refetch()} />;
   }
 
   if (vouchers.isError) {

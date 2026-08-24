@@ -43,4 +43,4 @@ coverage/
 # generated native folders
 /ios
 /android
-.audit-web/
+.audit-*/

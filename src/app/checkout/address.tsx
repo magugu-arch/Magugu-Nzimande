@@ -10,12 +10,14 @@ import {
   Divider,
   ErrorState,
   LoadingState,
+  OfflineState,
   Screen,
   ScreenHeader,
   Text,
   TextField,
   Toggle,
 } from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { useAddresses, useCreateAddress, useDeleteAddress } from '@/features/account/hooks';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, spacing } from '@/theme';
@@ -125,6 +127,14 @@ export default function AddressScreen() {
         <LoadingState />
       </Screen>
     );
+  }
+
+  // Offline is not empty and not broken. Without this the screen falls
+
+  // through to a factual claim it cannot back up.
+
+  if (isOfflinePending(addresses)) {
+    return <OfflineState onRetry={() => void addresses.refetch()} />;
   }
 
   if (addresses.isError) {
