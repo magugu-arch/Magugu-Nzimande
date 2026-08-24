@@ -14,6 +14,7 @@ import {
 } from '@/components/ui';
 import { updateProfile } from '@/services/authService';
 import { useAuthStore } from '@/store/authStore';
+import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import {
@@ -33,7 +34,7 @@ export default function ProfileScreen() {
   const user = useAuthStore((state) => state.user);
   const isGuest = useAuthStore((state) => state.isGuest);
   const setUser = useAuthStore((state) => state.setUser);
-  const signOut = useAuthStore((state) => state.signOut);
+  const { signOut } = useSignOut();
 
   const [values, setValues] = useState<Record<Field, string>>({
     firstName: user?.firstName ?? '',
@@ -91,12 +92,12 @@ export default function ProfileScreen() {
           onPress: () => {
             // A real implementation calls the deletion endpoint first; the local
             // session is cleared either way so the device is left signed out.
-            void signOut().then(() => router.replace('/(auth)/sign-in'));
+            void signOut();
           },
         },
       ],
     );
-  }, [signOut, router]);
+  }, [signOut]);
 
   if (!user || isGuest) {
     return (

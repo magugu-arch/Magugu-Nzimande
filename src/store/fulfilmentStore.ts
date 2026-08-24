@@ -149,6 +149,15 @@ interface FulfilmentState {
   setCoordinates: (coordinates: Coordinates | null) => void;
   markLocationPermissionAsked: () => void;
   reset: () => void;
+  /**
+   * Everything about the person, gone — for a sign-out or an expired session.
+   *
+   * `reset` is the after-an-order clear and deliberately keeps the device's
+   * coordinates, because the same customer is still standing in the same
+   * place. This is the other thing entirely: a different person is about to
+   * use this phone.
+   */
+  forgetPerson: () => void;
 
   /** True when everything checkout needs for this fulfilment type is present. */
   isReadyForCheckout: () => boolean;
@@ -200,6 +209,21 @@ export const useFulfilmentStore = create<FulfilmentState>()(
           deliveryInstructions: '',
           tableNumber: '',
           scheduledFor: null,
+        }),
+
+      forgetPerson: () =>
+        set({
+          fulfilmentType: 'delivery',
+          store: null,
+          address: null,
+          deliveryInstructions: '',
+          tableNumber: '',
+          scheduledFor: null,
+          // Where they live. The one field `reset` keeps on purpose and this
+          // must not.
+          coordinates: null,
+          // Kept: whether the OS permission sheet has been shown is a fact
+          // about the handset, not about whoever is holding it.
         }),
 
       isReadyForCheckout: () => get().missingRequirement() === null,

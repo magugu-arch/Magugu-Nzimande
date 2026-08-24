@@ -11,6 +11,7 @@ import { useNotifications } from '@/features/account/hooks';
 import { useLoyaltyAccount } from '@/features/rewards/hooks';
 import { SUPPORT } from '@/constants/config';
 import { useAuthStore } from '@/store/authStore';
+import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { groupDigits } from '@/utils/money';
 
@@ -22,7 +23,7 @@ export default function MoreScreen() {
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isGuest = useAuthStore((state) => state.isGuest);
-  const signOut = useAuthStore((state) => state.signOut);
+  const { signOut } = useSignOut();
 
   const loyalty = useLoyaltyAccount();
   const notifications = useNotifications();
@@ -35,12 +36,12 @@ export default function MoreScreen() {
       {
         text: 'Sign out',
         style: 'destructive',
-        onPress: () => {
-          void signOut().then(() => router.replace('/(auth)/sign-in'));
-        },
+        // The hook does the routing too — it has to clear the cart, the
+        // fulfilment details and the query cache first.
+        onPress: () => void signOut(),
       },
     ]);
-  }, [signOut, router]);
+  }, [signOut]);
 
   return (
     <View style={styles.root}>

@@ -54,6 +54,26 @@ interface AuthState {
   setPreference: <K extends keyof AppPreferences>(key: K, value: AppPreferences[K]) => void;
 }
 
+/**
+ * What is left of a person once they sign out.
+ *
+ * The preferences go with them. They are this customer's answers, not the
+ * handset's — and `marketingConsent` in particular is a consent record: under
+ * POPIA it belongs to the person who gave it, and handing it to whoever signs
+ * in next is not a tidiness problem.
+ *
+ * `hasCompletedOnboarding` deliberately stays. Whether the welcome screens
+ * have been seen is a fact about the phone, and making the next person sit
+ * through them again would be a worse app for no gain.
+ */
+const FORGOTTEN = {
+  user: null,
+  isAuthenticated: false,
+  isGuest: false,
+  notificationPreferences: DEFAULT_NOTIFICATIONS,
+  preferences: DEFAULT_PREFERENCES,
+} as const;
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -74,10 +94,10 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         await signOutService();
-        set({ user: null, isAuthenticated: false, isGuest: false });
+        set(FORGOTTEN);
       },
 
-      signOutLocally: () => set({ user: null, isAuthenticated: false, isGuest: false }),
+      signOutLocally: () => set(FORGOTTEN),
 
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 
