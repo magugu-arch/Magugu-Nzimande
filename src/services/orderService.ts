@@ -64,6 +64,8 @@ function buildTimeline(
   currentStatus: OrderStatus,
   placedAt: Date,
   etaMinutes: number,
+  /** When the kitchen starts. Same as `placedAt` unless the order is scheduled. */
+  startedAt: Date = placedAt,
 ): OrderStatusEvent[] {
   const sequence = statusSequence(fulfilmentType);
   const currentIndex = sequence.indexOf(currentStatus);
@@ -81,7 +83,13 @@ function buildTimeline(
       label,
       description: STATUS_COPY[status].description,
       occurredAt: reached
-        ? addMinutes(placedAt, Math.round(stepMinutes * index)).toISOString()
+        ? // "Received" is when the customer placed it, which for a scheduled
+          // order is not when the kitchen picks it up. Every later step runs
+          // off the kitchen's clock.
+          (index === 0
+            ? placedAt
+            : addMinutes(startedAt, Math.round(stepMinutes * index))
+          ).toISOString()
         : null,
     };
   });
@@ -245,27 +253,66 @@ function seedHistory(): void {
 }
 
 /**
- * Advance a mock order based on how long ago it was placed, so tracking
- * reflects the passage of real time between screen visits.
+ * When the kitchen actually starts an order.
+ *
+ * For an ASAP order that is the moment it was placed. For a scheduled one it
+ * is `etaMinutes` before the slot, so the food is ready when the customer
+ * asked for it rather than the instant they paid.
+ *
+ * Never earlier than `placedAt`: a slot inside the preparation window would
+ * otherwise start the kitchen's clock before the order existed.
+ */
+export function workStartsAt(order: Order): Date {
+  const placed = new Date(order.placedAt);
+  if (!order.scheduledFor) return placed;
+
+  const due = new Date(order.scheduledFor);
+  if (Number.isNaN(due.getTime())) return placed;
+
+  const start = addMinutes(due, -order.etaMinutes);
+  return start.getTime() < placed.getTime() ? placed : start;
+}
+
+/**
+ * Advance a mock order, so tracking reflects the passage of real time between
+ * screen visits.
+ *
+ * Measured from when the kitchen starts, not from when the customer paid.
+ * This counted from `placedAt` and ignored `scheduledFor` entirely: an order
+ * booked for tomorrow at 18:00 and paid for at 14:00 today read "Completed —
+ * Enjoy. Thanks for ordering with bb.q." by 14:42 the same afternoon, and
+ * dropped out of Active into Past orders. Verified in a browser before the
+ * fix.
+ *
+ * It was never going to ship — the real backend drives status and this runs
+ * only against the mock. It still had to go. The mock is what the franchise
+ * is shown before the backend exists, and it is the contract the backend gets
+ * built against; a demo that marks tomorrow's dinner delivered sends someone
+ * chasing a bug that is really a wrong idea about what an order means.
+ * Scheduling also stopped being an edge case the moment closed branches
+ * started telling customers to schedule.
  */
 function advance(order: Order): Order {
   if (order.status === 'completed' || order.status === 'cancelled') return order;
 
   const sequence = statusSequence(order.fulfilmentType);
-  const elapsedMinutes = (Date.now() - new Date(order.placedAt).getTime()) / 60_000;
+  const placedAt = new Date(order.placedAt);
+  const startedAt = workStartsAt(order);
+
+  const elapsedMinutes = (Date.now() - startedAt.getTime()) / 60_000;
   const stepMinutes = order.etaMinutes / Math.max(1, sequence.length - 1);
-  const reachedIndex = Math.min(sequence.length - 1, Math.floor(elapsedMinutes / stepMinutes));
+  // Clamped at both ends: a scheduled order sits at "received" until its slot
+  // comes round, rather than indexing off the front of the sequence.
+  const reachedIndex = Math.max(
+    0,
+    Math.min(sequence.length - 1, Math.floor(elapsedMinutes / stepMinutes)),
+  );
   const status = sequence[reachedIndex] ?? order.status;
 
   return {
     ...order,
     status,
-    timeline: buildTimeline(
-      order.fulfilmentType,
-      status,
-      new Date(order.placedAt),
-      order.etaMinutes,
-    ),
+    timeline: buildTimeline(order.fulfilmentType, status, placedAt, order.etaMinutes, startedAt),
   };
 }
 

@@ -15,10 +15,12 @@ import {
 } from '@/services/storeService';
 import {
   fetchActiveOrder,
+  fetchOrder,
   fetchOrders,
   placeOrder,
   readyLabelFor,
   statusSequence,
+  workStartsAt,
 } from '@/services/orderService';
 import {
   discountFor,
@@ -35,7 +37,7 @@ import {
 } from '@/services/paymentService';
 import { stores } from '@/services/data/storeData';
 import { vouchers } from '@/services/data/rewardsData';
-import type { Reward, Voucher } from '@/types';
+import type { Order, Reward, Voucher } from '@/types';
 import { DEFAULT_COORDINATES, distanceKm, formatDistance } from '@/utils/geo';
 
 describe('menuService', () => {
@@ -412,5 +414,130 @@ describe('rewardExpired', () => {
   it('does not expire a reward over an unreadable date', () => {
     const broken = { ...reward, expiresAt: 'next Tuesday-ish' };
     expect(rewardExpired(broken, now)).toBe(false);
+  });
+});
+
+/**
+ * Tracking counted from when the customer paid and ignored `scheduledFor`
+ * entirely. An order booked for tomorrow at 18:00 and paid for at 14:00 today
+ * read "Completed — Enjoy. Thanks for ordering with bb.q." by 14:42 the same
+ * afternoon, and fell out of Active into Past orders. Verified in a browser.
+ *
+ * Scheduling stopped being an edge case the moment closed branches began
+ * telling customers to schedule, which is now the app's standard answer
+ * outside trading hours.
+ */
+describe('workStartsAt', () => {
+  const base = {
+    id: 'order-1',
+    reference: 'BBQ-1',
+    placedAt: new Date(2026, 7, 24, 14, 0).toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'received',
+    timeline: [],
+    lines: [],
+    totals: {} as never,
+    storeId: 's1',
+    storeName: 'bb.q Chicken Rosebank',
+    storePhone: '011 447 2200',
+    storeAddress: '177 Oxford Rd',
+    storeLatitude: -26.1465,
+    storeLongitude: 28.0436,
+    paymentMethodLabel: 'Card',
+    etaMinutes: 42,
+  } as unknown as Order;
+
+  it('starts an ASAP order the moment it is placed', () => {
+    expect(workStartsAt(base).toISOString()).toBe(base.placedAt);
+  });
+
+  /** Ready when the customer asked for it, not the instant they paid. */
+  it('works back from the slot for a scheduled order', () => {
+    const scheduled = {
+      ...base,
+      scheduledFor: new Date(2026, 7, 25, 18, 0).toISOString(),
+    } as Order;
+
+    // 42 minutes before 18:00 tomorrow.
+    expect(workStartsAt(scheduled).toISOString()).toBe(new Date(2026, 7, 25, 17, 18).toISOString());
+  });
+
+  /**
+   * A slot inside the preparation window would otherwise start the kitchen's
+   * clock before the order existed.
+   */
+  it('never starts before the order was placed', () => {
+    const soon = {
+      ...base,
+      scheduledFor: new Date(2026, 7, 24, 14, 10).toISOString(),
+    } as Order;
+
+    expect(workStartsAt(soon).toISOString()).toBe(base.placedAt);
+  });
+
+  it('falls back to the placed time on an unreadable slot', () => {
+    const broken = { ...base, scheduledFor: 'tomorrow evening' } as Order;
+    expect(workStartsAt(broken).toISOString()).toBe(base.placedAt);
+  });
+});
+
+/**
+ * The helper above is only half the story — the bug was that `advance` never
+ * called it. This drives the whole path: place a scheduled order, let
+ * three quarters of an hour go by, and read it back the way the tracking
+ * screen does.
+ */
+describe('tracking a scheduled order', () => {
+  const totals = {
+    subtotal: 200,
+    deliveryFee: 32,
+    serviceFee: 5,
+    discount: 0,
+    rewardsDiscount: 0,
+    total: 237,
+    pointsEarned: 200,
+  };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('is still "received" 45 minutes later when the slot is tomorrow', async () => {
+    const placed = await placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: 'pm-1',
+      scheduledFor: new Date(Date.now() + 28 * 3_600_000).toISOString(),
+    });
+
+    expect(placed.status).toBe('received');
+
+    // Three quarters of an hour passes. Long enough to have finished an ASAP
+    // order twice over — this one is not due until tomorrow.
+    const later = Date.now() + 45 * 60_000;
+    jest.spyOn(Date, 'now').mockReturnValue(later);
+
+    const tracked = await fetchOrder(placed.id);
+    expect(tracked.status).toBe('received');
+
+    // And it stays out of the finished pile, which is where it was landing.
+    expect(tracked.status).not.toBe('completed');
+  });
+
+  it('still marches an ASAP order along on the same clock', async () => {
+    const placed = await placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: 'pm-1',
+    });
+
+    jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 45 * 60_000);
+
+    const tracked = await fetchOrder(placed.id);
+    expect(tracked.status).toBe('completed');
   });
 });
