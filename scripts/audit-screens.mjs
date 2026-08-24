@@ -129,6 +129,13 @@ const probe = (viewportWidth) => {
     past: past.filter((c) => !seen.has(c.txt) && seen.add(c.txt)).sort((a, b) => b.px - a.px).slice(0, 3),
     blank: (document.body.innerText ?? '').trim().length < 12,
     text: (document.body.innerText ?? '').trim(),
+    // Measured, not read. The banner's copy sits in the DOM at all times and
+    // is hidden by animating this container to zero height, so any check
+    // against `innerText` reports it showing on every route forever — which
+    // is exactly the wrong answer, and the one I got the first time I looked.
+    offlineBannerPx: Math.round(
+      document.querySelector('[data-testid="offline-banner"]')?.getBoundingClientRect().height ?? 0,
+    ),
   };
 };
 
@@ -227,6 +234,16 @@ try {
 
       const r = await page.evaluate(probe, width);
       if (r.blank) findings.push(`${route} @${width} — rendered almost no text`);
+      // This sweep runs on the mock layer, where the app is served entirely
+      // from the device — so an offline bar is always a wrong claim, and it
+      // eats the bottom of every screen while it makes it. It sat open on all
+      // 29 routes for weeks: the reachability probe pointed at an API host
+      // that does not answer yet, and nothing here was looking.
+      if (r.offlineBannerPx > 2) {
+        findings.push(
+          `${route} @${width} — offline bar showing (${r.offlineBannerPx}px) on a mock build`,
+        );
+      }
       if (r.scrollsSideways) {
         findings.push(`${route} @${width} — page scrolls ${r.scrollsSideways}px sideways`);
       }

@@ -56,6 +56,27 @@ for (const field of ['appleId', 'ascAppId', 'appleTeamId']) {
   }
 }
 
+/**
+ * The one address in this repo that nothing here can check.
+ *
+ * `api.bbqchicken.co.za` is written into app.json, eas.json and the source
+ * default, and it does not answer — the app's own reachability probe fails
+ * against it at the transport, which is how it was noticed. In a mock build
+ * that is now harmless. In a production build it is an app that cannot fetch
+ * a menu, sign anyone in, or take an order, and it will look like a network
+ * fault rather than a wrong address.
+ */
+const apiHost = eas.build?.production?.env?.EXPO_PUBLIC_API_BASE_URL ?? app.extra?.apiBaseUrl;
+if (apiHost) {
+  note(
+    'API host',
+    `The production build points at ${apiHost}. Nothing in this repo can tell whether that ` +
+      'host exists, is yours, or serves the endpoints the app calls — the app only finds out ' +
+      'in a customer\'s hand. Confirm it answers before shipping.',
+    'you',
+  );
+}
+
 // --- Data a customer would act on ----------------------------------------
 
 const storeData = read('src/services/data/storeData.ts');

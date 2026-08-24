@@ -18,14 +18,26 @@ export interface NetworkStatus {
   isOffline: boolean;
 }
 
-function toStatus(state: NetInfoState): NetworkStatus {
+/**
+ * The offline decision, exported so it can be tested without NetInfo — it is
+ * the part that was wrong, and it was wrong in a way no screen test could see.
+ */
+export function toStatus(state: NetInfoState): NetworkStatus {
   const isConnected = state.isConnected ?? false;
   const isInternetReachable = state.isInternetReachable ?? null;
   return {
     isConnected,
     isInternetReachable,
     type: state.type,
-    isOffline: !isConnected || isInternetReachable === false,
+    // With the mock layer on, every screen is served from the device, so
+    // whether an API host answers says nothing about whether the app works.
+    // It said plenty anyway: `apiBaseUrl` defaults to a host that does not
+    // answer yet, so the probe failed, and the app declared itself offline
+    // within two seconds of launch and stayed there — on every build that
+    // exists today, while working perfectly. Measured in a browser: the
+    // banner was up at t+2s, t+6s and t+12s, with
+    // `api.bbqchicken.co.za/health` failing at the transport.
+    isOffline: config.useMockApi ? !isConnected : !isConnected || isInternetReachable === false,
   };
 }
 
@@ -57,6 +69,10 @@ export function startNetworkMonitoring(): void {
     reachabilityLongTimeout: 60 * 1000,
     reachabilityShortTimeout: 5 * 1000,
     reachabilityRequestTimeout: 10 * 1000,
+    // Nothing to probe when nothing is fetched. Beyond the false banner, this
+    // stops a mock build firing a request every minute at a domain that is
+    // not answering and may not even be ours yet.
+    reachabilityShouldRun: () => !config.useMockApi,
   });
 
   onlineManager.setEventListener((setOnline) =>
