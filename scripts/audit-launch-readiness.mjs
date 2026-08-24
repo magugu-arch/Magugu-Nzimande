@@ -152,6 +152,20 @@ if (rewardCount > 0 && rewardExpiries === 0) {
   );
 }
 
+// Connectivity recovery could not be confirmed off-device. Flagged rather
+// than fixed, because the fix would have to be verified on a handset.
+note(
+  'Offline recovery',
+  'The app detects losing signal reliably and could not be shown to detect ' +
+    'regaining it: driven in a browser it stayed "offline" with navigator.onLine ' +
+    'true again. On a handset NetInfo takes connectivity from the OS and should ' +
+    'recover, but confirm it on a real device — walk into a lift, come out, and ' +
+    'check the banner clears and a paused menu load completes. Checkout only ' +
+    'warns about being offline, never blocks, so a stale reading cannot stop ' +
+    'someone paying.',
+  'you',
+);
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {

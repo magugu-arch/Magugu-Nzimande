@@ -24,6 +24,7 @@ import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
 import { submitOrder } from '@/features/checkout/submitOrder';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
+import { useNetworkStatus } from '@/features/system/useNetworkStatus';
 import { useNow } from '@/features/system/useNow';
 import { preferredStore } from '@/features/stores/opening';
 import { useCartStore } from '@/store/cartStore';
@@ -66,6 +67,7 @@ export default function CheckoutScreen() {
   // answer it worked out when it opened.
   const now = useNow();
 
+  const { isOffline } = useNetworkStatus();
   const paymentMethods = usePaymentMethods();
   const availableStores = useStoresForFulfilment(fulfilmentType);
   const placeOrder = usePlaceOrder();
@@ -136,6 +138,7 @@ export default function CheckoutScreen() {
     });
     if (fulfilmentBlocker) return fulfilmentBlocker;
     if (!selectedPayment) return 'Choose a payment method';
+
     return null;
   }, [
     lines.length,
@@ -148,6 +151,30 @@ export default function CheckoutScreen() {
     selectedPayment,
     now,
   ]);
+
+  /**
+   * Told, not enforced — and that distinction is the whole of it.
+   *
+   * Being offline is worth saying: an order placed without signal cannot go
+   * through, and on a flickering connection `authorise` can succeed and
+   * `place` then fail, which strands a hold on the card until someone can
+   * release it.
+   *
+   * It is not worth *blocking* on, because the app cannot reliably tell when
+   * it is back. Driven in a browser, the app dropped to offline correctly and
+   * then never recovered — `navigator.onLine` true again, NetInfo still
+   * reporting disconnected, banner still up. On a real handset NetInfo takes
+   * connectivity from the OS and should recover; I could not confirm that
+   * here, and a disabled button that never re-enables would lock a customer
+   * out of paying for good. A wrong warning costs a moment's doubt; a wrong
+   * lockout costs the order.
+   *
+   * `submitOrder` already fails honestly without a connection — a declined
+   * payment says so, and a stranded authorisation says exactly that and tells
+   * them to call the store. Letting the attempt happen is the safe side to
+   * land on.
+   */
+  const offlineNotice = isOffline ? "You're offline — this may not go through" : null;
 
   const etaMinutes = (store?.preparationMinutes ?? 18) + (fulfilmentType === 'delivery' ? 20 : 0);
 
@@ -469,9 +496,9 @@ export default function CheckoutScreen() {
             Both carried the blocker text at one point, which stacked the same
             sentence twice and left a disabled control looking like the action
             that would fix it. */}
-        {blocker ? (
+        {(blocker ?? offlineNotice) ? (
           <Text variant="caption" color={colors.status.warning} align="center">
-            {blocker}
+            {blocker ?? offlineNotice}
           </Text>
         ) : null}
         <Button

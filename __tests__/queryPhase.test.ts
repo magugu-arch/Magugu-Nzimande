@@ -84,3 +84,62 @@ describe('what an offline query actually reports', () => {
     expect(isOfflinePending(paused!)).toBe(true);
   });
 });
+
+/**
+ * Checkout tells the customer they are offline; it does not stop them.
+ *
+ * Blocking was the first instinct and the wrong one. Driven in a browser the
+ * app dropped to offline correctly and then never recovered — `navigator.onLine`
+ * true again, NetInfo still reporting disconnected, banner still up. On a real
+ * handset NetInfo takes connectivity from the OS and should recover, but that
+ * could not be confirmed here, and a disabled button that never re-enables
+ * locks a customer out of paying for good.
+ *
+ * A wrong warning costs a moment's doubt. A wrong lockout costs the order. So
+ * the blockers stay things the customer can actually put right, and the
+ * network is advice sitting beside them.
+ */
+describe('what checkout refuses to do', () => {
+  const captionFor = ({
+    lines,
+    hasPayment,
+    isOffline,
+  }: {
+    lines: number;
+    hasPayment: boolean;
+    isOffline: boolean;
+  }): { caption: string | null; disabled: boolean } => {
+    const blocker =
+      lines === 0 ? 'Your cart is empty' : !hasPayment ? 'Choose a payment method' : null;
+    const notice = isOffline ? "You're offline — this may not go through" : null;
+    return { caption: blocker ?? notice, disabled: Boolean(blocker) };
+  };
+
+  it('stops an order it knows is incomplete', () => {
+    expect(captionFor({ lines: 0, hasPayment: false, isOffline: false })).toEqual({
+      caption: 'Your cart is empty',
+      disabled: true,
+    });
+  });
+
+  it('warns about the network without taking the button away', () => {
+    expect(captionFor({ lines: 1, hasPayment: true, isOffline: true })).toEqual({
+      caption: "You're offline — this may not go through",
+      disabled: false,
+    });
+  });
+
+  /** A real blocker outranks the advice; both at once would stack two lines. */
+  it('shows the fixable problem rather than the network one', () => {
+    expect(captionFor({ lines: 0, hasPayment: false, isOffline: true }).caption).toBe(
+      'Your cart is empty',
+    );
+  });
+
+  it('says nothing when there is nothing to say', () => {
+    expect(captionFor({ lines: 1, hasPayment: true, isOffline: false })).toEqual({
+      caption: null,
+      disabled: false,
+    });
+  });
+});

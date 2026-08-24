@@ -52,6 +52,12 @@ export function toStatus(state: NetInfoState): NetworkStatus {
  * Called once at app start, outside React, so it is in place before the first
  * query runs.
  */
+/**
+ * How often to re-ask while offline. Frequent enough that a customer coming
+ * out of a lift does not notice, rare enough to be free.
+ */
+const RECOVERY_POLL_MS = 3000;
+
 export function startNetworkMonitoring(): void {
   // Out of the box NetInfo decides whether the internet is reachable by
   // fetching a Google endpoint. That makes "are we online?" mean "can we reach
@@ -75,12 +81,39 @@ export function startNetworkMonitoring(): void {
     reachabilityShouldRun: () => !config.useMockApi,
   });
 
-  onlineManager.setEventListener((setOnline) =>
-    NetInfo.addEventListener((state) => {
-      const { isOffline } = toStatus(state);
-      setOnline(!isOffline);
-    }),
-  );
+  onlineManager.setEventListener((setOnline) => {
+    let offline = false;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const stopPolling = () => {
+      if (timer) clearInterval(timer);
+      timer = null;
+    };
+
+    const apply = (state: NetInfoState) => {
+      const next = toStatus(state).isOffline;
+      if (next === offline) return;
+      offline = next;
+      setOnline(!next);
+      // Same reason as the hook below: the drop is reported, the recovery is
+      // not always. Queries paused offline resume only when this says so, so
+      // a missed event does not mean a stale banner — it means the customer's
+      // orders and menu never arrive after they come out of the lift.
+      if (next) {
+        timer = setInterval(() => {
+          void NetInfo.fetch().then(apply);
+        }, RECOVERY_POLL_MS);
+      } else {
+        stopPolling();
+      }
+    };
+
+    const unsubscribe = NetInfo.addEventListener(apply);
+    return () => {
+      stopPolling();
+      unsubscribe();
+    };
+  });
 }
 
 /** Subscribe a component to connectivity changes. */
@@ -95,19 +128,46 @@ export function useNetworkStatus(): NetworkStatus {
   useEffect(() => {
     let active = true;
 
-    void NetInfo.fetch().then((state) => {
+    const apply = (state: NetInfoState) => {
       if (active) setStatus(toStatus(state));
-    });
+    };
 
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      if (active) setStatus(toStatus(state));
-    });
+    void NetInfo.fetch().then(apply);
+    const unsubscribe = NetInfo.addEventListener(apply);
 
     return () => {
       active = false;
       unsubscribe();
     };
   }, []);
+
+  /**
+   * Ask again while we believe we are offline.
+   *
+   * Going offline is reported reliably; coming back is not. Driven in a
+   * browser, the app dropped to offline correctly and then never recovered —
+   * `navigator.onLine` was true again, and the banner was still up and
+   * checkout still blocked, because the subscription had emitted nothing on
+   * the way back.
+   *
+   * That was survivable while a stale banner was only cosmetic. It stopped
+   * being survivable when checkout started refusing to take an order offline:
+   * a customer who walks through a lift on the way to paying would have been
+   * stuck until they killed the app.
+   *
+   * So this does not trust the event to arrive. It polls only while offline,
+   * stops the moment we are back, and is a plain re-read of state NetInfo
+   * already holds — no request, and nothing at all in the common case.
+   */
+  useEffect(() => {
+    if (!status.isOffline) return;
+
+    const timer = setInterval(() => {
+      void NetInfo.fetch().then((state) => setStatus(toStatus(state)));
+    }, RECOVERY_POLL_MS);
+
+    return () => clearInterval(timer);
+  }, [status.isOffline]);
 
   return status;
 }
