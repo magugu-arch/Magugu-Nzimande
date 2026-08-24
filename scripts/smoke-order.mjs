@@ -77,20 +77,32 @@ const browser = await chromium.launch(
 const LUNCHTIME = '2026-08-24T14:00:00+02:00';
 const MIDDLE_OF_THE_NIGHT = '2026-08-24T03:30:00+02:00';
 
+/** An evening, for the pass that lets a scheduled slot go stale. */
+const FIVE_PM = '2026-08-24T17:00:00+02:00';
+const SIX_PM_LABEL = '18:00';
+const HALF_PAST_SEVEN = '2026-08-24T19:30:00+02:00';
+
 /**
- * Freeze the page's clock. Only `new Date()` and `Date.now()` move; parsing
- * and `Date.UTC` are left alone, because the app reads ISO timestamps off
- * orders and opening dates and those must still work.
+ * Pin the page's clock, and leave a handle to move it.
+ *
+ * Only `new Date()` and `Date.now()` are affected; parsing and `Date.UTC` are
+ * left alone, because the app reads ISO timestamps off orders and opening
+ * dates and those must still work.
+ *
+ * Moving it is what makes the stale-schedule pass possible: the gap between
+ * choosing a slot and paying for it is the whole bug, and it is not something
+ * you can sit through in a test.
  */
 const pinClock = (iso) => `
-  const fixed = new Date('${iso}').getTime();
+  window.__t = new Date('${iso}').getTime();
   const Real = Date;
   Date = class extends Real {
-    constructor(...args) { super(...(args.length ? args : [fixed])); }
-    static now() { return fixed; }
+    constructor(...args) { super(...(args.length ? args : [window.__t])); }
+    static now() { return window.__t; }
   };
   Date.parse = Real.parse;
   Date.UTC = Real.UTC;
+  window.__advanceTo = (to) => { window.__t = new Real(to).getTime(); };
 `;
 
 const steps = [];
@@ -236,6 +248,83 @@ try {
   }
   step(`refused a 03:30 order on a store saved while open — "${nightReason}"`);
   await night.close();
+
+  /**
+   * Schedule at five o'clock for six, put the phone down, pay at half past
+   * seven. This one is here rather than only in the unit tests because the
+   * unit tests passed while the app did not: checkout memoised its blocker
+   * over state, and the clock is not state, so the screen kept handing back
+   * the answer it worked out when it opened.
+   */
+  const stale = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+    timezoneId: 'Africa/Johannesburg',
+  });
+  await stale.addInitScript(pinClock(FIVE_PM));
+  const stalePage = await stale.newPage();
+  const goStale = (route) =>
+    stalePage.goto(BASE + route, { waitUntil: 'networkidle', timeout: 45000 });
+  const tapStale = (id) =>
+    stalePage.locator(`[data-testid="${id}"]`).first().click({ timeout: 10000 });
+
+  // Its own journey rather than a snapshot of the one above: this pass turns
+  // on a difference of two and a half hours, and inheriting state captured at
+  // a different time of day made its failures hard to account for.
+  await goStale('/sign-in');
+  await stalePage.locator('[data-testid="sign-in-email"]').fill('smoke@example.co.za');
+  await stalePage.locator('[data-testid="sign-in-password"]').fill('chickenchicken');
+  await tapStale('sign-in-submit');
+  await stalePage.waitForURL((u) => !u.pathname.endsWith('/sign-in'), { timeout: 20000 });
+
+  await goStale('/menu');
+  await stalePage
+    .getByText('Golden Original Chicken', { exact: false })
+    .first()
+    .click({ timeout: 10000 });
+  await stalePage.waitForURL(/product\//, { timeout: 15000 });
+  await tapStale('product-add-to-cart');
+
+  await goStale('/checkout/address');
+  const staleAddress = await stalePage.evaluate(() =>
+    [...document.querySelectorAll('[data-testid]')]
+      .map((e) => e.getAttribute('data-testid'))
+      .find((i) => i?.startsWith('address-card-')),
+  );
+  if (!staleAddress) throw new Error('no saved address to choose (stale-slot pass)');
+  await tapStale(staleAddress);
+
+  // In-app navigation, not a reload: the scheduled time is deliberately not
+  // persisted, so a page load would drop it and this pass would prove nothing.
+  await goStale('/checkout');
+  await stalePage
+    .getByText('As soon as possible', { exact: false })
+    .first()
+    .click({ timeout: 10000 });
+  await stalePage.waitForURL(/schedule/, { timeout: 15000 });
+  await tapStale(`schedule-slot-${SIX_PM_LABEL}`);
+  await tapStale('schedule-confirm');
+  await stalePage.waitForURL(/checkout$/, { timeout: 15000 });
+
+  const scheduled = await stalePage.evaluate(() => document.body.innerText);
+  if (!scheduled.includes(`\u00b7 ${SIX_PM_LABEL}`)) {
+    throw new Error('the slot did not stick; this pass would prove nothing');
+  }
+
+  await stalePage.evaluate((to) => window.__advanceTo(to), HALF_PAST_SEVEN);
+  await tapStale('checkout-place-order');
+  await stalePage.waitForTimeout(2500);
+
+  if (/confirmation/.test(stalePage.url())) {
+    throw new Error('checkout placed an order scheduled for 18:00 at 19:30');
+  }
+  const staleShown = await stalePage.evaluate(() => document.body.innerText);
+  if (!/that time has passed/i.test(staleShown)) {
+    throw new Error('the stale slot was refused with nothing said about why');
+  }
+  step('refused a 18:00 slot paid for at 19:30, and said why');
+  await stale.close();
 } catch (error) {
   failed = error instanceof Error ? error.message : String(error);
 } finally {

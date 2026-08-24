@@ -3,8 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Address, FulfilmentType, Store } from '@/types';
 import { distanceKm, type Coordinates } from '@/utils/geo';
-import { formatShortDate } from '@/utils/datetime';
-import { isTradingNow } from '@/utils/tradingHours';
+import { formatShortDate, formatTime } from '@/utils/datetime';
+import { isStoreOpenAt, isTradingNow } from '@/utils/tradingHours';
 
 /**
  * Where and how this order is being fulfilled: type, store, address, table and
@@ -87,6 +87,24 @@ export function missingFulfilmentRequirement({
   // through against a branch that shut at 22:00.
   const trading = isTradingNow(store, now);
   if (!trading && !scheduledFor) return `${store.name} is closed — schedule for later`;
+
+  // A scheduled time is chosen once and then sat on, and nothing rechecked it.
+  // Verified in a browser: pick 18:00 at five o'clock, put the phone down,
+  // place the order at half past seven — accepted, and the confirmation read
+  // "Scheduled for Mon, 24 Aug · 18:00", ninety minutes in the past.
+  //
+  // This is the check that stops "schedule for later" being a way around the
+  // closed-kitchen rule directly above it.
+  if (scheduledFor) {
+    const when = new Date(scheduledFor);
+    if (Number.isNaN(when.getTime())) return 'Pick a time for your order';
+    if (when.getTime() <= now.getTime()) return 'That time has passed — pick another';
+    // Same fallback as everywhere else: no published hours means no opinion,
+    // not a refusal.
+    if (store.openingHours.length > 0 && !isStoreOpenAt(store, when)) {
+      return `${store.name} is closed at ${formatTime(when)} — pick another time`;
+    }
+  }
 
   if (fulfilmentType === 'delivery' && !address) return 'Add a delivery address';
 

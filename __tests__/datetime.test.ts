@@ -136,3 +136,74 @@ describe('buildScheduleDays', () => {
     expect(days[0]?.label).not.toBe('Today');
   });
 });
+
+/**
+ * Slots used to be a hardcoded 10:00–21:45, every day, for every branch — the
+ * seeded standard hours baked into a date utility that never saw a store.
+ * Invisible while all seven seeded branches kept the same shift; not invisible
+ * once two real branches have real hours.
+ */
+describe('buildScheduleDays against a branch', () => {
+  const hours = (opensAt: string, closesAt: string, days = [0, 1, 2, 3, 4, 5, 6]) =>
+    days.map((day) => ({ day, opensAt, closesAt }));
+
+  // 09:00 on a Monday, so today's whole window is still ahead.
+  const monday9am = new Date(2026, 7, 24, 9, 0);
+  const today = (store?: { openingHours: { day: number; opensAt: string; closesAt: string }[] }) =>
+    buildScheduleDays(monday9am, store)[0];
+
+  it('offers the branch its own window, not the seeded one', () => {
+    const late = today({ openingHours: hours('11:00', '23:00') });
+
+    expect(late?.slots[0]?.label).toBe('11:00');
+    // Last orders before closing, never at it.
+    expect(late?.slots.at(-1)?.label).toBe('22:45');
+  });
+
+  /**
+   * The direction that costs money: a branch trading until 23:00 was never
+   * offered the last two hours it would gladly have cooked.
+   */
+  it('reaches later than the old fixed grid for a late branch', () => {
+    const late = today({ openingHours: hours('11:00', '23:00') });
+    expect(late?.slots.some((slot) => slot.label === '22:30')).toBe(true);
+  });
+
+  /** And the direction that costs trust. */
+  it('offers nothing on a day the branch does not trade', () => {
+    // Trades every day except Monday.
+    const shutMondays = { openingHours: hours('10:00', '22:00', [0, 2, 3, 4, 5, 6]) };
+    const days = buildScheduleDays(monday9am, shutMondays);
+
+    expect(days.some((day) => day.label === 'Today')).toBe(false);
+    expect(days[0]?.label).toBe('Tomorrow');
+  });
+
+  it('keeps the old window for a branch that publishes no hours', () => {
+    const bare = today({ openingHours: [] });
+
+    expect(bare?.slots[0]?.label).toBe('10:00');
+    expect(bare?.slots.at(-1)?.label).toBe('21:45');
+  });
+
+  it('keeps the old window when no branch has been chosen yet', () => {
+    expect(today()?.slots[0]?.label).toBe('10:00');
+    expect(today()?.slots.at(-1)?.label).toBe('21:45');
+  });
+
+  /**
+   * Every slot it offers has to survive the checkout guard, or the scheduler
+   * is handing out times that will be refused at the till.
+   */
+  it('offers only times inside the branch window', () => {
+    const branch = { openingHours: hours('11:00', '23:00') };
+    for (const day of buildScheduleDays(monday9am, branch)) {
+      for (const slot of day.slots) {
+        const at = new Date(slot.iso);
+        const minutes = at.getHours() * 60 + at.getMinutes();
+        expect(minutes).toBeGreaterThanOrEqual(11 * 60);
+        expect(minutes).toBeLessThan(23 * 60);
+      }
+    }
+  });
+});

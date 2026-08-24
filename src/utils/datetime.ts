@@ -79,7 +79,20 @@ export function addMinutes(date: Date, minutes: number): Date {
 
 /**
  * Build the selectable scheduling slots: today (from the lead time) through
- * `maxScheduleDays`, in 15-minute steps inside trading hours.
+ * `maxScheduleDays`, in 15-minute steps inside the branch's trading hours.
+ *
+ * These used to be a hardcoded 10:00–21:45, every day, for every branch — the
+ * seeded standard hours baked into a date utility that never saw a store. It
+ * was invisible while all seven seeded branches kept the same shift. It stops
+ * being invisible the moment the two real branches have real hours: a day the
+ * branch does not trade still offered a full grid of slots, and the branches
+ * that close at 23:00 never offered the last two hours they would gladly have
+ * cooked.
+ *
+ * It also mattered more than it looked, because "schedule for later" is what
+ * the app tells a customer who has found a closed kitchen. Handing them a slot
+ * list that ignores the branch's hours would route them from one wrong answer
+ * straight into another.
  */
 export interface ScheduleSlot {
   iso: string;
@@ -92,20 +105,64 @@ export interface ScheduleDay {
   slots: ScheduleSlot[];
 }
 
-export function buildScheduleDays(now: Date = new Date()): ScheduleDay[] {
+/** Fallback window for a branch that publishes no hours: 10:00 – 22:00. */
+const DEFAULT_WINDOW = { openMinutes: 10 * 60, closeMinutes: 22 * 60 };
+
+const SLOT_STEP_MINUTES = 15;
+
+function windowForDay(store: SchedulableStore | null | undefined, weekday: number) {
+  // No store, or a branch with no published hours, keeps the old behaviour.
+  // A data gap should not empty the scheduler.
+  if (!store || store.openingHours.length === 0) return DEFAULT_WINDOW;
+
+  const hours = store.openingHours.find((entry) => entry.day === weekday);
+  // No entry for this weekday means the branch is shut that day — no slots,
+  // rather than a grid of times nobody will be there for.
+  if (!hours) return null;
+
+  const [openHour = 0, openMinute = 0] = hours.opensAt.split(':').map(Number);
+  const [closeHour = 0, closeMinute = 0] = hours.closesAt.split(':').map(Number);
+  return {
+    openMinutes: openHour * 60 + openMinute,
+    closeMinutes: closeHour * 60 + closeMinute,
+  };
+}
+
+/** Just the part of a Store scheduling needs, so this stays free of the model. */
+export interface SchedulableStore {
+  openingHours: { day: number; opensAt: string; closesAt: string }[];
+}
+
+export function buildScheduleDays(
+  now: Date = new Date(),
+  store?: SchedulableStore | null,
+): ScheduleDay[] {
   const days: ScheduleDay[] = [];
   const earliest = addMinutes(now, businessRules.minScheduleLeadMinutes);
 
   for (let offset = 0; offset < businessRules.maxScheduleDays; offset += 1) {
     const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+    const window = windowForDay(store, day.getDay());
+    if (!window) continue;
+
     const slots: ScheduleSlot[] = [];
 
-    for (let hour = 10; hour <= 21; hour += 1) {
-      for (const minute of [0, 15, 30, 45]) {
-        const slot = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, minute);
-        if (slot.getTime() < earliest.getTime()) continue;
-        slots.push({ iso: slot.toISOString(), label: formatTime(slot) });
-      }
+    // Last orders are before closing, not at it — a kitchen that shuts at
+    // 22:00 cannot start cooking at 22:00.
+    for (
+      let minutes = window.openMinutes;
+      minutes <= window.closeMinutes - SLOT_STEP_MINUTES;
+      minutes += SLOT_STEP_MINUTES
+    ) {
+      const slot = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate(),
+        Math.floor(minutes / 60),
+        minutes % 60,
+      );
+      if (slot.getTime() < earliest.getTime()) continue;
+      slots.push({ iso: slot.toISOString(), label: formatTime(slot) });
     }
 
     if (slots.length > 0) {

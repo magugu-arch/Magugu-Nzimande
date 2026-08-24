@@ -24,6 +24,7 @@ import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
 import { submitOrder } from '@/features/checkout/submitOrder';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
+import { useNow } from '@/features/system/useNow';
 import { preferredStore } from '@/features/stores/opening';
 import { useCartStore } from '@/store/cartStore';
 import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfilmentStore';
@@ -58,6 +59,12 @@ export default function CheckoutScreen() {
   const setTableNumber = useFulfilmentStore((state) => state.setTableNumber);
   const scheduledFor = useFulfilmentStore((state) => state.scheduledFor);
   const resetFulfilment = useFulfilmentStore((state) => state.reset);
+
+  // Two of the fulfilment rules are about *now* — whether the branch is
+  // trading and whether the scheduled slot has passed — and a memo over state
+  // cannot see the clock move. Without this the screen keeps showing the
+  // answer it worked out when it opened.
+  const now = useNow();
 
   const paymentMethods = usePaymentMethods();
   const availableStores = useStoresForFulfilment(fulfilmentType);
@@ -125,6 +132,7 @@ export default function CheckoutScreen() {
       address,
       tableNumber,
       scheduledFor,
+      now,
     });
     if (fulfilmentBlocker) return fulfilmentBlocker;
     if (!selectedPayment) return 'Choose a payment method';
@@ -138,12 +146,31 @@ export default function CheckoutScreen() {
     tableNumber,
     scheduledFor,
     selectedPayment,
+    now,
   ]);
 
   const etaMinutes = (store?.preparationMinutes ?? 18) + (fulfilmentType === 'delivery' ? 20 : 0);
 
   const handlePlaceOrder = useCallback(async () => {
     if (blocker || !store || !selectedPayment) return;
+
+    // Re-checked against a fresh clock rather than trusting `blocker`, which
+    // was computed on some earlier render. The tick above keeps the screen
+    // honest, but a tick is a re-render and this is a tap — between the two
+    // the clock can have crossed the scheduled slot or the branch's closing
+    // time, and this is the line where the money moves.
+    const stillBlocked = missingFulfilmentRequirement({
+      fulfilmentType,
+      store,
+      address,
+      tableNumber,
+      scheduledFor,
+      now: new Date(),
+    });
+    if (stillBlocked) {
+      setSubmitError(stillBlocked);
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError(null);

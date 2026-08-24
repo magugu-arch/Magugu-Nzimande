@@ -73,6 +73,12 @@ describe('missingFulfilmentRequirement', () => {
    */
   describe('a closed store', () => {
     const closed = { ...store, isOpenNow: false };
+    // Injected rather than hardcoded. These fixtures used to pin a literal
+    // '2026-08-23T18:30:00.000Z', which was comfortably in the future the day
+    // it was written and is now yesterday — the same stale-value shape the
+    // guard below exists to catch, in the test that checks it.
+    const now = new Date(2026, 7, 24, 9, 0);
+    const laterToday = new Date(2026, 7, 24, 18, 30).toISOString();
 
     it('blocks an order meant for now', () => {
       expect(missingFulfilmentRequirement({ ...base, store: closed, address })).toBe(
@@ -86,7 +92,8 @@ describe('missingFulfilmentRequirement', () => {
           ...base,
           store: closed,
           address,
-          scheduledFor: '2026-08-23T18:30:00.000Z',
+          scheduledFor: laterToday,
+          now,
         }),
       ).toBeNull();
     });
@@ -98,7 +105,8 @@ describe('missingFulfilmentRequirement', () => {
           fulfilmentType: 'dinein',
           store: closed,
           tableNumber: '14',
-          scheduledFor: '2026-08-23T18:30:00.000Z',
+          scheduledFor: laterToday,
+          now,
         }),
       ).toBe('bb.q Chicken Rosebank is closed');
     });
@@ -333,5 +341,80 @@ describe('a store that has shut since it was chosen', () => {
         now: middleOfTheNight,
       }),
     ).toBe('bb.q Chicken Rosebank is closed');
+  });
+});
+
+/**
+ * "Schedule for later" is what the app tells a customer who has found a closed
+ * kitchen, so it had better not be a way around the closed-kitchen rule.
+ *
+ * It was. A scheduled time was chosen once and then sat on, and nothing ever
+ * looked at it again. Driven in a browser: pick 18:00 at five o'clock, put the
+ * phone down, place the order at half past seven — accepted, and the
+ * confirmation read "Scheduled for Mon, 24 Aug · 18:00".
+ */
+describe('a scheduled time that is no longer any good', () => {
+  const TRADING_HOURS = Array.from({ length: 7 }, (_, day) => ({
+    day,
+    opensAt: '10:00',
+    closesAt: '22:00',
+  }));
+  const branch: Store = { ...store, openingHours: TRADING_HOURS, isOpenNow: true };
+
+  const fivePm = new Date(2026, 7, 24, 17, 0);
+  const halfPastSeven = new Date(2026, 7, 24, 19, 30);
+  const sixPm = new Date(2026, 7, 24, 18, 0).toISOString();
+
+  const check = (scheduledFor: string, now: Date) =>
+    missingFulfilmentRequirement({ ...base, store: branch, address, scheduledFor, now });
+
+  it('accepts the slot while it is still ahead', () => {
+    expect(check(sixPm, fivePm)).toBeNull();
+  });
+
+  it('refuses it once it has passed', () => {
+    expect(check(sixPm, halfPastSeven)).toBe('That time has passed — pick another');
+  });
+
+  /** The boundary is worth pinning: the slot itself is too late to start. */
+  it('refuses the slot at the very moment it arrives', () => {
+    expect(check(sixPm, new Date(2026, 7, 24, 18, 0))).toBe('That time has passed — pick another');
+  });
+
+  /**
+   * The other half. A time can be in the future and still be a time nobody is
+   * there — which is exactly what a slot list built from the wrong hours hands
+   * out.
+   */
+  it('refuses a time outside the branch hours, however far ahead it is', () => {
+    const threeAmTomorrow = new Date(2026, 7, 25, 3, 0).toISOString();
+    expect(check(threeAmTomorrow, fivePm)).toBe(
+      'bb.q Chicken Rosebank is closed at 03:00 — pick another time',
+    );
+  });
+
+  it('refuses a slot at closing time, when the kitchen cannot start it', () => {
+    const atClosing = new Date(2026, 7, 24, 22, 0).toISOString();
+    expect(check(atClosing, fivePm)).toBe(
+      'bb.q Chicken Rosebank is closed at 22:00 — pick another time',
+    );
+  });
+
+  it('has no opinion on hours for a branch that publishes none', () => {
+    const noHours: Store = { ...branch, openingHours: [] };
+    const threeAmTomorrow = new Date(2026, 7, 25, 3, 0).toISOString();
+    expect(
+      missingFulfilmentRequirement({
+        ...base,
+        store: noHours,
+        address,
+        scheduledFor: threeAmTomorrow,
+        now: fivePm,
+      }),
+    ).toBeNull();
+  });
+
+  it('asks for a time rather than crashing on a corrupt one', () => {
+    expect(check('not a date', fivePm)).toBe('Pick a time for your order');
   });
 });

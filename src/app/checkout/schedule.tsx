@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button, Card, Chip, EmptyState, Screen, ScreenHeader, Text } from '@/components/ui';
 import { businessRules } from '@/constants/config';
+import { useNow } from '@/features/system/useNow';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
 import { buildScheduleDays, formatDateTime } from '@/utils/datetime';
@@ -15,8 +16,15 @@ export default function ScheduleScreen() {
   const scheduledFor = useFulfilmentStore((state) => state.scheduledFor);
   const setScheduledFor = useFulfilmentStore((state) => state.setScheduledFor);
   const fulfilmentType = useFulfilmentStore((state) => state.fulfilmentType);
+  const store = useFulfilmentStore((state) => state.store);
 
-  const days = useMemo(() => buildScheduleDays(), []);
+  // Built against the chosen branch, not a fixed 10:00–21:45. A branch shut on
+  // a given day contributes no slots at all, rather than a grid of times
+  // nobody will be there for.
+  // Ticks, so slots that have gone past drop off a screen left sitting open
+  // rather than staying tappable.
+  const now = useNow();
+  const days = useMemo(() => buildScheduleDays(now, store), [now, store]);
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const [draft, setDraft] = useState<string | null>(scheduledFor);
 
