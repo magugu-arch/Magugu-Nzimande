@@ -11,6 +11,7 @@ import {
   meetsDeliveryMinimum,
   reconcileCart,
   voucherDiscount,
+  voucherExpired,
   voucherFreesDelivery,
   voucherQualifies,
   type VoucherTerms,
@@ -601,5 +602,86 @@ describe('voucherDiscount', () => {
   it('says whether the basket qualifies at all', () => {
     expect(voucherQualifies(fiftyOff, 200)).toBe(true);
     expect(voucherQualifies(fiftyOff, 199.99)).toBe(false);
+  });
+});
+
+/**
+ * The voucher terms hold what a code *asks for*, so it can be re-decided
+ * against the basket at any moment. Expiry was the one term left out: it was
+ * checked once, as the code was typed, against a boolean stamped at fetch
+ * time, and after that the cart had no way to know.
+ *
+ * Driven in a browser: apply SPICY15, move the clock on eight days, and it was
+ * still taken at checkout and printed on the confirmation as
+ * "Promo discount −R 31.35" — R 214.65 charged against R 246.00 owed, six days
+ * after the voucher died.
+ */
+describe('a voucher that expires while it sits in the basket', () => {
+  const applied = new Date(2026, 7, 24, 14, 0);
+  const afterExpiry = new Date(2026, 8, 2, 14, 0);
+  const expiresAt = new Date(2026, 7, 31, 23, 59).toISOString();
+
+  const percentage: VoucherTerms = {
+    code: 'SPICY15',
+    discountType: 'percentage',
+    discountValue: 15,
+    minimumSpend: 150,
+    expiresAt,
+  };
+
+  const freeDelivery: VoucherTerms = {
+    code: 'FREEDEL',
+    discountType: 'freeDelivery',
+    discountValue: 0,
+    minimumSpend: 150,
+    expiresAt,
+  };
+
+  it('is worth something while it is alive', () => {
+    expect(voucherDiscount(percentage, 209, applied)).toBe(31.35);
+  });
+
+  it('is worth nothing once it has expired', () => {
+    expect(voucherDiscount(percentage, 209, afterExpiry)).toBe(0);
+  });
+
+  /**
+   * Free delivery is carried by the fee rather than the subtotal, so it takes
+   * a different route out of the totals and would have kept working on its
+   * own. Both go through `voucherQualifies`, which is why one rule covers it.
+   */
+  it('stops freeing the delivery too', () => {
+    expect(voucherFreesDelivery(freeDelivery, 209, applied)).toBe(true);
+    expect(voucherFreesDelivery(freeDelivery, 209, afterExpiry)).toBe(false);
+  });
+
+  it('expires on the stroke, not the day after', () => {
+    expect(voucherExpired(percentage, new Date(2026, 7, 31, 23, 58))).toBe(false);
+    expect(voucherExpired(percentage, new Date(2026, 7, 31, 23, 59))).toBe(true);
+  });
+
+  it('never expires without a date, which is what an open-ended code is', () => {
+    const forever: VoucherTerms = { ...percentage };
+    delete forever.expiresAt;
+
+    expect(voucherExpired(forever, afterExpiry)).toBe(false);
+    expect(voucherDiscount(forever, 209, afterExpiry)).toBe(31.35);
+  });
+
+  /**
+   * A date the app cannot parse is somebody's data fault. Refusing the
+   * discount over it would take money off a customer for a typo that is not
+   * theirs, so the code stays good and the basket decides.
+   */
+  it('does not expire a voucher over an unreadable date', () => {
+    const broken: VoucherTerms = { ...percentage, expiresAt: 'sometime next week' };
+
+    expect(voucherExpired(broken, afterExpiry)).toBe(false);
+    expect(voucherDiscount(broken, 209, afterExpiry)).toBe(31.35);
+  });
+
+  /** Expiry and the minimum are independent — failing either is enough. */
+  it('still refuses a live voucher on too small a basket', () => {
+    expect(voucherDiscount(percentage, 100, applied)).toBe(0);
   });
 });

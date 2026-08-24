@@ -23,7 +23,9 @@ import { businessRules } from '@/constants/config';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing, typography } from '@/theme';
-import { meetsDeliveryMinimum, voucherQualifies } from '@/utils/cart';
+import { meetsDeliveryMinimum, voucherExpired, voucherQualifies } from '@/utils/cart';
+import { formatShortDate } from '@/utils/datetime';
+import { useNow } from '@/features/system/useNow';
 import { formatPrice, groupDigits } from '@/utils/money';
 
 /**
@@ -57,6 +59,9 @@ export default function CartScreen() {
   const [promoError, setPromoError] = useState<string | null>(null);
   const validateVoucher = useValidateVoucher();
 
+  // A voucher can die while the cart sits open, and the totals are worked out
+  // fresh on every render — so the screen needs a reason to render.
+  const now = useNow();
   const totals = getTotals();
   const belowMinimum = !meetsDeliveryMinimum(totals.subtotal, fulfilmentType);
 
@@ -81,6 +86,9 @@ export default function CartScreen() {
         discountType: result.voucher.discountType,
         discountValue: result.voucher.discountValue,
         minimumSpend: result.voucher.minimumSpend,
+        // Carried, not dropped. Without it the cart has no way to know the
+        // code has died since it was entered.
+        ...(result.voucher.expiresAt ? { expiresAt: result.voucher.expiresAt } : {}),
       });
       setPromoCode('');
     } catch (error) {
@@ -196,13 +204,20 @@ export default function CartScreen() {
             <View style={styles.appliedRow}>
               <Badge label={voucher.code} tone="success" icon="checkmark-circle" />
               <Text variant="caption" color={colors.textSecondary} style={styles.appliedText}>
-                {voucherQualifies(voucher, totals.subtotal)
-                  ? voucher.discountType === 'freeDelivery'
-                    ? 'Free delivery applied'
-                    : `${formatPrice(totals.discount)} off applied`
-                  : // Applied, but the basket has since dropped below what the
-                    // code asks for. Saying so beats silently charging full price.
-                    `Spend ${formatPrice(voucher.minimumSpend)} to use this code`}
+                {voucherExpired(voucher, now)
+                  ? // Expired while it sat in the basket. Distinguished from
+                    // the minimum-spend case below because the two ask for
+                    // completely different things from the customer: one can
+                    // be fixed by adding an item, the other cannot be fixed
+                    // at all.
+                    `That code expired on ${formatShortDate(voucher.expiresAt!)}`
+                  : voucherQualifies(voucher, totals.subtotal, now)
+                    ? voucher.discountType === 'freeDelivery'
+                      ? 'Free delivery applied'
+                      : `${formatPrice(totals.discount)} off applied`
+                    : // Applied, but the basket has since dropped below what the
+                      // code asks for. Saying so beats silently charging full price.
+                      `Spend ${formatPrice(voucher.minimumSpend)} to use this code`}
               </Text>
               <Pressable
                 onPress={removeVoucher}

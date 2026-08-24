@@ -120,10 +120,43 @@ export interface VoucherTerms {
   discountType: 'percentage' | 'fixed' | 'freeItem' | 'freeDelivery';
   discountValue: number;
   minimumSpend: number;
+  /**
+   * ISO date the voucher stops being worth anything. Optional, and absent
+   * means it never expires.
+   *
+   * These terms deliberately hold what a voucher *asks for* rather than what
+   * it was once worth — and this was the one term left out. Expiry was checked
+   * exactly once, as the code was typed, against a boolean stamped at fetch
+   * time; after that the cart had no way to know. Driven in a browser: apply
+   * SPICY15, move the clock on eight days, and it was still taken at checkout
+   * and printed on the confirmation as "Promo discount −R 31.35" — R 214.65
+   * charged against R 246.00 owed, six days after the voucher died.
+   */
+  expiresAt?: string;
 }
 
-/** Whether the basket still meets what the voucher asked for. */
-export function voucherQualifies(voucher: VoucherTerms, subtotal: number): boolean {
+/** Whether the voucher is past its date. No date means it never is. */
+export function voucherExpired(voucher: VoucherTerms, now: Date = new Date()): boolean {
+  if (!voucher.expiresAt) return false;
+  const at = new Date(voucher.expiresAt);
+  // An unparseable date is a data fault, not an expiry. Refusing a discount
+  // over one would take money off a customer for someone else's typo.
+  if (Number.isNaN(at.getTime())) return false;
+  return at.getTime() <= now.getTime();
+}
+
+/**
+ * Whether the basket still meets what the voucher asked for.
+ *
+ * The single gate: `voucherDiscount` and `voucherFreesDelivery` both come
+ * through here, so a rule added once applies to both kinds of voucher.
+ */
+export function voucherQualifies(
+  voucher: VoucherTerms,
+  subtotal: number,
+  now: Date = new Date(),
+): boolean {
+  if (voucherExpired(voucher, now)) return false;
   return subtotal >= voucher.minimumSpend;
 }
 
@@ -133,8 +166,12 @@ export function voucherQualifies(voucher: VoucherTerms, subtotal: number): boole
  * validates codes through it too, so a voucher cannot be worth one amount at
  * the moment it is entered and another at checkout.
  */
-export function voucherDiscount(voucher: VoucherTerms, subtotal: number): number {
-  if (!voucherQualifies(voucher, subtotal)) return 0;
+export function voucherDiscount(
+  voucher: VoucherTerms,
+  subtotal: number,
+  now: Date = new Date(),
+): number {
+  if (!voucherQualifies(voucher, subtotal, now)) return 0;
 
   switch (voucher.discountType) {
     case 'fixed':
@@ -149,8 +186,12 @@ export function voucherDiscount(voucher: VoucherTerms, subtotal: number): number
 }
 
 /** Free delivery only stands while the basket still qualifies. */
-export function voucherFreesDelivery(voucher: VoucherTerms, subtotal: number): boolean {
-  return voucher.discountType === 'freeDelivery' && voucherQualifies(voucher, subtotal);
+export function voucherFreesDelivery(
+  voucher: VoucherTerms,
+  subtotal: number,
+  now: Date = new Date(),
+): boolean {
+  return voucher.discountType === 'freeDelivery' && voucherQualifies(voucher, subtotal, now);
 }
 
 export interface TotalsInput {

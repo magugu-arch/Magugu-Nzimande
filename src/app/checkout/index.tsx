@@ -175,6 +175,13 @@ export default function CheckoutScreen() {
     setSubmitting(true);
     setSubmitError(null);
 
+    // Priced here rather than from the render's closure, for the same reason
+    // the blocker is re-checked above: a voucher can expire between a render
+    // and a tap, and this is the number the card is charged. The server is
+    // still the authority — `PlaceOrderInput.totals` says so — but the app
+    // should not ask it to charge a figure the app itself knows is stale.
+    const totalsNow = getTotals();
+
     try {
       // Authorise, create the order, and give the money back if the order does
       // not happen. The sequence lives in `submitOrder` because it is the one
@@ -182,14 +189,14 @@ export default function CheckoutScreen() {
       // needs to be testable without a screen.
       const outcome = await submitOrder(
         {
-          amount: totals.total,
+          amount: totalsNow.total,
           paymentMethodId: selectedPayment.id,
           methodType: selectedPayment.type,
           orderReference: 'pending',
         },
         {
           lines,
-          totals,
+          totals: totalsNow,
           fulfilmentType,
           storeId: store.id,
           ...(address ? { addressId: address.id } : {}),
@@ -223,7 +230,7 @@ export default function CheckoutScreen() {
     blocker,
     store,
     selectedPayment,
-    totals,
+    getTotals,
     lines,
     fulfilmentType,
     address,

@@ -82,6 +82,10 @@ const FIVE_PM = '2026-08-24T17:00:00+02:00';
 const SIX_PM_LABEL = '18:00';
 const HALF_PAST_SEVEN = '2026-08-24T19:30:00+02:00';
 
+/** Seeded to expire seven days out, so it is good today and dead in eight. */
+const LAPSING_CODE = 'SPICY15';
+const LAPSING_CODE_MARKER = `Promo \u00b7 ${LAPSING_CODE}`;
+
 /**
  * Pin the page's clock, and leave a handle to move it.
  *
@@ -325,6 +329,84 @@ try {
   }
   step('refused a 18:00 slot paid for at 19:30, and said why');
   await stale.close();
+
+  /**
+   * Apply a voucher, let it expire in the basket, and pay.
+   *
+   * The terms the cart keeps are meant to let a voucher be re-decided against
+   * the basket at any moment, and expiry was the one term left out — checked
+   * once as the code was typed and never again. It charged R 214.65 against
+   * R 246.00 owed, six days after the code died.
+   */
+  const lapsed = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+    timezoneId: 'Africa/Johannesburg',
+  });
+  await lapsed.addInitScript(pinClock(LUNCHTIME));
+  const lapsedPage = await lapsed.newPage();
+  const goLapsed = (route) =>
+    lapsedPage.goto(BASE + route, { waitUntil: 'networkidle', timeout: 45000 });
+  const tapLapsed = (id) =>
+    lapsedPage.locator(`[data-testid="${id}"]`).first().click({ timeout: 10000 });
+
+  await goLapsed('/sign-in');
+  await lapsedPage.locator('[data-testid="sign-in-email"]').fill('smoke@example.co.za');
+  await lapsedPage.locator('[data-testid="sign-in-password"]').fill('chickenchicken');
+  await tapLapsed('sign-in-submit');
+  await lapsedPage.waitForURL((u) => !u.pathname.endsWith('/sign-in'), { timeout: 20000 });
+
+  await goLapsed('/menu');
+  await lapsedPage
+    .getByText('Golden Original Chicken', { exact: false })
+    .first()
+    .click({ timeout: 10000 });
+  await lapsedPage.waitForURL(/product\//, { timeout: 15000 });
+  await tapLapsed('product-add-to-cart');
+
+  await goLapsed('/checkout/address');
+  const lapsedAddress = await lapsedPage.evaluate(() =>
+    [...document.querySelectorAll('[data-testid]')]
+      .map((e) => e.getAttribute('data-testid'))
+      .find((i) => i?.startsWith('address-card-')),
+  );
+  if (!lapsedAddress) throw new Error('no saved address to choose (lapsed-voucher pass)');
+  await tapLapsed(lapsedAddress);
+
+  // SPICY15 is seeded to expire seven days out, so it is good today.
+  await goLapsed('/cart');
+  await lapsedPage.locator('[data-testid="cart-promo-input"]').fill(LAPSING_CODE);
+  await tapLapsed('cart-promo-apply');
+  await lapsedPage.waitForTimeout(1500);
+  const withDiscount = await lapsedPage.evaluate(() => document.body.innerText);
+  if (!withDiscount.includes(LAPSING_CODE_MARKER)) {
+    throw new Error('the voucher did not apply; this pass would prove nothing');
+  }
+
+  // Eight days on. It died yesterday. Straight to checkout in-app, because the
+  // applied voucher lives in memory and a reload would simply drop it — which
+  // would pass this check for entirely the wrong reason.
+  await lapsedPage.evaluate(() =>
+    window.__advanceTo(new Date(window.__t + 8 * 86400000).toISOString()),
+  );
+  await tapLapsed('cart-checkout');
+  await lapsedPage.waitForURL(/checkout/, { timeout: 15000 });
+  await lapsedPage.waitForTimeout(1200);
+
+  const atCheckout = await lapsedPage.evaluate(() => document.body.innerText);
+  if (atCheckout.includes(LAPSING_CODE_MARKER)) {
+    throw new Error('an expired voucher was still discounting the order at checkout');
+  }
+
+  await tapLapsed('checkout-place-order');
+  await lapsedPage.waitForURL(/confirmation/, { timeout: 30000 });
+  const receipt = await lapsedPage.evaluate(() => document.body.innerText);
+  if (/Promo discount/i.test(receipt)) {
+    throw new Error('an expired voucher was charged through onto the receipt');
+  }
+  step('dropped a voucher that expired in the basket, and charged full price');
+  await lapsed.close();
 } catch (error) {
   failed = error instanceof Error ? error.message : String(error);
 } finally {
