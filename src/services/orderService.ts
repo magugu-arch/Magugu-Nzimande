@@ -125,6 +125,8 @@ function storeSnapshot(
 
 function seedHistory(): void {
   if (ledger.length > 0) return;
+  // Somebody who installed the app this morning has never ordered.
+  if (config.seedProfile === 'new-customer') return;
 
   const historyPlacedAt = new Date(Date.now() - 3 * 86_400_000);
   ledger.push({

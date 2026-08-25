@@ -9,8 +9,15 @@ import {
 } from './data/accountData';
 
 /** Mutable copies so mock-mode add/remove operations actually take effect. */
-let addressLedger: Address[] = [...savedAddresses];
-let paymentLedger: PaymentMethod[] = [...savedPaymentMethods];
+/**
+ * A brand-new customer has saved nothing. `seedProfile` lets the audits sign
+ * in as that person, which is the one account the seeded data could never
+ * represent — and the account every customer has on opening morning.
+ */
+const blank = config.seedProfile === 'new-customer';
+
+let addressLedger: Address[] = blank ? [] : [...savedAddresses];
+let paymentLedger: PaymentMethod[] = blank ? [] : [...savedPaymentMethods];
 let notificationLedger: AppNotification[] = [...notifications];
 
 export async function fetchAddresses(): Promise<Address[]> {

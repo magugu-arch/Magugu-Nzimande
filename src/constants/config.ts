@@ -35,6 +35,26 @@ export const config = {
   ),
   apiTimeoutMs: num(process.env.EXPO_PUBLIC_API_TIMEOUT_MS, 15_000),
   /**
+   * Which customer the mock layer pretends to be.
+   *
+   * `full` is the seeded regular: saved cards, saved addresses, an order
+   * history, vouchers in the wallet. Convenient, and it has now hidden three
+   * separate defects — a store list where every branch was open, a payment
+   * list where five rails always arrived together, a menu that always
+   * answered. Each looked fine because the seed was kinder than the world.
+   *
+   * `new-customer` is the person who installs the app on opening morning:
+   * nothing saved, nothing ordered, nothing earned. That is every customer
+   * bb.q gains on 1 October, and it was the one account nobody could test as.
+   *
+   * Read only through the mock layer, so it cannot affect a real build — and
+   * `audit:launch` fails production if the mock is on at all.
+   */
+  seedProfile:
+    str(process.env.EXPO_PUBLIC_SEED_PROFILE, 'full') === 'new-customer'
+      ? ('new-customer' as const)
+      : ('full' as const),
+  /**
    * The mock layer, which makes the app fully explorable before the backend
    * exists. On in development; off in any release build unless something asks
    * for it by name.
