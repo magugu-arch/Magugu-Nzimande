@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppPreferences, AuthSession, NotificationPreferences, UserProfile } from '@/types';
 import { createGuestUser, signOut as signOutService } from '@/services/authService';
+import { useFavouritesStore } from './favouritesStore';
 
 /**
  * Session and preference state.
@@ -84,8 +85,20 @@ export const useAuthStore = create<AuthState>()(
       notificationPreferences: DEFAULT_NOTIFICATIONS,
       preferences: DEFAULT_PREFERENCES,
 
-      setSession: (session) =>
-        set({ user: session.user, isAuthenticated: true, isGuest: session.user.isGuest }),
+      setSession: (session) => {
+        // Here rather than in the two screens that call this, for the reason
+        // sign-out is centralised: signing in and registering are separate
+        // code paths that have already drifted apart once in this app.
+        //
+        // Favourites are local and outlive a sign-out on purpose, so that
+        // signing out to browse does not take them away. Nothing asked whose
+        // they were, though, so the next person to sign in on this handset
+        // inherited a stranger's hearted dishes — under a Favourites tab that
+        // presents them as their own.
+        useFavouritesStore.getState().claimFor(session.user.isGuest ? null : session.user.id);
+
+        set({ user: session.user, isAuthenticated: true, isGuest: session.user.isGuest });
+      },
 
       setUser: (user) => set({ user }),
 

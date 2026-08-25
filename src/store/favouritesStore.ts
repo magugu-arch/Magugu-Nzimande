@@ -19,16 +19,40 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  */
 interface FavouritesState {
   productIds: string[];
+  /**
+   * Whose these are, so they can outlive a sign-out without outliving the
+   * person.
+   *
+   * Surviving a signed-out browse is the point of keeping them local, and
+   * `useSignOut` deliberately leaves them alone for that reason. But nothing
+   * asked whose they were, so signing in as somebody else showed them a
+   * stranger's hearted dishes as their own — and the menu has a Favourites tab
+   * to show them on.
+   *
+   * Null while nobody is signed in, which is the state a guest browse leaves
+   * it in: unclaimed, not owned by nobody.
+   */
+  ownerId: string | null;
   isFavourite: (productId: string) => boolean;
   toggle: (productId: string) => void;
   remove: (productId: string) => void;
   clear: () => void;
+  /**
+   * Hand the list to whoever has just signed in, emptying it first if it
+   * belonged to somebody else.
+   *
+   * A guest (`null`) claims nothing and clears nothing — they may be the same
+   * person, signed out for a moment, and taking their favourites away for
+   * browsing is the behaviour this store was written to avoid.
+   */
+  claimFor: (userId: string | null) => void;
 }
 
 export const useFavouritesStore = create<FavouritesState>()(
   persist(
     (set, get) => ({
       productIds: [],
+      ownerId: null,
 
       isFavourite: (productId) => get().productIds.includes(productId),
 
@@ -45,11 +69,22 @@ export const useFavouritesStore = create<FavouritesState>()(
         set((state) => ({ productIds: state.productIds.filter((id) => id !== productId) })),
 
       clear: () => set({ productIds: [] }),
+
+      claimFor: (userId) =>
+        set((state) => {
+          if (userId === null) return state;
+          if (state.ownerId !== null && state.ownerId !== userId) {
+            return { productIds: [], ownerId: userId };
+          }
+          return { ownerId: userId };
+        }),
     }),
     {
       name: 'bbq.favourites',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ productIds: state.productIds }),
+      // The owner is persisted too, or the check cannot survive the restart it
+      // most needs to survive: a phone handed over and opened fresh.
+      partialize: (state) => ({ productIds: state.productIds, ownerId: state.ownerId }),
     },
   ),
 );
