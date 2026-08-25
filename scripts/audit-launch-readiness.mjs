@@ -152,6 +152,43 @@ if (rewardCount > 0 && rewardExpiries === 0) {
   );
 }
 
+/**
+ * The tier perks are shown to customers as a rate, and the code pays one flat
+ * rate to everybody.
+ *
+ * "Your Silver perks · 1.25 points per R1 spent" is on the rewards screen, and
+ * `randToPoints` multiplies by `businessRules.pointsPerRand` regardless of who
+ * is ordering. Either the copy is wrong or the arithmetic is, and which one is
+ * a franchise decision rather than a code one — so this reads the advertised
+ * rates back out of the perks and reports any that the app does not pay.
+ *
+ * Deliberately parsed rather than hard-coded: sign off a different set of
+ * rates and this re-reads them.
+ */
+const advertisedRates = [...rewardsData.matchAll(/'([\d.]+) points? per R1[^']*'/g)].map((m) =>
+  Number(m[1]),
+);
+const paidRate = Number(/pointsPerRand:\s*([\d.]+)/.exec(read('src/constants/config.ts'))?.[1]);
+const unpaid = [...new Set(advertisedRates.filter((rate) => rate !== paidRate))];
+if (unpaid.length > 0) {
+  note(
+    'Tier perks',
+    `The perks advertise ${unpaid.map((r) => `${r} points per R1`).join(', ')}, and the app pays ` +
+      `${paidRate} to everybody — "Your Silver perks · 1.25 points per R1 spent" sits on the ` +
+      'rewards screen while a Silver member earns the Bronze rate. The earn rate is the part ' +
+      'that can be checked mechanically; none of the rest is implemented either. Nothing ' +
+      'anywhere honours "free delivery twice a month", "every week", "unlimited free delivery", ' +
+      '"priority kitchen queue" or "early access to new drops" — and a seeded push notification ' +
+      'repeats two of them ("Gold unlocks free delivery every week and priority in the kitchen ' +
+      'queue"). As it stands the whole perks list is decoration on the one screen a member opens ' +
+      'to see what their tier is worth. Either it describes a programme you intend to run, in ' +
+      'which case it needs building, or it needs rewriting. I have not guessed: inventing a tier ' +
+      'multiplier out of seeded marketing copy would be inventing the programme. Decide the ' +
+      'rates and this check re-reads whatever you write.',
+    'you',
+  );
+}
+
 // Connectivity recovery could not be confirmed off-device. Flagged rather
 // than fixed, because the fix would have to be verified on a handset.
 note(
