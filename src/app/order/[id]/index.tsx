@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import type { OrderStatus, Product } from '@/types';
+import type { OrderStatus } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
 import {
   Badge,
@@ -20,9 +20,8 @@ import {
 import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { OrderTimeline } from '@/features/orders/components/OrderTimeline';
 import { useCancelOrder, useOrder } from '@/features/orders/hooks';
-import { useMenu } from '@/features/menu/hooks';
+import { useReorder } from '@/features/orders/useReorder';
 import { readyLabelFor, statusCopy } from '@/services/orderService';
-import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
 import { describeOptions } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
@@ -37,47 +36,8 @@ export default function OrderTrackingScreen() {
 
   const order = useOrder(id, { poll: true });
   const cancelOrder = useCancelOrder();
-  const menu = useMenu();
-  const addLine = useCartStore((state) => state.addLine);
 
-  const handleReorder = useCallback(() => {
-    if (!order.data || !menu.data) return;
-
-    const products = new Map<string, Product>(
-      menu.data.products.map((product) => [product.id, product]),
-    );
-
-    let added = 0;
-    let unavailable = 0;
-
-    order.data.lines.forEach((line) => {
-      const product = products.get(line.productId);
-      // An item that has left the menu cannot be re-added — say so rather than
-      // silently dropping it from the basket.
-      if (!product || !product.available) {
-        unavailable += 1;
-        return;
-      }
-      addLine(product, line.selectedOptions, line.quantity, line.specialInstructions);
-      added += 1;
-    });
-
-    if (added === 0) {
-      Alert.alert('Nothing to reorder', 'None of these items are on the menu right now.');
-      return;
-    }
-
-    if (unavailable > 0) {
-      Alert.alert(
-        'Added what we could',
-        `${added} item${added === 1 ? '' : 's'} added. ${unavailable} ${unavailable === 1 ? 'is' : 'are'} no longer available.`,
-        [{ text: 'View cart', onPress: () => router.push('/cart') }],
-      );
-      return;
-    }
-
-    router.push('/cart');
-  }, [order.data, menu.data, addLine, router]);
+  const reorder = useReorder();
 
   /**
    * Live tracking polls every fifteen seconds and the hero copy changes under
@@ -322,7 +282,7 @@ export default function OrderTrackingScreen() {
 
         <Button
           label="Order this again"
-          onPress={handleReorder}
+          onPress={() => order.data && reorder(order.data)}
           variant={data.status === 'completed' ? 'primary' : 'tertiary'}
           iconLeft="repeat"
           testID="order-reorder"

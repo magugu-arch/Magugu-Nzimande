@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import type { Order, Product } from '@/types';
+import type { Order } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
 import {
   Badge,
@@ -20,10 +20,9 @@ import {
 } from '@/components/ui';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
-import { useMenu } from '@/features/menu/hooks';
 import { useOrders } from '@/features/orders/hooks';
+import { useReorder } from '@/features/orders/useReorder';
 import { readyLabelFor, statusCopy } from '@/services/orderService';
-import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatDateTime, formatEtaWindow, formatRelativeDay } from '@/utils/datetime';
 import { formatPrice } from '@/utils/money';
@@ -36,8 +35,6 @@ export default function OrdersScreen() {
   const insets = useSafeAreaInsets();
 
   const orders = useOrders();
-  const menu = useMenu();
-  const addLine = useCartStore((state) => state.addLine);
 
   const [filter, setFilter] = useState<Filter>('active');
 
@@ -51,25 +48,7 @@ export default function OrdersScreen() {
 
   const visible = filter === 'active' ? active : past;
 
-  const handleReorder = useCallback(
-    (order: Order) => {
-      if (!menu.data) return;
-      const products = new Map<string, Product>(
-        menu.data.products.map((product) => [product.id, product]),
-      );
-
-      let added = 0;
-      order.lines.forEach((line) => {
-        const product = products.get(line.productId);
-        if (!product?.available) return;
-        addLine(product, line.selectedOptions, line.quantity, line.specialInstructions);
-        added += 1;
-      });
-
-      if (added > 0) router.push('/cart');
-    },
-    [menu.data, addLine, router],
-  );
+  const handleReorder = useReorder();
 
   const renderBody = () => {
     if (orders.isLoading) return <LoadingState message="Fetching your orders…" />;
