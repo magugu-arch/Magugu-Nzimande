@@ -117,18 +117,66 @@ export async function registerForPushNotifications(): Promise<PushRegistrationOu
  * Swallows failure: a customer must never see an error because a push token
  * did not sync. The next launch tries again.
  */
+/**
+ * The token this device last told the server about.
+ *
+ * Held here rather than in a store because it is not UI state and nobody
+ * renders it — sign-out is the only thing that needs it back, and it needs it
+ * at a moment when the screen that registered it is long gone.
+ */
+let lastSyncedToken: string | null = null;
+
 export async function syncPushToken(token: string): Promise<boolean> {
-  if (config.useMockApi) return true;
+  if (config.useMockApi) {
+    lastSyncedToken = token;
+    return true;
+  }
 
   try {
     await request<void>('/v1/account/push-tokens', {
       method: 'POST',
       body: { token, platform: Platform.OS },
     });
+    lastSyncedToken = token;
     return true;
   } catch {
     return false;
   }
+}
+
+/**
+ * Unbind this handset from the account that is signing out.
+ *
+ * `syncPushToken` registers the device against whoever is signed in, and
+ * nothing undid it. Signing out cleared the app's own memory of a person —
+ * their address, their basket, their cached history — and left the server
+ * still sending that person's push to this handset. On a phone that has been
+ * shared, handed down or sold, the next owner reads "Your order BBQ-4823 is on
+ * its way" for an order that is not theirs, complete with the reference.
+ *
+ * Best-effort on purpose, and it must run before the session is torn down,
+ * while the request can still authenticate. A failure here cannot be allowed
+ * to keep someone signed in.
+ */
+export async function revokePushToken(): Promise<boolean> {
+  const token = lastSyncedToken;
+  lastSyncedToken = null;
+  if (!token) return true;
+  if (config.useMockApi) return true;
+
+  try {
+    await request<void>(`/v1/account/push-tokens/${encodeURIComponent(token)}`, {
+      method: 'DELETE',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Test seam: the token this device believes the server has. */
+export function syncedPushToken(): string | null {
+  return lastSyncedToken;
 }
 
 /**

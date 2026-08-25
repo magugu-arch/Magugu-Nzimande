@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
+import { revokePushToken } from '@/services/notificationService';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
@@ -48,6 +49,13 @@ export function useSignOut(): { signOut: () => Promise<void>; forgetLocally: () 
   }, [clearCart, forgetFulfilment, queryClient, router]);
 
   const signOut = useCallback(async () => {
+    // Unbind the handset first, while the request can still authenticate.
+    // `syncPushToken` registers this device against whoever is signed in and
+    // nothing undid it, so the server kept pushing one person's order updates
+    // to a phone somebody else is now holding. Best-effort: a failed revoke
+    // must not keep anyone signed in.
+    await revokePushToken().catch(() => false);
+
     // The local clear happens whether or not the server call succeeds. A
     // failed sign-out that leaves someone's address on a handed-over phone is
     // the worse of the two outcomes by a distance.
@@ -59,6 +67,11 @@ export function useSignOut(): { signOut: () => Promise<void>; forgetLocally: () 
   }, [signOutRemote, forget]);
 
   const forgetLocally = useCallback(() => {
+    // An expired session cannot authenticate a revoke, so this only drops the
+    // app's own memory of the token. The server will stop trusting the session
+    // anyway; the binding is cleaned up on the next deliberate sign-out or the
+    // next sign-in, whichever comes first.
+    void revokePushToken().catch(() => false);
     signOutLocally();
     forget();
   }, [signOutLocally, forget]);

@@ -166,6 +166,21 @@ note(
   'you',
 );
 
+// The app now calls DELETE /v1/account/push-tokens/:token when someone signs
+// out. If the backend does not implement it, the unbinding silently fails and
+// one person's order updates keep landing on a handset somebody else holds.
+const notifications = read('src/services/notificationService.ts');
+if (notifications.includes('/v1/account/push-tokens/')) {
+  note(
+    'Push token unbinding',
+    'Sign-out calls DELETE /v1/account/push-tokens/:token to unbind this handset ' +
+      'from the account. Confirm the backend implements it — without it, a phone ' +
+      'that has been shared, handed down or sold keeps receiving the previous ' +
+      "owner's order updates, order reference and all.",
+    'you',
+  );
+}
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {

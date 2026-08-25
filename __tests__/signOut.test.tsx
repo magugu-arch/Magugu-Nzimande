@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { createElement } from 'react';
 import { useSignOut } from '@/features/system/useSignOut';
+import { revokePushToken, syncPushToken, syncedPushToken } from '@/services/notificationService';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
@@ -218,5 +219,57 @@ describe('signing out', () => {
     expect(useFulfilmentStore.getState().coordinates).toBeNull();
     expect(useCartStore.getState().lines).toHaveLength(0);
     expect(useAuthStore.getState().user).toBeNull();
+  });
+});
+
+/**
+ * `syncPushToken` registers this handset against whoever is signed in, and
+ * nothing undid it. Signing out cleared the app's own memory of a person and
+ * left the server still pushing that person's order updates to this phone: on
+ * a device that has been shared, handed down or sold, the next owner reads
+ * "Your order BBQ-4823 is on its way" for an order that is not theirs.
+ */
+describe('the push token this handset is registered under', () => {
+  beforeEach(() => {
+    mockReplace.mockClear();
+    act(() => {
+      useAuthStore.getState().signOutLocally();
+      useCartStore.getState().clear();
+      useFulfilmentStore.getState().forgetPerson();
+    });
+  });
+
+  it('is remembered once the server has been told about it', async () => {
+    await syncPushToken('ExponentPushToken[thabo-handset]');
+    expect(syncedPushToken()).toBe('ExponentPushToken[thabo-handset]');
+  });
+
+  it('is given up when the customer signs out', async () => {
+    await syncPushToken('ExponentPushToken[thabo-handset]');
+    seedAPerson();
+    const { result } = renderSignOut();
+
+    await act(async () => {
+      await result.current.signOut();
+    });
+
+    expect(syncedPushToken()).toBeNull();
+  });
+
+  it('is given up when the session expires too', async () => {
+    await syncPushToken('ExponentPushToken[thabo-handset]');
+    seedAPerson();
+    const { result } = renderSignOut();
+
+    act(() => {
+      result.current.forgetLocally();
+    });
+
+    expect(syncedPushToken()).toBeNull();
+  });
+
+  /** Nothing to revoke is not a failure — plenty of customers never opt in. */
+  it('is happy when there was never a token', async () => {
+    await expect(revokePushToken()).resolves.toBe(true);
   });
 });
