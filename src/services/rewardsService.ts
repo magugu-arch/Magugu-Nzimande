@@ -160,8 +160,45 @@ function stampExpiry(list: Voucher[], now = Date.now()): Voucher[] {
   }));
 }
 
+/**
+ * The mock's voucher ledger, for the same reason the loyalty one exists.
+ *
+ * `Voucher.used` was read in two places and written in none. The seed marks
+ * one voucher used so that state renders somewhere, but no voucher ever
+ * *became* used — so "R50 off your first order" came off the first order, and
+ * the second, and the fiftieth:
+ *
+ *     1st use: WELCOME50 discount R 50
+ *     2nd use: WELCOME50 discount R 50
+ *     3rd use: WELCOME50 discount R 50
+ *
+ * A stated one-time promotion paying out for ever, in rand.
+ */
+let voucherLedger: Voucher[] = vouchers.map((voucher) => ({ ...voucher }));
+
+/** Spend a voucher, so it cannot be spent again. Mock only. */
+export function markVoucherUsed(code: string): void {
+  const normalised = code.trim().toUpperCase();
+  voucherLedger = voucherLedger.map((voucher) =>
+    voucher.code === normalised ? { ...voucher, used: true } : voucher,
+  );
+}
+
+/**
+ * Hand a voucher back, for an order that did not happen.
+ *
+ * A customer who cancels has not had their R50 — taking the code as well would
+ * charge them for changing their mind.
+ */
+export function restoreVoucher(code: string): void {
+  const normalised = code.trim().toUpperCase();
+  voucherLedger = voucherLedger.map((voucher) =>
+    voucher.code === normalised ? { ...voucher, used: false } : voucher,
+  );
+}
+
 export async function fetchVouchers(): Promise<Voucher[]> {
-  if (config.useMockApi) return delay(stampExpiry(vouchers));
+  if (config.useMockApi) return delay(stampExpiry(voucherLedger));
   return stampExpiry(await request<Voucher[]>('/v1/loyalty/vouchers'));
 }
 

@@ -848,3 +848,72 @@ describe('the points a customer actually has', () => {
     expect(account.tierProgress).toBeLessThanOrEqual(1);
   });
 });
+
+/**
+ * `Voucher.used` was read in two places and written in none. The seed marks
+ * one voucher used so that state renders somewhere, but no voucher ever
+ * *became* used:
+ *
+ *     1st use: WELCOME50 discount R 50
+ *     2nd use: WELCOME50 discount R 50
+ *     3rd use: WELCOME50 discount R 50
+ *
+ * "R50 off your first order" coming off every order there would ever be.
+ */
+describe('spending a promo code', () => {
+  const totals = {
+    subtotal: 300,
+    deliveryFee: 32,
+    serviceFee: 5,
+    discount: 50,
+    rewardsDiscount: 0,
+    total: 287,
+    pointsEarned: 250,
+  };
+
+  const placeWith = (voucherCode: string) =>
+    placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: 'pm-1',
+      paymentMethodType: 'card',
+      voucherCode,
+    });
+
+  it('refuses a first-order code on the second order', async () => {
+    // It has to work once, or this proves nothing about the second attempt.
+    const first = await validateVoucherCode('WELCOME50', 300);
+    expect(first.discount).toBe(50);
+
+    await placeWith('WELCOME50');
+
+    await expect(validateVoucherCode('WELCOME50', 300)).rejects.toThrow(/already been used/);
+  });
+
+  it('drops a spent code out of the list of codes still worth showing', async () => {
+    const active = await fetchActiveVouchers();
+    expect(active.some((voucher) => voucher.code === 'WELCOME50')).toBe(false);
+  });
+
+  it('records the code on the order, so the discount line can be explained', async () => {
+    const order = await placeWith('FREEDEL');
+    expect(order.voucherCode).toBe('FREEDEL');
+  });
+
+  /** Somebody who cancels has not had their R50. Taking the code as well would
+   * charge them for changing their mind. */
+  it('hands the code back when the order is cancelled', async () => {
+    const before = await validateVoucherCode('SPICY15', 300);
+    expect(before.voucher.code).toBe('SPICY15');
+
+    const order = await placeWith('SPICY15');
+    await expect(validateVoucherCode('SPICY15', 300)).rejects.toThrow(/already been used/);
+
+    await cancelOrder(order.id);
+
+    const after = await validateVoucherCode('SPICY15', 300);
+    expect(after.voucher.code).toBe('SPICY15');
+  });
+});

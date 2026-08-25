@@ -5,7 +5,7 @@ import { delay, request } from './apiClient';
 import { stores } from './data/storeData';
 import { currentAddresses, currentPaymentMethods } from './accountService';
 import { describePaymentMethod } from './paymentService';
-import { fetchReward, recordPoints } from './rewardsService';
+import { fetchReward, markVoucherUsed, recordPoints, restoreVoucher } from './rewardsService';
 
 /**
  * Order service.
@@ -366,6 +366,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     // an order somebody is paying for in cash at their front door.
     paymentMethodLabel: payment?.label ?? describePaymentMethod(input.paymentMethodType),
     ...(input.redeemedRewardId ? { redeemedRewardId: input.redeemedRewardId } : {}),
+    ...(input.voucherCode ? { voucherCode: input.voucherCode } : {}),
     etaMinutes,
     ...(input.fulfilmentType === 'delivery' ? { driverName: 'Sipho' } : {}),
   };
@@ -391,6 +392,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
       });
     }
   }
+
+  // A one-time code is only one-time if something spends it.
+  if (input.voucherCode) markVoucherUsed(input.voucherCode);
 
   if (input.totals.pointsEarned > 0) {
     recordPoints({
@@ -490,6 +494,8 @@ export async function cancelOrder(orderId: string): Promise<Order> {
       orderReference: cancelled.reference,
     });
   }
+
+  if (cancelled.voucherCode) restoreVoucher(cancelled.voucherCode);
 
   if (cancelled.redeemedRewardId) {
     const reward = await fetchReward(cancelled.redeemedRewardId).catch(() => null);

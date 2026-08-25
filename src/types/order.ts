@@ -156,6 +156,8 @@ export interface Order {
    * the points back if the order was called off.
    */
   redeemedRewardId?: string;
+  /** The promo code spent on this order, for the same reasons. */
+  voucherCode?: string;
   /** Minutes until ready/delivered, from `placedAt`. */
   etaMinutes: number;
   driverName?: string;
