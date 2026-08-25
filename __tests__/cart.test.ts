@@ -685,3 +685,108 @@ describe('a voucher that expires while it sits in the basket', () => {
     expect(voucherDiscount(percentage, 100, applied)).toBe(0);
   });
 });
+
+/**
+ * Reconciliation checked that every chosen option still exists, and never that
+ * the selection was still legal. A group whose `maxSelect` drops from three to
+ * one — or whose `minSelect` rises from nought to one — leaves an old line
+ * carrying a combination the kitchen can no longer make, priced with whatever
+ * surcharges it was built with. Reorder walks the same data, so both routes
+ * carried it.
+ */
+describe('a saved line whose option rules have moved', () => {
+  const group = (over: Partial<OptionGroup> = {}): OptionGroup =>
+    ({
+      id: 'flavour',
+      name: 'Flavour',
+      minSelect: 0,
+      maxSelect: 3,
+      defaultOptionIds: [],
+      options: [
+        { id: 'soy', name: 'Soy Garlic', priceDelta: 10, available: true },
+        { id: 'hot', name: 'Hot Spicy', priceDelta: 10, available: true },
+        { id: 'honey', name: 'Honey Garlic', priceDelta: 10, available: true },
+      ],
+      ...over,
+    }) as OptionGroup;
+
+  const productWith = (groups: OptionGroup[]): Product =>
+    ({
+      id: 'half-and-half',
+      name: 'Half & Half',
+      description: '',
+      basePrice: 200,
+      assetKey: 'halfAndHalf',
+      category: 'chicken',
+      available: true,
+      optionGroups: groups,
+      tags: [],
+      preparationMinutes: 20,
+    }) as unknown as Product;
+
+  const lineWith = (optionIds: string[]): CartLine =>
+    ({
+      id: 'half-and-half__x',
+      productId: 'half-and-half',
+      name: 'Half & Half',
+      assetKey: 'halfAndHalf',
+      unitBasePrice: 200,
+      quantity: 1,
+      selectedOptions: optionIds.map((id) => ({
+        groupId: 'flavour',
+        groupName: 'Flavour',
+        optionId: id,
+        optionName: id,
+        priceDelta: 10,
+      })),
+      unitPrice: 200 + optionIds.length * 10,
+      lineTotal: 200 + optionIds.length * 10,
+    }) as unknown as CartLine;
+
+  it('keeps a line that still fits the rules', () => {
+    const result = reconcileCart([lineWith(['soy', 'hot'])], [productWith([group()])]);
+
+    expect(result.lines).toHaveLength(1);
+    expect(result.dropped).toEqual([]);
+  });
+
+  it('drops a line carrying more choices than the group now allows', () => {
+    const narrowed = productWith([group({ maxSelect: 1 })]);
+    const result = reconcileCart([lineWith(['soy', 'hot', 'honey'])], [narrowed]);
+
+    expect(result.lines).toEqual([]);
+    expect(result.dropped[0]?.reason).toBe('options-changed');
+  });
+
+  it('drops a line that no longer meets a newly required choice', () => {
+    const nowRequired = productWith([group({ minSelect: 1 })]);
+    const result = reconcileCart([lineWith([])], [nowRequired]);
+
+    expect(result.lines).toEqual([]);
+    expect(result.dropped[0]?.reason).toBe('options-changed');
+  });
+
+  /**
+   * Told apart from a withdrawn dish on purpose. "No longer available" would
+   * send the customer looking for something that is still on the menu.
+   */
+  it('is a different reason from an option that vanished', () => {
+    const withdrawn = productWith([
+      group({
+        options: [
+          { id: 'soy', name: 'Soy Garlic', priceDelta: 10, available: false },
+          { id: 'hot', name: 'Hot Spicy', priceDelta: 10, available: true },
+          { id: 'honey', name: 'Honey Garlic', priceDelta: 10, available: true },
+        ],
+      }),
+    ]);
+    const result = reconcileCart([lineWith(['soy'])], [withdrawn]);
+
+    expect(result.dropped[0]?.reason).toBe('option-gone');
+  });
+
+  it('marks the basket as changed so the customer is told', () => {
+    const narrowed = productWith([group({ maxSelect: 1 })]);
+    expect(reconcileCart([lineWith(['soy', 'hot'])], [narrowed]).changed).toBe(true);
+  });
+});

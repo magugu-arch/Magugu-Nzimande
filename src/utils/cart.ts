@@ -240,7 +240,7 @@ export function calculateTotals({
 }
 
 /** Why a line could not be carried forward. */
-export type DroppedReason = 'off-menu' | 'unavailable' | 'option-gone';
+export type DroppedReason = 'off-menu' | 'unavailable' | 'option-gone' | 'options-changed';
 
 export interface DroppedLine {
   line: CartLine;
@@ -325,6 +325,32 @@ export function reconcileCart(lines: CartLine[], products: Product[]): CartRecon
 
     if (configurationBroken) {
       dropped.push({ line, reason: 'option-gone' });
+      continue;
+    }
+
+    // Every chosen option still exists — but the rules about how many you may
+    // choose can move too. A group whose `maxSelect` drops from three to one,
+    // or whose `minSelect` rises from nought to one, leaves an old line
+    // carrying a combination the kitchen can no longer make, priced with
+    // whatever surcharges it was built with.
+    //
+    // This function's whole job is bringing a saved basket back into agreement
+    // with the menu, and it was checking that the options exist without
+    // checking that the selection is still legal. Reorder walks the same data
+    // — it re-adds the options an old order was placed with — so both routes
+    // were carrying it.
+    const chosenPerGroup = new Map<string, number>();
+    for (const option of currentOptions) {
+      chosenPerGroup.set(option.groupId, (chosenPerGroup.get(option.groupId) ?? 0) + 1);
+    }
+
+    const selectionIllegal = product.optionGroups.some((group) => {
+      const chosen = chosenPerGroup.get(group.id) ?? 0;
+      return chosen < group.minSelect || chosen > group.maxSelect;
+    });
+
+    if (selectionIllegal) {
+      dropped.push({ line, reason: 'options-changed' });
       continue;
     }
 

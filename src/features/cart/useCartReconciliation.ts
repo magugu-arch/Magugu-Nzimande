@@ -14,14 +14,32 @@ import { formatPrice } from '@/utils/money';
 export function describeReconciliation(result: CartReconciliation): string | null {
   const parts: string[] = [];
 
-  if (result.dropped.length > 0) {
-    const names = result.dropped.map(({ line }) => line.name);
-    const list =
-      names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+  const list = (names: string[]) =>
+    names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+
+  // Split by *why*. A line whose options still exist but can no longer be
+  // combined that way is not "no longer available" — the dish is on the menu,
+  // and saying otherwise sends the customer looking for something that is
+  // right there.
+  const gone = result.dropped
+    .filter(({ reason }) => reason !== 'options-changed')
+    .map(({ line }) => line.name);
+  const rebuilt = result.dropped
+    .filter(({ reason }) => reason === 'options-changed')
+    .map(({ line }) => line.name);
+
+  if (gone.length > 0) {
     parts.push(
-      `${list} ${names.length === 1 ? 'is' : 'are'} no longer available, so we removed ${
-        names.length === 1 ? 'it' : 'them'
+      `${list(gone)} ${gone.length === 1 ? 'is' : 'are'} no longer available, so we removed ${
+        gone.length === 1 ? 'it' : 'them'
       }.`,
+    );
+  }
+
+  if (rebuilt.length > 0) {
+    parts.push(
+      `${list(rebuilt)} ${rebuilt.length === 1 ? 'is' : 'are'} made differently now — ` +
+        `add ${rebuilt.length === 1 ? 'it' : 'them'} again to pick afresh.`,
     );
   }
 
