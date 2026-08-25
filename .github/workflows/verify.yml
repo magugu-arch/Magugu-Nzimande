@@ -97,6 +97,21 @@ jobs:
       - name: Place an order
         run: npm run smoke:order
 
+      # Every screen with the mock off and a host that does not answer. Eleven
+      # of fourteen screens once claimed something false rather than admitting
+      # they could not reach the server — "No offers right now", "No orders on
+      # the go" — so an empty state now has to be earned by a fetch that
+      # actually succeeded.
+      - name: Check what the screens say with no server
+        run: npm run audit:offline
+
+      # The account the seeded data could never represent: somebody who
+      # installed the app this morning. Nothing saved, nothing ordered. It has
+      # already caught a customer with no card being offered no way to pay at
+      # all, cash included.
+      - name: Order as a brand-new customer
+        run: npm run audit:coldstart
+
   assets:
     name: Food asset catalogue
     runs-on: ubuntu-latest
