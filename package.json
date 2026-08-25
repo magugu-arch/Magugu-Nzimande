@@ -40,7 +40,8 @@
     "audit:coldstart": "node scripts/audit-coldstart.mjs",
     "audit:returning": "node scripts/audit-returning.mjs",
     "audit:points": "node scripts/audit-points.mjs",
-    "audit:handover": "node scripts/audit-handover.mjs"
+    "audit:handover": "node scripts/audit-handover.mjs",
+    "audit:tracking": "node scripts/audit-tracking.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",

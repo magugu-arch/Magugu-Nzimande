@@ -18,6 +18,7 @@ import {
   fetchActiveOrder,
   fetchOrder,
   fetchOrders,
+  minutesUntilDue,
   placeOrder,
   readyLabelFor,
   statusSequence,
@@ -915,5 +916,82 @@ describe('spending a promo code', () => {
 
     const after = await validateVoucherCode('SPICY15', 300);
     expect(after.voucher.code).toBe('SPICY15');
+  });
+});
+
+/**
+ * `etaMinutes` is how long an order takes, counted from when the kitchen
+ * starts — fixed when the order is placed. Tracking printed it directly, so
+ * the line never moved. Driven in a browser, advancing the clock a quarter of
+ * an hour at a time:
+ *
+ *     t+0min  : Out for delivery in 35 – 45 min
+ *     t+15min : Out for delivery in 35 – 45 min
+ *     t+30min : Out for delivery in 35 – 45 min
+ *     t+45min : Out for delivery in 35 – 45 min
+ *
+ * Three quarters of an hour after ordering, on the one screen a hungry person
+ * actually watches — beside a progress bar that had been climbing the whole
+ * time.
+ */
+describe('how long until the food arrives', () => {
+  const totals = {
+    subtotal: 200,
+    deliveryFee: 32,
+    serviceFee: 5,
+    discount: 0,
+    rewardsDiscount: 0,
+    total: 237,
+    pointsEarned: 200,
+  };
+
+  const place = (scheduledFor?: string) =>
+    placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: 'pm-1',
+      paymentMethodType: 'card',
+      ...(scheduledFor ? { scheduledFor } : {}),
+    });
+
+  it('is the whole wait when the order has just been placed', async () => {
+    const order = await place();
+    expect(minutesUntilDue(order, new Date(order.placedAt))).toBe(order.etaMinutes);
+  });
+
+  it('counts down as the clock moves', async () => {
+    const order = await place();
+    const placedAt = new Date(order.placedAt).getTime();
+
+    const atTwenty = minutesUntilDue(order, new Date(placedAt + 20 * 60_000));
+    expect(atTwenty).toBe(order.etaMinutes - 20);
+    expect(atTwenty).toBeLessThan(order.etaMinutes);
+  });
+
+  it('goes negative once the order is overdue, rather than sticking', async () => {
+    const order = await place();
+    const placedAt = new Date(order.placedAt).getTime();
+
+    // Three quarters of an hour — past the ETA on any of the seeded branches.
+    expect(minutesUntilDue(order, new Date(placedAt + 45 * 60_000))).toBeLessThanOrEqual(0);
+  });
+
+  /**
+   * Counted from when the kitchen starts, not from when the customer paid —
+   * or an order booked for tomorrow evening reads as overdue all night.
+   */
+  it('does not report a scheduled order as overdue before its slot', async () => {
+    const slot = new Date(Date.now() + 28 * 3_600_000).toISOString();
+    const order = await place(slot);
+
+    // An hour after paying, the order is still a day away.
+    const soonAfterPaying = new Date(new Date(order.placedAt).getTime() + 60 * 60_000);
+    expect(minutesUntilDue(order, soonAfterPaying)).toBeGreaterThan(0);
+
+    // And it is due at its slot, not at its slot plus the cooking time.
+    const atTheSlot = minutesUntilDue(order, new Date(slot));
+    expect(Math.abs(atTheSlot)).toBeLessThanOrEqual(1);
   });
 });

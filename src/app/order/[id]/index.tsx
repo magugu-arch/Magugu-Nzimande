@@ -21,7 +21,8 @@ import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { OrderTimeline } from '@/features/orders/components/OrderTimeline';
 import { useCancelOrder, useOrder } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
-import { readyLabelFor, statusCopy } from '@/services/orderService';
+import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
+import { useNow } from '@/features/system/useNow';
 import { colors, radius, spacing } from '@/theme';
 import { describeOptions } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
@@ -38,6 +39,11 @@ export default function OrderTrackingScreen() {
   const cancelOrder = useCancelOrder();
 
   const reorder = useReorder();
+
+  // The card counts down, so it needs a reason to re-render as the clock
+  // moves. Without this the line is worked out once when the screen opens and
+  // then sits there — which is the bug in a different disguise.
+  const now = useNow();
 
   /**
    * Live tracking polls every fifteen seconds and the hero copy changes under
@@ -106,6 +112,7 @@ export default function OrderTrackingScreen() {
   const isActive = data.status !== 'completed' && data.status !== 'cancelled';
   const completedSteps = data.timeline.filter((event) => event.occurredAt !== null).length;
   const progress = completedSteps / Math.max(1, data.timeline.length);
+  const dueInMinutes = minutesUntilDue(data, now);
 
   const canCall = isDiallable(data.storePhone);
   // A delivery is coming to the customer; directions to the kitchen are noise.
@@ -130,7 +137,7 @@ export default function OrderTrackingScreen() {
           </Text>
         </View>
 
-        <Text variant="h1" color={colors.textOnDark}>
+        <Text variant="h1" color={colors.textOnDark} testID="tracking-status">
           {statusCopy(data.status).label}
         </Text>
         <Text variant="body" color={colors.textOnDarkMuted}>
@@ -145,11 +152,27 @@ export default function OrderTrackingScreen() {
               style={styles.progress}
               accessibilityLabel={`Order ${Math.round(progress * 100)} percent complete`}
             />
-            <Text variant="captionMedium" color={colors.textOnDark}>
-              {data.scheduledFor
-                ? `Scheduled for ${formatDateTime(data.scheduledFor)}`
-                : `${readyLabelFor(data.fulfilmentType)} in ${formatEtaWindow(data.etaMinutes)}`}
-            </Text>
+            {/*
+              A countdown, not a constant. `etaMinutes` is how long the order
+              takes, so printing it directly meant the line never moved: three
+              quarters of an hour in, an order out with a driver still read
+              "Out for delivery in 35 – 45 min" — next to a progress bar that
+              had been climbing the whole time.
+
+              Once it is past due the window is dropped rather than restated or
+              turned negative. The status line above already says where the
+              order is, and a time nobody believes any more is worse than no
+              time at all.
+            */}
+            {data.scheduledFor ? (
+              <Text variant="captionMedium" color={colors.textOnDark} testID="tracking-eta">
+                {`Scheduled for ${formatDateTime(data.scheduledFor)}`}
+              </Text>
+            ) : dueInMinutes > 0 ? (
+              <Text variant="captionMedium" color={colors.textOnDark} testID="tracking-eta">
+                {`${readyLabelFor(data.fulfilmentType)} in ${formatEtaWindow(dueInMinutes)}`}
+              </Text>
+            ) : null}
           </>
         ) : null}
 

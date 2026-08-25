@@ -134,6 +134,13 @@ jobs:
       - name: Hand the phone over
         run: npm run audit:handover
 
+      # The screen a hungry person actually watches. The wait was printed from
+      # `etaMinutes`, which is a property of the order, so it never moved —
+      # three quarters of an hour in, an order out with a driver still read
+      # "in 35 – 45 min", beside a progress bar that had been climbing all along.
+      - name: Watch an order arrive
+        run: npm run audit:tracking
+
   assets:
     name: Food asset catalogue
     runs-on: ubuntu-latest

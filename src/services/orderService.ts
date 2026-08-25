@@ -278,6 +278,32 @@ export function workStartsAt(order: Order): Date {
 }
 
 /**
+ * Minutes until this order is due, from now. Negative once it is overdue.
+ *
+ * `etaMinutes` is how long the order takes, counted from when the kitchen
+ * starts — a property of the order, fixed when it is placed. Tracking printed
+ * it directly, so the line never moved. Driven in a browser, advancing the
+ * clock a quarter of an hour at a time:
+ *
+ *     t+0min  : Out for delivery in 35 – 45 min
+ *     t+15min : Out for delivery in 35 – 45 min
+ *     t+30min : Out for delivery in 35 – 45 min
+ *     t+45min : Out for delivery in 35 – 45 min
+ *
+ * Three quarters of an hour after ordering — through preparing, ready and out
+ * with a driver — still forty minutes away, on the one screen a hungry person
+ * actually watches. The progress bar beside it was moving the whole time,
+ * which makes it worse: two things on the same card, one of them true.
+ *
+ * Counted from `workStartsAt` rather than `placedAt`, so an order booked for
+ * tomorrow evening is not reported as forty minutes overdue all night.
+ */
+export function minutesUntilDue(order: Order, now: Date = new Date()): number {
+  const due = addMinutes(workStartsAt(order), order.etaMinutes);
+  return Math.round((due.getTime() - now.getTime()) / 60_000);
+}
+
+/**
  * Advance a mock order, so tracking reflects the passage of real time between
  * screen visits.
  *
