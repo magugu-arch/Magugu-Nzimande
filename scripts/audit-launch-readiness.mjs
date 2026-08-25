@@ -213,6 +213,25 @@ if (apiClient.includes('sign_in_required')) {
   );
 }
 
+// The mock now settles points with the order, which is a reading of a policy
+// nobody has stated. It matters in rand: it decides who is out of pocket when
+// somebody redeems and then walks away.
+const rewardsService = read('src/services/rewardsService.ts');
+if (rewardsService.includes('recordPoints')) {
+  note(
+    'Loyalty policy',
+    'When do points settle? The app now takes them at the moment the order is placed, ' +
+      'not when somebody taps a reward — so an abandoned basket costs nobody anything, ' +
+      'and a cancelled order puts the points and the reward straight back. That is a ' +
+      'reading of `redeemedRewardId` on the order payload, not a rule anybody has ' +
+      'given me. Confirm it against how the programme is actually run, along with two ' +
+      'numbers the seed invents: 1 point per R1 on food value only (no fees, no ' +
+      'discounted amounts), and the Bronze/Silver/Gold/Black thresholds at ' +
+      '0/1 500/4 000/9 000 lifetime points.',
+    'you',
+  );
+}
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {
