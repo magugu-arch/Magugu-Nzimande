@@ -127,6 +127,10 @@ describe('an expired access token', () => {
   });
 
   it('ends the session when there is no refresh token to use', async () => {
+    // An access token and nothing to renew it with. The fixture used to store
+    // neither, which made this the guest case wearing an expiry's name — and
+    // it passed only because the client could not tell the two apart either.
+    await storeTokens('stale', '');
     const onExpired = jest.fn();
     setSessionExpiredHandler(onExpired);
     fetchMock.mockResolvedValue(jsonResponse(401));
@@ -205,5 +209,61 @@ describe('an expired access token', () => {
 
     await expect(request('/v1/menu')).rejects.toMatchObject({ code: 'http_500' });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * A guest never signed in, so a 401 on their request cannot be an expiry.
+ *
+ * Treating it as one does real damage. The expiry handler forgets the
+ * customer: it empties the basket, drops the delivery address and routes to
+ * sign-in. A guest who browsed the menu, built an order and pressed pay would
+ * lose the lot and be told "Your session has expired" — which they would have
+ * every right to find baffling, never having had one.
+ *
+ * Whether a guest may order at all is a decision for the backend and the
+ * business. Whichever way that goes, this is the wrong way to say no.
+ */
+describe('a 401 for somebody who was never signed in', () => {
+  it('asks them to sign in rather than claiming their session expired', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(401));
+
+    await expect(request('/v1/orders', { method: 'POST', body: {} })).rejects.toMatchObject({
+      code: 'sign_in_required',
+    });
+  });
+
+  it('does not tear down a session that never existed', async () => {
+    const expired = jest.fn();
+    setSessionExpiredHandler(expired);
+    fetchMock.mockResolvedValueOnce(jsonResponse(401));
+
+    await request('/v1/orders', { method: 'POST', body: {} }).catch(() => {});
+
+    // The handler is what empties the basket and forgets the address.
+    expect(expired).not.toHaveBeenCalled();
+    setSessionExpiredHandler(null);
+  });
+
+  it('never spends a refresh attempt when there is no token to refresh', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(401));
+
+    await request('/v1/orders', { method: 'POST', body: {} }).catch(() => {});
+
+    // One call. No trip to /v1/auth/refresh with nothing to send.
+    expect(fetchMock.mock.calls.map(([target]) => target)).toEqual([url('/v1/orders')]);
+  });
+
+  /** A real expiry must still behave exactly as it did. */
+  it('still ends a session that genuinely had a token', async () => {
+    await storeTokens('stale', 'refresh-1');
+    const expired = jest.fn();
+    setSessionExpiredHandler(expired);
+
+    fetchMock.mockResolvedValueOnce(jsonResponse(401)).mockResolvedValueOnce(jsonResponse(401));
+
+    await expect(request('/v1/loyalty')).rejects.toMatchObject({ code: 'session_expired' });
+    expect(expired).toHaveBeenCalled();
+    setSessionExpiredHandler(null);
   });
 });

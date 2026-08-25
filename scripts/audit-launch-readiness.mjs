@@ -197,6 +197,22 @@ if (payments.includes('Connect the provider SDK')) {
   );
 }
 
+// Nothing in the app stops a guest reaching checkout, and the mock layer
+// lets them right through. Against a real API their order is a 401.
+const apiClient = read('src/services/apiClient.ts');
+if (apiClient.includes('sign_in_required')) {
+  note(
+    'Guest checkout',
+    'A guest can browse, build a basket and reach checkout — nothing gates it, and ' +
+      'the mock layer lets the order through. Against a real API it is a 401. The app ' +
+      'now says "Sign in to finish this" and keeps their basket rather than wiping it ' +
+      'and claiming their session expired, but the underlying question is yours: either ' +
+      'the backend accepts guest orders, or checkout should ask them to sign in before ' +
+      'they build the order rather than after.',
+    'you',
+  );
+}
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {

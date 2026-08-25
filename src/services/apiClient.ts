@@ -213,6 +213,28 @@ async function execute<T>(path: string, options: RequestOptions, mayRefresh: boo
     if (response.status === 401 && !anonymous) {
       clearTimeout(timeout);
 
+      /**
+       * A 401 on a request that carried no token is not an expired session.
+       *
+       * A guest has never signed in, so there is nothing to refresh and
+       * nothing to clear — and treating it as an expiry does real damage. The
+       * expiry handler forgets the customer: it empties the basket, drops the
+       * delivery address and routes to sign-in. A guest who browsed, built an
+       * order and pressed pay would lose the lot and be told "Your session has
+       * expired", which they would have every right to find baffling, never
+       * having had one.
+       *
+       * Whether a guest may order at all is a decision for the backend and the
+       * business. Whichever way it goes, this is the wrong way to say no.
+       */
+      if (!requestHeaders.Authorization) {
+        throw new ApiRequestError({
+          code: 'sign_in_required',
+          message: 'Sign in to finish this.',
+          status: 401,
+        });
+      }
+
       // One attempt, then give up. `mayRefresh` is false on the retry, so a
       // token that is refused immediately after being minted ends the session
       // rather than looping.
