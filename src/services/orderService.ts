@@ -5,6 +5,7 @@ import { delay, request } from './apiClient';
 import { stores } from './data/storeData';
 import { currentAddresses, currentPaymentMethods } from './accountService';
 import { describePaymentMethod } from './paymentService';
+import { fetchReward, recordPoints } from './rewardsService';
 
 /**
  * Order service.
@@ -364,11 +365,42 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     // Falling back to a flat 'Card' put "Paid with: Card" on the receipt for
     // an order somebody is paying for in cash at their front door.
     paymentMethodLabel: payment?.label ?? describePaymentMethod(input.paymentMethodType),
+    ...(input.redeemedRewardId ? { redeemedRewardId: input.redeemedRewardId } : {}),
     etaMinutes,
     ...(input.fulfilmentType === 'delivery' ? { driverName: 'Sipho' } : {}),
   };
 
   ledger.unshift(order);
+
+  /**
+   * Settle the points with the order, which is where `redeemedRewardId` on
+   * the payload says they settle.
+   *
+   * Spent first, then earned, so the balance never dips below nought on the
+   * way through. The server owns the real judgement of whether the customer
+   * still had the points by the time the order arrived — this records, it does
+   * not adjudicate.
+   */
+  if (input.redeemedRewardId) {
+    const reward = await fetchReward(input.redeemedRewardId).catch(() => null);
+    if (reward) {
+      recordPoints({
+        description: `${reward.name} · order ${order.reference}`,
+        points: -reward.pointsCost,
+        orderReference: order.reference,
+      });
+    }
+  }
+
+  if (input.totals.pointsEarned > 0) {
+    recordPoints({
+      description: `Order ${order.reference}`,
+      points: input.totals.pointsEarned,
+      lifetimeDelta: input.totals.pointsEarned,
+      orderReference: order.reference,
+    });
+  }
+
   return delay(order, 900);
 }
 
@@ -415,13 +447,88 @@ export async function cancelOrder(orderId: string): Promise<Order> {
   const index = ledger.findIndex((order) => order.id === orderId);
   const existing = ledger[index];
   if (!existing) throw new Error('Order not found');
-  if (existing.status !== 'received') {
-    throw new Error('This order is already being prepared and can no longer be cancelled.');
+
+  /**
+   * Asked of where the order has actually got to, not of what was last
+   * written down about it.
+   *
+   * Every other read in this file advances the order first — the status is
+   * derived from the clock, so a stored one is only as fresh as the last time
+   * somebody happened to look. This was the exception, and it was the one
+   * place where the stored value decided something. Two hours after placing:
+   *
+   *     nobody opened the app  → CANCEL SUCCEEDED, status now: cancelled
+   *     somebody looked first  → status is completed, and the cancel is refused
+   *
+   * The same order, at the same moment, cancellable or not depending on
+   * whether a screen had fetched it. The kitchen cooked that one and a driver
+   * delivered it.
+   */
+  const current = advance(existing);
+  ledger[index] = current;
+
+  if (current.status !== 'received') {
+    throw new Error(cannotCancelBecause(current.status));
   }
 
-  const cancelled: Order = { ...existing, status: 'cancelled' };
+  const cancelled: Order = { ...current, status: 'cancelled' };
   ledger[index] = cancelled;
+
+  /**
+   * Put the points back exactly as they were before this order.
+   *
+   * The earning is reversed against lifetime as well as the balance — those
+   * points were never really earned, so they must not go on holding up a tier.
+   * A spent reward is refunded to the balance only, which is where it came
+   * from.
+   */
+  if (cancelled.totals.pointsEarned > 0) {
+    recordPoints({
+      description: `Order ${cancelled.reference} cancelled`,
+      points: -cancelled.totals.pointsEarned,
+      lifetimeDelta: -cancelled.totals.pointsEarned,
+      orderReference: cancelled.reference,
+    });
+  }
+
+  if (cancelled.redeemedRewardId) {
+    const reward = await fetchReward(cancelled.redeemedRewardId).catch(() => null);
+    if (reward) {
+      recordPoints({
+        description: `${reward.name} returned · order ${cancelled.reference} cancelled`,
+        points: reward.pointsCost,
+        orderReference: cancelled.reference,
+      });
+    }
+  }
+
   return delay(cancelled, 300);
+}
+
+/**
+ * Why this order cannot be called back, in the customer's terms.
+ *
+ * One message covered every case — "already being prepared" — which is untrue
+ * of an order sitting on a driver's back seat and absurd of one eaten an hour
+ * ago. The status is known; saying it costs nothing and tells them whether to
+ * phone the branch or let it go.
+ */
+function cannotCancelBecause(status: OrderStatus): string {
+  switch (status) {
+    case 'preparing':
+      return 'This order is already in the kitchen and can no longer be cancelled.';
+    case 'ready':
+      return 'This order is cooked and waiting — call the store if something is wrong.';
+    case 'out_for_delivery':
+      return 'Your driver already has this order — call the store if something is wrong.';
+    case 'completed':
+      return 'This order has already been delivered.';
+    case 'cancelled':
+      return 'This order was already cancelled.';
+    case 'received':
+      // Unreachable: the caller only asks once the status is not 'received'.
+      return 'This order can no longer be cancelled.';
+  }
 }
 
 export async function rateOrder(orderId: string, rating: number, comment?: string): Promise<Order> {

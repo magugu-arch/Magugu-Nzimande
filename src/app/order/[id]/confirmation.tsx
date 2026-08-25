@@ -102,6 +102,7 @@ export default function OrderConfirmationScreen() {
           label="Back to home"
           onPress={() => router.replace('/(tabs)/home')}
           variant="text"
+          testID="confirmation-home"
         />
       </View>
     </Screen>

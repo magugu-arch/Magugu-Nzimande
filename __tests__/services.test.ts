@@ -14,6 +14,7 @@ import {
   isStoreOpenAt,
 } from '@/services/storeService';
 import {
+  cancelOrder,
   fetchActiveOrder,
   fetchOrder,
   fetchOrders,
@@ -25,6 +26,8 @@ import {
 import {
   discountFor,
   fetchActiveVouchers,
+  fetchLoyaltyAccount,
+  fetchRewards,
   fetchVouchers,
   rewardExpired,
   validateVoucherCode,
@@ -630,5 +633,218 @@ describe('what a placed order records about itself', () => {
     });
 
     expect(order.paymentMethodLabel).toBe(saved!.label);
+  });
+});
+
+/**
+ * Cancelling read the status as last written down rather than as it stands.
+ * Every other read in the order service advances first — the status is derived
+ * from the clock, so a stored one is only as fresh as the last time anybody
+ * looked. This was the exception, and the only place a stored status decided
+ * anything. Two hours after placing:
+ *
+ *     nobody opened the app  → CANCEL SUCCEEDED, status now: cancelled
+ *     somebody looked first  → status is completed, and the cancel is refused
+ */
+describe('calling an order back', () => {
+  const totals = {
+    subtotal: 200,
+    deliveryFee: 32,
+    serviceFee: 5,
+    discount: 0,
+    rewardsDiscount: 0,
+    total: 237,
+    pointsEarned: 200,
+  };
+
+  const place = () =>
+    placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: 'pm-1',
+      paymentMethodType: 'card',
+    });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('lets a customer cancel one the kitchen has not started', async () => {
+    const placed = await place();
+    const cancelled = await cancelOrder(placed.id);
+    expect(cancelled.status).toBe('cancelled');
+  });
+
+  it('refuses one that has been delivered, even if nobody ever opened the app', async () => {
+    const placed = await place();
+
+    // Two hours. Long enough to have been cooked, driven over and eaten — and
+    // no screen fetched it in between, so nothing rewrote the stored status.
+    jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 120 * 60_000);
+
+    await expect(cancelOrder(placed.id)).rejects.toThrow(/already been delivered/);
+  });
+
+  /** A driver holding the food is not the same as a kitchen not having started. */
+  it('says where the order actually got to, rather than one message for all of it', async () => {
+    const placed = await place();
+
+    // Far enough in to be on its way, not far enough to have arrived — worked
+    // out from the order's own ETA rather than a guessed number of minutes.
+    // "Out for delivery" is the fourth of five steps, so it runs from three
+    // quarters of the way through to the end.
+    const onTheRoad = Date.now() + placed.etaMinutes * 0.8 * 60_000;
+    jest.spyOn(Date, 'now').mockReturnValue(onTheRoad);
+
+    await expect(cancelOrder(placed.id)).rejects.toThrow(/driver already has this order/);
+  });
+
+  it('leaves the order alone when it refuses', async () => {
+    const placed = await place();
+    jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 120 * 60_000);
+
+    await expect(cancelOrder(placed.id)).rejects.toThrow();
+
+    const after = await fetchOrder(placed.id);
+    expect(after.status).toBe('completed');
+  });
+});
+
+/**
+ * Points were the one part of this app whose arithmetic nothing could check.
+ * `fetchLoyaltyAccount` returned a frozen constant, so the confirmation
+ * promised 287 points, the balance stayed at 1 840 and the history never
+ * mentioned the order. Redeeming was worse: `redeemReward` validated the
+ * reward, quoted a discount and deducted nothing, so the same 1 500-point
+ * reward could be spent over and over for ever.
+ *
+ * When points settle is a real policy question. This takes the reading the
+ * payload already implies — `PlaceOrderInput` carries `redeemedRewardId`, so a
+ * redemption settles with the order, and nobody loses points by browsing.
+ */
+describe('the points a customer actually has', () => {
+  const totals = (pointsEarned: number, rewardsDiscount = 0) => ({
+    subtotal: 200,
+    deliveryFee: 32,
+    serviceFee: 5,
+    discount: 0,
+    rewardsDiscount,
+    total: 237 - rewardsDiscount,
+    pointsEarned,
+  });
+
+  const place = (input: Partial<Parameters<typeof placeOrder>[0]> = {}) =>
+    placeOrder({
+      lines: [],
+      totals: totals(200),
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: 'pm-1',
+      paymentMethodType: 'card',
+      ...input,
+    });
+
+  it('goes up by what the order earned, and says so in the history', async () => {
+    const before = await fetchLoyaltyAccount();
+
+    const order = await place({ totals: totals(287) });
+    const after = await fetchLoyaltyAccount();
+
+    expect(after.pointsBalance).toBe(before.pointsBalance + 287);
+    expect(after.history[0]?.points).toBe(287);
+    expect(after.history[0]?.orderReference).toBe(order.reference);
+  });
+
+  /**
+   * The middle assertion is the one that matters. Comparing only before and
+   * after passes on a ledger that never moved at all — which is exactly the
+   * ledger this replaced, and exactly what it did when the frozen constant was
+   * put back to check.
+   */
+  it('comes back off when the order is called back', async () => {
+    const before = await fetchLoyaltyAccount();
+
+    const order = await place({ totals: totals(287) });
+    const awarded = await fetchLoyaltyAccount();
+    expect(awarded.pointsBalance).toBe(before.pointsBalance + 287);
+
+    await cancelOrder(order.id);
+    const after = await fetchLoyaltyAccount();
+
+    expect(after.pointsBalance).toBe(before.pointsBalance);
+    expect(after.lifetimePoints).toBe(before.lifetimePoints);
+  });
+
+  /**
+   * The one that could not be caught at all before: spend a reward twice.
+   * With a frozen balance, `redeemable` was permanently true and nothing was
+   * ever deducted.
+   */
+  it('charges a redeemed reward against the balance', async () => {
+    const redeemable = (await fetchRewards()).find((reward) => reward.redeemable);
+    expect(redeemable).toBeDefined();
+
+    const before = await fetchLoyaltyAccount();
+    await place({
+      totals: totals(0, 40),
+      redeemedRewardId: redeemable!.id,
+    });
+    const after = await fetchLoyaltyAccount();
+
+    expect(after.pointsBalance).toBe(before.pointsBalance - redeemable!.pointsCost);
+    // Spending is not un-earning: the tier must not slide back down.
+    expect(after.lifetimePoints).toBe(before.lifetimePoints);
+  });
+
+  it('gives a redeemed reward back if that order is cancelled', async () => {
+    const redeemable = (await fetchRewards()).find((reward) => reward.redeemable);
+    const before = await fetchLoyaltyAccount();
+
+    const order = await place({ totals: totals(0, 40), redeemedRewardId: redeemable!.id });
+    const spent = await fetchLoyaltyAccount();
+    expect(spent.pointsBalance).toBe(before.pointsBalance - redeemable!.pointsCost);
+
+    await cancelOrder(order.id);
+    const after = await fetchLoyaltyAccount();
+
+    expect(after.pointsBalance).toBe(before.pointsBalance);
+  });
+
+  it('records which reward an order spent, so the discount can be explained', async () => {
+    const redeemable = (await fetchRewards()).find((reward) => reward.redeemable);
+    const order = await place({ totals: totals(0, 40), redeemedRewardId: redeemable!.id });
+
+    expect(order.redeemedRewardId).toBe(redeemable!.id);
+  });
+
+  /**
+   * Earning enough should move the tier, not just the number.
+   *
+   * Written against whatever the account currently is rather than against a
+   * named tier: these tests share one mutable ledger, so by the time this runs
+   * the earlier ones have already spent and earned. Asserting `silver` here
+   * passed or failed on test order, which is not what it is meant to be
+   * measuring.
+   */
+  it('moves the tier when the lifetime total crosses a threshold', async () => {
+    const before = await fetchLoyaltyAccount();
+    expect(before.nextTier).toBeDefined();
+    const climb = before.pointsToNextTier;
+
+    await place({ totals: totals(climb) });
+    const after = await fetchLoyaltyAccount();
+
+    expect(after.lifetimePoints).toBe(before.lifetimePoints + climb);
+    expect(after.tier).toBe(before.nextTier);
+    expect(after.tier).not.toBe(before.tier);
+  });
+
+  /** And the bar has to agree with the number it sits under. */
+  it('keeps the progress bar between the two thresholds it spans', async () => {
+    const account = await fetchLoyaltyAccount();
+    expect(account.tierProgress).toBeGreaterThanOrEqual(0);
+    expect(account.tierProgress).toBeLessThanOrEqual(1);
   });
 });

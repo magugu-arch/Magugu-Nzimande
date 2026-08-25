@@ -148,6 +148,14 @@ export interface Order {
   tableNumber?: string;
   scheduledFor?: string;
   paymentMethodLabel: string;
+  /**
+   * The reward spent on this order, if any.
+   *
+   * `totals.rewardsDiscount` records that a reward came off the price without
+   * recording which one, so nothing downstream could explain the line — or put
+   * the points back if the order was called off.
+   */
+  redeemedRewardId?: string;
   /** Minutes until ready/delivered, from `placedAt`. */
   etaMinutes: number;
   driverName?: string;

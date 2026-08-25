@@ -5,8 +5,98 @@ import { hasPassed } from '@/utils/datetime';
 import { delay, request } from './apiClient';
 import { loyaltyAccount, promotions, rewards, tiers, vouchers } from './data/rewardsData';
 
+/**
+ * The mock's loyalty ledger, which until now did not move.
+ *
+ * `fetchLoyaltyAccount` returned a frozen constant, so points were the one
+ * part of this app whose arithmetic nothing could check: place an order and
+ * the confirmation promised 287 points, the balance stayed at 1 840 and the
+ * history never mentioned it. Redeeming was worse — `redeemReward` validated
+ * the reward, quoted a discount and deducted nothing, so the same 1 500-point
+ * reward could be spent over and over for ever.
+ *
+ * A demo build would have shown all of that to the client. More to the point,
+ * no test could state what *should* happen, because every answer was the same
+ * answer.
+ *
+ * When points settle is a real policy question and this takes the reading the
+ * payload already implies: `PlaceOrderInput` carries `redeemedRewardId`, so a
+ * redemption is settled with the order rather than at the moment somebody taps
+ * a reward. Nobody loses points by browsing, and an abandoned cart costs
+ * nothing. Worth confirming against how the loyalty programme is actually run.
+ */
+let account: LoyaltyAccount = { ...loyaltyAccount, history: [...loyaltyAccount.history] };
+
+/** The tier a lifetime total earns, and how far it is from the next one. */
+function standingFor(
+  lifetimePoints: number,
+): Pick<
+  LoyaltyAccount,
+  'tier' | 'tierName' | 'nextTier' | 'pointsToNextTier' | 'tierProgress' | 'lifetimePoints'
+> {
+  const ranked = [...tiers].sort((a, b) => a.threshold - b.threshold);
+  const currentIndex = Math.max(
+    0,
+    ranked.filter((candidate) => lifetimePoints >= candidate.threshold).length - 1,
+  );
+  const current = ranked[currentIndex]!;
+  const next = ranked[currentIndex + 1];
+
+  return {
+    lifetimePoints,
+    tier: current.tier,
+    tierName: current.name,
+    ...(next ? { nextTier: next.tier } : {}),
+    pointsToNextTier: next ? Math.max(0, next.threshold - lifetimePoints) : 0,
+    tierProgress: next
+      ? Math.min(
+          1,
+          Math.max(
+            0,
+            (lifetimePoints - current.threshold) / (next.threshold - current.threshold || 1),
+          ),
+        )
+      : 1,
+  };
+}
+
+/**
+ * Move the balance and say why, in the mock only.
+ *
+ * `lifetime` is what separates earning from spending: points spent leave the
+ * balance but were still earned, so they must not drag the tier back down with
+ * them. A cancelled order is the one case that does reduce it, because that
+ * order's points were never really earned.
+ */
+export function recordPoints(entry: {
+  description: string;
+  points: number;
+  lifetimeDelta?: number;
+  orderReference?: string;
+}): LoyaltyAccount {
+  const lifetime = Math.max(0, account.lifetimePoints + (entry.lifetimeDelta ?? 0));
+
+  account = {
+    ...account,
+    ...standingFor(lifetime),
+    pointsBalance: Math.max(0, account.pointsBalance + entry.points),
+    history: [
+      {
+        id: `points-${Date.now().toString(36)}-${Math.abs(entry.points)}`,
+        description: entry.description,
+        points: entry.points,
+        occurredAt: new Date().toISOString(),
+        ...(entry.orderReference ? { orderReference: entry.orderReference } : {}),
+      },
+      ...account.history,
+    ],
+  };
+
+  return account;
+}
+
 export async function fetchLoyaltyAccount(): Promise<LoyaltyAccount> {
-  if (config.useMockApi) return delay(loyaltyAccount);
+  if (config.useMockApi) return delay(account);
   return request<LoyaltyAccount>('/v1/loyalty/account');
 }
 
@@ -26,14 +116,12 @@ export function rewardExpired(reward: Reward, now: Date = new Date()): boolean {
 
 export async function fetchRewards(): Promise<Reward[]> {
   if (config.useMockApi) {
-    const account = await fetchLoyaltyAccount();
+    const balance = (await fetchLoyaltyAccount()).pointsBalance;
     // Redeemability is a function of the live balance, never a static flag.
     return rewards.map((reward) => ({
       ...reward,
       redeemable:
-        !rewardExpired(reward) &&
-        reward.category !== 'birthday' &&
-        account.pointsBalance >= reward.pointsCost,
+        !rewardExpired(reward) && reward.category !== 'birthday' && balance >= reward.pointsCost,
     }));
   }
 

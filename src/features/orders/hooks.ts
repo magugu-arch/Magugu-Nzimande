@@ -60,6 +60,11 @@ export function useCancelOrder() {
       queryClient.setQueryData(queryKeys.order(order.id), order);
       void queryClient.invalidateQueries({ queryKey: queryKeys.orders });
       void queryClient.invalidateQueries({ queryKey: queryKeys.activeOrder });
+      // A cancellation moves the balance as surely as placing did — the points
+      // that order earned come back off, and any reward it spent goes back on.
+      // Placing invalidated this and cancelling did not, so the rewards screen
+      // kept showing points from an order that no longer existed.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.loyalty });
     },
   });
 }

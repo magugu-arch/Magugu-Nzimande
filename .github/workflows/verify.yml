@@ -121,6 +121,13 @@ jobs:
       - name: Order twice
         run: npm run audit:returning
 
+      # Loyalty was the one part of this app whose arithmetic nothing could
+      # check: the balance was a frozen constant, so the confirmation promised
+      # points that never arrived and the same reward could be spent for ever.
+      # This earns them and watches them land on the screen that states them.
+      - name: Earn the points the app promised
+        run: npm run audit:points
+
   assets:
     name: Food asset catalogue
     runs-on: ubuntu-latest
