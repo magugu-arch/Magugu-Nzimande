@@ -128,6 +128,12 @@ jobs:
       - name: Earn the points the app promised
         run: npm run audit:points
 
+      # One phone, two people. Favourites outlive a sign-out on purpose, so
+      # this has to hold both halves at once: the same person signing back in
+      # keeps their list, a different person does not inherit it.
+      - name: Hand the phone over
+        run: npm run audit:handover
+
   assets:
     name: Food asset catalogue
     runs-on: ubuntu-latest

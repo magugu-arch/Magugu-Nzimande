@@ -59,7 +59,26 @@ export async function signIn({ email, password }: SignInInput): Promise<AuthSess
     throw new Error('That email and password combination does not match our records.');
   }
 
-  const session = mockSession({ ...demoUser, email: email.trim().toLowerCase() });
+  /**
+   * A different email is a different person, even in mock mode.
+   *
+   * This handed back `demoUser` with the typed address pasted over the top, so
+   * every sign-in produced the same `user.id` — one identity wearing whatever
+   * email the tester happened to enter. Anything that turns on *who* is signed
+   * in was therefore unobservable here: favourites belonging to an account,
+   * order history, a handset passed from one person to another. Two accounts
+   * looked like one, so nothing could tell them apart to get it wrong.
+   *
+   * Derived from the email rather than random, so signing in twice as the same
+   * person is the same person — which is the other half of what has to be
+   * true.
+   */
+  const normalised = email.trim().toLowerCase();
+  const session = mockSession({
+    ...demoUser,
+    id: `user-${normalised.replace(/[^a-z0-9]+/g, '-')}`,
+    email: normalised,
+  });
   await delay(null, 600);
   return persist(session);
 }
