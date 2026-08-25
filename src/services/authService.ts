@@ -177,9 +177,71 @@ export async function signOut(): Promise<void> {
   await clearTokens();
 }
 
-export async function updateProfile(patch: Partial<UserProfile>): Promise<UserProfile> {
+/**
+ * `signedInAs` is who the patch applies to, and it is passed in rather than
+ * remembered here.
+ *
+ * The mock has no token to read an identity off, so it merged the patch onto
+ * `demoUser` — saving a phone number handed back the seeded customer's id and
+ * email, and the profile screen writes that straight into the auth store:
+ *
+ *     signed in as : user-sipho-example-co-za  sipho@example.co.za
+ *     after editing: user-demo                 thandi@example.co.za
+ *
+ * Changing your phone number changed who you were.
+ *
+ * Holding the signed-in user in module state here looked like the fix and was
+ * not: it is empty after any restart, so the first profile edit on a freshly
+ * opened app fell back to the seed anyway. Driven in a browser, where every
+ * navigation reloads the bundle, it kept coming back as `user-demo`. The
+ * caller already has the user; asking for it removes the guess.
+ *
+ * The real branch ignores it — a backend reads the identity off the access
+ * token, which is the only thing that should ever decide it.
+ */
+export async function updateProfile(
+  patch: Partial<UserProfile>,
+  signedInAs: UserProfile,
+): Promise<UserProfile> {
+  /**
+   * Normalised here rather than in the screen, so both callers and both
+   * branches agree.
+   *
+   * `register` sends `toE164(input.phone)` and this sent whatever was typed,
+   * so the same customer's number was stored as "+27821234567" when they
+   * signed up and "0829998877" when they edited it — two formats for one field,
+   * on the number a driver phones from outside the gate.
+   */
+  const normalised: Partial<UserProfile> = {
+    ...patch,
+    ...(patch.phone ? { phone: toE164(patch.phone) } : {}),
+  };
+
   if (!config.useMockApi) {
-    return request<UserProfile>('/v1/account/profile', { method: 'PATCH', body: patch });
+    return request<UserProfile>('/v1/account/profile', { method: 'PATCH', body: normalised });
   }
-  return delay({ ...demoUser, ...patch }, 400);
+
+  /**
+   * Merged onto whoever is actually signed in, which is not the same thing as
+   * merging onto the seed.
+   *
+   * This returned `{ ...demoUser, ...patch }`, so saving a new phone number
+   * handed back the seeded customer's identity with the patch on top — and the
+   * profile screen writes the result straight into the auth store:
+   *
+   *     signed in as : user-sipho-example-co-za  sipho@example.co.za
+   *     after editing: user-demo                 thandi@example.co.za
+   *
+   * Changing your phone number changed who you were. The account screen then
+   * showed somebody else's email as yours, and because the id had moved, the
+   * next sign-in looked like a different person and cleared the favourites
+   * that had just been made to follow their owner.
+   *
+   * The id is held back from the patch on purpose. A customer may edit their
+   * email; nobody edits their way into being another account.
+   */
+  // The id is held back from the patch on purpose. A customer may edit their
+  // email; nobody edits their way into being another account.
+  const { id: _ignored, ...editable } = normalised;
+  return delay({ ...signedInAs, ...editable }, 400);
 }

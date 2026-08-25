@@ -93,6 +93,13 @@ try {
     console.log(`  ✓ ${name}`);
   };
 
+  /**
+   * Neither is the seeded address. The seed's own email would hide an identity
+   * swap onto it, which is exactly what the profile step below is watching for.
+   */
+  const PERSON_A = 'nomsa@example.co.za';
+  const PERSON_B = 'sipho@example.co.za';
+
   const signIn = async (email) => {
     await page.goto(BASE + '/sign-in', { waitUntil: 'networkidle', timeout: 45000 });
     await page.locator('[data-testid="sign-in-email"]').fill(email);
@@ -151,6 +158,17 @@ try {
     return { ...stored, listed, hasChip };
   };
 
+  /** Who the app records as signed in, read off the device. */
+  const signedInUser = () =>
+    page.evaluate(() => {
+      try {
+        const raw = window.localStorage.getItem('bbq.auth');
+        return JSON.parse(raw ?? '{}')?.state?.user ?? null;
+      } catch {
+        return null;
+      }
+    });
+
   /** The handover: the previous owner's session gone, everything else as it was. */
   const handOverThePhone = async () => {
     await page.evaluate(() => window.localStorage.removeItem('bbq.auth'));
@@ -159,7 +177,7 @@ try {
   };
 
   // ---- Thandi hearts a dish ----
-  await signIn('thandi@example.co.za');
+  await signIn(PERSON_A);
   await page.goto(BASE + '/product/golden-original', { waitUntil: 'networkidle', timeout: 45000 });
   await page.waitForTimeout(1500);
   await tap('product-favourite');
@@ -171,9 +189,67 @@ try {
   if (hers.ownerId === null) throw new Error('the favourites were saved belonging to nobody');
   step(`hearted a dish — Favourites lists ${hers.ids.length}, owned by ${hers.ownerId}`);
 
+  const idBeforeEditing = (await signedInUser())?.id ?? null;
+  if (!idBeforeEditing) throw new Error('nobody is recorded as signed in');
+
+  /**
+   * She edits her profile — which is where a *different* identity bug lived.
+   *
+   * `updateProfile` merged the patch onto the seeded customer, so saving a
+   * phone number handed back somebody else's id and email, and the profile
+   * screen writes that straight into the auth store. Changing your phone
+   * number changed who you were.
+   *
+   * Worth stating what this step does *not* prove, because the first version
+   * of it proved nothing at all. I expected the corrupted id to break the
+   * favourites ownership on the next sign-in; it does not, because `claimFor`
+   * runs from `setSession` and a profile edit never calls it. Restoring the
+   * bug left this journey passing, which is how that was found. What it does
+   * catch is the thing a customer actually sees: their own email replaced by
+   * the seed's on the screen they just saved.
+   *
+   * PERSON_A is deliberately not the seeded address, or the swap would be
+   * invisible here.
+   */
+  await page.goto(BASE + '/account/profile', { waitUntil: 'networkidle', timeout: 45000 });
+  await page.waitForTimeout(1500);
+  // By its label — the profile fields carry no placeholders.
+  const phoneField = page.getByLabel('Mobile number', { exact: false }).first();
+  if ((await phoneField.count()) === 0) {
+    throw new Error('the profile screen has no phone field to edit');
+  }
+  await phoneField.fill('0829998877');
+  await tap('profile-save');
+  await page.waitForTimeout(2500);
+
+  /**
+   * Read off the device, not off the form. The form holds the values it was
+   * mounted with, so it keeps showing what the customer typed whatever comes
+   * back — a second version of this step asserted on the email field and
+   * passed with the bug fully restored.
+   */
+  const whoSheIsNow = await signedInUser();
+  if (!whoSheIsNow) throw new Error('the app kept no record of who is signed in');
+  if (whoSheIsNow.id !== idBeforeEditing) {
+    throw new Error(
+      `saving her phone number changed her account id from "${idBeforeEditing}" ` +
+        `to "${whoSheIsNow.id}"`,
+    );
+  }
+  if (whoSheIsNow.email?.toLowerCase() !== PERSON_A) {
+    throw new Error(
+      `saving her phone number changed her email to "${whoSheIsNow.email}" — ` +
+        `she signed in as ${PERSON_A}`,
+    );
+  }
+  if (whoSheIsNow.phone !== '+27829998877') {
+    throw new Error(`the edit did not save: her number reads "${whoSheIsNow.phone}"`);
+  }
+  step(`edited her profile and is still herself — ${whoSheIsNow.id}`);
+
   // ---- She signs out and back in. Still hers. ----
   await handOverThePhone();
-  await signIn('thandi@example.co.za');
+  await signIn(PERSON_A);
 
   const stillHers = await favouritesNow();
   if (stillHers.ids.length !== hers.ids.length) {
@@ -185,7 +261,7 @@ try {
 
   // ---- Somebody else signs in on the same phone ----
   await handOverThePhone();
-  await signIn('sipho@example.co.za');
+  await signIn(PERSON_B);
 
   const theirs = await favouritesNow();
   if (theirs.ids.length > 0) {

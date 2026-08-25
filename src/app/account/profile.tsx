@@ -53,6 +53,11 @@ export default function ProfileScreen() {
   }, []);
 
   const handleSave = useCallback(async () => {
+    // The screen renders a sign-in prompt instead when there is nobody to
+    // edit, so this is unreachable — but the patch has to be applied to
+    // somebody, and that somebody is not going to be guessed at.
+    if (!user) return;
+
     const validationErrors = validateFields(values, {
       firstName: minLength('First name', 2),
       lastName: required('Last name'),
@@ -67,7 +72,7 @@ export default function ProfileScreen() {
 
     setSaving(true);
     try {
-      const updated = await updateProfile(values);
+      const updated = await updateProfile(values, user);
       setUser(updated);
       setSaved(true);
     } catch (error) {
@@ -78,7 +83,7 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false);
     }
-  }, [values, setUser]);
+  }, [values, user, setUser]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(

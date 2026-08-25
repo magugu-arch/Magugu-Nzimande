@@ -40,6 +40,7 @@ import {
   voidPayment,
 } from '@/services/paymentService';
 import { createAddress, fetchPaymentMethods } from '@/services/accountService';
+import { signIn, signOut as signOutService, updateProfile } from '@/services/authService';
 import { stores } from '@/services/data/storeData';
 import { vouchers } from '@/services/data/rewardsData';
 import type { Order, Reward, Voucher } from '@/types';
@@ -993,5 +994,94 @@ describe('how long until the food arrives', () => {
     // And it is due at its slot, not at its slot plus the cooking time.
     const atTheSlot = minutesUntilDue(order, new Date(slot));
     expect(Math.abs(atTheSlot)).toBeLessThanOrEqual(1);
+  });
+});
+
+/**
+ * `updateProfile` returned `{ ...demoUser, ...patch }`, so saving a new phone
+ * number handed back the seeded customer's identity with the patch on top —
+ * and the profile screen writes the result straight into the auth store:
+ *
+ *     signed in as : user-sipho-example-co-za  sipho@example.co.za
+ *     after editing: user-demo                 thandi@example.co.za
+ *
+ * Changing your phone number changed who you were. The account screen then
+ * showed somebody else's email as yours, and because the id had moved, the
+ * next sign-in looked like a different person and cleared the favourites that
+ * had only just been made to follow their owner.
+ */
+describe('editing your own profile', () => {
+  const signInAs = (email: string) => signIn({ email, password: 'chickenchicken' });
+
+  it('keeps you as yourself', async () => {
+    const { user } = await signInAs('sipho@example.co.za');
+
+    const updated = await updateProfile({ phone: '+27829998877' }, user);
+
+    expect(updated.id).toBe(user.id);
+    expect(updated.email).toBe('sipho@example.co.za');
+    expect(updated.phone).toBe('+27829998877');
+  });
+
+  it('carries earlier edits forward rather than starting from the seed each time', async () => {
+    const { user } = await signInAs('sipho@example.co.za');
+
+    const first = await updateProfile({ firstName: 'Sipho' }, user);
+    const second = await updateProfile({ lastName: 'Dlamini' }, first);
+
+    expect(second.firstName).toBe('Sipho');
+    expect(second.lastName).toBe('Dlamini');
+  });
+
+  /** A customer may edit their email. Nobody edits their way into another account. */
+  it('refuses to let a patch change the account id', async () => {
+    const { user } = await signInAs('sipho@example.co.za');
+
+    const updated = await updateProfile({ id: 'user-demo', email: 'new@example.co.za' }, user);
+
+    expect(updated.id).toBe(user.id);
+    expect(updated.email).toBe('new@example.co.za');
+  });
+
+  /**
+   * The patch applies to whoever is passed in, so a stale record cannot leak
+   * across a sign-out. Holding the signed-in user in module state inside the
+   * service looked like the fix and was not — it is empty after any restart,
+   * so the first edit on a freshly opened app fell back to the seed anyway.
+   */
+  it('does not carry one edit history into the next session', async () => {
+    const first = await signInAs('sipho@example.co.za');
+    await updateProfile({ firstName: 'Sipho' }, first.user);
+    await signOutService();
+
+    const second = await signInAs('nomsa@example.co.za');
+    const updated = await updateProfile({ phone: '+27821112222' }, second.user);
+
+    expect(updated.id).toBe(second.user.id);
+    expect(updated.firstName).not.toBe('Sipho');
+  });
+});
+
+/**
+ * `register` sends `toE164(input.phone)` and `updateProfile` sent whatever was
+ * typed, so the same customer's number was stored as "+27821234567" when they
+ * signed up and "0829998877" when they edited it — two formats for one field,
+ * on the number a driver phones from outside the gate.
+ */
+describe('the number a driver would ring', () => {
+  it('is stored the same way whether it was typed at sign-up or edited later', async () => {
+    const { user } = await signIn({ email: 'nomsa@example.co.za', password: 'chickenchicken' });
+
+    const updated = await updateProfile({ phone: '0829998877' }, user);
+
+    expect(updated.phone).toBe('+27829998877');
+  });
+
+  it('leaves an already-normalised number alone', async () => {
+    const { user } = await signIn({ email: 'nomsa@example.co.za', password: 'chickenchicken' });
+
+    const updated = await updateProfile({ phone: '+27829998877' }, user);
+
+    expect(updated.phone).toBe('+27829998877');
   });
 });
