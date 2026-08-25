@@ -12,7 +12,7 @@ import {
   Text,
   TextField,
 } from '@/components/ui';
-import { updateProfile } from '@/services/authService';
+import { deleteAccount, updateProfile } from '@/services/authService';
 import { useAuthStore } from '@/store/authStore';
 import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing } from '@/theme';
@@ -34,7 +34,7 @@ export default function ProfileScreen() {
   const user = useAuthStore((state) => state.user);
   const isGuest = useAuthStore((state) => state.isGuest);
   const setUser = useAuthStore((state) => state.setUser);
-  const { signOut } = useSignOut();
+  const { forgetLocally } = useSignOut();
 
   const [values, setValues] = useState<Record<Field, string>>({
     firstName: user?.firstName ?? '',
@@ -95,14 +95,38 @@ export default function ProfileScreen() {
           text: 'Delete account',
           style: 'destructive',
           onPress: () => {
-            // A real implementation calls the deletion endpoint first; the local
-            // session is cleared either way so the device is left signed out.
-            void signOut();
+            void (async () => {
+              /**
+               * The dialogue above promises erasure within thirty days. This
+               * used to call `signOut` — so nothing was ever asked of anyone,
+               * and the promise was a sentence on a screen.
+               *
+               * A failure is not swallowed the way a failed sign-out is. If
+               * the request did not land the account still exists, and leaving
+               * somebody signed out believing their data is gone is the worse
+               * of the two wrong answers by a distance.
+               */
+              try {
+                await deleteAccount();
+              } catch (error) {
+                Alert.alert(
+                  'We could not delete your account',
+                  error instanceof Error
+                    ? `${error.message} Your account is still here — please try again, or contact us.`
+                    : 'Your account is still here — please try again, or contact us.',
+                );
+                return;
+              }
+
+              // The account is gone, so there is no session left to sign out
+              // of — only this handset's memory of it to clear.
+              forgetLocally();
+            })();
           },
         },
       ],
     );
-  }, [signOut]);
+  }, [forgetLocally]);
 
   if (!user || isGuest) {
     return (

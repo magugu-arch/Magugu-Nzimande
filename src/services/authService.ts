@@ -166,6 +166,32 @@ export async function requestPasswordReset(email: string): Promise<{ sentTo: str
   return delay({ sentTo: email.trim().toLowerCase() }, 500);
 }
 
+/**
+ * Ask for the account to be erased, and let a failure be a failure.
+ *
+ * The screen offered "Delete your account?" and promised "We remove your
+ * personal data within 30 days" — and then called `signOut`. Nothing was ever
+ * asked of anyone. A customer exercising their right to erasure under POPIA
+ * got a sign-out and a sentence that was not true, and no record of the
+ * request existed anywhere for the thirty days it named.
+ *
+ * Deliberately unlike `signOut`, which swallows a failed request because
+ * forgetting locally is the safer outcome there. Here it is the opposite: if
+ * the request did not land, the account still exists, and quietly signing
+ * somebody out would tell them their data was gone when it is not. The caller
+ * has to hear about it.
+ *
+ * In mock mode there is no server to ask, so this only clears the tokens —
+ * which means the promise is still only kept once the endpoint below exists.
+ * `audit:launch` says so.
+ */
+export async function deleteAccount(): Promise<void> {
+  if (!config.useMockApi) {
+    await request<void>('/v1/account', { method: 'DELETE' });
+  }
+  await clearTokens();
+}
+
 export async function signOut(): Promise<void> {
   if (!config.useMockApi) {
     try {

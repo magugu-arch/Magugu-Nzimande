@@ -232,6 +232,22 @@ if (rewardsService.includes('recordPoints')) {
   );
 }
 
+// The app now asks for erasure instead of quietly signing somebody out, but
+// the asking only means something once there is something to ask.
+const authService = read('src/services/authService.ts');
+if (authService.includes("'/v1/account', { method: 'DELETE' }")) {
+  note(
+    'Account deletion',
+    'Deleting an account calls DELETE /v1/account and refuses to sign the customer out ' +
+      'unless it succeeds — it used to promise "we remove your personal data within 30 days" ' +
+      'and then only sign them out, asking nobody. Confirm the backend implements it, and ' +
+      'that it does what the dialogue says: erasure within thirty days, keeping only what ' +
+      'tax law requires. This is a POPIA right, not a nicety, and the app now states a ' +
+      'deadline on your behalf.',
+    'you',
+  );
+}
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {
