@@ -190,6 +190,108 @@ export function voucherFreesDelivery(
   return voucher.discountType === 'freeDelivery' && voucherQualifies(voucher, subtotal, now);
 }
 
+/** What a redeemed reward is, as far as the bill is concerned. */
+export interface RewardTerms {
+  /**
+   * Optional because a basket persisted before rewards knew their own
+   * category will not have one. Missing is read as a flat rand discount,
+   * which is what every reward did before this existed.
+   */
+  category?: 'food' | 'discount' | 'delivery' | 'birthday';
+  discount: number;
+}
+
+/**
+ * How a reward reaches the bill.
+ *
+ * "Free Delivery" was a flat R32 off, applied whatever the order was, and
+ * `calculateTotals` caps a reward against the subtotal rather than against the
+ * fee it is meant to cover. So it came off the food when there was no delivery
+ * to pay for:
+ *
+ *     COLLECT  : deliveryFee 0, rewardsDiscount 32 → R122 instead of R154
+ *     OVER R350: deliveryFee 0, rewardsDiscount 32 → R420 instead of R452
+ *
+ * Somebody collecting their own order spent 300 points and got R32 off
+ * chicken they carried home themselves; somebody whose basket already cleared
+ * the free-delivery threshold got R32 for a fee nobody was charging. Both are
+ * bb.q paying out for a benefit it is not providing, and the reward says
+ * plainly what it is: "We cover the delivery fee on your next order."
+ *
+ * So a delivery reward now frees the fee — the same route `voucherFreesDelivery`
+ * already takes — and is worth nothing when there is no fee. Whether that is
+ * worth telling the customer before they spend the points is a question for the
+ * screens; this only says what the bill does.
+ */
+export function rewardEffect(
+  reward: RewardTerms | null | undefined,
+  fulfilmentType: FulfilmentType,
+): { rewardsDiscount: number; freeDelivery: boolean } {
+  if (!reward) return { rewardsDiscount: 0, freeDelivery: false };
+
+  if (reward.category === 'delivery') {
+    return { rewardsDiscount: 0, freeDelivery: fulfilmentType === 'delivery' };
+  }
+
+  return { rewardsDiscount: reward.discount, freeDelivery: false };
+}
+
+/**
+ * The bill for a basket, and what the reward took off it.
+ *
+ * One function, because working out how a voucher and a reward reach the
+ * totals was being assembled at the call site — and the moment there were two
+ * call sites they disagreed. The reward's worth in particular has to be
+ * measured as the difference it makes to the total, not read back from what it
+ * was worth when it was redeemed: that is the mistake the voucher used to make,
+ * and a "Free Delivery" reward is worth the fee when there is one and nothing
+ * at all when there is not.
+ */
+export interface BasketInput {
+  lines: CartLine[];
+  fulfilmentType: FulfilmentType;
+  voucher?: VoucherTerms | null;
+  reward?: RewardTerms | null;
+  now?: Date;
+}
+
+export function priceBasket({
+  lines,
+  fulfilmentType,
+  voucher = null,
+  reward = null,
+  now = new Date(),
+}: BasketInput): { totals: CartTotals; rewardWorth: number } {
+  const subtotal = sumRand(lines.map((line) => line.lineTotal));
+
+  // The voucher's worth is recomputed against the basket as it stands, never
+  // read back from what it was worth when it was entered.
+  const voucherOff = voucher ? voucherDiscount(voucher, subtotal, now) : 0;
+  const voucherFreesIt = voucher !== null && voucherFreesDelivery(voucher, subtotal, now);
+
+  const applied = rewardEffect(reward, fulfilmentType);
+
+  const withoutReward = calculateTotals({
+    lines,
+    fulfilmentType,
+    voucherDiscount: voucherOff,
+    ...(voucherFreesIt ? { deliveryFeeOverride: 0 } : {}),
+  });
+
+  const totals = calculateTotals({
+    lines,
+    fulfilmentType,
+    voucherDiscount: voucherOff,
+    rewardsDiscount: applied.rewardsDiscount,
+    ...(voucherFreesIt || applied.freeDelivery ? { deliveryFeeOverride: 0 } : {}),
+  });
+
+  return {
+    totals,
+    rewardWorth: Math.max(0, sumRand([withoutReward.total, -totals.total])),
+  };
+}
+
 export interface TotalsInput {
   lines: CartLine[];
   fulfilmentType: FulfilmentType;

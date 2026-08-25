@@ -4,14 +4,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CartLine, CartTotals, FulfilmentType, Product, SelectedOption } from '@/types';
 import {
   buildCartLine,
-  calculateTotals,
   cartItemCount,
   clampQuantity,
-  voucherDiscount,
-  voucherFreesDelivery,
+  priceBasket,
+  type RewardTerms,
   type VoucherTerms,
 } from '@/utils/cart';
-import { sumRand } from '@/utils/money';
 
 /**
  * Cart state.
@@ -27,10 +25,16 @@ import { sumRand } from '@/utils/money';
  */
 type AppliedVoucher = VoucherTerms;
 
-interface AppliedReward {
+/**
+ * A redeemed reward, carrying enough for the bill to know what it does.
+ *
+ * `category` matters because a delivery reward covers the delivery fee rather
+ * than taking rand off the food — see `rewardEffect`. Without it, "Free
+ * Delivery" came off a collection order.
+ */
+interface AppliedReward extends RewardTerms {
   rewardId: string;
   name: string;
-  discount: number;
   pointsCost: number;
 }
 
@@ -75,6 +79,16 @@ interface CartState {
   removeReward: () => void;
 
   getTotals: () => CartTotals;
+  /**
+   * What the applied reward actually takes off this bill, in rand.
+   *
+   * Measured as the difference the reward makes to the total rather than read
+   * back from what it was worth when it was redeemed — which is the same
+   * mistake the voucher used to make. A "Free Delivery" reward is worth the
+   * fee when there is one and nothing at all when there is not, and the cart
+   * has no business claiming "R32.00 off" either way.
+   */
+  getRewardWorth: () => number;
   getItemCount: () => number;
   hasLine: (lineId: string) => boolean;
 }
@@ -187,17 +201,12 @@ export const useCartStore = create<CartState>()(
 
       getTotals: () => {
         const { lines, fulfilmentType, voucher, reward } = get();
-        // The voucher's worth is recomputed against the basket as it stands,
-        // never read back from what it was worth when it was entered.
-        const subtotal = sumRand(lines.map((line) => line.lineTotal));
+        return priceBasket({ lines, fulfilmentType, voucher, reward }).totals;
+      },
 
-        return calculateTotals({
-          lines,
-          fulfilmentType,
-          voucherDiscount: voucher ? voucherDiscount(voucher, subtotal) : 0,
-          rewardsDiscount: reward?.discount ?? 0,
-          ...(voucher && voucherFreesDelivery(voucher, subtotal) ? { deliveryFeeOverride: 0 } : {}),
-        });
+      getRewardWorth: () => {
+        const { lines, fulfilmentType, voucher, reward } = get();
+        return priceBasket({ lines, fulfilmentType, voucher, reward }).rewardWorth;
       },
 
       getItemCount: () => cartItemCount(get().lines),

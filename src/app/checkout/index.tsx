@@ -49,6 +49,7 @@ export default function CheckoutScreen() {
   const getTotals = useCartStore((state) => state.getTotals);
   const voucher = useCartStore((state) => state.voucher);
   const reward = useCartStore((state) => state.reward);
+  const getRewardWorth = useCartStore((state) => state.getRewardWorth);
   const clearCart = useCartStore((state) => state.clear);
   const setCartFulfilment = useCartStore((state) => state.setFulfilmentType);
 
@@ -253,7 +254,10 @@ export default function CheckoutScreen() {
           paymentMethodId: selectedPayment.id,
           paymentMethodType: selectedPayment.type,
           ...(voucher ? { voucherCode: voucher.code } : {}),
-          ...(reward ? { redeemedRewardId: reward.rewardId } : {}),
+          // Only when it actually took something off. A delivery reward
+          // against an order with no delivery fee is worth nothing, and
+          // sending it anyway spends the customer's points on nothing.
+          ...(reward && getRewardWorth() > 0 ? { redeemedRewardId: reward.rewardId } : {}),
         },
         {
           authorise: authorisePayment,
@@ -280,6 +284,7 @@ export default function CheckoutScreen() {
     store,
     selectedPayment,
     getTotals,
+    getRewardWorth,
     lines,
     fulfilmentType,
     address,

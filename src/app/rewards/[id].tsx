@@ -49,6 +49,9 @@ export default function RewardDetailScreen() {
         name: result.reward.name,
         discount: result.discount,
         pointsCost: result.reward.pointsCost,
+        // Carried so the bill knows what kind of reward this is: a delivery
+        // one covers the fee rather than discounting the food.
+        category: result.reward.category,
       });
       // Straight to the cart, where the discount is now visible on the totals.
       router.replace(cartLines.length > 0 ? '/cart' : '/(tabs)/menu');

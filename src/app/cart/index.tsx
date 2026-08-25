@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -23,7 +23,7 @@ import { businessRules } from '@/constants/config';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing, typography } from '@/theme';
-import { meetsDeliveryMinimum, voucherExpired, voucherQualifies } from '@/utils/cart';
+import { meetsDeliveryMinimum, priceBasket, voucherExpired, voucherQualifies } from '@/utils/cart';
 import { formatShortDate } from '@/utils/datetime';
 import { useNow } from '@/features/system/useNow';
 import { formatPrice, groupDigits } from '@/utils/money';
@@ -40,11 +40,11 @@ export default function CartScreen() {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeLine = useCartStore((state) => state.removeLine);
   const clear = useCartStore((state) => state.clear);
-  const getTotals = useCartStore((state) => state.getTotals);
   const voucher = useCartStore((state) => state.voucher);
   const applyVoucher = useCartStore((state) => state.applyVoucher);
   const removeVoucher = useCartStore((state) => state.removeVoucher);
   const reward = useCartStore((state) => state.reward);
+  const cartFulfilment = useCartStore((state) => state.fulfilmentType);
   const removeReward = useCartStore((state) => state.removeReward);
   const setCartFulfilment = useCartStore((state) => state.setFulfilmentType);
 
@@ -62,7 +62,20 @@ export default function CartScreen() {
   // A voucher can die while the cart sits open, and the totals are worked out
   // fresh on every render — so the screen needs a reason to render.
   const now = useNow();
-  const totals = getTotals();
+  /**
+   * The bill, worked out here rather than through a store method called during
+   * render — the React Compiler cannot see through that and refused to memoise
+   * two of this screen's callbacks because of it.
+   *
+   * Sourced from the cart's own fulfilment type, not the screen's. They are
+   * kept in step by `handleFulfilmentChange`, but pricing has to come from the
+   * one the arithmetic actually uses, or the reward's worth could be worked out
+   * against a different order to the total it is shown beside.
+   */
+  const { totals, rewardWorth } = useMemo(
+    () => priceBasket({ lines, fulfilmentType: cartFulfilment, voucher, reward }),
+    [lines, cartFulfilment, voucher, reward],
+  );
   const belowMinimum = !meetsDeliveryMinimum(totals.subtotal, fulfilmentType);
 
   const handleFulfilmentChange = useCallback(
@@ -279,9 +292,15 @@ export default function CartScreen() {
             <View style={styles.rewardBody}>
               <Text variant="bodyMedium">{reward ? reward.name : 'Use a reward'}</Text>
               <Text variant="caption" color={colors.textSecondary}>
-                {reward
-                  ? `${formatPrice(reward.discount)} off · ${groupDigits(reward.pointsCost)} points`
-                  : 'Spend your bb.q points on this order'}
+                {!reward
+                  ? 'Spend your bb.q points on this order'
+                  : rewardWorth > 0
+                    ? `${formatPrice(rewardWorth)} off · ${groupDigits(reward.pointsCost)} points`
+                    : // A delivery reward against an order with no delivery fee
+                      // takes nothing off, and used to claim "R32.00 off"
+                      // regardless. Saying so before they pay beats explaining
+                      // it afterwards.
+                      'Nothing to take off this order — switch to delivery to use it'}
               </Text>
             </View>
 
