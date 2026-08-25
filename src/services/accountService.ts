@@ -20,6 +20,28 @@ let addressLedger: Address[] = blank ? [] : [...savedAddresses];
 let paymentLedger: PaymentMethod[] = blank ? [] : [...savedPaymentMethods];
 let notificationLedger: AppNotification[] = [...notifications];
 
+/**
+ * The mock's live ledgers, for other mock endpoints to read.
+ *
+ * Only the mock layer has any business calling these — a real backend already
+ * knows what this customer has saved. They exist because `placeOrder` was
+ * resolving an order's address against the seeded array these ledgers were
+ * *initialised* from, which is a different thing entirely the moment anybody
+ * adds an address: their new address is in the ledger and not in the seed, so
+ * the lookup found nothing and the order was recorded without one.
+ *
+ * The customer saw that on the most reassuring screen in the app. A brand-new
+ * account, an address typed in by hand, an order placed — and a confirmation
+ * reading "Delivering to: Your address".
+ */
+export function currentAddresses(): Address[] {
+  return addressLedger;
+}
+
+export function currentPaymentMethods(): PaymentMethod[] {
+  return paymentLedger;
+}
+
 export async function fetchAddresses(): Promise<Address[]> {
   if (config.useMockApi) return delay(addressLedger);
   return request<Address[]>('/v1/account/addresses');

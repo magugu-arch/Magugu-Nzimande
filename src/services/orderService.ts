@@ -3,7 +3,8 @@ import type { Order, OrderStatus, OrderStatusEvent, PlaceOrderInput } from '@/ty
 import { addMinutes } from '@/utils/datetime';
 import { delay, request } from './apiClient';
 import { stores } from './data/storeData';
-import { savedAddresses, savedPaymentMethods } from './data/accountData';
+import { currentAddresses, currentPaymentMethods } from './accountService';
+import { describePaymentMethod } from './paymentService';
 
 /**
  * Order service.
@@ -326,8 +327,13 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   seedHistory();
 
   const store = stores.find((candidate) => candidate.id === input.storeId) ?? stores[0];
-  const address = savedAddresses.find((candidate) => candidate.id === input.addressId);
-  const payment = savedPaymentMethods.find((candidate) => candidate.id === input.paymentMethodId);
+  // Asked of the ledgers as they stand, not of the arrays they were seeded
+  // from — otherwise an address the customer added this morning does not
+  // exist as far as their order is concerned.
+  const address = currentAddresses().find((candidate) => candidate.id === input.addressId);
+  const payment = currentPaymentMethods().find(
+    (candidate) => candidate.id === input.paymentMethodId,
+  );
 
   const preparation = store?.preparationMinutes ?? businessRules.defaultPreparationMinutes;
   const etaMinutes =
@@ -353,7 +359,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
       : {}),
     ...(input.tableNumber ? { tableNumber: input.tableNumber } : {}),
     ...(input.scheduledFor ? { scheduledFor: input.scheduledFor } : {}),
-    paymentMethodLabel: payment?.label ?? 'Card',
+    // A saved card has a label worth showing — "Visa ending 4821" tells them
+    // which card. A rail has no saved record to find, so the type names it.
+    // Falling back to a flat 'Card' put "Paid with: Card" on the receipt for
+    // an order somebody is paying for in cash at their front door.
+    paymentMethodLabel: payment?.label ?? describePaymentMethod(input.paymentMethodType),
     etaMinutes,
     ...(input.fulfilmentType === 'delivery' ? { driverName: 'Sipho' } : {}),
   };

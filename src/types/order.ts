@@ -177,6 +177,19 @@ export interface PlaceOrderInput {
   tableNumber?: string;
   scheduledFor?: string;
   paymentMethodId: string;
+  /**
+   * Sent alongside the id, the same way `AuthorisePaymentInput` already does.
+   *
+   * Not every id here is one the server issued. Cash, SnapScan and instant EFT
+   * are rails bb.q accepts rather than things a customer saves, so they are
+   * named on the client and their ids mean nothing to a backend looking up a
+   * stored payment method — it finds nothing, and records the order against
+   * whatever it falls back to. The mock did exactly that, and a first order
+   * paid by SnapScan came back reading "Paid with: Card".
+   *
+   * The type is the part that is always true, so it travels with the id.
+   */
+  paymentMethodType: PaymentMethodType;
   voucherCode?: string;
   redeemedRewardId?: string;
 }

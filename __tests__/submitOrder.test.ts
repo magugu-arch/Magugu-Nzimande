@@ -23,6 +23,7 @@ const orderInput = {
   fulfilmentType: 'delivery',
   storeId: 'store-sandton',
   paymentMethodId: 'payment-visa',
+  paymentMethodType: 'card',
 } as PlaceOrderInput;
 
 const placedOrder = { id: 'order-1', reference: 'BBQ-1' } as Order;

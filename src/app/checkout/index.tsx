@@ -251,6 +251,7 @@ export default function CheckoutScreen() {
           ...(fulfilmentType === 'dinein' ? { tableNumber } : {}),
           ...(scheduledFor ? { scheduledFor } : {}),
           paymentMethodId: selectedPayment.id,
+          paymentMethodType: selectedPayment.type,
           ...(voucher ? { voucherCode: voucher.code } : {}),
           ...(reward ? { redeemedRewardId: reward.rewardId } : {}),
         },

@@ -184,9 +184,24 @@ try {
     step(`${fulfilment} works with no address on file — ${rails} way(s) to pay`);
   }
 
-  // The part the seeded account could never test: no saved address at all.
-  await go('/checkout/address');
+  /**
+   * The part the seeded account could never test: no saved address at all.
+   *
+   * Reached by tapping through from checkout rather than by URL, and that is
+   * load-bearing rather than tidiness. Navigating by URL reloads the bundle,
+   * and the mock's ledgers are module state — so an address added on one
+   * screen no longer exists on the next, and the order goes out with an id
+   * that matches nothing. That is the harness, not the app, but it is enough
+   * to hide a real defect underneath it: this journey could not tell the
+   * difference between "the address was lost in a reload" and "the order was
+   * recorded without one", and the second was true.
+   */
+  await go('/checkout');
   await page.waitForTimeout(1200);
+  await tap('fulfilment-delivery');
+  await page.waitForTimeout(1200);
+  await page.getByText('Delivering to', { exact: false }).first().click({ timeout: 10000 });
+  await page.waitForTimeout(1500);
   const preexisting = await page.evaluate(() =>
     [...document.querySelectorAll('[data-testid]')]
       .map((e) => e.getAttribute('data-testid'))
@@ -233,11 +248,14 @@ try {
   }
   step('added a delivery address from nothing');
 
-  // Now delivery, which does need somewhere to take it.
-  await go('/checkout');
-  await page.waitForTimeout(1200);
-  await tap('fulfilment-delivery');
-  await page.waitForTimeout(1500);
+  // Tapping the new card selects it and goes back to checkout the way the
+  // customer would — in-app, so nothing the mock is holding is thrown away.
+  await tap(saved[0]);
+  await page.waitForTimeout(1800);
+  if (!/checkout/.test(page.url())) {
+    throw new Error(`choosing the address did not return to checkout — landed on ${page.url()}`);
+  }
+
   const deliveryRails = await page.evaluate(
     () => document.querySelectorAll('[data-testid^="payment-"]').length,
   );
@@ -257,18 +275,32 @@ try {
   }
   step(`delivery works once an address exists — ${deliveryRails} way(s) to pay`);
 
-  // And actually place one, on the path a first-time customer is likeliest to
-  // take. A journey that stops at "ready to submit" has not proved very much.
-  await go('/checkout');
-  await page.waitForTimeout(1200);
-  await tap('fulfilment-delivery');
-  await page.waitForTimeout(1500);
+  // And actually place it, from here, without another trip through the URL
+  // bar. A journey that stops at "ready to submit" has not proved very much.
   await tap('checkout-place-order');
   await page.waitForURL(/confirmation/, { timeout: 30000 });
   const receipt = await page.locator('body').innerText();
   const reference = /BBQ-\d+/.exec(receipt);
   if (!reference) throw new Error('confirmation shows no order reference');
-  step(`placed their first order — ${reference[0]}`);
+
+  /**
+   * A reference alone proves the request went through, not that the order is
+   * right. This screen is the one a customer reads to check the app understood
+   * them, so it has to name the two things they just chose: where it is going
+   * and how they are paying for it.
+   *
+   * Both are things only a customer with nothing saved can catch. Everything
+   * on a seeded account matches the seed by construction.
+   */
+  if (!/14 Acacia Road/.test(receipt)) {
+    const showing = /Delivering to\s*\n?\s*(.+)/.exec(receipt)?.[1]?.trim() ?? '(nothing)';
+    throw new Error(`the confirmation does not name the address they typed — it says "${showing}"`);
+  }
+  const paidWith = /Paid with\s*\n?\s*(.+)/.exec(receipt)?.[1]?.trim() ?? '(nothing)';
+  if (!/SnapScan|EFT|Cash/i.test(paidWith)) {
+    throw new Error(`the confirmation says they paid with "${paidWith}", which they did not`);
+  }
+  step(`placed their first order — ${reference[0]}, to 14 Acacia Road, by ${paidWith}`);
 } catch (error) {
   failed = error instanceof Error ? error.message : String(error);
 } finally {

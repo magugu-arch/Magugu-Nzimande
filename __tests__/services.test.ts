@@ -35,6 +35,7 @@ import {
   requiresRedirect,
   voidPayment,
 } from '@/services/paymentService';
+import { createAddress, fetchPaymentMethods } from '@/services/accountService';
 import { stores } from '@/services/data/storeData';
 import { vouchers } from '@/services/data/rewardsData';
 import type { Order, Reward, Voucher } from '@/types';
@@ -181,6 +182,7 @@ describe('orderService', () => {
       storeId: 'store-sandton',
       addressId: 'address-home',
       paymentMethodId: 'payment-visa',
+      paymentMethodType: 'card',
     });
 
     expect(order.status).toBe('received');
@@ -215,6 +217,7 @@ describe('orderService', () => {
       fulfilmentType: 'collection',
       storeId: store!.id,
       paymentMethodId: 'payment-visa',
+      paymentMethodType: 'card',
     });
 
     expect(order.storeName).toBe(store!.name);
@@ -509,6 +512,7 @@ describe('tracking a scheduled order', () => {
       fulfilmentType: 'delivery',
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
+      paymentMethodType: 'card',
       scheduledFor: new Date(Date.now() + 28 * 3_600_000).toISOString(),
     });
 
@@ -533,11 +537,98 @@ describe('tracking a scheduled order', () => {
       fulfilmentType: 'delivery',
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
+      paymentMethodType: 'card',
     });
 
     jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 45 * 60_000);
 
     const tracked = await fetchOrder(placed.id);
     expect(tracked.status).toBe('completed');
+  });
+});
+
+/**
+ * The mock resolved an order's address and payment method against the seeded
+ * arrays its ledgers were *initialised* from, which is a different thing the
+ * moment anybody adds anything. Two failures came out of that, both landing on
+ * the confirmation screen — the one a customer reads to check the app
+ * understood them.
+ *
+ * Driven as somebody who installed the app that morning:
+ *
+ *     the confirmation does not name the address they typed —
+ *     it says "Your address"
+ */
+describe('what a placed order records about itself', () => {
+  const totals = {
+    subtotal: 200,
+    deliveryFee: 32,
+    serviceFee: 5,
+    discount: 0,
+    rewardsDiscount: 0,
+    total: 237,
+    pointsEarned: 200,
+  };
+
+  it('names an address the customer added, not only a seeded one', async () => {
+    const added = await createAddress({
+      label: 'Home',
+      line1: '14 Acacia Road',
+      suburb: 'Rosebank',
+      city: 'Johannesburg',
+      province: 'Gauteng',
+      postalCode: '2196',
+      latitude: -26.1446,
+      longitude: 28.0424,
+      isDefault: false,
+    });
+
+    const order = await placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      addressId: added.id,
+      paymentMethodId: 'payment-visa',
+      paymentMethodType: 'card',
+    });
+
+    expect(order.addressId).toBe(added.id);
+    expect(order.addressSummary).toBe('14 Acacia Road, Rosebank');
+  });
+
+  /**
+   * Cash, SnapScan and instant EFT are rails bb.q accepts rather than things a
+   * customer saves, so their ids match nothing in any ledger. The label fell
+   * back to a flat 'Card' — so an order somebody is paying for at their own
+   * front door came back reading "Paid with: Card".
+   */
+  it('names the rail when there is no saved method to name', async () => {
+    const order = await placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: 'rail-cash',
+      paymentMethodType: 'cash',
+    });
+
+    expect(order.paymentMethodLabel).toBe('Cash on delivery');
+  });
+
+  it('still prefers the label on a saved card, which says which card', async () => {
+    const [saved] = await fetchPaymentMethods();
+    expect(saved).toBeDefined();
+
+    const order = await placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: saved!.id,
+      paymentMethodType: saved!.type,
+    });
+
+    expect(order.paymentMethodLabel).toBe(saved!.label);
   });
 });
