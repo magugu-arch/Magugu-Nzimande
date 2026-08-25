@@ -23,6 +23,7 @@ import { usePlaceOrder } from '@/features/orders/hooks';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
 import { submitOrder } from '@/features/checkout/submitOrder';
+import { offeredPaymentMethods } from '@/features/checkout/paymentOptions';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { useNetworkStatus } from '@/features/system/useNetworkStatus';
 import { useNow } from '@/features/system/useNow';
@@ -90,11 +91,13 @@ export default function CheckoutScreen() {
   const totals = getTotals();
 
   /** Rails offered for this fulfilment type — cash is delivery-only. */
-  const offeredPaymentMethods = useMemo(
-    () =>
-      (paymentMethods.data ?? []).filter(
-        (method) => method.type !== 'cash' || fulfilmentType === 'delivery',
-      ),
+  /**
+   * Saved cards plus the rails bb.q always accepts. This used to be only what
+   * the account endpoint returned, which left a customer with no saved card
+   * unable to pay at all — not even cash on delivery, which nobody saves.
+   */
+  const offered = useMemo(
+    () => offeredPaymentMethods(paymentMethods.data ?? [], fulfilmentType),
     [paymentMethods.data, fulfilmentType],
   );
 
@@ -106,10 +109,10 @@ export default function CheckoutScreen() {
    * wrongly blocked.
    */
   const selectedPayment: PaymentMethod | undefined = useMemo(() => {
-    const chosen = offeredPaymentMethods.find((method) => method.id === chosenPaymentId);
+    const chosen = offered.find((method) => method.id === chosenPaymentId);
     if (chosen) return chosen;
-    return offeredPaymentMethods.find((method) => method.isDefault) ?? offeredPaymentMethods[0];
-  }, [offeredPaymentMethods, chosenPaymentId]);
+    return offered.find((method) => method.isDefault) ?? offered[0];
+  }, [offered, chosenPaymentId]);
 
   const selectedPaymentId = selectedPayment?.id ?? null;
 
@@ -379,7 +382,7 @@ export default function CheckoutScreen() {
         <Card style={styles.card}>
           <Text variant="h3">Payment</Text>
 
-          {offeredPaymentMethods.map((method) => {
+          {offered.map((method) => {
             const selected = method.id === selectedPaymentId;
             return (
               <Pressable

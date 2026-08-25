@@ -45,6 +45,15 @@ export const savedAddresses: Address[] = [
   },
 ];
 
+/**
+ * Saved *cards*, and nothing else.
+ *
+ * This list used to carry SnapScan, Instant EFT and Cash on delivery too,
+ * which made checkout look fine against the mock and hid the fact that a
+ * customer with no saved card was offered nothing at all. Those are rails the
+ * business accepts, not things anyone saves; they live in
+ * `features/checkout/paymentOptions`.
+ */
 export const savedPaymentMethods: PaymentMethod[] = [
   {
     id: 'payment-visa',
@@ -62,24 +71,6 @@ export const savedPaymentMethods: PaymentMethod[] = [
     last4: '7702',
     expiry: '03/27',
     brand: 'Mastercard',
-    isDefault: false,
-  },
-  {
-    id: 'payment-snapscan',
-    type: 'snapscan',
-    label: 'SnapScan',
-    isDefault: false,
-  },
-  {
-    id: 'payment-eft',
-    type: 'eft',
-    label: 'Instant EFT',
-    isDefault: false,
-  },
-  {
-    id: 'payment-cash',
-    type: 'cash',
-    label: 'Cash on delivery',
     isDefault: false,
   },
 ];

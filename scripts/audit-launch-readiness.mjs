@@ -181,6 +181,22 @@ if (notifications.includes('/v1/account/push-tokens/')) {
   );
 }
 
+// Cards can be paid with but not added: capture belongs in the gateway's
+// PCI-compliant SDK and that is not connected yet. SnapScan, EFT and cash
+// carry an order without it, so this is not a hard block — but no customer can
+// add a card until the provider SDK is wired in.
+const payments = read('src/app/account/payment-methods.tsx');
+if (payments.includes('Connect the provider SDK')) {
+  note(
+    'Card capture',
+    'Adding a card opens an explanation, not a form — card capture must happen ' +
+      "inside the payment provider's PCI-compliant SDK and that is not connected. " +
+      'A customer can still pay by SnapScan, Instant EFT or cash on delivery, so ' +
+      'the app is orderable without it, but nobody can save a card until it is done.',
+    'you',
+  );
+}
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {
