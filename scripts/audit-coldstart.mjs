@@ -132,6 +132,58 @@ try {
   await tap('product-add-to-cart');
   step('found food and put it in the basket');
 
+  /**
+   * Collection and dine-in first, with no address saved anywhere.
+   *
+   * Somebody collecting their own food has no reason to type an address, and
+   * that is exactly the state in which a wrongly-scoped rule would strand
+   * them. Running these after the address was added — which is how this was
+   * written first — makes the check unable to fail: with an address present,
+   * a guard that wrongly demands one never fires. Reverting the delivery-only
+   * scope on that rule proved it, by passing.
+   */
+  for (const fulfilment of ['collection', 'dinein']) {
+    await go('/checkout');
+    await page.waitForTimeout(1200);
+
+    const selector = page.locator(`[data-testid="fulfilment-${fulfilment}"]`).first();
+    if ((await selector.count()) === 0) {
+      throw new Error(`checkout offers no way to choose ${fulfilment}`);
+    }
+    await selector.click({ timeout: 10000 });
+    await page.waitForTimeout(1500);
+
+    if (fulfilment === 'dinein') {
+      const table = page.locator('[data-testid="checkout-table-number"]').first();
+      if ((await table.count()) === 0) {
+        throw new Error('dine-in does not ask which table to bring it to');
+      }
+      await table.fill('12');
+      await page.waitForTimeout(1200);
+    }
+
+    const rails = await page.evaluate(
+      () => document.querySelectorAll('[data-testid^="payment-"]').length,
+    );
+    if (rails === 0) throw new Error(`no way to pay was offered for ${fulfilment}`);
+
+    const blocked = await page
+      .locator('[data-testid="checkout-place-order"]')
+      .first()
+      .getAttribute('aria-disabled');
+    if (blocked === 'true') {
+      const why = await page.evaluate(() => {
+        const btn = document.querySelector('[data-testid="checkout-place-order"]');
+        const footer = btn?.parentElement;
+        const cap = footer && [...footer.children].find((c) => c !== btn && c.textContent?.trim());
+        return cap?.textContent?.trim() ?? '(no reason shown)';
+      });
+      throw new Error(`${fulfilment} is blocked for someone with no saved address: "${why}"`);
+    }
+
+    step(`${fulfilment} works with no address on file — ${rails} way(s) to pay`);
+  }
+
   // The part the seeded account could never test: no saved address at all.
   await go('/checkout/address');
   await page.waitForTimeout(1200);
@@ -181,33 +233,36 @@ try {
   }
   step('added a delivery address from nothing');
 
+  // Now delivery, which does need somewhere to take it.
   await go('/checkout');
-  await page.waitForTimeout(1800);
-
-  // The defect this audit exists for: a customer with no saved card was
-  // offered no way to pay at all, cash included.
-  const rails = await page.evaluate(
+  await page.waitForTimeout(1200);
+  await tap('fulfilment-delivery');
+  await page.waitForTimeout(1500);
+  const deliveryRails = await page.evaluate(
     () => document.querySelectorAll('[data-testid^="payment-"]').length,
   );
-  if (rails === 0) {
-    throw new Error('no way to pay was offered to a customer with no saved card');
-  }
-  step(`offered ${rails} way(s) to pay without a saved card`);
-
-  const blocked = await page
+  if (deliveryRails === 0) throw new Error('no way to pay was offered for delivery');
+  const deliveryBlocked = await page
     .locator('[data-testid="checkout-place-order"]')
     .first()
     .getAttribute('aria-disabled');
-  if (blocked === 'true') {
+  if (deliveryBlocked === 'true') {
     const why = await page.evaluate(() => {
       const btn = document.querySelector('[data-testid="checkout-place-order"]');
       const footer = btn?.parentElement;
       const cap = footer && [...footer.children].find((c) => c !== btn && c.textContent?.trim());
       return cap?.textContent?.trim() ?? '(no reason shown)';
     });
-    throw new Error(`a new customer cannot check out: "${why}"`);
+    throw new Error(`a new customer cannot check out for delivery: "${why}"`);
   }
+  step(`delivery works once an address exists — ${deliveryRails} way(s) to pay`);
 
+  // And actually place one, on the path a first-time customer is likeliest to
+  // take. A journey that stops at "ready to submit" has not proved very much.
+  await go('/checkout');
+  await page.waitForTimeout(1200);
+  await tap('fulfilment-delivery');
+  await page.waitForTimeout(1500);
   await tap('checkout-place-order');
   await page.waitForURL(/confirmation/, { timeout: 30000 });
   const receipt = await page.locator('body').innerText();
