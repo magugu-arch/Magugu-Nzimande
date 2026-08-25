@@ -18,12 +18,13 @@ import {
 import { FoodImage } from '@/components/food/FoodImage';
 import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
-import { usePaymentMethods } from '@/features/account/hooks';
+import { useAddresses, usePaymentMethods } from '@/features/account/hooks';
 import { usePlaceOrder } from '@/features/orders/hooks';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
 import { submitOrder } from '@/features/checkout/submitOrder';
 import { offeredPaymentMethods } from '@/features/checkout/paymentOptions';
+import { preferredAddress } from '@/features/checkout/preferredAddress';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { useNetworkStatus } from '@/features/system/useNetworkStatus';
 import { useNow } from '@/features/system/useNow';
@@ -56,6 +57,7 @@ export default function CheckoutScreen() {
   const store = useFulfilmentStore((state) => state.store);
   const setStore = useFulfilmentStore((state) => state.setStore);
   const address = useFulfilmentStore((state) => state.address);
+  const setAddress = useFulfilmentStore((state) => state.setAddress);
   const deliveryInstructions = useFulfilmentStore((state) => state.deliveryInstructions);
   const tableNumber = useFulfilmentStore((state) => state.tableNumber);
   const setTableNumber = useFulfilmentStore((state) => state.setTableNumber);
@@ -70,6 +72,7 @@ export default function CheckoutScreen() {
 
   const { isOffline } = useNetworkStatus();
   const paymentMethods = usePaymentMethods();
+  const addresses = useAddresses();
   const availableStores = useStoresForFulfilment(fulfilmentType);
   const placeOrder = usePlaceOrder();
 
@@ -125,6 +128,21 @@ export default function CheckoutScreen() {
     const suggested = preferredStore(availableStores.data ?? []);
     if (suggested) setStore(suggested);
   }, [store, availableStores.data, setStore]);
+
+  // And the same courtesy for the address, which this screen used to withhold
+  // for no reason anybody chose: it picked a branch and a card for you and
+  // then asked you to go and find your own front door. See `preferredAddress`
+  // for which one, and for why it sometimes declines to guess.
+  //
+  // Only when nothing is chosen, so it can never overrule the customer, and
+  // only for delivery — quietly attaching an address to a collection order
+  // would put a front door on a receipt for food somebody carried home
+  // themselves.
+  useEffect(() => {
+    if (address || fulfilmentType !== 'delivery') return;
+    const suggested = preferredAddress(addresses.data ?? []);
+    if (suggested) setAddress(suggested);
+  }, [address, fulfilmentType, addresses.data, setAddress]);
 
   const blocker = useMemo(() => {
     if (lines.length === 0) return 'Your cart is empty';

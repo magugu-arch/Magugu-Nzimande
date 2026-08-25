@@ -37,7 +37,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\"",
     "audit:launch": "node scripts/audit-launch-readiness.mjs",
     "audit:offline": "node scripts/audit-offline.mjs",
-    "audit:coldstart": "node scripts/audit-coldstart.mjs"
+    "audit:coldstart": "node scripts/audit-coldstart.mjs",
+    "audit:returning": "node scripts/audit-returning.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",

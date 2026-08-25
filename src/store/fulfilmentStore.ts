@@ -202,11 +202,23 @@ export const useFulfilmentStore = create<FulfilmentState>()(
       setCoordinates: (coordinates) => set({ coordinates }),
       markLocationPermissionAsked: () => set({ locationPermissionAsked: true }),
 
+      /**
+       * The end of an order, not the end of a customer.
+       *
+       * What this clears is what belonged to the order that just went through:
+       * the table they were sitting at, the slot they picked, the branch it
+       * went to. What it keeps is what is still true a minute later — the same
+       * person is still at the same address, with the same note for the
+       * driver.
+       *
+       * It used to null the address too, and that is the whole of why a
+       * returning customer was met with "Add a delivery address" on every
+       * order after their first. Same reasoning as `coordinates` below: an
+       * order ending does not move anybody.
+       */
       reset: () =>
         set({
           store: null,
-          address: null,
-          deliveryInstructions: '',
           tableNumber: '',
           scheduledFor: null,
         }),

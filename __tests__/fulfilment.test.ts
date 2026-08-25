@@ -230,7 +230,9 @@ describe('missingFulfilmentRequirement', () => {
 describe('the blocker keeps up with the store', () => {
   beforeEach(() => {
     act(() => {
-      useFulfilmentStore.getState().reset();
+      // `forgetPerson`, not `reset` — `reset` deliberately keeps the address
+      // now, which would leak one test's address into the next.
+      useFulfilmentStore.getState().forgetPerson();
     });
   });
 

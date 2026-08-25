@@ -112,6 +112,15 @@ jobs:
       - name: Order as a brand-new customer
         run: npm run audit:coldstart
 
+      # And the account every other check here is blind to: one that has
+      # ordered before. Every journey above places a *first* order, which is
+      # the only order that arrives at checkout with an address already in
+      # hand — so the second half of the commonest journey there is went
+      # unlooked-at, and a returning customer was blocked on every order after
+      # their first.
+      - name: Order twice
+        run: npm run audit:returning
+
   assets:
     name: Food asset catalogue
     runs-on: ubuntu-latest
