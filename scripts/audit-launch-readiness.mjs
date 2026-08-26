@@ -132,6 +132,31 @@ if (!/latitude:/.test(addressForm)) {
   );
 }
 
+/**
+ * The app can narrow a double authorisation; only the backend can close it.
+ *
+ * Printed while `submitOrder` still has an `uncertain` branch — which is to
+ * say, always, unless somebody rewrites the payment flow. It is not a defect
+ * to fix in this repo, it is a requirement to hand to whoever builds the
+ * gateway integration.
+ */
+const submit = read('src/features/checkout/submitOrder.ts');
+if (/status: 'uncertain'/.test(submit)) {
+  note(
+    'Payment idempotency',
+    'Checkout authorises the card and then creates the order, releasing the hold if the order ' +
+      'fails. What it cannot do is tell a lost reply from a refusal: if POST /v1/payments/authorise ' +
+      'times out, the gateway may have authorised and there is no intentId to release, because ' +
+      'the call that would have returned one never came back. The app now says so rather than ' +
+      'inviting a retry — "we cannot tell whether your card was authorised, check your banking ' +
+      'app" — which is honest and is still a customer stuck mid-order. The fix is on your side: ' +
+      'make that endpoint idempotent on the `orderReference` the app already sends, so a retry ' +
+      'returns the original authorisation instead of taking a second one. Confirm your provider ' +
+      'supports it — most do, under an idempotency key — and that the endpoint uses it.',
+    'you',
+  );
+}
+
 // An opening date that has passed silently turns into "open for business".
 const openings = [...storeData.matchAll(/opensOn: '([^']+)'/g)].map((m) => m[1]);
 for (const opening of openings) {

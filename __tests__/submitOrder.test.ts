@@ -1,6 +1,7 @@
 import type { Order, PlaceOrderInput } from '@/types';
 import type { AuthorisePaymentInput } from '@/services/paymentService';
 import { submitOrder, type SubmitOrderDeps } from '@/features/checkout/submitOrder';
+import { ApiRequestError } from '@/services/apiClient';
 
 const payment: AuthorisePaymentInput = {
   amount: 237,
@@ -173,5 +174,71 @@ describe('cash, which is never authorised up front', () => {
     );
 
     expect(outcome.status).toBe('placed');
+  });
+});
+
+/**
+ * A failed authorisation call is two different things, and the code treated
+ * them as one.
+ *
+ * A refusal is an answer: the gateway received the request, considered it and
+ * said no. Nothing was taken, so "please try again" is sound.
+ *
+ * A timeout or a dropped connection is not an answer. The card may have been
+ * authorised and the reply lost — and there is no `intentId` to release,
+ * because the call that would have returned one never did. Inviting that
+ * customer to retry is how one order becomes two holds, which is the whole
+ * thing this sequence exists to prevent. It was reasoned about carefully for
+ * the second call and not at all for the first.
+ */
+describe('when the authorisation call gets no answer', () => {
+  const throwing = (error: unknown) => deps({ authorise: jest.fn().mockRejectedValue(error) });
+
+  it('does not call a timeout a decline', async () => {
+    const timedOut = new ApiRequestError({ code: 'timeout', message: 'That took too long.' });
+    const outcome = await submitOrder(payment, orderInput, throwing(timedOut));
+    expect(outcome.status).toBe('uncertain');
+  });
+
+  it('does not tell them to try again', async () => {
+    const offline = new ApiRequestError({ code: 'network', message: "We can't reach bb.q." });
+    const outcome = await submitOrder(payment, orderInput, throwing(offline));
+    // The one thing this message must never do.
+    expect(outcome.status === 'uncertain' && outcome.message).not.toMatch(/try again\.$/);
+    expect(outcome.status === 'uncertain' && outcome.message).toMatch(/banking app/i);
+  });
+
+  it('treats a 5xx the same way, because the gateway may still have acted', async () => {
+    const broken = new ApiRequestError({ code: 'http_502', message: 'Bad gateway', status: 502 });
+    expect((await submitOrder(payment, orderInput, throwing(broken))).status).toBe('uncertain');
+  });
+
+  it('still calls a refusal a refusal, so retrying stays free', async () => {
+    const refused = new ApiRequestError({
+      code: 'card_declined',
+      message: 'That card was declined.',
+      status: 402,
+    });
+    const outcome = await submitOrder(payment, orderInput, throwing(refused));
+    expect(outcome.status).toBe('declined');
+    expect(outcome.status === 'declined' && outcome.message).toBe('That card was declined.');
+  });
+
+  it('calls a plain error a refusal rather than guessing', async () => {
+    // Not an ApiRequestError at all — a bug in our own code on the way to the
+    // request. Nothing was sent, so nothing was taken.
+    const outcome = await submitOrder(payment, orderInput, throwing(new Error('boom')));
+    expect(outcome.status).toBe('declined');
+  });
+
+  it('never places the order when it could not authorise', async () => {
+    const place = jest.fn();
+    const timedOut = new ApiRequestError({ code: 'timeout', message: 'slow' });
+    await submitOrder(
+      payment,
+      orderInput,
+      deps({ authorise: jest.fn().mockRejectedValue(timedOut), place }),
+    );
+    expect(place).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,6 @@
 import type { Order, PlaceOrderInput } from '@/types';
 import type { AuthorisePaymentInput, PaymentResult } from '@/services/paymentService';
+import { didNotHearBack } from '@/services/apiClient';
 
 /**
  * Authorise, then create the order, and give the money back if the order does
@@ -20,6 +21,12 @@ export type SubmitOutcome =
   | { status: 'placed'; order: Order }
   /** Nothing was authorised, so retrying is free. */
   | { status: 'declined'; message: string }
+  /**
+   * The authorisation was attempted and no answer came back, so nobody knows
+   * whether it was taken. The other case where the customer must not be told to
+   * try again.
+   */
+  | { status: 'uncertain'; message: string }
   /** Authorised, order failed, hold released. Retrying is free. */
   | { status: 'reversed'; message: string }
   /**
@@ -50,7 +57,31 @@ export async function submitOrder(
   try {
     authorisation = await authorise(payment);
   } catch (error) {
-    // The authorisation call itself failed, so there is nothing to release.
+    /**
+     * A failed authorisation call is two different things.
+     *
+     * A refusal is an answer — the gateway received the request, considered it,
+     * and said no. Nothing was taken, so "please try again" is sound advice.
+     *
+     * A timeout, a dropped connection or a 5xx is not an answer. The gateway
+     * may have authorised the card and lost the reply on the way back, and
+     * there is no `intentId` to release because the call that would have
+     * returned one never did. Telling that customer to try again is how one
+     * order becomes two holds — precisely what the sequence below exists to
+     * prevent, missed on the first call because it was reasoned about only for
+     * the second.
+     */
+    if (didNotHearBack(error)) {
+      return {
+        status: 'uncertain',
+        message:
+          'We could not reach the payment provider, and we cannot tell whether ' +
+          'your card was authorised. Check your banking app before trying again — ' +
+          'if a hold is showing, call the store rather than paying twice.',
+      };
+    }
+
+    // A refusal, so there is nothing to release.
     return { status: 'declined', message: reasonFor(error) };
   }
 

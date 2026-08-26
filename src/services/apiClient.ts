@@ -23,6 +23,26 @@ export function isNotFound(error: unknown): boolean {
   return error instanceof ApiRequestError && error.status === 404;
 }
 
+/**
+ * Whether a failure leaves the app not knowing what the server did.
+ *
+ * A 400 or a 422 is an answer: the server received the request, considered it,
+ * and refused. A timeout, a dropped connection or a 5xx is not — the request
+ * may have been received and acted on, and only the reply was lost.
+ *
+ * The distinction matters in exactly one place and matters a great deal there.
+ * `submitOrder` treats a thrown authorisation as "nothing was authorised, so
+ * retrying is free", which is true of a decline and false of a timeout. A
+ * gateway that authorised the card and could not tell us in time, followed by
+ * a customer being invited to try again, is two holds on one order — the
+ * outcome the whole authorise-then-place sequence exists to prevent.
+ */
+export function didNotHearBack(error: unknown): boolean {
+  if (!(error instanceof ApiRequestError)) return false;
+  if (error.code === 'timeout' || error.code === 'network') return true;
+  return error.status !== undefined && error.status >= 500;
+}
+
 export class ApiRequestError extends Error {
   readonly code: string;
   readonly status: number | undefined;
