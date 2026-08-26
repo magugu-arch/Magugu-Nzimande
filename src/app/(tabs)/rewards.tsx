@@ -9,6 +9,7 @@ import {
   ErrorState,
   ListRow,
   LoadingState,
+  OfflineState,
   ProgressBar,
   Section,
   Text,
@@ -23,6 +24,7 @@ import {
   useTiers,
   useVouchers,
 } from '@/features/rewards/hooks';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatRelativeDay } from '@/utils/datetime';
 import { groupDigits } from '@/utils/money';
@@ -51,6 +53,13 @@ export default function RewardsScreen() {
         <LoadingState message="Counting your points…" />
       </View>
     );
+  }
+
+  // Offline is not broken, and every other data screen in the app says so.
+  // This one fell through to "Something went wrong", which reads as a fault in
+  // the app rather than a lift with no signal.
+  if (isOfflinePending(loyalty) || isOfflinePending(rewards)) {
+    return <OfflineState onRetry={() => void loyalty.refetch()} />;
   }
 
   if (loyalty.isError || !loyalty.data) {

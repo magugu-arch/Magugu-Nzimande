@@ -52,6 +52,22 @@ const ROUTES = [
 const HONEST = /Something went wrong|couldn't load|can't reach|You're offline|Try again/i;
 
 /**
+ * Copy that names the actual reason: this device has no connection.
+ *
+ * Stricter than `HONEST` on purpose, and checked separately. Every route here
+ * is one where the app *knows* the query is paused for want of a network —
+ * `isOfflinePending` can tell — so "Something went wrong" is honest but worse
+ * than it needs to be: it reads as a fault in the app rather than a lift with
+ * no signal.
+ *
+ * Two screens fell through to the generic error while nine others named it,
+ * and the earlier version of this audit could not see the difference because
+ * "Something went wrong" satisfied it. Order tracking was one of them, which
+ * is the screen somebody is most likely to be staring at underground.
+ */
+const NAMES_THE_CAUSE = /You're offline|No connection|no internet/i;
+
+/**
  * Copy that asserts a fact about the customer or the business. Harmless when
  * the data really did arrive and really was empty; a lie when it did not.
  */
@@ -116,12 +132,36 @@ try {
     // Long enough for the client timeout and its retries to run out.
     await page.waitForTimeout(14000);
 
-    const text = (await page.evaluate(() => document.body.innerText)).replace(/\n+/g, ' | ');
+    /**
+     * The screen's own words, with the global offline banner cut out.
+     *
+     * The banner says "You're offline" on every route, so reading the whole
+     * body makes any check for that phrase impossible to fail — which is
+     * exactly what the first version of the `NAMES_THE_CAUSE` rule below did.
+     * Removing the tracking screen's offline branch left the audit passing.
+     */
+    const text = (
+      await page.evaluate(() => {
+        const banner = document.querySelector('[data-testid="offline-banner"]');
+        const hidden = banner instanceof HTMLElement ? banner : null;
+        const previous = hidden?.style.display ?? null;
+        if (hidden) hidden.style.display = 'none';
+        const body = document.body.innerText;
+        if (hidden) hidden.style.display = previous ?? '';
+        return body;
+      })
+    ).replace(/\n+/g, ' | ');
     const honest = HONEST.test(text);
+    const named = NAMES_THE_CAUSE.test(text);
     const lies = CLAIMS.filter(([pattern]) => pattern.test(text)).map(([, why]) => why);
 
-    rows.push({ route, honest, lies });
+    rows.push({ route, honest, named, lies });
     for (const why of lies) findings.push(`${route}: ${why}`);
+    if (lies.length === 0 && honest && !named) {
+      findings.push(
+        `${route}: blames itself ("something went wrong") when it knows the device is offline`,
+      );
+    }
     if (!honest && lies.length === 0) {
       // Not obviously lying, but not admitting anything either. Worth a look
       // rather than a failure — some screens are legitimately static.

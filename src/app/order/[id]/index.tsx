@@ -12,6 +12,7 @@ import {
   ErrorState,
   ListRow,
   LoadingState,
+  OfflineState,
   ProgressBar,
   Screen,
   ScreenHeader,
@@ -21,6 +22,7 @@ import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { OrderTimeline } from '@/features/orders/components/OrderTimeline';
 import { useCancelOrder, useOrder } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
 import { useNow } from '@/features/system/useNow';
 import { colors, radius, spacing } from '@/theme';
@@ -97,6 +99,13 @@ export default function OrderTrackingScreen() {
         <LoadingState message="Checking on your order…" />
       </Screen>
     );
+  }
+
+  // Same as everywhere else: a paused query is somebody with no signal, not a
+  // missing order. "We can't find that order" is a bad thing to tell a customer
+  // standing in a lift waiting for their food.
+  if (isOfflinePending(order)) {
+    return <OfflineState onRetry={() => void order.refetch()} />;
   }
 
   if (order.isError || !order.data) {
