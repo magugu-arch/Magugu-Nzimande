@@ -189,6 +189,27 @@ if (unpaid.length > 0) {
   );
 }
 
+/**
+ * Enlarged text is the other thing only a handset can answer.
+ *
+ * `assets:typefit` measures real advance widths and reports the headroom, and
+ * it is 1.05× — beyond that the Button deliberately takes a second line and a
+ * taller box rather than truncating, which is a considered trade rather than a
+ * defect. What no browser can check is whether the *screens* still lay out
+ * around those taller buttons, because React Native Web reports `fontScale` as
+ * 1 whatever the OS is set to.
+ */
+note(
+  'Enlarged text',
+  'Button labels fit on one line up to 1.05× the OS text size; past that they wrap to two ' +
+    'lines and the button grows, by design. Nothing here can check what that does to the ' +
+    'screens around them — React Native Web always reports a font scale of 1, so the browser ' +
+    'sweep is blind to it. On a device, turn the text size up to the largest non-accessibility ' +
+    'setting and walk the ordering journey: the checkout footer and the tracking card are the ' +
+    'two worth watching, since both put a tall button under content that is already dense.',
+  'you',
+);
+
 // Connectivity recovery could not be confirmed off-device. Flagged rather
 // than fixed, because the fix would have to be verified on a handset.
 note(
