@@ -157,6 +157,36 @@ if (/status: 'uncertain'/.test(submit)) {
   );
 }
 
+/**
+ * The four numbers the app charges by, none of which anybody has signed off.
+ *
+ * Read out of the source so the item quotes what the app is actually applying
+ * rather than what this file remembers.
+ */
+const commercialRules = read('src/constants/config.ts');
+const rule = (name) => commercialRules.match(new RegExp(`${name}: (\\d+(?:\\.\\d+)?)`))?.[1];
+const fee = rule('deliveryFee');
+const threshold = rule('freeDeliveryThreshold');
+const minimum = rule('minimumDeliverySubtotal');
+const service = rule('serviceFee');
+
+if (fee && threshold) {
+  note(
+    'Delivery pricing',
+    `The app charges R${fee} for delivery, waives it above R${threshold}, refuses a delivery ` +
+      `order under R${minimum}, and adds R${service} in service fee to every order. All four are ` +
+      'seeded constants, all four are shown to a customer before they pay, and none has been ' +
+      'signed off. Changing them is three edits, not one: the constants in ' +
+      'src/constants/config.ts, the prose that quotes them — a promotion headline and the "What ' +
+      'does delivery cost?" help answer, which is where a customer goes to find out — and ' +
+      'whatever your API serves for those two, because against a real backend both are server ' +
+      'data. A test holds the seeded copy to the constants; nothing this side can hold yours. ' +
+      'The bill itself is recomputed by POST /v1/orders, so if the server disagrees with these ' +
+      'the customer sees one number and is charged another.',
+    'you',
+  );
+}
+
 // An opening date that has passed silently turns into "open for business".
 const openings = [...storeData.matchAll(/opensOn: '([^']+)'/g)].map((m) => m[1]);
 for (const opening of openings) {

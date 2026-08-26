@@ -65,6 +65,14 @@ jobs:
       - name: Audit the native projects
         run: npm run audit:native
 
+      # Advisory mode, so this never fails the build — the point is that the
+      # script runs at all. `build:prod` gates the production build on it in
+      # `--production` mode, and until this step existed nothing exercised it:
+      # a typo in the audit would first have shown up on the day somebody tried
+      # to make a release. One was introduced and caught by hand.
+      - name: Check the launch-readiness audit still runs
+        run: npm run audit:launch
+
   # Rendering the app catches what unit tests structurally cannot: overflow,
   # clipped labels, a screen that renders blank, a journey that no longer
   # connects. Kept out of `npm run verify` because a browser sweep is minutes,
