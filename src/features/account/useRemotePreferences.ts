@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { AppPreferences, NotificationPreferences } from '@/types';
 import { updateRemotePreferences } from '@/services/accountService';
 import { useAuthStore } from '@/store/authStore';
@@ -41,23 +41,40 @@ export function useRemotePreferences(): RemotePreferenceControls {
   const setPreference = useAuthStore((state) => state.setPreference);
 
   const [saving, setSaving] = useState(false);
+  /** Which save is the current one. See `push`. */
+  const latest = useRef(0);
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * The state to send is worked out here rather than read back from the store,
-   * because the store has only just been told and a stale read would send the
-   * previous answer — the exact shape of bug this screen is fixing.
+   * The state to send is worked out at the call site rather than read back from
+   * the store, because the store has only just been told and a stale read would
+   * send the previous answer — the exact shape of bug this screen is fixing.
+   *
+   * Only the newest request may undo anything. Two quick taps put two requests
+   * in flight, and a late failure from an older one would otherwise revert a
+   * value the customer has since changed — flipping a switch back under their
+   * thumb on the strength of a request about the previous state.
+   *
+   * A sequence number rather than "is the value still what I set it to", which
+   * was the first attempt and is wrong: with a boolean, three taps land back on
+   * the value an old request set, so a stale failure still reverts. The
+   * question is not whether the value looks familiar, it is whether this
+   * request is still the one that speaks for the customer.
    */
   const push = useCallback(
     async (
       next: { notifications: NotificationPreferences; marketingConsent: boolean },
       undo: () => void,
     ) => {
+      const ticket = (latest.current += 1);
       setSaving(true);
       setError(null);
       try {
         await updateRemotePreferences(next);
       } catch (caught) {
+        // Superseded: a newer tap is the customer's actual intent, and it will
+        // report its own failure if it has one.
+        if (ticket !== latest.current) return;
         undo();
         setError(
           caught instanceof Error

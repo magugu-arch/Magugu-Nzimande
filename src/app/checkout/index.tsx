@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -91,6 +91,8 @@ export default function CheckoutScreen() {
   const [chosenPaymentId, setChosenPaymentId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  /** Guards the submit against a double tap; see `handlePlaceOrder`. */
+  const inFlight = useRef(false);
 
   const totals = getTotals();
 
@@ -203,6 +205,20 @@ export default function CheckoutScreen() {
   const handlePlaceOrder = useCallback(async () => {
     if (blocker || !store || !selectedPayment) return;
 
+    /**
+     * A ref, not the `submitting` state beside it, because this has to be true
+     * the instant the first tap lands.
+     *
+     * The button already refuses a press while `loading`, but that flag is
+     * React state: between the first tap calling this and `setSubmitting(true)`
+     * being committed and rendered, there is a window. It is a frame or two and
+     * it is on the one path where losing the race costs money — `submitOrder`
+     * authorises before it places, so two runs mean two holds on the card and
+     * possibly two orders in the kitchen.
+     */
+    if (inFlight.current) return;
+    inFlight.current = true;
+
     // Re-checked against a fresh clock rather than trusting `blocker`, which
     // was computed on some earlier render. The tick above keeps the screen
     // honest, but a tick is a re-render and this is a tap — between the two
@@ -277,6 +293,7 @@ export default function CheckoutScreen() {
       resetFulfilment();
       router.replace(`/order/${outcome.order.id}/confirmation`);
     } finally {
+      inFlight.current = false;
       setSubmitting(false);
     }
   }, [

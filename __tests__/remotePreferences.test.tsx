@@ -113,3 +113,82 @@ describe('preferences that a server has to hear about', () => {
     expect(result.current.error).toBeNull();
   });
 });
+
+/**
+ * Two quick taps put two requests in flight. A late failure from the first
+ * would otherwise revert a value the customer has since changed — flipping a
+ * switch back under their thumb for a request that was about the previous
+ * state.
+ */
+describe('two taps in quick succession', () => {
+  beforeEach(() => {
+    sendPreferences.mockReset();
+    act(() => {
+      useAuthStore.setState({
+        notificationPreferences: {
+          orderUpdates: true,
+          promotions: true,
+          rewards: true,
+          newProducts: false,
+          channelPush: true,
+          channelEmail: true,
+          channelSms: false,
+        },
+        preferences: {
+          defaultFulfilment: 'delivery',
+          marketingConsent: true,
+          preferMildFirst: false,
+        },
+      });
+    });
+  });
+
+  /**
+   * Three taps, not two, and that is the whole point.
+   *
+   * With a boolean, two alternating taps land the stale request's `previous`
+   * on the value that is already showing, so reverting changes nothing and the
+   * test cannot tell a guarded implementation from an unguarded one. The first
+   * version of this test did exactly that and passed with the guard removed.
+   *
+   * Three taps separate them: the first request wants to restore `true`, the
+   * customer has since settled on `false`, and only a stale revert would put
+   * it back.
+   */
+  it('does not undo a choice two taps have since overtaken', async () => {
+    let failFirst: (reason: Error) => void = () => {};
+    sendPreferences.mockImplementationOnce(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          failFirst = reject;
+        }),
+    );
+    sendPreferences.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useRemotePreferences());
+
+    // true → false (this one will fail, and wants true back) → true → false
+    act(() => result.current.setNotification('promotions', false));
+    act(() => result.current.setNotification('promotions', true));
+    act(() => result.current.setNotification('promotions', false));
+    expect(useAuthStore.getState().notificationPreferences.promotions).toBe(false);
+
+    await act(async () => {
+      failFirst(new Error('Network request failed.'));
+      await Promise.resolve();
+    });
+
+    expect(useAuthStore.getState().notificationPreferences.promotions).toBe(false);
+  });
+
+  it('still reverts when nothing has moved since', async () => {
+    sendPreferences.mockRejectedValueOnce(new Error('Network request failed.'));
+    const { result } = renderHook(() => useRemotePreferences());
+
+    act(() => result.current.setNotification('promotions', false));
+
+    await waitFor(() =>
+      expect(useAuthStore.getState().notificationPreferences.promotions).toBe(true),
+    );
+  });
+});
