@@ -106,3 +106,86 @@ describe('validateFields', () => {
     expect(errors.email).toBe('Email address is required');
   });
 });
+
+/**
+ * The phone rule was written twice — a regex that tested a number and a
+ * normaliser that rewrote it — and they disagreed about which spellings count.
+ * Both stripped spaces and hyphens and nothing else, so forms people write
+ * every day were refused, and normalised into nonsense on the way out:
+ *
+ *     "(082) 123 4567"       rejected, and normalised to +27(082)1234567
+ *     "+27 (0)82 123 4567"   rejected, and normalised to +27(0)821234567
+ *     "27821234567"          rejected, and normalised to +2727821234567
+ *
+ * The last is two country codes: the normaliser could not tell a national
+ * number from an international one, so it guessed and prefixed anyway.
+ * `verify.tsx` prints the result under "We sent a code to…", so that is a
+ * number shown to a customer that nobody dialled.
+ */
+describe('the ways a South African writes their mobile number', () => {
+  const NINE = '821234567';
+
+  it.each([
+    '0821234567',
+    '082 123 4567',
+    '082-123-4567',
+    '(082) 123 4567',
+    '082 123 4567 ',
+    '+27821234567',
+    '+27 82 123 4567',
+    '+27 (0)82 123 4567',
+    '27821234567',
+    '821234567',
+  ])('accepts %s and normalises it to one number', (typed) => {
+    expect(validatePhone(typed)).toBeNull();
+    expect(toE164(typed)).toBe(`+27${NINE}`);
+  });
+
+  it.each(['071 123 4567', '060 123 4567', '083 123 4567'])(
+    'accepts the %s prefix range',
+    (typed) => {
+      expect(validatePhone(typed)).toBeNull();
+    },
+  );
+});
+
+describe('what is not a South African mobile number', () => {
+  it.each([
+    ['011 883 0100', 'a Johannesburg landline'],
+    ['+27118830100', 'the same landline in international form'],
+    ['+1 555 123 4567', 'another country'],
+    ['+27 82 123 456', 'a digit short'],
+    ['+27 82 123 45678', 'a digit long'],
+    ['not a number', 'words'],
+  ])('refuses %s — %s', (typed) => {
+    expect(validatePhone(typed)).toBe('Enter a valid South African mobile number');
+  });
+
+  it('hands back what it was given rather than inventing a country code', () => {
+    // Shown to the customer on the verify screen. A number nobody dialled is
+    // worse than the one they typed.
+    expect(toE164('011 883 0100')).toBe('011 883 0100');
+  });
+
+  it('still asks for one when the field is empty', () => {
+    expect(validatePhone('')).toBe('Mobile number is required');
+    expect(validatePhone('   ')).toBe('Mobile number is required');
+  });
+});
+
+describe('an email address with a trailing dot', () => {
+  it('is refused, because the verification mail would go nowhere', () => {
+    // Registration creates every customer unverified, so a mail that never
+    // arrives leaves a badge that can never clear.
+    expect(validateEmail('thandi@example.co.za.')).toBe('Enter a valid email address');
+  });
+
+  it.each([
+    'thandi@example.co.za',
+    'thandi.mokoena+orders@example.co.za',
+    'THANDI@EXAMPLE.CO.ZA',
+    ' thandi@example.co.za ',
+  ])('still accepts %s', (typed) => {
+    expect(validateEmail(typed)).toBeNull();
+  });
+});
