@@ -13,6 +13,33 @@ describe('routeForNotification', () => {
     expect(routeForNotification({ href: '' })).toBe('/account/notifications');
   });
 
+  /**
+   * The same threat as the test above with two characters removed. A
+   * protocol-relative URL starts with a slash, so `startsWith('/')` waved it
+   * through — and on the web build that navigates off-site.
+   */
+  it.each(['//evil.example/phish', '//evil.example', '/\\evil.example', '///evil.example'])(
+    'refuses %p, which starts with a slash and is not ours',
+    (href) => {
+      expect(routeForNotification({ href })).toBe('/account/notifications');
+    },
+  );
+
+  /**
+   * Encoded on the way into the path, the way `apiClient` already encodes the
+   * same id. Unencoded, the sender picks the route rather than the order.
+   */
+  it('encodes an order id rather than pasting it into a path', () => {
+    expect(routeForNotification({ orderId: '../account/payment-methods' })).toBe(
+      '/order/..%2Faccount%2Fpayment-methods',
+    );
+    expect(routeForNotification({ orderId: 'order 1?x=y' })).toBe('/order/order%201%3Fx%3Dy');
+  });
+
+  it('leaves an ordinary order id readable', () => {
+    expect(routeForNotification({ orderId: 'order-4821' })).toBe('/order/order-4821');
+  });
+
   it('falls back to the order when an orderId is present', () => {
     expect(routeForNotification({ orderId: 'order-4821' })).toBe('/order/order-4821');
   });

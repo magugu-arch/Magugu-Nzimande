@@ -189,11 +189,35 @@ export function syncedPushToken(): string | null {
 export function routeForNotification(data: Record<string, unknown> | undefined): string {
   if (!data) return '/(tabs)/home';
 
+  /**
+   * Only a path of ours, and `startsWith('/')` is not enough to say so.
+   *
+   * "//evil.example/phish" starts with a slash and is a protocol-relative URL:
+   * on the web build it navigates off-site, which is the exact thing this
+   * guard exists to prevent — the test beside it names `https://evil.example`
+   * as the threat and this is the same threat with two characters removed.
+   * A backslash is rejected for the same reason, since some parsers fold it
+   * into a slash.
+   */
   const href = data.href;
-  if (typeof href === 'string' && href.startsWith('/')) return href;
+  if (
+    typeof href === 'string' &&
+    href.startsWith('/') &&
+    !href.startsWith('//') &&
+    !href.startsWith('/\\')
+  ) {
+    return href;
+  }
 
+  /**
+   * Encoded, the way `apiClient` already encodes the same id on its way into a
+   * URL. Unencoded, an id of "../account/payment-methods" is a route of the
+   * sender's choosing rather than an order.
+   */
   const orderId = data.orderId;
-  if (typeof orderId === 'string' && orderId.length > 0) return `/order/${orderId}`;
+  if (typeof orderId === 'string' && orderId.length > 0) {
+    return `/order/${encodeURIComponent(orderId)}`;
+  }
 
   switch (data.category) {
     case 'order':

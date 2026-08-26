@@ -267,6 +267,15 @@ These fail loudly rather than rotting quietly — leave them on.
   - `audit:handover` — one phone, two people. Favourites outlive a sign-out on
     purpose, so both halves have to hold at once.
   - `audit:guest` — what somebody who tapped "Continue as guest" can see.
+- **Two rules these browser checks must keep**, learned by breaking both.
+  First, each one establishes the session it means to measure — signing in, or
+  seeding one where there is no server to sign in against. Gating the account
+  screens behind a sign-in silently turned half of `audit:offline` into a check
+  of the guest view, and it kept passing. Second, no soft branches: a route
+  that says nothing recognisable fails rather than warns. That soft branch is
+  what let the first mistake go unreported for two days. A check written
+  against one state of the app will keep reporting on that state after the app
+  has moved, and will say nothing, because passing is what it was built to do.
 - **`npm run audit:launch`** lists what only the franchise can supply — store
   list, prices, reward expiries, API host, store credentials, and every
   backend endpoint the app now depends on. Advisory by default; `--production`
