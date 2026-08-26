@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
@@ -51,11 +51,26 @@ export default function RateOrderScreen() {
       .filter((part) => part.length > 0)
       .join(' — ');
 
-    await rateOrder.mutateAsync({
-      orderId: order.data.id,
-      rating,
-      ...(fullComment.length > 0 ? { comment: fullComment } : {}),
-    });
+    /**
+     * The service refuses a rating on an order that was cancelled or has not
+     * arrived, and this had no catch — so a refusal would have been an
+     * unhandled rejection and a button that did nothing. The star picker only
+     * offers this on a completed order, but a screen is not a rule and a
+     * deep link does not go through the screen.
+     */
+    try {
+      await rateOrder.mutateAsync({
+        orderId: order.data.id,
+        rating,
+        ...(fullComment.length > 0 ? { comment: fullComment } : {}),
+      });
+    } catch (error) {
+      Alert.alert(
+        'We could not save that',
+        error instanceof Error ? error.message : 'Please try again shortly.',
+      );
+      return;
+    }
 
     router.replace(`/order/${order.data.id}`);
   }, [order.data, rating, selectedTags, comment, rateOrder, router]);

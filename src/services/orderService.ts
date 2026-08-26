@@ -563,7 +563,34 @@ function cannotCancelBecause(status: OrderStatus): string {
   }
 }
 
+/** The scale the star picker offers, and the only one worth storing. */
+export const RATING_RANGE = { min: 1, max: 5 } as const;
+
+/**
+ * Rate an order that was actually delivered, out of five.
+ *
+ * Three things were missing, and the first is the same bug `cancelOrder` had:
+ * this read the stored status, and every other read in this file advances the
+ * order first — so an order that had finished but that nobody had looked at
+ * since would still read as "received". `cancelOrder` was fixed and its
+ * sibling was not.
+ *
+ * The rest came out of driving it:
+ *
+ *     cancelled order rating: cancelled → 5 Lovely
+ *     out-of-range rating: 99
+ *
+ * Five stars for food that was never cooked, and ninety-nine stars on a
+ * five-star scale. Neither is reachable from the star picker, which offers one
+ * to five on a completed order only — but a screen is not a rule, and this is
+ * where the rule belongs. The same reasoning as the closed-kitchen check:
+ * the screens showed "Closed" and the service took the order anyway.
+ */
 export async function rateOrder(orderId: string, rating: number, comment?: string): Promise<Order> {
+  if (!Number.isInteger(rating) || rating < RATING_RANGE.min || rating > RATING_RANGE.max) {
+    throw new Error(`A rating is ${RATING_RANGE.min} to ${RATING_RANGE.max} stars.`);
+  }
+
   if (!config.useMockApi) {
     return request<Order>(`/v1/orders/${encodeURIComponent(orderId)}/rating`, {
       method: 'POST',
@@ -575,8 +602,18 @@ export async function rateOrder(orderId: string, rating: number, comment?: strin
   const existing = ledger[index];
   if (!existing) throw new Error('Order not found');
 
+  const current = advance(existing);
+  ledger[index] = current;
+
+  if (current.status === 'cancelled') {
+    throw new Error('That order was cancelled, so there is nothing to rate.');
+  }
+  if (current.status !== 'completed') {
+    throw new Error('You can rate this once it has arrived.');
+  }
+
   const rated: Order = {
-    ...existing,
+    ...current,
     rating,
     ...(comment && comment.trim().length > 0 ? { ratingComment: comment.trim() } : {}),
   };

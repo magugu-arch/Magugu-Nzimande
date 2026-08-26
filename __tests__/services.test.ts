@@ -20,6 +20,7 @@ import {
   fetchOrders,
   minutesUntilDue,
   placeOrder,
+  rateOrder,
   readyLabelFor,
   statusSequence,
   workStartsAt,
@@ -1083,5 +1084,91 @@ describe('the number a driver would ring', () => {
     const updated = await updateProfile({ phone: '+27829998877' }, user);
 
     expect(updated.phone).toBe('+27829998877');
+  });
+});
+
+/**
+ * Rating had the same bug `cancelOrder` had — it read the stored status while
+ * every other read in the file advances first — and two of its own. Driven:
+ *
+ *     cancelled order rating: cancelled → 5 Lovely
+ *     out-of-range rating: 99
+ *
+ * Five stars for food that was never cooked, and ninety-nine stars on a
+ * five-star scale. Neither is reachable from the star picker, which offers one
+ * to five on a completed order only. A screen is not a rule.
+ */
+describe('rating an order', () => {
+  const totals = {
+    subtotal: 200,
+    deliveryFee: 32,
+    serviceFee: 5,
+    discount: 0,
+    rewardsDiscount: 0,
+    total: 237,
+    pointsEarned: 200,
+  };
+
+  const place = () =>
+    placeOrder({
+      lines: [],
+      totals,
+      fulfilmentType: 'delivery',
+      storeId: 'store-sandton',
+      paymentMethodId: 'pm-1',
+      paymentMethodType: 'card',
+    });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  /** Long enough for any of the seeded branches to have finished. */
+  const afterItArrives = (order: Order) =>
+    new Date(new Date(order.placedAt).getTime() + 120 * 60_000);
+
+  it('accepts a rating once the order has arrived', async () => {
+    const order = await place();
+    jest.spyOn(Date, 'now').mockReturnValue(afterItArrives(order).getTime());
+
+    const rated = await rateOrder(order.id, 5, 'Crispy');
+
+    expect(rated.rating).toBe(5);
+    expect(rated.ratingComment).toBe('Crispy');
+  });
+
+  it('refuses a rating on an order that was cancelled', async () => {
+    const order = await place();
+    await cancelOrder(order.id);
+
+    await expect(rateOrder(order.id, 5, 'Lovely')).rejects.toThrow(/was cancelled/);
+  });
+
+  it('refuses a rating on food that has not turned up yet', async () => {
+    const order = await place();
+
+    await expect(rateOrder(order.id, 5)).rejects.toThrow(/once it has arrived/);
+  });
+
+  /**
+   * Advanced before the status is read, the same as cancelling. An order that
+   * finished while nobody was looking is still finished.
+   */
+  it('lets somebody rate an order that finished while the app was closed', async () => {
+    const order = await place();
+    expect(order.status).toBe('received');
+
+    jest.spyOn(Date, 'now').mockReturnValue(afterItArrives(order).getTime());
+
+    // No fetch in between — nothing has rewritten the stored status.
+    const rated = await rateOrder(order.id, 4);
+    expect(rated.rating).toBe(4);
+  });
+
+  it.each([0, 6, 99, -1, 2.5, Number.NaN])('refuses %p stars', async (bad) => {
+    const order = await place();
+    jest.spyOn(Date, 'now').mockReturnValue(afterItArrives(order).getTime());
+
+    await expect(rateOrder(order.id, bad)).rejects.toThrow(/1 to 5 stars/);
   });
 });
