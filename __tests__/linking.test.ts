@@ -1,5 +1,12 @@
 import { Alert, Linking, Platform } from 'react-native';
-import { callNumber, directionsUrl, isDiallable, openExternal, telUrl } from '@/utils/linking';
+import {
+  callNumber,
+  directionsUrl,
+  inAppRoute,
+  isDiallable,
+  openExternal,
+  telUrl,
+} from '@/utils/linking';
 
 describe('telUrl', () => {
   /**
@@ -121,5 +128,45 @@ describe('openExternal', () => {
     // `void openExternal(...)` is the call shape used throughout the app; an
     // unhandled rejection there is a red box in development.
     await expect(openExternal('mailto:hello@example.com')).resolves.toBe(false);
+  });
+});
+
+/**
+ * Two places take a path from server data and push it as a route: a push
+ * notification's `data.href` and a promotion's `ctaHref`. They had different
+ * guards and both were wrong — one checked `startsWith('/')`, which
+ * "//evil.example/phish" satisfies; the other had no guard at all.
+ */
+describe('following a route somebody else chose', () => {
+  const FALLBACK = '/(tabs)/menu';
+
+  it('follows an ordinary in-app path', () => {
+    expect(inAppRoute('/order/order-4821', FALLBACK)).toBe('/order/order-4821');
+    expect(inAppRoute('/offers?from=push', FALLBACK)).toBe('/offers?from=push');
+  });
+
+  it.each([
+    ['https://evil.example/phish', 'an absolute URL'],
+    ['//evil.example/phish', 'a protocol-relative URL that starts with a slash'],
+    ['///evil.example', 'three slashes'],
+    ['/\\evil.example', 'a backslash some parsers fold into a slash'],
+    ['/javascript:alert(1)', 'a scheme wearing a path as clothes'],
+    ['javascript:alert(1)', 'a bare scheme'],
+    ['', 'nothing at all'],
+    ['offers', 'a relative path, which is not ours to resolve'],
+  ])('refuses %p — %s', (href) => {
+    expect(inAppRoute(href, FALLBACK)).toBe(FALLBACK);
+  });
+
+  it('refuses anything that is not a string', () => {
+    expect(inAppRoute(undefined, FALLBACK)).toBe(FALLBACK);
+    expect(inAppRoute(null, FALLBACK)).toBe(FALLBACK);
+    expect(inAppRoute(42, FALLBACK)).toBe(FALLBACK);
+    expect(inAppRoute({ href: '/offers' }, FALLBACK)).toBe(FALLBACK);
+  });
+
+  /** A promotion with a broken link should still open a screen. */
+  it('hands back the fallback rather than throwing', () => {
+    expect(() => inAppRoute('https://evil.example', FALLBACK)).not.toThrow();
   });
 });

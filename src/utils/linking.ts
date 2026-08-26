@@ -19,6 +19,36 @@ import { Alert, Linking, Platform } from 'react-native';
  * in international form (`+27 11 883 0100`). `tel:` wants neither: digits, and
  * a leading `+` if the number is international.
  */
+/**
+ * A route the app is willing to follow, out of a string somebody else chose.
+ *
+ * Two places take a path from server data and push it: a push notification's
+ * `data.href`, and a promotion's `ctaHref`. They had different guards, and
+ * both were wrong. The notification path checked `startsWith('/')`, which
+ * "//evil.example/phish" satisfies — a protocol-relative URL that navigates
+ * off-site on the web build. The offers screen had no guard at all and pushed
+ * whatever arrived.
+ *
+ * One implementation, because two call sites with two half-guards is how that
+ * happened. Anything not recognisably one of ours returns the fallback rather
+ * than throwing: a promotion with a broken link should still open its own
+ * screen, not crash it.
+ */
+export function inAppRoute(href: unknown, fallback: string): string {
+  if (typeof href !== 'string' || href.length === 0) return fallback;
+
+  // Must be an absolute path of ours. A leading "//" is protocol-relative and
+  // a leading "/\" is folded into one by some parsers — neither is a path.
+  if (!href.startsWith('/')) return fallback;
+  if (href.startsWith('//') || href.startsWith('/\\')) return fallback;
+
+  // A scheme anywhere before the first slash-delimited segment means it is a
+  // URL wearing a path's clothes.
+  if (/^\/[^/]*:/.test(href)) return fallback;
+
+  return href;
+}
+
 export function telUrl(phone: string): string {
   const trimmed = phone.trim();
   const international = trimmed.startsWith('+');

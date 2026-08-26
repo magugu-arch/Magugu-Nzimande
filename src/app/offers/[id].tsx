@@ -15,6 +15,7 @@ import {
   Text,
 } from '@/components/ui';
 import { usePromotion } from '@/features/rewards/hooks';
+import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 
@@ -134,7 +135,11 @@ export default function OfferDetailScreen() {
 
         <Button
           label={data.ctaLabel}
-          onPress={() => router.push(data.ctaHref as Href)}
+          // Server data, so not followed on trust. This pushed whatever
+          // arrived: a promotion carrying "https://evil.example" navigated
+          // off-site on the web build. A broken link opens the menu instead
+          // of the void.
+          onPress={() => router.push(inAppRoute(data.ctaHref, '/(tabs)/menu') as Href)}
           size="lg"
           testID="offer-cta"
           preserveCase
