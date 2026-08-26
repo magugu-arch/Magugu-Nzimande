@@ -12,7 +12,7 @@ import {
   Text,
   TextField,
 } from '@/components/ui';
-import { deleteAccount, updateProfile } from '@/services/authService';
+import { deleteAccount, requestEmailVerification, updateProfile } from '@/services/authService';
 import { useAuthStore } from '@/store/authStore';
 import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing } from '@/theme';
@@ -45,6 +45,8 @@ export default function ProfileScreen() {
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [sendingVerification, setSendingVerification] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const update = useCallback((field: Field, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -84,6 +86,22 @@ export default function ProfileScreen() {
       setSaving(false);
     }
   }, [values, user, setUser]);
+
+  const handleVerifyEmail = useCallback(async () => {
+    if (!user) return;
+    setSendingVerification(true);
+    try {
+      await requestEmailVerification(user.email);
+      setEmailSent(true);
+    } catch (error) {
+      Alert.alert(
+        'Could not send that',
+        error instanceof Error ? error.message : 'Please try again shortly.',
+      );
+    } finally {
+      setSendingVerification(false);
+    }
+  }, [user]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -192,10 +210,28 @@ export default function ProfileScreen() {
             iconLeft="mail-outline"
             required
           />
+          {/*
+            An unverified email used to be a warning badge and nothing else —
+            permanent by construction, since `register` creates every customer
+            unverified and no screen offered a way out. The mobile number two
+            fields below already had the answer: a badge when it is done, a
+            button when it is not.
+          */}
           {user.emailVerified ? (
             <Badge label="Email verified" tone="success" icon="checkmark-circle" />
           ) : (
-            <Badge label="Email not verified" tone="warning" icon="alert-circle" />
+            <View style={styles.verifyRow}>
+              <Badge label="Email not verified" tone="warning" icon="alert-circle" />
+              <Button
+                label={emailSent ? 'Verification email sent' : 'Send me the link'}
+                onPress={() => void handleVerifyEmail()}
+                loading={sendingVerification}
+                disabled={emailSent}
+                variant="text"
+                size="sm"
+                fullWidth={false}
+              />
+            </View>
           )}
 
           <TextField
@@ -274,6 +310,7 @@ const styles = StyleSheet.create({
   form: { gap: spacing.lg },
   row: { flexDirection: 'row', gap: spacing.md },
   rowField: { flex: 1 },
+  verifyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   savedNotice: {
     padding: spacing.md,
     borderRadius: radius.md,

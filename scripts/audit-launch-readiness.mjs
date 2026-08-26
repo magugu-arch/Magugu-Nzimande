@@ -301,6 +301,20 @@ if (accountService.includes("'/v1/account/preferences'")) {
   );
 }
 
+// An unverified email used to be a warning badge with no way out of it. There
+// is a button now, and a button needs something behind it.
+if (authService.includes("'/v1/auth/email/verify'")) {
+  note(
+    'Email verification',
+    'The profile screen now offers "Send me the link" when an email is unverified, calling ' +
+      'POST /v1/auth/email/verify. `register` creates every customer unverified, so before this ' +
+      'the warning badge was permanent by construction — there was no way to clear it anywhere ' +
+      'in the app. Confirm the backend sends the mail and marks the address verified when the ' +
+      'link is followed, or the button is a new dead end in place of the old one.',
+    'you',
+  );
+}
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {

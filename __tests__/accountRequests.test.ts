@@ -1,5 +1,5 @@
 import { config } from '@/constants/config';
-import { deleteAccount } from '@/services/authService';
+import { deleteAccount, requestEmailVerification } from '@/services/authService';
 import { resetSessionState } from '@/services/apiClient';
 import { clearTokens, getAccessToken, storeTokens } from '@/services/secureStorage';
 
@@ -97,5 +97,35 @@ describe('asking for an account to be deleted', () => {
 
     await expect(deleteAccount()).rejects.toThrow();
     expect(await getAccessToken()).toBe('access-1');
+  });
+});
+
+/**
+ * `register` creates every customer with `emailVerified: false`, the profile
+ * screen showed "Email not verified", and nothing anywhere offered a way to
+ * change that — the warning was permanent by construction. The mobile number
+ * two fields below already had the pattern: a badge when it is done, a button
+ * when it is not.
+ */
+describe('asking for the verification email again', () => {
+  it('actually asks, at the address it was given', async () => {
+    await storeTokens('access-1', 'refresh-1');
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, { sentTo: 'nomsa@example.co.za' }));
+
+    const result = await requestEmailVerification('  Nomsa@Example.co.za ');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${config.apiBaseUrl}/v1/auth/email/verify`);
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toEqual({ email: 'nomsa@example.co.za' });
+    expect(result.sentTo).toBe('nomsa@example.co.za');
+  });
+
+  it('does not report success when nothing was sent', async () => {
+    await storeTokens('access-1', 'refresh-1');
+    fetchMock.mockResolvedValueOnce(jsonResponse(500, { message: 'Mail server down' }));
+
+    await expect(requestEmailVerification('nomsa@example.co.za')).rejects.toThrow();
   });
 });

@@ -155,6 +155,28 @@ export function createGuestUser(): UserProfile {
   };
 }
 
+/**
+ * Ask for the verification email to be sent again.
+ *
+ * The profile screen showed "Email not verified" to every newly registered
+ * customer — `register` creates them that way — and offered nothing to do
+ * about it. The mobile number two fields below has exactly this: a badge when
+ * it is verified, a button when it is not. The email had the badge and no way
+ * out of it, so the warning was permanent by construction.
+ *
+ * Same shape as `requestOtp`, deliberately, because that is the pattern this
+ * app already uses for the same problem.
+ */
+export async function requestEmailVerification(email: string): Promise<{ sentTo: string }> {
+  if (!config.useMockApi) {
+    return request<{ sentTo: string }>('/v1/auth/email/verify', {
+      method: 'POST',
+      body: { email: email.trim().toLowerCase() },
+    });
+  }
+  return delay({ sentTo: email.trim().toLowerCase() }, 500);
+}
+
 export async function requestPasswordReset(email: string): Promise<{ sentTo: string }> {
   if (!config.useMockApi) {
     return request<{ sentTo: string }>('/v1/auth/password/reset', {
