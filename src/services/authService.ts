@@ -31,6 +31,40 @@ function initialsFor(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
 
+/**
+ * Who somebody is, in mock mode, derived from their email address.
+ *
+ * A different email is a different person, and the same email twice is the
+ * same person. Both halves matter and both were once wrong: `signIn` handed
+ * back `demoUser` with the typed address pasted over the top, so every account
+ * looked like one account, and nothing that turns on *who* is signed in could
+ * be observed at all.
+ *
+ * Fixing that left the second half broken, in the one place nothing drives.
+ * `register` minted `user-${Date.now()}` while `signIn` derived from the email,
+ * so registering and later signing back in produced two different people from
+ * one address:
+ *
+ *     registered as   user-1787754650382
+ *     signed in as    user-thandi-example-co-za
+ *     favourites      3 before, 0 after
+ *
+ * `claimFor` clears the list when the owner changes, which is right — it is
+ * what stops one person inheriting another's — so a customer who registered,
+ * hearted a few dishes and then signed out lost them on their first sign-out.
+ * `audit:handover` exists to hold exactly that line and could not see it,
+ * because it signs in rather than registering, as does every other journey.
+ *
+ * A real backend issues the id; this is the mock's job, and it is one function
+ * now rather than two spellings of the same intention.
+ */
+function mockUserId(email: string): string {
+  return `user-${email
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')}`;
+}
+
 function mockSession(user: UserProfile): AuthSession {
   return {
     accessToken: `mock-access-${user.id}`,
@@ -59,24 +93,10 @@ export async function signIn({ email, password }: SignInInput): Promise<AuthSess
     throw new Error('That email and password combination does not match our records.');
   }
 
-  /**
-   * A different email is a different person, even in mock mode.
-   *
-   * This handed back `demoUser` with the typed address pasted over the top, so
-   * every sign-in produced the same `user.id` — one identity wearing whatever
-   * email the tester happened to enter. Anything that turns on *who* is signed
-   * in was therefore unobservable here: favourites belonging to an account,
-   * order history, a handset passed from one person to another. Two accounts
-   * looked like one, so nothing could tell them apart to get it wrong.
-   *
-   * Derived from the email rather than random, so signing in twice as the same
-   * person is the same person — which is the other half of what has to be
-   * true.
-   */
   const normalised = email.trim().toLowerCase();
   const session = mockSession({
     ...demoUser,
-    id: `user-${normalised.replace(/[^a-z0-9]+/g, '-')}`,
+    id: mockUserId(normalised),
     email: normalised,
   });
   await delay(null, 600);
@@ -93,11 +113,15 @@ export async function register(input: RegisterInput): Promise<AuthSession> {
     return persist(session);
   }
 
+  const email = input.email.trim().toLowerCase();
   const user: UserProfile = {
-    id: `user-${Date.now()}`,
+    // The same derivation `signIn` uses. It was `user-${Date.now()}`, and the
+    // two disagreeing is what lost a customer their favourites — see
+    // `mockUserId`.
+    id: mockUserId(email),
     firstName: input.firstName.trim(),
     lastName: input.lastName.trim(),
-    email: input.email.trim().toLowerCase(),
+    email,
     phone: toE164(input.phone),
     avatarInitials: initialsFor(input.firstName, input.lastName),
     isGuest: false,

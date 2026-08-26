@@ -100,6 +100,44 @@ try {
   const PERSON_A = 'nomsa@example.co.za';
   const PERSON_B = 'sipho@example.co.za';
 
+  /**
+   * The way a customer actually starts: by making an account.
+   *
+   * This journey signed in for its first step, as does every other journey in
+   * the repo, and that is precisely what let the defect it exists to catch go
+   * unseen. `register` minted `user-${Date.now()}` while `signIn` derived the
+   * id from the email, so registering and later signing back in produced two
+   * different people from one address — and `claimFor` clears the list when
+   * the owner changes. A customer who registered, hearted a few dishes and
+   * then signed out lost them on their first sign-out, which is the exact
+   * sentence the step below prints when it passes.
+   */
+  const registerAs = async (email) => {
+    await page.goto(BASE + '/register', { waitUntil: 'networkidle', timeout: 45000 });
+    await page.locator('[data-testid="register-first-name"]').fill('Nomsa');
+    await page.getByLabel('Last name', { exact: false }).first().fill('Dlamini');
+    await page.getByPlaceholder('you@example.co.za').first().fill(email);
+    await page.locator('[data-testid="register-phone"]').fill('082 123 4567');
+    await page.getByLabel('Password', { exact: false }).first().fill('chickenchicken1');
+    await tap('register-submit');
+
+    // New accounts confirm their number before landing in the app. The code is
+    // always 1234 in mock mode, and the screen says so.
+    await page.waitForURL(/verify/, { timeout: 20000 });
+    for (const [index, digit] of [...'1234'].entries()) {
+      await page.locator(`[data-testid="otp-digit-${index}"]`).fill(digit);
+    }
+    await tap('verify-submit');
+    await page.waitForURL((url) => !url.pathname.includes('verify'), { timeout: 20000 });
+    await page.waitForTimeout(1500);
+    await page
+      .getByText('Not now', { exact: false })
+      .first()
+      .click({ timeout: 5000 })
+      .catch(() => {});
+    await page.waitForTimeout(800);
+  };
+
   const signIn = async (email) => {
     await page.goto(BASE + '/sign-in', { waitUntil: 'networkidle', timeout: 45000 });
     await page.locator('[data-testid="sign-in-email"]').fill(email);
@@ -176,8 +214,8 @@ try {
     await page.waitForTimeout(1500);
   };
 
-  // ---- Thandi hearts a dish ----
-  await signIn(PERSON_A);
+  // ---- Thandi makes an account and hearts a dish ----
+  await registerAs(PERSON_A);
   await page.goto(BASE + '/product/golden-original', { waitUntil: 'networkidle', timeout: 45000 });
   await page.waitForTimeout(1500);
   await tap('product-favourite');

@@ -17,7 +17,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 738, across 42 suites                                                                                   |
+| Tests            | 742, across 42 suites                                                                                   |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -266,7 +266,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, format, 738 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, format, 742 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, a real prebuild audit of the native projects, and
   the asset checks.
@@ -312,7 +312,10 @@ These fail loudly rather than rotting quietly — leave them on.
     Playwright's clock, which drives timers as well as `Date`; a hand-rolled
     shim moves time without waking the thing that reads it.
   - `audit:handover` — one phone, two people. Favourites outlive a sign-out on
-    purpose, so both halves have to hold at once.
+    purpose, so both halves have to hold at once. It starts by _registering_,
+    not signing in: every other journey signs in, and that is exactly what let
+    `register` and `signIn` disagree about who somebody is without anything
+    noticing.
   - `audit:guest` — what somebody who tapped "Continue as guest" can see.
   - `audit:delivery-range` — type an address in and try to have it delivered.
     The app has no geocoder, so a typed address has no coordinates; this holds
