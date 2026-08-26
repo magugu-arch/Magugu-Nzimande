@@ -40,7 +40,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run assets:brand` | Regenerate every icon and in-app logo from the logo masters |
 | `npm run assets:typefit` | Measure every button label against §22.4's geometry and fail on overflow |
 | `npm run preview:web` | Run the whole app in a browser — layout and type, no build needed |
-| `npm run audit:screens` | Render all 26 screens at two widths; fail on overflow, blank screens, console errors or §32.6 gaps |
+| `npm run audit:screens` | Render all 31 routes at two widths; fail on overflow, blank screens, console errors or §32.6 gaps |
 | `npm run smoke:order` | Sign in, add an item and place an order end to end against the mock layer |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |
@@ -372,7 +372,7 @@ to protect.
 Never hard-code a hex value or font size in a component — import from
 `@/theme`. Every pressable clears the 44pt minimum touch target and every
 interactive element carries an accessibility label and state — both measured by
-`npm run audit:screens` on all 29 routes, rather than asserted here.
+`npm run audit:screens` on all 31 routes, rather than asserted here.
 
 That distinction was earned. This paragraph claimed the touch-target rule while
 ten controls broke it, including the quantity stepper on every cart line, the
@@ -394,7 +394,7 @@ the mark from fonts; this is the one place that rule has to hold.
 npm test
 ```
 
-295 tests covering money arithmetic, cart pricing and option resolution, form
+The suite covers money arithmetic, cart pricing and option resolution, form
 validation, date and scheduling logic, the catalogue's data integrity
 and substitution mapping, the Zustand cart store, all service layers, the UI
 primitives, notification routing (including malformed and off-app payloads),

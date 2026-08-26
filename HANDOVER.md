@@ -13,11 +13,11 @@ Africa, built to the supplied brief.
 |                  |                                                                                                         |
 | ---------------- | ------------------------------------------------------------------------------------------------------- |
 | Stack            | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
-| Screens          | 43 routes covering every journey in brief §4                                                            |
+| Screens          | 34 routes covering every journey in brief §4                                                            |
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 749, across 43 suites                                                                                   |
+| Tests            | 44 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -266,7 +266,8 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, format, 749 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, format, the whole test suite. The
+  pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, a real prebuild audit of the native projects, and
   the asset checks.
