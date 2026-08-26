@@ -85,3 +85,47 @@ describe('every screen can be reached', () => {
     expect(navigationTargets().size).toBeGreaterThan(20);
   });
 });
+
+/**
+ * Every escape from Expo Router's typed routes has to go through the guard.
+ *
+ * `router.push(x as Href)` is the app telling the compiler to stop asking, and
+ * the three places that do it all push a string that came off the wire — a
+ * notification's `href`, a promotion's `ctaHref`, an in-app notification's
+ * `href`. Two of them had guards, in two different states of wrongness, and
+ * the third had none.
+ *
+ * I found the third by grepping for the sink rather than the field names,
+ * having already announced the sweep complete on the strength of the field
+ * names. This is that grep, kept, so the fourth one cannot arrive quietly.
+ */
+describe('routes pushed past the type system', () => {
+  const sourceFiles = () => {
+    const roots = ['src/app', 'src/features', 'src/components'].map((d) => path.join(root, d));
+    const found: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (/\.tsx?$/.test(entry.name)) found.push(full);
+      }
+    };
+    for (const root of roots) walk(root);
+    return found;
+  };
+
+  it('always go through inAppRoute', () => {
+    const offenders: string[] = [];
+
+    for (const file of sourceFiles()) {
+      const source = fs.readFileSync(file, 'utf8');
+      for (const line of source.split('\n')) {
+        if (!/as Href/.test(line)) continue;
+        if (/inAppRoute|routeForNotification/.test(line)) continue;
+        offenders.push(`${file}: ${line.trim()}`);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+});

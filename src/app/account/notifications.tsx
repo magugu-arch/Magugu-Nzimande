@@ -20,6 +20,7 @@ import {
   useNotifications,
 } from '@/features/account/hooks';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
+import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
 import { formatDateTime } from '@/utils/datetime';
 
@@ -42,7 +43,12 @@ export default function NotificationsScreen() {
   const handleOpen = useCallback(
     (notification: AppNotification) => {
       if (!notification.read) markRead.mutate(notification.id);
-      if (notification.href) router.push(notification.href as Href);
+      // Server data, like the other two. This was the third call site pushing
+      // a route somebody else chose, and the one my own sweep missed — I
+      // grepped for the field names rather than for the sink.
+      if (notification.href) {
+        router.push(inAppRoute(notification.href, '/account/notifications') as Href);
+      }
     },
     [markRead, router],
   );
