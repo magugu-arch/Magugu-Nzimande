@@ -66,8 +66,23 @@ function navigationTargets(): Set<string> {
 }
 
 describe('every screen can be reached', () => {
-  // Entry points nothing navigates *to*: the router resolves them itself.
-  const ENTRY_POINTS = new Set(['/index', '/+not-found']);
+  /**
+   * Screens nothing inside the app navigates to, because their way in is
+   * outside it.
+   *
+   * `/index` and `/+not-found` are the router's own — it resolves them itself.
+   * `/reset-password` is the third kind: its entry is a link in an email, so
+   * `bbqchicken://reset-password?token=…` is the only thing that opens it and
+   * no in-app push ever will.
+   *
+   * Listed rather than exempted by pattern, so a screen that genuinely lost
+   * its only link still shows up as the orphan it is. What this costs is real:
+   * nothing here can now tell a working deep-link landing from a dead one. The
+   * browser sweep renders it, `audit:launch` carries the universal-link setup
+   * that decides whether the link opens the app at all, and the flow itself is
+   * driven in `__tests__/passwordReset.test.tsx`.
+   */
+  const ENTRY_POINTS = new Set(['/index', '/+not-found', '/reset-password']);
 
   it('has no orphaned route', () => {
     const reachable = navigationTargets();

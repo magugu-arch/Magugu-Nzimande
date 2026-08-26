@@ -13,11 +13,11 @@ Africa, built to the supplied brief.
 |                  |                                                                                                         |
 | ---------------- | ------------------------------------------------------------------------------------------------------- |
 | Stack            | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
-| Screens          | 42 routes covering every journey in brief §4                                                            |
+| Screens          | 43 routes covering every journey in brief §4                                                            |
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 742, across 42 suites                                                                                   |
+| Tests            | 749, across 43 suites                                                                                   |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -46,7 +46,7 @@ products on the way and they turn up on Home and behind a Menu filter.
 ```bash
 npm run verify        # typecheck → lint → test, the gate before any commit
 npm run preview:web   # the whole app in a browser, no build required
-npm run audit:screens # renders all 29 routes at two widths and reports defects
+npm run audit:screens # renders all 31 routes at two widths and reports defects
 npm run smoke:order   # signs in, adds an item and places an order, for real
 ```
 
@@ -266,7 +266,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, format, 742 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, format, 749 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, a real prebuild audit of the native projects, and
   the asset checks.
@@ -385,7 +385,7 @@ test. Everything here is already done except where marked.
 | Bundle secrets       | Only `EXPO_PUBLIC_*` values, which are inlined and therefore public by definition. A test rejects any name implying a secret                                                               |
 | POPIA                | Marketing consent and notification preferences reach the server and revert if that fails; account deletion asks for erasure rather than only signing out, and refuses to pretend it worked |
 | Guest data           | Somebody who has not signed in is shown nothing belonging to an account, and their device does not ask for any. `audit:guest` holds that line                                              |
-| **Still to do**      | Run `npm run audit:launch`. It is the live list — 23 items at the time of writing, every one needing your data, your credentials, or a real device. Nothing in this repo can close them    |
+| **Still to do**      | Run `npm run audit:launch`. It is the live list — 24 items at the time of writing, every one needing your data, your credentials, or a real device. Nothing in this repo can close them    |
 
 ---
 

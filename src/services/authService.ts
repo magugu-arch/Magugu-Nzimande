@@ -213,6 +213,38 @@ export async function requestPasswordReset(email: string): Promise<{ sentTo: str
 }
 
 /**
+ * The other end of the link in that email, which had no other end.
+ *
+ * The app told a customer "we have sent a link to reset your password", and
+ * there was no screen for the link to land on: no route, so expo-router sent
+ * them to `+not-found` — "This page has moved on. We couldn't find what you
+ * were looking for. It may have been taken off the menu." Somebody locked out
+ * of their account, told their password reset was off the menu.
+ *
+ * The token is whatever the backend put in the link. The app does not read it,
+ * validate it or store it — it hands it back with the new password, and the
+ * server decides whether it is still good. That keeps the only judgement about
+ * a security token on the side that issued it.
+ */
+export async function confirmPasswordReset(token: string, password: string): Promise<void> {
+  if (!config.useMockApi) {
+    await request<void>('/v1/auth/password/confirm', {
+      method: 'POST',
+      body: { token, password },
+      anonymous: true,
+    });
+    return;
+  }
+
+  // The mock has no tokens to expire, so it refuses only what is plainly
+  // unusable — an empty one, which is what a truncated link produces.
+  if (token.trim().length === 0) {
+    throw new Error('That reset link is not valid. Ask for a new one.');
+  }
+  await delay(null, 600);
+}
+
+/**
  * Ask for the account to be erased, and let a failure be a failure.
  *
  * The screen offered "Delete your account?" and promised "We remove your

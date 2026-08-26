@@ -187,6 +187,36 @@ if (fee && threshold) {
   );
 }
 
+/**
+ * A reset link that opens the app, rather than a browser that cannot help.
+ *
+ * The screen exists now; whether the link reaches it is configuration nobody
+ * in this repo can supply. Printed while `app.json` declares no associated
+ * domains and no https intent filters — add either and this stops printing.
+ */
+const hasUniversalLinks =
+  Boolean(app.ios?.associatedDomains?.length) ||
+  JSON.stringify(app.android?.intentFilters ?? []).includes('https');
+
+if (!hasUniversalLinks) {
+  note(
+    'Password reset link',
+    'A customer who forgets their password is sent a link, and until now there was nowhere for ' +
+      'it to land — no route matched, so the app showed "This page has moved on… it may have ' +
+      'been taken off the menu". The screen exists now at /reset-password and takes a `token` ' +
+      'query parameter, which it hands straight back to POST /v1/auth/password/confirm without ' +
+      'reading it. Three things are still yours. The endpoint has to exist. The email has to ' +
+      `link to a URL this app answers: today only the custom scheme does — ` +
+      `${app.scheme}://reset-password?token=… — which most mail clients will not make tappable ` +
+      'and which does nothing if the app is not installed. For an https link you need ' +
+      'associatedDomains on iOS and an https intentFilter on Android, plus the ' +
+      'apple-app-site-association and assetlinks.json files hosted on the domain. And the ' +
+      'confirmation screen tells the customer the link "expires in 30 minutes", which is a ' +
+      'promise about your server, not this app.',
+    'you',
+  );
+}
+
 // An opening date that has passed silently turns into "open for business".
 const openings = [...storeData.matchAll(/opensOn: '([^']+)'/g)].map((m) => m[1]);
 for (const opening of openings) {

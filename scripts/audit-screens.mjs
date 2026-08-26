@@ -36,6 +36,10 @@ const PORT = 8123;
 
 const ROUTES = [
   '/welcome', '/location', '/sign-in', '/register', '/verify', '/forgot-password',
+  // Both states of the reset-link landing: the form, and what somebody sees
+  // when the link arrived truncated. Only reachable from an email, so nothing
+  // else in the app renders it.
+  '/reset-password?token=probe-token', '/reset-password',
   '/home', '/menu', '/rewards', '/orders', '/more',
   '/product/golden-original', '/cart', '/checkout', '/checkout/store',
   '/checkout/address', '/checkout/schedule', '/offers', '/rewards/vouchers',
