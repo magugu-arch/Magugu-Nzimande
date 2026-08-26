@@ -241,7 +241,7 @@ describe('the push token this handset is registered under', () => {
 
   it('is remembered once the server has been told about it', async () => {
     await syncPushToken('ExponentPushToken[thabo-handset]');
-    expect(syncedPushToken()).toBe('ExponentPushToken[thabo-handset]');
+    await expect(syncedPushToken()).resolves.toBe('ExponentPushToken[thabo-handset]');
   });
 
   it('is given up when the customer signs out', async () => {
@@ -253,7 +253,7 @@ describe('the push token this handset is registered under', () => {
       await result.current.signOut();
     });
 
-    expect(syncedPushToken()).toBeNull();
+    await expect(syncedPushToken()).resolves.toBeNull();
   });
 
   it('is given up when the session expires too', async () => {
@@ -261,11 +261,15 @@ describe('the push token this handset is registered under', () => {
     seedAPerson();
     const { result } = renderSignOut();
 
-    act(() => {
+    // `forgetLocally` fires the revoke without awaiting it, which is right —
+    // an expired session must not wait on a network call to let go of the
+    // person. The clear now reaches disk as well as memory, so it lands a tick
+    // later than it used to and this has to flush before asserting.
+    await act(async () => {
       result.current.forgetLocally();
     });
 
-    expect(syncedPushToken()).toBeNull();
+    await expect(syncedPushToken()).resolves.toBeNull();
   });
 
   /** Nothing to revoke is not a failure — plenty of customers never opt in. */

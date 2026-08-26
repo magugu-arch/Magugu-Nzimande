@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { config } from '@/constants/config';
@@ -121,15 +122,52 @@ export async function registerForPushNotifications(): Promise<PushRegistrationOu
 /**
  * The token this device last told the server about.
  *
- * Held here rather than in a store because it is not UI state and nobody
- * renders it — sign-out is the only thing that needs it back, and it needs it
- * at a moment when the screen that registered it is long gone.
+ * Written to disk as well as held in memory, because the thing that needs it
+ * back is sign-out, and sign-out routinely happens in a different session from
+ * the sync that produced it.
+ *
+ * It was memory alone, and that made the unbinding a no-op in exactly the cases
+ * it exists for. `revokePushToken` returns early when the token is null, so:
+ *
+ *   - Push turned off in preferences — `usePushRegistration` returns before
+ *     syncing, so nothing repopulates the token on later launches. The handset
+ *     stays bound to the account for ever.
+ *   - Signing out soon after opening the app, before registration resolves.
+ *   - Any launch where the permission prompt or the network failed.
+ *
+ * In each of those, sign-out reported success and sent no DELETE, so the server
+ * kept pushing one person's order updates — reference and all — to a phone
+ * somebody else is now holding. That is the whole failure this was written to
+ * prevent, and it was reachable by turning off notifications.
  */
+const TOKEN_KEY = 'bbq.pushToken';
+
 let lastSyncedToken: string | null = null;
+
+async function remember(token: string | null): Promise<void> {
+  lastSyncedToken = token;
+  try {
+    if (token) await AsyncStorage.setItem(TOKEN_KEY, token);
+    else await AsyncStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // A device that will not write is not a reason to fail a sign-in. The
+    // in-memory copy still covers the common case.
+  }
+}
+
+/** What to unbind, from memory or from disk. */
+async function boundToken(): Promise<string | null> {
+  if (lastSyncedToken) return lastSyncedToken;
+  try {
+    return await AsyncStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
 
 export async function syncPushToken(token: string): Promise<boolean> {
   if (config.useMockApi) {
-    lastSyncedToken = token;
+    await remember(token);
     return true;
   }
 
@@ -138,7 +176,7 @@ export async function syncPushToken(token: string): Promise<boolean> {
       method: 'POST',
       body: { token, platform: Platform.OS },
     });
-    lastSyncedToken = token;
+    await remember(token);
     return true;
   } catch {
     return false;
@@ -160,8 +198,13 @@ export async function syncPushToken(token: string): Promise<boolean> {
  * to keep someone signed in.
  */
 export async function revokePushToken(): Promise<boolean> {
-  const token = lastSyncedToken;
-  lastSyncedToken = null;
+  const token = await boundToken();
+
+  // Forgotten either way. A token we failed to delete is one the next sign-out
+  // cannot delete either — the account it was bound to is already gone — so
+  // holding on to it would only make a later sign-out try to unbind a stranger.
+  await remember(null);
+
   if (!token) return true;
   if (config.useMockApi) return true;
 
@@ -175,9 +218,14 @@ export async function revokePushToken(): Promise<boolean> {
   }
 }
 
-/** Test seam: the token this device believes the server has. */
-export function syncedPushToken(): string | null {
-  return lastSyncedToken;
+/** Test seam: the token this device believes the server has, from disk. */
+export function syncedPushToken(): Promise<string | null> {
+  return boundToken();
+}
+
+/** Test seam: forget the in-memory copy, the way a fresh launch does. */
+export function forgetPushTokenInMemory(): void {
+  lastSyncedToken = null;
 }
 
 /**
