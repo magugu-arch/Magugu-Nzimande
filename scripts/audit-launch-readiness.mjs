@@ -285,6 +285,22 @@ if (authService.includes("'/v1/account', { method: 'DELETE' }")) {
   );
 }
 
+// The preference toggles now reach a server instead of only AsyncStorage,
+// which makes the endpoint behind them load-bearing for a consent record.
+const accountService = read('src/services/accountService.ts');
+if (accountService.includes("'/v1/account/preferences'")) {
+  note(
+    'Preferences and consent',
+    'Notification toggles and marketing consent now PATCH /v1/account/preferences, and the ' +
+      'switch goes back if that fails rather than leaving somebody believing they have opted ' +
+      'out. They used to write to AsyncStorage and stop there, so switching off "Promotions" ' +
+      'changed a local boolean and the promotions kept arriving. Confirm the backend implements ' +
+      'it and actually suppresses what it is told to — a withdrawal of consent to direct ' +
+      'marketing is a POPIA right, and the app now presents these switches as though they work.',
+    'you',
+  );
+}
+
 // --- Things that only bite in production ---------------------------------
 
 if (eas.build?.production?.env?.EXPO_PUBLIC_USE_MOCK_API !== '0') {

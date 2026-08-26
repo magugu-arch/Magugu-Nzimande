@@ -1,5 +1,11 @@
 import { config } from '@/constants/config';
-import type { Address, AppNotification, PaymentMethod, SupportTopic } from '@/types';
+import type {
+  Address,
+  AppNotification,
+  NotificationPreferences,
+  PaymentMethod,
+  SupportTopic,
+} from '@/types';
 import { delay, request } from './apiClient';
 import {
   notifications,
@@ -151,6 +157,37 @@ export async function markAllNotificationsRead(): Promise<AppNotification[]> {
 
   notificationLedger = notificationLedger.map((notification) => ({ ...notification, read: true }));
   return delay(notificationLedger, 150);
+}
+
+/**
+ * Tell the server what this customer wants to be sent.
+ *
+ * Every one of these toggles was local. A customer switching off "Promotions"
+ * changed a value in AsyncStorage and nothing else, so the promotions kept
+ * arriving — the server had never been told. `marketingConsent` is the one
+ * that matters most: it is captured at registration and sent, and after that
+ * the app offered a switch that reached nobody. Under POPIA a withdrawal of
+ * consent to direct marketing has to be actionable, and a switch that only
+ * moves a local boolean is worse than no switch at all, because it looks like
+ * it worked.
+ *
+ * `defaultFulfilment` is deliberately not here. What the app pre-selects when
+ * it opens is a fact about this handset, and no server needs it.
+ *
+ * A failure is not swallowed — the caller has to put the toggle back rather
+ * than leave somebody believing they have opted out.
+ */
+export interface RemotePreferences {
+  notifications: NotificationPreferences;
+  marketingConsent: boolean;
+}
+
+export async function updateRemotePreferences(input: RemotePreferences): Promise<void> {
+  if (config.useMockApi) {
+    await delay(null, 250);
+    return;
+  }
+  await request<void>('/v1/account/preferences', { method: 'PATCH', body: input });
 }
 
 export async function fetchSupportTopics(): Promise<SupportTopic[]> {

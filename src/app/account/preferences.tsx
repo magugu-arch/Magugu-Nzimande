@@ -1,8 +1,9 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button, Card, Divider, Screen, ScreenHeader, Text, Toggle } from '@/components/ui';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { usePushRegistration } from '@/features/notifications/hooks';
+import { useRemotePreferences } from '@/features/account/useRemotePreferences';
 import { useAuthStore } from '@/store/authStore';
 import { colors, radius, spacing } from '@/theme';
 import { openAppSettings } from '@/utils/linking';
@@ -10,9 +11,13 @@ import { openAppSettings } from '@/utils/linking';
 /** Preferences + notification channels (brief §4). */
 export default function PreferencesScreen() {
   const notificationPreferences = useAuthStore((state) => state.notificationPreferences);
-  const setNotificationPreference = useAuthStore((state) => state.setNotificationPreference);
   const preferences = useAuthStore((state) => state.preferences);
   const setPreference = useAuthStore((state) => state.setPreference);
+
+  // Every switch below used to write to AsyncStorage and stop there, so
+  // switching off "Promotions" changed a local boolean and the promotions kept
+  // coming. These go to the server and put themselves back if that fails.
+  const { setNotification, setMarketingConsent, error, dismissError } = useRemotePreferences();
 
   const { outcome, registerNow } = usePushRegistration();
 
@@ -21,6 +26,28 @@ export default function PreferencesScreen() {
       <ScreenHeader title="Preferences" />
 
       <View style={styles.body}>
+        {/*
+          A reverted switch has to say why. Putting it back silently would look
+          exactly like the bug this replaced — a toggle that does not do what
+          it appears to have done.
+        */}
+        {error ? (
+          <View style={styles.notice} testID="preferences-error">
+            <Ionicons name="alert-circle" size={18} color={colors.status.warning} />
+            <Text variant="caption" color={colors.textSecondary} style={styles.noticeBody}>
+              {error}
+            </Text>
+            <Pressable
+              onPress={dismissError}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss preferences error"
+            >
+              <Ionicons name="close" size={16} color={colors.textMuted} />
+            </Pressable>
+          </View>
+        ) : null}
+
         {/* Ordering defaults */}
         <Card style={styles.card}>
           <Text variant="h3">Default order type</Text>
@@ -42,7 +69,7 @@ export default function PreferencesScreen() {
             label="Order updates"
             description="Status changes, driver on the way, ready to collect"
             value={notificationPreferences.orderUpdates}
-            onValueChange={(value) => setNotificationPreference('orderUpdates', value)}
+            onValueChange={(value) => setNotification('orderUpdates', value)}
             testID="pref-order-updates"
           />
           <Divider spacingSize="none" />
@@ -50,21 +77,21 @@ export default function PreferencesScreen() {
             label="Offers and promotions"
             description="Deals, discounts and members-only drops"
             value={notificationPreferences.promotions}
-            onValueChange={(value) => setNotificationPreference('promotions', value)}
+            onValueChange={(value) => setNotification('promotions', value)}
           />
           <Divider spacingSize="none" />
           <Toggle
             label="Rewards"
             description="Points earned, rewards unlocked and expiry reminders"
             value={notificationPreferences.rewards}
-            onValueChange={(value) => setNotificationPreference('rewards', value)}
+            onValueChange={(value) => setNotification('rewards', value)}
           />
           <Divider spacingSize="none" />
           <Toggle
             label="New on the menu"
             description="When something new comes out of the kitchen"
             value={notificationPreferences.newProducts}
-            onValueChange={(value) => setNotificationPreference('newProducts', value)}
+            onValueChange={(value) => setNotification('newProducts', value)}
           />
         </Card>
 
@@ -75,7 +102,7 @@ export default function PreferencesScreen() {
           <Toggle
             label="Push notifications"
             value={notificationPreferences.channelPush}
-            onValueChange={(value) => setNotificationPreference('channelPush', value)}
+            onValueChange={(value) => setNotification('channelPush', value)}
           />
 
           {/*
@@ -117,14 +144,14 @@ export default function PreferencesScreen() {
           <Toggle
             label="Email"
             value={notificationPreferences.channelEmail}
-            onValueChange={(value) => setNotificationPreference('channelEmail', value)}
+            onValueChange={(value) => setNotification('channelEmail', value)}
           />
           <Divider spacingSize="none" />
           <Toggle
             label="SMS"
             description="Standard network rates apply"
             value={notificationPreferences.channelSms}
-            onValueChange={(value) => setNotificationPreference('channelSms', value)}
+            onValueChange={(value) => setNotification('channelSms', value)}
           />
         </Card>
 
@@ -143,7 +170,7 @@ export default function PreferencesScreen() {
             label="Marketing consent"
             description="Lets us tailor offers to what you actually order"
             value={preferences.marketingConsent}
-            onValueChange={(value) => setPreference('marketingConsent', value)}
+            onValueChange={(value) => setMarketingConsent(value)}
           />
         </Card>
 
@@ -168,5 +195,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.status.warningSoft,
   },
   pushNoticeBody: { flex: 1, gap: spacing.xs },
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.status.warningSoft,
+  },
+  noticeBody: { flex: 1 },
   pushAction: { marginLeft: -spacing.md },
 });
