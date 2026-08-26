@@ -17,7 +17,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 8, driven end to end against the mock layer                                                             |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 585, across 36 suites                                                                                   |
+| Tests            | 629, across 36 suites                                                                                   |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -214,6 +214,18 @@ They are each on `audit:launch` with what they have to do:
 The first three are POPIA-adjacent: an app that offers erasure, opt-out or
 verification and does not deliver it is worse than one that never offered.
 
+A seventh is a gap rather than a promise. `POST /v1/account/addresses` takes
+six text fields and returns them, and nothing geocodes on the way through — so
+an address a customer types has no coordinates and the delivery-radius rule has
+nothing to measure. The app used to fill that in with the Johannesburg CBD and
+refuse or accept deliveries on the strength of it; it now records the absence
+and refuses nobody it cannot measure, which means an address genuinely out of
+range is accepted. Either that endpoint geocodes and returns `latitude` and
+`longitude`, or a lookup gets wired into the form. Nothing else has to change:
+the rule already reads the fields when they are there. This is the one place
+where the honest behaviour is still the wrong outcome, so it is worth doing
+early rather than last.
+
 `services/apiClient.ts` owns auth headers, timeouts and error normalisation, so
 moving to GraphQL means rewriting that one file, not every caller.
 
@@ -238,7 +250,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, format, 585 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, format, 629 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, a real prebuild audit of the native projects, and
   the asset checks.
@@ -259,7 +271,7 @@ These fail loudly rather than rotting quietly — leave them on.
   `CHROMIUM_PATH` pointed at one the machine already has. It signs in first:
   sweeping account screens signed out is not the screen anybody uses, and for a
   while that hid a real defect rather than finding one.
-- **Seven more browser journeys**, each driving one thing a unit test cannot
+- **Eight more browser journeys**, each driving one thing a unit test cannot
   reach. They exist because every one of them caught something:
   - `audit:offline` — every data screen with the mock off and a host that does
     not answer. A screen that fetched nothing may only say so about itself, and
@@ -278,6 +290,10 @@ These fail loudly rather than rotting quietly — leave them on.
   - `audit:handover` — one phone, two people. Favourites outlive a sign-out on
     purpose, so both halves have to hold at once.
   - `audit:guest` — what somebody who tapped "Continue as guest" can see.
+  - `audit:delivery-range` — type an address in and try to have it delivered.
+    The app has no geocoder, so a typed address has no coordinates; this holds
+    the line that not knowing where somebody lives is a third answer, and that
+    the radius rule still bites for an address that does carry them.
 - **Two rules these browser checks must keep**, learned by breaking both.
   First, each one establishes the session it means to measure — signing in, or
   seeding one where there is no server to sign in against. Gating the account
@@ -342,7 +358,7 @@ test. Everything here is already done except where marked.
 | Bundle secrets       | Only `EXPO_PUBLIC_*` values, which are inlined and therefore public by definition. A test rejects any name implying a secret                                                               |
 | POPIA                | Marketing consent and notification preferences reach the server and revert if that fails; account deletion asks for erasure rather than only signing out, and refuses to pretend it worked |
 | Guest data           | Somebody who has not signed in is shown nothing belonging to an account, and their device does not ask for any. `audit:guest` holds that line                                              |
-| **Still to do**      | Run `npm run audit:launch`. It is the live list — 19 items at the time of writing, every one needing your data, your credentials, or a real device. Nothing in this repo can close them    |
+| **Still to do**      | Run `npm run audit:launch`. It is the live list — 21 items at the time of writing, every one needing your data, your credentials, or a real device. Nothing in this repo can close them    |
 
 ---
 
