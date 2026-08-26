@@ -240,12 +240,21 @@ const apiClient = read('src/services/apiClient.ts');
 if (apiClient.includes('sign_in_required')) {
   note(
     'Guest checkout',
-    'A guest can browse, build a basket and reach checkout — nothing gates it, and ' +
-      'the mock layer lets the order through. Against a real API it is a 401. The app ' +
-      'now says "Sign in to finish this" and keeps their basket rather than wiping it ' +
-      'and claiming their session expired, but the underlying question is yours: either ' +
-      'the backend accepts guest orders, or checkout should ask them to sign in before ' +
-      'they build the order rather than after.',
+    'A guest can browse, build a basket and reach checkout — nothing gates it, and the ' +
+      'mock layer lets the order through. Against a real API it is a 401; the app says ' +
+      '"Sign in to finish this" and keeps their basket rather than claiming their session ' +
+      'expired. Driven end to end as a guest, the journey now reads like this: delivery is ' +
+      'blocked on "Add a delivery address" and tapping through offers a sign-in, which is ' +
+      'coherent — but collection goes all the way to a confirmation and an order reference, ' +
+      'for a customer the app holds no name, phone or email for. The kitchen would get an ' +
+      'order it cannot ring about, and the customer cannot look at it afterwards, because ' +
+      'the Orders tab needs an account. That last part is newly visible rather than newly ' +
+      'broken: a guest never had a way to see a real order, they just used to be shown ' +
+      'somebody else\'s. So the question is yours and it is one of three. Either the ' +
+      'backend accepts guest orders and checkout must collect a name and a number for the ' +
+      'driver; or checkout asks them to sign in before they build a basket rather than ' +
+      'after; or guest browsing stays and guest ordering does not. I have not chosen: each ' +
+      'is a different business, not a different implementation.',
     'you',
   );
 }
