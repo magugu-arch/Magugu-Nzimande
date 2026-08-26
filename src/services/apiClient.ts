@@ -1,6 +1,7 @@
 import { config } from '@/constants/config';
 import type { ApiError } from '@/types';
 import { clearTokens, getAccessToken, getRefreshToken, storeTokens } from './secureStorage';
+import { MalformedResponse } from './wireChecks';
 
 /**
  * Thin typed fetch wrapper.
@@ -45,7 +46,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-export interface RequestOptions {
+export interface RequestOptions<T = unknown> {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
   /** Extra headers merged over the defaults. */
@@ -53,6 +54,15 @@ export interface RequestOptions {
   /** Skips the Authorization header (sign-in, register, refresh). */
   anonymous?: boolean;
   signal?: AbortSignal;
+  /**
+   * Checks the parsed body before the caller is handed it.
+   *
+   * Optional, and the endpoints that pass one are the ones where a value the
+   * app cannot read becomes a number a customer acts on — prices, totals,
+   * balances, coordinates. Without it the line below is a cast: `T` is a
+   * promise about the wire that nothing keeps. See `wireChecks`.
+   */
+  parse?: (value: unknown) => T;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -178,12 +188,16 @@ export function resetSessionState(): void {
   sessionExpiredHandler = null;
 }
 
-export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+export async function request<T>(path: string, options: RequestOptions<T> = {}): Promise<T> {
   return execute<T>(path, options, true);
 }
 
-async function execute<T>(path: string, options: RequestOptions, mayRefresh: boolean): Promise<T> {
-  const { method = 'GET', body, headers = {}, anonymous = false, signal } = options;
+async function execute<T>(
+  path: string,
+  options: RequestOptions<T>,
+  mayRefresh: boolean,
+): Promise<T> {
+  const { method = 'GET', body, headers = {}, anonymous = false, signal, parse } = options;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.apiTimeoutMs);
@@ -257,9 +271,33 @@ async function execute<T>(path: string, options: RequestOptions, mayRefresh: boo
     }
 
     if (response.status === 204) return undefined as T;
-    return (await response.json()) as T;
+
+    const payload: unknown = await response.json();
+    // Without `parse` this is the cast it always was.
+    return parse ? parse(payload) : (payload as T);
   } catch (error) {
     if (error instanceof ApiRequestError) throw error;
+
+    /**
+     * A response the app cannot read is not a network failure.
+     *
+     * Reported as its own code so it is distinguishable in logs from a real
+     * outage — this one means the backend and the app disagree about a shape,
+     * and somebody has to change one of them. `detail` names the exact field
+     * and what arrived, which is the difference between a five-minute fix and
+     * an afternoon. What the customer is told is the same either way: the app
+     * could not load it, which is true, rather than a number it made up.
+     */
+    if (error instanceof MalformedResponse) {
+      // The customer gets the honest generic; whoever has to fix it gets the
+      // field name and what actually arrived.
+      console.warn(`[api] ${path}: ${error.detail}`);
+      throw new ApiRequestError({
+        code: 'malformed_response',
+        message: "We couldn't read that. Please try again.",
+        status: 200,
+      });
+    }
 
     if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiRequestError({

@@ -4,6 +4,7 @@ import { voucherDiscount } from '@/utils/cart';
 import { hasPassed } from '@/utils/datetime';
 import { delay, request } from './apiClient';
 import { loyaltyAccount, promotions, rewards, tiers, vouchers } from './data/rewardsData';
+import { checkedLoyaltyAccount, checkedVouchers } from './wireChecks';
 
 /**
  * The mock's loyalty ledger, which until now did not move.
@@ -97,7 +98,7 @@ export function recordPoints(entry: {
 
 export async function fetchLoyaltyAccount(): Promise<LoyaltyAccount> {
   if (config.useMockApi) return delay(account);
-  return request<LoyaltyAccount>('/v1/loyalty/account');
+  return request<LoyaltyAccount>('/v1/loyalty/account', { parse: checkedLoyaltyAccount });
 }
 
 /**
@@ -199,7 +200,7 @@ export function restoreVoucher(code: string): void {
 
 export async function fetchVouchers(): Promise<Voucher[]> {
   if (config.useMockApi) return delay(stampExpiry(voucherLedger));
-  return stampExpiry(await request<Voucher[]>('/v1/loyalty/vouchers'));
+  return stampExpiry(await request<Voucher[]>('/v1/loyalty/vouchers', { parse: checkedVouchers }));
 }
 
 /** Vouchers the customer can actually use right now. */

@@ -6,6 +6,7 @@ import { stores } from './data/storeData';
 import { currentAddresses, currentPaymentMethods } from './accountService';
 import { describePaymentMethod } from './paymentService';
 import { fetchReward, markVoucherUsed, recordPoints, restoreVoucher } from './rewardsService';
+import { checkedOrder, checkedOrders } from './wireChecks';
 
 /**
  * Order service.
@@ -350,7 +351,7 @@ function advance(order: Order): Order {
 
 export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   if (!config.useMockApi) {
-    return request<Order>('/v1/orders', { method: 'POST', body: input });
+    return request<Order>('/v1/orders', { method: 'POST', body: input, parse: checkedOrder });
   }
 
   seedHistory();
@@ -437,7 +438,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
 }
 
 export async function fetchOrders(): Promise<Order[]> {
-  if (!config.useMockApi) return request<Order[]>('/v1/orders');
+  if (!config.useMockApi) return request<Order[]>('/v1/orders', { parse: checkedOrders });
 
   seedHistory();
   const advanced = ledger.map(advance);
@@ -450,7 +451,7 @@ export async function fetchOrders(): Promise<Order[]> {
 
 export async function fetchOrder(orderId: string): Promise<Order> {
   if (!config.useMockApi) {
-    return request<Order>(`/v1/orders/${encodeURIComponent(orderId)}`);
+    return request<Order>(`/v1/orders/${encodeURIComponent(orderId)}`, { parse: checkedOrder });
   }
 
   seedHistory();
@@ -473,7 +474,10 @@ export async function fetchActiveOrder(): Promise<Order | null> {
 
 export async function cancelOrder(orderId: string): Promise<Order> {
   if (!config.useMockApi) {
-    return request<Order>(`/v1/orders/${encodeURIComponent(orderId)}/cancel`, { method: 'POST' });
+    return request<Order>(`/v1/orders/${encodeURIComponent(orderId)}/cancel`, {
+      method: 'POST',
+      parse: checkedOrder,
+    });
   }
 
   const index = ledger.findIndex((order) => order.id === orderId);

@@ -14,10 +14,10 @@ Africa, built to the supplied brief.
 | ---------------- | ------------------------------------------------------------------------------------------------------- |
 | Stack            | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
 | Screens          | 42 routes covering every journey in brief §4                                                            |
-| Browser journeys | 8, driven end to end against the mock layer                                                             |
+| Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 640, across 37 suites                                                                                   |
+| Tests            | 670, across 39 suites                                                                                   |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -46,7 +46,7 @@ products on the way and they turn up on Home and behind a Menu filter.
 ```bash
 npm run verify        # typecheck → lint → test, the gate before any commit
 npm run preview:web   # the whole app in a browser, no build required
-npm run audit:screens # renders all 26 screens at two widths and reports defects
+npm run audit:screens # renders all 29 routes at two widths and reports defects
 npm run smoke:order   # signs in, adds an item and places an order, for real
 ```
 
@@ -128,13 +128,13 @@ Profiles are in `eas.json`: `development`, `development-simulator`, `preview`
 
 Five integrations need something external. Each has a marked hook-in point.
 
-| What                  | Where                                                                                | Needs                                                                                                      |
-| --------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| **Card capture**      | `app/account/payment-methods.tsx` — currently an explanatory alert                   | The gateway's PCI-compliant SDK. Never build your own card form.                                           |
-| **Address geocoding** | `app/checkout/address.tsx` — anchors new addresses to the city centre                | A geocoder key                                                                                             |
-| **Store map**         | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes |
-| **Crash reporting**   | `ErrorBoundary` takes an `onError`                                                   | Sentry or Crashlytics                                                                                      |
-| **Favourites sync**   | `store/favouritesStore.ts` — local and persisted                                     | `POST /v1/account/favourites`, so a heart follows the account to a new phone                               |
+| What                  | Where                                                                                | Needs                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Card capture**      | `app/account/payment-methods.tsx` — currently an explanatory alert                   | The gateway's PCI-compliant SDK. Never build your own card form.                                                                     |
+| **Address geocoding** | `app/checkout/address.tsx` — saves a typed address with no coordinates at all        | A geocoder, or a backend that geocodes on POST. Until then the delivery radius cannot judge a typed address, and does not pretend to |
+| **Store map**         | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes                           |
+| **Crash reporting**   | `ErrorBoundary` takes an `onError`                                                   | Sentry or Crashlytics                                                                                                                |
+| **Favourites sync**   | `store/favouritesStore.ts` — local and persisted                                     | `POST /v1/account/favourites`, so a heart follows the account to a new phone                                                         |
 
 Also outstanding, and deliberate:
 
@@ -229,16 +229,32 @@ early rather than last.
 `services/apiClient.ts` owns auth headers, timeouts and error normalisation, so
 moving to GraphQL means rewriting that one file, not every caller.
 
-**One thing it does not do: validate.** `request<T>` casts the parsed JSON to
-`T`. Every type in `src/types` is a promise about the wire that nothing checks
-at runtime, so a field arriving as a string where a number is declared reaches
-whatever consumes it. That is fine while the mock is the only source and the
-seed matches the types by construction; it stops being fine the day a real
-endpoint answers. It has already produced one small hole — a store's
-coordinates were interpolated into a maps URL unchecked, which is now coerced
-— and the next one will be somewhere less obvious. Worth a validation layer
-inside `apiClient` before the backend goes live, so a malformed response
-becomes one honest error rather than a strange screen three components away.
+**Validation is partial, on purpose.** `request<T>` casts the parsed JSON to
+`T`, so every type in `src/types` is a promise about the wire. That is fine
+while the mock is the only source and the seed matches the types by
+construction, and it stops being fine the day a real endpoint answers. It
+produced four holes before anything was done about it: a store's coordinates
+interpolated into a maps URL, `deliveryRange` measuring `NaN` and reading it as
+out of range, `directionsTargetFor` routing to `0, 0` — and one no consumer
+could patch, where `formatPrice` rendered anything non-finite as `R 0.00`. A
+backend returning money as strings, which is ordinary and done precisely to
+keep float precision off the wire, would have put "R 0.00" on every menu tile
+while the arithmetic coerced correctly and charged the real amount.
+
+`request` now takes an optional `parse`, and `services/wireChecks.ts` supplies
+one for the responses where a value the app cannot read becomes a number a
+customer acts on: menu and product prices, order totals and ETAs, store
+coordinates and delivery radii, the loyalty balance, voucher terms. A failure
+raises `malformed_response` at the fetch, so the screen shows its own
+"couldn't load" state and the console names the exact field and what arrived.
+
+It is deliberately **not** a schema per endpoint. A schema has to be maintained
+alongside the type, drifts from it silently, and rejects a response over a
+field the app never reads. Each check asserts only what the app would otherwise
+get wrong. The other endpoints — profile, addresses, notifications, support —
+still cast, because a wrong value there is a wrong string on a screen rather
+than a wrong number in a bill. Add a check when that stops being true, and add
+it to `wireChecks` rather than to the consumer.
 
 **Secrets:** tokens go to the platform keychain via `expo-secure-store`. Only
 `EXPO_PUBLIC_*` values are inlined into the bundle. Card details are never
@@ -250,7 +266,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, format, 640 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, format, 670 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, a real prebuild audit of the native projects, and
   the asset checks.
@@ -262,7 +278,7 @@ These fail loudly rather than rotting quietly — leave them on.
   journey; this is the only thing that checks the pieces connect. It runs
   against the mock layer, so it needs no backend — which also makes it a check
   that the mock still models the real API.
-- **`npm run audit:screens`** renders every screen at 390pt and 320pt and fails
+- **`npm run audit:screens`** renders every route at 390pt and 320pt and fails
   on anything sitting past the right edge, a page that scrolls sideways, a
   blank screen, a console error, or a §32.6 gap — an interactive element with
   no accessible name, or a focusable one with no visible focus ring. This is

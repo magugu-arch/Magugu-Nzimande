@@ -4,6 +4,7 @@ import { distanceKm, type Coordinates } from '@/utils/geo';
 import { isTradingNow } from '@/utils/tradingHours';
 import { delay, request } from './apiClient';
 import { stores } from './data/storeData';
+import { checkedStore, checkedStores } from './wireChecks';
 
 /**
  * Store locator service. Distances are recomputed against the customer's real
@@ -58,7 +59,7 @@ export async function fetchStores(origin: Coordinates | null = null): Promise<St
   // A store list ordered by somebody else's position is worse than an unordered
   // one, and only the caller knows whether the customer said yes.
   const query = origin ? `?lat=${origin.latitude}&lng=${origin.longitude}` : '';
-  const remote = await request<Store[]>(`/v1/stores${query}`);
+  const remote = await request<Store[]>(`/v1/stores${query}`, { parse: checkedStores });
   return resolveAgainstCustomer(remote, origin, new Date());
 }
 
@@ -90,7 +91,9 @@ export async function fetchStore(storeId: string): Promise<Store> {
     if (!store) throw new Error('Store not found');
     return delay(strip({ ...store, isOpenNow: isTradingNow(store) }), 160);
   }
-  const remote = await request<Store>(`/v1/stores/${encodeURIComponent(storeId)}`);
+  const remote = await request<Store>(`/v1/stores/${encodeURIComponent(storeId)}`, {
+    parse: checkedStore,
+  });
   return strip({ ...remote, isOpenNow: isTradingNow(remote) });
 }
 

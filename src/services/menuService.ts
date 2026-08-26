@@ -2,6 +2,7 @@ import { config } from '@/constants/config';
 import type { Category, MenuSnapshot, Product } from '@/types';
 import { delay, request } from './apiClient';
 import { menuSnapshot } from './data/menuData';
+import { checkedMenu, checkedProduct } from './wireChecks';
 
 /**
  * Menu service. Screens never touch `menuData` directly — they call these
@@ -10,7 +11,7 @@ import { menuSnapshot } from './data/menuData';
 
 export async function fetchMenu(): Promise<MenuSnapshot> {
   if (config.useMockApi) return delay(menuSnapshot);
-  return request<MenuSnapshot>('/v1/menu');
+  return request<MenuSnapshot>('/v1/menu', { parse: checkedMenu });
 }
 
 export async function fetchCategories(): Promise<Category[]> {
@@ -35,7 +36,9 @@ export async function fetchProduct(productId: string): Promise<Product> {
     }
     return delay(product, 180);
   }
-  return request<Product>(`/v1/menu/products/${encodeURIComponent(productId)}`);
+  return request<Product>(`/v1/menu/products/${encodeURIComponent(productId)}`, {
+    parse: checkedProduct,
+  });
 }
 
 export async function fetchProductsByIds(ids: string[]): Promise<Product[]> {

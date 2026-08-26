@@ -7,6 +7,7 @@ import {
   pointsToRand,
   randToPoints,
   sumRand,
+  PRICE_UNAVAILABLE,
 } from '@/utils/money';
 
 describe('formatPrice', () => {
@@ -25,13 +26,39 @@ describe('formatPrice', () => {
     expect(formatPrice(-50)).toBe('-R 50.00');
   });
 
-  it('falls back to zero for non-finite input', () => {
-    expect(formatPrice(Number.NaN)).toBe('R 0.00');
-    expect(formatPrice(Number.POSITIVE_INFINITY)).toBe('R 0.00');
+  /**
+   * This used to assert `R 0.00`, which is the bug rather than the behaviour.
+   *
+   * Zero is a price. A menu tile reading "R 0.00" is a promise of free food
+   * that the bill does not keep — and the way it happens is ordinary: money
+   * APIs commonly return decimals as strings, `request<T>` casts rather than
+   * validates, and the arithmetic coerces `"129.00"` correctly while
+   * `Number.isFinite` does not. Two of that item came to R 258.00 on a
+   * checkout screen whose lines both read R 0.00.
+   */
+  it('shows a dash rather than a price it does not have', () => {
+    expect(formatPrice(Number.NaN)).toBe(PRICE_UNAVAILABLE);
+    expect(formatPrice(Number.POSITIVE_INFINITY)).toBe(PRICE_UNAVAILABLE);
+    expect(formatPrice(undefined as unknown as number)).toBe(PRICE_UNAVAILABLE);
+    expect(formatPrice('129.00' as unknown as number)).toBe(PRICE_UNAVAILABLE);
+  });
+
+  it('still prices a genuinely free thing at zero', () => {
+    // The dash is for "no price", not for "no charge".
+    expect(formatPrice(0)).toBe('R 0.00');
   });
 });
 
 describe('formatPriceDelta', () => {
+  it('shows a dash rather than a surcharge it does not have', () => {
+    // Checked before the zero test — a non-number is not equal to 0, so it
+    // used to fall through to a sign and render "−R 0.00" as an option's
+    // price. An option that says it takes money off is worse than one that
+    // says nothing.
+    expect(formatPriceDelta(Number.NaN)).toBe(PRICE_UNAVAILABLE);
+    expect(formatPriceDelta('20' as unknown as number)).toBe(PRICE_UNAVAILABLE);
+  });
+
   it('labels a zero delta as free', () => {
     expect(formatPriceDelta(0)).toBe('Free');
   });

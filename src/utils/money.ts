@@ -35,18 +35,39 @@ export function groupDigits(value: number): string {
   return String(Math.trunc(Math.abs(value))).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
+/**
+ * What to show where a price should be but there is not one.
+ *
+ * An em dash, because every alternative is a number and a number here is a
+ * claim. This used to be `R 0.00`: `formatPrice` coerced anything non-finite
+ * to zero, so a price the app could not read rendered as free.
+ *
+ * That is reachable, and the way it is reachable is ordinary. Money APIs
+ * routinely return decimals as strings to keep float precision out of the
+ * wire, and `request<T>` casts the parsed JSON rather than validating it — so
+ * `basePrice: "129.00"` reaches the app as a string. The arithmetic coerces
+ * and gets the right answer; `Number.isFinite` does not coerce and got zero.
+ * The menu tile said R 0.00, the product screen said R 0.00, and the bill said
+ * R 258.00.
+ *
+ * A dash is noticed and reported. Free chicken is noticed and ordered.
+ */
+export const PRICE_UNAVAILABLE = '—';
+
 /** `R 129.90` — the South African convention used across the app. */
 export function formatPrice(rand: number): string {
-  const safe = Number.isFinite(rand) ? rand : 0;
-  const fixed = Math.abs(safe).toFixed(2);
+  if (!Number.isFinite(rand)) return PRICE_UNAVAILABLE;
+  const fixed = Math.abs(rand).toFixed(2);
   const [whole = '0', decimals = '00'] = fixed.split('.');
   const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  const sign = safe < 0 ? '-' : '';
+  const sign = rand < 0 ? '-' : '';
   return `${sign}${businessRules.currencySymbol} ${grouped}.${decimals}`;
 }
 
 /** `+R 20.00` / `−R 5.00` / `Free` — used on option rows. */
 export function formatPriceDelta(rand: number): string {
+  // Checked before the zero test, which a non-number fails into a sign.
+  if (!Number.isFinite(rand)) return PRICE_UNAVAILABLE;
   if (rand === 0) return 'Free';
   const prefix = rand > 0 ? '+' : '−';
   return `${prefix}${formatPrice(Math.abs(rand))}`;
