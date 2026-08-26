@@ -10,15 +10,16 @@ Everything needed to take this over, in the order you'll need it.
 A production-oriented React Native customer ordering app for bb.q Chicken South
 Africa, built to the supplied brief.
 
-| | |
-|---|---|
-| Stack | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
-| Screens | 42 routes covering every journey in brief §4 |
-| Food photography | All 16 catalogue products, own artwork, no placeholders |
-| Logo | Licensed bb.q lock-up, both approved variants, all icons derived from it |
-| Tests | 295, across 18 suites |
-| Bundle | 19.1 MB exported, of which 4.4 MB JavaScript |
-| Branch | `claude/bbq-chicken-app-czgvuz` |
+|                  |                                                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Stack            | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
+| Screens          | 42 routes covering every journey in brief §4                                                            |
+| Browser journeys | 8, driven end to end against the mock layer                                                             |
+| Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
+| Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
+| Tests            | 585, across 36 suites                                                                                   |
+| Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
+| Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
 It runs **end to end with no backend**. `EXPO_PUBLIC_USE_MOCK_API` defaults to
 `1`, so a bundled mock service layer serves menu, stores, orders, rewards and
@@ -125,15 +126,15 @@ Profiles are in `eas.json`: `development`, `development-simulator`, `preview`
 
 ## 5. What is stubbed, and where to pick it up
 
-Four integrations need something external. Each has a marked hook-in point.
+Five integrations need something external. Each has a marked hook-in point.
 
-| What | Where | Needs |
-|---|---|---|
-| **Card capture** | `app/account/payment-methods.tsx` — currently an explanatory alert | The gateway's PCI-compliant SDK. Never build your own card form. |
-| **Address geocoding** | `app/checkout/address.tsx` — anchors new addresses to the city centre | A geocoder key |
-| **Store map** | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes |
-| **Crash reporting** | `ErrorBoundary` takes an `onError` | Sentry or Crashlytics |
-| **Favourites sync** | `store/favouritesStore.ts` — local and persisted | `POST /v1/account/favourites`, so a heart follows the account to a new phone |
+| What                  | Where                                                                                | Needs                                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| **Card capture**      | `app/account/payment-methods.tsx` — currently an explanatory alert                   | The gateway's PCI-compliant SDK. Never build your own card form.                                           |
+| **Address geocoding** | `app/checkout/address.tsx` — anchors new addresses to the city centre                | A geocoder key                                                                                             |
+| **Store map**         | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes |
+| **Crash reporting**   | `ErrorBoundary` takes an `onError`                                                   | Sentry or Crashlytics                                                                                      |
+| **Favourites sync**   | `store/favouritesStore.ts` — local and persisted                                     | `POST /v1/account/favourites`, so a heart follows the account to a new phone                               |
 
 Also outstanding, and deliberate:
 
@@ -147,9 +148,9 @@ Also outstanding, and deliberate:
   the whole job: drop the two files in, run `npm run assets:brand`.
 - **Only §3, §10–§14, §22, §23 and §32 of the guidelines were supplied.** Logo
   clear space is on page 05, which I have not seen; the icon uses generous
-  spacing but has not been checked against the actual rule. *(Resolved since:
+  spacing but has not been checked against the actual rule. _(Resolved since:
   §10.2 prints bb.q Red as `#E31937`, confirming the value the logo extract was
-  normalised to — the guidelines page just renders it a few points darker.)*
+  normalised to — the guidelines page just renders it a few points darker.)_
 - **§23.5 says Inter; §11 says Montserrat.** Resolved in favour of Montserrat —
   §11, §12, §13 and §14 are four pages of typography spec against one line, and
   they agree with each other. §23.5 looks like the outlier.
@@ -186,16 +187,32 @@ Also outstanding, and deliberate:
 
 Set `EXPO_PUBLIC_USE_MOCK_API=0` and point `EXPO_PUBLIC_API_BASE_URL` at the API.
 
-| Service | Endpoints |
-|---|---|
-| `menuService` | `GET /v1/menu`, `/v1/menu/products/:id` |
-| `storeService` | `GET /v1/stores?lat&lng`, `/v1/stores/:id` |
-| `orderService` | `GET/POST /v1/orders`, `/v1/orders/:id`, `…/cancel`, `…/rating` |
-| `rewardsService` | `/v1/loyalty/*`, `/v1/promotions`, `/v1/vouchers/validate` |
-| `accountService` | `/v1/account/*`, `/v1/support/*` |
-| `authService` | `/v1/auth/*` |
-| `paymentService` | `/v1/payments/*` |
-| `notificationService` | `POST /v1/account/push-tokens` |
+| Service               | Endpoints                                                       |
+| --------------------- | --------------------------------------------------------------- |
+| `menuService`         | `GET /v1/menu`, `/v1/menu/products/:id`                         |
+| `storeService`        | `GET /v1/stores?lat&lng`, `/v1/stores/:id`                      |
+| `orderService`        | `GET/POST /v1/orders`, `/v1/orders/:id`, `…/cancel`, `…/rating` |
+| `rewardsService`      | `/v1/loyalty/*`, `/v1/promotions`, `/v1/vouchers/validate`      |
+| `accountService`      | `/v1/account/*`, `/v1/support/*`                                |
+| `authService`         | `/v1/auth/*`                                                    |
+| `paymentService`      | `/v1/payments/*`                                                |
+| `notificationService` | `POST /v1/account/push-tokens`                                  |
+
+Six of those the app now _depends_ on rather than merely declares, because a
+screen says something to the customer that only the endpoint can make true.
+They are each on `audit:launch` with what they have to do:
+
+| Endpoint                                | What the app has already told the customer                             |
+| --------------------------------------- | ---------------------------------------------------------------------- |
+| `DELETE /v1/account`                    | "We remove your personal data within 30 days"                          |
+| `PATCH /v1/account/preferences`         | A switch that turns promotions off, and a marketing-consent withdrawal |
+| `POST /v1/auth/email/verify`            | "Send me the link" beside an unverified address                        |
+| `DELETE /v1/account/push-tokens/:token` | That signing out stops this handset getting their order updates        |
+| `POST /v1/orders`                       | The totals, which it must recompute rather than trust                  |
+| `POST /v1/loyalty/redeem`               | A points balance the app deducts from at order time                    |
+
+The first three are POPIA-adjacent: an app that offers erasure, opt-out or
+verification and does not deliver it is worse than one that never offered.
 
 `services/apiClient.ts` owns auth headers, timeouts and error normalisation, so
 moving to GraphQL means rewriting that one file, not every caller.
@@ -210,9 +227,10 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, 295 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, format, 585 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
-  bundle for both platforms, plus two asset checks.
+  bundle for both platforms, a real prebuild audit of the native projects, and
+  the asset checks.
 - **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
   its own photograph, so a new menu item can't ship on a placeholder.
 - **`npm run smoke:order`** places an order: signs in, adds an item, chooses an
@@ -227,9 +245,34 @@ These fail loudly rather than rotting quietly — leave them on.
   no accessible name, or a focusable one with no visible focus ring. This is
   the check that found the defects the test suite could not see. It needs
   Playwright's Chromium once (`npx playwright install chromium`), or
-  `CHROMIUM_PATH` pointed at one the machine already has. Both browser checks
-  run in CI as their own job, and neither is part of `npm run verify` — a
-  browser sweep is minutes, and a pre-commit gate should be seconds.
+  `CHROMIUM_PATH` pointed at one the machine already has. It signs in first:
+  sweeping account screens signed out is not the screen anybody uses, and for a
+  while that hid a real defect rather than finding one.
+- **Seven more browser journeys**, each driving one thing a unit test cannot
+  reach. They exist because every one of them caught something:
+  - `audit:offline` — every data screen with the mock off and a host that does
+    not answer. A screen that fetched nothing may only say so about itself, and
+    must name the reason rather than blaming itself.
+  - `audit:coldstart` — ordering as somebody who installed the app that
+    morning: nothing saved, nothing ordered. The account the seed could never
+    represent.
+  - `audit:returning` — ordering _again_. Every other journey places a first
+    order, which is the only order that reaches checkout with an address
+    already in hand.
+  - `audit:points` — earn the points the app promised and watch them land on
+    the screen that states the balance.
+  - `audit:tracking` — the wait counts down as the clock moves. Uses
+    Playwright's clock, which drives timers as well as `Date`; a hand-rolled
+    shim moves time without waking the thing that reads it.
+  - `audit:handover` — one phone, two people. Favourites outlive a sign-out on
+    purpose, so both halves have to hold at once.
+  - `audit:guest` — what somebody who tapped "Continue as guest" can see.
+- **`npm run audit:launch`** lists what only the franchise can supply — store
+  list, prices, reward expiries, API host, store credentials, and every
+  backend endpoint the app now depends on. Advisory by default; `--production`
+  makes it fail the build, and `build:prod` calls it that way.
+  All of these run in CI as their own job, and none is part of `npm run verify`
+  — a browser sweep is minutes, and a pre-commit gate should be seconds.
 - **Derivative drift checks** — CI re-derives both the food crops and the icon
   set and fails if either differs, catching anyone who edited a generated file
   by hand instead of its master. Icons are the likeliest to be quietly
@@ -269,15 +312,17 @@ These fail loudly rather than rotting quietly — leave them on.
 A short list, because these are the things that fail a review rather than a
 test. Everything here is already done except where marked.
 
-| | |
-|---|---|
-| Android permissions | Location, internet, vibrate. Nothing else — the three the toolchain adds unasked are blocked, and a test holds that line |
-| iOS background modes | None declared. Apple rejects apps claiming `remote-notification` without silent pushes |
-| Export compliance | `ITSAppUsesNonExemptEncryption: false`, so submission does not stall on the encryption question |
-| Card data | Never captured by our code. A test greps the whole app for card, CVV and expiry fields |
-| Credentials | Keychain via `expo-secure-store`. AsyncStorage holds profile and preferences only, enforced by `partialize` and asserted |
-| Bundle secrets | Only `EXPO_PUBLIC_*` values, which are inlined and therefore public by definition. A test rejects any name implying a secret |
-| **Still to do** | Fill the `appleId`, `ascAppId` and `appleTeamId` placeholders in `eas.json`, and run `eas init` for a real project id |
+|                      |                                                                                                                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Android permissions  | Location, internet, vibrate. Nothing else — the three the toolchain adds unasked are blocked, and a test holds that line                                                                   |
+| iOS background modes | None declared. Apple rejects apps claiming `remote-notification` without silent pushes                                                                                                     |
+| Export compliance    | `ITSAppUsesNonExemptEncryption: false`, so submission does not stall on the encryption question                                                                                            |
+| Card data            | Never captured by our code. A test greps the whole app for card, CVV and expiry fields                                                                                                     |
+| Credentials          | Keychain via `expo-secure-store`. AsyncStorage holds profile and preferences only, enforced by `partialize` and asserted                                                                   |
+| Bundle secrets       | Only `EXPO_PUBLIC_*` values, which are inlined and therefore public by definition. A test rejects any name implying a secret                                                               |
+| POPIA                | Marketing consent and notification preferences reach the server and revert if that fails; account deletion asks for erasure rather than only signing out, and refuses to pretend it worked |
+| Guest data           | Somebody who has not signed in is shown nothing belonging to an account, and their device does not ask for any. `audit:guest` holds that line                                              |
+| **Still to do**      | Run `npm run audit:launch`. It is the live list — 19 items at the time of writing, every one needing your data, your credentials, or a real device. Nothing in this repo can close them    |
 
 ---
 
@@ -285,9 +330,19 @@ test. Everything here is already done except where marked.
 
 In order:
 
+0. **Run `npm run audit:launch` and read it end to end.** It is the only
+   document that stays current on its own, because it reads the repo rather
+   than describing it. Several items are decisions rather than tasks — when
+   loyalty points settle, whether the tier perks describe a programme you
+   intend to run, and which of three shapes guest checkout should take. Those
+   three were left open deliberately: each is a different business, not a
+   different implementation, and guessing would have buried the question in
+   code.
 1. **Get it on a device and walk the ordering journey.** It has never run on
    hardware. That is the single largest unknown, and everything else is easier
-   to judge afterwards.
+   to judge afterwards. Offline _recovery_ is the specific thing to watch:
+   losing signal is detected reliably and regaining it could not be shown in a
+   browser.
 2. **Wire the real menu endpoint.** It is the lowest-risk backend swap — the
    shape is already defined and the seed data documents it.
 3. **Then payments**, because it is the one that must not be improvised, and it
