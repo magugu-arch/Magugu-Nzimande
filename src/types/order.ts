@@ -167,8 +167,18 @@ export interface Order {
    */
   storePhone: string;
   storeAddress: string;
-  storeLatitude: number;
-  storeLongitude: number;
+  /**
+   * Where the branch is, when the order was recorded with that on it.
+   *
+   * Optional, and absent means nobody knows — same rule as an `Address`. These
+   * were `store?.latitude ?? 0`, and `0, 0` is a real place: a point in the
+   * Gulf of Guinea about 6 500 km from Johannesburg. The tracking screen offers
+   * "Get directions" on the strength of the address *string* being non-empty,
+   * so a record without coordinates would have opened a maps app and routed
+   * somebody there. Absent is the honest value, and the button asks for it.
+   */
+  storeLatitude?: number;
+  storeLongitude?: number;
   addressId?: string;
   addressSummary?: string;
   tableNumber?: string;

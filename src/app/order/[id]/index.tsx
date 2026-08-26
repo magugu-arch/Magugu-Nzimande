@@ -30,6 +30,7 @@ import { describeOptions } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
 import { announce } from '@/utils/accessibility';
 import { callNumber, isDiallable, openDirections } from '@/utils/linking';
+import { directionsTargetFor } from '@/features/orders/directions';
 import { formatPrice } from '@/utils/money';
 
 /** Live Order Tracking + Order Details + Re-order (brief §4). */
@@ -124,9 +125,15 @@ export default function OrderTrackingScreen() {
   const dueInMinutes = minutesUntilDue(data, now);
 
   const canCall = isDiallable(data.storePhone);
-  // A delivery is coming to the customer; directions to the kitchen are noise.
-  // Collection and dine-in are the orders someone has to travel to.
-  const canNavigate = data.fulfilmentType !== 'delivery' && data.storeAddress.length > 0;
+  /**
+   * Somewhere to send them, or null.
+   *
+   * A delivery is coming to the customer, so directions to the kitchen are
+   * noise; collection and dine-in are the orders somebody travels to. The third
+   * condition — that the record actually carries the branch's coordinates — is
+   * the one this screen was missing. See `directionsTargetFor`.
+   */
+  const directions = directionsTargetFor(data);
 
   return (
     <Screen scroll edges={['top', 'bottom']} testID="order-tracking-screen">
@@ -243,7 +250,7 @@ export default function OrderTrackingScreen() {
       </Card>
 
       {/* Reaching the store */}
-      {canCall || canNavigate ? (
+      {canCall || directions ? (
         <Card style={styles.card} padded={false}>
           <View style={styles.contactRows}>
             {canCall ? (
@@ -260,20 +267,14 @@ export default function OrderTrackingScreen() {
               />
             ) : null}
 
-            {canCall && canNavigate ? <Divider spacingSize="none" /> : null}
+            {canCall && directions ? <Divider spacingSize="none" /> : null}
 
-            {canNavigate ? (
+            {directions ? (
               <ListRow
                 title="Get directions"
                 subtitle={data.storeAddress}
                 icon="navigate-outline"
-                onPress={() =>
-                  void openDirections({
-                    latitude: data.storeLatitude,
-                    longitude: data.storeLongitude,
-                    label: data.storeName,
-                  })
-                }
+                onPress={() => void openDirections(directions)}
                 accessibilityLabel={`Directions to ${data.storeName}, ${data.storeAddress}`}
                 testID="order-directions"
               />

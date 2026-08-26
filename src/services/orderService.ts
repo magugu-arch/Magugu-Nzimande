@@ -120,8 +120,10 @@ function storeSnapshot(
     storeName: store?.name ?? 'bb.q Chicken',
     storePhone: store?.phone ?? '',
     storeAddress: store ? `${store.addressLine}, ${store.suburb}` : '',
-    storeLatitude: store?.latitude ?? 0,
-    storeLongitude: store?.longitude ?? 0,
+    // Omitted rather than zeroed when there is no branch to read them off.
+    // `0, 0` is a point in the Gulf of Guinea, and the tracking screen would
+    // have offered directions to it.
+    ...(store ? { storeLatitude: store.latitude, storeLongitude: store.longitude } : {}),
   };
 }
 
