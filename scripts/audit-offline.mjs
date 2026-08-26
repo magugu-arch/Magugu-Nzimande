@@ -79,6 +79,58 @@ const CLAIMS = [
   [/came off the menu|can't find that item/i, 'blames the menu for a failed fetch'],
 ];
 
+
+/**
+ * A customer who signed in earlier and has since lost signal.
+ *
+ * Seeded straight into storage rather than typed into the sign-in screen,
+ * because there is no server here to sign in against — and because that is the
+ * honest scenario anyway. Nobody signs in underground; they sign in at home and
+ * then walk into a lift.
+ *
+ * Without it, half the routes below render their signed-out state instead of
+ * their offline one, and this audit stops measuring what it is named after.
+ * That happened: gating account screens behind a sign-in silently turned five
+ * of these ten into a check of the guest view, and the run still exited 0
+ * because an unrecognised screen was a warning rather than a failure. Both
+ * halves are fixed — this seeds the session, and an unrecognised screen now
+ * fails.
+ */
+const SIGNED_IN = JSON.stringify({
+  state: {
+    user: {
+      id: 'user-offline-example-co-za',
+      firstName: 'Thandi',
+      lastName: 'Mokoena',
+      email: 'offline@example.co.za',
+      phone: '+27821234567',
+      avatarInitials: 'TM',
+      isGuest: false,
+      emailVerified: true,
+      phoneVerified: true,
+      createdAt: '2026-01-18T00:00:00.000Z',
+    },
+    isAuthenticated: true,
+    isGuest: false,
+    hasCompletedOnboarding: true,
+    notificationPreferences: {
+      orderUpdates: true,
+      promotions: true,
+      rewards: true,
+      newProducts: false,
+      channelPush: true,
+      channelEmail: true,
+      channelSms: false,
+    },
+    preferences: {
+      defaultFulfilment: 'delivery',
+      marketingConsent: false,
+      preferMildFirst: false,
+    },
+  },
+  version: 0,
+});
+
 const TYPES = {
   '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf',
@@ -123,6 +175,13 @@ const rows = [];
 try {
   for (const route of ROUTES) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await context.addInitScript((session) => {
+      try {
+        window.localStorage.setItem('bbq.auth', session);
+      } catch {
+        // A context that refuses storage is a browser problem, not an app one.
+      }
+    }, SIGNED_IN);
     const page = await context.newPage();
 
     await page.goto(`http://localhost:${PORT}${route}`, {
@@ -156,18 +215,17 @@ try {
     const lies = CLAIMS.filter(([pattern]) => pattern.test(text)).map(([, why]) => why);
 
     rows.push({ route, honest, named, lies });
+    if (!honest && lies.length === 0) {
+      findings.push(
+        `${route}: says nothing about the server at all — is this still the screen it was?`,
+      );
+    }
     for (const why of lies) findings.push(`${route}: ${why}`);
     if (lies.length === 0 && honest && !named) {
       findings.push(
         `${route}: blames itself ("something went wrong") when it knows the device is offline`,
       );
     }
-    if (!honest && lies.length === 0) {
-      // Not obviously lying, but not admitting anything either. Worth a look
-      // rather than a failure — some screens are legitimately static.
-      rows.push({ route, honest: false, lies: [], quiet: true });
-    }
-
     await context.close();
   }
 } finally {
@@ -176,7 +234,7 @@ try {
 }
 
 console.log('\nroute                          says it could not reach the server');
-for (const row of rows.filter((r) => !r.quiet)) {
+for (const row of rows) {
   const mark = row.honest ? '✓' : '✗';
   const note = row.lies.length > 0 ? `  — ${row.lies.join('; ')}` : '';
   console.log(`  ${mark} ${row.route.padEnd(28)}${note}`);
