@@ -20,6 +20,7 @@ import {
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { useAddresses, useCreateAddress, useDeleteAddress } from '@/features/account/hooks';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
+import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, spacing } from '@/theme';
 import { DEFAULT_COORDINATES } from '@/utils/geo';
 import { required, validateFields, validatePostalCode } from '@/utils/validation';
@@ -38,6 +39,7 @@ const EMPTY_FORM: Record<Field, string> = {
 
 /** Address Selection + Delivery Instructions (brief §4). */
 export default function AddressScreen() {
+  const signedOut = useIsSignedOut();
   const router = useRouter();
 
   const addresses = useAddresses();
@@ -119,6 +121,19 @@ export default function AddressScreen() {
     setMakeDefault(false);
     setAdding(false);
   }, [form, makeDefault, createAddress, setAddress]);
+
+  // The app offers "Continue as guest" and then brought them here, to a screen
+  // made entirely of account data. Only Profile ever checked.
+  if (signedOut) {
+    return (
+      <AccountRequired
+        title="Delivery address"
+        message="Sign in to save an address, so you only type it once."
+        icon="location-outline"
+        testID="address-signed-out"
+      />
+    );
+  }
 
   if (addresses.isLoading) {
     return (

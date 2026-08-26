@@ -141,6 +141,13 @@ jobs:
       - name: Watch an order arrive
         run: npm run audit:tracking
 
+      # The app offers "Continue as guest" and then took them to screens made
+      # entirely of account data — only Profile ever checked. On a demo build
+      # that meant a stranger's home address and card last-fours shown to
+      # somebody with no account at all.
+      - name: Look around as a guest
+        run: npm run audit:guest
+
   assets:
     name: Food asset catalogue
     runs-on: ubuntu-latest

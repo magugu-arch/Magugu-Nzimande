@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Order, PlaceOrderInput } from '@/types';
 import { queryKeys } from '@/services/queryKeys';
+import { useIsSignedOut } from '@/features/system/AccountRequired';
 import {
   cancelOrder,
   fetchActiveOrder,
@@ -11,7 +12,13 @@ import {
 } from '@/services/orderService';
 
 export function useOrders() {
-  return useQuery({ queryKey: queryKeys.orders, queryFn: fetchOrders, staleTime: 30 * 1000 });
+  const signedOut = useIsSignedOut();
+  return useQuery({
+    queryKey: queryKeys.orders,
+    queryFn: fetchOrders,
+    staleTime: 30 * 1000,
+    enabled: !signedOut,
+  });
 }
 
 export function useOrder(orderId: string | undefined, options?: { poll?: boolean }) {
@@ -31,11 +38,13 @@ export function useOrder(orderId: string | undefined, options?: { poll?: boolean
 }
 
 export function useActiveOrder() {
+  const signedOut = useIsSignedOut();
   return useQuery({
     queryKey: queryKeys.activeOrder,
     queryFn: fetchActiveOrder,
     staleTime: 20 * 1000,
     refetchInterval: 30_000,
+    enabled: !signedOut,
   });
 }
 

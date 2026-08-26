@@ -219,6 +219,34 @@ try {
       if (m.type() === 'error' && !t.includes('Failed to load resource')) errors.push(t.slice(0, 120));
     });
 
+    /**
+     * Signed in before the sweep starts, because that is who these screens are
+     * for.
+     *
+     * This used to walk the whole app as an unauthenticated visitor and assert
+     * that /rewards showed a points balance — which passed only because the
+     * app was handing the seeded customer's rewards, addresses and cards to
+     * anybody who had not signed in. The audit was asserting the bug. Once
+     * that was fixed the assertion failed, correctly, and the fix is here
+     * rather than in a looser expectation: an account screen swept in its
+     * signed-out state is not the screen anybody uses.
+     */
+    await page.goto(`http://localhost:${PORT}/sign-in`, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+    await page.locator('[data-testid="sign-in-email"]').fill('sweep@example.co.za');
+    await page.locator('[data-testid="sign-in-password"]').fill('chickenchicken');
+    await page.locator('[data-testid="sign-in-submit"]').first().click({ timeout: 15000 });
+    await page.waitForURL((url) => !url.pathname.endsWith('/sign-in'), { timeout: 20000 });
+    await page.waitForTimeout(1200);
+    await page
+      .getByText('Not now', { exact: false })
+      .first()
+      .click({ timeout: 5000 })
+      .catch(() => {});
+    errors = [];
+
     for (const route of ROUTES) {
       errors = [];
       try {

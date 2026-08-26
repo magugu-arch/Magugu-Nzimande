@@ -19,6 +19,7 @@ import {
   useMarkNotificationRead,
   useNotifications,
 } from '@/features/account/hooks';
+import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing } from '@/theme';
 import { formatDateTime } from '@/utils/datetime';
 
@@ -31,6 +32,7 @@ const CATEGORY_ICONS: Record<AppNotification['category'], keyof typeof Ionicons.
 
 /** Notifications (brief §4). */
 export default function NotificationsScreen() {
+  const signedOut = useIsSignedOut();
   const router = useRouter();
 
   const notifications = useNotifications();
@@ -44,6 +46,19 @@ export default function NotificationsScreen() {
     },
     [markRead, router],
   );
+
+  // The app offers "Continue as guest" and then brought them here, to a screen
+  // made entirely of account data. Only Profile ever checked.
+  if (signedOut) {
+    return (
+      <AccountRequired
+        title="Notifications"
+        message="Sign in to get order updates and to hear about offers first."
+        icon="notifications-outline"
+        testID="notifications-signed-out"
+      />
+    );
+  }
 
   if (notifications.isLoading) {
     return (

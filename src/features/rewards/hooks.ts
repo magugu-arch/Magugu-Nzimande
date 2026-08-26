@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/services/queryKeys';
+import { useIsSignedOut } from '@/features/system/AccountRequired';
 import {
   fetchLoyaltyAccount,
   fetchPromotion,
@@ -13,15 +14,23 @@ import {
 } from '@/services/rewardsService';
 
 export function useLoyaltyAccount() {
+  const signedOut = useIsSignedOut();
   return useQuery({
     queryKey: queryKeys.loyalty,
     queryFn: fetchLoyaltyAccount,
     staleTime: 60 * 1000,
+    enabled: !signedOut,
   });
 }
 
 export function useRewards() {
-  return useQuery({ queryKey: queryKeys.rewards, queryFn: fetchRewards, staleTime: 60 * 1000 });
+  const signedOut = useIsSignedOut();
+  return useQuery({
+    queryKey: queryKeys.rewards,
+    queryFn: fetchRewards,
+    staleTime: 60 * 1000,
+    enabled: !signedOut,
+  });
 }
 
 export function useReward(rewardId: string | undefined) {
@@ -37,7 +46,13 @@ export function useTiers() {
 }
 
 export function useVouchers() {
-  return useQuery({ queryKey: queryKeys.vouchers, queryFn: fetchVouchers, staleTime: 60 * 1000 });
+  const signedOut = useIsSignedOut();
+  return useQuery({
+    queryKey: queryKeys.vouchers,
+    queryFn: fetchVouchers,
+    staleTime: 60 * 1000,
+    enabled: !signedOut,
+  });
 }
 
 export function usePromotions() {

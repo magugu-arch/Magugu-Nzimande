@@ -23,6 +23,7 @@ import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { useOrders } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
 import { readyLabelFor, statusCopy } from '@/services/orderService';
+import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatDateTime, formatEtaWindow, formatRelativeDay } from '@/utils/datetime';
 import { formatPrice } from '@/utils/money';
@@ -31,6 +32,7 @@ type Filter = 'active' | 'past';
 
 /** Order History + Re-order (brief §4). */
 export default function OrdersScreen() {
+  const signedOut = useIsSignedOut();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -49,6 +51,19 @@ export default function OrdersScreen() {
   const visible = filter === 'active' ? active : past;
 
   const handleReorder = useReorder();
+
+  // The app offers "Continue as guest" and then brought them here, to a screen
+  // made entirely of account data. Only Profile ever checked.
+  if (signedOut) {
+    return (
+      <AccountRequired
+        title="Orders"
+        message="Sign in to follow an order while it cooks, see what you have had before, and order it again."
+        icon="receipt-outline"
+        testID="orders-signed-out"
+      />
+    );
+  }
 
   const renderBody = () => {
     if (orders.isLoading) return <LoadingState message="Fetching your orders…" />;

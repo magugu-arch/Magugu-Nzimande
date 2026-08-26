@@ -22,6 +22,7 @@ import {
 } from '@/features/account/hooks';
 import { config } from '@/constants/config';
 import { describePaymentMethod } from '@/services/paymentService';
+import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing } from '@/theme';
 
 const ICONS: Record<PaymentMethod['type'], keyof typeof Ionicons.glyphMap> = {
@@ -35,6 +36,7 @@ const ICONS: Record<PaymentMethod['type'], keyof typeof Ionicons.glyphMap> = {
 
 /** Saved Payment Methods (brief §4). */
 export default function PaymentMethodsScreen() {
+  const signedOut = useIsSignedOut();
   const methods = usePaymentMethods();
   const deleteMethod = useDeletePaymentMethod();
   const setDefault = useSetDefaultPaymentMethod();
@@ -61,6 +63,19 @@ export default function PaymentMethodsScreen() {
       `New cards are captured securely by our payment provider (${config.payments.provider}). Connect the provider SDK to enable this.`,
     );
   }, []);
+
+  // The app offers "Continue as guest" and then brought them here, to a screen
+  // made entirely of account data. Only Profile ever checked.
+  if (signedOut) {
+    return (
+      <AccountRequired
+        title="Payment methods"
+        message="Sign in to save a card. You can still pay by SnapScan, Instant EFT or cash on delivery."
+        icon="card-outline"
+        testID="payment-methods-signed-out"
+      />
+    );
+  }
 
   if (methods.isLoading) {
     return (

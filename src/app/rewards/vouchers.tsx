@@ -18,6 +18,7 @@ import {
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { useVouchers } from '@/features/rewards/hooks';
 import { useCartStore } from '@/store/cartStore';
+import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import { formatPrice } from '@/utils/money';
@@ -39,6 +40,7 @@ function describeDiscount(voucher: Voucher): string {
 
 /** Voucher Wallet (brief §4). */
 export default function VoucherWalletScreen() {
+  const signedOut = useIsSignedOut();
   const router = useRouter();
   const vouchers = useVouchers();
   const applyVoucher = useCartStore((state) => state.applyVoucher);
@@ -56,6 +58,19 @@ export default function VoucherWalletScreen() {
   }, [vouchers.data]);
 
   const visible = filter === 'active' ? active : used;
+
+  // The app offers "Continue as guest" and then brought them here, to a screen
+  // made entirely of account data. Only Profile ever checked.
+  if (signedOut) {
+    return (
+      <AccountRequired
+        title="Vouchers"
+        message="Sign in to keep your promo codes in one place."
+        icon="pricetag-outline"
+        testID="vouchers-signed-out"
+      />
+    );
+  }
 
   if (vouchers.isLoading) {
     return (

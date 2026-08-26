@@ -25,6 +25,7 @@ import {
   useVouchers,
 } from '@/features/rewards/hooks';
 import { isOfflinePending } from '@/features/system/queryPhase';
+import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatRelativeDay } from '@/utils/datetime';
 import { groupDigits } from '@/utils/money';
@@ -37,6 +38,7 @@ const REWARD_CARD_WIDTH = Math.min(210, SCREEN_WIDTH * 0.56);
  * progress to next reward, offers, expiry and history.
  */
 export default function RewardsScreen() {
+  const signedOut = useIsSignedOut();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -45,6 +47,19 @@ export default function RewardsScreen() {
   const tiers = useTiers();
   const vouchers = useVouchers();
   const promotions = usePromotions();
+
+  // The app offers "Continue as guest" and then brought them here, to a screen
+  // made entirely of account data. Only Profile ever checked.
+  if (signedOut) {
+    return (
+      <AccountRequired
+        title="Rewards"
+        message="Sign in to collect points on every order and spend them on food."
+        icon="gift-outline"
+        testID="rewards-signed-out"
+      />
+    );
+  }
 
   if (loyalty.isLoading || rewards.isLoading) {
     return (
