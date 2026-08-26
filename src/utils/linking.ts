@@ -78,7 +78,16 @@ export interface DirectionsTarget {
  * than being forced into Google Maps navigation.
  */
 export function directionsUrl({ latitude, longitude, label }: DirectionsTarget): string {
-  const point = `${latitude},${longitude}`;
+  /**
+   * Coerced, because the type says number and the wire says whatever it likes.
+   *
+   * These come off a store record fetched from the API, and `request<T>` casts
+   * rather than validates — nothing between the JSON and here would notice a
+   * string. The label was already encoded; the coordinates were interpolated
+   * raw, which is the same hole in the same URL. A malformed value now yields
+   * a broken link rather than a crafted one.
+   */
+  const point = `${Number(latitude)},${Number(longitude)}`;
   const name = encodeURIComponent(label);
 
   if (Platform.OS === 'ios') {

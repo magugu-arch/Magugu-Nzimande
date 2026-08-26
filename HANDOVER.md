@@ -217,6 +217,17 @@ verification and does not deliver it is worse than one that never offered.
 `services/apiClient.ts` owns auth headers, timeouts and error normalisation, so
 moving to GraphQL means rewriting that one file, not every caller.
 
+**One thing it does not do: validate.** `request<T>` casts the parsed JSON to
+`T`. Every type in `src/types` is a promise about the wire that nothing checks
+at runtime, so a field arriving as a string where a number is declared reaches
+whatever consumes it. That is fine while the mock is the only source and the
+seed matches the types by construction; it stops being fine the day a real
+endpoint answers. It has already produced one small hole — a store's
+coordinates were interpolated into a maps URL unchecked, which is now coerced
+— and the next one will be somewhere less obvious. Worth a validation layer
+inside `apiClient` before the backend goes live, so a malformed response
+becomes one honest error rather than a strange screen three components away.
+
 **Secrets:** tokens go to the platform keychain via `expo-secure-store`. Only
 `EXPO_PUBLIC_*` values are inlined into the bundle. Card details are never
 captured by our own form.

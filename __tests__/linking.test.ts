@@ -170,3 +170,36 @@ describe('following a route somebody else chose', () => {
     expect(() => inAppRoute('https://evil.example', FALLBACK)).not.toThrow();
   });
 });
+
+/**
+ * The label was already encoded and the coordinates were not, which is the
+ * same hole in the same URL. They come off a store record fetched from the
+ * API, and `request<T>` casts rather than validates — nothing between the
+ * JSON and here would notice a string arriving where a number is declared.
+ */
+describe('building a directions link out of API data', () => {
+  it('encodes a label that carries URL punctuation', () => {
+    const url = directionsUrl({
+      latitude: -26.1,
+      longitude: 28.05,
+      label: 'bb.q Sandton & Co?a=b',
+    });
+    expect(url).not.toContain('&a=b');
+    expect(url).toContain(encodeURIComponent('bb.q Sandton & Co?a=b'));
+  });
+
+  it('coerces coordinates rather than interpolating whatever arrived', () => {
+    const url = directionsUrl({
+      latitude: '-26.1&daddr=evil' as unknown as number,
+      longitude: 28.05,
+      label: 'bb.q',
+    });
+    expect(url).not.toContain('daddr=evil');
+    expect(url).toContain('NaN');
+  });
+
+  it('still builds an ordinary link', () => {
+    const url = directionsUrl({ latitude: -26.1446, longitude: 28.0424, label: 'bb.q Rosebank' });
+    expect(url).toContain('-26.1446,28.0424');
+  });
+});
