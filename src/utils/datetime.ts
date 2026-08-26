@@ -147,6 +147,22 @@ function windowForDay(store: SchedulableStore | null | undefined, weekday: numbe
 /** Just the part of a Store scheduling needs, so this stays free of the model. */
 export interface SchedulableStore {
   openingHours: { day: number; opensAt: string; closesAt: string }[];
+  /**
+   * The date this branch starts trading, if it has not yet.
+   *
+   * The weekly timetable says nothing about it: a branch opening in November
+   * has the same Tuesday hours as one open since March, so the scheduler
+   * offered 41 slots today and 205 across the week for bb.q Chicken Gateway,
+   * which opens on 1 November. Checkout refused every one of them with "bb.q
+   * Chicken Gateway opens on Sun, 1 Nov".
+   *
+   * Not reachable through the store picker, which will not let a branch that
+   * has not opened be chosen. Reachable through checkout, which falls back to
+   * naming *some* branch when none of them can take the order — and that is
+   * the app's state for the whole run-up to the first opening, when every
+   * branch is a branch that has not opened.
+   */
+  opensOn?: string;
 }
 
 export function buildScheduleDays(
@@ -154,7 +170,20 @@ export function buildScheduleDays(
   store?: SchedulableStore | null,
 ): ScheduleDay[] {
   const days: ScheduleDay[] = [];
-  const earliest = addMinutes(now, businessRules.minScheduleLeadMinutes);
+
+  /**
+   * The floor under every slot: the kitchen's lead time, or the day the branch
+   * opens, whichever is later.
+   *
+   * Both, not either. Lead time alone offers slots for a branch that does not
+   * exist yet; the opening date alone offers 09:00 on opening morning to
+   * somebody standing there at 08:55.
+   */
+  const opens = store?.opensOn ? new Date(store.opensOn) : null;
+  const opensAt = opens && !Number.isNaN(opens.getTime()) ? opens.getTime() : 0;
+  const earliest = new Date(
+    Math.max(addMinutes(now, businessRules.minScheduleLeadMinutes).getTime(), opensAt),
+  );
 
   for (let offset = 0; offset < businessRules.maxScheduleDays; offset += 1) {
     const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);

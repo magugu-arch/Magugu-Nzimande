@@ -5,9 +5,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button, Card, Chip, EmptyState, Screen, ScreenHeader, Text } from '@/components/ui';
 import { businessRules } from '@/constants/config';
 import { useNow } from '@/features/system/useNow';
-import { useFulfilmentStore } from '@/store/fulfilmentStore';
+import { isOpeningLater, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
-import { buildScheduleDays, formatDateTime } from '@/utils/datetime';
+import { buildScheduleDays, formatDateTime, formatShortDate } from '@/utils/datetime';
 
 /** Order Scheduling (brief §4). */
 export default function ScheduleScreen() {
@@ -37,16 +37,31 @@ export default function ScheduleScreen() {
 
   const verb = fulfilmentType === 'delivery' ? 'delivered' : 'ready';
 
+  /**
+   * No slots is two different situations, and they need different words.
+   *
+   * A branch that has not opened yet cannot take an order at all, so "place the
+   * order as soon as possible instead" is advice nobody can follow — and it was
+   * shown for the whole run-up to an opening, which is when most people will
+   * meet this screen. A branch that is simply shut for the rest of the horizon
+   * genuinely can take one now.
+   */
+  const notOpenYet = store && isOpeningLater(store, now);
+
   if (days.length === 0) {
     return (
       <Screen edges={['top', 'bottom']}>
         <ScreenHeader title="Schedule your order" />
         <EmptyState
           icon="calendar-outline"
-          title="No slots available"
-          message="We're closed for scheduling right now. Place the order as soon as possible instead."
-          actionLabel="Go back"
-          onActionPress={() => router.back()}
+          title={notOpenYet ? `${store.name} is not open yet` : 'No slots available'}
+          message={
+            notOpenYet
+              ? `It opens on ${formatShortDate(store.opensOn!)}. Choose another branch to order today.`
+              : "We're closed for scheduling right now. Place the order as soon as possible instead."
+          }
+          actionLabel={notOpenYet ? 'Choose another store' : 'Go back'}
+          onActionPress={() => (notOpenYet ? router.replace('/checkout/store') : router.back())}
         />
       </Screen>
     );

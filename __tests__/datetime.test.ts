@@ -207,3 +207,64 @@ describe('buildScheduleDays against a branch', () => {
     }
   });
 });
+
+/**
+ * The scheduler and checkout have to agree about which branch can cook.
+ *
+ * They did not. The weekly timetable says nothing about whether a branch has
+ * opened — one opening in November has the same Tuesday hours as one open
+ * since March — so the scheduler offered 41 slots today and 205 across the
+ * week for bb.q Chicken Gateway, which opens on 1 November, and checkout
+ * refused every one of them: "bb.q Chicken Gateway opens on Sun, 1 Nov".
+ *
+ * Not reachable through the store picker, which will not let a branch that has
+ * not opened be chosen. Reachable through checkout, which falls back to naming
+ * *some* branch when none can take the order — which is the app's state for
+ * the whole run-up to the first opening, when every branch is one that has not
+ * opened. That is the five weeks this ships into.
+ */
+describe('scheduling against a branch that has not opened', () => {
+  const ALL_WEEK = [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+    day,
+    opensAt: '11:00',
+    closesAt: '22:00',
+  }));
+
+  const now = new Date('2026-08-26T13:00:00+02:00');
+
+  it('offers nothing at all while the branch is months away', () => {
+    const gateway = { openingHours: ALL_WEEK, opensOn: '2026-11-01T09:00:00+02:00' };
+    expect(buildScheduleDays(now, gateway)).toEqual([]);
+  });
+
+  it('still offers slots for a branch that is already trading', () => {
+    // The floor must not swallow the ordinary case.
+    expect(buildScheduleDays(now, { openingHours: ALL_WEEK }).length).toBeGreaterThan(0);
+  });
+
+  it('ignores an opening date that has already passed', () => {
+    const opened = { openingHours: ALL_WEEK, opensOn: '2026-03-01T09:00:00+02:00' };
+    expect(buildScheduleDays(now, opened).length).toBeGreaterThan(0);
+  });
+
+  it('ignores an opening date it cannot read', () => {
+    // `request<T>` casts rather than validates, so the wire decides this.
+    const wrong = { openingHours: ALL_WEEK, opensOn: 'sometime in spring' };
+    expect(buildScheduleDays(now, wrong).length).toBeGreaterThan(0);
+  });
+
+  it('offers the opening day itself once it is inside the horizon', () => {
+    // Two days out, so the five-day horizon reaches it.
+    const soon = { openingHours: ALL_WEEK, opensOn: '2026-08-28T11:00:00+02:00' };
+    const days = buildScheduleDays(now, soon);
+    expect(days.length).toBeGreaterThan(0);
+
+    // And nothing before it: every slot on every day is at or after opening.
+    const opens = new Date('2026-08-28T11:00:00+02:00').getTime();
+    for (const day of days) {
+      for (const slot of day.slots) {
+        expect(new Date(slot.iso).getTime()).toBeGreaterThanOrEqual(opens);
+      }
+    }
+  });
+});
