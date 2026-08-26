@@ -8,6 +8,7 @@ import { colors, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import { formatDistance } from '@/utils/geo';
 import { hoursForDay, isTradingNow } from '@/utils/tradingHours';
+import { supportsFulfilment } from '@/utils/fulfilment';
 
 export interface StoreCardProps {
   store: Store;
@@ -16,12 +17,6 @@ export interface StoreCardProps {
   /** Flags stores that cannot serve the chosen fulfilment type. */
   fulfilmentType?: FulfilmentType;
   testID?: string;
-}
-
-function supportsFulfilment(store: Store, fulfilmentType: FulfilmentType): boolean {
-  if (fulfilmentType === 'delivery') return store.supportsDelivery;
-  if (fulfilmentType === 'collection') return store.supportsCollection;
-  return store.supportsDineIn;
 }
 
 export const StoreCard = memo(function StoreCard({

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Address, FulfilmentType, Store } from '@/types';
+import { supportsFulfilment } from '@/utils/fulfilment';
 import { distanceKm, type Coordinates } from '@/utils/geo';
 import { formatShortDate, formatTime } from '@/utils/datetime';
 import { isStoreOpenAt, isTradingNow } from '@/utils/tradingHours';
@@ -206,10 +207,7 @@ export const useFulfilmentStore = create<FulfilmentState>()(
         set((state) => {
           // A store chosen for one fulfilment type may not support another.
           const keepsStore =
-            state.store === null ||
-            (fulfilmentType === 'delivery' && state.store.supportsDelivery) ||
-            (fulfilmentType === 'collection' && state.store.supportsCollection) ||
-            (fulfilmentType === 'dinein' && state.store.supportsDineIn);
+            state.store === null || supportsFulfilment(state.store, fulfilmentType);
 
           return {
             fulfilmentType,

@@ -1,5 +1,6 @@
 import { config } from '@/constants/config';
 import type { FulfilmentType, Store } from '@/types';
+import { supportsFulfilment } from '@/utils/fulfilment';
 import { distanceKm, type Coordinates } from '@/utils/geo';
 import { isTradingNow } from '@/utils/tradingHours';
 import { delay, request } from './apiClient';
@@ -68,11 +69,7 @@ export async function fetchStoresForFulfilment(
   origin: Coordinates | null = null,
 ): Promise<Store[]> {
   const list = await fetchStores(origin);
-  return list.filter((store) => {
-    if (fulfilmentType === 'delivery') return store.supportsDelivery;
-    if (fulfilmentType === 'collection') return store.supportsCollection;
-    return store.supportsDineIn;
-  });
+  return list.filter((store) => supportsFulfilment(store, fulfilmentType));
 }
 
 export async function fetchStore(storeId: string): Promise<Store> {

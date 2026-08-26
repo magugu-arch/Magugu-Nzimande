@@ -1,5 +1,8 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { act } from '@testing-library/react-native';
 import type { Address, Store } from '@/types';
+import { supportsFulfilment } from '@/utils/fulfilment';
 import {
   deliveryRange,
   isOpeningLater,
@@ -472,5 +475,79 @@ describe('a scheduled time that is no longer any good', () => {
 
   it('asks for a time rather than crashing on a corrupt one', () => {
     expect(check('not a date', fivePm)).toBe('Pick a time for your order');
+  });
+});
+
+/**
+ * One rule, one implementation.
+ *
+ * "Which kinds of order can this branch take" was written out three times —
+ * `StoreCard` deciding whether the card is tappable, the fulfilment store
+ * deciding whether a chosen branch survives a change of type, and
+ * `storeService` filtering the list. All three agreed, which is the most that
+ * can be said for three copies of a rule.
+ *
+ * This codebase has twice shipped a bug whose whole cause was one rule written
+ * more than once: the route guard that existed in two states of wrongness with
+ * a third place carrying none, and the phone number that a regex and a
+ * normaliser disagreed about. So this is the same grep the route test uses,
+ * pointed at the fields that carry this one — a fourth copy cannot arrive
+ * quietly.
+ */
+describe('which orders a branch can take', () => {
+  const sourceFiles = () => {
+    const root = path.resolve(__dirname, '..');
+    const found: string[] = [];
+
+    const walk = (dir: string) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (/\.tsx?$/.test(entry.name)) found.push(full);
+      }
+    };
+    for (const dir of ['src/app', 'src/features', 'src/services', 'src/store']) {
+      walk(path.join(root, dir));
+    }
+    return found;
+  };
+
+  it('is decided in exactly one place', () => {
+    const offenders: string[] = [];
+
+    /**
+     * The rule is the *mapping* — a fulfilment type on one side, a flag on the
+     * other — so that is what this looks for, not the flags alone.
+     *
+     * Reading a flag by itself is a different thing and a legitimate one:
+     * `StoreCard` renders a badge per kind of order a branch does, which is
+     * three independent facts being shown rather than one question being
+     * answered a fourth time. Grepping the flags alone flagged all three.
+     *
+     * All three original copies mentioned both halves on the same line, which
+     * is what makes this the right grep rather than a lucky one.
+     */
+    for (const file of sourceFiles()) {
+      for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+        if (!/supportsDelivery|supportsCollection|supportsDineIn/.test(line)) continue;
+        if (!/fulfilmentType/.test(line)) continue;
+        offenders.push(`${file}: ${line.trim()}`);
+      }
+    }
+
+    // `supportsFulfilment` lives in src/utils, which this sweep does not walk —
+    // so anything found here is a second opinion about the same question.
+    expect(offenders).toEqual([]);
+  });
+
+  it('answers each type from the matching flag', () => {
+    const branch = {
+      supportsDelivery: true,
+      supportsCollection: false,
+      supportsDineIn: true,
+    };
+    expect(supportsFulfilment(branch, 'delivery')).toBe(true);
+    expect(supportsFulfilment(branch, 'collection')).toBe(false);
+    expect(supportsFulfilment(branch, 'dinein')).toBe(true);
   });
 });
