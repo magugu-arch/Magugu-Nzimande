@@ -35,17 +35,34 @@ export function isOpeningLater(store: Store, now: Date = new Date()): boolean {
 /**
  * Whether a branch will deliver to an address, by straight-line distance.
  *
- * Straight-line understates road distance, so this is generous by design — the
- * point is to refuse the order from another province, not to shave the last
+ * Three answers, not two. `'unknown'` is the one that had to be added, and the
+ * commonest: the add-address form has no geocoder behind it, so an address a
+ * customer typed carries no coordinates at all.
+ *
+ * It used to carry `DEFAULT_COORDINATES` — the Johannesburg CBD — stamped on by
+ * the form under a comment saying a real implementation would geocode here.
+ * That was fine while nothing read the field. This function reads it, and the
+ * pair of them decided where a customer lived from a constant: measured from
+ * the CBD, six of the seven seeded branches sit outside their own 10 km radius
+ * and one sits inside it, so every typed-in address in the country was refused
+ * by six branches and accepted by Rosebank. Someone standing across the road
+ * from bb.q Chicken Sandton City was told it does not deliver to Sandhurst.
+ *
+ * Straight-line understates road distance, so `'out'` is generous by design —
+ * the point is to refuse the order from another province, not to shave the last
  * kilometre off a delivery the driver would have taken.
  */
-export function deliversTo(store: Store, address: Address): boolean {
-  return (
-    distanceKm(
-      { latitude: store.latitude, longitude: store.longitude },
-      { latitude: address.latitude, longitude: address.longitude },
-    ) <= store.deliveryRadiusKm
+export type DeliveryRange = 'in' | 'out' | 'unknown';
+
+export function deliveryRange(store: Store, address: Address): DeliveryRange {
+  const { latitude, longitude } = address;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return 'unknown';
+
+  const km = distanceKm(
+    { latitude: store.latitude, longitude: store.longitude },
+    { latitude: latitude as number, longitude: longitude as number },
   );
+  return km <= store.deliveryRadiusKm ? 'in' : 'out';
 }
 
 /**
@@ -112,7 +129,15 @@ export function missingFulfilmentRequirement({
   // not show while the seeded store list covered four cities; against a real
   // network of two, most addresses in the country are out of range and were
   // being quoted a delivery anyway.
-  if (fulfilmentType === 'delivery' && address && !deliversTo(store, address)) {
+  //
+  // Only a measured `'out'` refuses. An address nobody has located is let
+  // through, because the alternative is refusing a delivery on the strength of
+  // a coordinate the app made up — which is exactly what it was doing. This
+  // leaves the other half open: an address that really is out of range is
+  // accepted, because there is no geocoder to say otherwise. That is a gap in
+  // what the app can know rather than in what it does with what it knows, and
+  // `audit:launch` names it.
+  if (fulfilmentType === 'delivery' && address && deliveryRange(store, address) === 'out') {
     return `${store.name} does not deliver to ${address.suburb} — collect instead`;
   }
   if (fulfilmentType === 'dinein' && tableNumber.trim().length === 0) {

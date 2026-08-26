@@ -42,7 +42,8 @@
     "audit:points": "node scripts/audit-points.mjs",
     "audit:handover": "node scripts/audit-handover.mjs",
     "audit:tracking": "node scripts/audit-tracking.mjs",
-    "audit:guest": "node scripts/audit-guest.mjs"
+    "audit:guest": "node scripts/audit-guest.mjs",
+    "audit:delivery-range": "node scripts/audit-delivery-range.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",

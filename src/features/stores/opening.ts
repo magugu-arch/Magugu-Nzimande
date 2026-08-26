@@ -1,5 +1,5 @@
-import type { Store } from '@/types';
-import { isOpeningLater } from '@/store/fulfilmentStore';
+import type { Address, Store } from '@/types';
+import { deliveryRange, isOpeningLater } from '@/store/fulfilmentStore';
 
 /**
  * Whether the business is trading at all yet, across every branch.
@@ -29,14 +29,47 @@ export interface OpeningStatus {
  * "bb.q Chicken Gateway opens on Sun, 1 Nov" — for a store they never picked.
  * The message is true and the obvious next action is not the one it suggests.
  *
- * So: the nearest branch that could actually take the order, and only if none
- * can, the nearest branch at all. Falling back rather than returning nothing
+ * So: the first branch that could actually take the order, and only if none
+ * can, the first branch at all. Falling back rather than returning nothing
  * matters — "opens on 1 November" tells a customer something, and "Choose a
  * store" from an empty list tells them nothing.
+ *
+ * `address` is the second half of "could actually take the order", and it had
+ * to be added the moment the store list stopped being sorted by distance for
+ * customers the app cannot locate. Alphabetically, bb.q Chicken Canal Walk is
+ * first — so a Johannesburg customer who declined the location prompt arrived
+ * at checkout with a Cape Town branch chosen for them and the order blocked on
+ * "does not deliver to Melrose Arch", for a branch they never picked and a
+ * reason that was not their fault. The same shape as the opening-date case
+ * above, and it deserves the same treatment rather than a different one.
+ *
+ * A branch is skipped only for a *measured* refusal. An address nobody has
+ * located rules nothing out, exactly as it refuses nothing at checkout.
  */
-export function preferredStore(stores: Store[], now: Date = new Date()): Store | undefined {
-  // The list arrives sorted by distance, so first match is nearest match.
-  return stores.find((store) => !isOpeningLater(store, now)) ?? stores[0];
+export function preferredStore(
+  stores: Store[],
+  now: Date = new Date(),
+  address: Address | null = null,
+): Store | undefined {
+  /**
+   * First in the list, which is nearest only when the app has a location.
+   *
+   * It used to be nearest always, because the store service measured every
+   * branch from the Johannesburg CBD when it had no coordinates — so "nearest"
+   * meant "nearest to the CBD" for a customer in Durban. That is gone: with no
+   * location the list arrives alphabetically and carries no distances, so this
+   * returns a branch rather than a recommendation.
+   *
+   * Deliberately still returns one. Checkout names it plainly on a card the
+   * customer taps to change, and claims nothing about it being close — the
+   * label reads "Cooked at", not "Nearest". A default they can see and change
+   * is better than a blocker, and with two branches opening it is a choice
+   * between two.
+   */
+  const canTakeIt = (store: Store) =>
+    !isOpeningLater(store, now) && (!address || deliveryRange(store, address) !== 'out');
+
+  return stores.find(canTakeIt) ?? stores.find((store) => !isOpeningLater(store, now)) ?? stores[0];
 }
 
 export function openingStatus(stores: Store[], now: Date = new Date()): OpeningStatus {

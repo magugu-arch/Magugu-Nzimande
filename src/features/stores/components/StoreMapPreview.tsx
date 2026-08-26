@@ -31,7 +31,25 @@ export const StoreMapPreview = memo(function StoreMapPreview({
   onSelectStore,
   height = 180,
 }: StoreMapPreviewProps) {
-  const centre = origin ?? DEFAULT_COORDINATES;
+  /**
+   * The centre of the plot, and whether it is anywhere the customer is.
+   *
+   * These used to be the same question, answered `origin ?? DEFAULT_COORDINATES`
+   * — so a customer who declined the location prompt got the Johannesburg CBD
+   * as the centre *and* a "you are here" dot pulsing on top of it. Somebody in
+   * Durban was shown themselves standing among the Gauteng branches.
+   *
+   * With no origin the plot centres on the middle of the branches it is
+   * drawing, which is a frame rather than a claim, and the dot does not appear.
+   */
+  const centre = useMemo(() => {
+    if (origin) return origin;
+    if (stores.length === 0) return DEFAULT_COORDINATES;
+    return {
+      latitude: stores.reduce((sum, store) => sum + store.latitude, 0) / stores.length,
+      longitude: stores.reduce((sum, store) => sum + store.longitude, 0) / stores.length,
+    };
+  }, [origin, stores]);
 
   /**
    * Project lat/lng into the box. We scale by the furthest store so the
@@ -53,7 +71,8 @@ export const StoreMapPreview = memo(function StoreMapPreview({
 
     return deltas.map(({ store, dx, dy }) => ({
       store,
-      // 0.5 is the customer's position; 0.4 keeps pins inside the frame.
+      // 0.5 is the centre of the frame — the customer, when there is one to
+      // plot, and otherwise just the middle of the branches. 0.4 keeps pins in.
       left: 0.5 + (dx / maxSpread) * 0.4,
       // Latitude increases northward, screen y increases downward.
       top: 0.5 - (dy / maxSpread) * 0.4,
@@ -61,7 +80,10 @@ export const StoreMapPreview = memo(function StoreMapPreview({
   }, [stores, centre]);
 
   return (
-    <View style={[styles.container, { height }]} accessibilityLabel="Map of nearby bb.q stores">
+    <View
+      style={[styles.container, { height }]}
+      accessibilityLabel={origin ? 'Map of nearby bb.q stores' : 'Map of bb.q stores'}
+    >
       {/* Grid backdrop */}
       <View style={styles.grid} pointerEvents="none">
         {Array.from({ length: 5 }, (_, index) => (
@@ -75,11 +97,13 @@ export const StoreMapPreview = memo(function StoreMapPreview({
         ))}
       </View>
 
-      {/* Customer position */}
-      <View style={styles.you} pointerEvents="none">
-        <View style={styles.youPulse} />
-        <View style={styles.youDot} />
-      </View>
+      {/* Customer position — only when there is one to show. */}
+      {origin ? (
+        <View style={styles.you} pointerEvents="none">
+          <View style={styles.youPulse} />
+          <View style={styles.youDot} />
+        </View>
+      ) : null}
 
       {/* Store pins */}
       {points.map(({ store, left, top }) => {
@@ -89,7 +113,11 @@ export const StoreMapPreview = memo(function StoreMapPreview({
             key={store.id}
             onPress={() => onSelectStore(store)}
             accessibilityRole="button"
-            accessibilityLabel={`${store.name}, ${store.distanceKm} kilometres away`}
+            accessibilityLabel={
+              typeof store.distanceKm === 'number'
+                ? `${store.name}, ${store.distanceKm} kilometres away`
+                : `${store.name}, ${store.suburb}`
+            }
             accessibilityState={{ selected }}
             style={[
               styles.pin,

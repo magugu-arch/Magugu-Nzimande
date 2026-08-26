@@ -16,8 +16,14 @@ const LATE_HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) => ({
 /**
  * bb.q Chicken South Africa store network.
  *
- * `distanceKm` is a seed value — the store service recomputes it against the
- * customer's real coordinates when location permission has been granted.
+ * `distanceKm` is not seeded, because it is a fact about the customer rather
+ * than about the branch. The store service fills it in against their real
+ * coordinates when location has been granted, and leaves it absent when it has
+ * not — the app used to substitute the Johannesburg CBD there and print the
+ * result as the customer's own distance.
+ *
+ * It used to sit here as `0` on every record, which `fetchStore` passed through
+ * untouched: opening a single branch showed "0 m away".
  */
 export const stores: Store[] = [
   {
@@ -30,7 +36,6 @@ export const stores: Store[] = [
     phone: '011 883 0100',
     latitude: -26.1076,
     longitude: 28.0567,
-    distanceKm: 0,
     openingHours: LATE_HOURS,
     supportsDelivery: true,
     supportsCollection: true,
@@ -49,7 +54,6 @@ export const stores: Store[] = [
     phone: '011 447 2200',
     latitude: -26.1465,
     longitude: 28.0436,
-    distanceKm: 0,
     openingHours: STANDARD_HOURS,
     supportsDelivery: true,
     supportsCollection: true,
@@ -68,7 +72,6 @@ export const stores: Store[] = [
     phone: '011 465 3400',
     latitude: -26.0173,
     longitude: 28.0114,
-    distanceKm: 0,
     openingHours: STANDARD_HOURS,
     supportsDelivery: true,
     supportsCollection: true,
@@ -87,7 +90,6 @@ export const stores: Store[] = [
     phone: '012 348 7700',
     latitude: -25.7828,
     longitude: 28.2764,
-    distanceKm: 0,
     openingHours: STANDARD_HOURS,
     supportsDelivery: true,
     supportsCollection: true,
@@ -106,7 +108,6 @@ export const stores: Store[] = [
     phone: '021 418 9900',
     latitude: -33.9036,
     longitude: 18.4201,
-    distanceKm: 0,
     openingHours: LATE_HOURS,
     supportsDelivery: true,
     supportsCollection: true,
@@ -125,7 +126,6 @@ export const stores: Store[] = [
     phone: '021 555 4400',
     latitude: -33.8919,
     longitude: 18.5106,
-    distanceKm: 0,
     openingHours: STANDARD_HOURS,
     supportsDelivery: true,
     supportsCollection: true,
@@ -147,7 +147,6 @@ export const stores: Store[] = [
     phone: '031 566 8800',
     latitude: -29.7259,
     longitude: 31.0684,
-    distanceKm: 0,
     openingHours: STANDARD_HOURS,
     supportsDelivery: true,
     supportsCollection: true,

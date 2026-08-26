@@ -22,7 +22,6 @@ import { useAddresses, useCreateAddress, useDeleteAddress } from '@/features/acc
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, spacing } from '@/theme';
-import { DEFAULT_COORDINATES } from '@/utils/geo';
 import { required, validateFields, validatePostalCode } from '@/utils/validation';
 
 type Field = 'label' | 'line1' | 'line2' | 'suburb' | 'city' | 'province' | 'postalCode';
@@ -101,8 +100,22 @@ export default function AddressScreen() {
       return;
     }
 
-    // A real implementation geocodes here; until then we anchor new addresses
-    // to the city centre so distance maths stays sane.
+    /**
+     * Saved without coordinates, because nobody has any.
+     *
+     * These six fields are all the app is given and there is no geocoder
+     * behind them. New addresses used to be anchored to the city centre "so
+     * distance maths stays sane", which was true right up until the
+     * delivery-radius rule started doing distance maths on it: measured from
+     * the Johannesburg CBD, six of the seven branches sit outside their own
+     * radius, so every address anybody typed was refused by six of them and
+     * accepted by the seventh, wherever in the country it actually was.
+     *
+     * Leaving them absent is the honest record, and `deliveryRange` reads it
+     * as "unknown" rather than as a place. Whatever geocodes this — the
+     * backend on POST, or a lookup wired in here — fills the fields in and the
+     * radius rule starts working on real distances without further change.
+     */
     const created = await createAddress.mutateAsync({
       label: form.label.trim(),
       line1: form.line1.trim(),
@@ -111,8 +124,6 @@ export default function AddressScreen() {
       city: form.city.trim(),
       province: form.province.trim(),
       postalCode: form.postalCode.trim(),
-      latitude: DEFAULT_COORDINATES.latitude,
-      longitude: DEFAULT_COORDINATES.longitude,
       isDefault: makeDefault,
     });
 

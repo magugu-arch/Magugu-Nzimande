@@ -1,4 +1,4 @@
-import type { Store } from '@/types';
+import type { Address, Store } from '@/types';
 import { openingStatus, preferredStore } from '@/features/stores/opening';
 
 const branch = (id: string, opensOn?: string): Store =>
@@ -123,5 +123,75 @@ describe('preferredStore', () => {
 
     expect(preferredStore([opening, other], beforeBoth)?.id).toBe('october');
     expect(preferredStore([opening, other], between)?.id).toBe('october');
+  });
+});
+
+
+/**
+ * Which branch a customer who has chosen nothing is handed.
+ *
+ * The store list is only sorted by distance when the app knows where the
+ * customer is, and it usually does not — a declined location prompt is the
+ * ordinary case, and the list then arrives alphabetically with no distances on
+ * it. That is honest, and it made the pre-select arbitrary: bb.q Chicken Canal
+ * Walk sorts first, so a Johannesburg customer arrived at checkout with a Cape
+ * Town branch chosen for them and "does not deliver to Melrose Arch"
+ * underneath it, for a branch they never picked.
+ *
+ * The address is the information the app does have, so it uses it.
+ */
+describe('preferredStore weighs whether the branch can deliver', () => {
+  const at = (id: string, latitude: number, longitude: number): Store => ({
+    ...branch(id),
+    latitude,
+    longitude,
+  });
+
+  // Alphabetical order, as an unlocated list arrives: Cape Town first.
+  const capeTown = at('Canal Walk', -33.8919, 18.5106);
+  const johannesburg = at('Rosebank', -26.1465, 28.0436);
+  const list = [capeTown, johannesburg];
+
+  const melroseArch: Address = {
+    id: 'address-home',
+    label: 'Home',
+    line1: '12 Alice Lane',
+    suburb: 'Melrose Arch',
+    city: 'Johannesburg',
+    province: 'Gauteng',
+    postalCode: '2196',
+    latitude: -26.1327,
+    longitude: 28.0673,
+    isDefault: true,
+  };
+
+  const now = new Date('2026-08-24T13:00:00+02:00');
+
+  it('skips a branch that cannot reach the address', () => {
+    expect(preferredStore(list, now, melroseArch)?.id).toBe('Rosebank');
+  });
+
+  it('takes the first branch when there is no address to weigh', () => {
+    expect(preferredStore(list, now, null)?.id).toBe('Canal Walk');
+  });
+
+  it('rules nothing out on an address nobody has located', () => {
+    const { latitude: _lat, longitude: _lon, ...unlocated } = melroseArch;
+    expect(preferredStore(list, now, unlocated)?.id).toBe('Canal Walk');
+  });
+
+  it('still returns a branch when none of them can deliver', () => {
+    // "Choose a store" from an empty list tells a customer nothing; a named
+    // branch with a reason underneath it tells them what to change.
+    const durban: Address = { ...melroseArch, latitude: -29.85, longitude: 31.02 };
+    expect(preferredStore(list, now, durban)).toBeDefined();
+  });
+
+  it('does not let a deliverable branch override one that has not opened', () => {
+    const notOpenYet = { ...johannesburg, opensOn: '2026-11-01T09:00:00+02:00' };
+    // Rosebank can reach the address but is not trading; Canal Walk cannot
+    // reach it but is. Neither qualifies, so the fallback runs and picks the
+    // trading one — the customer sees a branch they can actually change.
+    expect(preferredStore([capeTown, notOpenYet], now, melroseArch)?.id).toBe('Canal Walk');
   });
 });

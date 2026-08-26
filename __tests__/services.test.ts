@@ -9,6 +9,7 @@ import {
 } from '@/services/menuService';
 import {
   fetchNearestStore,
+  fetchStore,
   fetchStores,
   fetchStoresForFulfilment,
   isStoreOpenAt,
@@ -108,8 +109,51 @@ describe('menuService', () => {
 describe('storeService', () => {
   it('sorts stores by distance from the origin', async () => {
     const list = await fetchStores(DEFAULT_COORDINATES);
-    const distances = list.map((store) => store.distanceKm);
+    const distances = list.map((store) => store.distanceKm ?? Number.NaN);
+    expect(distances.every((km) => Number.isFinite(km))).toBe(true);
     expect([...distances].sort((a, b) => a - b)).toEqual(distances);
+  });
+
+  /**
+   * The list a customer who declined the location prompt actually sees.
+   *
+   * `fetchStores` defaulted its origin to `DEFAULT_COORDINATES` — the
+   * Johannesburg CBD — so this list came back measured from a place the
+   * customer had never been to, sorted by that measurement, and each card
+   * printed the number on a badge reading "how far you are from this branch".
+   * In Durban that is a lie with a number attached.
+   *
+   * Not knowing is a third answer here too: no distance, and an order that
+   * claims nothing.
+   */
+  describe('when nobody knows where the customer is', () => {
+    it('offers no distance at all', async () => {
+      const list = await fetchStores();
+      expect(list.length).toBeGreaterThan(0);
+      expect(list.every((store) => store.distanceKm === undefined)).toBe(true);
+    });
+
+    it('does not order the list as though it did', async () => {
+      const names = (await fetchStores()).map((store) => store.name);
+      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    });
+
+    it('has no nearest store to offer', async () => {
+      await expect(fetchNearestStore(null, 'delivery')).resolves.toBeNull();
+    });
+
+    it('still filters by what the branch can do', async () => {
+      const dineIn = await fetchStoresForFulfilment('dinein');
+      expect(dineIn.length).toBeGreaterThan(0);
+      dineIn.forEach((store) => expect(store.supportsDineIn).toBe(true));
+    });
+  });
+
+  it('drops the seeded distance when one branch is fetched on its own', async () => {
+    // `fetchStore` takes no origin, and the seed carries `distanceKm: 0` —
+    // which reached the badge as "0 m away" for whichever branch was opened.
+    const store = await fetchStore('store-sandton');
+    expect(store.distanceKm).toBeUndefined();
   });
 
   it('recomputes distance rather than trusting the seed value', async () => {

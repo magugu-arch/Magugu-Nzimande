@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react-native';
 import type { Address, Store } from '@/types';
 import {
-  deliversTo,
+  deliveryRange,
   isOpeningLater,
   missingFulfilmentRequirement,
   useFulfilmentStore,
@@ -203,8 +203,62 @@ describe('missingFulfilmentRequirement', () => {
     });
 
     it('is generous rather than exact, because straight-line understates roads', () => {
-      expect(deliversTo({ ...store, deliveryRadiusKm: 10 }, address)).toBe(true);
-      expect(deliversTo({ ...store, deliveryRadiusKm: 0 }, capeTown)).toBe(false);
+      expect(deliveryRange({ ...store, deliveryRadiusKm: 10 }, address)).toBe('in');
+      expect(deliveryRange({ ...store, deliveryRadiusKm: 0 }, capeTown)).toBe('out');
+    });
+
+    /**
+     * The commonest address in the app, and the one the rule could not see.
+     *
+     * There is no geocoder behind the add-address form, so an address a
+     * customer typed carries no coordinates. It used to be stamped with the
+     * Johannesburg CBD to keep the distance maths "sane", and this rule then
+     * did distance maths on it: from the CBD, six of the seven seeded branches
+     * sit outside their own 10 km radius. Every typed-in address in the
+     * country was refused by six of them and accepted by Rosebank.
+     *
+     * Not knowing has to stay a third answer. Refusing on it would refuse
+     * almost every real customer; measuring from a constant answers a question
+     * nobody asked.
+     */
+    const unlocated: Address = (() => {
+      const { latitude: _lat, longitude: _lon, ...rest } = capeTown;
+      return rest;
+    })();
+
+    it('says so rather than guessing when the address was never located', () => {
+      expect(deliveryRange(store, unlocated)).toBe('unknown');
+    });
+
+    /**
+     * Asked of Sandton, not of Rosebank, and that is the whole point.
+     *
+     * Rosebank happens to sit 6.4 km from the Johannesburg CBD — inside its own
+     * 10 km radius — so under the old stamped-coordinate behaviour it accepted
+     * every typed-in address in the country and this check passed while the bug
+     * was fully present. It is the single branch of the seven that did. Sandton
+     * City is 10.8 km out and refused them all, which is what a customer
+     * standing across the road from it actually saw.
+     */
+    const sandton: Store = {
+      ...store,
+      id: 'sandton',
+      name: 'bb.q Chicken Sandton City',
+      suburb: 'Sandton',
+      latitude: -26.1076,
+      longitude: 28.0567,
+    };
+
+    it('does not refuse a delivery on a distance it cannot measure', () => {
+      expect(
+        missingFulfilmentRequirement({ ...base, store: sandton, address: unlocated }),
+      ).toBeNull();
+    });
+
+    it('is not fooled by a coordinate that arrived as something other than a number', () => {
+      // `request<T>` casts rather than validates, so the wire decides this.
+      const wrong = { ...capeTown, latitude: '-33.9249' } as unknown as Address;
+      expect(deliveryRange(store, wrong)).toBe('unknown');
     });
   });
 

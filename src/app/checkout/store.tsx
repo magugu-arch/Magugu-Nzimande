@@ -36,10 +36,23 @@ export default function StoreSelectionScreen() {
   const { status, requestLocation } = useDeviceLocation();
   const stores = useStoresForFulfilment(fulfilmentType);
 
-  // Ask once, on first visit. Denial is fine — we fall back to the default centre.
+  // Ask once, on first visit. Denial is fine — the list simply carries no
+  // distances, rather than distances measured from somewhere else.
   useEffect(() => {
     if (!permissionAsked && !coordinates) void requestLocation();
   }, [permissionAsked, coordinates, requestLocation]);
+
+  /**
+   * Whether this list can say how far anything is.
+   *
+   * Not the same question as `status === 'denied'`, which is what the notice
+   * below used to key off. `status` describes *this visit*: a customer who
+   * declined during onboarding comes back with `status` at 'idle' and
+   * `permissionAsked` already true, so the effect above does not ask again and
+   * the notice never appeared — leaving the one control that could turn
+   * location back on unreachable for exactly the person who needed it.
+   */
+  const located = coordinates !== null;
 
   const handleSelect = useCallback(
     (store: Store) => {
@@ -59,7 +72,9 @@ export default function StoreSelectionScreen() {
   );
 
   const renderBody = () => {
-    if (stores.isLoading) return <LoadingState message="Finding stores near you…" />;
+    if (stores.isLoading) {
+      return <LoadingState message={located ? 'Finding stores near you…' : 'Finding stores…'} />;
+    }
     // Offline is not empty and not broken. Without this the screen falls
     // through to a factual claim it cannot back up.
     if (isOfflinePending(stores)) return <OfflineState onRetry={() => void stores.refetch()} />;
@@ -71,7 +86,12 @@ export default function StoreSelectionScreen() {
         <EmptyState
           icon="storefront-outline"
           title="No stores available"
-          message={`We don't have a store offering ${fulfilmentType === 'dinein' ? 'dine-in' : fulfilmentType} near you yet. Try another option.`}
+          // "Near you" is the same claim the badges were making. With no
+          // coordinates the app is not reporting an absence of nearby stores,
+          // it is reporting an absence of stores.
+          message={`We don't have a store offering ${
+            fulfilmentType === 'dinein' ? 'dine-in' : fulfilmentType
+          }${located ? ' near you' : ''} yet. Try another option.`}
         />
       );
     }
@@ -101,24 +121,34 @@ export default function StoreSelectionScreen() {
               onSelectStore={handleSelect}
             />
 
-            {status === 'denied' ? (
+            {located ? null : (
               <View style={styles.locationNotice}>
+                {/*
+                  This used to read "we're showing stores from the city centre",
+                  which was true and was the bug: the list was measured, sorted
+                  and badged from the Johannesburg CBD whoever was holding the
+                  phone. It now carries no distances at all, so this says what
+                  is missing rather than what was substituted for it.
+                */}
                 <Text variant="caption" color={colors.textSecondary}>
-                  Location is off, so we&apos;re showing stores from the city centre. Turn it on for
-                  accurate distances.
+                  Location is off, so we can&apos;t tell how far each store is. These are listed
+                  alphabetically — turn location on to sort them by distance.
                 </Text>
                 <Button
-                  label="Use my location"
+                  label={status === 'requesting' ? 'Asking…' : 'Use my location'}
                   onPress={() => void requestLocation()}
                   variant="text"
                   fullWidth={false}
                   size="sm"
+                  disabled={status === 'requesting'}
                 />
               </View>
-            ) : null}
+            )}
 
+            {/* "Nearby" is a claim about distance, so only make it when there is one. */}
             <Text variant="h3">
-              {list.length} store{list.length === 1 ? '' : 's'} nearby
+              {list.length} store{list.length === 1 ? '' : 's'}
+              {located ? ' nearby' : ''}
             </Text>
           </View>
         }

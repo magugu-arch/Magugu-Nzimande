@@ -107,6 +107,31 @@ if (radii.length === 1) {
   );
 }
 
+/**
+ * The radius rule needs a coordinate, and typed-in addresses have none.
+ *
+ * Read from the source rather than asserted, so the item disappears by itself
+ * once somebody wires a geocoder in: if the add-address form ever starts
+ * supplying `latitude`, this stops printing.
+ */
+const addressForm = read('src/app/checkout/address.tsx');
+if (!/latitude:/.test(addressForm)) {
+  note(
+    'Address geocoding',
+    'The add-address form is six text fields with no geocoder behind it, so an address a ' +
+      'customer types is never located. It used to be stamped with the Johannesburg CBD, and ' +
+      'the delivery-radius rule then measured from that constant — six of the seven branches ' +
+      'refused every typed-in address in the country and the seventh accepted them all. The ' +
+      'app no longer invents the coordinate, and no longer refuses a delivery it cannot ' +
+      'measure. The other half is still open and cannot be closed here: an address that really ' +
+      'is out of range is accepted, because nothing can tell. Either the backend geocodes on ' +
+      'POST /v1/account/addresses and returns the coordinates, or a lookup gets wired into the ' +
+      'form. Until one of them happens, the radius only bites for addresses that arrived with ' +
+      'coordinates already on them — which, for a customer on a new phone, is none of them.',
+    'you',
+  );
+}
+
 // An opening date that has passed silently turns into "open for business".
 const openings = [...storeData.matchAll(/opensOn: '([^']+)'/g)].map((m) => m[1]);
 for (const opening of openings) {

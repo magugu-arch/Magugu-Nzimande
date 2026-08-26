@@ -57,8 +57,23 @@ export interface Address {
   city: string;
   province: string;
   postalCode: string;
-  latitude: number;
-  longitude: number;
+  /**
+   * Where this address actually is, when anybody has worked that out.
+   *
+   * Optional, and absent is the ordinary case: the add-address form is six
+   * text fields and there is no geocoder behind it, so an address a customer
+   * types has never been located. It used to be stamped with
+   * `DEFAULT_COORDINATES` — the Johannesburg CBD — which was harmless until the
+   * delivery-radius rule started reading the field and began deciding where
+   * customers live from a constant. Six of the seven seeded branches then
+   * refused every typed-in address wherever it was, and the seventh accepted
+   * every typed-in address wherever it was.
+   *
+   * Absent means "nobody knows", which is a different answer from a
+   * coordinate and has to stay distinguishable from one. See `deliveryRange`.
+   */
+  latitude?: number;
+  longitude?: number;
   instructions?: string;
   isDefault: boolean;
 }
@@ -73,8 +88,19 @@ export interface Store {
   phone: string;
   latitude: number;
   longitude: number;
-  /** Straight-line distance in km, resolved against the customer location. */
-  distanceKm: number;
+  /**
+   * Straight-line distance in km from the customer, when the app knows where
+   * they are.
+   *
+   * Optional, and absent whenever it does not. This used to fall back to
+   * `DEFAULT_COORDINATES` — the Johannesburg CBD — so a customer who declined
+   * the location prompt was shown a distance from a place they had never been
+   * to, on a badge that reads as "how far you are from this branch", and a list
+   * sorted "nearest first" by the same measurement. In Durban that is a lie
+   * with a number attached, which is a harder kind to spot than a lie without
+   * one.
+   */
+  distanceKm?: number;
   openingHours: OpeningHours[];
   supportsDelivery: boolean;
   supportsCollection: boolean;

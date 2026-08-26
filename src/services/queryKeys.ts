@@ -10,7 +10,15 @@ export const queryKeys = {
   newProducts: ['menu', 'new'] as const,
   search: (query: string) => ['menu', 'search', query] as const,
 
-  stores: (lat?: number, lng?: number) => ['stores', lat ?? 0, lng ?? 0] as const,
+  stores: (lat: number, lng: number) => ['stores', lat, lng] as const,
+  /**
+   * The store list with no origin — nobody knows where the customer is.
+   *
+   * Its own key rather than `stores(0, 0)`: that list carries no distances and
+   * is sorted alphabetically, so it must not be served to a caller who has
+   * since been given coordinates, nor overwrite one that was.
+   */
+  storesAnywhere: () => ['stores', 'anywhere'] as const,
   store: (storeId: string) => ['stores', storeId] as const,
 
   orders: ['orders'] as const,

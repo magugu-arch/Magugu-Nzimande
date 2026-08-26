@@ -122,30 +122,51 @@ export default function CheckoutScreen() {
 
   const selectedPaymentId = selectedPayment?.id ?? null;
 
-  // Pre-selecting a store is a store-level side effect, not render state, so
-  // it stays in an effect — but only fires when nothing is chosen, and picks
-  // the nearest branch that can actually take the order rather than the
-  // nearest branch full stop. See `preferredStore`.
+  /**
+   * The branch and the front door, chosen together for someone who has chosen
+   * neither.
+   *
+   * These were two effects and had to become one. The store is picked from a
+   * list that is only sorted by distance when the app knows where the customer
+   * is; when it does not, a branch that cannot deliver to their address is no
+   * more use as a default than one that has not opened yet — so `preferredStore`
+   * needs the address to make its choice. As separate effects it never had it:
+   * both run in the same commit, so the store effect read `address` as null on
+   * the very render where the address effect was setting it, picked the first
+   * branch alphabetically, and never looked again because the guard is
+   * `if (store) return`. That put bb.q Chicken Canal Walk in front of a
+   * Johannesburg customer with "does not deliver to Melrose Arch" underneath it.
+   *
+   * Picking the address first inside one effect makes the ordering explicit
+   * rather than accidental.
+   *
+   * Both halves keep the rule they had: only when nothing is chosen, so neither
+   * can overrule the customer, and the address only for delivery — quietly
+   * attaching one to a collection order would put a front door on a receipt for
+   * food somebody carried home themselves. See `preferredAddress` for which
+   * address, and for why it sometimes declines to guess.
+   */
   useEffect(() => {
-    if (store) return;
-    const suggested = preferredStore(availableStores.data ?? []);
-    if (suggested) setStore(suggested);
-  }, [store, availableStores.data, setStore]);
+    const forDelivery = fulfilmentType === 'delivery';
 
-  // And the same courtesy for the address, which this screen used to withhold
-  // for no reason anybody chose: it picked a branch and a card for you and
-  // then asked you to go and find your own front door. See `preferredAddress`
-  // for which one, and for why it sometimes declines to guess.
-  //
-  // Only when nothing is chosen, so it can never overrule the customer, and
-  // only for delivery — quietly attaching an address to a collection order
-  // would put a front door on a receipt for food somebody carried home
-  // themselves.
-  useEffect(() => {
-    if (address || fulfilmentType !== 'delivery') return;
-    const suggested = preferredAddress(addresses.data ?? []);
-    if (suggested) setAddress(suggested);
-  }, [address, fulfilmentType, addresses.data, setAddress]);
+    let chosenAddress = forDelivery ? address : null;
+    if (forDelivery && !chosenAddress) {
+      chosenAddress = preferredAddress(addresses.data ?? []) ?? null;
+      if (chosenAddress) setAddress(chosenAddress);
+    }
+
+    if (store) return;
+    const suggested = preferredStore(availableStores.data ?? [], new Date(), chosenAddress);
+    if (suggested) setStore(suggested);
+  }, [
+    store,
+    address,
+    fulfilmentType,
+    availableStores.data,
+    addresses.data,
+    setStore,
+    setAddress,
+  ]);
 
   const blocker = useMemo(() => {
     if (lines.length === 0) return 'Your cart is empty';

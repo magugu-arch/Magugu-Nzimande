@@ -43,6 +43,18 @@ export const StoreCard = memo(function StoreCard({
   const supported =
     !openingLater && (fulfilmentType ? supportsFulfilment(store, fulfilmentType) : true);
 
+  /**
+   * Whether there is a distance to show at all.
+   *
+   * There is not, whenever the customer has declined the location prompt or has
+   * not been asked — which is most of the time. This badge used to be filled in
+   * regardless, from a distance the store service measured against the
+   * Johannesburg CBD, so a customer in Durban was told Rosebank was 6.4 km away
+   * and the list was sorted to match. `distanceKm` is now absent rather than
+   * invented, and the badge goes with it.
+   */
+  const located = typeof store.distanceKm === 'number';
+
   return (
     <Card
       onPress={supported ? onPress : undefined}
@@ -52,7 +64,9 @@ export const StoreCard = memo(function StoreCard({
       accessibilityLabel={
         openingLater
           ? `${store.name}, opening ${formatShortDate(store.opensOn!)}, not yet taking orders`
-          : `${store.name}, ${formatDistance(store.distanceKm)} away`
+          : located
+            ? `${store.name}, ${formatDistance(store.distanceKm!)} away`
+            : `${store.name}, ${store.suburb}`
       }
       style={supported ? undefined : styles.unavailable}
     >
@@ -68,9 +82,9 @@ export const StoreCard = memo(function StoreCard({
 
         {selected ? (
           <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
-        ) : (
-          <Badge label={formatDistance(store.distanceKm)} tone="neutral" icon="navigate" />
-        )}
+        ) : located ? (
+          <Badge label={formatDistance(store.distanceKm!)} tone="neutral" icon="navigate" />
+        ) : null}
       </View>
 
       <View style={styles.metaRow}>
