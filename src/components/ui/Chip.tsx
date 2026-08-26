@@ -36,6 +36,20 @@ export const Chip = memo(function Chip({
       onPress={onPress}
       disabled={disabled}
       hitSlop={HIT_SLOP}
+      /**
+       * The same padding, in a form the browser sweep can read.
+       *
+       * `hitSlop` is a no-op in React Native Web — only the legacy `Touchable`
+       * ever honoured it — so a rendered chip's box is 39 tall and nothing in
+       * the DOM says the real target is 55. `audit:screens` measures boxes and
+       * would have to keep a hand-written list of which small ones are fine,
+       * which is the kind of list that quietly stops matching the code.
+       *
+       * `dataSet` renders `data-slop-x` / `data-slop-y`, so the audit does the
+       * arithmetic instead of trusting a list. It costs nothing on a handset:
+       * `dataSet` is web-only and native ignores it.
+       */
+      dataSet={{ slopX: HIT_SLOP.left, slopY: HIT_SLOP.top }}
       accessibilityRole="button"
       accessibilityState={{ selected, disabled }}
       accessibilityLabel={label}

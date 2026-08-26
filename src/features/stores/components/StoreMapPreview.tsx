@@ -112,6 +112,12 @@ export const StoreMapPreview = memo(function StoreMapPreview({
           <Pressable
             key={store.id}
             onPress={() => onSelectStore(store)}
+            // 32x32 pins, six points short of §22.9 in each direction. Made up
+            // in hitSlop rather than by growing the box: pins are positioned by
+            // coordinate on a small plot, and a 44pt box would overlap its
+            // neighbours and start stealing their taps.
+            hitSlop={6}
+            dataSet={{ slopX: 6, slopY: 6 }}
             accessibilityRole="button"
             accessibilityLabel={
               typeof store.distanceKm === 'number'

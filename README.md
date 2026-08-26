@@ -287,7 +287,11 @@ all four of §22.3's states defined per variant rather than one shared grey.
 Two rules the component enforces so callers cannot break them:
 
 - **44×44 minimum touch target (§22.9)** even though §22.4 makes the small
-  button 36px tall. The shortfall goes into `hitSlop`, not into the box.
+  button 36px tall. The shortfall goes into `hitSlop`, not into the box — and
+  into `dataSet`, so `audit:screens` can count it. `hitSlop` is a no-op in React
+  Native Web, so a browser measuring a control sees the bare box and nothing
+  else; declaring the slop is what lets the sweep do the arithmetic instead of
+  keeping a list of small controls that are "fine".
 - **Uppercase labels**, matching every CTA in the app mockups, with
   `preserveCase` for the long or dynamic ones §22.7 cautions against. The
   accessible name stays in its written case — a screen reader should not shout.
@@ -366,8 +370,15 @@ levels. Caps are reserved for the campaign headline and the section eyebrow;
 to protect.
 
 Never hard-code a hex value or font size in a component — import from
-`@/theme`. Every pressable clears the 44pt minimum touch target, and every
-interactive element carries an accessibility label and state.
+`@/theme`. Every pressable clears the 44pt minimum touch target and every
+interactive element carries an accessibility label and state — both measured by
+`npm run audit:screens` on all 29 routes, rather than asserted here.
+
+That distinction was earned. This paragraph claimed the touch-target rule while
+ten controls broke it, including the quantity stepper on every cart line, the
+switches that withdraw marketing consent, and the bin icons that delete a saved
+card or address. The check existed but ran on three screens out of twenty-nine,
+which reads exactly like a check that runs on all of them.
 
 The logo is only ever drawn by `components/brand/BrandMark.tsx`, which picks
 between the two approved variants and sizes them from the master's own aspect
@@ -391,7 +402,7 @@ the error boundary, and the brand asset set — that every icon app.json names
 exists at the size it claims, and that the ratio `BrandMark` draws at still
 matches the logo master, and the brand guidelines themselves — every colour
 pair the theme ships asserted against §32.3's contrast thresholds, button
-heights and touch targets against §22.4 and §22.9, and every screen read to
+heights against §22.4, and every screen read to
 prove no long button label was left to be uppercased against §22.7's advice.
 
 The data-integrity suite is worth knowing about: it asserts that every product

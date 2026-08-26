@@ -99,7 +99,6 @@ export default function SignInScreen() {
 
           <Pressable
             onPress={() => router.push('/(auth)/forgot-password')}
-            hitSlop={8}
             accessibilityRole="button"
             style={styles.forgot}
           >
@@ -152,7 +151,17 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   header: { gap: spacing.sm, paddingTop: spacing.xxl, paddingBottom: spacing.xl },
   form: { gap: spacing.lg },
-  forgot: { alignSelf: 'flex-end' },
+  /**
+   * A 19pt line of text, and `hitSlop` only ever brought it to 35 — on a
+   * handset. On the web build it brought it to 19, because React Native Web
+   * does not implement `hitSlop` at all.
+   *
+   * Padding makes the box itself 45 and the negative margin hands the space
+   * back, so the form is laid out exactly as it was. Same treatment as "See
+   * all" in `Section`, and for the same reason: a target that is real beats one
+   * that is declared.
+   */
+  forgot: { alignSelf: 'flex-end', paddingVertical: 13, marginVertical: -13 },
   formError: {
     padding: spacing.md,
     borderRadius: spacing.sm,

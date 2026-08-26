@@ -55,6 +55,7 @@ export const Section = memo(function Section({
           <Pressable
             onPress={onActionPress}
             hitSlop={HIT_SLOP}
+            dataSet={{ slopX: HIT_SLOP.left, slopY: HIT_SLOP.top }}
             accessibilityRole="button"
             accessibilityLabel={`${actionLabel}, ${title}`}
             style={styles.action}
@@ -84,5 +85,21 @@ const styles = StyleSheet.create({
   // §14.3 puts 8–12px between a heading and the text supporting it. This
   // stack is eyebrow over title over subtitle, so it takes the lower bound.
   headings: { flex: 1, gap: headingGap.h4ToBody },
-  action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs },
+  /**
+   * "See all" is a line of 13pt text, so its box was 19 tall — and `HIT_SLOP`,
+   * which is 8 a side, only brought that to 35. Padding takes the box itself
+   * to 45 and the negative margin gives the space straight back, so the header
+   * is laid out exactly as it was and the target is real rather than declared.
+   *
+   * Real matters twice: `hitSlop` is a no-op in React Native Web, so on the web
+   * build the 19pt box was the whole target, and a browser measuring this can
+   * only ever see the box.
+   */
+  action: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    paddingVertical: 13,
+    marginVertical: -13,
+  },
 });

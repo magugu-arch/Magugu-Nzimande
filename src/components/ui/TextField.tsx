@@ -80,7 +80,11 @@ export const TextField = memo(function TextField({
             onPress={() => setObscured((value) => !value)}
             accessibilityRole="button"
             accessibilityLabel={obscured ? 'Show password' : 'Hide password'}
-            hitSlop={12}
+            // 13, not 12: the icon is 19 across, and 19 + 24 came to 43 — one
+            // point under §22.9, which is the sort of miss that only a
+            // measurement finds.
+            hitSlop={13}
+            dataSet={{ slopX: 13, slopY: 13 }}
           >
             <Ionicons
               name={obscured ? 'eye-outline' : 'eye-off-outline'}

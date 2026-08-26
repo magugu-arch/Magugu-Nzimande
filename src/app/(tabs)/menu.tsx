@@ -12,7 +12,15 @@ import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { ProductRow } from '@/features/menu/components/ProductRow';
 import { useCategories, useMenu, useProductSearch } from '@/features/menu/hooks';
 import { POPULAR_SEARCH_TERMS } from '@/services/menuService';
-import { colors, radius, spacing, typography, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
+import {
+  colors,
+  radius,
+  spacing,
+  MIN_TOUCH_TARGET,
+  typography,
+  CART_BAR_HEIGHT,
+  TAB_BAR_HEIGHT,
+} from '@/theme';
 
 /**
  * Menu tab — doubles as Menu Categories, Product Listing and Search.
@@ -262,6 +270,11 @@ const styles = StyleSheet.create({
   suggestion: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
+    // The padding above put these at 31 tall. A suggestion is a one-tap
+    // shortcut on the screen someone reaches when they already cannot find
+    // what they want, so it is the wrong place to be twelve points short.
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
     borderRadius: radius.sm,
     backgroundColor: colors.surfaceAlt,
   },

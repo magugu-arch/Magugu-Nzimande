@@ -49,7 +49,21 @@ const ROUTES = [
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
-const A11Y_ROUTES = ['/menu', '/sign-in', '/account/preferences'];
+/**
+ * Where the *expensive* accessibility check runs.
+ *
+ * Only the focus-ring probe is slow: it focuses up to thirty elements a route
+ * and reads the computed style back each time. The rest of `a11yProbe` is a
+ * couple of DOM reads and now runs on all 29 routes.
+ *
+ * It used to be all of it, on these three. That is how the README came to say
+ * "every pressable clears the 44pt minimum touch target" while six did not —
+ * the quantity stepper on every cart line, the "See all" links on Home, the
+ * store row, the product screen's back button, the menu's search suggestions
+ * and the map pins. None of those screens was ever looked at. A check that
+ * covers a tenth of the app reads exactly like one that covers all of it.
+ */
+const FOCUS_RING_ROUTES = ['/menu', '/sign-in', '/account/preferences'];
 
 /**
  * What each content-bearing route must actually be showing.
@@ -139,16 +153,44 @@ const probe = (viewportWidth) => {
   };
 };
 
-const a11yProbe = () => {
+const a11yProbe = (checkFocusRings) => {
   const visibleOnly = (el) => {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0;
   };
 
+  /**
+   * Whether assistive tech and a thumb both skip this.
+   *
+   * Some components draw a control and hand its behaviour to a wrapper. `Toggle`
+   * does: the row is the switch, and the `Switch` inside it only paints the
+   * state — hidden with `aria-hidden` and made untappable with
+   * `pointerEvents="none"`. React Native Web renders that as a real
+   * `<input role="switch">` all the same, so a flat `querySelectorAll` finds a
+   * second, unnamed switch that nobody can reach.
+   *
+   * Both conditions, never one. `aria-hidden` alone on something a thumb can
+   * still press is not a decoration, it is a control that screen-reader users
+   * cannot find — so that stays a finding, below.
+   */
+  const decorative = (el) =>
+    el.closest('[aria-hidden="true"]') !== null && getComputedStyle(el).pointerEvents === 'none';
+
   const unnamed = [];
-  const interactive = [
+  const hiddenButLive = [];
+  const all = [
     ...document.querySelectorAll('[role="button"],[role="tab"],[role="link"],[role="switch"],button,input,a'),
   ].filter(visibleOnly);
+
+  for (const el of all) {
+    if (el.closest('[aria-hidden="true"]') === null) continue;
+    if (getComputedStyle(el).pointerEvents === 'none') continue;
+    hiddenButLive.push(
+      (el.getAttribute('aria-label') ?? el.textContent ?? el.tagName.toLowerCase()).trim().slice(0, 32),
+    );
+  }
+
+  const interactive = all.filter((el) => !decorative(el));
   for (const el of interactive) {
     const name =
       el.getAttribute('aria-label') ?? el.getAttribute('placeholder') ?? (el.textContent ?? '').trim();
@@ -157,9 +199,11 @@ const a11yProbe = () => {
 
   const focusable = [
     ...document.querySelectorAll('[tabindex]:not([tabindex="-1"]),button,input,a[href]'),
-  ].filter(visibleOnly);
+  ]
+    .filter(visibleOnly)
+    .filter((el) => !decorative(el));
   const noRing = [];
-  for (const el of focusable.slice(0, 30)) {
+  for (const el of checkFocusRings ? focusable.slice(0, 30) : []) {
     el.focus();
     const active = document.activeElement;
     if (!active || active === document.body) continue;
@@ -171,7 +215,42 @@ const a11yProbe = () => {
     }
     active.blur?.();
   }
-  return { unnamed, noRing, focusableCount: focusable.length };
+  /**
+   * §22.9: 44x44, measured rather than asserted.
+   *
+   * The README said every pressable cleared it. Six did not, and they were the
+   * ones people tap most: the quantity stepper on every cart line (38, and
+   * "decrease" is "remove" when the line holds one), the "See all" links on
+   * Home (19), the store row that chooses which branch cooks the food (35), the
+   * back button on the product screen (40), the menu's search suggestions (31),
+   * and the pins on the store map (32).
+   *
+   * `hitSlop` is honoured on a handset and is a no-op in React Native Web, so
+   * the box measured here is the whole target on the web build and only part of
+   * it on a phone. Rather than keep a list of which small boxes are fine — a
+   * list that stops matching the code and then passes — the controls that
+   * compensate say so in `data-slop-x` / `data-slop-y`, and this does the
+   * arithmetic. A new small control that compensates declares it; one that does
+   * not, fails.
+   */
+  const small = [];
+  const seen = new Set();
+  for (const el of interactive) {
+    const rect = el.getBoundingClientRect();
+    const slopX = Number(el.dataset.slopX ?? 0);
+    const slopY = Number(el.dataset.slopY ?? 0);
+    const width = rect.width + 2 * (Number.isFinite(slopX) ? slopX : 0);
+    const height = rect.height + 2 * (Number.isFinite(slopY) ? slopY : 0);
+    if (width >= 44 && height >= 44) continue;
+
+    const label = (el.getAttribute('aria-label') ?? el.textContent ?? '?').trim().slice(0, 40);
+    const key = `${label}|${Math.round(width)}x${Math.round(height)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    small.push({ label, w: Math.round(width), h: Math.round(height) });
+  }
+
+  return { unnamed, noRing, small, hiddenButLive, focusableCount: focusable.length };
 };
 
 let chromium;
@@ -287,10 +366,20 @@ try {
       if (failure) findings.push(`${route} @${width} — shows "${failure[0]}"`);
       for (const e of [...new Set(errors)]) findings.push(`${route} @${width} — ${e}`);
 
-      if (width === WIDTHS[0] && A11Y_ROUTES.includes(route)) {
-        const a = await page.evaluate(a11yProbe);
+      if (width === WIDTHS[0]) {
+        const a = await page.evaluate(a11yProbe, FOCUS_RING_ROUTES.includes(route));
         for (const u of a.unnamed) findings.push(`${route} — ${u} has no accessible name (§32.6)`);
         for (const n of a.noRing) findings.push(`${route} — "${n}" has no visible focus ring (§32.6)`);
+        for (const h of a.hiddenButLive) {
+          findings.push(
+            `${route} — "${h}" is hidden from a screen reader but still takes taps (§32.6)`,
+          );
+        }
+        for (const t of a.small) {
+          findings.push(
+            `${route} — "${t.label}" is ${t.w}x${t.h} to a thumb, under the 44x44 of §22.9`,
+          );
+        }
       }
     }
     await ctx.close();
@@ -302,7 +391,10 @@ try {
 
 console.log(`\nSwept ${ROUTES.length} routes at ${WIDTHS.join('pt and ')}pt.`);
 if (findings.length === 0) {
-  console.log('No overflow, no blank screens, no console errors, no accessibility gaps.');
+  console.log(
+  'No overflow, no blank screens, no console errors, no accessibility gaps,\n' +
+    'and every tappable thing clears 44x44 once its declared slop is counted.',
+);
   process.exit(0);
 }
 console.log(`\n${findings.length} finding(s):\n`);

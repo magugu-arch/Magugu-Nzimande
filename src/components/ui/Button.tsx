@@ -183,6 +183,8 @@ export const Button = memo(function Button({
       onHoverOut={onHoverOut}
       disabled={isInactive}
       hitSlop={{ top: shortfall, bottom: shortfall, left: 0, right: 0 }}
+      // Same shortfall, where a browser can read it. See `dataSet` in Chip.
+      dataSet={{ slopX: 0, slopY: shortfall }}
       accessibilityRole="button"
       accessibilityLabel={trailingLabel ? `${label}, ${trailingLabel}` : label}
       accessibilityState={{ disabled: isInactive, busy: loading }}

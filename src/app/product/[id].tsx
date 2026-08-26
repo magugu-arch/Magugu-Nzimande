@@ -26,7 +26,7 @@ import { OptionGroupPicker } from '@/features/menu/components/OptionGroupPicker'
 import { ProductCard } from '@/features/menu/components/ProductCard';
 import { useProduct, useProductsByIds } from '@/features/menu/hooks';
 import { useCartStore } from '@/store/cartStore';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, MIN_TOUCH_TARGET, typography } from '@/theme';
 import {
   defaultSelectionFor,
   resolveSelectedOptions,
@@ -353,8 +353,10 @@ const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
     left: spacing.gutter,
-    width: 40,
-    height: 40,
+    // 44, not 40. It floated over the photograph and cost no layout to grow,
+    // so there was no reason for it to be four points short of §22.9.
+    width: MIN_TOUCH_TARGET,
+    height: MIN_TOUCH_TARGET,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',

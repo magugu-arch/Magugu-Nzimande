@@ -280,13 +280,21 @@ These fail loudly rather than rotting quietly — leave them on.
   that the mock still models the real API.
 - **`npm run audit:screens`** renders every route at 390pt and 320pt and fails
   on anything sitting past the right edge, a page that scrolls sideways, a
-  blank screen, a console error, or a §32.6 gap — an interactive element with
-  no accessible name, or a focusable one with no visible focus ring. This is
-  the check that found the defects the test suite could not see. It needs
+  blank screen, a console error, a §32.6 gap — an interactive element with no
+  accessible name, one hidden from a screen reader that still takes taps, or a
+  focusable one with no visible focus ring — and a §22.9 gap: anything under
+  44x44 to a thumb once its declared `hitSlop` is counted. This is the check
+  that found the defects the test suite could not see.
+
+  The accessibility half used to run on three routes out of twenty-nine, which
+  is how the README came to claim every pressable cleared 44pt while ten did
+  not. Only the focus-ring probe is expensive, so only that is still limited;
+  everything else now runs everywhere. It needs
   Playwright's Chromium once (`npx playwright install chromium`), or
   `CHROMIUM_PATH` pointed at one the machine already has. It signs in first:
   sweeping account screens signed out is not the screen anybody uses, and for a
   while that hid a real defect rather than finding one.
+
 - **Eight more browser journeys**, each driving one thing a unit test cannot
   reach. They exist because every one of them caught something:
   - `audit:offline` — every data screen with the mock off and a host that does

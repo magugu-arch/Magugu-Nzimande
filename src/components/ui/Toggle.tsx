@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { colors, spacing } from '@/theme';
 import { Text } from './Text';
 
@@ -20,8 +20,32 @@ export const Toggle = memo(function Toggle({
   disabled = false,
   testID,
 }: ToggleProps) {
+  /**
+   * The whole row is the switch.
+   *
+   * It used to be only the switch, which renders 40x20 — under half the 44x44
+   * of §22.9 in height, on the screen where somebody withdraws consent to
+   * marketing and turns off the notifications they do not want. A control that
+   * is hard to hit is a control people give up on, and giving up on that one
+   * has a legal shape as well as an irritating one.
+   *
+   * The row is already 56 tall for the label beside it, so the target was there
+   * all along and simply was not wired up. The `Switch` keeps drawing the state
+   * and stops handling touches and accessibility: without `pointerEvents="none"`
+   * a tap on the switch itself fires both handlers and lands back where it
+   * started, and without hiding it from the reader the row is announced twice.
+   */
   return (
-    <View style={styles.row}>
+    <Pressable
+      testID={testID}
+      onPress={() => onValueChange(!value)}
+      disabled={disabled}
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      accessibilityHint={description}
+      accessibilityState={{ checked: value, disabled }}
+      style={styles.row}
+    >
       <View style={styles.titles}>
         <Text variant="bodyMedium" color={disabled ? colors.textDisabled : colors.textPrimary}>
           {label}
@@ -34,17 +58,26 @@ export const Toggle = memo(function Toggle({
       </View>
 
       <Switch
-        testID={testID}
         value={value}
-        onValueChange={onValueChange}
         disabled={disabled}
-        accessibilityLabel={label}
-        accessibilityHint={description}
+        pointerEvents="none"
+        /**
+         * Hidden from the reader four ways, because no two of them cover both
+         * platforms. `accessibilityElementsHidden` is iOS,
+         * `importantForAccessibility` is Android, and both are ignored by React
+         * Native Web — which left the web build announcing an unnamed second
+         * switch beside the named row, and the screen sweep caught it. `focusable`
+         * keeps it out of the tab order that `aria-hidden` alone would leave it in.
+         */
+        aria-hidden
+        focusable={false}
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
         trackColor={{ false: colors.neutral.grey300, true: colors.primary }}
         thumbColor={colors.neutral.white}
         ios_backgroundColor={colors.neutral.grey300}
       />
-    </View>
+    </Pressable>
   );
 });
 

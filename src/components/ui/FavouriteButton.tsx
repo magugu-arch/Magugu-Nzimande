@@ -51,6 +51,7 @@ export const FavouriteButton = memo(function FavouriteButton({
     <Pressable
       onPress={onPress}
       hitSlop={{ top: slop, bottom: slop, left: slop, right: slop }}
+      dataSet={{ slopX: slop, slopY: slop }}
       accessibilityRole="button"
       accessibilityState={{ selected: favourite }}
       accessibilityLabel={

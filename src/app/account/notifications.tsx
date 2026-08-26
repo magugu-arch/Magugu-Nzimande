@@ -104,9 +104,11 @@ export default function NotificationsScreen() {
           unreadCount > 0 ? (
             <Pressable
               onPress={() => markAllRead.mutate()}
-              hitSlop={10}
               accessibilityRole="button"
               accessibilityLabel="Mark all as read"
+              // 75x19. `hitSlop` of 10 reached 39 tall, still short, and 19 on
+              // the web build. Padding makes it 45 and the margin gives it back.
+              style={{ paddingVertical: 13, marginVertical: -13 }}
             >
               <Text variant="caption" color={colors.primary}>
                 Mark all read

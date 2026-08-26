@@ -50,6 +50,7 @@ export const StarRating = memo(function StarRating({
               onChange(value);
             }}
             hitSlop={6}
+            dataSet={{ slopX: 6, slopY: 6 }}
             accessibilityRole="button"
             accessibilityLabel={`Rate ${value} star${value === 1 ? '' : 's'}`}
             style={({ pressed }) => (pressed ? styles.pressed : undefined)}

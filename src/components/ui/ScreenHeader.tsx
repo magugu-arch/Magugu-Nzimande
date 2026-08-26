@@ -43,6 +43,7 @@ export const ScreenHeader = memo(function ScreenHeader({
         <Pressable
           onPress={handleBack}
           hitSlop={HIT_SLOP}
+          dataSet={{ slopX: HIT_SLOP.left, slopY: HIT_SLOP.top }}
           accessibilityRole="button"
           accessibilityLabel="Go back"
           style={({ pressed }) => [styles.iconButton, pressed ? styles.pressed : null]}

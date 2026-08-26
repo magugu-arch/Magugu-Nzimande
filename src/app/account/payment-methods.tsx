@@ -140,9 +140,15 @@ export default function PaymentMethodsScreen() {
 
                 <Pressable
                   onPress={() => handleDelete(method)}
-                  hitSlop={10}
                   accessibilityRole="button"
                   accessibilityLabel={`Remove ${method.label}`}
+                  // A 19pt bin icon that deletes a saved card. `hitSlop` of
+                  // 10 made it 39x41 on a handset and left it 19x21 on the web
+                  // build; padding makes the box itself 45 and the negative
+                  // margin keeps the row where it was. Worth more care than
+                  // most: this is the smallest target in the app and one of
+                  // the few that destroys something.
+                  style={{ padding: 13, margin: -13 }}
                 >
                   <Ionicons name="trash-outline" size={19} color={colors.textMuted} />
                 </Pressable>

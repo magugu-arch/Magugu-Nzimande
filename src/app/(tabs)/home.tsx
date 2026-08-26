@@ -28,7 +28,15 @@ import { statusCopy } from '@/services/orderService';
 import { greetingFor, useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
-import { absoluteFill, colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
+import {
+  absoluteFill,
+  colors,
+  radius,
+  spacing,
+  CART_BAR_HEIGHT,
+  MIN_TOUCH_TARGET,
+  TAB_BAR_HEIGHT,
+} from '@/theme';
 import { formatEtaWindow } from '@/utils/datetime';
 import { groupDigits } from '@/utils/money';
 
@@ -424,6 +432,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.sm,
+    // Wide but only 35 tall, which is the shape that reads as tappable and is
+    // hardest to hit — the whole row is the target and none of it is tall
+    // enough. This is how somebody changes which branch cooks their food.
+    minHeight: MIN_TOUCH_TARGET,
   },
   storeName: { flex: 1 },
   trackingCard: { backgroundColor: colors.brand.black, gap: spacing.sm, borderWidth: 0 },

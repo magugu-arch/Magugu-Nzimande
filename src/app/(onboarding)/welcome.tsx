@@ -107,9 +107,12 @@ export default function WelcomeScreen() {
         <BrandMark size="sm" onDark />
         <Pressable
           onPress={handleSkip}
-          hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Skip onboarding"
+          // 27x19, and `hitSlop` of 12 only reached 51x43 — one point short in
+          // height on a handset, and 19 on the web build, where hitSlop does
+          // nothing. Real padding, handed straight back by the margin.
+          style={{ paddingVertical: 13, paddingHorizontal: 9, margin: -9, marginVertical: -13 }}
         >
           <Text variant="captionMedium" color={colors.textOnDark}>
             Skip
