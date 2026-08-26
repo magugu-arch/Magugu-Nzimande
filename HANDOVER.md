@@ -17,7 +17,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 8, driven end to end against the mock layer                                                             |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 629, across 36 suites                                                                                   |
+| Tests            | 640, across 37 suites                                                                                   |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -250,7 +250,7 @@ captured by our own form.
 
 These fail loudly rather than rotting quietly — leave them on.
 
-- **`npm run verify`** — typecheck, lint, format, 629 tests. The pre-commit gate.
+- **`npm run verify`** — typecheck, lint, format, 640 tests. The pre-commit gate.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, a real prebuild audit of the native projects, and
   the asset checks.

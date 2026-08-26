@@ -24,11 +24,10 @@ import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
 import { submitOrder } from '@/features/checkout/submitOrder';
 import { offeredPaymentMethods } from '@/features/checkout/paymentOptions';
-import { preferredAddress } from '@/features/checkout/preferredAddress';
+import { checkoutDefaults } from '@/features/checkout/checkoutDefaults';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { useNetworkStatus } from '@/features/system/useNetworkStatus';
 import { useNow } from '@/features/system/useNow';
-import { preferredStore } from '@/features/stores/opening';
 import { useCartStore } from '@/store/cartStore';
 import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
@@ -123,47 +122,28 @@ export default function CheckoutScreen() {
   const selectedPaymentId = selectedPayment?.id ?? null;
 
   /**
-   * The branch and the front door, chosen together for someone who has chosen
-   * neither.
-   *
-   * These were two effects and had to become one. The store is picked from a
-   * list that is only sorted by distance when the app knows where the customer
-   * is; when it does not, a branch that cannot deliver to their address is no
-   * more use as a default than one that has not opened yet — so `preferredStore`
-   * needs the address to make its choice. As separate effects it never had it:
-   * both run in the same commit, so the store effect read `address` as null on
-   * the very render where the address effect was setting it, picked the first
-   * branch alphabetically, and never looked again because the guard is
-   * `if (store) return`. That put bb.q Chicken Canal Walk in front of a
-   * Johannesburg customer with "does not deliver to Melrose Arch" underneath it.
-   *
-   * Picking the address first inside one effect makes the ordering explicit
-   * rather than accidental.
-   *
-   * Both halves keep the rule they had: only when nothing is chosen, so neither
-   * can overrule the customer, and the address only for delivery — quietly
-   * attaching one to a collection order would put a front door on a receipt for
-   * food somebody carried home themselves. See `preferredAddress` for which
-   * address, and for why it sometimes declines to guess.
+   * The branch and the front door, chosen together for somebody who has chosen
+   * neither. `checkoutDefaults` owns the ordering and why it matters; this is
+   * only the wiring, so the rule can be tested without a renderer.
    */
   useEffect(() => {
-    const forDelivery = fulfilmentType === 'delivery';
-
-    let chosenAddress = forDelivery ? address : null;
-    if (forDelivery && !chosenAddress) {
-      chosenAddress = preferredAddress(addresses.data ?? []) ?? null;
-      if (chosenAddress) setAddress(chosenAddress);
-    }
-
-    if (store) return;
-    const suggested = preferredStore(availableStores.data ?? [], new Date(), chosenAddress);
-    if (suggested) setStore(suggested);
+    const defaults = checkoutDefaults({
+      fulfilmentType,
+      store,
+      address,
+      savedAddresses: addresses.data ?? [],
+      addressesLoading: addresses.isLoading,
+      availableStores: availableStores.data ?? [],
+    });
+    if (defaults.address) setAddress(defaults.address);
+    if (defaults.store) setStore(defaults.store);
   }, [
     store,
     address,
     fulfilmentType,
     availableStores.data,
     addresses.data,
+    addresses.isLoading,
     setStore,
     setAddress,
   ]);

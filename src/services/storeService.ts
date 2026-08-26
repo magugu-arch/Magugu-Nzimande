@@ -32,14 +32,13 @@ import { stores } from './data/storeData';
  * nothing is the only honest thing available; the same reasoning as the
  * delivery-radius rule, which is the other half of this bug.
  */
-function resolveAgainstCustomer(
-  list: Store[],
-  origin: Coordinates | null,
-  now: Date,
-): Store[] {
+function resolveAgainstCustomer(list: Store[], origin: Coordinates | null, now: Date): Store[] {
   if (!origin) {
     return list
-      .map(({ distanceKm: _unknown, ...store }) => ({ ...store, isOpenNow: isTradingNow(store, now) }))
+      .map(({ distanceKm: _unknown, ...store }) => ({
+        ...store,
+        isOpenNow: isTradingNow(store, now),
+      }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 

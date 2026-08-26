@@ -148,6 +148,14 @@ jobs:
       - name: Look around as a guest
         run: npm run audit:guest
 
+      # DEFAULT_COORDINATES is the Johannesburg CBD, and the add-address form
+      # used to stamp it on every address a customer typed. Once the delivery
+      # radius started reading that field, six of the seven branches refused
+      # every typed-in address wherever it was and the seventh accepted them
+      # all. This types an address in and tries to have it delivered.
+      - name: Type an address in and have it delivered
+        run: npm run audit:delivery-range
+
   assets:
     name: Food asset catalogue
     runs-on: ubuntu-latest

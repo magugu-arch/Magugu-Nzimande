@@ -178,6 +178,24 @@ try {
     throw new Error('checkout does not say how many points this order earns');
   }
 
+  /**
+   * Why the button is disabled, rather than a timeout on the click.
+   *
+   * Tapping a disabled button reports "locator.click: Timeout 10000ms", which
+   * says nothing about the order. This journey never picks a store or an
+   * address — it leans on checkout pre-selecting both — so when a change to
+   * that pre-select breaks it, the reason is exactly what needs reading.
+   */
+  const blocked = await page.evaluate(() => {
+    const button = document.querySelector('[data-testid="checkout-place-order"]');
+    if (button?.getAttribute('aria-disabled') !== 'true') return null;
+    const footer = button.parentElement;
+    const caption =
+      footer && [...footer.children].find((child) => child !== button && child.textContent?.trim());
+    return caption?.textContent?.trim() ?? '(no reason shown)';
+  });
+  if (blocked) throw new Error(`checkout will not take the order: "${blocked}"`);
+
   await tap('checkout-place-order');
   await page.waitForURL(/confirmation/, { timeout: 30000 });
   const reference = /BBQ-\d+/.exec(await page.locator('body').innerText())?.[0];

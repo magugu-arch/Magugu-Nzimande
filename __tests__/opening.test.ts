@@ -126,7 +126,6 @@ describe('preferredStore', () => {
   });
 });
 
-
 /**
  * Which branch a customer who has chosen nothing is handed.
  *
