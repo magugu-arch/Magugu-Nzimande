@@ -3,6 +3,7 @@ import type { Category, MenuSnapshot, Product } from '@/types';
 import { delay, request } from './apiClient';
 import { menuSnapshot } from './data/menuData';
 import { checkedMenu, checkedProduct } from './wireChecks';
+import { matchProducts } from '@/features/menu/search';
 
 /**
  * Menu service. Screens never touch `menuData` directly — they call these
@@ -68,16 +69,12 @@ export async function fetchNewProducts(limit = 4): Promise<Product[]> {
 
 /** Case-insensitive search across name, description and tags. */
 export async function searchProducts(query: string): Promise<Product[]> {
-  const trimmed = query.trim().toLowerCase();
-  if (trimmed.length === 0) return [];
+  if (query.trim().length === 0) return [];
 
+  // Matching lives in `matchProducts` — a substring test over one joined string
+  // was hiding half the menu from the spellings people actually type.
   const menu = await fetchMenu();
-  return menu.products.filter((product) => {
-    const haystack = [product.name, product.shortDescription, product.description, ...product.tags]
-      .join(' ')
-      .toLowerCase();
-    return haystack.includes(trimmed);
-  });
+  return matchProducts(menu.products, query);
 }
 
 export const POPULAR_SEARCH_TERMS = [
