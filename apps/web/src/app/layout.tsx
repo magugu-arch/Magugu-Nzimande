@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Bebas_Neue, Montserrat } from 'next/font/google';
+import { SiteShell } from '@/components/chrome/SiteShell';
+import { api } from '@/lib/api';
 import './globals.css';
 
 // next/font downloads these at build time and serves them from our own origin as
@@ -45,9 +47,17 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const stores = api.getStores();
+  const promoCodes = api.getPromotions().map((promotion) => promotion.code);
+  const suggestions = api.getProducts().filter((product) => product.category === 'Sides');
+
   return (
     <html lang="en-ZA" className={`${montserrat.variable} ${bebas.variable}`}>
-      <body>{children}</body>
+      <body>
+        <SiteShell stores={stores} promoCodes={promoCodes} suggestions={suggestions}>
+          {children}
+        </SiteShell>
+      </body>
     </html>
   );
 }

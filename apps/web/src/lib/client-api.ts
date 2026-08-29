@@ -69,10 +69,16 @@ export async function placeOrder(payload: CreateOrderRequest): Promise<Order> {
   return order;
 }
 
+const OrderStatusResponse = z.object({ order: OrderSchema, statusLabel: z.string() });
+
 /** GET /api/orders/:id */
 export async function fetchOrder(id: string): Promise<{ order: Order; statusLabel: string }> {
-  return request(
-    `/api/orders/${encodeURIComponent(id)}`,
-    z.object({ order: OrderSchema, statusLabel: z.string() }),
-  );
+  return request(`/api/orders/${encodeURIComponent(id)}`, OrderStatusResponse);
+}
+
+/** POST /api/orders/:id/advance */
+export async function advanceOrder(id: string): Promise<{ order: Order; statusLabel: string }> {
+  return request(`/api/orders/${encodeURIComponent(id)}/advance`, OrderStatusResponse, {
+    method: 'POST',
+  });
 }
