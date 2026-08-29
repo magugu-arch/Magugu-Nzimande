@@ -17,7 +17,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 44 suites; `npm test` prints the count                                                                  |
+| Tests            | 45 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 

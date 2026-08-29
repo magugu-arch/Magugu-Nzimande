@@ -58,8 +58,8 @@ interface CartState {
   /**
    * Replace every line at once, with a note explaining why. Only for
    * reconciling a saved basket against the live menu — see `reconcileCart`.
-   * Any applied voucher is dropped along with it, because a code validated
-   * against the old subtotal may no longer qualify against the new one.
+   * Leaves the applied voucher and reward where they are, on the same rule as
+   * `removeLine`: only an empty basket cannot carry one.
    */
   setLines: (lines: CartLine[], notice: string | null) => void;
   /**
@@ -180,12 +180,32 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      // Only called when reconciliation actually found a difference, so the
-      // voucher and reward always go: both were validated against a basket
-      // that no longer exists, and a promo that no longer qualifies must be
-      // re-earned rather than carried over unchecked.
+      /**
+       * This used to clear the voucher and reward on every reconcile, on the
+       * grounds that "a code validated against the old subtotal may no longer
+       * qualify against the new one". That was true of the cart that froze a
+       * voucher's discount at the moment it was entered. It stopped being true
+       * when `priceBasket` started recomputing `voucherDiscount` against the
+       * basket as it stands — expiry and minimum spend included — and the
+       * comment outlived the code it described.
+       *
+       * What it cost: reconciliation fires on any change, and a backend fixing
+       * a typo in a product name is a change. So a renamed dish threw away an
+       * applied voucher and, worse, a reward the customer had already spent
+       * loyalty points on — a reward carries no spend condition at all, so it
+       * could never stop qualifying. Neither produced a notice, because a
+       * rename is correctly nothing worth interrupting anyone over.
+       *
+       * A voucher that no longer qualifies is now worth R0 and says so on the
+       * totals, which is the honest version of the same protection. The one
+       * case that still clears is an empty basket — `removeLine`'s rule.
+       */
       setLines: (lines, notice) =>
-        set({ lines, voucher: null, reward: null, reconciliationNotice: notice }),
+        set({
+          lines,
+          ...(lines.length === 0 ? { voucher: null, reward: null } : {}),
+          reconciliationNotice: notice,
+        }),
 
       reconciliationNotice: null,
       dismissReconciliationNotice: () => set({ reconciliationNotice: null }),

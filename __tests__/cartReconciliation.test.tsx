@@ -150,19 +150,92 @@ describe('useCartReconciliation', () => {
     expect(result.current.notice).toBeNull();
   });
 
-  it('drops the voucher when the basket had to change underneath it', async () => {
+  /**
+   * This asserted the opposite until the reasoning under it was checked: "the
+   * code was validated against a subtotal that no longer exists". True of the
+   * cart that froze a voucher's discount when it was entered, and untrue since
+   * `priceBasket` began recomputing `voucherDiscount` — minimum spend and
+   * expiry included — against the basket as it stands.
+   *
+   * What the old rule cost is easiest to see through the reward, which is why
+   * it is applied here too: `rewards/[id]` spends the loyalty points before
+   * applying it, and `RewardTerms` has no minimum spend to fall below. There
+   * was no subtotal at which it stopped qualifying — only 400 points gone.
+   */
+  it('leaves an applied voucher and reward alone through a reprice', async () => {
     seedCart();
+    const voucher = {
+      code: 'BBQ50',
+      discountType: 'fixed' as const,
+      discountValue: 50,
+      minimumSpend: 0,
+    };
+    const reward = {
+      rewardId: 'free-wings',
+      name: 'Free Wings',
+      discount: 79,
+      pointsCost: 400,
+      category: 'food' as const,
+    };
     act(() => {
-      useCartStore.setState({
-        voucher: { code: 'BBQ50', discountType: 'fixed', discountValue: 50, minimumSpend: 0 },
-      });
+      useCartStore.setState({ voucher, reward });
     });
     fetchMenu.mockResolvedValue(menuOf([{ ...product, basePrice: 169 }]));
 
     const { result } = renderHook(() => useCartReconciliation(), { wrapper });
 
     await waitFor(() => expect(result.current.notice).not.toBeNull());
-    // The code was validated against a subtotal that no longer exists.
+    expect(useCartStore.getState().voucher).toEqual(voucher);
+    expect(useCartStore.getState().reward).toEqual(reward);
+  });
+
+  /**
+   * A rename is the case that made the old rule expensive rather than merely
+   * wrong: the line has to be written back, so reconciliation ran, but the
+   * notice is correctly null because nothing a customer cares about moved. The
+   * discount vanished with nothing on screen to account for it.
+   */
+  it('leaves them alone through a rename, which says nothing to anybody', async () => {
+    seedCart();
+    const voucher = {
+      code: 'BBQ50',
+      discountType: 'fixed' as const,
+      discountValue: 50,
+      minimumSpend: 0,
+    };
+    act(() => {
+      useCartStore.setState({ voucher });
+    });
+    fetchMenu.mockResolvedValue(menuOf([{ ...product, name: 'Golden Original Chicken (large)' }]));
+
+    const { result } = renderHook(() => useCartReconciliation(), { wrapper });
+
+    // Waited for rather than ticked once: the write-back is what proves
+    // reconciliation ran at all, and a single microtask is not reliably enough
+    // for the query to have settled first.
+    await waitFor(() =>
+      expect(useCartStore.getState().lines[0]?.name).toBe('Golden Original Chicken (large)'),
+    );
+
+    expect(result.current.notice).toBeNull();
+    expect(useCartStore.getState().voucher).toEqual(voucher);
+  });
+
+  it('drops them when reconciliation empties the basket', async () => {
+    seedCart();
+    act(() => {
+      useCartStore.setState({
+        voucher: { code: 'BBQ50', discountType: 'fixed', discountValue: 50, minimumSpend: 0 },
+      });
+    });
+    // The only thing in the basket, off the menu.
+    fetchMenu.mockResolvedValue(menuOf([{ ...product, available: false }]));
+
+    const { result } = renderHook(() => useCartReconciliation(), { wrapper });
+
+    await waitFor(() => expect(result.current.notice).not.toBeNull());
+    expect(useCartStore.getState().lines).toHaveLength(0);
+    // Nothing to apply it to — the same rule `removeLine` has always used.
     expect(useCartStore.getState().voucher).toBeNull();
   });
 
