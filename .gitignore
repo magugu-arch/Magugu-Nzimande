@@ -26,6 +26,10 @@ expo-env.d.ts
 next-env.d.ts
 .vercel/
 
+# Web image derivatives — generated from the masters by infra/scripts, never
+# committed. Run `npm run assets:derive` in apps/web, or just `npm run build`.
+apps/web/public/food/
+
 # debug
 npm-debug.*
 yarn-debug.*

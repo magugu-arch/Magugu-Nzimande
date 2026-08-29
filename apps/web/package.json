@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
+    "build": "npm run assets:derive && next build",
     "start": "next start -p 3000",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "brand:check": "node scripts/check-brand-rules.mjs",
-    "verify": "npm run brand:check && npm run typecheck && npm run lint && npm run test && npm run build"
+    "verify": "npm run brand:check && npm run typecheck && npm run lint && npm run test && npm run build",
+    "assets:derive": "node ../../infra/scripts/generate-image-derivatives.mjs"
   },
   "dependencies": {
     "next": "^16.3.3",

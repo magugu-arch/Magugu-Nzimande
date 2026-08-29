@@ -1,0 +1,13 @@
+{
+  "name": "@bbq/infra",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seed data and the asset pipeline. Masters are never edited; derivatives are generated from here, not by hand.",
+  "type": "module",
+  "scripts": {
+    "assets:derive": "node scripts/generate-image-derivatives.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.34.4"
+  }
+}
