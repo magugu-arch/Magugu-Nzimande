@@ -43,4 +43,9 @@ coverage/
 # generated native folders
 /ios
 /android
+
+# throwaway web builds and their captures — regenerate with the scripts that
+# made them rather than committing several megabytes of screenshot
 .audit-*/
+.preview-web/
+.preview-shots/
