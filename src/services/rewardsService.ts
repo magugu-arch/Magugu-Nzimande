@@ -1,4 +1,4 @@
-import { config } from '@/constants/config';
+import { businessRules, config } from '@/constants/config';
 import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
 import { voucherDiscount } from '@/utils/cart';
 import { hasPassed } from '@/utils/datetime';
@@ -300,7 +300,23 @@ export async function redeemReward(
   if (rewardExpired(reward)) throw new Error('That reward has expired.');
   if (!reward.redeemable) throw new Error('You do not have enough points for this reward yet.');
 
-  // Food rewards are worth their points at the standard conversion rate.
-  const discount = reward.category === 'delivery' ? 32 : Math.round(reward.pointsCost * 0.05);
+  /**
+   * Both numbers come from `businessRules`, which is the single place the
+   * commercial rules are set. They were written out here as `32` and `0.05`,
+   * which are `deliveryFee` and `randPerPoint` — the same values, arrived at
+   * separately, agreeing by coincidence rather than by construction.
+   *
+   * The second one is live money: a food reward's `discount` goes straight into
+   * `rewardEffect` and comes off the bill. Sign off a different conversion rate
+   * and every reward in the app keeps quoting the old one, with nothing to
+   * notice. The first is informational today — `rewardEffect` waives the fee by
+   * measuring it rather than by reading this — but it is what
+   * `POST /v1/loyalty/redeem` will return against a real backend, and a free
+   * delivery worth R32 when delivery costs R35 is still wrong.
+   */
+  const discount =
+    reward.category === 'delivery'
+      ? businessRules.deliveryFee
+      : Math.round(reward.pointsCost * businessRules.randPerPoint);
   return delay({ reward, discount }, 400);
 }

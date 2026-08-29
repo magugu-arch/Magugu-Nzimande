@@ -394,6 +394,21 @@ if (apiClient.includes('sign_in_required')) {
 // nobody has stated. It matters in rand: it decides who is out of pocket when
 // somebody redeems and then walks away.
 const rewardsService = read('src/services/rewardsService.ts');
+
+/**
+ * What the seeded rewards are worth at the configured rate, so the number is
+ * shown in rand rather than left as a decimal to multiply out. Read off the
+ * seed rather than restated, so it cannot drift from what the app quotes.
+ */
+const perPoint = Number(rule('randPerPoint') ?? 0.05);
+const redemptionExamples =
+  [...rewardBlock.matchAll(/pointsCost: (\d+)/g)]
+    .map((match) => Number(match[1]))
+    .filter((cost) => cost > 0)
+    .slice(0, 3)
+    .map((cost) => `${cost} pts → R${Math.round(cost * perPoint)}`)
+    .join(', ') || 'nothing the seed can show';
+
 if (rewardsService.includes('recordPoints')) {
   note(
     'Loyalty policy',
@@ -401,10 +416,16 @@ if (rewardsService.includes('recordPoints')) {
       'not when somebody taps a reward — so an abandoned basket costs nobody anything, ' +
       'and a cancelled order puts the points and the reward straight back. That is a ' +
       'reading of `redeemedRewardId` on the order payload, not a rule anybody has ' +
-      'given me. Confirm it against how the programme is actually run, along with two ' +
+      'given me. Confirm it against how the programme is actually run, along with three ' +
       'numbers the seed invents: 1 point per R1 on food value only (no fees, no ' +
-      'discounted amounts), and the Bronze/Silver/Gold/Black thresholds at ' +
-      '0/1 500/4 000/9 000 lifetime points.',
+      'discounted amounts), the Bronze/Silver/Gold/Black thresholds at ' +
+      '0/1 500/4 000/9 000 lifetime points, and — the one that decides what a ' +
+      `redemption is worth — R${rule('randPerPoint') ?? '0.05'} per point coming back the other way. ` +
+      `At that rate the seeded rewards convert as ${redemptionExamples}. ` +
+      'That last number is the earn rate in reverse and nothing forces the two to ' +
+      'agree, so it is a margin decision rather than arithmetic: set the earn rate ' +
+      'and the redemption rate together, or the programme pays out at a ratio ' +
+      'nobody chose.',
     'you',
   );
 }
