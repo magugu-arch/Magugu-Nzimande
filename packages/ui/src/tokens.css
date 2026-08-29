@@ -1,0 +1,62 @@
+/**
+ * The only stylesheet permitted to carry a raw hex value.
+ * Mirrors packages/ui/src/tokens.ts — a test asserts the two agree, so a change
+ * here without the matching change there fails the build.
+ *
+ * Brand Identity Guidelines v1.0, section 08.
+ */
+
+@theme {
+  /* Primary palette */
+  --color-red: #e31937;
+  --color-black: #221e1f;
+  --color-white: #ffffff;
+  --color-yellow: #ffc20e;
+  --color-gold: #daaf37;
+
+  /* Pressed and hovered state of a red control, on the bb.q Red ramp */
+  --color-red-deep: #b31129;
+
+  /* Approved tint ladders: 100 / 80 / 60 / 40 / 20 / 10 */
+  --color-red-80: #e94660;
+  --color-red-60: #ee7489;
+  --color-red-40: #f4a3b1;
+  --color-red-20: #f9d1d8;
+  --color-red-10: #fce8eb;
+
+  --color-black-80: #4e4b4c;
+  --color-black-60: #7a7879;
+  --color-black-40: #a7a5a5;
+  --color-black-20: #d3d2d2;
+  --color-black-10: #e9e8e8;
+
+  --color-neutral-100: #6e6660;
+  --color-neutral-80: #8b8480;
+  --color-neutral-60: #a8a3a0;
+  --color-neutral-40: #c5c1bf;
+  --color-neutral-20: #e7e2dc;
+  --color-neutral-10: #f7f5f2;
+
+  /* Semantic roles built from the palette above */
+  --color-paper: var(--color-neutral-10);
+  --color-surface: var(--color-white);
+  --color-line: var(--color-neutral-20);
+  --color-line-strong: #d6cfc6;
+  --color-muted: var(--color-neutral-100);
+
+  /* Type */
+  --font-display: var(--font-bebas), 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --font-body: var(--font-montserrat), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif;
+
+  /* Shape */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  /* Depth. Built from bb.q Black at low alpha, never a fourth grey. */
+  --shadow-e1: 0 1px 2px rgb(34 30 31 / 0.06), 0 2px 8px rgb(34 30 31 / 0.05);
+  --shadow-e2: 0 6px 18px rgb(34 30 31 / 0.1), 0 2px 6px rgb(34 30 31 / 0.06);
+  --shadow-e3: 0 20px 50px rgb(34 30 31 / 0.2);
+}

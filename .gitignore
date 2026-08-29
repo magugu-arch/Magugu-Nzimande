@@ -21,6 +21,11 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# Next.js (apps/web)
+.next/
+next-env.d.ts
+.vercel/
+
 # debug
 npm-debug.*
 yarn-debug.*
