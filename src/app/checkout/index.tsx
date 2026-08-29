@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +22,7 @@ import { useAddresses, usePaymentMethods } from '@/features/account/hooks';
 import { usePlaceOrder } from '@/features/orders/hooks';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
-import { submitOrder } from '@/features/checkout/submitOrder';
+import { safeToRetry, submitOrder, type SubmitFailure } from '@/features/checkout/submitOrder';
 import { offeredPaymentMethods } from '@/features/checkout/paymentOptions';
 import { checkoutDefaults } from '@/features/checkout/checkoutDefaults';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
@@ -89,7 +89,14 @@ export default function CheckoutScreen() {
   const reconciliation = useCartReconciliation();
 
   const [chosenPaymentId, setChosenPaymentId] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  /**
+   * The whole outcome, not just its sentence.
+   *
+   * Keeping only the message threw away the one thing about a failed payment
+   * that changes what the screen should offer: whether pressing the button
+   * again is free or is how the customer ends up paying twice.
+   */
+  const [failure, setFailure] = useState<SubmitFailure | null>(null);
   const [submitting, setSubmitting] = useState(false);
   /** Guards the submit against a double tap; see `handlePlaceOrder`. */
   const inFlight = useRef(false);
@@ -148,6 +155,14 @@ export default function CheckoutScreen() {
     setStore,
     setAddress,
   ]);
+
+  /**
+   * A failure the customer must not answer by pressing the button again.
+   *
+   * `submitOrder` distinguishes four failures precisely so this question has an
+   * answer; the screen used to discard everything but the sentence.
+   */
+  const mustNotRetry = failure !== null && !safeToRetry(failure);
 
   const blocker = useMemo(() => {
     if (lines.length === 0) return 'Your cart is empty';
@@ -235,12 +250,13 @@ export default function CheckoutScreen() {
       now: new Date(),
     });
     if (stillBlocked) {
-      setSubmitError(stillBlocked);
+      // Nothing was sent anywhere, so this is as retryable as a decline.
+      setFailure({ status: 'declined', message: stillBlocked });
       return;
     }
 
     setSubmitting(true);
-    setSubmitError(null);
+    setFailure(null);
 
     // Priced here rather than from the render's closure, for the same reason
     // the blocker is re-checked above: a voucher can expire between a render
@@ -285,7 +301,7 @@ export default function CheckoutScreen() {
       );
 
       if (outcome.status !== 'placed') {
-        setSubmitError(outcome.message);
+        setFailure(outcome);
         return;
       }
 
@@ -527,11 +543,11 @@ export default function CheckoutScreen() {
           </View>
         ) : null}
 
-        {submitError ? (
-          <View style={styles.errorBox} accessibilityRole="alert">
+        {failure ? (
+          <View style={styles.errorBox} accessibilityRole="alert" testID="checkout-submit-error">
             <Ionicons name="alert-circle" size={17} color={colors.status.error} />
             <Text variant="caption" color={colors.status.error} style={styles.errorText}>
-              {submitError}
+              {failure.message}
             </Text>
           </View>
         ) : null}
@@ -547,11 +563,30 @@ export default function CheckoutScreen() {
             {blocker ?? offlineNotice}
           </Text>
         ) : null}
+
+        {/*
+          After a payment that may already have been taken, the way out is the
+          phone, not the button. Offered first and given the store's own number,
+          because "call the store" with no number is advice, not an action.
+        */}
+        {mustNotRetry && store?.phone ? (
+          <Button
+            label={`Call ${store.name}`}
+            variant="secondary"
+            onPress={() => void Linking.openURL(`tel:${store.phone}`)}
+            size="lg"
+            testID="checkout-call-store"
+          />
+        ) : null}
+
         <Button
           label="Place order"
           onPress={() => void handlePlaceOrder()}
           trailingLabel={formatPrice(totals.total)}
-          disabled={Boolean(blocker)}
+          // A second attempt is free after a decline and after a confirmed
+          // release. After the other two it is how one order becomes two holds,
+          // which is the whole reason `submitOrder` tells them apart.
+          disabled={Boolean(blocker) || mustNotRetry}
           loading={submitting}
           size="lg"
           testID="checkout-place-order"

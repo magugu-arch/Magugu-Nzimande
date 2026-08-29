@@ -35,6 +35,41 @@ export type SubmitOutcome =
    */
   | { status: 'stranded'; message: string };
 
+/**
+ * Everything except success — which is to say, everything that leaves the
+ * customer on the checkout screen with a decision to make.
+ */
+export type SubmitFailure = Exclude<SubmitOutcome, { status: 'placed' }>;
+
+/**
+ * Whether the customer can safely press the button again.
+ *
+ * The four failures above are not one failure. Two of them mean nothing was
+ * taken and a retry costs nothing; two mean the card may be — or definitely is
+ * — held, and a second attempt is how one order becomes two holds.
+ *
+ * That distinction was the entire reason this sequence was lifted out of the
+ * checkout screen, and the screen then threw it away: every outcome went to the
+ * same `setSubmitError(outcome.message)`, under a "Place order" button that
+ * stayed live. So the `uncertain` message read "we cannot tell whether your
+ * card was authorised — call the store rather than paying twice" with a working
+ * Place order button directly beneath it. The words said stop and the button
+ * said go.
+ *
+ * Exported from here rather than decided in the screen because this is the file
+ * that knows what each status means.
+ */
+export function safeToRetry(failure: SubmitFailure): boolean {
+  switch (failure.status) {
+    case 'declined': // The gateway answered no. Nothing was taken.
+    case 'reversed': // Authorised, then released, and the release was confirmed.
+      return true;
+    case 'uncertain': // No answer came back. Nobody knows.
+    case 'stranded': // Authorised, and the release was not confirmed.
+      return false;
+  }
+}
+
 export interface SubmitOrderDeps {
   authorise: (input: AuthorisePaymentInput) => Promise<PaymentResult>;
   place: (input: PlaceOrderInput) => Promise<Order>;

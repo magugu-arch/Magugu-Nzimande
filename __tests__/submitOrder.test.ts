@@ -1,6 +1,11 @@
 import type { Order, PlaceOrderInput } from '@/types';
 import type { AuthorisePaymentInput } from '@/services/paymentService';
-import { submitOrder, type SubmitOrderDeps } from '@/features/checkout/submitOrder';
+import {
+  safeToRetry,
+  submitOrder,
+  type SubmitFailure,
+  type SubmitOrderDeps,
+} from '@/features/checkout/submitOrder';
 import { ApiRequestError } from '@/services/apiClient';
 
 const payment: AuthorisePaymentInput = {
@@ -240,5 +245,88 @@ describe('when the authorisation call gets no answer', () => {
       deps({ authorise: jest.fn().mockRejectedValue(timedOut), place }),
     );
     expect(place).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Which failures a customer may answer by pressing the button again.
+ *
+ * The four outcomes above are told apart precisely so this question has an
+ * answer, and the checkout screen threw the answer away: every non-placed
+ * outcome went to one `setSubmitError(outcome.message)`, under a "Place order"
+ * button whose `disabled` looked only at pre-flight validation. So the
+ * `uncertain` message — "we cannot tell whether your card was authorised …
+ * call the store rather than paying twice" — rendered directly above a working
+ * Place order button. The words said stop; the affordance said go.
+ *
+ * The rule lives beside the statuses because this is the file that knows what
+ * they mean, and a screen is the wrong place to re-derive it.
+ */
+describe('safeToRetry', () => {
+  it('lets a customer try again when nothing was taken', async () => {
+    // A refusal is an answer: the gateway considered the card and said no.
+    const declined = await submitOrder(
+      payment,
+      orderInput,
+      deps({ authorise: jest.fn().mockRejectedValue(new Error('Card declined')) }),
+    );
+    expect(declined.status).toBe('declined');
+    expect(safeToRetry(declined as SubmitFailure)).toBe(true);
+  });
+
+  it('lets a customer try again once a hold is confirmed released', async () => {
+    const reversed = await submitOrder(
+      payment,
+      orderInput,
+      deps({
+        place: jest.fn().mockRejectedValue(new Error('Kitchen offline')),
+        release: jest.fn().mockResolvedValue(true),
+      }),
+    );
+    expect(reversed.status).toBe('reversed');
+    expect(safeToRetry(reversed as SubmitFailure)).toBe(true);
+  });
+
+  it('refuses a retry when nobody knows whether the card was charged', async () => {
+    const uncertain = await submitOrder(
+      payment,
+      orderInput,
+      deps({
+        // A timeout is not an answer — the gateway may have authorised and
+        // lost the reply, and there is no intentId to release.
+        authorise: jest
+          .fn()
+          .mockRejectedValue(
+            new ApiRequestError({ code: 'timeout', message: 'That took too long.' }),
+          ),
+      }),
+    );
+    expect(uncertain.status).toBe('uncertain');
+    expect(safeToRetry(uncertain as SubmitFailure)).toBe(false);
+  });
+
+  it('refuses a retry when the hold could not be released', async () => {
+    const stranded = await submitOrder(
+      payment,
+      orderInput,
+      deps({
+        place: jest.fn().mockRejectedValue(new Error('Kitchen offline')),
+        release: jest.fn().mockResolvedValue(false),
+      }),
+    );
+    expect(stranded.status).toBe('stranded');
+    expect(safeToRetry(stranded as SubmitFailure)).toBe(false);
+  });
+
+  it('tells the customer to check rather than to try again', () => {
+    // The copy and the affordance have to agree; this is the copy half.
+    for (const status of ['uncertain', 'stranded'] as const) {
+      const message =
+        status === 'uncertain'
+          ? 'We could not reach the payment provider, and we cannot tell whether your card was authorised. Check your banking app before trying again — if a hold is showing, call the store rather than paying twice.'
+          : 'Your order did not go through, but your card was authorised. The hold should clear shortly — call the store if it does not.';
+      expect(message).toMatch(/call the store/i);
+      expect(safeToRetry({ status, message })).toBe(false);
+    }
   });
 });
