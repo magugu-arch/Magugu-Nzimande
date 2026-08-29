@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, MIN_TOUCH_TARGET } from '@/theme';
 import { useFavouritesStore, useIsFavourite } from '@/store/favouritesStore';
+import { a11yState } from '@/utils/a11yState';
 
 export interface FavouriteButtonProps {
   productId: string;
@@ -53,7 +54,7 @@ export const FavouriteButton = memo(function FavouriteButton({
       hitSlop={{ top: slop, bottom: slop, left: slop, right: slop }}
       dataSet={{ slopX: slop, slopY: slop }}
       accessibilityRole="button"
-      accessibilityState={{ selected: favourite }}
+      {...a11yState({ selected: favourite })}
       accessibilityLabel={
         favourite ? `Remove ${productName} from favourites` : `Add ${productName} to favourites`
       }

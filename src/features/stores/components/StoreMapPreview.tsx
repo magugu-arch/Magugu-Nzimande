@@ -6,6 +6,7 @@ import { Text } from '@/components/ui';
 import { config } from '@/constants/config';
 import { absoluteFill, colors, radius, spacing } from '@/theme';
 import { DEFAULT_COORDINATES, type Coordinates } from '@/utils/geo';
+import { a11yState } from '@/utils/a11yState';
 
 export interface StoreMapPreviewProps {
   stores: Store[];
@@ -85,7 +86,7 @@ export const StoreMapPreview = memo(function StoreMapPreview({
       accessibilityLabel={origin ? 'Map of nearby bb.q stores' : 'Map of bb.q stores'}
     >
       {/* Grid backdrop */}
-      <View style={styles.grid} pointerEvents="none">
+      <View style={[styles.grid, styles.decorative]}>
         {Array.from({ length: 5 }, (_, index) => (
           <View key={`h-${index}`} style={[styles.gridLine, { top: `${(index + 1) * 16.6}%` }]} />
         ))}
@@ -99,7 +100,7 @@ export const StoreMapPreview = memo(function StoreMapPreview({
 
       {/* Customer position — only when there is one to show. */}
       {origin ? (
-        <View style={styles.you} pointerEvents="none">
+        <View style={[styles.you, styles.decorative]}>
           <View style={styles.youPulse} />
           <View style={styles.youDot} />
         </View>
@@ -124,7 +125,7 @@ export const StoreMapPreview = memo(function StoreMapPreview({
                 ? `${store.name}, ${store.distanceKm} kilometres away`
                 : `${store.name}, ${store.suburb}`
             }
-            accessibilityState={{ selected }}
+            {...a11yState({ selected })}
             style={[
               styles.pin,
               { left: `${left * 100}%`, top: `${top * 100}%` },
@@ -141,7 +142,7 @@ export const StoreMapPreview = memo(function StoreMapPreview({
       })}
 
       {config.maps.apiKey.length === 0 ? (
-        <View style={styles.notice} pointerEvents="none">
+        <View style={[styles.notice, styles.decorative]}>
           <Text variant="micro" color={colors.textOnDarkMuted}>
             SCHEMATIC VIEW
           </Text>
@@ -152,6 +153,11 @@ export const StoreMapPreview = memo(function StoreMapPreview({
 });
 
 const styles = StyleSheet.create({
+  /**
+   * Paint, not controls — the map is one pressable and these sit over it.
+   * In `style` rather than as `props.pointerEvents`, deprecated in RN 0.86.
+   */
+  decorative: { pointerEvents: 'none' },
   container: {
     borderRadius: radius.lg,
     overflow: 'hidden',

@@ -34,6 +34,7 @@ import { colors, radius, spacing } from '@/theme';
 import { describeOptions, meetsDeliveryMinimum } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
 import { formatPrice } from '@/utils/money';
+import { a11yState } from '@/utils/a11yState';
 
 /**
  * Checkout (brief §11): fulfilment, location, payment, review and confirm — as
@@ -431,7 +432,7 @@ export default function CheckoutScreen() {
                 key={method.id}
                 onPress={() => setChosenPaymentId(method.id)}
                 accessibilityRole="radio"
-                accessibilityState={{ selected }}
+                {...a11yState({ selected }, 'radio')}
                 accessibilityLabel={method.label}
                 testID={`payment-${method.id}`}
                 style={({ pressed }) => [

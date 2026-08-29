@@ -88,8 +88,10 @@ export const FoodImage = memo(function FoodImage({
       {withScrim ? (
         <LinearGradient
           colors={scrimIntensity === 'strong' ? colors.heroScrim : colors.imageScrim}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
+          // `props.pointerEvents` is deprecated in React Native 0.86; it lives
+          // in the style now. The scrim is paint, and must never eat a tap
+          // meant for what it sits over.
+          style={[StyleSheet.absoluteFill, styles.scrim]}
         />
       ) : null}
     </View>
@@ -97,6 +99,7 @@ export const FoodImage = memo(function FoodImage({
 });
 
 const styles = StyleSheet.create({
+  scrim: { pointerEvents: 'none' },
   container: {
     overflow: 'hidden',
     backgroundColor: colors.imagePlaceholder,

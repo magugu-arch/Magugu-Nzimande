@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import type { FulfilmentType } from '@/types';
 import { Text } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
+import { a11yState } from '@/utils/a11yState';
 
 export interface FulfilmentSelectorProps {
   value: FulfilmentType;
@@ -46,7 +47,7 @@ export const FulfilmentSelector = memo(function FulfilmentSelector({
             key={option.value}
             onPress={() => handleSelect(option.value)}
             accessibilityRole="radio"
-            accessibilityState={{ selected }}
+            {...a11yState({ selected }, 'radio')}
             accessibilityLabel={option.label}
             testID={`fulfilment-${option.value}`}
             style={({ pressed }) => [

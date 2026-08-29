@@ -15,6 +15,7 @@ import {
 } from '@/components/ui';
 import { useSupportTopics } from '@/features/account/hooks';
 import { colors, spacing } from '@/theme';
+import { a11yState } from '@/utils/a11yState';
 
 type Category = SupportTopic['category'] | 'all';
 
@@ -81,7 +82,7 @@ export default function HelpScreen() {
               <Pressable
                 onPress={() => setExpandedId(expanded ? null : topic.id)}
                 accessibilityRole="button"
-                accessibilityState={{ expanded }}
+                {...a11yState({ expanded })}
                 accessibilityLabel={topic.question}
                 style={styles.question}
               >

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-nat
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, spacing, HIT_SLOP, MIN_TOUCH_TARGET } from '@/theme';
 import { Text } from './Text';
+import { a11yState } from '@/utils/a11yState';
 
 export interface ChipProps {
   label: string;
@@ -51,7 +52,7 @@ export const Chip = memo(function Chip({
        */
       dataSet={{ slopX: HIT_SLOP.left, slopY: HIT_SLOP.top }}
       accessibilityRole="button"
-      accessibilityState={{ selected, disabled }}
+      {...a11yState({ selected, disabled })}
       accessibilityLabel={label}
       style={({ pressed }) => [
         styles.chip,

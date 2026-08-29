@@ -32,8 +32,14 @@ export const StickyCartBar = memo(function StickyCartBar({ offsetBottom = 0 }: S
 
   return (
     <View
-      style={[styles.wrapper, { bottom: offsetBottom + Math.max(insets.bottom, spacing.md) }]}
-      pointerEvents="box-none"
+      // `box-none` so the strip itself is see-through to taps and only the bar
+      // inside it catches them. Moved out of `props.pointerEvents`, deprecated
+      // in React Native 0.86.
+      style={[
+        styles.wrapper,
+        styles.passThrough,
+        { bottom: offsetBottom + Math.max(insets.bottom, spacing.md) },
+      ]}
     >
       <Pressable
         testID="sticky-cart-bar"
@@ -65,6 +71,7 @@ export const StickyCartBar = memo(function StickyCartBar({ offsetBottom = 0 }: S
 });
 
 const styles = StyleSheet.create({
+  passThrough: { pointerEvents: 'box-none' },
   wrapper: {
     position: 'absolute',
     left: spacing.lg,

@@ -7,6 +7,7 @@ import { FoodImage } from '@/components/food/FoodImage';
 import { Badge, Text } from '@/components/ui';
 import { colors, radius, spacing, MIN_TOUCH_TARGET } from '@/theme';
 import { formatPriceDelta } from '@/utils/money';
+import { a11yState } from '@/utils/a11yState';
 
 export interface OptionGroupPickerProps {
   group: OptionGroup;
@@ -87,7 +88,7 @@ export const OptionGroupPicker = memo(function OptionGroupPicker({
               onPress={() => !disabled && toggle(option.id)}
               disabled={disabled}
               accessibilityRole={isSingle ? 'radio' : 'checkbox'}
-              accessibilityState={{ checked: selected, disabled }}
+              {...a11yState({ checked: selected, disabled }, isSingle ? 'radio' : 'checkbox')}
               accessibilityLabel={`${option.name}, ${formatPriceDelta(option.priceDelta)}`}
               testID={`option-${option.id}`}
               style={({ pressed }) => [

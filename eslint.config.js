@@ -7,8 +7,22 @@ module.exports = defineConfig([
   expoConfig,
   prettierConfig,
   {
-    // .audit-* are generated web bundles, not source.
-    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'coverage/*', '.audit-*/**'],
+    /**
+     * Generated web bundles and their captures, not source. Every one of these
+     * is a directory some script writes and `.gitignore` drops; keep the two
+     * lists in step, or `npm run verify` starts linting a 3 MB Metro bundle and
+     * reports thousands of failures in code nobody wrote. `.preview-web` is
+     * exactly how that happened.
+     */
+    ignores: [
+      'dist/*',
+      'node_modules/*',
+      '.expo/*',
+      'coverage/*',
+      '.audit-*/**',
+      '.preview-web/**',
+      '.preview-shots/**',
+    ],
   },
   {
     rules: {

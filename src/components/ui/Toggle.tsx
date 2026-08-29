@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { colors, spacing } from '@/theme';
 import { Text } from './Text';
+import { a11yState } from '@/utils/a11yState';
 
 export interface ToggleProps {
   label: string;
@@ -43,7 +44,7 @@ export const Toggle = memo(function Toggle({
       accessibilityRole="switch"
       accessibilityLabel={label}
       accessibilityHint={description}
-      accessibilityState={{ checked: value, disabled }}
+      {...a11yState({ checked: value, disabled }, 'switch')}
       style={styles.row}
     >
       <View style={styles.titles}>
@@ -60,7 +61,9 @@ export const Toggle = memo(function Toggle({
       <Switch
         value={value}
         disabled={disabled}
-        pointerEvents="none"
+        // `props.pointerEvents` is deprecated in React Native 0.86 — it belongs
+        // in the style now, and warns on every render until it moves.
+        style={styles.decorative}
         /**
          * Hidden from the reader four ways, because no two of them cover both
          * platforms. `accessibilityElementsHidden` is iOS,
@@ -82,6 +85,8 @@ export const Toggle = memo(function Toggle({
 });
 
 const styles = StyleSheet.create({
+  /** The switch only paints the state; the row around it takes the tap. */
+  decorative: { pointerEvents: 'none' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

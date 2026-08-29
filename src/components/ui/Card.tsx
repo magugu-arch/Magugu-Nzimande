@@ -1,6 +1,7 @@
 import { memo, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, elevation, radius, spacing } from '@/theme';
+import { a11yState } from '@/utils/a11yState';
 
 export interface CardProps {
   children: ReactNode;
@@ -74,7 +75,7 @@ export const Card = memo(function Card({
           onPress={onPress}
           accessibilityRole="button"
           accessibilityLabel={accessibilityLabel}
-          accessibilityState={{ selected }}
+          {...a11yState({ selected })}
           style={({ pressed }) => [
             styles.splitMain,
             padded ? styles.padded : null,
@@ -94,7 +95,7 @@ export const Card = memo(function Card({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ selected }}
+      {...a11yState({ selected })}
       style={({ pressed }) => [containerStyle, pressed ? styles.pressed : null]}
     >
       {children}

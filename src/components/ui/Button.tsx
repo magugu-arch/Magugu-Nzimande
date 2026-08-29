@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, spacing, MIN_TOUCH_TARGET, elevation } from '@/theme';
 import { Text } from './Text';
+import { a11yState } from '@/utils/a11yState';
 
 /** The four levels of guidelines §22.2, in descending emphasis. */
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'text';
@@ -187,7 +188,7 @@ export const Button = memo(function Button({
       dataSet={{ slopX: 0, slopY: shortfall }}
       accessibilityRole="button"
       accessibilityLabel={trailingLabel ? `${label}, ${trailingLabel}` : label}
-      accessibilityState={{ disabled: isInactive, busy: loading }}
+      {...a11yState({ disabled: isInactive, busy: loading })}
       accessibilityHint={accessibilityHint}
       style={({ pressed }) => {
         const tone = toneFor(pressed && !isInactive);

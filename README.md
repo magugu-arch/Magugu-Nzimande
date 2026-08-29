@@ -374,11 +374,19 @@ Never hard-code a hex value or font size in a component — import from
 interactive element carries an accessibility label and state — both measured by
 `npm run audit:screens` on all 31 routes, rather than asserted here.
 
-That distinction was earned. This paragraph claimed the touch-target rule while
-ten controls broke it, including the quantity stepper on every cart line, the
-switches that withdraw marketing consent, and the bin icons that delete a saved
-card or address. The check existed but ran on three screens out of twenty-nine,
-which reads exactly like a check that runs on all of them.
+That distinction was earned twice. This paragraph claimed the touch-target rule
+while ten controls broke it, including the quantity stepper on every cart line,
+the switches that withdraw marketing consent, and the bin icons that delete a
+saved card or address. The check existed but ran on three screens out of
+twenty-nine, which reads exactly like a check that runs on all of them.
+
+It then went on claiming "and state" with nothing measuring that half at
+all. The app said state through React Native's
+`accessibilityState`, which React Native Web 0.21 does not map: every switch on
+this screen announced "Order updates, switch" and never whether order updates
+were on, before or after being toggled. Eighteen switches, zero state
+attributes. `utils/a11yState.ts` now says it in both dialects — and, because
+`aria-selected` means nothing on a button, says the right one for each role.
 
 The logo is only ever drawn by `components/brand/BrandMark.tsx`, which picks
 between the two approved variants and sizes them from the master's own aspect

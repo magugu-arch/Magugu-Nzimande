@@ -15,8 +15,10 @@
  *   · the screen rendered something, and the content routes rendered the
  *     data they exist to show — not just an empty state
  *   · no console errors or uncaught exceptions
- *   · §32.6: every interactive element has an accessible name, and every
- *     focusable one shows a visible focus ring
+ *   · §32.6: every interactive element has an accessible name, every focusable
+ *     one shows a visible focus ring, and every control with a state says what
+ *     it is — a switch that never announces on or off is a switch a screen
+ *     reader cannot use
  *   · no control is nested inside another — invalid HTML, and ambiguous to a
  *     screen reader. Checked structurally, because this runs against a release
  *     build where React's own warning about it is compiled out
@@ -205,6 +207,40 @@ const a11yProbe = (checkFocusRings) => {
   }
 
   /**
+   * A control that has a state, saying what it is.
+   *
+   * The README claimed this was measured here. It was not: this probe checked
+   * names and focus rings, and the app expressed state only through React
+   * Native's `accessibilityState`, which React Native Web 0.21 does not map. So
+   * every switch on `/account/preferences` announced "Order updates, switch"
+   * and never whether order updates were on — before or after being toggled —
+   * and the whole screen carried zero state attributes.
+   *
+   * A role with a required state and no attribute to carry it is the defect.
+   * `aria-selected` is checked the other way round, because it is only
+   * meaningful on a few roles and is worse than silence anywhere else.
+   */
+  const REQUIRED_STATE = {
+    switch: 'aria-checked',
+    radio: 'aria-checked',
+    checkbox: 'aria-checked',
+    tab: 'aria-selected',
+  };
+  const SELECTABLE = ['tab', 'option', 'row', 'gridcell', 'treeitem'];
+
+  const stateless = [];
+  const misstated = [];
+  for (const el of interactive) {
+    const role = el.getAttribute('role');
+    const needs = role ? REQUIRED_STATE[role] : undefined;
+    const label = (el.getAttribute('aria-label') ?? el.textContent ?? role ?? '').trim().slice(0, 32);
+    if (needs && !el.hasAttribute(needs)) stateless.push(`${role} "${label}" has no ${needs}`);
+    if (el.hasAttribute('aria-selected') && !SELECTABLE.includes(role ?? '')) {
+      misstated.push(`${role ?? el.tagName.toLowerCase()} "${label}" carries aria-selected`);
+    }
+  }
+
+  /**
    * One control inside another.
    *
    * `<button>` inside `<button>` is invalid HTML, and a screen reader has the
@@ -285,7 +321,7 @@ const a11yProbe = (checkFocusRings) => {
     small.push({ label, w: Math.round(width), h: Math.round(height) });
   }
 
-  return { unnamed, noRing, small, hiddenButLive, nested, focusableCount: focusable.length };
+  return { unnamed, noRing, small, hiddenButLive, nested, stateless, misstated, focusableCount: focusable.length };
 };
 
 let chromium;
@@ -417,6 +453,10 @@ try {
         }
         for (const n of a.nested) {
           findings.push(`${route} — nested control: ${n} (invalid HTML, ambiguous to a reader)`);
+        }
+        for (const s of a.stateless) findings.push(`${route} — ${s} (§32.6)`);
+        for (const m of a.misstated) {
+          findings.push(`${route} — ${m}, which means nothing on that role (§32.6)`);
         }
       }
     }
