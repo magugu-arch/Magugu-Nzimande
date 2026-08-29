@@ -23,6 +23,7 @@
     "assets:typefit": "node scripts/audit-type-fit.mjs",
     "preview:web": "expo start --web",
     "preview:shots": "node scripts/preview-shots.mjs",
+    "bundle:single": "node scripts/bundle-single-file.mjs",
     "audit:screens": "node scripts/audit-screens.mjs",
     "smoke:order": "node scripts/smoke-order.mjs",
     "build:dev": "eas build --profile development --platform all",

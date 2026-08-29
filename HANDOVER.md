@@ -48,7 +48,17 @@ npm run verify        # typecheck → lint → test, the gate before any commit
 npm run preview:web   # the whole app in a browser, no build required
 npm run audit:screens # renders all 31 routes at two widths and reports defects
 npm run smoke:order   # signs in, adds an item and places an order, for real
+npm run bundle:single # folds the web export into one self-contained HTML file
 ```
+
+`bundle:single` is for sending the app to somebody who has no toolchain — a
+franchise partner, a reviewer, anyone with a browser. It inlines the bundle and
+every photograph into a single document, so there is nothing to serve and
+nothing to install. Run `expo export --platform web` first; it reads that build.
+Two caveats worth stating when you send it: the photographs are re-encoded
+smaller than the store build ships, and because there is only one document,
+deep links into a route cannot work — the app opens at its own start and is
+navigated from there.
 
 The browser preview is the fastest way to see a change. It is not the device —
 gestures, haptics and push do not apply — but layout and typography are honest,
