@@ -17,6 +17,9 @@
  *   · no console errors or uncaught exceptions
  *   · §32.6: every interactive element has an accessible name, and every
  *     focusable one shows a visible focus ring
+ *   · no control is nested inside another — invalid HTML, and ambiguous to a
+ *     screen reader. Checked structurally, because this runs against a release
+ *     build where React's own warning about it is compiled out
  *
  * Needs Playwright's Chromium once: npx playwright install chromium
  * On a machine that already has one (a CI image, a sandbox), point at it with
@@ -201,6 +204,34 @@ const a11yProbe = (checkFocusRings) => {
     if (!name) unnamed.push(el.getAttribute('role') ?? el.tagName.toLowerCase());
   }
 
+  /**
+   * One control inside another.
+   *
+   * `<button>` inside `<button>` is invalid HTML, and a screen reader has the
+   * parser's problem: two controls at one position and no way to say which a
+   * tap meant. It is easy to write, because a `Pressable` inside a `Pressable`
+   * is ordinary in React Native and only becomes illegal once React Native Web
+   * compiles both to buttons — which is how the menu shipped with every product
+   * row wrapping its own favourite heart.
+   *
+   * Checked structurally rather than by listening for React's warning about it,
+   * because this sweep runs against `expo export` — a release build, where
+   * those warnings are compiled out. The console this sweep watches is not the
+   * console that would have told us.
+   */
+  const nested = [];
+  for (const el of interactive) {
+    const inner = [
+      ...el.querySelectorAll('[role="button"],[role="tab"],[role="link"],[role="switch"],button,input,a[href]'),
+    ].filter((child) => visibleOnly(child) && !decorative(child));
+    for (const child of inner) {
+      nested.push(
+        `${(el.getAttribute('aria-label') ?? el.textContent ?? el.tagName).trim().slice(0, 28)} ` +
+          `contains ${(child.getAttribute('aria-label') ?? child.textContent ?? child.tagName).trim().slice(0, 28)}`,
+      );
+    }
+  }
+
   const focusable = [
     ...document.querySelectorAll('[tabindex]:not([tabindex="-1"]),button,input,a[href]'),
   ]
@@ -254,7 +285,7 @@ const a11yProbe = (checkFocusRings) => {
     small.push({ label, w: Math.round(width), h: Math.round(height) });
   }
 
-  return { unnamed, noRing, small, hiddenButLive, focusableCount: focusable.length };
+  return { unnamed, noRing, small, hiddenButLive, nested, focusableCount: focusable.length };
 };
 
 let chromium;
@@ -383,6 +414,9 @@ try {
           findings.push(
             `${route} — "${t.label}" is ${t.w}x${t.h} to a thumb, under the 44x44 of §22.9`,
           );
+        }
+        for (const n of a.nested) {
+          findings.push(`${route} — nested control: ${n} (invalid HTML, ambiguous to a reader)`);
         }
       }
     }

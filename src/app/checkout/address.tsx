@@ -186,23 +186,11 @@ export default function AddressScreen() {
               selected={selected}
               accessibilityLabel={`${address.label}, ${address.line1}, ${address.suburb}`}
               testID={`address-card-${address.id}`}
-            >
-              <View style={styles.addressHeader}>
-                <View style={styles.addressTitles}>
-                  <View style={styles.labelRow}>
-                    <Text variant="h3">{address.label}</Text>
-                    {address.isDefault ? <Badge label="Default" tone="neutral" /> : null}
-                  </View>
-                  <Text variant="caption" color={colors.textSecondary}>
-                    {address.line1}
-                    {address.line2 ? `, ${address.line2}` : ''}
-                  </Text>
-                  <Text variant="caption" color={colors.textSecondary}>
-                    {address.suburb}, {address.city}, {address.postalCode}
-                  </Text>
-                </View>
-
-                {selected ? (
+              // Outside the card's pressable region rather than inside it: a
+              // delete button within a selectable card is a `<button>` inside a
+              // `<button>` on web, and two controls at one spot to a reader.
+              trailing={
+                selected ? (
                   <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
                 ) : (
                   <Pressable
@@ -219,7 +207,23 @@ export default function AddressScreen() {
                   >
                     <Ionicons name="trash-outline" size={19} color={colors.textMuted} />
                   </Pressable>
-                )}
+                )
+              }
+            >
+              <View style={styles.addressHeader}>
+                <View style={styles.addressTitles}>
+                  <View style={styles.labelRow}>
+                    <Text variant="h3">{address.label}</Text>
+                    {address.isDefault ? <Badge label="Default" tone="neutral" /> : null}
+                  </View>
+                  <Text variant="caption" color={colors.textSecondary}>
+                    {address.line1}
+                    {address.line2 ? `, ${address.line2}` : ''}
+                  </Text>
+                  <Text variant="caption" color={colors.textSecondary}>
+                    {address.suburb}, {address.city}, {address.postalCode}
+                  </Text>
+                </View>
               </View>
             </Card>
           );
