@@ -8,7 +8,6 @@ import {
   type Store,
 } from '@bbq/types';
 import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/Button';
 import { Price } from '@/components/ui/Price';
 import type { AuditEntry } from '@/lib/catalogue-state';
 
@@ -30,18 +29,24 @@ type Tab = (typeof TABS)[number];
 export function OperationsConsole({
   initialProducts,
   initialStores,
+  initialOrders,
+  initialAudit,
   promotions,
 }: {
   initialProducts: readonly Product[];
   initialStores: readonly Store[];
+  initialOrders: readonly QueueOrder[];
+  initialAudit: readonly AuditEntry[];
   promotions: readonly Promotion[];
 }) {
   const [tab, setTab] = useState<Tab>('Orders');
   const [products, setProducts] = useState<readonly Product[]>(initialProducts);
   const [hiddenSlugs, setHiddenSlugs] = useState<string[]>([]);
   const [stores, setStores] = useState<readonly Store[]>(initialStores);
-  const [orders, setOrders] = useState<QueueOrder[]>([]);
-  const [audit, setAudit] = useState<AuditEntry[]>([]);
+  // Seeded from the server render, so the queue is on screen at first paint and
+  // the effect below only has to keep it current.
+  const [orders, setOrders] = useState<readonly QueueOrder[]>(initialOrders);
+  const [audit, setAudit] = useState<readonly AuditEntry[]>(initialAudit);
   const [busy, setBusy] = useState(false);
 
   const refreshQueue = useCallback(async () => {
@@ -57,7 +62,6 @@ export function OperationsConsole({
   }, []);
 
   useEffect(() => {
-    void refreshQueue();
     const timer = window.setInterval(refreshQueue, 15_000);
     return () => window.clearInterval(timer);
   }, [refreshQueue]);

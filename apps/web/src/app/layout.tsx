@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Bebas_Neue, Montserrat } from 'next/font/google';
+import { BRAND } from '@bbq/ui/tokens';
 import { SiteShell } from '@/components/chrome/SiteShell';
 import { api } from '@/lib/api';
 import './globals.css';
@@ -40,7 +41,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#221E1F',
+  // The browser chrome takes bb.q Black, one of the two preferred grounds.
+  themeColor: BRAND.black,
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',

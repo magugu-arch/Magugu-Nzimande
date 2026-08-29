@@ -1,3 +1,4 @@
+import { EXCLUSIVE_SAUCE_GROUPS } from '@bbq/seed';
 import type { OptionGroup, OrderLine, SelectedOption } from '@bbq/types';
 
 /** A selection is group key to chosen labels. Single groups hold exactly one. */
@@ -43,6 +44,45 @@ export function toSelectedOptions(
       choices: selection[group.key] ?? [],
     }))
     .filter((option) => option.choices.length > 0);
+}
+
+/**
+ * Applies one option choice to a selection.
+ *
+ * A multi group toggles. A single group replaces. The one rule with teeth is
+ * Half and Half: its two sauce groups may never hold the same sauce, so
+ * choosing a sauce the other half already holds moves that half to the first
+ * sauce still free, rather than quietly accepting one flavour on both halves.
+ */
+export function chooseOption(
+  groups: readonly OptionGroup[],
+  selection: Selection,
+  group: OptionGroup,
+  label: string,
+): Selection {
+  if (group.multi) {
+    const chosen = selection[group.key] ?? [];
+    return {
+      ...selection,
+      [group.key]: chosen.includes(label)
+        ? chosen.filter((candidate) => candidate !== label)
+        : [...chosen, label],
+    };
+  }
+
+  const next: Selection = { ...selection, [group.key]: [label] };
+
+  const exclusive = EXCLUSIVE_SAUCE_GROUPS as readonly string[];
+  if (exclusive.includes(group.key)) {
+    const otherKey = exclusive.find((key) => key !== group.key);
+    const otherGroup = otherKey ? groups.find((candidate) => candidate.key === otherKey) : undefined;
+    if (otherKey && otherGroup && next[otherKey]?.[0] === label) {
+      const free = otherGroup.choices.find((choice) => choice.label !== label);
+      if (free) next[otherKey] = [free.label];
+    }
+  }
+
+  return next;
 }
 
 /**

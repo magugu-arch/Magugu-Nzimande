@@ -88,6 +88,12 @@ export function OrderingProvider({
   const [announcement, setAnnouncement] = useState('');
 
   useEffect(() => {
+    /* Reading the basket back out of localStorage is the one-time
+       synchronisation with an external store that effects exist for. It cannot
+       be lazy initial state: the server has no localStorage, so seeding from it
+       during the first render would contradict the markup the server sent.
+       These writes batch into a single render, and run once. */
+    /* eslint-disable react-hooks/set-state-in-effect */
     const saved = readPersisted();
     if (saved) {
       if (saved.mode) setModeState(saved.mode);
@@ -99,6 +105,7 @@ export function OrderingProvider({
       if (Array.isArray(saved.orders)) setOrders(saved.orders);
     }
     setHydrated(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [stores]);
 
   useEffect(() => {

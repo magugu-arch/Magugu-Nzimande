@@ -1,7 +1,13 @@
 import type { Metadata } from 'next';
 import { OperationsConsole } from '@/components/admin/OperationsConsole';
 import { api } from '@/lib/api';
+import { readAudit } from '@/lib/catalogue-state';
+import { labelFor, listOrders } from '@/lib/order-store';
 import { PRODUCTS } from '@bbq/seed';
+
+// The queue lives in the server process, so this page must be rendered per
+// request rather than prerendered at build time with an empty rail.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Operations console',
@@ -25,6 +31,11 @@ export default function AdminPage() {
           // catalogue rather than the customer-facing one.
           initialProducts={PRODUCTS}
           initialStores={api.getStores()}
+          initialOrders={listOrders().map((order) => ({
+            ...order,
+            statusLabel: labelFor(order),
+          }))}
+          initialAudit={readAudit()}
           promotions={api.getPromotions()}
         />
       </div>

@@ -43,12 +43,15 @@ export function OrderJourney() {
     if (trackedStatus === 'completed' || trackedStatus === 'cancelled') return;
 
     let cancelled = false;
+    // Captured after the guard above, so the nested closure holds a string
+    // rather than reaching back for a value the compiler cannot re-narrow.
+    const id = trackedId;
 
     async function poll() {
       try {
         // Advancing on the tick stands in for a kitchen display system, so the
         // five states can be watched end to end without one.
-        const result = await advanceOrder(trackedId!);
+        const result = await advanceOrder(id);
         if (cancelled) return;
         setOrder(result.order);
         recordOrder(result.order);
@@ -102,7 +105,8 @@ export function OrderJourney() {
   }
 
   function reorder() {
-    for (const line of tracked!.lines) {
+    if (!tracked) return;
+    for (const line of tracked.lines) {
       addLine({
         slug: line.slug,
         name: line.name,

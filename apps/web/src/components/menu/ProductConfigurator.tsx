@@ -1,6 +1,5 @@
 'use client';
 
-import { EXCLUSIVE_SAUCE_GROUPS } from '@bbq/seed';
 import type { OptionGroup, ProductWithOptions } from '@bbq/types';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -9,7 +8,13 @@ import { useOrdering } from '@/components/ordering/OrderingProvider';
 import { Button } from '@/components/ui/Button';
 import { Price } from '@/components/ui/Price';
 import { QuantityStepper } from '@/components/ui/QuantityStepper';
-import { defaultSelection, toSelectedOptions, unitPriceFor, type Selection } from '@/lib/cart';
+import {
+  chooseOption,
+  defaultSelection,
+  toSelectedOptions,
+  unitPriceFor,
+  type Selection,
+} from '@/lib/cart';
 
 /**
  * Picks the options for one product and puts it in the basket.
@@ -33,33 +38,7 @@ export function ProductConfigurator({ product }: { product: ProductWithOptions }
   );
 
   function choose(group: OptionGroup, label: string) {
-    setSelection((current) => {
-      if (group.multi) {
-        const chosen = current[group.key] ?? [];
-        return {
-          ...current,
-          [group.key]: chosen.includes(label)
-            ? chosen.filter((candidate) => candidate !== label)
-            : [...chosen, label],
-        };
-      }
-
-      const next: Selection = { ...current, [group.key]: [label] };
-
-      const exclusive = EXCLUSIVE_SAUCE_GROUPS as readonly string[];
-      if (exclusive.includes(group.key)) {
-        const otherKey = exclusive.find((key) => key !== group.key);
-        const otherGroup = otherKey ? groups.find((candidate) => candidate.key === otherKey) : null;
-        if (otherKey && otherGroup && next[otherKey]?.[0] === label) {
-          // The other half now holds the same sauce, so move it to the first
-          // sauce that is still free.
-          const free = otherGroup.choices.find((choice) => choice.label !== label);
-          if (free) next[otherKey] = [free.label];
-        }
-      }
-
-      return next;
-    });
+    setSelection((current) => chooseOption(groups, current, group, label));
   }
 
   function addToBasket() {

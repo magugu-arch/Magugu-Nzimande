@@ -20,15 +20,20 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import tokens from '../../packages/ui/src/tokens.json' with { type: 'json' };
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../..');
 const MASTERS = path.join(REPO, 'assets/brand/masters');
 const OUT = path.join(REPO, 'apps/web/public/brand');
 
+function rgb(hex) {
+  return [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
+}
+
 /** bb.q Red and bb.q Black, the only two inks in the master. */
-const RED = [0xe3, 0x19, 0x37];
-const BLACK = [0x22, 0x1e, 0x1f];
+const RED = rgb(tokens.brand.red);
+const BLACK = rgb(tokens.brand.black);
 
 const LOCKUP_WIDTHS = [240, 480, 720];
 const SYMBOL_WIDTHS = [96, 192, 512];
