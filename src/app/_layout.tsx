@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
+import { startFavouritesSync } from '@/features/favourites/sync';
 // Imported per weight, not from the package root. The root barrel `require()`s
 // all eighteen Montserrat cuts and both Playfair faces, and Metro follows it —
 // roughly 6MB of fonts to ship the eight the type scale actually names.
@@ -89,6 +90,11 @@ export default function RootLayout() {
     // error, the app falls back to the platform face, and the splash lifts.
     if (fontsLoaded || fontError) void SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
+
+  // Push hearted products to the account as they change. Started once, for the
+  // life of the app, because the store it listens to outlives every screen —
+  // a heart can be given on the menu, the product page or a reorder row.
+  useEffect(() => startFavouritesSync(), []);
 
   if (!fontsLoaded && !fontError) return null;
 

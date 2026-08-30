@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppPreferences, AuthSession, NotificationPreferences, UserProfile } from '@/types';
 import { createGuestUser, signOut as signOutService } from '@/services/authService';
+import { pullFavourites } from '@/features/favourites/sync';
 import { useFavouritesStore } from './favouritesStore';
 
 /**
@@ -96,6 +97,13 @@ export const useAuthStore = create<AuthState>()(
         // inherited a stranger's hearted dishes — under a Favourites tab that
         // presents them as their own.
         useFavouritesStore.getState().claimFor(session.user.isGuest ? null : session.user.id);
+
+        // And now that the list is known to be theirs, merge in whatever the
+        // account already had — a heart given on another handset. Deliberately
+        // not awaited: signing in must not wait on it, and `pullFavourites`
+        // never throws, so there is nothing here to catch. A guest has no
+        // account to merge from.
+        if (!session.user.isGuest) void pullFavourites();
 
         set({ user: session.user, isAuthenticated: true, isGuest: session.user.isGuest });
       },

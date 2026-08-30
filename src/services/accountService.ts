@@ -27,6 +27,14 @@ let paymentLedger: PaymentMethod[] = blank ? [] : [...savedPaymentMethods];
 let notificationLedger: AppNotification[] = [...notifications];
 
 /**
+ * The mock's stored favourites — what another device would have pushed.
+ *
+ * Seeded for the returning customer so the merge on sign-in has something to
+ * merge, and empty for `new-customer`, who has never hearted anything.
+ */
+let favouriteLedger: string[] = blank ? [] : ['honey-garlic', 'cheesling-fries'];
+
+/**
  * The mock's live ledgers, for other mock endpoints to read.
  *
  * Only the mock layer has any business calling these — a real backend already
@@ -129,6 +137,36 @@ export async function setDefaultPaymentMethod(methodId: string): Promise<Payment
     isDefault: method.id === methodId,
   }));
   return delay(paymentLedger, 250);
+}
+
+/**
+ * Hearted products, server side.
+ *
+ * The list is sent whole rather than as add/remove deltas, and that is the
+ * decision that makes the rest of this simple. A favourite is a preference,
+ * not a transaction: there is no partial state worth protecting, so the client
+ * owns the list, PUTs it entire, and last write wins. A failed push therefore
+ * costs nothing — the local copy is still authoritative and the next push
+ * carries everything, including whatever the failed one was meant to say.
+ *
+ * Deltas would need an outbox, ordering and idempotency keys to survive a
+ * flaky connection. For a list of hearts that is a great deal of machinery to
+ * protect something the customer can redo with one tap.
+ */
+export async function fetchFavourites(): Promise<string[]> {
+  if (config.useMockApi) return delay(favouriteLedger);
+  return request<string[]>('/v1/account/favourites');
+}
+
+export async function saveFavourites(productIds: string[]): Promise<string[]> {
+  if (!config.useMockApi) {
+    return request<string[]>('/v1/account/favourites', {
+      method: 'PUT',
+      body: { productIds },
+    });
+  }
+  favouriteLedger = [...productIds];
+  return delay(favouriteLedger, 200);
 }
 
 export async function fetchNotifications(): Promise<AppNotification[]> {

@@ -17,7 +17,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 48 suites; `npm test` prints the count                                                                  |
+| Tests            | 51 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -136,7 +136,8 @@ Profiles are in `eas.json`: `development`, `development-simulator`, `preview`
 
 ## 5. What is stubbed, and where to pick it up
 
-Five integrations need something external. Each has a marked hook-in point.
+Four integrations need something external. Each has a marked hook-in point.
+(Favourites sync was the fifth; it is done — see below.)
 
 | What                  | Where                                                                                | Needs                                                                                                                                |
 | --------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
@@ -144,7 +145,27 @@ Five integrations need something external. Each has a marked hook-in point.
 | **Address geocoding** | `app/checkout/address.tsx` — saves a typed address with no coordinates at all        | A geocoder, or a backend that geocodes on POST. Until then the delivery radius cannot judge a typed address, and does not pretend to |
 | **Store map**         | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes                           |
 | **Crash reporting**   | `ErrorBoundary` takes an `onError`                                                   | Sentry or Crashlytics                                                                                                                |
-| **Favourites sync**   | `store/favouritesStore.ts` — local and persisted                                     | `POST /v1/account/favourites`, so a heart follows the account to a new phone                                                         |
+
+**Favourites sync is done.** `features/favourites/sync.ts` carries hearted
+products between the handset and the account: `GET /v1/account/favourites` on
+sign-in, `PUT` of the whole list, debounced, as they change. Three decisions
+worth knowing before you point it at a real backend:
+
+- **The list is sent whole, not as deltas.** A favourite is a preference, not a
+  transaction, so there is no partial state to protect. That makes a failed
+  push free — local is still authoritative and the next push carries whatever
+  the failed one was meant to say — which is why there is no outbox, no retry
+  and no idempotency key. Deltas would need all three.
+- **Sign-in merges by union.** Server-wins would delete the hearts a guest gave
+  before signing in, which is the failure `favouritesStore` was written to
+  avoid; local-wins would let a fresh handset erase the account's list. Union
+  is the only rule that cannot lose a tap somebody meant.
+- **The store still knows nothing about the network.** A heart never waits on a
+  request, so it works offline and on a cold start exactly as before.
+
+The backend owes a `PUT` that accepts `{ productIds: string[] }` and returns the
+stored array. Ordering is the client's — most recently hearted first — so store
+it as given rather than sorting it.
 
 Also outstanding, and deliberate:
 
