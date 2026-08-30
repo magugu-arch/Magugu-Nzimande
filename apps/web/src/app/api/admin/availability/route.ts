@@ -1,6 +1,7 @@
 import { z } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import {
+  hiddenSlugs,
   isHidden,
   isSoldOut,
   recordAudit,
@@ -48,8 +49,4 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ products: visibleProducts(), hidden: hiddenSlugs() });
-}
-
-function hiddenSlugs(): string[] {
-  return PRODUCTS.filter((product) => isHidden(product.slug)).map((product) => product.slug);
 }

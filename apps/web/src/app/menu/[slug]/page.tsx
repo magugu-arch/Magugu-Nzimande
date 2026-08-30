@@ -8,9 +8,10 @@ import { HeatMeter } from '@/components/ui/HeatMeter';
 import { Price } from '@/components/ui/Price';
 import { api } from '@/lib/api';
 
-export function generateStaticParams() {
-  return api.getProducts().map((product) => ({ slug: product.slug }));
-}
+// Availability and store service rules are written by the operations console
+// at runtime, so this page is rendered per request. With Postgres behind it
+// this becomes cached with a revalidation tag rather than dynamic.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,

@@ -23,6 +23,8 @@ export function Logo({
   className,
 }: {
   reversed?: boolean;
+  /** Rendered height in pixels. A className may override it responsively, in
+   *  which case pair it with `w-auto` so the lock-up keeps its proportions. */
   height?: number;
   priority?: boolean;
   className?: string;

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { OperationsConsole } from '@/components/admin/OperationsConsole';
 import { api } from '@/lib/api';
-import { readAudit } from '@/lib/catalogue-state';
+import { hiddenSlugs, readAudit } from '@/lib/catalogue-state';
 import { labelFor, listOrders } from '@/lib/order-store';
 import { PRODUCTS } from '@bbq/seed';
 
@@ -36,6 +36,7 @@ export default function AdminPage() {
             statusLabel: labelFor(order),
           }))}
           initialAudit={readAudit()}
+          initialHidden={hiddenSlugs()}
           promotions={api.getPromotions()}
         />
       </div>

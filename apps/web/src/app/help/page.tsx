@@ -2,6 +2,11 @@ import type { Metadata } from 'next';
 import { DemoFlag, DemoNotice } from '@/components/ui/DemoValue';
 import { api } from '@/lib/api';
 
+// Availability and store service rules are written by the operations console
+// at runtime, so this page is rendered per request. With Postgres behind it
+// this becomes cached with a revalidation tag rather than dynamic.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Help and allergens',
   description:

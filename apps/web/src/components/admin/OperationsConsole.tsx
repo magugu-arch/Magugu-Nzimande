@@ -31,17 +31,19 @@ export function OperationsConsole({
   initialStores,
   initialOrders,
   initialAudit,
+  initialHidden,
   promotions,
 }: {
   initialProducts: readonly Product[];
   initialStores: readonly Store[];
   initialOrders: readonly QueueOrder[];
   initialAudit: readonly AuditEntry[];
+  initialHidden: readonly string[];
   promotions: readonly Promotion[];
 }) {
   const [tab, setTab] = useState<Tab>('Orders');
   const [products, setProducts] = useState<readonly Product[]>(initialProducts);
-  const [hiddenSlugs, setHiddenSlugs] = useState<string[]>([]);
+  const [hiddenSlugs, setHiddenSlugs] = useState<readonly string[]>(initialHidden);
   const [stores, setStores] = useState<readonly Store[]>(initialStores);
   // Seeded from the server render, so the queue is on screen at first paint and
   // the effect below only has to keep it current.

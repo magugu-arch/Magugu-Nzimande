@@ -29,7 +29,9 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-line bg-white">
       <div className="mx-auto flex h-[68px] w-full max-w-[1240px] items-center gap-5 px-5">
         <Link href="/" className="flex-none py-2" aria-label="bb.q Chicken, home">
-          <Logo height={30} priority />
+          {/* The lock-up steps down on the narrowest handsets so the header
+              still fits its controls at 320px. */}
+          <Logo height={30} priority className="h-6 w-auto sm:h-[30px]" />
         </Link>
 
         <nav className="hidden lg:flex" aria-label="Primary">
@@ -58,9 +60,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+          {/* Below sm the account link lives in the menu below instead, so the
+              header has room for the basket at 320px. */}
           <Link
             href="/account"
-            className="grid size-10 place-items-center rounded-full border border-line bg-white transition-colors hover:border-line-strong hover:bg-paper"
+            className="hidden size-10 place-items-center rounded-full border border-line bg-white transition-colors hover:border-line-strong hover:bg-paper sm:grid"
             aria-label="Your account"
           >
             <svg viewBox="0 0 20 20" className="size-4.5" aria-hidden="true">
@@ -118,7 +122,7 @@ export function SiteHeader() {
           className="border-t border-line bg-white lg:hidden"
         >
           <ul className="mx-auto w-full max-w-[1240px] px-5 py-2">
-            {NAV.map((item) => (
+            {[...NAV, { href: '/account' as Route, label: 'Your account' }].map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
