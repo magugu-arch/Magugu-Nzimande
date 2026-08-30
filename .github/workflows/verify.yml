@@ -224,3 +224,37 @@ jobs:
             git --no-pager diff --stat -- assets assets/brand
             exit 1
           fi
+
+  web:
+    name: Website — brand rules, typecheck, lint, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Three installs rather than one: the website is deliberately not a
+      # workspace of the Expo app at the root, so that satisfying one cannot
+      # hoist the other's dependencies out from under it.
+      - name: Install website dependencies
+        run: npm ci
+        working-directory: apps/web
+
+      - name: Install shared schema dependencies
+        run: npm ci
+        working-directory: packages/types
+
+      - name: Install asset pipeline dependencies
+        run: npm ci
+        working-directory: infra
+
+      # Runs the brand rules, typecheck, lint, tests, then generates the image
+      # derivatives from the masters and builds. The derivatives are generated
+      # rather than committed, so a master that has gone missing fails here.
+      - name: Verify
+        run: npm run verify
+        working-directory: apps/web

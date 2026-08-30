@@ -9,6 +9,12 @@ Africa, built to the supplied product brief.
 **Stack:** Expo SDK 57 · React Native 0.86 · React 19 · TypeScript (strict) ·
 Expo Router · TanStack Query · Zustand
 
+> **Looking for the website?** The ordering site is a separate deliverable in
+> [`apps/web`](./apps/web/README.md) — Next.js App Router, sharing the same
+> brand rules, the same supplied masters and the same twelve-route journey.
+> It has its own install and its own `npm run verify`; nothing it does touches
+> this app's dependencies.
+
 ---
 
 ## Quick start
