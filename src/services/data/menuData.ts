@@ -165,6 +165,24 @@ const HALF_FLAVOUR_GROUP: OptionGroup = {
   ],
 };
 
+/**
+ * The seven categories that have supplied products, in the brief's own order.
+ *
+ * §8 and §17 name nine. Drinks and Sauces & Extras are typed in `CategoryId`
+ * but deliberately absent here, and the reason is photography rather than
+ * naming: both already exist as add-ons — `DRINK_GROUP` and `SAUCE_GROUP`
+ * below carry the items and their prices — but a *browsable* category needs
+ * product cards, and a card needs a photograph. None was supplied for a drink
+ * or a sauce; the cups in the campaign masters are dressing on a chicken shot,
+ * not product artwork. `npm run assets:audit` fails the build for a catalogue
+ * product with no artwork of its own, which is exactly the guard that should
+ * stop someone promoting these to products before the shoot lands.
+ *
+ * Five of the seven hold a single product today. That is the supplied menu
+ * being sixteen items, not the taxonomy being wrong — §17 asks for this
+ * structure precisely so "the wider menu supplied elsewhere in the project"
+ * has somewhere to land without a refactor.
+ */
 export const categories: Category[] = [
   {
     id: 'chicken',
@@ -174,18 +192,46 @@ export const categories: Category[] = [
     sortOrder: 1,
   },
   {
+    id: 'wings',
+    name: 'Wings',
+    tagline: 'All the crunch, none of the cutlery',
+    assetKey: 'goldenOriginalWings',
+    sortOrder: 2,
+  },
+  {
+    id: 'boneless',
+    name: 'Boneless',
+    tagline: 'Bite-sized, built for sharing',
+    assetKey: 'boneless',
+    sortOrder: 3,
+  },
+  {
     id: 'meals',
     name: 'Meals',
     tagline: 'A full plate, sorted',
     assetKey: 'chickenRiceMeal',
-    sortOrder: 2,
+    sortOrder: 4,
+  },
+  {
+    id: 'burgers',
+    name: 'Burgers',
+    tagline: 'Our crust, between two buns',
+    assetKey: 'chickenBurger',
+    sortOrder: 5,
+  },
+  {
+    id: 'rice-bowls',
+    name: 'Rice Bowls',
+    tagline: 'Korean comfort in one bowl',
+    assetKey: 'koreanRiceBowl',
+    sortOrder: 6,
   },
   {
     id: 'sides',
     name: 'Sides',
     tagline: 'The supporting cast that steals the show',
     assetKey: 'cheeslingFries',
-    sortOrder: 3,
+    sortOrder: 7,
   },
 ];
 
@@ -348,7 +394,7 @@ export const products: Product[] = [
     description:
       'Nothing but wings and drumettes, brined and twice-fried to the same golden standard as our whole-bird original. The pick for anyone who only ever wants the good bits.',
     basePrice: 155,
-    categoryId: 'chicken',
+    categoryId: 'wings',
     assetKey: 'goldenOriginalWings',
     spiceLevel: 0,
     tags: ['sharing'],
@@ -385,7 +431,7 @@ export const products: Product[] = [
     description:
       'Tender thigh pieces, boneless and battered, fried until crisp and finished in the flavour of your choice. No bones, no ceremony, no slowing down.',
     basePrice: 169,
-    categoryId: 'chicken',
+    categoryId: 'boneless',
     assetKey: 'boneless',
     spiceLevel: 0,
     tags: ['boneless', 'popular'],
@@ -539,7 +585,7 @@ export const products: Product[] = [
     description:
       'A whole crispy chicken thigh fillet in a toasted brioche bun with Korean slaw, pickles and our signature sauce. Built to be eaten with two hands.',
     basePrice: 109,
-    categoryId: 'meals',
+    categoryId: 'burgers',
     assetKey: 'chickenBurger',
     spiceLevel: 1,
     tags: ['popular'],
@@ -599,7 +645,7 @@ export const products: Product[] = [
     description:
       'Steamed rice topped with glazed boneless chicken, seasoned vegetables, kimchi and a fried egg. Everything in one bowl, exactly as it should be.',
     basePrice: 129,
-    categoryId: 'meals',
+    categoryId: 'rice-bowls',
     assetKey: 'koreanRiceBowl',
     spiceLevel: 2,
     tags: ['new'],

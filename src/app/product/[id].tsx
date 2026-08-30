@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -25,6 +25,7 @@ import { NutritionPanel } from '@/features/menu/components/NutritionPanel';
 import { OptionGroupPicker } from '@/features/menu/components/OptionGroupPicker';
 import { ProductCard } from '@/features/menu/components/ProductCard';
 import { useProduct, useProductsByIds } from '@/features/menu/hooks';
+import { track } from '@/ux/analytics';
 import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing, MIN_TOUCH_TARGET, typography } from '@/theme';
 import {
@@ -66,6 +67,27 @@ export default function ProductDetailScreen() {
 
   const recommended = useProductsByIds(product.data?.recommendedProductIds ?? []);
 
+  /**
+   * §15 `view_item` — the numerator of "top items" and the step add_to_cart is
+   * measured against.
+   *
+   * Keyed on the product id rather than fired once on mount, because a
+   * recommendation on this screen navigates to another product without
+   * unmounting it. Fired once per product either way: the ref remembers which
+   * one was last announced.
+   */
+  const announcedProductId = useRef<string | null>(null);
+  useEffect(() => {
+    const viewed = product.data;
+    if (!viewed || announcedProductId.current === viewed.id) return;
+    announcedProductId.current = viewed.id;
+    track('view_item', {
+      productId: viewed.id,
+      categoryId: viewed.categoryId,
+      price: viewed.basePrice,
+    });
+  }, [product.data]);
+
   const selectedOptions = useMemo(() => {
     if (!product.data) return [];
     return resolveSelectedOptions(product.data.optionGroups, activeSelection);
@@ -82,9 +104,33 @@ export default function ProductDetailScreen() {
   const handleOptionChange = useCallback(
     (groupId: string, optionIds: string[]) => {
       setShowRequiredErrors(false);
+
+      /**
+       * Which options people actually change, and what it costs them — the
+       * question behind "should this add-on be a default, or is it carrying
+       * the margin".
+       *
+       * Only the options newly *added* are reported. A size group swaps one id
+       * for another on every tap, so reporting the whole selection would count
+       * the untouched ones again on each change and make a rarely-picked
+       * option look popular.
+       */
+      const previous = new Set(activeSelection[groupId] ?? []);
+      const group = product.data?.optionGroups?.find((candidate) => candidate.id === groupId);
+      for (const optionId of optionIds) {
+        if (previous.has(optionId)) continue;
+        const option = group?.options.find((candidate) => candidate.id === optionId);
+        track('select_modifier', {
+          productId: product.data?.id ?? '',
+          groupId,
+          optionId,
+          priceDelta: option?.priceDelta ?? 0,
+        });
+      }
+
       setSelection({ ...activeSelection, [groupId]: optionIds });
     },
-    [activeSelection],
+    [activeSelection, product.data],
   );
 
   const handleAddToCart = useCallback(() => {

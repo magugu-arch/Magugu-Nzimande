@@ -27,6 +27,30 @@ let paymentLedger: PaymentMethod[] = blank ? [] : [...savedPaymentMethods];
 let notificationLedger: AppNotification[] = [...notifications];
 
 /**
+ * The mock's stored favourites, **keyed by customer**.
+ *
+ * One array, shared by everyone, is what this was first — and it reintroduced
+ * the exact defect `favouritesStore.claimFor` exists to prevent. Sign in as
+ * one person, heart two dishes, sign out; sign in as somebody else and the
+ * pull handed them the first person's list, under a Favourites tab that
+ * presents it as their own. `audit:handover` drives precisely that journey and
+ * caught it.
+ *
+ * The mistake was modelling the endpoint wrongly. `GET /v1/account/favourites`
+ * is scoped by the caller's token on any real backend, so a global array is
+ * not a simplification of that contract — it is a different contract. Hence
+ * the map, and hence `customerId` on both functions below: the real
+ * implementation ignores it and lets the token do the scoping, but the
+ * parameter is what stops the mock drifting away from the endpoint again.
+ *
+ * Nothing is seeded. There is no canonical demo account to seed *for* — ids
+ * are derived from whatever email is typed at sign-in — so any seed would
+ * belong to every account, which is the bug. Favourites arrive here by being
+ * pushed, which is also how they would arrive in production.
+ */
+const favouriteLedgers = new Map<string, string[]>();
+
+/**
  * The mock's live ledgers, for other mock endpoints to read.
  *
  * Only the mock layer has any business calling these — a real backend already
@@ -129,6 +153,36 @@ export async function setDefaultPaymentMethod(methodId: string): Promise<Payment
     isDefault: method.id === methodId,
   }));
   return delay(paymentLedger, 250);
+}
+
+/**
+ * Hearted products, server side.
+ *
+ * The list is sent whole rather than as add/remove deltas, and that is the
+ * decision that makes the rest of this simple. A favourite is a preference,
+ * not a transaction: there is no partial state worth protecting, so the client
+ * owns the list, PUTs it entire, and last write wins. A failed push therefore
+ * costs nothing — the local copy is still authoritative and the next push
+ * carries everything, including whatever the failed one was meant to say.
+ *
+ * Deltas would need an outbox, ordering and idempotency keys to survive a
+ * flaky connection. For a list of hearts that is a great deal of machinery to
+ * protect something the customer can redo with one tap.
+ */
+export async function fetchFavourites(customerId: string): Promise<string[]> {
+  if (config.useMockApi) return delay([...(favouriteLedgers.get(customerId) ?? [])]);
+  return request<string[]>('/v1/account/favourites');
+}
+
+export async function saveFavourites(customerId: string, productIds: string[]): Promise<string[]> {
+  if (!config.useMockApi) {
+    return request<string[]>('/v1/account/favourites', {
+      method: 'PUT',
+      body: { productIds },
+    });
+  }
+  favouriteLedgers.set(customerId, [...productIds]);
+  return delay([...productIds], 200);
 }
 
 export async function fetchNotifications(): Promise<AppNotification[]> {

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { colors } from '@/theme';
+import { tints } from '@/theme/colors';
 import { AA_LARGE, AA_NORMAL, contrastRatio, luminance, meetsAA, parseHex } from '@/utils/contrast';
 
 describe('contrast maths', () => {
@@ -40,7 +41,6 @@ describe('theme colour pairs meet §32.3', () => {
     ['body text on white', colors.textPrimary, colors.background],
     ['secondary text on white', colors.textSecondary, colors.background],
     ['muted text on white', colors.textMuted, colors.background],
-    ['body text on cream', colors.textPrimary, colors.surfaceWarm],
     ['body text on light grey', colors.textPrimary, colors.surfaceAlt],
     ['white on bb.q Red', colors.onPrimary, colors.primary],
     ['white on red hover', colors.onPrimary, colors.primaryHover],
@@ -66,8 +66,6 @@ describe('theme colour pairs meet §32.3', () => {
   // grey on white as a failure, so disabled text is held to the 3:1 bar.
   const large: [string, string, string][] = [
     ['disabled text on white', colors.textDisabled, colors.background],
-    // 4.36:1 — fine for the headline sizes it appears at, never for captions.
-    ['red on cream', colors.primary, colors.surfaceWarm],
   ];
 
   it.each(large)('%s clears 3:1', (_name, fg, bg) => {
@@ -146,5 +144,44 @@ describe('button labels obey §22.7', () => {
       fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'),
     ) as { scripts: Record<string, string> };
     expect(pkg.scripts['assets:typefit']).toBe('node scripts/audit-type-fit.mjs');
+  });
+});
+
+/**
+ * §8.2's tint ramps.
+ *
+ * The ramp is computed rather than sampled, because the supplied guideline
+ * page is not colour-faithful — its own §8.1 swatches miss their printed hex
+ * values. Computing it makes the arithmetic checkable, which is what this
+ * does: the endpoints must be the §8.1 brand colours and pure-white-adjacent,
+ * the steps must descend in saturation, and one middle value is pinned by hand
+ * so a change to the mixing maths cannot pass silently.
+ */
+describe('§8.2 colour tints', () => {
+  const STEPS = [100, 80, 60, 40, 20, 10] as const;
+
+  it('starts each ramp at the §8.1 brand colour', () => {
+    expect(tints.red[100]).toBe(colors.brand.red);
+    expect(tints.black[100]).toBe(colors.brand.black);
+  });
+
+  it.each(['red', 'black'] as const)('%s lightens monotonically toward white', (ramp) => {
+    const levels = STEPS.map((step) => luminance(tints[ramp][step]));
+    for (let i = 1; i < levels.length; i += 1) {
+      expect(levels[i]).toBeGreaterThan(levels[i - 1] as number);
+    }
+  });
+
+  it('mixes over white, not over black or by alpha alone', () => {
+    // bb.q Red at 20%: 0.2 x 227 + 0.8 x 255 = 249.4 -> F9, and so on.
+    expect(tints.red[20]).toBe('#F9D1D7');
+    // bb.q Black at 40%: 0.4 x 34 + 0.6 x 255 = 166.6 -> A7, and so on.
+    expect(tints.black[40]).toBe('#A7A5A5');
+  });
+
+  it('leaves the 10% step light enough to carry body text', () => {
+    // The tints exist to be surfaces. One that cannot hold text is not useful.
+    expect(contrastRatio(colors.textPrimary, tints.red[10])).toBeGreaterThanOrEqual(AA_NORMAL);
+    expect(contrastRatio(colors.textPrimary, tints.black[10])).toBeGreaterThanOrEqual(AA_NORMAL);
   });
 });

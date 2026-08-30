@@ -126,7 +126,50 @@ function seedReadyBasket() {
 
 const placeOrderButton = () => screen.getByTestId('checkout-place-order');
 
+/**
+ * A moment the branch is reliably open: Wednesday midday.
+ *
+ * Without this the suite was decided by the hour it ran at. `seedReadyBasket`
+ * promises "an open branch" but only picks the first branch that takes
+ * collection — whether it is *open* was left to the wall clock, and every
+ * branch shuts at 22:00 and opens at 10:00 or 11:00. Run the suite before
+ * opening and checkout blocks on "…is closed — schedule for later", which is
+ * checkout working correctly and the test failing anyway.
+ *
+ * Midday clears the 11:00 opening whether the runner reads it as UTC or as
+ * SAST, so the suite does not depend on the machine's timezone either.
+ *
+ * Only `Date` is faked. The timers stay real because `waitFor` and `useNow`
+ * both run on them, and freezing those would mean driving the scheduler by
+ * hand for a test that has nothing to do with scheduling.
+ */
+const OPEN_HOURS = new Date('2026-09-02T12:00:00Z');
+const REAL_TIMER_APIS = [
+  'hrtime',
+  'nextTick',
+  'performance',
+  'queueMicrotask',
+  'requestAnimationFrame',
+  'cancelAnimationFrame',
+  'requestIdleCallback',
+  'cancelIdleCallback',
+  'setImmediate',
+  'clearImmediate',
+  'setInterval',
+  'clearInterval',
+  'setTimeout',
+  'clearTimeout',
+] as const;
+
 describe('checkout after a payment that may already have been taken', () => {
+  beforeAll(() => {
+    jest.useFakeTimers({ doNotFake: [...REAL_TIMER_APIS], now: OPEN_HOURS });
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     mockSubmit.mockReset();
     mockReplace.mockClear();

@@ -17,6 +17,7 @@ import { SUPPORT } from '@/constants/config';
 import { colors, radius, spacing, typography } from '@/theme';
 import { callNumber, openExternal } from '@/utils/linking';
 import { required, validateFields } from '@/utils/validation';
+import { track } from '@/ux/analytics';
 
 const SUBJECTS = [
   'Something was missing',
@@ -56,6 +57,10 @@ export default function ContactScreen() {
       message,
       ...(orderReference.trim().length > 0 ? { orderReference: orderReference.trim() } : {}),
     });
+    // §15 `support_contact`. The topic only — never the subject line or the
+    // message, which is where a customer types an order number, a phone number
+    // or a complaint about a named member of staff.
+    track('support_contact', { topicId: subject });
     setTicketId(result.ticketId);
   }, [subject, message, orderReference, sendMessage]);
 

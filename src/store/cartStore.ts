@@ -10,6 +10,7 @@ import {
   type RewardTerms,
   type VoucherTerms,
 } from '@/utils/cart';
+import { track } from '@/ux/analytics';
 
 /**
  * Cart state.
@@ -103,6 +104,18 @@ export const useCartStore = create<CartState>()(
 
       addLine: (product, selectedOptions, quantity, specialInstructions) => {
         const incoming = buildCartLine(product, selectedOptions, quantity, specialInstructions);
+
+        // §15 `add_to_cart`, recorded here rather than in the screens that call
+        // it. Three of them do — the product page, a Home best-seller row and
+        // reorder — and an event wired per screen is an event the fourth one
+        // forgets. `value` is the configured line, modifiers included, because
+        // that is what a basket-value chart has to add up.
+        track('add_to_cart', {
+          productId: product.id,
+          categoryId: product.categoryId,
+          quantity: incoming.quantity,
+          value: incoming.lineTotal,
+        });
 
         set((state) => {
           const existingIndex = state.lines.findIndex((line) => line.id === incoming.id);

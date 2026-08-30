@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -27,6 +27,7 @@ import { meetsDeliveryMinimum, priceBasket, voucherExpired, voucherQualifies } f
 import { formatShortDate } from '@/utils/datetime';
 import { useNow } from '@/features/system/useNow';
 import { formatPrice, groupDigits } from '@/utils/money';
+import { track } from '@/ux/analytics';
 
 /**
  * Cart (brief §11): product, image, quantity, edit, remove, add more, promo
@@ -37,6 +38,12 @@ export default function CartScreen() {
   const insets = useSafeAreaInsets();
 
   const lines = useCartStore((state) => state.lines);
+
+  /**
+   * The step between adding and checking out — where a basket is abandoned
+   * before checkout is ever reached. Once per visit, with a basket in it.
+   */
+  const announcedCart = useRef(false);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeLine = useCartStore((state) => state.removeLine);
   const clear = useCartStore((state) => state.clear);
@@ -77,6 +84,12 @@ export default function CartScreen() {
     [lines, cartFulfilment, voucher, reward],
   );
   const belowMinimum = !meetsDeliveryMinimum(totals.subtotal, fulfilmentType);
+
+  useEffect(() => {
+    if (announcedCart.current || lines.length === 0) return;
+    announcedCart.current = true;
+    track('view_cart', { itemCount: lines.length, value: totals.total });
+  }, [lines.length, totals.total]);
 
   const handleFulfilmentChange = useCallback(
     (next: typeof fulfilmentType) => {

@@ -1,7 +1,8 @@
 # bb.q Chicken SA — Handover
 
 Everything needed to take this over, in the order you'll need it.
-`README.md` is the reference manual; this is the orientation.
+`README.md` is the reference manual, `RUNBOOK.md` is for when it is live and
+something needs changing or has gone wrong, and this is the orientation.
 
 ---
 
@@ -17,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 48 suites; `npm test` prints the count                                                                  |
+| Tests            | 54 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -136,15 +137,100 @@ Profiles are in `eas.json`: `development`, `development-simulator`, `preview`
 
 ## 5. What is stubbed, and where to pick it up
 
-Five integrations need something external. Each has a marked hook-in point.
+Four integrations need something external. Each has a marked hook-in point.
+(Favourites sync was the fifth; it is done — see below.)
 
 | What                  | Where                                                                                | Needs                                                                                                                                |
 | --------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | **Card capture**      | `app/account/payment-methods.tsx` — currently an explanatory alert                   | The gateway's PCI-compliant SDK. Never build your own card form.                                                                     |
 | **Address geocoding** | `app/checkout/address.tsx` — saves a typed address with no coordinates at all        | A geocoder, or a backend that geocodes on POST. Until then the delivery radius cannot judge a typed address, and does not pretend to |
 | **Store map**         | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes                           |
-| **Crash reporting**   | `ErrorBoundary` takes an `onError`                                                   | Sentry or Crashlytics                                                                                                                |
-| **Favourites sync**   | `store/favouritesStore.ts` — local and persisted                                     | `POST /v1/account/favourites`, so a heart follows the account to a new phone                                                         |
+| **Crash reporting**   | `ux/errorReporting.ts` — errors are caught, scrubbed and routed; nothing receives them yet | One `ErrorReporter`, injected at startup. Sentry or Crashlytics                                                                 |
+| **Analytics provider** | `ux/analytics.ts` — every event is sent, nothing receives them yet                  | One `AnalyticsAdapter`, injected at startup. The taxonomy and the call sites are done; only the vendor is missing                    |
+
+**Error reporting is wired, and it scrubs.** §13 asks for one thing in one
+sentence — "log operational errors without leaking sensitive customer
+information" — and the second half is the work. `ErrorBoundary`'s `onError`
+hook had existed since the beginning with nothing passed to it, so a render
+crash went to a bare `console.error` and no further.
+
+`ux/errorReporting.ts` now owns that path, and everything goes through `scrub`
+on the way out. An error message is the least disciplined string in an
+application: nobody writes one expecting it to be stored, so they accumulate
+whatever was in scope — a request URL with an email in the query, a 401 body
+quoting the bearer token, a `MalformedResponse` quoting the response field that
+failed to parse. Point a crash reporter at that and you have a second customer
+database, in a third-party system, that nobody declared and no retention policy
+covers.
+
+Redacted: emails, bearer tokens and JWTs, credential-named fields, SA mobile
+numbers in every shape people type them, card-shaped digit runs, coordinates,
+and every URL query string (the path survives — it is the part worth grouping
+on). The scrubbing is deliberately blunt: it would rather redact a harmless
+order note than let one email through, because an over-redacted breadcrumb
+costs an engineer five minutes and an under-redacted one is a notifiable
+incident.
+
+Two call sites so far — the error boundary, and `apiClient`'s malformed-response
+branch, which was printing parsed response bodies verbatim. Add more with
+`reportError(error, { scope: 'a.stable.label' })`; `scope` is hand-written and
+never free text from a customer.
+
+**Analytics is wired; the provider is not chosen.** §15 asks for eleven events
+and dashboards for conversion, cart abandonment, fulfilment mix, top items and
+repeat ordering. All sixteen events (§15's eleven plus five the starter kit's
+taxonomy had) are declared in `ux/analytics.ts` and sent from the app. Four
+things to know:
+
+- **The vendor is a one-line injection, and deliberately absent.** No SDK is in
+  the bundle. `setAnalyticsAdapter(yourAdapter)` at startup is the whole
+  integration; until then events log in development and go nowhere in
+  production. An analytics SDK ships an identifier for every customer, which is
+  not something to guess at on bb.q's behalf.
+- **The brief gives the taxonomy twice and the two disagree.** §15 asks for
+  `view_item, add_to_cart, begin_checkout, add_payment_info, purchase…`; the
+  starter kit asks for `product_viewed, item_added, checkout_started…`. §15's
+  names win because they are GA4's *reserved* ecommerce events — sent under
+  those names they populate GA4's built-in funnel and monetisation reports,
+  which is exactly the dashboard §15 asks for, and under any other name they
+  are custom events somebody has to build those reports from scratch.
+- **No personal information is in any payload.** Ids, counts and amounts only.
+  `search` carries the length of the query and the number of results, never the
+  words; `add_payment_info` carries the rail's type, never a brand, last four
+  or expiry. `analytics.test.ts` reads the payload types as source and fails on
+  a field named for anything identifying.
+- **Events are typed, and every one is asserted to have a call site.** A
+  misspelling is a compile error; an event declared and never sent fails a
+  test. That second check has already earned itself — `select_modifier` was
+  declared and unwired, which is invisible until a chart is empty.
+
+**Favourites sync is done.** `features/favourites/sync.ts` carries hearted
+products between the handset and the account: `GET /v1/account/favourites` on
+sign-in, `PUT` of the whole list, debounced, as they change. Three decisions
+worth knowing before you point it at a real backend:
+
+- **The list is sent whole, not as deltas.** A favourite is a preference, not a
+  transaction, so there is no partial state to protect. That makes a failed
+  push free — local is still authoritative and the next push carries whatever
+  the failed one was meant to say — which is why there is no outbox, no retry
+  and no idempotency key. Deltas would need all three.
+- **Sign-in merges by union.** Server-wins would delete the hearts a guest gave
+  before signing in, which is the failure `favouritesStore` was written to
+  avoid; local-wins would let a fresh handset erase the account's list. Union
+  is the only rule that cannot lose a tap somebody meant.
+- **The store still knows nothing about the network.** A heart never waits on a
+  request, so it works offline and on a cold start exactly as before.
+
+The backend owes a `PUT` that accepts `{ productIds: string[] }` and returns the
+stored array, **scoped to the authenticated caller**. Ordering is the client's —
+most recently hearted first — so store it as given rather than sorting it.
+
+That scoping is not a footnote. The first version of the mock behind it was one
+global array, and `audit:handover` caught what that produces: sign in, heart two
+dishes, hand the phone over, and the next person's sign-in pulled a stranger's
+list onto their account. `fetchFavourites` and `saveFavourites` therefore take a
+`customerId` the real implementation ignores — the token does the scoping there
+— purely so the mock cannot drift back into modelling a different contract.
 
 Also outstanding, and deliberate:
 
@@ -156,16 +242,28 @@ Also outstanding, and deliberate:
   they are not vector-derived, so anything larger than an app icon (print,
   signage, a billboard-sized splash) wants the real master. Replacing them is
   the whole job: drop the two files in, run `npm run assets:brand`.
-- **Only §3, §10–§14, §22, §23 and §32 of the guidelines were supplied.** Logo
-  clear space is on page 05, which I have not seen; the icon uses generous
+- **Only §3, §8, §10–§14, §22, §23 and §32 of the guidelines were supplied.**
+  Logo clear space is on page 05, which I have not seen; the icon uses generous
   spacing but has not been checked against the actual rule. _(Resolved since:
-  §10.2 prints bb.q Red as `#E31937`, confirming the value the logo extract was
-  normalised to — the guidelines page just renders it a few points darker.)_
+  §8.1 prints bb.q Red as `#E31937` with rgb, cmyk and Pantone 185 C, which is
+  the value the logo extract was normalised to — the guidelines page just
+  renders it a few points darker. §8.1's own swatches miss their printed hex by
+  ~9 units, so that page is a reference for values, never for pixels.)_
 - **§23.5 says Inter; §11 says Montserrat.** Resolved in favour of Montserrat —
   §11, §12, §13 and §14 are four pages of typography spec against one line, and
   they agree with each other. §23.5 looks like the outlier.
-- **§12.2 puts UI buttons on Arial Bold; §11.2 puts them on Montserrat
-  SemiBold.** Montserrat, since §13.3 and §13.4's callouts say the same.
+- **§12 puts body copy and UI buttons on Arial; §11.2 puts the whole hierarchy
+  on Montserrat.** Montserrat, on both counts. Buttons were already resolved
+  that way (§13.3 and §13.4's callouts agree); body copy and captions followed
+  when §11 was supplied, because §11.1 names a two-member type system, §11.2's
+  table covers body copy and captions explicitly, and §11's DO NOT forbids
+  faces outside that system. **§12 itself has never been supplied to this
+  project**, so it is being superseded unseen — this is the open question most
+  worth putting to the brand team, and `theme/typography.ts` is a one-file
+  revert if they say §12 governs. Worth knowing before you ask: the switch cost
+  nothing in bundle size (every weight was already loaded for the headings) and
+  `npm run audit:screens` finds no overflow at 390pt or 320pt, so it is a
+  question of taste rather than of fit.
 - **The type and spacing changes have been measured and seen, but not held.**
   §23.7's 24px gutter replaced a 16px one, and the app moved from Helvetica
   Neue to Montserrat. `npm run assets:typefit` measures every static button
@@ -176,9 +274,24 @@ Also outstanding, and deliberate:
   `theme/typography.ts`, so trimming is a one-file change.
 - **§10.2's 50/30/15/5 digital colour ratio is noted, not applied.** The app is
   mostly white with red as the accent, which is what the client's own mockups
-  show and what leaves the food photography somewhere to sit. §10.1 allows the
-  adjustment; §10.3's hierarchy — red leads, black supports, white spaces — is
-  what the app follows. Worth a conversation if a designer disagrees.
+  show and what leaves the food photography somewhere to sit. _(Largely settled
+  since §8 arrived: §8.3 is the Colour System page's own usage rule and it sets
+  no ratio at all — red for "key brand moments, calls to action and highlights",
+  black for text and contrast, white as a background that creates "clarity,
+  space and a premium feel". That is a much better description of this app than
+  §10.1's grudging "can be adjusted slightly". Still worth a designer's eye, but
+  it is no longer a departure.)_
+- **§8.3 bars unapproved colours; two token groups sit outside §8's palette.**
+  The status hues (success, warning, error, info) have to: an error rendered in
+  bb.q Red is indistinguishable from a call to action, which is the failure
+  §32.4 exists to prevent — and the brief's own token block names them, so they
+  are authorised there. The neutral scale is warm where §8.2's neutral tints are
+  even grey, because those are UI inks tuned to clear §32.3's contrast floor
+  rather than brand tints; §8.2's ramp is exported from `theme/colors.ts` as
+  `tints` for anything that is genuinely a brand tint. A `cream` surface token
+  (`#FFF5E6`, read off §23.4, and a third value again in the brief at `#F5F1EE`)
+  was deleted rather than reconciled — §8 has no cream and nothing in the app
+  ever rendered it.
 - **Two departures from the drawings, both deliberate.** Disabled primary
   buttons use the pressed red for their label rather than the white the
   guidelines draw, because §22.9's own panel scores that pairing 2.1:1 and

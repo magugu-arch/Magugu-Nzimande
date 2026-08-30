@@ -4,7 +4,9 @@ Production-oriented React Native customer ordering app for bb.q Chicken South
 Africa, built to the supplied product brief.
 
 > **New to this project? Start with [HANDOVER.md](./HANDOVER.md)** — orientation,
-> what is stubbed, and what to do first. This file is the reference manual.
+> what is stubbed, and what to do first. This file is the reference manual, and
+> [RUNBOOK.md](./RUNBOOK.md) covers running it in production: environment,
+> deployment, rollback, monitoring and analytics.
 
 **Stack:** Expo SDK 57 · React Native 0.86 · React 19 · TypeScript (strict) ·
 Expo Router · TanStack Query · Zustand
@@ -128,6 +130,34 @@ Plain food shots need none.
 When adding one, derive and then **look at the card**: the rect has to clear
 headline flourishes and land on printed packaging marks rather than through
 them. Each of these took two or three passes to get right.
+
+### What loads first (§13)
+
+§13 asks for two things at once: "lazy-load below-the-fold imagery while
+prioritising hero and first-view menu assets". `expo-image` defers on web by
+default, so the first half arrived free — and took the hero with it, deferring
+the one photograph a screen cannot open without.
+
+`FoodImage` derives both from the variant, for the same reason the variant
+itself exists: a rule each screen has to remember is a rule some screen forgets.
+
+| Variant | Priority | Web `loading` | Why |
+|---|---|---|---|
+| `banner`, `detail` | high | eager | A hero. On screen at open, and the largest file. |
+| `card` | normal | lazy | A catalogue tile. Some visible, most not. |
+| `thumb` | low | lazy | A menu row or cart line. Small; arriving late costs nothing. |
+
+`aboveTheFold` overrides it, and decides in **both** directions — `true`
+promotes, `false` demotes. The demotion is the one that needed it: onboarding
+draws three `detail` slides in a horizontal carousel, hero-shaped by variant and
+off-screen by position, so left to the variant all three would load first and
+eagerly. Three full-bleed photographs racing each other on the first screen of
+the app is exactly the "oversized hero images on lower-bandwidth mobile
+connections" §13 warns about, so only `index === 0` is on screen.
+
+Verified in a browser rather than asserted: the rendered onboarding carousel
+serves slide one `eager`/`fetchpriority=high` and slides two and three
+`lazy`/`low`.
 
 ### Substitution while artwork is outstanding
 
@@ -347,20 +377,37 @@ cart bar above the tab bar whenever the basket is non-empty.
 
 | Token | Value | Source |
 |---|---|---|
-| bb.q Red | `#E31937` | §10.2, §23.4 |
-| bb.q Black | `#221E1F` | §10.2, §23.4 — the app page says `#221E1E` |
-| White / Cream / Light Grey | `#FFFFFF` / `#FFF5E6` / `#F2F2F2` | §23.4 |
-| Headings, buttons, labels | Montserrat, weights per level | §11, §14 |
-| Body copy, captions, data | Arial — system face, not bundled | §12 |
+| bb.q Red | `#E31937` — rgb(227 25 55), Pantone 185 C | §8.1 |
+| bb.q Black | `#221E1F` — rgb(34 30 31), Pantone Black C | §8.1 — the app page says `#221E1E` |
+| White | `#FFFFFF` | §8.1 |
+| Tint ramps | Red and black at 100/80/60/40/20/10% | §8.2 |
+| Headings, subheadings | Montserrat ExtraBold–Black / SemiBold–Bold | §11.2 |
+| Body copy, captions | Montserrat Regular | §11.2 |
+| Buttons and labels | Montserrat SemiBold, 16 / 14 / 13 | §11.2, §22.4 |
 | Quotes and accents | Playfair Display Italic, sparingly | §13 |
 | Screen gutter / inner gap / tight gap | 24 / 16 / 4 | §23.7 |
 
-Montserrat and the one Playfair italic are bundled and loaded before the first
-frame, imported per weight rather than from the package root — the root barrel
-statically requires all eighteen Montserrat cuts, which Metro then ships. Arial
-is deliberately not bundled: §12 chose it for being universally available, and
-Android substitutes Roboto, which `theme/typography.ts` makes explicit rather
-than leaving to the platform.
+The type system has exactly two members (§11.1), and the app now uses only
+those two. Body copy, captions and lists were previously set in Arial on the
+reading that §12 assigns them the supporting face; §11.2's TYPE USAGE table
+covers the whole hierarchy and puts them on Montserrat Regular, and §11's DO
+NOT forbids typefaces outside the bb.q system. That is the same way the
+§11-versus-§12 conflict over button text was already settled, so the codebase
+is now consistent about which page wins. §12 has not been supplied to this
+project — if the brand team confirms it governs body copy, `theme/typography.ts`
+is a one-file revert.
+
+Both faces are bundled and loaded before the first frame, imported per weight
+rather than from the package root — the root barrel statically requires all
+eighteen Montserrat cuts, which Metro then ships.
+
+The §8.2 tint ramps are computed as the brand colour over white rather than
+sampled from the guideline page, because that page is not colour-faithful: its
+own §8.1 swatches render as `#DE0615` and `#161515` against the hex values
+printed beside them. The same calibration was used to check §22.3's button
+states — reading the render through its known default gives hover `#AF132A`,
+pressed `#850F20` and a disabled fill at ~30% red, all within nine units per
+channel of what the theme already carried.
 
 §14's point sizes (a 90pt H1) are the print scale. What carries into the app is
 which face and weight each level takes, its casing, and the ratios between

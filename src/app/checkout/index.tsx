@@ -33,7 +33,8 @@ import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfil
 import { colors, radius, spacing } from '@/theme';
 import { describeOptions, meetsDeliveryMinimum } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
-import { formatPrice } from '@/utils/money';
+import { formatPrice, sumRand } from '@/utils/money';
+import { track } from '@/ux/analytics';
 import { a11yState } from '@/utils/a11yState';
 
 /**
@@ -155,6 +156,25 @@ export default function CheckoutScreen() {
     setStore,
     setAddress,
   ]);
+
+  /**
+   * §15 `begin_checkout` — the denominator of the cart-abandonment figure.
+   *
+   * Once per visit, not once per render, and only with something in the
+   * basket: this screen re-renders on every clock tick from `useNow`, and an
+   * abandonment rate computed against a hundred `begin_checkout` events for
+   * one customer sitting on the screen is worse than no figure at all.
+   */
+  const announcedCheckout = useRef(false);
+  useEffect(() => {
+    if (announcedCheckout.current || lines.length === 0) return;
+    announcedCheckout.current = true;
+    track('begin_checkout', {
+      itemCount: lines.length,
+      value: totals.total,
+      fulfilment: fulfilmentType,
+    });
+  }, [lines.length, totals.total, fulfilmentType]);
 
   /**
    * A failure the customer must not answer by pressing the button again.
@@ -305,6 +325,35 @@ export default function CheckoutScreen() {
         return;
       }
 
+      /**
+       * §15 `purchase` — the event every other one in the funnel is measured
+       * against.
+       *
+       * Sent here, on the one branch where an order exists, and before the
+       * cart is cleared so the figures are still the ones the customer agreed
+       * to. It carries `orderId` so a warehouse can dedupe: this runs once per
+       * placed order today, but a retry that reached the kitchen twice would
+       * otherwise double the day's revenue in a chart nobody would question.
+       *
+       * `track` never throws, so nothing here can come between a paid order
+       * and its confirmation screen.
+       */
+      track('purchase', {
+        orderId: outcome.order.id,
+        value: totals.total,
+        // Through the rand helpers, not `+`. These figures are reconciled
+        // against takings, and a float that drifts a cent per order is a
+        // discrepancy somebody has to chase at month end.
+        fees: sumRand([totals.deliveryFee, totals.serviceFee]),
+        // Both kinds. A voucher and a redeemed reward are separate fields and
+        // separate business decisions, but to a discount chart they are money
+        // that did not arrive.
+        discount: sumRand([totals.discount, totals.rewardsDiscount]),
+        itemCount: lines.length,
+        fulfilment: fulfilmentType,
+        storeId: store.id,
+      });
+
       // The basket has become an order — clear it before navigating so back
       // navigation can never resubmit.
       clearCart();
@@ -446,7 +495,18 @@ export default function CheckoutScreen() {
             return (
               <Pressable
                 key={method.id}
-                onPress={() => setChosenPaymentId(method.id)}
+                onPress={() => {
+                  // §15 `add_payment_info`, on the deliberate choice rather
+                  // than on the derived default — otherwise every customer
+                  // who never opened this section counts as having picked
+                  // something, and the step measures nothing.
+                  //
+                  // `type` only. Never the last four digits, the brand or the
+                  // expiry: card details do not belong in an analytics
+                  // warehouse, whatever the provider's SDK will happily accept.
+                  track('add_payment_info', { paymentType: method.type, value: totals.total });
+                  setChosenPaymentId(method.id);
+                }}
                 accessibilityRole="radio"
                 {...a11yState({ selected }, 'radio')}
                 accessibilityLabel={method.label}

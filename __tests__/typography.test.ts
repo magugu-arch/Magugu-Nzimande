@@ -5,16 +5,14 @@ import {
   fontScaleCapFor,
   montserrat,
   playfair,
-  supporting,
   typography,
   type TypographyVariant,
 } from '@/theme/typography';
 
 const MONTSERRAT = new Set<string>(Object.values(montserrat));
 const PLAYFAIR = new Set<string>(Object.values(playfair));
-const SUPPORTING = new Set<string>(Object.values(supporting));
 
-/** §11: headlines, subheadings, buttons and labels are Montserrat. */
+/** §11.2: every row of the TYPE USAGE table except accents and quotes. */
 const PRIMARY_ROLES = [
   'hero',
   'display',
@@ -29,16 +27,32 @@ const PRIMARY_ROLES = [
   'buttonSm',
 ] as const;
 
-/** §12: body copy, captions, lists and data are Arial. */
-const SUPPORTING_ROLES = ['bodyLarge', 'body', 'bodyMedium', 'caption', 'captionMedium'] as const;
+/**
+ * Body copy and captions. §11.2 puts these on Montserrat too — the table
+ * covers the whole hierarchy, not just the headlines. They keep their own
+ * list because the line-height band below applies to them and not to the
+ * display roles.
+ */
+const BODY_ROLES = ['bodyLarge', 'body', 'bodyMedium', 'caption', 'captionMedium'] as const;
 
 describe('typeface assignment', () => {
-  it.each(PRIMARY_ROLES)('%s is set in Montserrat (§11)', (role) => {
+  it.each([...PRIMARY_ROLES, ...BODY_ROLES])('%s is set in Montserrat (§11.2)', (role) => {
     expect(MONTSERRAT.has(typography[role].fontFamily)).toBe(true);
   });
 
-  it.each(SUPPORTING_ROLES)('%s is set in the supporting face (§12)', (role) => {
-    expect(SUPPORTING.has(typography[role].fontFamily)).toBe(true);
+  /**
+   * The rule that replaced Arial. §11.1 names a two-member type system and
+   * §11's DO NOT forbids anything outside it, so a face that is neither
+   * Montserrat nor Playfair must not appear in the scale at all — including
+   * a platform face reached through `Platform.select`, which is how Arial got
+   * in and is the shape this would most likely come back as.
+   */
+  it('admits no typeface outside the bb.q system (§11.1)', () => {
+    const strays = Object.entries(typography)
+      .filter(([, style]) => !MONTSERRAT.has(style.fontFamily) && !PLAYFAIR.has(style.fontFamily))
+      .map(([role, style]) => `${role}: ${style.fontFamily}`);
+
+    expect(strays).toEqual([]);
   });
 
   it('reserves Playfair Display for accents and quotes (§13)', () => {
@@ -51,14 +65,14 @@ describe('typeface assignment', () => {
   });
 
   it('covers every role', () => {
-    const assigned = new Set<string>([...PRIMARY_ROLES, ...SUPPORTING_ROLES, 'quote']);
+    const assigned = new Set<string>([...PRIMARY_ROLES, ...BODY_ROLES, 'quote']);
     expect(Object.keys(typography).filter((r) => !assigned.has(r))).toEqual([]);
   });
 });
 
 describe('hierarchy rules', () => {
   // §14.3: body copy line height 140–160%.
-  it.each(SUPPORTING_ROLES)('%s sits inside the 140–160% line-height band', (role) => {
+  it.each(BODY_ROLES)('%s sits inside the 140–160% line-height band', (role) => {
     const { fontSize, lineHeight } = typography[role];
     const ratio = lineHeight / fontSize;
     expect(ratio).toBeGreaterThanOrEqual(1.4);
@@ -164,11 +178,25 @@ describe('every bundled face the type scale names is actually loaded', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('does not try to bundle the supporting face', () => {
-    // §12 chose Arial because it ships with the platform. Bundling it would
-    // add a megabyte for a face that is already there.
-    for (const family of SUPPORTING) {
-      expect(layout).not.toContain(`'${family}'`);
+  /**
+   * The scale must not reach for a platform face again.
+   *
+   * `admits no typeface outside the bb.q system` above catches a stray family
+   * name, but only for the platform the test happens to run on: a
+   * `Platform.select` resolves to one branch, so an Arial hiding in the iOS
+   * arm would sail past a Jest run reporting as Android. This reads the source
+   * instead, which sees every branch.
+   */
+  it('names no platform face in the type scale (§11.1)', () => {
+    const scale = fs.readFileSync(
+      path.resolve(__dirname, '..', 'src', 'theme', 'typography.ts'),
+      'utf8',
+    );
+    const code = scale.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+
+    expect(code).not.toMatch(/Platform\s*\.\s*select/);
+    for (const face of ['Arial', 'Helvetica', 'Roboto', 'sans-serif', 'System']) {
+      expect(code).not.toContain(face);
     }
   });
 });

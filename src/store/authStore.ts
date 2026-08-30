@@ -3,6 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppPreferences, AuthSession, NotificationPreferences, UserProfile } from '@/types';
 import { createGuestUser, signOut as signOutService } from '@/services/authService';
+import { pullFavourites } from '@/features/favourites/sync';
+import { identify } from '@/ux/analytics';
 import { useFavouritesStore } from './favouritesStore';
 
 /**
@@ -97,6 +99,18 @@ export const useAuthStore = create<AuthState>()(
         // presents them as their own.
         useFavouritesStore.getState().claimFor(session.user.isGuest ? null : session.user.id);
 
+        // And now that the list is known to be theirs, merge in whatever the
+        // account already had — a heart given on another handset. Deliberately
+        // not awaited: signing in must not wait on it, and `pullFavourites`
+        // never throws, so there is nothing here to catch. A guest has no
+        // account to merge from.
+        if (!session.user.isGuest) void pullFavourites(session.user.id);
+
+        // Tie subsequent events to the account — or explicitly to nobody for a
+        // guest, so their browsing is not filed under whoever was signed in on
+        // this handset last.
+        identify(session.user.isGuest ? null : session.user.id);
+
         set({ user: session.user, isAuthenticated: true, isGuest: session.user.isGuest });
       },
 
@@ -107,10 +121,14 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         await signOutService();
+        identify(null);
         set(FORGOTTEN);
       },
 
-      signOutLocally: () => set(FORGOTTEN),
+      signOutLocally: () => {
+        identify(null);
+        set(FORGOTTEN);
+      },
 
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 

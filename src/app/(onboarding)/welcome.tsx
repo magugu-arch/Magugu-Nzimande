@@ -88,11 +88,17 @@ export default function WelcomeScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <View style={styles.slide}>
             <FoodImage
               assetKey={item.assetKey}
               variant="detail"
+              // The first screen of the app, on whatever connection they have.
+              // These are `detail` surfaces, so they would otherwise all load
+              // first and eagerly — three full-bleed photographs racing each
+              // other when only one is on screen. The other two are a swipe
+              // away and can wait for it.
+              aboveTheFold={index === 0}
               aspectRatio={SCREEN_WIDTH / (SCREEN_WIDTH * 1.25)}
               rounded="none"
               withScrim

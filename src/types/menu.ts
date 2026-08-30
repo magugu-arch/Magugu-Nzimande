@@ -1,7 +1,32 @@
 import type { FoodAssetKey } from '@/constants/foodAssets';
 
-/** Menu taxonomy from brief §10. */
-export type CategoryId = 'chicken' | 'meals' | 'sides' | 'drinks' | 'desserts';
+/**
+ * The menu taxonomy, exactly as the brief sets it out.
+ *
+ * §8 ("Chicken / Wings / Boneless / Meals / Burgers / Rice Bowls / Sides /
+ * Drinks / Sauces & Extras") and §17 ("Required product categories: …") list
+ * these nine and agree with each other. The master prompt merges the second
+ * and third into one "Wings & Boneless"; two references to one, and separate
+ * is also the shape the wider menu slots into, so they stay separate here.
+ *
+ * `desserts` used to be in this union and is in none of the three lists — it
+ * has been dropped rather than carried as a category nothing can ever fill.
+ *
+ * All nine are typed, but only the seven with supplied products are surfaced
+ * in `categories` — see the note there for why Drinks and Sauces & Extras are
+ * held back. Typing them keeps the taxonomy whole and makes promoting either
+ * one a pure data change once its photography lands.
+ */
+export type CategoryId =
+  | 'chicken'
+  | 'wings'
+  | 'boneless'
+  | 'meals'
+  | 'burgers'
+  | 'rice-bowls'
+  | 'sides'
+  | 'drinks'
+  | 'sauces-extras';
 
 export type SpiceLevel = 0 | 1 | 2 | 3;
 
