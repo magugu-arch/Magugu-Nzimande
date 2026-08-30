@@ -1,36 +1,74 @@
 import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
 
-/** bb.q Rewards tiers (brief §11). */
+/**
+ * bb.q Rewards tiers (brief §11).
+ *
+ * ── Why the earn rate is a number and not a sentence ───────────────────────
+ * Every tier here used to advertise its rate as hand-typed copy — Silver said
+ * "1.25 points per R1 spent", Gold "1.5", Black "2" — while `randToPoints`
+ * paid a flat 1 to everybody from `businessRules.pointsPerRand`. A Silver
+ * member read a promise on the rewards screen that the app had no code to
+ * keep, and nothing anywhere could notice, because a string and a constant
+ * cannot disagree with each other.
+ *
+ * `pointsPerRand` is now the rate, and `perksFor` writes the sentence from it.
+ * The two cannot drift again: change the number and the copy follows; change
+ * the copy and there is nothing to change, because it is not written down.
+ *
+ * **All four are 1 deliberately.** That is what the app pays today, so this
+ * change makes the screen honest without inventing a programme. The multiplier
+ * is a margin decision — it has to be set against the redemption rate, or the
+ * programme pays out at a ratio nobody chose — and `audit:launch` still asks
+ * for it. When bb.q decides, it is one number per tier and both the payout and
+ * the advertised line move together.
+ */
 export const tiers: TierDefinition[] = [
   {
     tier: 'bronze',
     name: 'Bronze',
     threshold: 0,
-    perks: ['1 point per R1 spent', 'Birthday treat', 'Members-only offers'],
+    pointsPerRand: 1,
+    perks: ['Birthday treat', 'Members-only offers'],
   },
   {
     tier: 'silver',
     name: 'Silver',
     threshold: 1500,
-    perks: ['1.25 points per R1 spent', 'Free delivery twice a month', 'Early access to new drops'],
+    pointsPerRand: 1,
+    perks: ['Free delivery twice a month', 'Early access to new drops'],
   },
   {
     tier: 'gold',
     name: 'Gold',
     threshold: 4000,
-    perks: ['1.5 points per R1 spent', 'Free delivery every week', 'Priority kitchen queue'],
+    pointsPerRand: 1,
+    perks: ['Free delivery every week', 'Priority kitchen queue'],
   },
   {
     tier: 'black',
     name: 'Black',
     threshold: 9000,
-    perks: [
-      '2 points per R1 spent',
-      'Unlimited free delivery',
-      'Invitations to bb.q tasting events',
-    ],
+    pointsPerRand: 1,
+    perks: ['Unlimited free delivery', 'Invitations to bb.q tasting events'],
   },
 ];
+
+/**
+ * How a tier describes its earn rate, written from the rate itself.
+ *
+ * "1 point per R1 spent" rather than "1 points", and `1.25` prints as typed
+ * rather than as `1.2500000000000002` — the rate is a decimal and this is the
+ * one place it becomes words.
+ */
+export function earnRateLine(pointsPerRand: number): string {
+  const rate = Number(pointsPerRand.toFixed(2));
+  return `${rate} ${rate === 1 ? 'point' : 'points'} per R1 spent`;
+}
+
+/** A tier's perks, with its true earn rate at the top. */
+export function perksFor(tier: TierDefinition): string[] {
+  return [earnRateLine(tier.pointsPerRand), ...tier.perks];
+}
 
 export const rewards: Reward[] = [
   {

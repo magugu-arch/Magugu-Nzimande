@@ -7,6 +7,20 @@ export interface TierDefinition {
   name: string;
   /** Points required to reach this tier within the qualifying window. */
   threshold: number;
+  /**
+   * Points earned per R1 of food value at this tier.
+   *
+   * The rate the app actually pays, and the one the earn-rate perk line is
+   * written from — see `tiers` in `services/data/rewardsData.ts`. Those were
+   * two independent things until now: the screen advertised "1.25 points per
+   * R1" to Silver members as a hand-typed string while `randToPoints` paid
+   * everybody 1, and nothing could notice.
+   */
+  pointsPerRand: number;
+  /**
+   * Perks *other than* the earn rate. The earn line is derived and prepended
+   * by `perksFor`, so it cannot drift from what is paid.
+   */
   perks: string[];
 }
 

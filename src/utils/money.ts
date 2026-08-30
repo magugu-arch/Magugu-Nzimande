@@ -77,6 +77,10 @@ export function pointsToRand(points: number): number {
   return fromCents(toCents(points * businessRules.randPerPoint));
 }
 
-export function randToPoints(rand: number): number {
-  return Math.floor(rand * businessRules.pointsPerRand);
+export function randToPoints(rand: number, pointsPerRand?: number): number {
+  // The tier's rate when one is known, the flat business rule otherwise.
+  // Optional rather than required so the pricing path keeps working for a
+  // basket priced before anyone has signed in — a guest has no tier, and
+  // quoting them nothing at all would be worse than quoting them the base.
+  return Math.floor(rand * (pointsPerRand ?? businessRules.pointsPerRand));
 }

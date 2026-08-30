@@ -29,6 +29,7 @@ import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequir
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatRelativeDay } from '@/utils/datetime';
 import { groupDigits } from '@/utils/money';
+import { perksFor } from '@/services/data/rewardsData';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const REWARD_CARD_WIDTH = Math.min(210, SCREEN_WIDTH * 0.56);
@@ -160,7 +161,7 @@ export default function RewardsScreen() {
                 <Text variant="h3">Your {currentTier.name} perks</Text>
                 <Ionicons name="ribbon-outline" size={20} color={colors.primary} />
               </View>
-              {currentTier.perks.map((perk) => (
+              {perksFor(currentTier).map((perk) => (
                 <View key={perk} style={styles.perkRow}>
                   <Ionicons name="checkmark-circle" size={16} color={colors.status.success} />
                   <Text variant="caption" color={colors.textSecondary} style={styles.perkText}>
