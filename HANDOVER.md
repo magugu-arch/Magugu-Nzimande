@@ -17,7 +17,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 52 suites; `npm test` prints the count                                                                  |
+| Tests            | 53 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -144,8 +144,36 @@ Four integrations need something external. Each has a marked hook-in point.
 | **Card capture**      | `app/account/payment-methods.tsx` — currently an explanatory alert                   | The gateway's PCI-compliant SDK. Never build your own card form.                                                                     |
 | **Address geocoding** | `app/checkout/address.tsx` — saves a typed address with no coordinates at all        | A geocoder, or a backend that geocodes on POST. Until then the delivery radius cannot judge a typed address, and does not pretend to |
 | **Store map**         | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes                           |
-| **Crash reporting**   | `ErrorBoundary` takes an `onError`                                                   | Sentry or Crashlytics                                                                                                                |
+| **Crash reporting**   | `ux/errorReporting.ts` — errors are caught, scrubbed and routed; nothing receives them yet | One `ErrorReporter`, injected at startup. Sentry or Crashlytics                                                                 |
 | **Analytics provider** | `ux/analytics.ts` — every event is sent, nothing receives them yet                  | One `AnalyticsAdapter`, injected at startup. The taxonomy and the call sites are done; only the vendor is missing                    |
+
+**Error reporting is wired, and it scrubs.** §13 asks for one thing in one
+sentence — "log operational errors without leaking sensitive customer
+information" — and the second half is the work. `ErrorBoundary`'s `onError`
+hook had existed since the beginning with nothing passed to it, so a render
+crash went to a bare `console.error` and no further.
+
+`ux/errorReporting.ts` now owns that path, and everything goes through `scrub`
+on the way out. An error message is the least disciplined string in an
+application: nobody writes one expecting it to be stored, so they accumulate
+whatever was in scope — a request URL with an email in the query, a 401 body
+quoting the bearer token, a `MalformedResponse` quoting the response field that
+failed to parse. Point a crash reporter at that and you have a second customer
+database, in a third-party system, that nobody declared and no retention policy
+covers.
+
+Redacted: emails, bearer tokens and JWTs, credential-named fields, SA mobile
+numbers in every shape people type them, card-shaped digit runs, coordinates,
+and every URL query string (the path survives — it is the part worth grouping
+on). The scrubbing is deliberately blunt: it would rather redact a harmless
+order note than let one email through, because an over-redacted breadcrumb
+costs an engineer five minutes and an under-redacted one is a notifiable
+incident.
+
+Two call sites so far — the error boundary, and `apiClient`'s malformed-response
+branch, which was printing parsed response bodies verbatim. Add more with
+`reportError(error, { scope: 'a.stable.label' })`; `scope` is hand-written and
+never free text from a customer.
 
 **Analytics is wired; the provider is not chosen.** §15 asks for eleven events
 and dashboards for conversion, cart abandonment, fulfilment mix, top items and

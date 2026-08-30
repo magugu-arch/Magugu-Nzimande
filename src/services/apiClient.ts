@@ -1,5 +1,6 @@
 import { config } from '@/constants/config';
 import type { ApiError } from '@/types';
+import { reportError, scrub } from '@/ux/errorReporting';
 import { clearTokens, getAccessToken, getRefreshToken, storeTokens } from './secureStorage';
 import { MalformedResponse } from './wireChecks';
 
@@ -309,9 +310,18 @@ async function execute<T>(
      * could not load it, which is true, rather than a number it made up.
      */
     if (error instanceof MalformedResponse) {
-      // The customer gets the honest generic; whoever has to fix it gets the
-      // field name and what actually arrived.
-      console.warn(`[api] ${path}: ${error.detail}`);
+      /**
+       * The customer gets the honest generic; whoever has to fix it gets the
+       * field name and what actually arrived — scrubbed.
+       *
+       * "What actually arrived" is the response body, and the endpoints most
+       * likely to disagree about a shape are the ones carrying accounts,
+       * addresses and orders. This line was printing that verbatim, and `path`
+       * can carry a query string. §13 asks for operational errors without
+       * leaking customer information; the diagnostic value is in the field
+       * name, which survives scrubbing intact.
+       */
+      reportError(error, { scope: `api.malformed:${scrub(path)}` });
       throw new ApiRequestError({
         code: 'malformed_response',
         message: "We couldn't read that. Please try again.",

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { SUPPORT } from '@/constants/config';
 import { colors, radius, spacing } from '@/theme';
+import { reportError } from '@/ux/errorReporting';
 
 interface Props {
   children: ReactNode;
@@ -37,8 +38,19 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Wire a crash reporter in here; console keeps it visible in dev.
-    console.error('Unhandled render error', error, info.componentStack);
+    /**
+     * `reportError` scrubs before it reports, and it also owns the development
+     * logging that used to be a bare `console.error` here.
+     *
+     * That console line was the leak. A render crash inside checkout carries
+     * props down its component stack, and the message on an API error is
+     * whatever the server put there — so this printed addresses, emails and
+     * the occasional bearer token straight to a log that a crash reporter,
+     * once wired, would have shipped verbatim. §13 asks for operational errors
+     * "without leaking sensitive customer information"; one shared path makes
+     * that true of every caller rather than of whoever remembered.
+     */
+    reportError(error, { scope: 'render', componentStack: info.componentStack ?? undefined });
     this.props.onError?.(error, info);
   }
 
