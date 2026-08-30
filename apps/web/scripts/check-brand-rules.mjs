@@ -25,13 +25,19 @@ const REPO = path.resolve(APP, '../..');
 
 const ROOTS = [
   path.join(APP, 'src'),
+  path.join(APP, 'static-demo'),
   path.join(REPO, 'packages'),
   path.join(REPO, 'infra/seed'),
   path.join(REPO, 'infra/scripts'),
 ];
 
 const SKIP_DIRS = new Set(['node_modules', '.next', 'dist', 'public', '.git']);
-const EXTENSIONS = new Set(['.ts', '.tsx', '.css', '.json', '.mjs', '.js']);
+const EXTENSIONS = new Set(['.ts', '.tsx', '.css', '.json', '.mjs', '.js', '.html']);
+
+/** Generated output, checked through the template it is built from instead. */
+const SKIP_FILES = new Set([
+  path.join(APP, 'static-demo/bbq-chicken-website.html'),
+]);
 
 /** The two files allowed to carry a raw hex value. */
 const TOKEN_FILES = [
@@ -87,7 +93,7 @@ const violations = [];
 
 for (const root of ROOTS) {
   for await (const file of walk(root)) {
-    if (file === SELF) continue;
+    if (file === SELF || SKIP_FILES.has(file)) continue;
 
     const source = await readFile(file, 'utf8');
     const lines = source.split('\n');

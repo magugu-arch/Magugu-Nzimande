@@ -1,0 +1,2322 @@
+<title>bb.q Chicken South Africa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   bb.q Chicken South Africa — ordering website, review build.
+   Colour and type from Brand Identity Guidelines v1.0, §08 and §03.
+
+   Deliberately single-theme: the guidelines fix white and bb.q Black as the
+   two approved grounds, so every colour is painted explicitly rather than
+   inherited from the host.
+   ============================================================ */
+
+:root{
+  /* The palette is written in by the build from packages/ui/src/tokens.json,
+     so this file holds no colour of its own and cannot drift from the brand. */
+  /*__TOKENS__*/
+
+  --display:'Bebas Neue','Oswald','Arial Narrow',Impact,sans-serif;
+  --body:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+
+  --r-xs:6px; --r-sm:10px; --r:16px; --r-lg:24px; --pill:999px;
+  --e1:0 1px 2px rgb(34 30 31 / .06), 0 2px 8px rgb(34 30 31 / .05);
+  --e2:0 6px 18px rgb(34 30 31 / .10), 0 2px 6px rgb(34 30 31 / .06);
+  --e3:0 20px 50px rgb(34 30 31 / .20);
+  --wrap:1240px;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--black);
+  font-family:var(--body); font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block; max-width:100%}
+button,input,select,textarea{font:inherit; color:inherit}
+button{cursor:pointer; border:0; background:none; color:inherit}
+a{color:inherit; text-decoration:none}
+h1,h2,h3,h4{margin:0; font-weight:800; letter-spacing:-.01em; text-wrap:balance}
+p{margin:0}
+ul,ol{margin:0; padding:0; list-style:none}
+table{border-collapse:collapse}
+:focus-visible{outline:3px solid var(--red); outline-offset:2px; border-radius:4px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; scroll-behavior:auto !important;
+  }
+}
+
+.sr{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+.wrap{max-width:var(--wrap); margin:0 auto; padding:0 20px}
+.num{font-variant-numeric:tabular-nums}
+.display{font-family:var(--display); font-weight:400; letter-spacing:.01em; line-height:.92; text-transform:uppercase}
+.h-xl{font-size:clamp(40px,6.4vw,74px)}
+.h-lg{font-size:clamp(30px,4.2vw,46px)}
+.h-md{font-size:clamp(24px,3vw,32px)}
+.h-sm{font-size:22px}
+.muted{color:var(--muted)}
+.stack{display:flex; flex-direction:column}
+
+.skip{position:absolute; left:-9999px; z-index:200}
+.skip:focus{left:16px; top:16px; background:var(--black); color:var(--white); padding:12px 20px; border-radius:var(--pill); font-size:14px; font-weight:700}
+
+.eyebrow{
+  font-family:var(--display); font-size:14px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--red); line-height:1;
+  display:inline-flex; align-items:center; gap:10px;
+}
+.eyebrow::before{content:""; width:20px; height:2px; background:currentColor; flex:none}
+.eyebrow.on-dark{color:var(--gold)}
+
+/* ---------- Announcement strip ---------- */
+.ticker{background:var(--red); color:var(--white); height:34px; display:flex; align-items:center; overflow:hidden}
+.ticker .wrap{width:100%; text-align:center}
+.ticker span{
+  font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  transition:opacity .3s ease;
+}
+.ticker span.fade{opacity:0}
+
+/* ---------- Utility bar ---------- */
+.util{background:var(--black); color:var(--white); font-size:12px}
+.util .wrap{display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; padding-top:8px; padding-bottom:8px}
+.seg{display:flex; gap:2px; background:rgb(255 255 255 / .10); border-radius:var(--pill); padding:3px}
+.seg button{
+  padding:5px 12px; border-radius:var(--pill); color:rgb(255 255 255 / .70);
+  font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap;
+  transition:background-color .15s, color .15s;
+}
+.seg button:hover:not(:disabled){color:var(--white)}
+.seg button[aria-pressed="true"]{background:var(--red); color:var(--white)}
+.seg button:disabled{opacity:.4; cursor:not-allowed}
+.util label{display:flex; align-items:center; gap:7px; font-weight:600; color:rgb(255 255 255 / .8)}
+.util select{background:transparent; color:var(--white); font-weight:700; border:0; cursor:pointer; border-radius:4px}
+.util select option{color:var(--black)}
+.status{display:flex; align-items:center; gap:6px; font-weight:600; color:rgb(255 255 255 / .8)}
+.status.shut{color:var(--red-60)}
+.dot{width:6px; height:6px; border-radius:var(--pill); background:var(--gold); flex:none}
+.status.shut .dot{background:var(--red-60)}
+.util .tel{margin-left:auto; color:rgb(255 255 255 / .8); font-weight:600}
+.util .tel:hover{color:var(--white)}
+
+.flag{
+  display:inline-flex; align-items:center; border:1px solid var(--gold); color:var(--gold);
+  border-radius:var(--pill); padding:2px 8px; font-size:10px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; flex:none;
+}
+
+/* ---------- Header ---------- */
+.head{position:sticky; top:0; z-index:60; background:var(--white); border-bottom:1px solid var(--line)}
+.head .wrap{display:flex; align-items:center; gap:20px; height:68px}
+.logo{flex:none; display:block; padding:8px 0}
+.logo img{height:24px; width:auto}
+@media (min-width:640px){ .logo img{height:30px} }
+.nav{display:none}
+@media (min-width:1024px){ .nav{display:flex; gap:4px} }
+.nav a{position:relative; padding:10px 13px; border-radius:var(--r-sm); font-size:13px; font-weight:700; white-space:nowrap; transition:background-color .15s}
+.nav a:hover{background:var(--paper)}
+.nav a.on{color:var(--red)}
+.nav a.on::after{content:""; position:absolute; left:13px; right:13px; bottom:4px; height:2px; background:var(--red); border-radius:2px}
+.actions{margin-left:auto; display:flex; align-items:center; gap:8px}
+.icon-btn{
+  width:40px; height:40px; border-radius:var(--pill); display:grid; place-items:center;
+  border:1px solid var(--line); background:var(--white); transition:background-color .15s, border-color .15s;
+}
+.icon-btn:hover{border-color:var(--line-strong); background:var(--paper)}
+.acct{display:none}
+@media (min-width:640px){ .acct{display:grid} }
+.burger{display:grid}
+@media (min-width:1024px){ .burger{display:none} }
+.basket{
+  display:flex; align-items:center; gap:10px; background:var(--red); color:var(--white);
+  border-radius:var(--pill); padding:0 8px 0 16px; height:44px; font-weight:700; font-size:13px;
+  transition:background-color .15s;
+}
+.basket:hover{background:var(--red-deep)}
+.basket .count{
+  background:var(--white); color:var(--red); border-radius:var(--pill); min-width:26px; height:26px;
+  display:grid; place-items:center; font-size:12px; font-weight:800; padding:0 7px;
+}
+.basket .amount{display:none}
+@media (min-width:640px){ .basket .amount{display:inline} }
+.mobile-nav{border-top:1px solid var(--line); background:var(--white)}
+@media (min-width:1024px){ .mobile-nav{display:none} }
+.mobile-nav a{display:block; padding:14px 0; border-bottom:1px solid var(--line); font-size:14px; font-weight:700}
+.mobile-nav li:last-child a{border-bottom:0}
+.mobile-nav a.on{color:var(--red)}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  height:48px; padding:0 24px; border-radius:var(--pill);
+  font-weight:700; font-size:14px; text-align:center;
+  transition:background-color .15s, border-color .15s, transform .1s;
+}
+.btn:active{transform:translateY(1px)}
+.btn-red{background:var(--red); color:var(--white)}
+.btn-red:hover{background:var(--red-deep)}
+.btn-black{background:var(--black); color:var(--white)}
+.btn-black:hover{background:var(--black-80)}
+.btn-ghost{border:1.5px solid var(--line-strong); background:var(--white)}
+.btn-ghost:hover{border-color:var(--black); background:var(--paper)}
+.btn-ghost-dark{border:1.5px solid rgb(255 255 255 / .3); color:var(--white)}
+.btn-ghost-dark:hover{border-color:var(--white); background:rgb(255 255 255 / .08)}
+.btn-sm{height:38px; padding:0 16px; font-size:13px}
+.btn-block{width:100%}
+.btn:disabled{opacity:.45; pointer-events:none}
+
+/* ---------- Hero ---------- */
+.hero{background:var(--black); color:var(--white)}
+.hero .wrap{display:grid; gap:32px; align-items:center; padding-top:56px; padding-bottom:56px}
+@media (min-width:1024px){ .hero .wrap{grid-template-columns:1.05fr .95fr; padding-top:64px; padding-bottom:64px} }
+.hero h1{color:var(--white)}
+.hero h1 em{font-style:normal; color:var(--red)}
+.hero .lede{color:rgb(255 255 255 / .72); max-width:44ch; margin-top:16px}
+.craft{
+  margin-top:20px; display:inline-flex; align-items:center; gap:10px; font-family:var(--display);
+  font-size:15px; letter-spacing:.14em; color:var(--gold); text-transform:uppercase;
+}
+.craft::before{content:""; width:26px; height:2px; background:var(--gold); flex:none}
+.hero-cta{display:flex; gap:12px; margin-top:28px; flex-wrap:wrap}
+.hero-media{position:relative}
+.hero-media img{width:100%; border-radius:var(--r-lg); box-shadow:var(--e3); aspect-ratio:16/9; object-fit:cover}
+.hero-flag{
+  position:absolute; left:16px; bottom:-18px; display:flex; align-items:center; gap:12px;
+  background:var(--white); color:var(--black); border-radius:var(--pill); padding:10px 20px 10px 12px; box-shadow:var(--e2);
+}
+.hero-flag .rank{width:40px; height:40px; border-radius:var(--pill); background:var(--red); color:var(--white); display:grid; place-items:center; font-size:12px; font-weight:800; flex:none}
+.hero-flag .lbl{display:block; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.hero-flag .nm{display:block; font-size:14px; font-weight:800}
+
+/* ---------- Sections ---------- */
+.band{background:var(--white); border-bottom:1px solid var(--line)}
+.band .wrap{display:grid; gap:32px; padding:48px 20px}
+@media (min-width:768px){ .band .wrap{grid-template-columns:repeat(3,1fr)} }
+.band .step{font-family:var(--display); font-size:30px; color:var(--red-40); line-height:1}
+.section{padding:56px 0}
+.section-dark{background:var(--black); color:var(--white)}
+.head-row{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px}
+
+.grid{display:grid; gap:20px}
+.grid-2{grid-template-columns:1fr}
+@media (min-width:640px){ .grid-2{grid-template-columns:repeat(2,1fr)} }
+.grid-4{grid-template-columns:1fr}
+@media (min-width:640px){ .grid-4{grid-template-columns:repeat(2,1fr)} }
+@media (min-width:1024px){ .grid-4{grid-template-columns:repeat(4,1fr)} }
+.grid-3{grid-template-columns:1fr}
+@media (min-width:768px){ .grid-3{grid-template-columns:repeat(3,1fr)} }
+
+/* ---------- Product card ---------- */
+.card{
+  position:relative; display:flex; flex-direction:column; height:100%;
+  background:var(--white); border-radius:var(--r); overflow:hidden; box-shadow:var(--e1);
+  transition:box-shadow .2s;
+}
+.card:hover{box-shadow:var(--e2)}
+.card .shot{position:relative; aspect-ratio:4/5; background:var(--paper); overflow:hidden}
+.card .shot img{width:100%; height:100%; object-fit:cover; transition:transform .5s}
+.card:hover .shot img{transform:scale(1.04)}
+.tag{
+  position:absolute; left:12px; top:12px; background:var(--yellow); color:var(--black);
+  border-radius:var(--pill); padding:4px 10px; font-size:10px; font-weight:800;
+  letter-spacing:.08em; text-transform:uppercase;
+}
+.soldout{position:absolute; inset:0; display:grid; place-items:center; background:rgb(34 30 31 / .65)}
+.soldout span{font-family:var(--display); font-size:18px; color:var(--white); border:2px solid var(--white); border-radius:var(--pill); padding:6px 16px; text-transform:uppercase}
+.card .body{display:flex; flex-direction:column; flex:1; padding:16px}
+.card .title-row{display:flex; align-items:flex-start; justify-content:space-between; gap:8px}
+.card h3{font-size:15px; font-weight:800; line-height:1.2}
+.card h3 a::after{content:""; position:absolute; inset:0}
+.card .price{font-size:14px; font-weight:800; color:var(--red); flex:none}
+.card .desc{margin-top:6px; font-size:12px; line-height:1.6; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.card .foot{margin-top:12px; padding-top:4px; display:flex; align-items:center; justify-content:space-between; gap:8px}
+.card .sauce{font-size:11px; font-weight:600; color:var(--muted)}
+
+/* A grid child defaults to min-width:auto and refuses to shrink below its
+   content, which pushed the menu's search and sort row past the viewport at
+   320px. Every grid here is allowed to shrink instead. */
+.grid > *, [id$="-grid"] > *{min-width:0}
+
+/* ---------- Heat meter ---------- */
+.heat{display:inline-flex; align-items:center; gap:4px}
+.heat i{display:block; width:12px; height:6px; border-radius:var(--pill); background:var(--black-20)}
+.heat i.on{background:var(--red)}
+.heat.on-dark i{background:rgb(255 255 255 / .2)}
+.heat.on-dark i.on{background:var(--red)}
+
+/* ---------- Rails ---------- */
+.rail{display:flex; gap:16px; overflow-x:auto; padding-bottom:8px; scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.sauce-card{width:210px; flex:none; border:1px solid rgb(255 255 255 / .15); background:rgb(255 255 255 / .05); border-radius:var(--r); padding:16px}
+.cat{position:relative; display:block; border-radius:var(--r); overflow:hidden; background:var(--black); color:var(--white); box-shadow:var(--e1)}
+.cat img{height:160px; width:100%; object-fit:cover; opacity:.62; transition:transform .5s}
+.cat:hover img{transform:scale(1.05)}
+.cat .over{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:16px}
+
+/* ---------- Panels, forms ---------- */
+.panel{background:var(--white); border:1px solid var(--line); border-radius:var(--r); padding:24px}
+.panel-flat{background:var(--white); border:1px solid var(--line); border-radius:var(--r)}
+.notice{border:1px solid var(--gold); background:var(--white); border-radius:var(--r); padding:16px 20px}
+.field{display:block}
+.field .lbl{display:block; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.field input,.field textarea,.field select{
+  margin-top:6px; width:100%; border:1px solid var(--line); background:var(--white);
+  border-radius:var(--r-sm); padding:0 14px; height:48px; font-size:14px;
+}
+.field textarea{height:auto; padding:12px 14px; resize:vertical}
+.field input[aria-invalid="true"],.field textarea[aria-invalid="true"]{border-color:var(--red)}
+.err{margin-top:6px; font-size:12px; font-weight:600; color:var(--red)}
+.hint{margin-top:6px; font-size:12px; color:var(--muted)}
+
+.chip{
+  border:1px solid var(--line); background:var(--white); border-radius:var(--pill);
+  padding:10px 16px; font-size:13px; font-weight:700; white-space:nowrap;
+  transition:background-color .15s, border-color .15s, color .15s;
+}
+.chip:hover{border-color:var(--line-strong); background:var(--paper)}
+.chip[aria-pressed="true"]{background:var(--red); border-color:var(--red); color:var(--white)}
+.chip .delta{margin-left:8px; color:var(--muted); font-weight:600}
+.chip[aria-pressed="true"] .delta{color:rgb(255 255 255 / .8)}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+
+fieldset{border:0; padding:0; margin:0 0 24px}
+legend{margin-bottom:10px; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+
+/* ---------- Stepper ---------- */
+.stepper{display:flex; align-items:center; gap:4px; border:1px solid var(--line); background:var(--white); border-radius:var(--pill); padding:4px}
+.stepper button{width:32px; height:32px; border-radius:var(--pill); display:grid; place-items:center; font-size:18px; line-height:1; transition:background-color .15s}
+.stepper button:hover:not(:disabled){background:var(--paper)}
+.stepper button:disabled{opacity:.3; cursor:not-allowed}
+.stepper .qty{width:24px; text-align:center; font-size:14px; font-weight:700}
+
+/* ---------- Drawer ---------- */
+.scrim{position:fixed; inset:0; z-index:80; background:rgb(34 30 31 / .5); opacity:0; pointer-events:none; transition:opacity .2s}
+.scrim.open{opacity:1; pointer-events:auto}
+.drawer{
+  position:fixed; top:0; right:0; bottom:0; z-index:90; width:100%; max-width:420px;
+  background:var(--white); box-shadow:var(--e3); display:flex; flex-direction:column;
+  transform:translateX(100%); transition:transform .25s ease-out;
+}
+.drawer.open{transform:translateX(0)}
+.drawer-head{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line)}
+.drawer-body{flex:1; overflow-y:auto; padding:0 20px}
+.drawer-foot{border-top:1px solid var(--line); padding:16px 20px}
+.empty{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:0 32px; text-align:center}
+
+.meter{margin-top:16px; background:var(--paper); border-radius:var(--r-sm); padding:12px}
+.bar{margin-top:8px; height:6px; border-radius:var(--pill); background:var(--black-20); overflow:hidden}
+.bar span{display:block; height:100%; border-radius:var(--pill); background:var(--red); transition:width .3s}
+
+.line{display:flex; gap:12px; padding:16px 0; border-bottom:1px solid var(--line)}
+.line:last-child{border-bottom:0}
+.line .shot{width:72px; height:72px; flex:none; border-radius:var(--r-sm); overflow:hidden; background:var(--paper)}
+.line .shot img{width:100%; height:100%; object-fit:cover}
+.line .info{flex:1; min-width:0}
+.line .nm{font-size:14px; font-weight:700}
+.line .opt{margin-top:2px; font-size:12px; color:var(--muted)}
+.line .row{margin-top:8px; display:flex; align-items:center; justify-content:space-between; gap:8px}
+
+.totals{margin:0; font-size:14px}
+.totals .row{display:flex; justify-content:space-between; gap:12px; padding:4px 0}
+.totals .row.discount{color:var(--red); font-weight:600}
+.totals .row.grand{margin-top:8px; padding-top:10px; border-top:1px solid var(--line); font-size:16px; font-weight:800}
+.totals dt{display:flex; align-items:center; gap:8px; color:var(--muted)}
+.totals .grand dt{color:var(--black)}
+
+.suggest{display:flex; gap:8px; overflow-x:auto; margin-top:12px; scrollbar-width:none}
+.suggest::-webkit-scrollbar{display:none}
+.suggest button{width:128px; flex:none; border:1px solid var(--line); border-radius:var(--r-sm); padding:8px; text-align:left; transition:background-color .15s, border-color .15s}
+.suggest button:hover{border-color:var(--line-strong); background:var(--paper)}
+.suggest .shot{aspect-ratio:4/5; border-radius:var(--r-xs); overflow:hidden; background:var(--paper); margin-bottom:8px}
+.suggest img{width:100%; height:100%; object-fit:cover}
+.suggest .nm{display:block; font-size:12px; font-weight:700; line-height:1.3}
+.suggest .pr{font-size:12px; color:var(--red); font-weight:700}
+
+/* ---------- Checkout ---------- */
+.steps{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:32px}
+.steps li{display:flex; align-items:center; gap:8px}
+.steps .pill{display:flex; align-items:center; gap:8px; border-radius:var(--pill); padding:6px 14px; font-size:12px; font-weight:700; background:var(--paper); color:var(--muted)}
+.steps .pill.done{background:var(--red-10); color:var(--red)}
+.steps .pill.now{background:var(--red); color:var(--white)}
+.steps .sep{width:12px; height:1px; background:var(--line-strong)}
+.pick{border:1px solid var(--line); background:var(--white); border-radius:var(--r); padding:16px; text-align:left; transition:border-color .15s, background-color .15s}
+.pick:hover:not(:disabled){border-color:var(--line-strong)}
+.pick[aria-pressed="true"]{border-color:var(--red); background:var(--red-10)}
+.pick:disabled{opacity:.45; cursor:not-allowed}
+.pick .nm{display:block; font-size:14px; font-weight:800}
+.pick .sub{display:block; margin-top:4px; font-size:12px; color:var(--muted)}
+.ok-note{background:var(--red-10); color:var(--red); border-radius:var(--r-sm); padding:10px 14px; font-size:12px; font-weight:600}
+
+/* ---------- Journey ---------- */
+.timeline li{display:flex; gap:16px}
+.timeline .mark{display:flex; flex-direction:column; align-items:center}
+.timeline .bead{
+  width:32px; height:32px; flex:none; border-radius:var(--pill); display:grid; place-items:center;
+  border:2px solid var(--line); background:var(--white); color:var(--black-40); font-size:12px; font-weight:800;
+}
+.timeline .bead.on{border-color:var(--red); background:var(--red); color:var(--white)}
+.timeline .stem{flex:1; width:2px; background:var(--line)}
+.timeline .stem.on{background:var(--red)}
+.timeline .txt{padding-bottom:28px}
+.timeline li:last-child .txt{padding-bottom:0}
+.timeline .lbl{font-size:14px; font-weight:800; color:var(--black-40)}
+.timeline .lbl.done{color:var(--black)}
+.timeline .lbl.now{color:var(--red)}
+.timeline .msg{margin-top:4px; max-width:46ch; font-size:12px; line-height:1.6; color:var(--muted)}
+
+.badge{border-radius:var(--pill); padding:5px 12px; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
+.badge-red{background:var(--red); color:var(--white)}
+.badge-soft{background:var(--red-10); color:var(--red)}
+.badge-grey{background:var(--black-10); color:var(--black-80)}
+.badge-amber{background:var(--yellow); color:var(--black)}
+
+/* ---------- Tables ---------- */
+.scroll-x{overflow-x:auto; border:1px solid var(--line); border-radius:var(--r); background:var(--white)}
+table{width:100%; min-width:560px; font-size:14px}
+thead tr{background:var(--paper); border-bottom:1px solid var(--line); text-align:left}
+th,td{padding:12px 16px}
+th{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
+tbody tr{border-bottom:1px solid var(--line)}
+tbody tr:last-child{border-bottom:0}
+tbody th{font-size:14px; font-weight:700; text-transform:none; letter-spacing:0}
+
+/* ---------- Details ---------- */
+details{border-bottom:1px solid var(--line); padding:16px 0}
+details summary{display:flex; align-items:center; justify-content:space-between; gap:16px; cursor:pointer; list-style:none; font-size:14px; font-weight:800}
+details summary::-webkit-details-marker{display:none}
+details summary .plus{width:24px; height:24px; flex:none; border:1px solid var(--line); border-radius:var(--pill); display:grid; place-items:center; transition:transform .2s}
+details[open] summary .plus{transform:rotate(45deg)}
+details p{margin-top:12px; max-width:62ch; font-size:14px; line-height:1.7; color:var(--muted)}
+
+/* ---------- Admin ---------- */
+.tabs{display:flex; flex-wrap:wrap; gap:8px}
+.tabs button{border-radius:var(--pill); padding:9px 18px; font-size:13px; font-weight:700; background:var(--white); transition:background-color .15s, color .15s}
+.tabs button:hover{background:var(--paper)}
+.tabs button[aria-selected="true"]{background:var(--black); color:var(--white)}
+.queue{background:var(--white); border:1px solid var(--line); border-radius:var(--r); padding:16px}
+.queue + .queue{margin-top:12px}
+.state-btns{display:flex; flex-wrap:wrap; gap:6px}
+.state-btns button{border-radius:var(--pill); padding:5px 11px; font-size:11px; font-weight:700; background:var(--paper); transition:background-color .15s}
+.state-btns button:hover:not(:disabled){background:var(--black-10)}
+.state-btns button[aria-pressed="true"]{background:var(--red); color:var(--white)}
+.state-btns button:disabled{opacity:.4; cursor:not-allowed}
+.state-btns .cancel{background:var(--white); border:1px solid var(--red); color:var(--red)}
+.state-btns .cancel:hover:not(:disabled){background:var(--red-10)}
+.audit li{display:flex; gap:16px; padding:12px 16px; border-bottom:1px solid var(--line); font-size:12px}
+.audit li:last-child{border-bottom:0}
+.audit .t{color:var(--muted); flex:none}
+.audit .who{font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--red); flex:none}
+input[type="checkbox"]{width:16px; height:16px; accent-color:var(--red); cursor:pointer}
+input[type="range"]{width:100%; accent-color:var(--red)}
+
+/* ---------- Store map placeholder ---------- */
+.map{
+  position:relative; height:112px; margin-top:20px; border:1px solid var(--line);
+  border-radius:var(--r-sm); background:var(--paper); overflow:hidden;
+}
+.map .grid-lines{
+  position:absolute; inset:0; opacity:.4;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:22px 22px;
+}
+.map .pin{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:32px; height:32px; border-radius:var(--pill); background:var(--red); color:var(--white); display:grid; place-items:center; box-shadow:var(--e1)}
+.map .cap{position:absolute; left:12px; bottom:8px; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+
+/* ---------- Device frames (app preview) ---------- */
+.device{margin:0 auto; width:100%; max-width:280px}
+.device .shell{border:8px solid var(--black); border-radius:36px; background:var(--black); box-shadow:var(--e3)}
+.device .screen{position:relative; border-radius:26px; overflow:hidden; background:var(--paper); height:500px}
+.device .notch{position:absolute; left:50%; top:0; transform:translateX(-50%); width:96px; height:20px; border-radius:0 0 16px 16px; background:var(--black); z-index:2}
+.device figcaption{margin-top:12px; text-align:center; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+
+/* ---------- Footer ---------- */
+.foot{margin-top:80px; background:var(--black); color:var(--white)}
+.foot .wrap{padding:56px 20px}
+.foot-grid{display:grid; gap:40px}
+@media (min-width:768px){ .foot-grid{grid-template-columns:1.4fr repeat(3,1fr)} }
+.foot img{height:30px; width:auto}
+.foot h2{font-family:var(--display); font-weight:400; font-size:16px; letter-spacing:.14em; color:var(--gold); text-transform:uppercase}
+.foot a{color:rgb(255 255 255 / .7); font-size:14px; transition:color .15s}
+.foot a:hover{color:var(--white)}
+.foot .fine{margin-top:48px; padding-top:24px; border-top:1px solid rgb(255 255 255 / .15)}
+
+/* ---------- Sticky basket bar ---------- */
+.sticky-bar{position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--white); border-top:1px solid var(--line); padding:12px; box-shadow:var(--e2)}
+@media (min-width:1024px){ .sticky-bar{display:none} }
+.sticky-bar button{display:flex; align-items:center; justify-content:space-between; width:100%; height:48px; padding:0 20px; border-radius:var(--pill); background:var(--red); color:var(--white); font-size:14px; font-weight:700}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed; left:50%; bottom:24px; transform:translate(-50%,16px); z-index:120;
+  background:var(--black); color:var(--white); border-radius:var(--pill); padding:12px 22px;
+  font-size:13px; font-weight:600; box-shadow:var(--e3); opacity:0; pointer-events:none;
+  transition:opacity .2s, transform .2s; max-width:calc(100vw - 32px); text-align:center;
+}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+
+/* ---------- Utilities ---------- */
+.mt-1{margin-top:4px} .mt-2{margin-top:8px} .mt-3{margin-top:12px} .mt-4{margin-top:16px}
+.mt-5{margin-top:20px} .mt-6{margin-top:24px} .mt-8{margin-top:32px} .mt-10{margin-top:40px} .mt-12{margin-top:48px}
+.row{display:flex; align-items:center; gap:12px}
+.row-wrap{display:flex; flex-wrap:wrap; align-items:center; gap:12px}
+.between{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.gap-2{gap:8px} .gap-4{gap:16px}
+.sm{font-size:13px} .xs{font-size:12px} .xxs{font-size:11px}
+.b{font-weight:700} .bb{font-weight:800}
+.red{color:var(--red)} .gold{color:var(--gold)} .white{color:var(--white)}
+.center{text-align:center}
+.max-56{max-width:56ch} .max-46{max-width:46ch} .max-62{max-width:62ch}
+.flex-1{flex:1}
+</style>
+
+<a class="skip" href="#main">Skip to content</a>
+<div id="chrome"></div>
+<main id="main"></main>
+<div id="footer"></div>
+
+<div class="scrim" id="scrim" data-action="close-drawer" aria-hidden="true"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Your basket"></div>
+<div id="sticky"></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="sr" id="live" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+/*__ASSETS__*/
+</script>
+
+<script>
+/* ============================================================
+   bb.q Chicken South Africa — review build.
+
+   The production site is a Next.js app whose service layer talks to a real
+   API, and whose store service rules are enforced on the server as well as in
+   the interface. This build has no server: the same catalogue, pricing and
+   rules run in the browser so the journey can be walked through from a link.
+   Anything it enforces, it enforces client side only.
+   ============================================================ */
+
+/* ---------- 1. Catalogue ------------------------------------
+   Ported from infra/seed. Every commercial value is unapproved
+   sample data pending the franchisor.
+   ---------------------------------------------------------- */
+
+const DEMO = true;
+const CRAFT_LINE = 'Twice fried in olive oil. Tossed to order.';
+
+const PRODUCTS = [
+  {slug:'golden-original', name:'Golden Original Chicken', category:'Chicken', priceCents:18900, heat:1, sauce:'No sauce', tag:'Best seller', img:'golden-original',
+   desc:'The original recipe. Twice fried in olive oil, seasoned and served bare so the crunch does the talking.', allergens:'Wheat, soya', kj:1180},
+  {slug:'honey-garlic', name:'Honey Garlic Chicken', category:'Chicken', priceCents:20900, heat:2, sauce:'Honey garlic', tag:'Best seller', img:'honey-garlic',
+   desc:'Sticky honey and roasted garlic, tossed to order and finished with sesame and spring onion.', allergens:'Wheat, soya, sesame', kj:1290},
+  {slug:'soy-garlic', name:'Soy Garlic Chicken', category:'Chicken', priceCents:20900, heat:2, sauce:'Soy garlic', img:'soy-garlic',
+   desc:'Deep soy glaze with slow garlic. The most ordered flavour in Korea, and the easiest place to start.', allergens:'Wheat, soya, sesame', kj:1265},
+  {slug:'secret-sauce', name:'Secret Sauce Chicken', category:'Chicken', priceCents:21500, heat:4, sauce:'Secret sauce', tag:'New', img:'secret-sauce',
+   desc:'Sweet at the front, hot at the back. The house sauce that people come back for.', allergens:'Wheat, soya, sesame', kj:1310},
+  {slug:'hot-spicy', name:'Hot Spicy Chicken', category:'Chicken', priceCents:21500, heat:5, sauce:'Hot spicy', img:'hot-spicy',
+   desc:'Gochujang heat with fresh chilli, cut with sesame. Order water. You will need it.', allergens:'Wheat, soya, sesame', kj:1305},
+  {slug:'cheesling', name:'Cheesling Chicken', category:'Chicken', priceCents:21900, heat:1, sauce:'Cheese dust', img:'cheesling',
+   desc:'Golden Original under a heavy snow of savoury cheese seasoning. A crowd favourite with kids.', allergens:'Wheat, soya, milk', kj:1360},
+  {slug:'half-half', name:'Half and Half Chicken', category:'Chicken', priceCents:22900, heat:3, sauce:'Pick two', tag:'Table share', img:'half-and-half',
+   desc:'One bird, two flavours. Choose any two sauces and settle the argument at the table.', allergens:'Wheat, soya, sesame', kj:1290},
+  {slug:'golden-wings', name:'Golden Original Wings', category:'Wings', priceCents:17900, heat:1, sauce:'No sauce', tag:'Best seller', img:'golden-original-wings',
+   desc:'Whole wings, twice fried, salted while hot. Add any sauce on the side.', allergens:'Wheat, soya', kj:1140},
+  {slug:'boneless', name:'Boneless Chicken', category:'Wings', priceCents:16900, heat:2, sauce:'Choose sauce', img:'boneless',
+   desc:'Breast pieces in the signature crumb. All of the crunch, none of the bones.', allergens:'Wheat, soya', kj:1095},
+  {slug:'chicken-rice', name:'Chicken and Rice Meal', category:'Meals', priceCents:12900, heat:2, sauce:'Choose sauce', tag:'Meal deal', img:'chicken-rice-meal',
+   desc:'Three pieces, steamed rice, house slaw, dipping sauce and a drink.', allergens:'Wheat, soya, egg', kj:2240},
+  {slug:'chicken-burger', name:'Chicken Burger', category:'Meals', priceCents:9900, heat:3, sauce:'Secret sauce', img:'chicken-burger',
+   desc:'Crunchy fillet, glazed and stacked with lettuce, red onion, pickles and house mayo. Served with fries and a drink.', allergens:'Wheat, soya, egg, sesame', kj:2380},
+  {slug:'korean-rice-bowl', name:'Korean Rice Bowl', category:'Meals', priceCents:11900, heat:3, sauce:'Sweet and spicy', tag:'New', img:'korean-rice-bowl',
+   desc:'Boneless chicken over rice with kimchi, cucumber, carrot, seaweed and a creamy drizzle.', allergens:'Wheat, soya, sesame, fish', kj:2150},
+  {slug:'french-fries', name:'French Fries', category:'Sides', priceCents:3900, heat:0, sauce:'Salted', img:'french-fries',
+   desc:'Crispy outside, fluffy inside. Seasoned the moment they leave the fryer.', allergens:'None declared', kj:980},
+  {slug:'cheesling-fries', name:'Cheesling Fries', category:'Sides', priceCents:5900, heat:1, sauce:'Cheese', img:'cheesling-fries',
+   desc:'Fries loaded with cheese sauce, jalapeno and crisp bacon bits.', allergens:'Milk, wheat', kj:1520},
+  {slug:'ddeok-bokki', name:'Ddeok-Bokki', category:'Sides', priceCents:6900, heat:4, sauce:'Gochujang', img:'ddeok-bokki',
+   desc:'Korean rice cakes in a bold gochujang sauce. Spicy, chewy, hard to share.', allergens:'Wheat, soya, sesame', kj:1180},
+  {slug:'rose-ddeok-bokki', name:'Rose Ddeok-Bokki', category:'Sides', priceCents:7900, heat:2, sauce:'Rose', img:'rose-ddeok-bokki',
+   desc:'Rice cakes in creamy rose sauce with mozzarella. The gentler way in.', allergens:'Milk, wheat, soya', kj:1420},
+];
+
+const CATEGORIES = [
+  {key:'Chicken', label:'Chicken', note:'Whole birds and half birds. Every order is tossed after frying, so sauce is chosen at ordering.', img:'golden-original'},
+  {key:'Wings', label:'Wings and boneless', note:'Wings and boneless pieces. Sauces on the side unless you ask for them tossed.', img:'golden-original-wings'},
+  {key:'Meals', label:'Meals', note:'One person, one tray. Chicken with a starch, a side and a drink.', img:'chicken-rice-meal'},
+  {key:'Sides', label:'Sides', note:'Fries, rice cakes and everything that goes in the middle of the table.', img:'french-fries'},
+];
+
+const SAUCES = [
+  {name:'Golden Original', heat:1, note:'No sauce'},
+  {name:'Honey Garlic', heat:2, note:'Sweet'},
+  {name:'Soy Garlic', heat:2, note:'Savoury'},
+  {name:'Secret Sauce', heat:4, note:'Sweet heat'},
+  {name:'Hot Spicy', heat:5, note:'Hot'},
+  {name:'Cheesling', heat:1, note:'Cheese dust'},
+];
+
+const STORES = [
+  {id:'ST-CRE', name:'Cresta Crossing', address:'Beyers Naude Drive, Randburg, Johannesburg',
+   tel:'011 000 0000', opens:660, closes:1320, hours:'11:00 to 22:00, seven days', km:4.2,
+   services:{Delivery:true, Collection:true, 'Dine-in':true},
+   zones:['Randburg','Northcliff','Blackheath','Fairland','Cresta','Linden'],
+   halaal:'Certification confirmed in store'},
+  {id:'ST-WAT', name:'Waterfall Ridge', address:'Allandale off-ramp, Midrand, Johannesburg',
+   tel:'011 000 0001', opens:660, closes:1320, hours:'11:00 to 22:00, seven days', km:28.6,
+   services:{Delivery:true, Collection:true, 'Dine-in':false},
+   zones:['Midrand','Kyalami','Sunninghill','Waterfall','Vorna Valley'],
+   halaal:'Certification confirmed in store'},
+];
+
+const PROMOTIONS = [
+  {id:'OF-1', title:'Half and Half Tuesday', slug:'half-half', code:'PICKTWO', rate:0.15,
+   valid:'Every Tuesday, 11:00 to 22:00', copy:'Two sauces on one bird at the single flavour price. Delivery and collection.'},
+  {id:'OF-2', title:'Rice Meal for one', slug:'chicken-rice', code:'ONETRAY', rate:0.10,
+   valid:'Weekdays before 16:00', copy:'Three pieces, rice, slaw and a drink. Built for a lunch break, not a queue.'},
+  {id:'OF-3', title:'First order, free fries', slug:'french-fries', code:'FIRSTCRUNCH', rate:0.10,
+   valid:'New accounts, one use', copy:'Create an account and your first delivery order comes with regular fries.'},
+];
+
+const REWARDS = [
+  {id:'RW-1', name:'Regular fries', points:120},
+  {id:'RW-2', name:'Ddeok-Bokki side', points:220},
+  {id:'RW-3', name:'Boneless Chicken', points:480},
+  {id:'RW-4', name:'Half and Half Chicken', points:700},
+];
+
+const TIERS = [{name:'Bronze', from:0}, {name:'Silver', from:250}, {name:'Gold', from:1000}];
+
+const FAQS = [
+  {q:'How long does delivery take?', a:'Between 35 and 45 minutes in most suburbs, measured from the moment payment clears. The timer on My journey updates as the order moves through the kitchen, so it is the number to trust rather than the estimate at checkout.'},
+  {q:'Why is the chicken fried twice?', a:'The first fry cooks the bird through. The second drives the moisture out of the crust. It is what keeps the coating crisp under sauce, and it is why an order takes a few minutes longer than a single-fry kitchen.'},
+  {q:'When is the sauce added?', a:'After frying, to order. Nothing sits pre-sauced, which is why you choose the flavour when you order rather than picking from a warmer.'},
+  {q:'Can I order two flavours on one bird?', a:'Yes. Half and Half lets you choose any two sauces on a single bird. Pick them in the product screen before adding to your basket.'},
+  {q:'What if my suburb is not covered?', a:'Collection is available at both stores and takes about 20 minutes. Delivery areas widen as the estate grows, so a suburb outside the zone today may be inside it later.'},
+  {q:'How do points work?', a:'One point for every rand spent, on every fulfilment mode. Points post once the order is completed, and can be spent on any reward you have reached.'},
+  {q:'Can I change an order after placing it?', a:'Call the store directly. Once an order reaches Preparing the kitchen has already started, so changes are limited to additions.'},
+  {q:'Is the chicken halaal?', a:'Certification is confirmed per store and displayed in store. Ask the store before ordering if this matters to your order.'},
+];
+
+const FEES = {deliveryCents:2900, freeOverCents:35000, etaMin:35, etaMax:45, collectEta:20};
+const ORDER_STATES = ['received','preparing','ready','out_for_delivery','completed'];
+const STATE_MSG = {
+  received:'We have your order and the kitchen has it on the rail.',
+  preparing:'Your chicken is in the fryer. First fry, then the second.',
+  ready:'Sauced, packed and checked.',
+  out_for_delivery:'Your driver has collected the order.',
+  completed:'Enjoy. Your points have posted.',
+};
+
+/* ---------- 2. Helpers -------------------------------------- */
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/** The only place cents becomes text. */
+function money(cents){
+  const value = (Math.round(cents) / 100).toFixed(2);
+  const [whole, part] = value.split('.');
+  return 'R' + whole.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + '.' + part;
+}
+function moneyShort(cents){
+  const out = money(cents);
+  return out.endsWith('.00') ? out.slice(0, -3) : out;
+}
+
+const flag = (label) => DEMO ? '<span class="flag">' + esc(label || 'Demo') + '</span>' : '';
+
+function heat(level, dark){
+  if(level <= 0) return '<span class="xs muted">Mild</span>';
+  let out = '<span class="heat' + (dark ? ' on-dark' : '') + '" role="img" aria-label="Heat ' + level + ' of 5">';
+  for(let i = 1; i <= 5; i++) out += '<i' + (i <= level ? ' class="on"' : '') + '></i>';
+  return out + '</span>';
+}
+
+/** South African time, because "open now" is a fact about the store. */
+function minutesNow(){
+  const now = new Date();
+  return (now.getUTCHours() * 60 + now.getUTCMinutes() + 120) % 1440;
+}
+function isOpen(store){
+  const m = minutesNow();
+  return store.closes > store.opens
+    ? (m >= store.opens && m < store.closes)
+    : (m >= store.opens || m < store.closes);
+}
+
+const product = (slug) => PRODUCTS.find((p) => p.slug === slug);
+const store = () => STORES.find((s) => s.id === S.storeId) || STORES[0];
+
+/** Store services with any console overrides applied. */
+function services(s){
+  return Object.assign({}, s.services, S.serviceOverrides[s.id] || {});
+}
+const serves = (s, mode) => services(s)[mode] === true;
+
+const isSoldOut = (slug) => S.soldOut.includes(slug);
+const isHidden = (slug) => S.hidden.includes(slug);
+/** Hidden products are absent from the catalogue; sold out ones are flagged. */
+const catalogue = () => PRODUCTS.filter((p) => !isHidden(p.slug));
+
+/* ---------- 3. Options --------------------------------------
+   Derived from the category, so a new product needs no new UI.
+   ---------------------------------------------------------- */
+
+const EXTRAS = {key:'extras', label:'Add to it', multi:true, def:0, choices:[
+  {label:'Extra dipping sauce', delta:1500},
+  {label:'Pickled radish', delta:1500},
+  {label:'Cheese dust', delta:2000},
+]};
+
+function optionGroups(p){
+  const groups = [];
+  const sauceChoices = SAUCES.map((s) => ({label:s.name, delta:0}));
+
+  if(p.category === 'Chicken'){
+    groups.push({key:'size', label:'Size', multi:false, def:0, choices:[
+      {label:'Whole bird', delta:0}, {label:'Half bird', delta:-7000},
+    ]});
+    if(p.slug === 'half-half'){
+      groups.push({key:'sauceA', label:'First sauce', multi:false, def:0, choices:sauceChoices});
+      groups.push({key:'sauceB', label:'Second sauce', multi:false, def:1, choices:sauceChoices});
+    }
+  }
+  if(p.category === 'Wings'){
+    groups.push({key:'portion', label:'Portion', multi:false, def:0, choices:[
+      {label:'12 pieces', delta:0}, {label:'20 pieces', delta:9000},
+    ]});
+    groups.push({key:'sauce', label:'Sauce', multi:false, def:0, choices:[
+      {label:'On the side', delta:0}, {label:'Tossed to order', delta:0},
+    ]});
+  }
+  if(p.category === 'Meals'){
+    groups.push({key:'drink', label:'Drink', multi:false, def:0, choices:[
+      {label:'Cola', delta:0}, {label:'Lemonade', delta:0}, {label:'Still water', delta:0},
+    ]});
+  }
+  if(p.category === 'Sides'){
+    groups.push({key:'size', label:'Size', multi:false, def:0, choices:[
+      {label:'Regular', delta:0}, {label:'Large', delta:2000},
+    ]});
+  }
+  groups.push(EXTRAS);
+  return groups;
+}
+
+const EXCLUSIVE = ['sauceA','sauceB'];
+
+function defaultSelection(groups){
+  const sel = {};
+  for(const g of groups) sel[g.key] = g.multi ? [] : [(g.choices[g.def] || g.choices[0]).label];
+  return sel;
+}
+
+/**
+ * Half and Half may never hold the same sauce twice: choosing a sauce the
+ * other half already holds moves that half to the first one still free.
+ */
+function chooseOption(groups, sel, group, label){
+  if(group.multi){
+    const chosen = sel[group.key] || [];
+    const next = Object.assign({}, sel);
+    next[group.key] = chosen.includes(label)
+      ? chosen.filter((c) => c !== label)
+      : chosen.concat([label]);
+    return next;
+  }
+
+  const next = Object.assign({}, sel);
+  next[group.key] = [label];
+
+  if(EXCLUSIVE.includes(group.key)){
+    const otherKey = EXCLUSIVE.find((k) => k !== group.key);
+    const other = groups.find((g) => g.key === otherKey);
+    if(other && next[otherKey] && next[otherKey][0] === label){
+      const free = other.choices.find((c) => c.label !== label);
+      if(free) next[otherKey] = [free.label];
+    }
+  }
+  return next;
+}
+
+function unitPrice(base, groups, sel){
+  let total = base;
+  for(const g of groups){
+    for(const label of (sel[g.key] || [])){
+      const choice = g.choices.find((c) => c.label === label);
+      if(choice) total += choice.delta;
+    }
+  }
+  return total;
+}
+
+function selectedOptions(groups, sel){
+  return groups
+    .map((g) => ({key:g.key, label:g.label, choices:sel[g.key] || []}))
+    .filter((o) => o.choices.length > 0);
+}
+
+function lineKey(slug, options){
+  const canonical = options
+    .map((o) => o.key + ':' + o.choices.slice().sort().join('|'))
+    .sort().join(';');
+  return slug + '::' + canonical;
+}
+
+const describeOptions = (options) =>
+  options.reduce((all, o) => all.concat(o.choices), []).join(' · ');
+
+/* ---------- 4. Pricing --------------------------------------
+   Cents in, cents out. One rounding step, at the discount.
+   ---------------------------------------------------------- */
+
+const promotion = (code) => code
+  ? PROMOTIONS.find((p) => p.code === String(code).trim().toUpperCase()) || null
+  : null;
+
+const subtotal = () => S.lines.reduce((sum, l) => sum + l.unitCents * l.qty, 0);
+
+function discount(){
+  const promo = promotion(S.promoCode);
+  return promo ? Math.round(subtotal() * promo.rate) : 0;
+}
+
+/**
+ * Delivery is charged on the subtotal after discount, so a promo code cannot
+ * buy free delivery the customer has not actually paid past.
+ */
+function deliveryFee(){
+  if(S.mode !== 'Delivery' || S.lines.length === 0) return 0;
+  return (subtotal() - discount()) >= FEES.freeOverCents ? 0 : FEES.deliveryCents;
+}
+
+const grandTotal = () => subtotal() - discount() + deliveryFee();
+const itemCount = () => S.lines.reduce((n, l) => n + l.qty, 0);
+const remainingToFree = () => Math.max(0, FEES.freeOverCents - (subtotal() - discount()));
+const pointsFor = (cents) => Math.floor(cents / 100);
+
+const statesFor = (mode) => mode === 'Delivery'
+  ? ORDER_STATES.slice()
+  : ORDER_STATES.filter((s) => s !== 'out_for_delivery');
+
+const completedLabel = (mode) =>
+  mode === 'Delivery' ? 'Delivered' : (mode === 'Collection' ? 'Collected' : 'Served');
+
+function stateLabel(state, mode){
+  if(state === 'cancelled') return 'Cancelled';
+  if(state === 'completed') return completedLabel(mode);
+  return {received:'Order received', preparing:'Preparing', ready:'Ready', out_for_delivery:'On the way'}[state];
+}
+
+/* ---------- 5. State ---------------------------------------- */
+
+const STORAGE_KEY = 'bbq.review.v1';
+
+const S = {
+  route:'/', mode:'Delivery', storeId:'ST-CRE',
+  lines:[], promoCode:null, orders:[],
+  soldOut:[], hidden:[], serviceOverrides:{},
+  audit:[{at:new Date().toISOString(), who:'system', what:'Demo catalogue loaded (16 products)'}],
+  menu:{search:'', category:'all', heatMax:5, sort:'popular'},
+  checkout:{step:0, name:'', email:'', mobile:'', address:'', suburb:'', note:'', errors:{}, quote:null},
+  product:null, adminTab:'Orders', menuOpen:false, drawerOpen:false, sequence:0, trackedId:null,
+};
+
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      mode:S.mode, storeId:S.storeId, lines:S.lines, promoCode:S.promoCode, orders:S.orders,
+      soldOut:S.soldOut, hidden:S.hidden, serviceOverrides:S.serviceOverrides, audit:S.audit,
+      sequence:S.sequence,
+    }));
+  }catch(e){ /* A private window is not a reason to break the basket. */ }
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    Object.assign(S, JSON.parse(raw));
+  }catch(e){ /* Unreadable storage falls back to a fresh session. */ }
+}
+
+function audit(who, what){
+  S.audit.unshift({at:new Date().toISOString(), who, what});
+  if(S.audit.length > 200) S.audit.length = 200;
+  save();
+}
+
+/* ---------- 6. Announcements and toast ---------------------- */
+
+let toastTimer;
+function toast(message){
+  const node = $('toast');
+  node.textContent = message;
+  node.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => node.classList.remove('show'), 3200);
+  announce(message);
+}
+
+function announce(message){
+  const region = $('live');
+  region.textContent = '';
+  setTimeout(() => { region.textContent = message; }, 60);
+}
+
+/* ---------- 7. Cart ----------------------------------------- */
+
+function addLine(p, options, qty, unitCents){
+  const key = lineKey(p.slug, options);
+  const found = S.lines.find((l) => l.key === key);
+  if(found) found.qty += qty;
+  else S.lines.push({key, slug:p.slug, name:p.name, img:p.img, qty, unitCents, options});
+  save();
+  toast(qty + ' × ' + p.name + ' added to your basket');
+}
+
+function setQty(key, qty){
+  const line = S.lines.find((l) => l.key === key);
+  if(!line) return;
+  if(qty < 1){
+    S.lines = S.lines.filter((l) => l.key !== key);
+    announce(line.name + ' removed from your basket.');
+  } else {
+    line.qty = qty;
+  }
+  save();
+  render();
+}
+
+function applyPromo(code){
+  const promo = promotion(code);
+  if(!promo){ toast('That code is not valid.'); return; }
+  S.promoCode = promo.code;
+  save();
+  toast('Promo code ' + promo.code + ' applied');
+  render();
+}
+
+/* ---------- 8. Ordering rules ------------------------------- */
+
+function setMode(mode){
+  if(!serves(store(), mode)){
+    toast(store().name + ' is not taking ' + mode.toLowerCase() + ' orders.');
+    return;
+  }
+  S.mode = mode;
+  save();
+  announce('Switched to ' + mode.toLowerCase() + '.');
+  render();
+}
+
+/**
+ * Waterfall Ridge has dine-in off, so choosing it while in dine-in moves the
+ * order to collection rather than leaving one the store cannot accept.
+ */
+function setStore(id){
+  const next = STORES.find((s) => s.id === id);
+  if(!next) return;
+  S.storeId = id;
+  if(!serves(next, S.mode)){
+    const was = S.mode;
+    S.mode = 'Collection';
+    toast(next.name + ' is not taking ' + was.toLowerCase() + ' orders. Switched to collection.');
+  }
+  save();
+  render();
+}
+
+function placeOrder(){
+  const c = S.checkout;
+  S.sequence += 1;
+  const stamp = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+  const totals = {
+    subtotalCents:subtotal(), discountCents:discount(),
+    deliveryCents:deliveryFee(), totalCents:grandTotal(),
+  };
+  const order = {
+    id:'O-' + Date.now() + '-' + S.sequence,
+    orderNumber:'BBQ-' + stamp + '-' + String(S.sequence).padStart(4, '0'),
+    storeId:S.storeId, mode:S.mode, status:'received', cancelledReason:null,
+    placedAt:new Date().toISOString(),
+    eta:S.mode === 'Delivery' ? FEES.etaMax : FEES.collectEta,
+    lines:S.lines.slice(), totals, promoCode:S.promoCode,
+    address:S.mode === 'Delivery' ? c.address : null,
+    note:c.note, points:pointsFor(totals.totalCents),
+    customer:{name:c.name, email:c.email, mobile:c.mobile},
+  };
+  S.orders.unshift(order);
+  S.trackedId = order.id;
+  S.lines = [];
+  S.promoCode = null;
+  S.checkout = {step:0, name:c.name, email:c.email, mobile:c.mobile, address:c.address, suburb:c.suburb, note:'', errors:{}, quote:null};
+  audit('customer', 'Order ' + order.orderNumber + ' placed (' + order.mode + ')');
+  announce('Order ' + order.orderNumber + ' placed.');
+  go('/journey');
+}
+
+function advanceOrder(id){
+  const order = S.orders.find((o) => o.id === id);
+  if(!order || order.status === 'cancelled') return;
+  const states = statesFor(order.mode);
+  const at = states.indexOf(order.status);
+  if(at === -1 || at === states.length - 1) return;
+  order.status = states[at + 1];
+  audit('kitchen', 'Order ' + order.orderNumber + ' moved to ' + stateLabel(order.status, order.mode));
+  announce('Order status: ' + stateLabel(order.status, order.mode) + '.');
+  render();
+}
+
+function setOrderStatus(id, status){
+  const order = S.orders.find((o) => o.id === id);
+  if(!order) return;
+  let reason = null;
+  if(status === 'cancelled'){
+    reason = window.prompt('Why is this order being cancelled?');
+    if(!reason || !reason.trim()) return;
+    reason = reason.trim();
+  }
+  order.status = status;
+  order.cancelledReason = reason;
+  audit('operations', status === 'cancelled'
+    ? 'Order ' + order.orderNumber + ' cancelled: ' + reason
+    : 'Order ' + order.orderNumber + ' moved to ' + stateLabel(status, order.mode));
+  render();
+}
+
+function reorder(order){
+  for(const line of order.lines){
+    const p = product(line.slug);
+    if(p) addLine(p, line.options, line.qty, line.unitCents);
+  }
+  render();
+}
+
+/* ---------- 9. Menu filtering ------------------------------- */
+
+const SORTS = {
+  popular:'Most popular', 'price-low':'Price, low to high',
+  'price-high':'Price, high to low', heat:'Heat, mild to hot',
+};
+
+function filteredMenu(){
+  const f = S.menu;
+  const needle = f.search.trim().toLowerCase();
+  let out = catalogue().filter((p) => {
+    const hay = (p.name + ' ' + p.sauce + ' ' + p.category + ' ' + p.desc).toLowerCase();
+    const matches = !needle || needle.split(/\s+/).every((w) => hay.includes(w));
+    return matches && (f.category === 'all' || p.category === f.category) && p.heat <= f.heatMax;
+  });
+  if(f.sort === 'price-low') out.sort((a, b) => a.priceCents - b.priceCents);
+  else if(f.sort === 'price-high') out.sort((a, b) => b.priceCents - a.priceCents);
+  else if(f.sort === 'heat') out.sort((a, b) => a.heat - b.heat);
+  else out.sort((a, b) => Number(Boolean(b.tag)) - Number(Boolean(a.tag)));
+  return out;
+}
+
+/* ---------- 10. Validation ---------------------------------- */
+
+const SA_MOBILE = /^(?:\+?27|0)[6-8][0-9]{8}$/;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function validateDetails(){
+  const c = S.checkout;
+  const errors = {};
+  if(c.name.trim().length < 2) errors.name = 'Enter your name';
+  if(!EMAIL.test(c.email.trim())) errors.email = 'Enter a valid email address';
+  if(!SA_MOBILE.test(c.mobile.replace(/[\s()-]/g, ''))) errors.mobile = 'Enter a South African mobile number';
+  c.errors = errors;
+  return Object.keys(errors).length === 0;
+}
+
+/** The delivery quote, run against the same zone lists the API uses. */
+function quoteDelivery(suburb){
+  const wanted = suburb.trim().toLowerCase();
+  const match = STORES.find((s) => serves(s, 'Delivery') && s.zones.some((z) => z.toLowerCase() === wanted));
+  if(!match){
+    return {serviceable:false, reason:'We do not deliver to this suburb yet. Collection is available at both stores.'};
+  }
+  return {serviceable:true, feeCents:deliveryFee(), eta:FEES.etaMax, storeId:match.id};
+}
+
+function validateWhere(){
+  const c = S.checkout;
+  if(S.mode !== 'Delivery'){ c.errors = {}; return true; }
+  const errors = {};
+  if(c.address.trim().length < 4) errors.address = 'Enter your street address';
+  if(c.suburb.trim().length < 2) errors.suburb = 'Enter your suburb';
+  if(Object.keys(errors).length){ c.errors = errors; return false; }
+
+  const quote = quoteDelivery(c.suburb);
+  c.quote = quote;
+  if(!quote.serviceable){
+    c.errors = {suburb:quote.reason};
+    announce(quote.reason);
+    return false;
+  }
+  c.errors = {};
+  return true;
+}
+</script>
+
+<script>
+/* ============================================================
+   Views. Each returns a string; render() paints them and the
+   delegated click handler below turns data-action into a call.
+   ============================================================ */
+
+const NAV = [
+  {href:'/menu', label:'Menu'},
+  {href:'/offers', label:'Offers'},
+  {href:'/rewards', label:'Rewards'},
+  {href:'/stores', label:'Find a store'},
+  {href:'/help', label:'Help'},
+];
+
+const on = (href) => S.route === href || S.route.indexOf(href + '/') === 0;
+
+/* ---------- Chrome ---------- */
+
+function viewChrome(){
+  const s = store();
+  const open = isOpen(s);
+  const count = itemCount();
+
+  const modes = ['Delivery','Collection','Dine-in'].map((mode) => {
+    const available = serves(s, mode);
+    return '<button type="button" data-action="mode" data-value="' + mode + '"'
+      + ' aria-pressed="' + (S.mode === mode) + '"' + (available ? '' : ' disabled')
+      + (available ? '' : ' title="' + esc(s.name + ' is not taking ' + mode.toLowerCase() + ' orders') + '"')
+      + '>' + mode + '</button>';
+  }).join('');
+
+  const storeOptions = STORES.map((c) =>
+    '<option value="' + c.id + '"' + (c.id === s.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'
+  ).join('');
+
+  const navLinks = NAV.map((item) =>
+    '<li><a href="#' + item.href + '"' + (on(item.href) ? ' class="on" aria-current="page"' : '') + '>' + item.label + '</a></li>'
+  ).join('');
+
+  const mobileLinks = NAV.concat([{href:'/account', label:'Your account'}]).map((item) =>
+    '<li><a href="#' + item.href + '"' + (on(item.href) ? ' class="on" aria-current="page"' : '') + ' data-action="close-menu">' + item.label + '</a></li>'
+  ).join('');
+
+  return ''
+    + '<div class="ticker"><div class="wrap"><span id="tick">' + esc(CRAFT_LINE) + '</span></div></div>'
+    + '<div class="util"><div class="wrap">'
+      + '<div class="seg" role="group" aria-label="Fulfilment">' + modes + '</div>'
+      + '<label><span class="sr">Choose a store</span>'
+        + '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0a5.2 5.2 0 0 0-5.2 5.2C2.8 9.1 8 16 8 16s5.2-6.9 5.2-10.8A5.2 5.2 0 0 0 8 0Zm0 7.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>'
+        + '<select data-action="store">' + storeOptions + '</select></label>'
+      + '<span class="status' + (open ? '' : ' shut') + '"><span class="dot"></span>'
+        + (open ? 'Open now' : 'Closed') + ' <span style="color:rgb(255 255 255 / .5)">· ' + esc(s.hours) + '</span> ' + flag()
+      + '</span>'
+      + '<a class="tel" href="tel:' + s.tel.replace(/\s/g, '') + '">' + esc(s.tel) + '</a>'
+    + '</div></div>'
+    + '<header class="head"><div class="wrap">'
+      + '<a class="logo" href="#/" aria-label="bb.q Chicken, home"><img src="' + LOCKUP + '" alt="bb.q Chicken"></a>'
+      + '<nav class="nav" aria-label="Primary"><ul style="display:flex;gap:4px">' + navLinks + '</ul></nav>'
+      + '<div class="actions">'
+        + '<a class="icon-btn acct" href="#/account" aria-label="Your account"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 10a3.6 3.6 0 1 0 0-7.2A3.6 3.6 0 0 0 10 10Zm0 1.8c-3.1 0-7 1.6-7 3.9V18h14v-2.3c0-2.3-3.9-3.9-7-3.9Z"/></svg></a>'
+        + '<button type="button" class="basket" data-action="open-drawer" aria-label="' + (count ? 'View basket, ' + count + (count === 1 ? ' item' : ' items') : 'View basket') + '">'
+          + '<span class="amount">' + (count ? moneyShort(grandTotal()) : 'Basket') + '</span>'
+          + '<span class="count">' + count + '</span>'
+        + '</button>'
+        + '<button type="button" class="icon-btn burger" data-action="toggle-menu" aria-expanded="' + S.menuOpen + '" aria-controls="mobile-nav" aria-label="' + (S.menuOpen ? 'Close menu' : 'Open menu') + '">'
+          + '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">'
+          + (S.menuOpen
+              ? '<path fill="currentColor" d="m5.3 4 10.7 10.7-1.3 1.3L4 5.3 5.3 4Zm10.7 1.3L5.3 16 4 14.7 14.7 4 16 5.3Z"/>'
+              : '<path fill="currentColor" d="M3 5h14v1.8H3V5Zm0 4.1h14v1.8H3V9.1ZM3 13.2h14V15H3v-1.8Z"/>')
+          + '</svg></button>'
+      + '</div>'
+    + '</div>'
+    + (S.menuOpen ? '<nav class="mobile-nav" id="mobile-nav" aria-label="Primary"><div class="wrap"><ul>' + mobileLinks + '</ul></div></nav>' : '')
+    + '</header>';
+}
+
+function viewFooter(){
+  const columns = [
+    {heading:'Order', links:[['/menu','Menu'],['/offers','Offers'],['/rewards','Rewards'],['/checkout','Checkout']]},
+    {heading:'Visit', links:[['/stores','Find a store'],['/journey','My journey'],['/account','Account']]},
+    {heading:'About', links:[['/help','Help and allergens'],['/app','The app'],['/admin','Operations console']]},
+  ].map((col) =>
+    '<nav aria-label="' + col.heading + '"><h2>' + col.heading + '</h2><ul class="stack gap-2 mt-3">'
+    + col.links.map((l) => '<li><a href="#' + l[0] + '">' + l[1] + '</a></li>').join('')
+    + '</ul></nav>'
+  ).join('');
+
+  return '<footer class="foot"><div class="wrap"><div class="foot-grid">'
+    + '<div><img src="' + LOCKUP_REVERSED + '" alt="bb.q Chicken">'
+      + '<p class="sm mt-4" style="color:rgb(255 255 255 / .7);max-width:34ch">' + esc(CRAFT_LINE) + '</p>'
+      + '<p class="sm mt-3" style="color:rgb(255 255 255 / .5)">Korean fried chicken in Johannesburg. Delivery, collection and dine-in.</p></div>'
+    + columns
+    + '</div><div class="fine">'
+      + '<p class="xs max-62" style="color:rgb(255 255 255 / .5);line-height:1.7">Prices, fees, trading hours, points rules and allergen declarations shown here are sample values for review. They are not approved bb.q Chicken South Africa figures.</p>'
+      + '<p class="xs mt-3" style="color:rgb(255 255 255 / .5);line-height:1.7">Review build. The production site runs on a server that enforces store service rules independently of this interface; this page runs entirely in your browser, so nothing here is a live integration and no order reaches a kitchen.</p>'
+      + '<p class="xs mt-3" style="color:rgb(255 255 255 / .4)">© ' + new Date().getFullYear() + ' bb.q Chicken South Africa. All rights reserved.</p>'
+    + '</div></div></footer>';
+}
+
+/* ---------- Shared pieces ---------- */
+
+function productCard(p, sizes){
+  const soldOut = isSoldOut(p.slug);
+  return '<article class="card">'
+    + '<div class="shot"><img src="' + IMG[p.img] + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async">'
+      + (p.tag ? '<span class="tag">' + esc(p.tag) + '</span>' : '')
+      + (soldOut ? '<div class="soldout"><span>Sold out today</span></div>' : '')
+    + '</div>'
+    + '<div class="body">'
+      + '<div class="title-row"><h3><a href="#/menu/' + p.slug + '">' + esc(p.name) + '</a></h3>'
+        + '<span class="price num">' + moneyShort(p.priceCents) + '</span></div>'
+      + '<p class="desc">' + esc(p.desc) + '</p>'
+      + '<div class="foot">' + heat(p.heat) + '<span class="sauce">' + esc(p.sauce) + '</span></div>'
+    + '</div></article>';
+}
+
+const demoNotice = (extra) => DEMO
+  ? '<p class="xs muted max-62" style="line-height:1.7">Prices, fees, trading hours, points rules and allergen declarations shown here are sample values for review. They are not approved bb.q Chicken South Africa figures.' + (extra ? ' ' + extra : '') + '</p>'
+  : '';
+
+/* ---------- Home ---------- */
+
+function viewHome(){
+  const products = catalogue();
+  const hero = products.find((p) => p.slug === 'golden-original') || products[0];
+  const best = products.filter((p) => p.tag === 'Best seller');
+
+  const craft = [
+    ['Twice fried','The first fry cooks the bird through. The second drives the moisture out of the crust, which is what holds the crunch under sauce.'],
+    ['Olive oil','Fried in olive oil rather than a blended fat, which is the difference you taste in the last piece as much as the first.'],
+    ['Tossed to order','Nothing sits pre-sauced under a lamp. The sauce goes on after the second fry, once you have chosen it.'],
+  ].map((c, i) => '<div><span class="step">' + String(i + 1).padStart(2, '0') + '</span>'
+    + '<h2 class="display h-sm mt-1">' + c[0] + '</h2>'
+    + '<p class="sm muted mt-2" style="line-height:1.7">' + c[1] + '</p></div>').join('');
+
+  return ''
+    + '<section class="hero"><div class="wrap">'
+      + '<div>'
+        + '<p class="eyebrow on-dark">Korean fried chicken</p>'
+        + '<h1 class="display h-xl mt-4">The crunch that<br><em>travels</em></h1>'
+        + '<p class="lede">Whole birds, wings and boneless, sauced the moment you order. Delivery and collection across Johannesburg, and a table at Cresta Crossing.</p>'
+        + '<p class="craft">' + esc(CRAFT_LINE) + '</p>'
+        + '<div class="hero-cta"><a class="btn btn-red" href="#/menu">Order now</a>'
+          + '<a class="btn btn-ghost-dark" href="#/stores">Find a store</a></div>'
+      + '</div>'
+      + (hero ? '<div class="hero-media"><img src="' + IMG_WIDE[hero.img] + '" alt="' + esc(hero.name) + '">'
+        + '<div class="hero-flag"><span class="rank">01</span><span>'
+        + '<span class="lbl">Best seller</span>'
+        + '<span class="nm">' + esc(hero.name) + ' · <span class="red num">' + moneyShort(hero.priceCents) + '</span></span>'
+        + '</span></div></div>' : '')
+    + '</div></section>'
+
+    + '<section class="band"><div class="wrap">' + craft + '</div></section>'
+
+    + '<section class="section"><div class="wrap">'
+      + '<div class="head-row"><div>'
+        + '<p class="eyebrow">Most ordered</p>'
+        + '<h2 class="display h-lg mt-2">Best sellers</h2></div>'
+        + '<a class="btn btn-ghost btn-sm" href="#/menu">See the full menu</a></div>'
+      + '<ul class="grid grid-4 mt-6">' + best.map((p) => '<li>' + productCard(p) + '</li>').join('') + '</ul>'
+      + '<div class="mt-6">' + demoNotice() + '</div>'
+    + '</div></section>'
+
+    + '<section class="section section-dark"><div class="wrap">'
+      + '<p class="eyebrow on-dark">The flavour counter</p>'
+      + '<h2 class="display h-lg mt-2">Six sauces, one ladder</h2>'
+      + '<p class="sm max-56 mt-3" style="color:rgb(255 255 255 / .7)">Every sauce goes on after the second fry. Start at the bottom of the ladder and work up, or split a bird and take two rungs at once.</p>'
+      + '<ul class="rail mt-8">' + SAUCES.map((s) =>
+          '<li class="sauce-card"><h3 class="display h-sm">' + esc(s.name) + '</h3>'
+          + '<p class="xs mt-1" style="color:rgb(255 255 255 / .6)">' + esc(s.note) + '</p>'
+          + '<div class="mt-3">' + heat(s.heat, true) + '</div></li>').join('')
+        + '</ul>'
+    + '</div></section>'
+
+    + '<section class="section"><div class="wrap">'
+      + '<h2 class="display h-lg">Eat by category</h2>'
+      + '<ul class="grid grid-4 mt-6">' + CATEGORIES.map((c) =>
+          '<li><a class="cat" href="#/menu?category=' + c.key + '">'
+          + '<img src="' + IMG_WIDE[c.img] + '" alt="" loading="lazy">'
+          + '<span class="over"><span class="display h-sm">' + esc(c.label) + '</span>'
+          + '<span class="xs mt-1" style="color:rgb(255 255 255 / .7)">' + esc(c.note) + '</span></span></a></li>').join('')
+        + '</ul>'
+    + '</div></section>'
+
+    + '<section class="wrap" style="padding-bottom:64px">'
+      + '<div class="grid grid-2">' + STORES.map((s) =>
+          '<div class="panel"><h2 class="display h-sm">' + esc(s.name) + '</h2>'
+          + '<p class="sm muted mt-2">' + esc(s.address) + '</p>'
+          + '<p class="row-wrap mt-3 gap-2">' + Object.keys(services(s)).filter((k) => services(s)[k]).map((k) =>
+              '<span class="badge badge-grey">' + k + '</span>').join('') + '</p>'
+          + '<div class="mt-5"><a class="btn btn-ghost btn-sm" href="#/stores">Store details</a></div></div>').join('')
+      + '</div>'
+    + '</section>';
+}
+
+/* ---------- Menu ---------- */
+
+function viewMenu(){
+  const results = filteredMenu();
+  const cats = [{key:'all', label:'Everything'}].concat(CATEGORIES);
+
+  const sideList = cats.map((c) =>
+    '<li><button type="button" data-action="category" data-value="' + c.key + '" aria-pressed="' + (S.menu.category === c.key) + '"'
+    + ' style="width:100%;text-align:left;padding:9px 12px;border-radius:var(--r-sm);font-size:14px;font-weight:700;'
+    + (S.menu.category === c.key ? 'background:var(--red);color:var(--white)' : '') + '">' + esc(c.label) + '</button></li>').join('');
+
+  const chipRow = cats.map((c) =>
+    '<li><button type="button" class="chip" data-action="category" data-value="' + c.key + '" aria-pressed="' + (S.menu.category === c.key) + '">'
+    + esc(c.label) + '</button></li>').join('');
+
+  const active = CATEGORIES.find((c) => c.key === S.menu.category);
+
+  const body = results.length === 0
+    ? '<div class="panel center mt-8" style="padding:40px"><p class="display h-md" style="color:var(--black-60)">Nothing matches that</p>'
+      + '<p class="sm muted mt-2">Try a different word, or widen the heat filter.</p>'
+      + '<div class="mt-5"><button type="button" class="btn btn-ghost btn-sm" data-action="clear-filters">Clear filters</button></div></div>'
+    : '<ul class="grid mt-4" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">'
+      + results.map((p) => '<li>' + productCard(p) + '</li>').join('') + '</ul>';
+
+  return ''
+    + '<div style="background:var(--white);border-bottom:1px solid var(--line)"><div class="wrap" style="padding:40px 20px">'
+      + '<p class="eyebrow">The full range</p>'
+      + '<h1 class="display h-lg mt-2">Menu</h1>'
+      + '<div class="mt-3">' + demoNotice() + '</div>'
+    + '</div></div>'
+    + '<div class="wrap" style="padding:40px 20px;display:grid;gap:40px" id="menu-grid">'
+      + '<aside id="menu-side">'
+        + '<h2 class="xxs b muted" style="letter-spacing:.1em;text-transform:uppercase">Categories</h2>'
+        + '<ul class="stack mt-3" style="gap:4px">' + sideList + '</ul>'
+        + '<h2 class="xxs b muted mt-8" style="letter-spacing:.1em;text-transform:uppercase">Maximum heat</h2>'
+        + '<label class="mt-3" style="display:block"><span class="sr">Maximum heat, 0 to 5</span>'
+          + '<input type="range" min="0" max="5" step="1" value="' + S.menu.heatMax + '" data-action="heat"></label>'
+        + '<p class="xs muted mt-1" aria-live="polite">' + (S.menu.heatMax === 5 ? 'Everything, up to hot' : 'Up to heat ' + S.menu.heatMax) + '</p>'
+      + '</aside>'
+      + '<div>'
+        + '<div class="row-wrap">'
+          + '<label class="flex-1" style="min-width:140px"><span class="sr">Search the menu</span>'
+            + '<input type="search" id="menu-search" value="' + esc(S.menu.search) + '" data-action="search" placeholder="Search chicken, wings, sauces"'
+            + ' style="width:100%;height:44px;border:1px solid var(--line);border-radius:var(--pill);padding:0 16px;font-size:14px;background:var(--white)"></label>'
+          + '<label><span class="sr">Sort by</span>'
+            + '<select data-action="sort" style="height:44px;border:1px solid var(--line);border-radius:var(--pill);padding:0 16px;font-size:14px;font-weight:600;background:var(--white)">'
+            + Object.keys(SORTS).map((k) => '<option value="' + k + '"' + (S.menu.sort === k ? ' selected' : '') + '>' + SORTS[k] + '</option>').join('')
+            + '</select></label>'
+        + '</div>'
+        + '<ul class="rail mt-4" id="menu-chips">' + chipRow + '</ul>'
+        + (active ? '<p class="sm muted mt-5 max-62">' + esc(active.note) + '</p>' : '')
+        + '<p class="xs b muted mt-5" aria-live="polite">' + results.length + (results.length === 1 ? ' item' : ' items') + '</p>'
+        + body
+      + '</div>'
+    + '</div>';
+}
+
+/* ---------- Product ---------- */
+
+function viewProduct(slug){
+  const p = product(slug);
+  if(!p || isHidden(slug)){
+    return '<div class="wrap" style="padding:80px 20px"><div class="panel center">'
+      + '<p class="display h-md" style="color:var(--black-60)">We cannot find that one</p>'
+      + '<p class="sm muted mt-2">It may have come off the menu.</p>'
+      + '<div class="mt-5"><a class="btn btn-red" href="#/menu">Back to the menu</a></div></div></div>';
+  }
+
+  const groups = optionGroups(p);
+  if(!S.product || S.product.slug !== slug){
+    S.product = {slug, sel:defaultSelection(groups), qty:1};
+  }
+  const state = S.product;
+  const price = unitPrice(p.priceCents, groups, state.sel);
+  const soldOut = isSoldOut(slug);
+
+  const fields = groups.map((g) =>
+    '<fieldset><legend>' + esc(g.label) + (g.multi ? ' <span style="font-weight:600;text-transform:none;letter-spacing:0">Optional</span>' : '') + '</legend>'
+    + '<div class="chips">' + g.choices.map((c) => {
+        const chosen = (state.sel[g.key] || []).includes(c.label);
+        return '<button type="button" class="chip" data-action="option" data-group="' + g.key + '" data-value="' + esc(c.label) + '" aria-pressed="' + chosen + '">'
+          + esc(c.label)
+          + (c.delta !== 0 ? '<span class="delta num">' + (c.delta > 0 ? '+' : '−') + moneyShort(Math.abs(c.delta)) + '</span>' : '')
+          + '</button>';
+      }).join('') + '</div></fieldset>').join('');
+
+  const related = catalogue().filter((c) => c.category === p.category && c.slug !== slug).slice(0, 4);
+
+  return '<div class="wrap" style="padding:32px 20px">'
+    + '<nav aria-label="Breadcrumb" class="xs b muted" style="margin-bottom:20px">'
+      + '<a href="#/menu">Menu</a><span aria-hidden="true" style="margin:0 8px">/</span><span>' + esc(p.category) + '</span></nav>'
+    + '<div class="grid" style="grid-template-columns:1fr;gap:40px" id="product-grid">'
+      + '<div>'
+        + '<div style="border-radius:var(--r-lg);overflow:hidden;background:var(--paper);box-shadow:var(--e1)">'
+          + '<img src="' + IMG[p.img] + '" alt="' + esc(p.name) + '" style="width:100%"></div>'
+        + '<section class="panel mt-6">'
+          + '<h2 class="xxs b muted" style="letter-spacing:.1em;text-transform:uppercase">Allergens and energy</h2>'
+          + '<dl class="grid grid-2 mt-3">'
+            + '<div><dt class="xs muted">Contains</dt><dd class="sm b mt-1">' + esc(p.allergens) + '</dd></div>'
+            + '<div><dt class="xs muted">Indicative energy</dt><dd class="sm b num mt-1">' + p.kj.toLocaleString('en-ZA') + ' kJ</dd></div>'
+          + '</dl>'
+          + '<p class="xs muted mt-3" style="line-height:1.7">Indicative values pending the franchisor nutritional analysis. Prepared in a kitchen that handles wheat, soya, milk, egg, sesame and fish. ' + flag() + '</p>'
+        + '</section>'
+      + '</div>'
+      + '<div>'
+        + (p.tag ? '<span class="tag" style="position:static;display:inline-block;margin-bottom:12px">' + esc(p.tag) + '</span>' : '')
+        + '<h1 class="display h-lg">' + esc(p.name) + '</h1>'
+        + '<div class="row-wrap mt-3 gap-4">'
+          + '<span class="red num" style="font-size:26px;font-weight:800">' + moneyShort(p.priceCents) + '</span>'
+          + heat(p.heat) + '<span class="xs b muted">' + esc(p.sauce) + '</span>' + flag('Demo price')
+        + '</div>'
+        + '<p class="sm muted mt-4 max-56" style="line-height:1.7">' + esc(p.desc) + '</p>'
+        + '<hr style="margin:28px 0;border:0;border-top:1px solid var(--line)">'
+        + (soldOut
+            ? '<div class="panel"><p class="display h-md" style="color:var(--black-60)">Sold out today</p>'
+              + '<p class="sm muted mt-2">This one has gone for the day. The kitchen restocks each morning.</p>'
+              + '<div class="mt-5"><a class="btn btn-ghost" href="#/menu">Back to the menu</a></div></div>'
+            : fields
+              + '<div class="row-wrap" style="position:sticky;bottom:0;background:rgb(247 245 242 / .95);padding:16px 0;backdrop-filter:blur(6px)">'
+                + '<div class="stepper">'
+                  + '<button type="button" data-action="pqty" data-value="-1" aria-label="One fewer ' + esc(p.name) + '"' + (state.qty <= 1 ? ' disabled' : '') + '>−</button>'
+                  + '<span class="qty num" aria-hidden="true">' + state.qty + '</span>'
+                  + '<button type="button" data-action="pqty" data-value="1" aria-label="One more ' + esc(p.name) + '">+</button>'
+                + '</div>'
+                + '<button type="button" class="btn btn-red flex-1" data-action="add">Add to basket <span aria-hidden="true" style="opacity:.7">·</span> <span class="num">' + money(price * state.qty) + '</span></button>'
+              + '</div>')
+      + '</div>'
+    + '</div>'
+    + (related.length ? '<section class="mt-12"><h2 class="display h-md">More ' + esc(p.category.toLowerCase()) + '</h2>'
+        + '<ul class="grid grid-4 mt-5">' + related.map((c) =>
+            '<li><a class="panel-flat" href="#/menu/' + c.slug + '" style="display:flex;gap:12px;padding:12px;align-items:center">'
+            + '<span style="width:64px;height:64px;flex:none;border-radius:var(--r-sm);overflow:hidden;background:var(--paper)">'
+            + '<img src="' + IMG[c.img] + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover"></span>'
+            + '<span style="min-width:0"><span class="sm b" style="display:block;line-height:1.3">' + esc(c.name) + '</span>'
+            + '<span class="xs red num mt-1" style="display:block">' + moneyShort(c.priceCents) + '</span></span></a></li>').join('')
+        + '</ul></section>' : '')
+    + '</div>';
+}
+
+/* ---------- Offers ---------- */
+
+function viewOffers(){
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<p class="eyebrow">Running now</p>'
+    + '<h1 class="display h-lg mt-2">Offers</h1>'
+    + '<p class="sm muted mt-3 max-56">Enter the code in your basket before checking out. One code per order.</p>'
+    + '<ul class="grid grid-3 mt-8">' + PROMOTIONS.map((o) => {
+        const p = product(o.slug);
+        return '<li class="card" style="box-shadow:var(--e1)">'
+          + (p ? '<img src="' + IMG_WIDE[p.img] || IMG[p.img] + '" alt="' + esc(p.name) + '" loading="lazy" style="height:176px;width:100%;object-fit:cover">' : '')
+          + '<div class="body" style="padding:20px">'
+            + '<h2 class="display h-sm">' + esc(o.title) + '</h2>'
+            + '<p class="sm muted mt-2 flex-1" style="line-height:1.7">' + esc(o.copy) + '</p>'
+            + '<dl class="totals mt-4" style="border-top:1px solid var(--line);padding-top:16px">'
+              + '<div class="row"><dt>Code</dt><dd><code style="background:var(--red-10);color:var(--red);border-radius:var(--r-xs);padding:4px 10px;font-size:12px;font-weight:800;letter-spacing:.08em">' + o.code + '</code></dd></div>'
+              + '<div class="row"><dt>Saves</dt><dd class="b num">' + Math.round(o.rate * 100) + '%</dd></div>'
+              + '<div class="row"><dt>Valid</dt><dd class="xs b" style="text-align:right">' + esc(o.valid) + '</dd></div>'
+            + '</dl>'
+            + '<div class="mt-5">' + (p
+                ? '<a class="btn btn-red btn-sm btn-block" href="#/menu/' + p.slug + '">Order ' + esc(p.name) + '</a>'
+                : '<a class="btn btn-red btn-sm btn-block" href="#/menu">Browse the menu</a>') + '</div>'
+          + '</div></li>';
+      }).join('') + '</ul>'
+    + '<div class="panel mt-10">' + demoNotice('Campaign codes, discount values and dates are sample data.') + '</div>'
+    + '</div>';
+}
+
+/* ---------- Rewards ---------- */
+
+function viewRewards(){
+  const earned = S.orders.filter((o) => o.status === 'completed').reduce((n, o) => n + pointsFor(o.totals.totalCents), 0);
+  const pending = S.orders.filter((o) => o.status !== 'completed' && o.status !== 'cancelled').reduce((n, o) => n + pointsFor(o.totals.totalCents), 0);
+
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<p class="eyebrow">bb.q Rewards</p>'
+    + '<h1 class="display h-lg mt-2">Every rand earns a point</h1>'
+    + '<p class="sm muted mt-3 max-56">Points post once your order is completed, on every fulfilment mode, and can be spent on anything you have reached. ' + flag() + '</p>'
+    + '<div class="mt-8" style="background:var(--black);color:var(--white);border-radius:var(--r-lg);padding:32px">'
+      + '<p class="xxs b gold" style="letter-spacing:.12em;text-transform:uppercase">Your balance</p>'
+      + '<p class="display num mt-2" style="font-size:58px">' + earned.toLocaleString('en-ZA') + '</p>'
+      + '<p class="sm mt-1" style="color:rgb(255 255 255 / .6)">points' + (pending ? ' · ' + pending.toLocaleString('en-ZA') + ' pending on orders in progress' : '') + '</p>'
+      + (earned === 0 && pending === 0 ? '<p class="sm max-46 mt-4" style="color:rgb(255 255 255 / .7)">Nothing yet. Points post when an order reaches its last step, so place one and watch it land here.</p>' : '')
+    + '</div>'
+    + '<section class="mt-10"><h2 class="display h-md">Spend them on</h2>'
+      + '<ul class="grid grid-4 mt-4">' + REWARDS.map((r) => {
+          const reached = earned >= r.points;
+          const pct = Math.min(100, Math.round((earned / r.points) * 100));
+          return '<li class="panel" style="' + (reached ? 'border-color:var(--red)' : '') + '">'
+            + '<h3 class="sm bb">' + esc(r.name) + '</h3>'
+            + '<p class="sm b red num mt-1">' + r.points.toLocaleString('en-ZA') + ' points</p>'
+            + '<div class="bar mt-3" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Progress towards ' + esc(r.name) + '"><span style="width:' + pct + '%"></span></div>'
+            + '<p class="xs muted mt-2">' + (reached ? 'Ready to redeem in store' : (r.points - earned).toLocaleString('en-ZA') + ' points to go') + '</p>'
+            + '</li>';
+        }).join('') + '</ul></section>'
+    + '<section class="mt-12"><h2 class="display h-md">Tiers</h2>'
+      + '<ul class="grid grid-3 mt-4">' + TIERS.map((t) =>
+          '<li class="panel"><h3 class="display h-sm red">' + t.name + '</h3>'
+          + '<p class="sm b num mt-1">' + t.from.toLocaleString('en-ZA') + ' points</p>'
+          + '<p class="xs muted mt-2">' + (t.from === 0 ? 'Where every account starts.' : 'Reached at ' + t.from.toLocaleString('en-ZA') + ' lifetime points.') + '</p></li>').join('')
+      + '</ul></section>'
+    + '<div class="panel mt-10">' + demoNotice() + '</div>'
+    + '<div class="mt-8"><a class="btn btn-red" href="#/menu">Start earning</a></div>'
+    + '</div>';
+}
+
+/* ---------- Stores ---------- */
+
+function viewStores(){
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<p class="eyebrow">Two stores, open now</p>'
+    + '<h1 class="display h-lg mt-2">Find a store</h1>'
+    + '<ul class="grid grid-2 mt-8">' + STORES.map((s) => {
+        const open = isOpen(s);
+        const chosen = S.storeId === s.id;
+        const svc = services(s);
+        return '<li class="panel" style="' + (chosen ? 'border-color:var(--red);box-shadow:var(--e1)' : '') + '">'
+          + '<div class="between"><div><h2 class="display h-sm">' + esc(s.name) + '</h2>'
+            + '<p class="sm muted mt-1">' + esc(s.address) + '</p></div>'
+            + '<span class="badge ' + (open ? 'badge-soft' : 'badge-grey') + '">' + (open ? 'Open now' : 'Closed') + '</span></div>'
+          + '<dl class="grid grid-2 mt-5">'
+            + '<div><dt class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Hours</dt><dd class="sm mt-1">' + esc(s.hours) + '</dd></div>'
+            + '<div><dt class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Telephone</dt><dd class="sm mt-1"><a class="b" href="tel:' + s.tel.replace(/\s/g, '') + '">' + esc(s.tel) + '</a></dd></div>'
+            + '<div><dt class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Services</dt><dd class="row-wrap gap-2 mt-2">'
+              + ['Delivery','Collection','Dine-in'].map((m) =>
+                  '<span class="badge badge-grey"' + (svc[m] ? '' : ' style="text-decoration:line-through;color:var(--black-40)"') + '>' + m + '</span>').join('')
+            + '</dd></div>'
+            + '<div><dt class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Halaal</dt><dd class="sm mt-1">' + esc(s.halaal) + '</dd></div>'
+          + '</dl>'
+          + '<div class="mt-5"><h3 class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Delivers to</h3>'
+            + '<p class="sm muted mt-2" style="line-height:1.7">' + s.zones.join(' · ') + '</p></div>'
+          + '<div class="map" aria-hidden="true"><div class="grid-lines"></div>'
+            + '<span class="pin"><svg viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 0a5.2 5.2 0 0 0-5.2 5.2C2.8 9.1 8 16 8 16s5.2-6.9 5.2-10.8A5.2 5.2 0 0 0 8 0Zm0 7.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg></span>'
+            + '<span class="cap">Indicative location</span></div>'
+          + '<div class="row-wrap mt-5">'
+            + '<button type="button" class="btn btn-sm ' + (chosen ? 'btn-ghost' : 'btn-red') + '" data-action="pick-store" data-value="' + s.id + '"' + (chosen ? ' disabled' : '') + '>'
+            + (chosen ? 'Ordering from here' : 'Order from this store') + '</button>'
+            + '<span class="xs muted num">' + s.km + ' km away</span></div>'
+          + '</li>';
+      }).join('') + '</ul>'
+    + '<div class="panel mt-10">' + demoNotice('Telephone numbers, trading hours, delivery suburbs and halaal certification status are pending confirmation per store.') + '</div>'
+    + '</div>';
+}
+
+/* ---------- Help ---------- */
+
+function viewHelp(){
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<p class="eyebrow">Before you order</p>'
+    + '<h1 class="display h-lg mt-2">Help and allergens</h1>'
+    + '<div class="grid mt-10" style="gap:48px" id="help-grid">'
+      + '<section><h2 class="display h-md">Questions</h2><div class="mt-5" style="border-top:1px solid var(--line)">'
+        + FAQS.map((f) => '<details><summary>' + esc(f.q) + '<span class="plus" aria-hidden="true">+</span></summary><p>' + esc(f.a) + '</p></details>').join('')
+      + '</div></section>'
+      + '<section><h2 class="display h-md">Contact</h2><ul class="stack gap-4 mt-5">'
+        + STORES.map((s) => '<li class="panel"><h3 class="sm bb">' + esc(s.name) + '</h3>'
+          + '<p class="xs muted mt-1">' + esc(s.address) + '</p>'
+          + '<p class="sm mt-2"><a class="b red" href="tel:' + s.tel.replace(/\s/g, '') + '">' + esc(s.tel) + '</a> ' + flag() + '</p></li>').join('')
+      + '</ul></section>'
+    + '</div>'
+    + '<section class="mt-12"><h2 class="display h-md">Allergen and energy table</h2>'
+      + '<p class="sm muted mt-2 max-62">Indicative values pending the franchisor nutritional analysis. Everything is prepared in a kitchen that handles wheat, soya, milk, egg, sesame and fish, so cross-contact cannot be excluded. ' + flag() + '</p>'
+      + '<div class="scroll-x mt-5"><table>'
+        + '<caption class="sr">Allergens and indicative energy for all sixteen products</caption>'
+        + '<thead><tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col">Contains</th><th scope="col" style="text-align:right">Energy</th></tr></thead>'
+        + '<tbody>' + catalogue().map((p) =>
+            '<tr><th scope="row">' + esc(p.name) + '</th><td class="muted">' + esc(p.category) + '</td>'
+            + '<td>' + esc(p.allergens) + '</td><td class="num" style="text-align:right">' + p.kj.toLocaleString('en-ZA') + ' kJ</td></tr>').join('')
+        + '</tbody></table></div>'
+      + '<div class="panel mt-6">' + demoNotice() + '</div>'
+    + '</section></div>';
+}
+
+/* ---------- App preview ---------- */
+
+function viewApp(){
+  const hero = product('honey-garlic');
+  const listed = catalogue().slice(0, 3);
+
+  const screenHome = '<div style="background:var(--black);padding:20px 16px;color:var(--white)">'
+    + '<img src="' + LOCKUP_REVERSED + '" alt="bb.q Chicken" style="height:18px;width:auto">'
+    + '<p class="display mt-4" style="font-size:24px;line-height:1">The crunch<br>that travels</p></div>'
+    + '<img src="' + IMG_WIDE[hero.img] + '" alt="" style="height:128px;width:100%;object-fit:cover">'
+    + '<div style="padding:12px">'
+      + '<p class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Best sellers</p>'
+      + listed.map((p) => '<div class="row mt-2" style="gap:8px">'
+        + '<span style="width:36px;height:36px;flex:none;border-radius:var(--r-xs);overflow:hidden;background:var(--paper)">'
+        + '<img src="' + IMG[p.img] + '" alt="" style="width:100%;height:100%;object-fit:cover"></span>'
+        + '<span class="xxs b flex-1" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.name) + '</span>'
+        + '<span class="xxs red num">' + moneyShort(p.priceCents) + '</span></div>').join('')
+    + '</div>';
+
+  const screenProduct = '<img src="' + IMG[hero.img] + '" alt="" style="height:224px;width:100%;object-fit:cover">'
+    + '<div style="padding:12px">'
+      + '<p class="display" style="font-size:20px;line-height:1.1">' + esc(hero.name) + '</p>'
+      + '<div class="row mt-2 gap-2"><span class="sm bb red num">' + moneyShort(hero.priceCents) + '</span>' + heat(hero.heat) + '</div>'
+      + '<p class="xxs b muted mt-3" style="letter-spacing:.08em;text-transform:uppercase">Size</p>'
+      + '<div class="row-wrap mt-2 gap-2">'
+        + '<span class="badge badge-red">Whole bird</span>'
+        + '<span class="badge" style="border:1px solid var(--line)">Half bird</span></div>'
+      + '<div class="mt-4 center" style="background:var(--red);color:var(--white);border-radius:var(--pill);padding:9px;font-size:11px;font-weight:700">Add to basket</div>'
+    + '</div>';
+
+  const screenTrack = '<div style="background:var(--black);padding:20px 16px;color:var(--white)">'
+    + '<p class="xxs b gold" style="letter-spacing:.1em;text-transform:uppercase">Order number</p>'
+    + '<p class="display num mt-1" style="font-size:20px">BBQ-260830-0001</p></div>'
+    + '<ol style="padding:16px">' + [['Order received',1],['Preparing',1],['Ready',0],['On the way',0],['Delivered',0]].map((s, i) =>
+        '<div class="row" style="gap:10px;padding:8px 0">'
+        + '<span style="width:20px;height:20px;flex:none;border-radius:var(--pill);display:grid;place-items:center;font-size:9px;font-weight:800;'
+        + (s[1] ? 'background:var(--red);color:var(--white)' : 'border:1px solid var(--line);color:var(--black-40)') + '">' + (s[1] ? '✓' : i + 1) + '</span>'
+        + '<span class="xxs b" style="color:' + (s[1] ? 'var(--black)' : 'var(--black-40)') + '">' + s[0] + '</span></div>').join('')
+    + '</ol>';
+
+  const frame = (inner, label) => '<figure class="device"><div class="shell"><div class="screen">'
+    + '<div class="notch" aria-hidden="true"></div>' + inner + '</div></div>'
+    + '<figcaption>' + label + '</figcaption></figure>';
+
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<div class="grid" style="grid-template-columns:1fr;gap:40px;align-items:center" id="app-grid">'
+      + '<div>'
+        + '<p class="eyebrow">Coming to the stores</p>'
+        + '<h1 class="display h-lg mt-2">The same crunch,<br>in your pocket</h1>'
+        + '<p class="sm muted mt-4 max-46" style="line-height:1.7">The app carries the same menu, the same basket and the same live order tracking as this site, with saved addresses and points on the home screen.</p>'
+        + '<p class="craft" style="color:var(--red)">' + esc(CRAFT_LINE) + '</p>'
+        + '<div class="mt-7"><a class="btn btn-red" href="#/menu">Order on the web meanwhile</a></div>'
+      + '</div>'
+      + '<div class="grid grid-3" style="gap:32px">'
+        + frame(screenHome, 'Home') + frame(screenProduct, 'Product') + frame(screenTrack, 'Order tracking')
+      + '</div>'
+    + '</div></div>';
+}
+
+/* ---------- Checkout ---------- */
+
+const STEPS = ['Fulfilment','Details','Where to','Pay'];
+
+function viewCheckout(){
+  if(S.lines.length === 0){
+    return '<div class="wrap" style="padding:40px 20px"><h1 class="display h-lg">Checkout</h1>'
+      + '<div class="panel center mt-8" style="padding:40px">'
+      + '<p class="display h-md" style="color:var(--black-60)">Your basket is empty</p>'
+      + '<p class="sm muted mt-2">Add something before checking out.</p>'
+      + '<div class="mt-5"><a class="btn btn-red" href="#/menu">Browse the menu</a></div></div></div>';
+  }
+
+  const c = S.checkout;
+  const s = store();
+  const svc = services(s);
+
+  const steps = STEPS.map((label, i) =>
+    '<li><span class="pill ' + (i === c.step ? 'now' : (i < c.step ? 'done' : '')) + '"' + (i === c.step ? ' aria-current="step"' : '') + '>'
+    + '<span class="num">' + (i + 1) + '</span> ' + label + '</span>'
+    + (i < STEPS.length - 1 ? '<span class="sep" aria-hidden="true"></span>' : '') + '</li>').join('');
+
+  let body = '';
+
+  if(c.step === 0){
+    body = '<section><h2 class="display h-md">How would you like it?</h2>'
+      + '<div class="grid grid-3 mt-4">' + ['Delivery','Collection','Dine-in'].map((mode) => {
+          const sub = svc[mode]
+            ? (mode === 'Delivery' ? 'To your door' : (mode === 'Collection' ? 'Ready at the counter' : 'A table in store'))
+            : 'Not available here';
+          return '<button type="button" class="pick" data-action="mode" data-value="' + mode + '" aria-pressed="' + (S.mode === mode) + '"' + (svc[mode] ? '' : ' disabled') + '>'
+            + '<span class="nm">' + mode + '</span><span class="sub">' + sub + '</span></button>';
+        }).join('') + '</div>'
+      + '<h3 class="xxs b muted mt-8" style="letter-spacing:.08em;text-transform:uppercase">Which store</h3>'
+      + '<div class="grid grid-2 mt-3">' + STORES.map((st) =>
+          '<button type="button" class="pick" data-action="pick-store" data-value="' + st.id + '" aria-pressed="' + (S.storeId === st.id) + '">'
+          + '<span class="nm">' + esc(st.name) + '</span><span class="sub">' + esc(st.address) + '</span>'
+          + (services(st)['Dine-in'] ? '' : '<span class="sub red b mt-2">No dine-in at this store</span>') + '</button>').join('')
+      + '</div></section>';
+  }
+
+  if(c.step === 1){
+    const field = (key, label, type, hint, extra) =>
+      '<label class="field' + (extra || '') + '"><span class="lbl">' + label + '</span>'
+      + '<input type="' + type + '" value="' + esc(c[key]) + '" data-action="field" data-key="' + key + '"'
+      + (c.errors[key] ? ' aria-invalid="true"' : '') + ' autocomplete="' + (key === 'name' ? 'name' : key === 'email' ? 'email' : 'tel') + '">'
+      + (c.errors[key] ? '<p class="err" role="alert">' + esc(c.errors[key]) + '</p>' : (hint ? '<p class="hint">' + hint + '</p>' : ''))
+      + '</label>';
+
+    body = '<section><h2 class="display h-md">Your details</h2>'
+      + '<div class="grid grid-2 mt-4">'
+        + '<div style="grid-column:1/-1">' + field('name', 'Name', 'text', '') + '</div>'
+        + field('email', 'Email', 'email', 'Your receipt and order updates go here.')
+        + field('mobile', 'Mobile', 'tel', 'The driver or the store calls this number.')
+      + '</div></section>';
+  }
+
+  if(c.step === 2){
+    body = '<section><h2 class="display h-md">' + (S.mode === 'Delivery' ? 'Where are we taking it?' : 'Anything for the kitchen?') + '</h2>'
+      + (S.mode === 'Delivery'
+          ? '<div class="grid grid-2 mt-4">'
+            + '<label class="field" style="grid-column:1/-1"><span class="lbl">Street address</span>'
+              + '<input type="text" value="' + esc(c.address) + '" data-action="field" data-key="address" autocomplete="street-address"' + (c.errors.address ? ' aria-invalid="true"' : '') + '>'
+              + (c.errors.address ? '<p class="err" role="alert">' + esc(c.errors.address) + '</p>' : '') + '</label>'
+            + '<label class="field"><span class="lbl">Suburb</span>'
+              + '<input type="text" value="' + esc(c.suburb) + '" data-action="field" data-key="suburb" autocomplete="address-level2"' + (c.errors.suburb ? ' aria-invalid="true"' : '') + '>'
+              + (c.errors.suburb ? '<p class="err" role="alert">' + esc(c.errors.suburb) + '</p>'
+                  : '<p class="hint">' + esc(s.name) + ' delivers to ' + s.zones.slice(0, 3).join(', ') + ' and more.</p>') + '</label>'
+            + (c.quote && c.quote.serviceable
+                ? '<p class="ok-note" style="align-self:end">We deliver there. About ' + c.quote.eta + ' minutes.</p>' : '')
+          + '</div>'
+          : '<p class="sm muted mt-3 max-56">' + (S.mode === 'Collection'
+              ? 'Collect from ' + esc(s.name) + ', ' + esc(s.address) + '.'
+              : 'A table at ' + esc(s.name) + ', ' + esc(s.address) + '.') + '</p>')
+      + '<label class="field mt-5"><span class="lbl">Note for the kitchen</span>'
+        + '<textarea rows="3" data-action="field" data-key="note" maxlength="280">' + esc(c.note) + '</textarea>'
+        + '<p class="hint">' + c.note.length + ' of 280 characters. Allergies go here, and the store will call if it cannot be met.</p></label>'
+      + '</section>';
+  }
+
+  if(c.step === 3){
+    body = '<section><h2 class="display h-md">Payment</h2>'
+      + '<div class="notice mt-4"><p class="sm bb">No payment provider is configured</p>'
+        + '<p class="sm muted mt-2 max-56" style="line-height:1.7">A provider has not been selected and no merchant credentials exist, so nothing is charged. Placing the order below records it and starts the kitchen journey, exactly as it will once payment is wired in.</p>'
+        + '<p class="mt-3">' + flag('Not live') + '</p></div>'
+      + '</section>';
+  }
+
+  const controls = '<div class="row-wrap mt-8">'
+    + (c.step > 0 ? '<button type="button" class="btn btn-ghost" data-action="back">Back</button>' : '')
+    + (c.step < STEPS.length - 1
+        ? '<button type="button" class="btn btn-red" data-action="next">Continue</button>'
+        : '<button type="button" class="btn btn-red" data-action="place">Place order <span aria-hidden="true" style="opacity:.7">·</span> <span class="num">' + money(grandTotal()) + '</span></button>')
+    + '</div>';
+
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<h1 class="display h-lg">Checkout</h1>'
+    + '<div class="grid mt-8" style="grid-template-columns:1fr;gap:40px" id="checkout-grid">'
+      + '<div><ol class="steps" aria-label="Checkout progress">' + steps + '</ol>' + body + controls + '</div>'
+      + '<aside><div class="panel">'
+        + '<h2 class="display h-sm">Your order</h2>'
+        + '<p class="xs muted mt-1">' + S.mode + ' from ' + esc(s.name) + '</p>'
+        + '<ul class="mt-4" style="border-top:1px solid var(--line);border-bottom:1px solid var(--line)">'
+          + S.lines.map((l) => '<li class="line" style="padding:12px 0">'
+            + '<span class="shot" style="width:48px;height:48px"><img src="' + IMG[l.img] + '" alt=""></span>'
+            + '<span class="info"><span class="xs b" style="display:block"><span class="num">' + l.qty + '×</span> ' + esc(l.name) + '</span>'
+            + (l.options.length ? '<span class="xxs muted" style="display:block;margin-top:2px;line-height:1.4">' + esc(describeOptions(l.options)) + '</span>' : '')
+            + '</span><span class="xs b num">' + money(l.unitCents * l.qty) + '</span></li>').join('')
+        + '</ul>'
+        + totalsBlock()
+      + '</div></aside>'
+    + '</div></div>';
+}
+
+function totalsBlock(){
+  const d = discount();
+  const fee = deliveryFee();
+  return '<dl class="totals mt-4">'
+    + '<div class="row"><dt>Subtotal</dt><dd class="num">' + money(subtotal()) + '</dd></div>'
+    + (d > 0 ? '<div class="row discount"><dt style="color:inherit">Discount' + (S.promoCode ? ' (' + S.promoCode + ')' : '') + '</dt><dd class="num">−' + money(d) + '</dd></div>' : '')
+    + (S.mode === 'Delivery' ? '<div class="row"><dt>Delivery ' + flag() + '</dt><dd class="num">'
+        + (fee === 0 ? '<span class="b red">Free</span>' : money(fee)) + '</dd></div>' : '')
+    + '<div class="row grand"><dt>Total</dt><dd class="num">' + money(grandTotal()) + '</dd></div>'
+    + '</dl>';
+}
+
+/* ---------- Journey ---------- */
+
+function viewJourney(){
+  const order = S.orders.find((o) => o.id === S.trackedId) || S.orders[0];
+  if(!order){
+    return '<div class="wrap" style="padding:40px 20px">'
+      + '<p class="eyebrow">Live</p><h1 class="display h-lg mt-2">My journey</h1>'
+      + '<div class="panel center mt-8" style="padding:40px">'
+      + '<p class="display h-md" style="color:var(--black-60)">No order to follow</p>'
+      + '<p class="sm muted mt-2">Place an order and its progress appears here, step by step.</p>'
+      + '<div class="mt-5"><a class="btn btn-red" href="#/menu">Browse the menu</a></div></div></div>';
+  }
+
+  const states = statesFor(order.mode);
+  const at = order.status === 'cancelled' ? -1 : states.indexOf(order.status);
+  const done = order.status === 'completed' || order.status === 'cancelled';
+
+  const timeline = states.map((state, i) => {
+    const isDone = i < at, isNow = i === at;
+    return '<li><span class="mark">'
+      + '<span class="bead' + (isDone || isNow ? ' on' : '') + '" aria-hidden="true">' + (isDone ? '✓' : i + 1) + '</span>'
+      + (i < states.length - 1 ? '<span class="stem' + (i < at ? ' on' : '') + '"></span>' : '')
+      + '</span><span class="txt">'
+      + '<span class="lbl ' + (isNow ? 'now' : (isDone ? 'done' : '')) + '" style="display:block">' + stateLabel(state, order.mode)
+        + (isNow ? '<span class="sr"> — current step</span>' : '') + '</span>'
+      + (isDone || isNow ? '<span class="msg" style="display:block">' + STATE_MSG[state] + '</span>' : '')
+      + '</span></li>';
+  }).join('');
+
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<p class="eyebrow">Live</p><h1 class="display h-lg mt-2">My journey</h1>'
+    + '<div class="grid mt-8" style="grid-template-columns:1fr;gap:40px" id="journey-grid">'
+      + '<div><div class="panel">'
+        + '<div class="between"><div>'
+          + '<p class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Order number</p>'
+          + '<p class="display num mt-1" style="font-size:30px">' + order.orderNumber + '</p></div>'
+          + '<span class="badge badge-red">' + (order.status === 'cancelled' ? 'Cancelled'
+              : order.status === 'completed' ? completedLabel(order.mode) : order.mode) + '</span></div>'
+        + (order.cancelledReason ? '<p class="sm mt-4" style="background:var(--red-10);color:var(--red);border-radius:var(--r-sm);padding:12px 16px">Cancelled: ' + esc(order.cancelledReason) + '</p>' : '')
+        + '<ol class="timeline mt-7">' + timeline + '</ol>'
+        + (done ? '' : '<p class="xs muted mt-2">Estimated ' + order.eta + ' minutes from when the order was placed.</p>')
+      + '</div>'
+      + '<div class="row-wrap mt-6">'
+        + '<button type="button" class="btn btn-red" data-action="reorder" data-value="' + order.id + '">Order this again</button>'
+        + '<a class="btn btn-ghost" href="#/menu">Add something else</a>'
+        + (done ? '' : '<button type="button" class="btn btn-ghost" data-action="advance" data-value="' + order.id + '">Move to next step ' + flag() + '</button>')
+      + '</div></div>'
+      + '<aside><div class="panel">'
+        + '<h2 class="display h-sm">What you ordered</h2>'
+        + '<ul class="mt-4" style="border-top:1px solid var(--line);border-bottom:1px solid var(--line)">'
+          + order.lines.map((l) => '<li class="line" style="padding:12px 0">'
+            + '<span class="shot" style="width:48px;height:48px"><img src="' + IMG[l.img] + '" alt=""></span>'
+            + '<span class="info"><span class="xs b" style="display:block"><span class="num">' + l.qty + '×</span> ' + esc(l.name) + '</span>'
+            + (l.options.length ? '<span class="xxs muted" style="display:block;margin-top:2px;line-height:1.4">' + esc(describeOptions(l.options)) + '</span>' : '')
+            + '</span><span class="xs b num">' + money(l.unitCents * l.qty) + '</span></li>').join('')
+        + '</ul>'
+        + '<div class="row between mt-4" style="font-size:16px;font-weight:800"><span>Total</span><span class="num">' + money(order.totals.totalCents) + '</span></div>'
+        + (order.note ? '<div class="mt-4" style="background:var(--paper);border-radius:var(--r-sm);padding:12px">'
+            + '<p class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Note for the kitchen</p>'
+            + '<p class="xs mt-1">' + esc(order.note) + '</p></div>' : '')
+        + '<p class="xs muted mt-4">Earning <span class="b red num">' + order.points.toLocaleString('en-ZA') + '</span> points on this order.</p>'
+      + '</div></aside>'
+    + '</div></div>';
+}
+
+/* ---------- Account ---------- */
+
+function viewAccount(){
+  const earned = S.orders.filter((o) => o.status === 'completed').reduce((n, o) => n + pointsFor(o.totals.totalCents), 0);
+  const s = store();
+
+  const history = S.orders.length === 0
+    ? '<div class="panel center mt-4" style="padding:40px"><p class="display h-md" style="color:var(--black-60)">No orders yet</p>'
+      + '<p class="sm muted mt-2">Orders you place appear here, ready to send again in one tap.</p>'
+      + '<div class="mt-5"><a class="btn btn-red" href="#/menu">Browse the menu</a></div></div>'
+    : '<ul class="stack gap-4 mt-4">' + S.orders.map((o) =>
+        '<li class="panel"><div class="between">'
+          + '<div><p class="sm bb num">' + o.orderNumber + '</p>'
+          + '<p class="xs muted mt-1">' + new Date(o.placedAt).toLocaleString('en-ZA', {dateStyle:'medium', timeStyle:'short'}) + ' · ' + o.mode + '</p></div>'
+          + '<span class="badge ' + (o.status === 'completed' ? 'badge-soft' : o.status === 'cancelled' ? 'badge-grey' : 'badge-amber') + '">'
+          + (o.status === 'completed' ? completedLabel(o.mode) : o.status === 'cancelled' ? 'Cancelled' : 'In progress') + '</span></div>'
+        + '<p class="xs muted mt-3">' + esc(o.lines.map((l) => l.qty + '× ' + l.name).join(', ')) + '</p>'
+        + '<div class="between mt-4" style="border-top:1px solid var(--line);padding-top:16px;align-items:center">'
+          + '<span class="num" style="font-size:16px;font-weight:800">' + money(o.totals.totalCents) + '</span>'
+          + '<span class="row gap-2">'
+            + '<button type="button" class="btn btn-ghost btn-sm" data-action="reorder" data-value="' + o.id + '">Order again</button>'
+            + '<button type="button" class="btn btn-black btn-sm" data-action="track" data-value="' + o.id + '">Track</button>'
+          + '</span></div></li>').join('') + '</ul>';
+
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<h1 class="display h-lg">Your account</h1>'
+    + '<div class="grid mt-8" style="grid-template-columns:1fr;gap:32px" id="account-grid">'
+      + '<section><h2 class="display h-md">Order history</h2>' + history + '</section>'
+      + '<aside class="stack gap-4">'
+        + '<div style="background:var(--black);color:var(--white);border-radius:var(--r);padding:24px">'
+          + '<p class="xxs b gold" style="letter-spacing:.12em;text-transform:uppercase">Points</p>'
+          + '<p class="display num mt-2" style="font-size:46px">' + earned.toLocaleString('en-ZA') + '</p>'
+          + '<a class="sm mt-3" href="#/rewards" style="display:inline-block;color:rgb(255 255 255 / .7);text-decoration:underline">See what they buy</a></div>'
+        + '<div class="panel"><h2 class="display h-sm">Ordering from</h2>'
+          + '<p class="sm b mt-2">' + esc(s.name) + '</p>'
+          + '<p class="xs muted mt-1">' + esc(s.address) + '</p>'
+          + '<p class="xs muted mt-2">Currently set to ' + S.mode.toLowerCase() + '.</p>'
+          + '<div class="mt-4"><a class="btn btn-ghost btn-sm" href="#/stores">Change store</a></div></div>'
+        + '<div class="panel"><h2 class="display h-sm">Saved addresses</h2>'
+          + '<ul class="stack gap-4 mt-3">'
+            + '<li><p class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Home</p><p class="sm mt-1">12 Beyers Naude Drive, Randburg</p></li>'
+            + '<li><p class="xxs b muted" style="letter-spacing:.08em;text-transform:uppercase">Work</p><p class="sm mt-1">3 Ridge Road, Northcliff</p></li>'
+          + '</ul>'
+          + '<p class="xs muted mt-4">Addresses are held in this browser only. Nothing is written to a customer record without an explicit consent action.</p></div>'
+      + '</aside>'
+    + '</div></div>';
+}
+
+/* ---------- Operations console ---------- */
+
+const TABS = ['Orders','Menu','Stores','Promotions','Audit'];
+
+function viewAdmin(){
+  const tabs = TABS.map((t) =>
+    '<button type="button" role="tab" data-action="tab" data-value="' + t + '" aria-selected="' + (S.adminTab === t) + '">' + t + '</button>').join('');
+
+  let panel = '';
+
+  if(S.adminTab === 'Orders'){
+    panel = '<h2 class="display h-md">Order queue</h2>'
+      + (S.orders.length === 0
+          ? '<p class="panel center sm muted mt-4" style="padding:32px">Nothing in the queue. Place an order on the storefront and it appears here.</p>'
+          : S.orders.map((o) => '<div class="queue">'
+              + '<div class="between"><div><p class="sm bb num">' + o.orderNumber + '</p>'
+                + '<p class="xs muted mt-1">' + o.mode + ' · ' + new Date(o.placedAt).toLocaleTimeString('en-ZA', {timeStyle:'short'}) + '</p></div>'
+                + '<span class="badge badge-grey">' + stateLabel(o.status, o.mode) + '</span></div>'
+              + '<p class="xs muted mt-2">' + esc(o.lines.map((l) => l.qty + '× ' + l.name).join(', ')) + '</p>'
+              + (o.note ? '<p class="xs mt-2" style="background:rgb(255 194 14 / .2);border-radius:var(--r-xs);padding:8px 12px"><span class="b">Kitchen note:</span> ' + esc(o.note) + '</p>' : '')
+              + '<div class="between mt-3" style="border-top:1px solid var(--line);padding-top:12px;align-items:center">'
+                + '<span class="sm bb num">' + money(o.totals.totalCents) + '</span>'
+                + '<span class="state-btns">'
+                  + statesFor(o.mode).map((state) =>
+                      '<button type="button" data-action="set-status" data-order="' + o.id + '" data-value="' + state + '" aria-pressed="' + (o.status === state) + '"'
+                      + (o.status === state ? ' disabled' : '') + '>' + state.replace(/_/g, ' ') + '</button>').join('')
+                  + '<button type="button" class="cancel" data-action="set-status" data-order="' + o.id + '" data-value="cancelled"'
+                  + (o.status === 'cancelled' ? ' disabled' : '') + '>cancel</button>'
+                + '</span></div></div>').join(''));
+  }
+
+  if(S.adminTab === 'Menu'){
+    panel = '<h2 class="display h-md">Menu availability</h2>'
+      + '<p class="sm muted mt-1 max-62">Sold out keeps an item on the menu and blocks it at the basket. Hidden removes it from the catalogue entirely.</p>'
+      + '<div class="scroll-x mt-4"><table><thead><tr>'
+        + '<th scope="col">Product</th><th scope="col">Sold out</th><th scope="col">Hidden</th></tr></thead><tbody>'
+        + PRODUCTS.slice().sort((a, b) => a.name.localeCompare(b.name)).map((p) =>
+            '<tr><th scope="row">' + esc(p.name) + '</th>'
+            + '<td><label><span class="sr">Mark ' + esc(p.name) + ' sold out</span>'
+              + '<input type="checkbox" data-action="sold-out" data-value="' + p.slug + '"' + (isSoldOut(p.slug) ? ' checked' : '') + '></label></td>'
+            + '<td><label><span class="sr">Hide ' + esc(p.name) + ' from the menu</span>'
+              + '<input type="checkbox" data-action="hide" data-value="' + p.slug + '"' + (isHidden(p.slug) ? ' checked' : '') + '></label></td></tr>').join('')
+        + '</tbody></table></div>';
+  }
+
+  if(S.adminTab === 'Stores'){
+    panel = '<h2 class="display h-md">Service switches</h2>'
+      + '<ul class="grid grid-2 mt-4">' + STORES.map((s) => {
+          const svc = services(s);
+          return '<li class="panel"><h3 class="sm bb">' + esc(s.name) + '</h3>'
+            + '<p class="xs muted mt-1">' + esc(s.address) + '</p>'
+            + '<ul class="stack gap-2 mt-4">' + ['Delivery','Collection','Dine-in'].map((m) =>
+                '<li class="between" style="align-items:center"><span class="sm b">' + m + '</span>'
+                + '<label><span class="sr">' + m + ' at ' + esc(s.name) + '</span>'
+                + '<input type="checkbox" data-action="service" data-store="' + s.id + '" data-value="' + m + '"' + (svc[m] ? ' checked' : '') + '></label></li>').join('')
+            + '</ul></li>';
+        }).join('') + '</ul>';
+  }
+
+  if(S.adminTab === 'Promotions'){
+    panel = '<h2 class="display h-md">Promotions</h2>'
+      + '<ul class="stack gap-4 mt-4">' + PROMOTIONS.map((o) =>
+          '<li class="panel between" style="align-items:center">'
+          + '<div><p class="sm bb">' + esc(o.title) + '</p><p class="xs muted mt-1">' + esc(o.valid) + '</p></div>'
+          + '<div class="row gap-4"><code style="background:var(--red-10);color:var(--red);border-radius:var(--r-xs);padding:4px 10px;font-size:12px;font-weight:800">' + o.code + '</code>'
+          + '<span class="sm b num">' + Math.round(o.rate * 100) + '%</span></div></li>').join('') + '</ul>'
+      + '<p class="xs muted mt-4">Campaigns are read-only until the promotions service is built. Creating and expiring them from here is repository work, not a console gap.</p>';
+  }
+
+  if(S.adminTab === 'Audit'){
+    panel = '<h2 class="display h-md">Audit log</h2>'
+      + '<p class="sm muted mt-1">Every change written through the console, newest first.</p>'
+      + '<ol class="audit panel-flat mt-4">' + S.audit.map((e) =>
+          '<li><span class="t num">' + new Date(e.at).toLocaleTimeString('en-ZA', {timeStyle:'medium'}) + '</span>'
+          + '<span class="who">' + esc(e.who) + '</span><span>' + esc(e.what) + '</span></li>').join('') + '</ol>';
+  }
+
+  return '<div class="wrap" style="padding:40px 20px">'
+    + '<h1 class="display h-lg">Operations</h1>'
+    + '<div class="notice mt-4 max-62"><p class="sm" style="line-height:1.7"><span class="bb">This console has no authentication.</span> '
+      + 'It shares the storefront&rsquo;s deployment and its own auth boundary has not been built, so it must not reach an environment serving real customers in this state.</p></div>'
+    + '<div class="tabs mt-8" role="tablist" aria-label="Operations sections">' + tabs + '</div>'
+    + '<div class="mt-6" role="tabpanel" aria-label="' + S.adminTab + '">' + panel + '</div>'
+    + '</div>';
+}
+
+/* ---------- Basket drawer ---------- */
+
+function viewDrawer(){
+  const count = itemCount();
+  const head = '<div class="drawer-head"><h2 class="display h-md">Your basket</h2>'
+    + '<button type="button" class="icon-btn" data-action="close-drawer" aria-label="Close basket" style="width:36px;height:36px">'
+    + '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="m5.3 4 10.7 10.7-1.3 1.3L4 5.3 5.3 4Zm10.7 1.3L5.3 16 4 14.7 14.7 4 16 5.3Z"/></svg></button></div>';
+
+  if(count === 0){
+    return head + '<div class="empty"><p class="display h-md" style="color:var(--black-60)">Nothing in here yet</p>'
+      + '<p class="sm muted">Twice fried in olive oil. Tossed to order. Start with a whole bird.</p>'
+      + '<a class="btn btn-red" href="#/menu" data-action="close-drawer">Browse the menu</a></div>';
+  }
+
+  const remaining = remainingToFree();
+  const pct = Math.min(100, Math.round(((subtotal() - discount()) / FEES.freeOverCents) * 100));
+
+  const meter = S.mode === 'Delivery'
+    ? '<div class="meter"><p class="xs b row" style="gap:8px">'
+      + (remaining === 0 ? '<span class="red">Delivery is on us.</span>'
+          : '<span><span class="b red num">' + moneyShort(remaining) + '</span> more for free delivery</span>')
+      + flag() + '</p>'
+      + '<div class="bar" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Progress towards free delivery"><span style="width:' + pct + '%"></span></div></div>'
+    : '';
+
+  const lines = S.lines.map((l) => '<li class="line">'
+    + '<span class="shot"><img src="' + IMG[l.img] + '" alt=""></span>'
+    + '<span class="info"><span class="nm">' + esc(l.name) + '</span>'
+      + (l.options.length ? '<span class="opt">' + esc(describeOptions(l.options)) + '</span>' : '')
+      + '<span class="row"><span class="stepper">'
+        + '<button type="button" data-action="qty" data-key="' + esc(l.key) + '" data-value="' + (l.qty - 1) + '" aria-label="' + (l.qty === 1 ? 'Remove ' : 'One fewer ') + esc(l.name) + '">'
+        + (l.qty === 1 ? '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M6 2h4v1H6V2ZM3 4h10v1.4h-1l-.7 8.2A1.4 1.4 0 0 1 9.9 15H6.1a1.4 1.4 0 0 1-1.4-1.4L4 5.4H3V4Z"/></svg>' : '−') + '</button>'
+        + '<span class="qty num" aria-hidden="true">' + l.qty + '</span>'
+        + '<button type="button" data-action="qty" data-key="' + esc(l.key) + '" data-value="' + (l.qty + 1) + '" aria-label="One more ' + esc(l.name) + '">+</button>'
+      + '</span><span class="sm b num" style="margin-left:auto">' + money(l.unitCents * l.qty) + '</span></span>'
+    + '</span></li>').join('');
+
+  const inBasket = S.lines.map((l) => l.slug);
+  const suggestions = catalogue().filter((p) => p.category === 'Sides' && !inBasket.includes(p.slug) && !isSoldOut(p.slug)).slice(0, 4);
+
+  const suggest = suggestions.length
+    ? '<section style="border-top:1px solid var(--line);padding:16px 0">'
+      + '<h3 class="xxs b muted" style="letter-spacing:.1em;text-transform:uppercase">Goes well with</h3>'
+      + '<div class="suggest">' + suggestions.map((p) =>
+          '<button type="button" data-action="quick-add" data-value="' + p.slug + '">'
+          + '<span class="shot"><img src="' + IMG[p.img] + '" alt="" loading="lazy"></span>'
+          + '<span class="nm">' + esc(p.name) + '</span><span class="pr num">' + moneyShort(p.priceCents) + '</span></button>').join('')
+      + '</div></section>'
+    : '';
+
+  const promo = S.promoCode
+    ? '<div class="between" style="align-items:center;background:var(--red-10);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:12px">'
+      + '<span class="sm b red">' + S.promoCode + ' applied</span>'
+      + '<button type="button" class="xs b muted" style="text-decoration:underline" data-action="clear-promo">Remove</button></div>'
+    : '<div class="row gap-2" style="margin-bottom:12px">'
+      + '<label class="flex-1"><span class="sr">Promo code</span>'
+        + '<input type="text" id="promo" placeholder="Promo code" style="width:100%;height:40px;border:1px solid var(--line);border-radius:var(--pill);padding:0 16px;font-size:14px;text-transform:uppercase"></label>'
+      + '<button type="button" class="btn btn-ghost btn-sm" data-action="promo">Apply</button></div>';
+
+  return head
+    + '<div class="drawer-body">' + meter + '<ul>' + lines + '</ul>' + suggest + '</div>'
+    + '<div class="drawer-foot">' + promo + totalsBlock()
+      + '<a class="btn btn-red btn-block mt-3" href="#/checkout" data-action="close-drawer">Checkout</a></div>';
+}
+
+function viewSticky(){
+  const count = itemCount();
+  if(count === 0 || S.drawerOpen || S.route === '/checkout') return '';
+  return '<div class="sticky-bar"><button type="button" data-action="open-drawer">'
+    + '<span>View basket (' + count + ')</span><span class="num">' + money(grandTotal()) + '</span></button></div>';
+}
+</script>
+
+<script>
+/* ============================================================
+   Router, rendering and events.
+   ============================================================ */
+
+const VIEWS = {
+  '/':viewHome, '/menu':viewMenu, '/offers':viewOffers, '/rewards':viewRewards,
+  '/stores':viewStores, '/help':viewHelp, '/app':viewApp, '/checkout':viewCheckout,
+  '/journey':viewJourney, '/account':viewAccount, '/admin':viewAdmin,
+};
+
+const TITLES = {
+  '/':'bb.q Chicken South Africa', '/menu':'Menu', '/offers':'Offers', '/rewards':'Rewards',
+  '/stores':'Find a store', '/help':'Help and allergens', '/app':'The app',
+  '/checkout':'Checkout', '/journey':'My journey', '/account':'Account', '/admin':'Operations console',
+};
+
+function parseRoute(){
+  const raw = (location.hash || '#/').slice(1);
+  const [path, query] = raw.split('?');
+  if(query){
+    const category = new URLSearchParams(query).get('category');
+    if(category && CATEGORIES.some((c) => c.key === category)) S.menu.category = category;
+  }
+  return path || '/';
+}
+
+function go(path){
+  location.hash = '#' + path;
+}
+
+/**
+ * Layouts that need two columns above a breakpoint. Done here rather than in
+ * the stylesheet because each grid has its own ratio and the markup is built
+ * as strings.
+ */
+const COLUMNS = {
+  'menu-grid':'210px 1fr', 'product-grid':'1fr 1fr', 'checkout-grid':'1.2fr 0.8fr',
+  'journey-grid':'1.1fr 0.9fr', 'account-grid':'1.3fr 0.7fr', 'help-grid':'1.1fr 0.9fr',
+  'app-grid':'0.9fr 1.1fr',
+};
+
+function applyColumns(){
+  const wide = window.matchMedia('(min-width: 1024px)').matches;
+  for(const id in COLUMNS){
+    const node = document.getElementById(id);
+    if(node) node.style.gridTemplateColumns = wide ? COLUMNS[id] : '1fr';
+  }
+  const side = document.getElementById('menu-side');
+  if(side) side.style.display = wide ? 'block' : 'none';
+  const chips = document.getElementById('menu-chips');
+  if(chips) chips.style.display = wide ? 'none' : 'flex';
+}
+
+let painting = false;
+
+function render(){
+  if(painting) return;
+  painting = true;
+
+  const view = VIEWS[S.route] || (S.route.indexOf('/menu/') === 0
+    ? () => viewProduct(S.route.slice('/menu/'.length))
+    : viewHome);
+
+  $('chrome').innerHTML = viewChrome();
+  $('main').innerHTML = view();
+  $('footer').innerHTML = viewFooter();
+  $('drawer').innerHTML = viewDrawer();
+  $('sticky').innerHTML = viewSticky();
+
+  $('drawer').classList.toggle('open', S.drawerOpen);
+  $('scrim').classList.toggle('open', S.drawerOpen);
+  $('drawer').setAttribute('aria-hidden', String(!S.drawerOpen));
+  document.body.style.overflow = S.drawerOpen ? 'hidden' : '';
+
+  const name = S.route.indexOf('/menu/') === 0
+    ? (product(S.route.slice('/menu/'.length)) || {}).name
+    : TITLES[S.route];
+  document.title = S.route === '/' ? TITLES['/'] : (name || 'bb.q Chicken') + ' | bb.q Chicken South Africa';
+
+  applyColumns();
+  painting = false;
+}
+
+/* ---------- Focus trap ---------- */
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/**
+ * Held as a selector rather than a node: closing repaints the header, so the
+ * element that opened the drawer no longer exists by the time focus goes back
+ * to it.
+ */
+let returnFocusTo = null;
+
+function openDrawer(){
+  const active = document.activeElement;
+  returnFocusTo = active && active.dataset && active.dataset.action
+    ? '[data-action="' + active.dataset.action + '"]'
+    : null;
+  S.drawerOpen = true;
+  render();
+  const first = $('drawer').querySelector(FOCUSABLE);
+  if(first) first.focus();
+}
+
+function closeDrawer(){
+  if(!S.drawerOpen) return;
+  S.drawerOpen = false;
+  render();
+  if(returnFocusTo){
+    const target = Array.prototype.find.call(
+      document.querySelectorAll(returnFocusTo), (el) => el.offsetParent !== null);
+    if(target) target.focus();
+  }
+  returnFocusTo = null;
+}
+
+document.addEventListener('keydown', (event) => {
+  if(!S.drawerOpen) return;
+  if(event.key === 'Escape'){ event.preventDefault(); closeDrawer(); return; }
+  if(event.key !== 'Tab') return;
+
+  const items = Array.prototype.filter.call(
+    $('drawer').querySelectorAll(FOCUSABLE), (el) => el.offsetParent !== null);
+  if(items.length === 0) return;
+  const first = items[0], last = items[items.length - 1];
+
+  if(event.shiftKey && document.activeElement === first){ event.preventDefault(); last.focus(); }
+  else if(!event.shiftKey && document.activeElement === last){ event.preventDefault(); first.focus(); }
+});
+
+/* ---------- Delegated events ---------- */
+
+document.addEventListener('click', (event) => {
+  const node = event.target.closest('[data-action]');
+  if(!node) return;
+  const action = node.dataset.action;
+  const value = node.dataset.value;
+
+  /* Inputs and selects are handled on change, not click. */
+  if(node.tagName === 'INPUT' || node.tagName === 'SELECT') return;
+
+  switch(action){
+    case 'open-drawer': openDrawer(); return;
+    case 'close-drawer': closeDrawer(); return;
+    case 'toggle-menu': S.menuOpen = !S.menuOpen; render(); return;
+    case 'close-menu': S.menuOpen = false; return;
+
+    case 'mode': setMode(value); return;
+    case 'pick-store': setStore(value); return;
+
+    case 'category': S.menu.category = value; render(); return;
+    case 'clear-filters': S.menu = {search:'', category:'all', heatMax:5, sort:'popular'}; render(); return;
+
+    case 'option': {
+      const p = product(S.product.slug);
+      const groups = optionGroups(p);
+      const group = groups.find((g) => g.key === node.dataset.group);
+      S.product.sel = chooseOption(groups, S.product.sel, group, value);
+      render();
+      return;
+    }
+    case 'pqty': {
+      S.product.qty = Math.max(1, S.product.qty + Number(value));
+      render();
+      return;
+    }
+    case 'add': {
+      const p = product(S.product.slug);
+      const groups = optionGroups(p);
+      const price = unitPrice(p.priceCents, groups, S.product.sel);
+      addLine(p, selectedOptions(groups, S.product.sel), S.product.qty, price);
+      openDrawer();
+      return;
+    }
+    case 'quick-add': {
+      const p = product(value);
+      addLine(p, [], 1, p.priceCents);
+      render();
+      return;
+    }
+    case 'qty': setQty(node.dataset.key, Number(value)); return;
+    case 'promo': {
+      const input = $('promo');
+      if(input) applyPromo(input.value);
+      return;
+    }
+    case 'clear-promo': S.promoCode = null; save(); render(); return;
+
+    case 'back': S.checkout.step -= 1; S.checkout.errors = {}; render(); return;
+    case 'next': {
+      const c = S.checkout;
+      if(c.step === 1 && !validateDetails()){ render(); return; }
+      if(c.step === 2 && !validateWhere()){ render(); return; }
+      c.step = Math.min(STEPS.length - 1, c.step + 1);
+      render();
+      return;
+    }
+    case 'place': placeOrder(); return;
+
+    case 'advance': advanceOrder(value); return;
+    case 'reorder': {
+      const order = S.orders.find((o) => o.id === value);
+      if(order) reorder(order);
+      return;
+    }
+    case 'track': S.trackedId = value; go('/journey'); return;
+
+    case 'tab': S.adminTab = value; render(); return;
+    case 'set-status': setOrderStatus(node.dataset.order, value); return;
+  }
+});
+
+document.addEventListener('change', (event) => {
+  const node = event.target.closest('[data-action]');
+  if(!node) return;
+  const action = node.dataset.action;
+  const value = node.dataset.value;
+
+  switch(action){
+    case 'store': setStore(node.value); return;
+    case 'sort': S.menu.sort = node.value; render(); return;
+    case 'heat': S.menu.heatMax = Number(node.value); render(); return;
+
+    case 'sold-out': {
+      const p = product(value);
+      S.soldOut = node.checked ? S.soldOut.concat([value]) : S.soldOut.filter((s) => s !== value);
+      audit('operations', p.name + ' marked ' + (node.checked ? 'sold out' : 'available'));
+      render();
+      return;
+    }
+    case 'hide': {
+      const p = product(value);
+      S.hidden = node.checked ? S.hidden.concat([value]) : S.hidden.filter((s) => s !== value);
+      audit('operations', p.name + (node.checked ? ' hidden from' : ' restored to') + ' the menu');
+      render();
+      return;
+    }
+    case 'service': {
+      const id = node.dataset.store;
+      const target = STORES.find((s) => s.id === id);
+      S.serviceOverrides[id] = Object.assign({}, S.serviceOverrides[id]);
+      S.serviceOverrides[id][value] = node.checked;
+      audit('operations', target.name + ': ' + value + ' switched ' + (node.checked ? 'on' : 'off'));
+      /* A service the customer is mid-order on must not stay selected. */
+      if(id === S.storeId && !node.checked && S.mode === value) S.mode = 'Collection';
+      save();
+      render();
+      return;
+    }
+  }
+});
+
+/* Typed fields repaint on input, so the search and the checkout stay live
+   without losing the caret. */
+document.addEventListener('input', (event) => {
+  const node = event.target.closest('[data-action]');
+  if(!node) return;
+
+  if(node.dataset.action === 'search'){
+    S.menu.search = node.value;
+    const at = node.selectionStart;
+    render();
+    const again = $('menu-search');
+    if(again){ again.focus(); again.setSelectionRange(at, at); }
+    return;
+  }
+
+  if(node.dataset.action === 'field'){
+    const key = node.dataset.key;
+    S.checkout[key] = node.value;
+    if(key === 'suburb') S.checkout.quote = null;
+    /* Only the note repaints, for its counter; the rest would fight the caret. */
+    if(key === 'note'){
+      const at = node.selectionStart;
+      render();
+      const again = document.querySelector('[data-key="note"]');
+      if(again){ again.focus(); again.setSelectionRange(at, at); }
+    }
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if(event.key === 'Enter' && event.target.id === 'promo'){
+    event.preventDefault();
+    applyPromo(event.target.value);
+  }
+});
+
+window.addEventListener('hashchange', () => {
+  S.route = parseRoute();
+  S.menuOpen = false;
+  if(S.drawerOpen) closeDrawer();
+  window.scrollTo(0, 0);
+  render();
+});
+
+window.addEventListener('resize', applyColumns);
+
+/* ---------- Announcement strip ----------
+   Held still for anyone who has asked for reduced motion: a strip that
+   changes under you is the movement the setting exists to stop. */
+
+const MESSAGES = [
+  CRAFT_LINE,
+  'Delivery, collection and dine-in across Johannesburg.',
+  'Half and Half: two sauces on one bird.',
+];
+
+function startTicker(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let index = 0;
+  setInterval(() => {
+    const node = $('tick');
+    if(!node) return;
+    node.classList.add('fade');
+    setTimeout(() => {
+      index = (index + 1) % MESSAGES.length;
+      node.textContent = MESSAGES[index];
+      node.classList.remove('fade');
+    }, 300);
+  }, 5000);
+}
+
+/* ---------- Boot ---------- */
+
+load();
+S.route = parseRoute();
+render();
+startTicker();
+</script>

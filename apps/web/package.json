@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "brand:check": "node scripts/check-brand-rules.mjs",
     "verify": "npm run brand:check && npm run typecheck && npm run lint && npm run test && npm run build",
-    "assets:derive": "node ../../infra/scripts/generate-image-derivatives.mjs && node ../../infra/scripts/generate-brand-assets.mjs"
+    "assets:derive": "node ../../infra/scripts/generate-image-derivatives.mjs && node ../../infra/scripts/generate-brand-assets.mjs",
+    "demo:build": "node ../../infra/scripts/build-static-demo.mjs"
   },
   "dependencies": {
     "next": "^16.3.3",

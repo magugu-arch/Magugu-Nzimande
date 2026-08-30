@@ -60,3 +60,7 @@ coverage/
 .audit-*/
 .preview-web/
 .preview-shots/
+
+# The single-file review build — generated from the template and the masters by
+# infra/scripts/build-static-demo.mjs, 2.7 MB of embedded images.
+apps/web/static-demo/bbq-chicken-website.html
