@@ -1,7 +1,8 @@
 # bb.q Chicken SA — Handover
 
 Everything needed to take this over, in the order you'll need it.
-`README.md` is the reference manual; this is the orientation.
+`README.md` is the reference manual, `RUNBOOK.md` is for when it is live and
+something needs changing or has gone wrong, and this is the orientation.
 
 ---
 

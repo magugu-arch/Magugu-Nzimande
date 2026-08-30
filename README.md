@@ -4,7 +4,9 @@ Production-oriented React Native customer ordering app for bb.q Chicken South
 Africa, built to the supplied product brief.
 
 > **New to this project? Start with [HANDOVER.md](./HANDOVER.md)** — orientation,
-> what is stubbed, and what to do first. This file is the reference manual.
+> what is stubbed, and what to do first. This file is the reference manual, and
+> [RUNBOOK.md](./RUNBOOK.md) covers running it in production: environment,
+> deployment, rollback, monitoring and analytics.
 
 **Stack:** Expo SDK 57 · React Native 0.86 · React 19 · TypeScript (strict) ·
 Expo Router · TanStack Query · Zustand
