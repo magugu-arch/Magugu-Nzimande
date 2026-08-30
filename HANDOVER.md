@@ -17,7 +17,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 51 suites; `npm test` prints the count                                                                  |
+| Tests            | 52 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -145,6 +145,35 @@ Four integrations need something external. Each has a marked hook-in point.
 | **Address geocoding** | `app/checkout/address.tsx` — saves a typed address with no coordinates at all        | A geocoder, or a backend that geocodes on POST. Until then the delivery radius cannot judge a typed address, and does not pretend to |
 | **Store map**         | `features/stores/components/StoreMapPreview.tsx` — schematic, pure RN, no native dep | Drop in react-native-maps or Mapbox; its props are already the ones a real map needs, so no caller changes                           |
 | **Crash reporting**   | `ErrorBoundary` takes an `onError`                                                   | Sentry or Crashlytics                                                                                                                |
+| **Analytics provider** | `ux/analytics.ts` — every event is sent, nothing receives them yet                  | One `AnalyticsAdapter`, injected at startup. The taxonomy and the call sites are done; only the vendor is missing                    |
+
+**Analytics is wired; the provider is not chosen.** §15 asks for eleven events
+and dashboards for conversion, cart abandonment, fulfilment mix, top items and
+repeat ordering. All sixteen events (§15's eleven plus five the starter kit's
+taxonomy had) are declared in `ux/analytics.ts` and sent from the app. Four
+things to know:
+
+- **The vendor is a one-line injection, and deliberately absent.** No SDK is in
+  the bundle. `setAnalyticsAdapter(yourAdapter)` at startup is the whole
+  integration; until then events log in development and go nowhere in
+  production. An analytics SDK ships an identifier for every customer, which is
+  not something to guess at on bb.q's behalf.
+- **The brief gives the taxonomy twice and the two disagree.** §15 asks for
+  `view_item, add_to_cart, begin_checkout, add_payment_info, purchase…`; the
+  starter kit asks for `product_viewed, item_added, checkout_started…`. §15's
+  names win because they are GA4's *reserved* ecommerce events — sent under
+  those names they populate GA4's built-in funnel and monetisation reports,
+  which is exactly the dashboard §15 asks for, and under any other name they
+  are custom events somebody has to build those reports from scratch.
+- **No personal information is in any payload.** Ids, counts and amounts only.
+  `search` carries the length of the query and the number of results, never the
+  words; `add_payment_info` carries the rail's type, never a brand, last four
+  or expiry. `analytics.test.ts` reads the payload types as source and fails on
+  a field named for anything identifying.
+- **Events are typed, and every one is asserted to have a call site.** A
+  misspelling is a compile error; an event declared and never sent fails a
+  test. That second check has already earned itself — `select_modifier` was
+  declared and unwired, which is invisible until a chart is empty.
 
 **Favourites sync is done.** `features/favourites/sync.ts` carries hearted
 products between the handset and the account: `GET /v1/account/favourites` on

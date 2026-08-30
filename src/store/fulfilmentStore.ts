@@ -6,6 +6,7 @@ import { supportsFulfilment } from '@/utils/fulfilment';
 import { distanceKm, type Coordinates } from '@/utils/geo';
 import { formatShortDate, formatTime } from '@/utils/datetime';
 import { isStoreOpenAt, isTradingNow } from '@/utils/tradingHours';
+import { track } from '@/ux/analytics';
 
 /**
  * Where and how this order is being fulfilled: type, store, address, table and
@@ -204,6 +205,12 @@ export const useFulfilmentStore = create<FulfilmentState>()(
       locationPermissionAsked: false,
 
       setFulfilmentType: (fulfilmentType) => {
+        // §15 `select_fulfilment` — the event the "fulfilment mix" dashboard is
+        // built from. Here rather than in the switcher component, because Home,
+        // checkout and onboarding all set this and only one of them is a
+        // switcher.
+        track('select_fulfilment', { fulfilment: fulfilmentType });
+
         set((state) => {
           // A store chosen for one fulfilment type may not support another.
           const keepsStore =
@@ -217,7 +224,20 @@ export const useFulfilmentStore = create<FulfilmentState>()(
         });
       },
 
-      setStore: (store) => set({ store }),
+      setStore: (store) => {
+        // §15 `select_store`. `isOpen` rides along because "chose a branch that
+        // was shut" and "chose a branch that was open" are different events for
+        // anyone reading a drop-off chart, and the two are indistinguishable
+        // from a store id alone.
+        if (store) {
+          track('select_store', {
+            storeId: store.id,
+            fulfilment: get().fulfilmentType,
+            isOpen: isTradingNow(store, new Date()),
+          });
+        }
+        set({ store });
+      },
       setAddress: (address) => set({ address, deliveryInstructions: address?.instructions ?? '' }),
       setDeliveryInstructions: (deliveryInstructions) => set({ deliveryInstructions }),
       setTableNumber: (tableNumber) => set({ tableNumber }),

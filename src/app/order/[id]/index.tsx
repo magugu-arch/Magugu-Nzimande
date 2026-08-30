@@ -32,6 +32,7 @@ import { announce } from '@/utils/accessibility';
 import { callNumber, isDiallable, openDirections } from '@/utils/linking';
 import { directionsTargetFor } from '@/features/orders/directions';
 import { formatPrice } from '@/utils/money';
+import { track } from '@/ux/analytics';
 
 /** Live Order Tracking + Order Details + Re-order (brief §4). */
 export default function OrderTrackingScreen() {
@@ -42,6 +43,22 @@ export default function OrderTrackingScreen() {
   const cancelOrder = useCancelOrder();
 
   const reorder = useReorder();
+
+  /**
+   * My Journey opened. Distinguishes "ordered and tracked it" from "ordered
+   * and left", which is what tells you whether the status screen is doing its
+   * job. Re-announced when the status changes, not on every poll tick — this
+   * screen polls, so anything keyed on render would report continuously.
+   */
+  const announcedJourney = useRef<string | null>(null);
+  useEffect(() => {
+    const tracked = order.data;
+    if (!tracked) return;
+    const key = `${tracked.id}:${tracked.status}`;
+    if (announcedJourney.current === key) return;
+    announcedJourney.current = key;
+    track('view_order_status', { orderId: tracked.id, status: tracked.status });
+  }, [order.data]);
 
   // The card counts down, so it needs a reason to re-render as the clock
   // moves. Without this the line is worked out once when the screen opens and
@@ -315,7 +332,13 @@ export default function OrderTrackingScreen() {
 
         <Button
           label="Order this again"
-          onPress={() => order.data && reorder(order.data)}
+          onPress={() => {
+            if (!order.data) return;
+            // §15 `reorder` — the "repeat ordering" dashboard. Before the call,
+            // because `reorder` navigates away.
+            track('reorder', { orderId: order.data.id, itemCount: order.data.lines.length });
+            reorder(order.data);
+          }}
           variant={data.status === 'completed' ? 'primary' : 'tertiary'}
           iconLeft="repeat"
           testID="order-reorder"

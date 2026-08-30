@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -11,6 +11,7 @@ import { useFavouritesStore } from '@/store/favouritesStore';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { ProductRow } from '@/features/menu/components/ProductRow';
 import { useCategories, useMenu, useProductSearch } from '@/features/menu/hooks';
+import { track } from '@/ux/analytics';
 import { POPULAR_SEARCH_TERMS } from '@/services/menuService';
 import {
   colors,
@@ -71,6 +72,60 @@ export default function MenuScreen() {
   const openProduct = useCallback(
     (product: Product) => router.push(`/product/${product.id}`),
     [router],
+  );
+
+  /**
+   * §15 `view_menu`, once the menu has actually arrived.
+   *
+   * Guarded by a ref rather than an empty dependency array: this screen mounts
+   * before the query resolves, so firing on mount would report a category
+   * count of zero on every cold start.
+   */
+  const announcedMenu = useRef(false);
+  useEffect(() => {
+    const categoryCount = categories.data?.length ?? 0;
+    if (announcedMenu.current || categoryCount === 0) return;
+    announcedMenu.current = true;
+    track('view_menu', { categoryCount });
+  }, [categories.data]);
+
+  /**
+   * §15's taxonomy has no event for a search, but the starter kit's does and
+   * the menu is the only place to record one. The query itself is never sent —
+   * customers type addresses, names and worse into search fields. Its length
+   * and whether it found anything is what tells you the menu needs a synonym.
+   */
+  useEffect(() => {
+    if (!isSearching) return;
+    const timer = setTimeout(
+      () =>
+        track('search', {
+          queryLength: query.trim().length,
+          resultCount: search.data?.length ?? 0,
+        }),
+      600,
+    );
+    return () => clearTimeout(timer);
+  }, [isSearching, query, search.data]);
+
+  const chooseCategory = useCallback(
+    (categoryId: CategoryId | 'all' | 'favourites') => {
+      setChosenCategory(categoryId);
+
+      // "All" and "Favourites" ride in the same chip row but are filters, not
+      // categories — recording them here would put two entries at the top of a
+      // "top categories" chart that are not categories at all. `view_menu`
+      // already covers arriving at the unfiltered list.
+      if (categoryId === 'all' || categoryId === 'favourites') return;
+
+      track('select_category', {
+        categoryId,
+        productCount: (menu.data?.products ?? []).filter(
+          (product) => product.categoryId === categoryId,
+        ).length,
+      });
+    },
+    [menu.data],
   );
 
   const sectionTitle = useMemo(() => {
@@ -200,7 +255,7 @@ export default function MenuScreen() {
               <Chip
                 label={item.name}
                 selected={activeCategory === item.id}
-                onPress={() => setChosenCategory(item.id)}
+                onPress={() => chooseCategory(item.id)}
                 testID={`menu-category-${item.id}`}
               />
             )}

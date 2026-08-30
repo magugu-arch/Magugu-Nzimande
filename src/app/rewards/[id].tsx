@@ -21,6 +21,7 @@ import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import { formatPrice, groupDigits } from '@/utils/money';
+import { track } from '@/ux/analytics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -53,6 +54,16 @@ export default function RewardDetailScreen() {
         // one covers the fee rather than discounting the food.
         category: result.reward.category,
       });
+
+      // §15 `reward_redeem`, after the redemption succeeded rather than on the
+      // tap — a failed redemption that still reported here would inflate the
+      // programme's take-up with attempts nobody actually got.
+      track('reward_redeem', {
+        rewardId: result.reward.id,
+        pointsCost: result.reward.pointsCost,
+        value: result.discount,
+      });
+
       // Straight to the cart, where the discount is now visible on the totals.
       router.replace(cartLines.length > 0 ? '/cart' : '/(tabs)/menu');
     } catch (redeemError) {
