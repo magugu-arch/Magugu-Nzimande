@@ -131,6 +131,34 @@ When adding one, derive and then **look at the card**: the rect has to clear
 headline flourishes and land on printed packaging marks rather than through
 them. Each of these took two or three passes to get right.
 
+### What loads first (§13)
+
+§13 asks for two things at once: "lazy-load below-the-fold imagery while
+prioritising hero and first-view menu assets". `expo-image` defers on web by
+default, so the first half arrived free — and took the hero with it, deferring
+the one photograph a screen cannot open without.
+
+`FoodImage` derives both from the variant, for the same reason the variant
+itself exists: a rule each screen has to remember is a rule some screen forgets.
+
+| Variant | Priority | Web `loading` | Why |
+|---|---|---|---|
+| `banner`, `detail` | high | eager | A hero. On screen at open, and the largest file. |
+| `card` | normal | lazy | A catalogue tile. Some visible, most not. |
+| `thumb` | low | lazy | A menu row or cart line. Small; arriving late costs nothing. |
+
+`aboveTheFold` overrides it, and decides in **both** directions — `true`
+promotes, `false` demotes. The demotion is the one that needed it: onboarding
+draws three `detail` slides in a horizontal carousel, hero-shaped by variant and
+off-screen by position, so left to the variant all three would load first and
+eagerly. Three full-bleed photographs racing each other on the first screen of
+the app is exactly the "oversized hero images on lower-bandwidth mobile
+connections" §13 warns about, so only `index === 0` is on screen.
+
+Verified in a browser rather than asserted: the rendered onboarding carousel
+serves slide one `eager`/`fetchpriority=high` and slides two and three
+`lazy`/`low`.
+
 ### Substitution while artwork is outstanding
 
 Products without their own photography borrow the closest supplied asset in the
