@@ -63,8 +63,10 @@ const queryClient = new QueryClient({
 });
 
 /**
- * The brand faces, per guidelines §11 and §13. Arial (§12) is not here because
- * it is not bundled — it ships with the platform, which is why §12 picked it.
+ * The brand faces, per guidelines §11 and §13 — the complete type system.
+ * §11.1 names two members and no more, so nothing else is loaded and nothing
+ * falls back to a platform face. See `theme/typography.ts` on why Arial is
+ * gone.
  */
 const brandFonts = {
   Montserrat_300Light,

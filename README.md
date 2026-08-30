@@ -347,20 +347,37 @@ cart bar above the tab bar whenever the basket is non-empty.
 
 | Token | Value | Source |
 |---|---|---|
-| bb.q Red | `#E31937` | §10.2, §23.4 |
-| bb.q Black | `#221E1F` | §10.2, §23.4 — the app page says `#221E1E` |
-| White / Cream / Light Grey | `#FFFFFF` / `#FFF5E6` / `#F2F2F2` | §23.4 |
-| Headings, buttons, labels | Montserrat, weights per level | §11, §14 |
-| Body copy, captions, data | Arial — system face, not bundled | §12 |
+| bb.q Red | `#E31937` — rgb(227 25 55), Pantone 185 C | §8.1 |
+| bb.q Black | `#221E1F` — rgb(34 30 31), Pantone Black C | §8.1 — the app page says `#221E1E` |
+| White | `#FFFFFF` | §8.1 |
+| Tint ramps | Red and black at 100/80/60/40/20/10% | §8.2 |
+| Headings, subheadings | Montserrat ExtraBold–Black / SemiBold–Bold | §11.2 |
+| Body copy, captions | Montserrat Regular | §11.2 |
+| Buttons and labels | Montserrat SemiBold, 16 / 14 / 13 | §11.2, §22.4 |
 | Quotes and accents | Playfair Display Italic, sparingly | §13 |
 | Screen gutter / inner gap / tight gap | 24 / 16 / 4 | §23.7 |
 
-Montserrat and the one Playfair italic are bundled and loaded before the first
-frame, imported per weight rather than from the package root — the root barrel
-statically requires all eighteen Montserrat cuts, which Metro then ships. Arial
-is deliberately not bundled: §12 chose it for being universally available, and
-Android substitutes Roboto, which `theme/typography.ts` makes explicit rather
-than leaving to the platform.
+The type system has exactly two members (§11.1), and the app now uses only
+those two. Body copy, captions and lists were previously set in Arial on the
+reading that §12 assigns them the supporting face; §11.2's TYPE USAGE table
+covers the whole hierarchy and puts them on Montserrat Regular, and §11's DO
+NOT forbids typefaces outside the bb.q system. That is the same way the
+§11-versus-§12 conflict over button text was already settled, so the codebase
+is now consistent about which page wins. §12 has not been supplied to this
+project — if the brand team confirms it governs body copy, `theme/typography.ts`
+is a one-file revert.
+
+Both faces are bundled and loaded before the first frame, imported per weight
+rather than from the package root — the root barrel statically requires all
+eighteen Montserrat cuts, which Metro then ships.
+
+The §8.2 tint ramps are computed as the brand colour over white rather than
+sampled from the guideline page, because that page is not colour-faithful: its
+own §8.1 swatches render as `#DE0615` and `#161515` against the hex values
+printed beside them. The same calibration was used to check §22.3's button
+states — reading the render through its known default gives hover `#AF132A`,
+pressed `#850F20` and a disabled fill at ~30% red, all within nine units per
+channel of what the theme already carried.
 
 §14's point sizes (a 90pt H1) are the print scale. What carries into the app is
 which face and weight each level takes, its casing, and the ratios between

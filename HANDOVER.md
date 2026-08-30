@@ -156,16 +156,28 @@ Also outstanding, and deliberate:
   they are not vector-derived, so anything larger than an app icon (print,
   signage, a billboard-sized splash) wants the real master. Replacing them is
   the whole job: drop the two files in, run `npm run assets:brand`.
-- **Only §3, §10–§14, §22, §23 and §32 of the guidelines were supplied.** Logo
-  clear space is on page 05, which I have not seen; the icon uses generous
+- **Only §3, §8, §10–§14, §22, §23 and §32 of the guidelines were supplied.**
+  Logo clear space is on page 05, which I have not seen; the icon uses generous
   spacing but has not been checked against the actual rule. _(Resolved since:
-  §10.2 prints bb.q Red as `#E31937`, confirming the value the logo extract was
-  normalised to — the guidelines page just renders it a few points darker.)_
+  §8.1 prints bb.q Red as `#E31937` with rgb, cmyk and Pantone 185 C, which is
+  the value the logo extract was normalised to — the guidelines page just
+  renders it a few points darker. §8.1's own swatches miss their printed hex by
+  ~9 units, so that page is a reference for values, never for pixels.)_
 - **§23.5 says Inter; §11 says Montserrat.** Resolved in favour of Montserrat —
   §11, §12, §13 and §14 are four pages of typography spec against one line, and
   they agree with each other. §23.5 looks like the outlier.
-- **§12.2 puts UI buttons on Arial Bold; §11.2 puts them on Montserrat
-  SemiBold.** Montserrat, since §13.3 and §13.4's callouts say the same.
+- **§12 puts body copy and UI buttons on Arial; §11.2 puts the whole hierarchy
+  on Montserrat.** Montserrat, on both counts. Buttons were already resolved
+  that way (§13.3 and §13.4's callouts agree); body copy and captions followed
+  when §11 was supplied, because §11.1 names a two-member type system, §11.2's
+  table covers body copy and captions explicitly, and §11's DO NOT forbids
+  faces outside that system. **§12 itself has never been supplied to this
+  project**, so it is being superseded unseen — this is the open question most
+  worth putting to the brand team, and `theme/typography.ts` is a one-file
+  revert if they say §12 governs. Worth knowing before you ask: the switch cost
+  nothing in bundle size (every weight was already loaded for the headings) and
+  `npm run audit:screens` finds no overflow at 390pt or 320pt, so it is a
+  question of taste rather than of fit.
 - **The type and spacing changes have been measured and seen, but not held.**
   §23.7's 24px gutter replaced a 16px one, and the app moved from Helvetica
   Neue to Montserrat. `npm run assets:typefit` measures every static button
@@ -176,9 +188,24 @@ Also outstanding, and deliberate:
   `theme/typography.ts`, so trimming is a one-file change.
 - **§10.2's 50/30/15/5 digital colour ratio is noted, not applied.** The app is
   mostly white with red as the accent, which is what the client's own mockups
-  show and what leaves the food photography somewhere to sit. §10.1 allows the
-  adjustment; §10.3's hierarchy — red leads, black supports, white spaces — is
-  what the app follows. Worth a conversation if a designer disagrees.
+  show and what leaves the food photography somewhere to sit. _(Largely settled
+  since §8 arrived: §8.3 is the Colour System page's own usage rule and it sets
+  no ratio at all — red for "key brand moments, calls to action and highlights",
+  black for text and contrast, white as a background that creates "clarity,
+  space and a premium feel". That is a much better description of this app than
+  §10.1's grudging "can be adjusted slightly". Still worth a designer's eye, but
+  it is no longer a departure.)_
+- **§8.3 bars unapproved colours; two token groups sit outside §8's palette.**
+  The status hues (success, warning, error, info) have to: an error rendered in
+  bb.q Red is indistinguishable from a call to action, which is the failure
+  §32.4 exists to prevent — and the brief's own token block names them, so they
+  are authorised there. The neutral scale is warm where §8.2's neutral tints are
+  even grey, because those are UI inks tuned to clear §32.3's contrast floor
+  rather than brand tints; §8.2's ramp is exported from `theme/colors.ts` as
+  `tints` for anything that is genuinely a brand tint. A `cream` surface token
+  (`#FFF5E6`, read off §23.4, and a third value again in the brief at `#F5F1EE`)
+  was deleted rather than reconciled — §8 has no cream and nothing in the app
+  ever rendered it.
 - **Two departures from the drawings, both deliberate.** Disabled primary
   buttons use the pressed red for their label rather than the white the
   guidelines draw, because §22.9's own panel scores that pairing 2.1:1 and

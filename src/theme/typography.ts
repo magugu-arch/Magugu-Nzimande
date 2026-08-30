@@ -1,17 +1,32 @@
-import { Platform, type TextStyle } from 'react-native';
+import { type TextStyle } from 'react-native';
 
 /**
- * bb.q Chicken typography — guidelines §11, §12, §13, §14.
+ * bb.q Chicken typography — guidelines §11, §13, §14.
  *
- *   §11  Montserrat, primary. Headlines, subheadings, buttons and labels.
- *   §12  Arial, supporting. Body copy, captions, data, lists.
+ *   §11  Montserrat, primary. The whole hierarchy: headlines, subheadings,
+ *        body copy, captions, buttons and labels.
  *   §13  Playfair Display, editorial. Quotes and accents, sparingly.
  *
- * Montserrat and Playfair Display are bundled and loaded at startup (see
- * `app/_layout.tsx`). Arial is not bundled: §12 chooses it precisely because
- * it is already everywhere, and it ships on iOS. Android has no Arial and
- * silently substitutes Roboto, so that substitution is made explicit below
- * rather than left to the platform.
+ * Both faces are bundled and loaded at startup (see `app/_layout.tsx`).
+ *
+ * ── Why no Arial ───────────────────────────────────────────────────────────
+ * This file used to set body copy, captions and lists in Arial, on the reading
+ * that §12 assigns the supporting face that work. The supplied §11 page
+ * settles it the other way, and it is the more authoritative of the two:
+ *
+ *   - §11.1 names the type system, and it has exactly two members — Montserrat
+ *     primary, Playfair Display secondary. Arial is not in it.
+ *   - §11.2's TYPE USAGE table covers the *whole* hierarchy, body copy and
+ *     captions included, and puts every row on Montserrat except accents and
+ *     quotes. It is not a headline-only table.
+ *   - §11's DO NOT is explicit: "Use other typefaces that are not part of the
+ *     bb.q system."
+ *
+ * That is the same way the §11-versus-§12 conflict over button text was already
+ * resolved on this branch, so the codebase is now consistent about which page
+ * wins rather than splitting the difference. §12 has not been supplied to this
+ * project, so it is being superseded unseen — if the brand team confirms it
+ * governs body copy after all, this is a one-file revert.
  *
  * On §14's point sizes: those are the print scale — a 90pt H1 is a poster, not
  * a phone. What carries over is the part that is scale-independent: which face
@@ -46,13 +61,7 @@ export const playfair = {
   italic: 'PlayfairDisplay_400Regular_Italic',
 } as const;
 
-/** §12's Arial, or the platform's nearest equivalent where it does not exist. */
-export const supporting = Platform.select({
-  ios: { regular: 'Arial', bold: 'Arial-BoldMT', italic: 'Arial-ItalicMT' },
-  default: { regular: 'sans-serif', bold: 'sans-serif', italic: 'sans-serif' },
-}) as { regular: string; bold: string; italic: string };
-
-export const fontFamily = { montserrat, playfair, supporting };
+export const fontFamily = { montserrat, playfair };
 
 export const fontWeight = {
   light: '300',
@@ -117,37 +126,49 @@ export const typography = {
     letterSpacing: -0.1,
   },
 
-  // §12: body copy, captions, lists and data are Arial. §14.3 puts body line
-  // height at 140–160%; every role below sits inside that band.
+  // §11.2: body copy is Montserrat Regular, captions and small text Montserrat
+  // "Light / Regular". §14.3 puts body line height at 140–160%; every role
+  // below sits inside that band.
+  //
+  // Two readings of §11.2 worth recording, because neither is spelled out:
+  //
+  //   - Captions take the Regular half of "Light / Regular". At 13px, Light
+  //     (300) is too fragile to hold the contrast §32.3 asks for on small text
+  //     — the weight, not just the colour, is what makes it fail. Light stays
+  //     available in the scale for larger, quieter text.
+  //   - The emphasised runs (`bodyMedium`, `captionMedium`) take SemiBold.
+  //     §11.2 has no row for emphasis inside body copy, so this is the nearest
+  //     listed weight that keeps the contrast the old Arial Bold gave; Medium
+  //     (500) all but disappears against Montserrat Regular at these sizes.
   bodyLarge: {
-    fontFamily: supporting.regular,
+    fontFamily: montserrat.regular,
     fontSize: 16,
     lineHeight: 24,
     fontWeight: fontWeight.regular,
   },
   body: {
-    fontFamily: supporting.regular,
+    fontFamily: montserrat.regular,
     fontSize: 15,
     lineHeight: 22,
     fontWeight: fontWeight.regular,
   },
   bodyMedium: {
-    fontFamily: supporting.bold,
+    fontFamily: montserrat.semibold,
     fontSize: 15,
     lineHeight: 22,
-    fontWeight: fontWeight.bold,
+    fontWeight: fontWeight.semibold,
   },
   caption: {
-    fontFamily: supporting.regular,
+    fontFamily: montserrat.regular,
     fontSize: 13,
     lineHeight: 19,
     fontWeight: fontWeight.regular,
   },
   captionMedium: {
-    fontFamily: supporting.bold,
+    fontFamily: montserrat.semibold,
     fontSize: 13,
     lineHeight: 19,
-    fontWeight: fontWeight.bold,
+    fontWeight: fontWeight.semibold,
   },
   micro: {
     fontFamily: montserrat.semibold,
