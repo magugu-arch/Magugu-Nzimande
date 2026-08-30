@@ -104,7 +104,7 @@ export const useAuthStore = create<AuthState>()(
         // not awaited: signing in must not wait on it, and `pullFavourites`
         // never throws, so there is nothing here to catch. A guest has no
         // account to merge from.
-        if (!session.user.isGuest) void pullFavourites();
+        if (!session.user.isGuest) void pullFavourites(session.user.id);
 
         // Tie subsequent events to the account — or explicitly to nobody for a
         // guest, so their browsing is not filed under whoever was signed in on

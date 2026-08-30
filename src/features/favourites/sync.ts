@@ -49,30 +49,42 @@ export function mergeFavourites(local: string[], remote: string[]): string[] {
 }
 
 /**
- * Pull the account's favourites and merge them in. Never throws: a failed pull
+ * Pull one account's favourites and merge them in. Never throws: a failed pull
  * leaves the handset's own list exactly as it was, which is a working app.
+ *
+ * `customerId` is not optional and is not read from the store, deliberately.
+ * Whose list this is, is the whole safety property here — a pull that fetched
+ * "the favourites" rather than "this person's favourites" handed one customer
+ * another's hearted dishes, which is what `audit:handover` caught. Making the
+ * caller name the account means the question cannot be skipped.
  */
-export async function pullFavourites(): Promise<void> {
+export async function pullFavourites(customerId: string): Promise<void> {
   try {
-    const remote = await fetchFavourites();
-    const { productIds } = useFavouritesStore.getState();
+    const remote = await fetchFavourites(customerId);
+
+    // Re-read after the await: signing straight back out, or in as somebody
+    // else, while the request was in flight would otherwise merge this reply
+    // into whatever list is on screen by the time it lands.
+    const { productIds, ownerId } = useFavouritesStore.getState();
+    if (ownerId !== customerId) return;
+
     const merged = mergeFavourites(productIds, remote);
 
     // Only touch the store if the merge actually changed something, so a pull
     // that agrees with local does not re-render every hearted row.
     if (merged.length !== productIds.length) {
       useFavouritesStore.setState({ productIds: merged });
-      void pushFavourites(merged);
+      void pushFavourites(customerId, merged);
     }
   } catch {
     // Offline, or no account service yet. Local stands.
   }
 }
 
-/** Tell the server the current list. Never throws, for the reason above. */
-export async function pushFavourites(productIds: string[]): Promise<void> {
+/** Tell the server one account's list. Never throws, for the reason above. */
+export async function pushFavourites(customerId: string, productIds: string[]): Promise<void> {
   try {
-    await saveFavourites(productIds);
+    await saveFavourites(customerId, productIds);
   } catch {
     // The next push carries this one's contents too.
   }
@@ -97,7 +109,12 @@ export function startFavouritesSync(): () => void {
     if (pushTimer) clearTimeout(pushTimer);
     pushTimer = setTimeout(() => {
       pushTimer = null;
-      void pushFavourites(useFavouritesStore.getState().productIds);
+      // Re-read the owner as well as the list: the debounce window is long
+      // enough to sign out in, and a push must never land on the account that
+      // happens to be signed in when the timer fires.
+      const { productIds, ownerId } = useFavouritesStore.getState();
+      if (ownerId === null) return;
+      void pushFavourites(ownerId, productIds);
     }, PUSH_DEBOUNCE_MS);
   });
 

@@ -221,8 +221,15 @@ worth knowing before you point it at a real backend:
   request, so it works offline and on a cold start exactly as before.
 
 The backend owes a `PUT` that accepts `{ productIds: string[] }` and returns the
-stored array. Ordering is the client's — most recently hearted first — so store
-it as given rather than sorting it.
+stored array, **scoped to the authenticated caller**. Ordering is the client's —
+most recently hearted first — so store it as given rather than sorting it.
+
+That scoping is not a footnote. The first version of the mock behind it was one
+global array, and `audit:handover` caught what that produces: sign in, heart two
+dishes, hand the phone over, and the next person's sign-in pulled a stranger's
+list onto their account. `fetchFavourites` and `saveFavourites` therefore take a
+`customerId` the real implementation ignores — the token does the scoping there
+— purely so the mock cannot drift back into modelling a different contract.
 
 Also outstanding, and deliberate:
 

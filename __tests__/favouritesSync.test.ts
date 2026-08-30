@@ -6,12 +6,12 @@ import {
 } from '@/features/favourites/sync';
 import { useFavouritesStore } from '@/store/favouritesStore';
 
-const mockFetch = jest.fn<Promise<string[]>, []>();
-const mockSave = jest.fn<Promise<string[]>, [string[]]>();
+const mockFetch = jest.fn<Promise<string[]>, [string]>();
+const mockSave = jest.fn<Promise<string[]>, [string, string[]]>();
 
 jest.mock('@/services/accountService', () => ({
-  fetchFavourites: () => mockFetch(),
-  saveFavourites: (ids: string[]) => mockSave(ids),
+  fetchFavourites: (customerId: string) => mockFetch(customerId),
+  saveFavourites: (customerId: string, ids: string[]) => mockSave(customerId, ids),
 }));
 
 /**
@@ -67,7 +67,7 @@ describe('pulling on sign-in', () => {
     useFavouritesStore.setState({ productIds: ['hot-spicy'], ownerId: 'user-1' });
     mockFetch.mockResolvedValue(['honey-garlic']);
 
-    await pullFavourites();
+    await pullFavourites('user-1');
 
     expect(useFavouritesStore.getState().productIds).toEqual(['hot-spicy', 'honey-garlic']);
   });
@@ -76,9 +76,9 @@ describe('pulling on sign-in', () => {
     useFavouritesStore.setState({ productIds: ['hot-spicy'], ownerId: 'user-1' });
     mockFetch.mockResolvedValue(['honey-garlic']);
 
-    await pullFavourites();
+    await pullFavourites('user-1');
 
-    expect(mockSave).toHaveBeenCalledWith(['hot-spicy', 'honey-garlic']);
+    expect(mockSave).toHaveBeenCalledWith('user-1', ['hot-spicy', 'honey-garlic']);
   });
 
   it('does not touch the store when the account agrees with the handset', async () => {
@@ -86,7 +86,7 @@ describe('pulling on sign-in', () => {
     const before = useFavouritesStore.getState().productIds;
     mockFetch.mockResolvedValue(['hot-spicy']);
 
-    await pullFavourites();
+    await pullFavourites('user-1');
 
     // Same array identity — every hearted row would otherwise re-render for a
     // pull that changed nothing.
@@ -100,7 +100,7 @@ describe('pulling on sign-in', () => {
 
     // A failed pull must not reject either — sign-in does not await it, so an
     // unhandled rejection is all it would produce.
-    await expect(pullFavourites()).resolves.toBeUndefined();
+    await expect(pullFavourites('user-1')).resolves.toBeUndefined();
     expect(useFavouritesStore.getState().productIds).toEqual(['hot-spicy']);
   });
 });
@@ -119,7 +119,7 @@ describe('pushing as hearts change', () => {
     expect(mockSave).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(1000);
-    expect(mockSave).toHaveBeenCalledWith(['hot-spicy']);
+    expect(mockSave).toHaveBeenCalledWith('user-1', ['hot-spicy']);
   });
 
   it('sends once for a burst, not once per tap', () => {
@@ -132,7 +132,7 @@ describe('pushing as hearts change', () => {
     jest.advanceTimersByTime(1000);
 
     expect(mockSave).toHaveBeenCalledTimes(1);
-    expect(mockSave).toHaveBeenCalledWith(['boneless', 'honey-garlic', 'hot-spicy']);
+    expect(mockSave).toHaveBeenCalledWith('user-1', ['boneless', 'honey-garlic', 'hot-spicy']);
   });
 
   it('stays quiet while nobody is signed in', () => {
@@ -167,5 +167,63 @@ describe('pushing as hearts change', () => {
     jest.advanceTimersByTime(1000);
 
     expect(mockSave).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * One phone, two people — the journey `audit:handover` drives.
+ *
+ * These exist because the first version of this sync failed it. The mock
+ * behind `fetchFavourites` was a single global array, so signing in as a
+ * second person pulled the first person's hearted dishes onto their account,
+ * under a Favourites tab that presents them as their own. That is the exact
+ * defect `favouritesStore.claimFor` was written to prevent, reintroduced
+ * through the back door of a mock that modelled the endpoint wrongly.
+ *
+ * A unit test cannot catch a wrong mock, so these hold the client half: the
+ * account is named on every call, and a reply that arrives for the wrong one
+ * is dropped.
+ */
+describe('whose favourites these are', () => {
+  it('asks for the named account, not "the" favourites', async () => {
+    useFavouritesStore.setState({ productIds: [], ownerId: 'user-thandi' });
+    mockFetch.mockResolvedValue([]);
+
+    await pullFavourites('user-thandi');
+
+    expect(mockFetch).toHaveBeenCalledWith('user-thandi');
+  });
+
+  it('drops a reply that arrives after somebody else has signed in', async () => {
+    useFavouritesStore.setState({ productIds: ['hot-spicy'], ownerId: 'user-thandi' });
+
+    // The request is in flight when the handset changes hands.
+    mockFetch.mockImplementation(async () => {
+      useFavouritesStore.setState({ productIds: [], ownerId: 'user-sipho' });
+      return ['honey-garlic', 'cheesling-fries'];
+    });
+
+    await pullFavourites('user-thandi');
+
+    // Sipho gets nothing of Thandi's, and nothing is pushed to his account.
+    expect(useFavouritesStore.getState().productIds).toEqual([]);
+    expect(mockSave).not.toHaveBeenCalled();
+  });
+
+  it('pushes to the account that owns the list, not whoever is signed in later', () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
+    try {
+      useFavouritesStore.setState({ ownerId: 'user-thandi' });
+      startFavouritesSync();
+
+      useFavouritesStore.getState().toggle('hot-spicy');
+      // Signing out inside the debounce window must not send the list anywhere.
+      useFavouritesStore.setState({ ownerId: null });
+      jest.advanceTimersByTime(1000);
+
+      expect(mockSave).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
