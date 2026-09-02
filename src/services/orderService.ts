@@ -6,6 +6,7 @@ import { stores } from './data/storeData';
 import { currentAddresses, currentPaymentMethods } from './accountService';
 import { describePaymentMethod } from './paymentService';
 import { fetchReward, markVoucherUsed, recordPoints, restoreVoucher } from './rewardsService';
+import { deliveryProvider, deliveryStatusToOrderStatus } from '@/providers/delivery';
 import { checkedOrder, checkedOrders } from './wireChecks';
 
 /**
@@ -29,6 +30,10 @@ const STATUS_COPY: Record<OrderStatus, { label: string; description: string }> =
     label: 'Ready',
     description: 'Boxed, sealed and ready to go.',
   },
+  courier_assigned: {
+    label: 'Driver assigned',
+    description: 'A driver is on the way to the store to collect your order.',
+  },
   out_for_delivery: {
     label: 'Out for delivery',
     description: 'Your driver has collected the order and is on the way.',
@@ -46,7 +51,7 @@ const STATUS_COPY: Record<OrderStatus, { label: string; description: string }> =
 /** The status sequence a live order walks through, by fulfilment type. */
 export function statusSequence(fulfilmentType: PlaceOrderInput['fulfilmentType']): OrderStatus[] {
   if (fulfilmentType === 'delivery') {
-    return ['received', 'preparing', 'ready', 'out_for_delivery', 'completed'];
+    return ['received', 'preparing', 'ready', 'courier_assigned', 'out_for_delivery', 'completed'];
   }
   return ['received', 'preparing', 'ready', 'completed'];
 }
@@ -325,6 +330,27 @@ export function minutesUntilDue(order: Order, now: Date = new Date()): number {
  * Scheduling also stopped being an edge case the moment closed branches
  * started telling customers to schedule.
  */
+/** The kitchen's share of the estimate — the road is the courier's. */
+function kitchenMinutes(order: Order): number {
+  return order.fulfilmentType === 'delivery'
+    ? Math.max(1, order.etaMinutes - businessRules.deliveryBufferMinutes)
+    : order.etaMinutes;
+}
+
+/**
+ * When the food actually reached the counter.
+ *
+ * A courier job is anchored to this rather than to the moment somebody opened
+ * the app. The mock creates jobs lazily on read — there is no server to create
+ * them on time — and without backdating, an order fetched an hour late would
+ * start its courier leg an hour late, so a delivery could never complete unless
+ * a screen happened to be watching. That is the same defect this file already
+ * warns about in `advance`: looking at an order must not change it.
+ */
+function readyAt(order: Order): Date {
+  return addMinutes(workStartsAt(order), kitchenMinutes(order));
+}
+
 function advance(order: Order): Order {
   if (order.status === 'completed' || order.status === 'cancelled') return order;
 
@@ -332,21 +358,122 @@ function advance(order: Order): Order {
   const placedAt = new Date(order.placedAt);
   const startedAt = workStartsAt(order);
 
+  /**
+   * How far the *kitchen* can take an order, which is not all the way.
+   *
+   * A delivery order's steps past "ready" belong to the courier network, and
+   * this function has no knowledge of it — so without a ceiling the clock alone
+   * would walk an order into "Driver assigned" and "Out for delivery" on
+   * nothing but elapsed minutes. It did, and a browser run caught it: the
+   * timeline announced a driver two minutes before `attachDelivery` had asked
+   * for one, and the courier card underneath stayed empty because there was no
+   * driver to name.
+   *
+   * The kitchen owns cooking and stops at the counter. `attachDelivery` takes
+   * it from there, on the provider's word.
+   */
+  const ceiling =
+    order.fulfilmentType === 'delivery' ? sequence.indexOf('ready') : sequence.length - 1;
+
   const elapsedMinutes = (Date.now() - startedAt.getTime()) / 60_000;
-  const stepMinutes = order.etaMinutes / Math.max(1, sequence.length - 1);
+  // Paced over the kitchen's own share of the estimate. A delivery ETA is
+  // preparation *plus* the road, and the road is the courier's; pacing the
+  // kitchen over the whole figure would have food sitting uncooked for the
+  // length of a drive nobody has started.
+  const stepMinutes = kitchenMinutes(order) / Math.max(1, ceiling);
   // Clamped at both ends: a scheduled order sits at "received" until its slot
   // comes round, rather than indexing off the front of the sequence.
-  const reachedIndex = Math.max(
-    0,
-    Math.min(sequence.length - 1, Math.floor(elapsedMinutes / stepMinutes)),
-  );
-  const status = sequence[reachedIndex] ?? order.status;
+  const reachedIndex = Math.max(0, Math.min(ceiling, Math.floor(elapsedMinutes / stepMinutes)));
+  // Never backwards: an order already handed to a courier is past anything the
+  // kitchen has to say about it.
+  const currentIndex = sequence.indexOf(order.status);
+  const status = sequence[Math.max(reachedIndex, currentIndex)] ?? order.status;
 
   return {
     ...order,
     status,
     timeline: buildTimeline(order.fulfilmentType, status, placedAt, order.etaMinutes, startedAt),
   };
+}
+
+/**
+ * Bring the courier leg up to date, and let it drive the customer's status.
+ *
+ * Separate from `advance` because a provider call is asynchronous and `advance`
+ * is not — and because the kitchen and the courier network are genuinely two
+ * systems running in parallel once an order is placed. `advance` owns the
+ * kitchen. This owns the courier, and reconciles the two.
+ *
+ * Three rules, each of which is a defect avoided:
+ *
+ *   - A courier is requested when there is something to collect, not when the
+ *     order is placed. Requesting at placement would have a driver dispatched
+ *     to a store for food that is twenty minutes from existing, and for a
+ *     scheduled order, hours.
+ *   - The courier can move the customer's status forward and never back. The
+ *     two clocks do not agree — a provider that has not yet reported pickup
+ *     must not drag a customer who has been told "on the way" back to "ready".
+ *   - A provider failure is not an order failure. If the courier network is
+ *     unreachable the order keeps the status the kitchen gave it; a delivery
+ *     that cannot be tracked is still a delivery, and an exception here would
+ *     take out the tracking screen for an order that is perfectly fine.
+ */
+async function attachDelivery(order: Order, idempotencyKey?: string): Promise<Order> {
+  if (order.fulfilmentType !== 'delivery') return order;
+  if (order.status === 'cancelled') return order;
+
+  const sequence = statusSequence(order.fulfilmentType);
+  const kitchenReachedReady = sequence.indexOf(order.status) >= sequence.indexOf('ready');
+  if (!order.delivery && !kitchenReachedReady) return order;
+
+  const provider = deliveryProvider();
+  try {
+    const job = order.delivery
+      ? await provider.getStatus(order.delivery.externalJobId)
+      : await provider.create({
+          orderId: order.id,
+          orderReference: order.reference,
+          storeId: order.storeId,
+          dropoffSummary: order.addressSummary ?? '',
+          ...(order.deliveryLatitude !== undefined
+            ? { dropoffLatitude: order.deliveryLatitude }
+            : {}),
+          ...(order.deliveryLongitude !== undefined
+            ? { dropoffLongitude: order.deliveryLongitude }
+            : {}),
+          // The order's own key, so one order cannot become two courier jobs.
+          idempotencyKey: idempotencyKey ?? order.reference,
+          readyAt: readyAt(order).toISOString(),
+        });
+
+    const courierStatus = deliveryStatusToOrderStatus(job.status);
+    // Forward only. `indexOf` returns -1 for a status outside the sequence —
+    // 'cancelled' is the one — and -1 can never win a Math.max against an
+    // index, which is the behaviour wanted: a cancelled courier job does not
+    // silently cancel the customer's order. `cancelOrder` is the only thing
+    // that cancels an order.
+    const furthest = Math.max(sequence.indexOf(order.status), sequence.indexOf(courierStatus));
+    const status = sequence[furthest] ?? order.status;
+
+    return {
+      ...order,
+      status,
+      delivery: job,
+      // The driver's name comes from the job, so it exists only once somebody
+      // is actually assigned to this order.
+      ...(job.courierName ? { driverName: job.courierName } : {}),
+      timeline: buildTimeline(
+        order.fulfilmentType,
+        status,
+        new Date(order.placedAt),
+        order.etaMinutes,
+        workStartsAt(order),
+      ),
+    };
+  } catch {
+    // The courier network is not the order. See the third rule above.
+    return order;
+  }
 }
 
 export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
@@ -385,7 +512,12 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     totals: input.totals,
     ...storeSnapshot(input.storeId),
     ...(address
-      ? { addressId: address.id, addressSummary: `${address.line1}, ${address.suburb}` }
+      ? {
+          addressId: address.id,
+          addressSummary: `${address.line1}, ${address.suburb}`,
+          ...(address.latitude !== undefined ? { deliveryLatitude: address.latitude } : {}),
+          ...(address.longitude !== undefined ? { deliveryLongitude: address.longitude } : {}),
+        }
       : {}),
     ...(input.tableNumber ? { tableNumber: input.tableNumber } : {}),
     ...(input.scheduledFor ? { scheduledFor: input.scheduledFor } : {}),
@@ -397,7 +529,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     ...(input.redeemedRewardId ? { redeemedRewardId: input.redeemedRewardId } : {}),
     ...(input.voucherCode ? { voucherCode: input.voucherCode } : {}),
     etaMinutes,
-    ...(input.fulfilmentType === 'delivery' ? { driverName: 'Sipho' } : {}),
+    // No `driverName` here. There is no driver at placement — one is assigned
+    // by the courier network later, and `attachDelivery` copies the name off
+    // the job when there is one. Naming a stranger on a customer's screen
+    // before anybody has been dispatched is the same class of invention as a
+    // coordinate that defaults to the Johannesburg CBD.
   };
 
   ledger.unshift(order);
@@ -441,7 +577,9 @@ export async function fetchOrders(): Promise<Order[]> {
   if (!config.useMockApi) return request<Order[]>('/v1/orders', { parse: checkedOrders });
 
   seedHistory();
-  const advanced = ledger.map(advance);
+  // The kitchen first, then the courier — `attachDelivery` reads the status
+  // `advance` produced and may only move it further along.
+  const advanced = await Promise.all(ledger.map((order) => attachDelivery(advance(order))));
   // Keep the ledger in step so a later fetch of one order agrees with the list.
   advanced.forEach((order, index) => {
     ledger[index] = order;
@@ -459,7 +597,7 @@ export async function fetchOrder(orderId: string): Promise<Order> {
   const existing = ledger[index];
   if (!existing) throw new Error('Order not found');
 
-  const advanced = advance(existing);
+  const advanced = await attachDelivery(advance(existing));
   ledger[index] = advanced;
   return delay(advanced, 200);
 }
@@ -500,7 +638,10 @@ export async function cancelOrder(orderId: string): Promise<Order> {
    * whether a screen had fetched it. The kitchen cooked that one and a driver
    * delivered it.
    */
-  const current = advance(existing);
+  // The courier as well as the kitchen. Advancing one without the other was
+  // the same defect this comment warns about, one layer down: whether an order
+  // could be cancelled would depend on which code path had last looked at it.
+  const current = await attachDelivery(advance(existing));
   ledger[index] = current;
 
   if (current.status !== 'received') {
@@ -509,6 +650,24 @@ export async function cancelOrder(orderId: string): Promise<Order> {
 
   const cancelled: Order = { ...current, status: 'cancelled' };
   ledger[index] = cancelled;
+
+  /**
+   * Release the courier, if one was ever requested.
+   *
+   * Unreachable in the mock as it stands — cancellation is refused past
+   * 'received' and a courier is not requested until 'ready', so the two
+   * windows do not overlap. It is here because those are two independent
+   * decisions that a real cancellation policy will not necessarily keep apart,
+   * and the failure it prevents is a driver dispatched to collect an order
+   * nobody is going to hand over. Failure to cancel is swallowed: the customer's
+   * order is cancelled either way, and a stranded courier job is the courier
+   * network's to reconcile, not a reason to refuse the cancellation.
+   */
+  if (cancelled.delivery) {
+    await deliveryProvider()
+      .cancel(cancelled.delivery.externalJobId)
+      .catch(() => undefined);
+  }
 
   /**
    * Put the points back exactly as they were before this order.
@@ -557,6 +716,8 @@ function cannotCancelBecause(status: OrderStatus): string {
       return 'This order is already in the kitchen and can no longer be cancelled.';
     case 'ready':
       return 'This order is cooked and waiting — call the store if something is wrong.';
+    case 'courier_assigned':
+      return 'A driver is already on the way to collect this — call the store if something is wrong.';
     case 'out_for_delivery':
       return 'Your driver already has this order — call the store if something is wrong.';
     case 'completed':
@@ -608,7 +769,7 @@ export async function rateOrder(orderId: string, rating: number, comment?: strin
   const existing = ledger[index];
   if (!existing) throw new Error('Order not found');
 
-  const current = advance(existing);
+  const current = await attachDelivery(advance(existing));
   ledger[index] = current;
 
   if (current.status === 'cancelled') {

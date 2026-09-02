@@ -20,6 +20,7 @@ import {
 } from '@/components/ui';
 import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { OrderTimeline } from '@/features/orders/components/OrderTimeline';
+import { CourierTracking } from '@/features/orders/components/CourierTracking';
 import { useCancelOrder, useOrder } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
 import { isOfflinePending } from '@/features/system/queryPhase';
@@ -211,8 +212,20 @@ export default function OrderTrackingScreen() {
           </>
         ) : null}
 
-        {data.driverName && data.status === 'out_for_delivery' ? (
-          <View style={styles.driverRow}>
+        {/*
+         * The courier, once one is assigned.
+         *
+         * Two statuses, not one. This used to render only at
+         * `out_for_delivery`, which meant the whole time a driver was on
+         * their way *to the store* the screen said nothing about them — and
+         * that is the stretch a customer spends wondering whether anybody is
+         * coming at all. The wording follows the courier's own status rather
+         * than being one sentence for both, because "on the way" means
+         * something different to somebody waiting at home.
+         */}
+        {data.driverName &&
+        (data.status === 'courier_assigned' || data.status === 'out_for_delivery') ? (
+          <View style={styles.driverRow} testID="order-courier">
             <View style={styles.driverAvatar}>
               <Text variant="captionMedium" color={colors.onPrimary}>
                 {data.driverName.charAt(0)}
@@ -220,15 +233,22 @@ export default function OrderTrackingScreen() {
             </View>
             <View style={styles.driverBody}>
               <Text variant="bodyMedium" color={colors.textOnDark}>
-                {data.driverName} is on the way
+                {data.status === 'out_for_delivery'
+                  ? `${data.driverName} is on the way`
+                  : `${data.driverName} is collecting your order`}
               </Text>
               <Text variant="caption" color={colors.textOnDarkMuted}>
-                Heading to {data.addressSummary}
+                {data.status === 'out_for_delivery'
+                  ? `Heading to ${data.addressSummary}`
+                  : `Picking up from ${data.storeName}`}
               </Text>
             </View>
           </View>
         ) : null}
       </Card>
+
+      {/* Live courier map (brief §2), when a provider is authorised to expose one */}
+      {data.delivery ? <CourierTracking job={data.delivery} /> : null}
 
       {/* Timeline */}
       <Card style={styles.card}>

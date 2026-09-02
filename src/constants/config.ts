@@ -85,6 +85,20 @@ export const config = {
   push: {
     projectId: str(process.env.EXPO_PUBLIC_PUSH_PROJECT_ID, ''),
   },
+
+  /**
+   * Which courier network runs deliveries (brief §7: feature flags for
+   * provider integrations).
+   *
+   * `mock` is the only one the build knows, and per §12 that is correct until
+   * an authorised integration arrives with its own credentials and approval.
+   * The name is resolved by `providers/delivery`, which falls back to the mock
+   * and lets `audit:launch` be the thing that complains about a name nobody
+   * implements.
+   */
+  delivery: {
+    provider: str(process.env.EXPO_PUBLIC_DELIVERY_PROVIDER, 'mock'),
+  },
 } as const;
 
 /** Commercial rules kept out of screen code (brief §3 architecture rule). */

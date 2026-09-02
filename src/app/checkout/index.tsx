@@ -35,6 +35,7 @@ import { describeOptions, meetsDeliveryMinimum } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
 import { formatPrice, sumRand } from '@/utils/money';
 import { track } from '@/ux/analytics';
+import { newIdempotencyKey } from '@/utils/idempotency';
 import { a11yState } from '@/utils/a11yState';
 
 /**
@@ -101,6 +102,11 @@ export default function CheckoutScreen() {
   const [submitting, setSubmitting] = useState(false);
   /** Guards the submit against a double tap; see `handlePlaceOrder`. */
   const inFlight = useRef(false);
+  /**
+   * The idempotency key for the attempt in progress, or null between attempts.
+   * Survives a failed submit on purpose — see where it is minted below.
+   */
+  const attemptKey = useRef<string | null>(null);
 
   const totals = getTotals();
 
@@ -278,6 +284,17 @@ export default function CheckoutScreen() {
     setSubmitting(true);
     setFailure(null);
 
+    /**
+     * One key for this attempt, held until an order actually exists.
+     *
+     * Not regenerated per tap, which would defeat the whole mechanism: the
+     * case it defends is a request the customer did not knowingly repeat, and
+     * two attempts at the same basket must carry the same key so a backend can
+     * recognise the second as the first. Cleared once an order is placed, so
+     * the next order is a new one rather than a suppressed duplicate.
+     */
+    attemptKey.current ??= newIdempotencyKey();
+
     // Priced here rather than from the render's closure, for the same reason
     // the blocker is re-checked above: a voucher can expire between a render
     // and a tap, and this is the number the card is charged. The server is
@@ -300,6 +317,7 @@ export default function CheckoutScreen() {
         {
           lines,
           totals: totalsNow,
+          idempotencyKey: attemptKey.current,
           fulfilmentType,
           storeId: store.id,
           ...(address ? { addressId: address.id } : {}),
@@ -355,7 +373,10 @@ export default function CheckoutScreen() {
       });
 
       // The basket has become an order — clear it before navigating so back
-      // navigation can never resubmit.
+      // navigation can never resubmit. The attempt key goes with it: it has
+      // done its job, and carrying it into the next order would have a backend
+      // suppress that order as a duplicate of this one.
+      attemptKey.current = null;
       clearCart();
       resetFulfilment();
       router.replace(`/order/${outcome.order.id}/confirmation`);

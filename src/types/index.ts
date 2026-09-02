@@ -1,3 +1,4 @@
+export type * from './delivery';
 export type * from './menu';
 export type * from './order';
 export type * from './rewards';

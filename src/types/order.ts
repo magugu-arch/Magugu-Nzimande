@@ -1,3 +1,4 @@
+import type { DeliveryJob } from './delivery';
 import type { Product } from './menu';
 
 /** Brief §4 — Delivery / Collection / Dine-in. */
@@ -38,8 +39,31 @@ export interface CartTotals {
   pointsEarned: number;
 }
 
+/**
+ * What the customer reads on the tracking screen.
+ *
+ * Deliberately *not* the brief §6 union, and the difference is considered.
+ * That list mixes three vocabularies: payment attempt states (`DRAFT`,
+ * `AWAITING_PAYMENT`, `PAYMENT_AUTHORISED`), kitchen states, and courier
+ * states. Payment states belong to `submitOrder`, which already models
+ * authorise-then-create and is where a failed authorisation is understood;
+ * putting them on a tracking timeline would show a customer the machinery of
+ * their own card being charged. Courier states belong to the provider and live
+ * in `DeliveryStatus`.
+ *
+ * What is left is the journey a person actually follows, and `courier_assigned`
+ * is the member this app was missing. Without it an order boxed and waiting for
+ * a driver showed "Ready" — the same word a collection customer sees when the
+ * food is on the counter for *them*.
+ */
 export type OrderStatus =
-  'received' | 'preparing' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
+  | 'received'
+  | 'preparing'
+  | 'ready'
+  | 'courier_assigned'
+  | 'out_for_delivery'
+  | 'completed'
+  | 'cancelled';
 
 export interface OrderStatusEvent {
   status: OrderStatus;
@@ -181,6 +205,18 @@ export interface Order {
   storeLongitude?: number;
   addressId?: string;
   addressSummary?: string;
+  /**
+   * Where the food is going, snapshotted at placement.
+   *
+   * Same rule as `storeLatitude`: carried on the order rather than looked up,
+   * because a courier job must still be routable if the customer later edits
+   * or deletes that address. Optional, and absent means nobody has ever
+   * located it — the add-address form has no geocoder behind it. A provider
+   * that cannot locate a dropoff refuses the job, which is the honest outcome
+   * and the one the mock provider models.
+   */
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
   tableNumber?: string;
   scheduledFor?: string;
   paymentMethodLabel: string;
@@ -197,12 +233,39 @@ export interface Order {
   /** Minutes until ready/delivered, from `placedAt`. */
   etaMinutes: number;
   driverName?: string;
+  /**
+   * The courier job, once one has been requested (brief §9).
+   *
+   * Absent for collection and dine-in, and absent for a delivery order whose
+   * food has not left the kitchen — a courier is requested when there is
+   * something to collect, not when the order is placed.
+   */
+  delivery?: DeliveryJob;
   rating?: number;
   ratingComment?: string;
 }
 
 export interface PlaceOrderInput {
   lines: CartLine[];
+  /**
+   * One key per checkout attempt, so a retry cannot become a second order
+   * (brief §7, §9).
+   *
+   * The gap this closes is narrower than it looks and worse than it sounds.
+   * Checkout already refuses to re-offer the button after a payment whose
+   * outcome is unknown, which handles the *human* retry. It does nothing about
+   * the machine one: a request that times out on the wire and is retried, an
+   * app resumed mid-submit, a proxy replaying a POST. Any of those reaches a
+   * real backend twice with the same basket, and without a key to recognise
+   * them by, that backend has no way to tell a duplicate from a customer who
+   * genuinely wants two identical orders.
+   *
+   * Minted when the attempt begins and reused across retries of that attempt —
+   * never regenerated per request, which would defeat the entire mechanism.
+   * The same key is handed to the delivery provider, so one order cannot
+   * become two courier jobs either.
+   */
+  idempotencyKey: string;
   /**
    * What the client believes the order costs — to be checked, never trusted.
    *

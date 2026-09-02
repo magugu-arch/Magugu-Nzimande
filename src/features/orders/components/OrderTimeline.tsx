@@ -15,6 +15,7 @@ const STATUS_ICONS: Record<OrderStatus, keyof typeof Ionicons.glyphMap> = {
   received: 'receipt-outline',
   preparing: 'flame-outline',
   ready: 'bag-check-outline',
+  courier_assigned: 'person-outline',
   out_for_delivery: 'bicycle-outline',
   completed: 'checkmark-done-outline',
   cancelled: 'close-circle-outline',
@@ -22,7 +23,10 @@ const STATUS_ICONS: Record<OrderStatus, keyof typeof Ionicons.glyphMap> = {
 
 /**
  * Live order tracking states (brief §11):
- * Received → Preparing → Ready → Out for delivery / Ready for collection → Completed.
+ * Received → Preparing → Ready → Courier assigned → Out for delivery → Completed
+ * for a delivery order, and Received → Preparing → Ready for collection →
+ * Completed otherwise. The courier steps are only ever in a delivery
+ * sequence — see `statusSequence`.
  */
 export const OrderTimeline = memo(function OrderTimeline({
   timeline,

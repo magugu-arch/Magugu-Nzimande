@@ -233,6 +233,7 @@ describe('orderService', () => {
       addressId: 'address-home',
       paymentMethodId: 'payment-visa',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
     });
 
     expect(order.status).toBe('received');
@@ -268,6 +269,7 @@ describe('orderService', () => {
       storeId: store!.id,
       paymentMethodId: 'payment-visa',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
     });
 
     expect(order.storeName).toBe(store!.name);
@@ -563,6 +565,7 @@ describe('tracking a scheduled order', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
       scheduledFor: new Date(Date.now() + 28 * 3_600_000).toISOString(),
     });
 
@@ -588,6 +591,7 @@ describe('tracking a scheduled order', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
     });
 
     jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 45 * 60_000);
@@ -641,6 +645,7 @@ describe('what a placed order records about itself', () => {
       addressId: added.id,
       paymentMethodId: 'payment-visa',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
     });
 
     expect(order.addressId).toBe(added.id);
@@ -661,6 +666,7 @@ describe('what a placed order records about itself', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'rail-cash',
       paymentMethodType: 'cash',
+      idempotencyKey: 'test-key',
     });
 
     expect(order.paymentMethodLabel).toBe('Cash on delivery');
@@ -677,6 +683,7 @@ describe('what a placed order records about itself', () => {
       storeId: 'store-sandton',
       paymentMethodId: saved!.id,
       paymentMethodType: saved!.type,
+      idempotencyKey: 'test-key',
     });
 
     expect(order.paymentMethodLabel).toBe(saved!.label);
@@ -712,6 +719,7 @@ describe('calling an order back', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
     });
 
   afterEach(() => {
@@ -790,6 +798,7 @@ describe('the points a customer actually has', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
       ...input,
     });
 
@@ -926,6 +935,7 @@ describe('spending a promo code', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
       voucherCode,
     });
 
@@ -999,6 +1009,7 @@ describe('how long until the food arrives', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
       ...(scheduledFor ? { scheduledFor } : {}),
     });
 
@@ -1161,6 +1172,7 @@ describe('rating an order', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: 'test-key',
     });
 
   afterEach(() => {
