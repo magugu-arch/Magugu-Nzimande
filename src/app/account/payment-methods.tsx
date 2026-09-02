@@ -21,7 +21,7 @@ import {
   useSetDefaultPaymentMethod,
 } from '@/features/account/hooks';
 import { config } from '@/constants/config';
-import { describePaymentMethod } from '@/services/paymentService';
+import { paymentCaption } from '@/features/checkout/paymentOptions';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing } from '@/theme';
 import { ask, tell } from '@/ux/dialog';
@@ -120,53 +120,56 @@ export default function PaymentMethodsScreen() {
         />
       ) : (
         <View style={styles.list}>
-          {list.map((method) => (
-            <Card key={method.id} testID={`payment-method-${method.id}`}>
-              <View style={styles.row}>
-                <View style={styles.icon}>
-                  <Ionicons name={ICONS[method.type]} size={20} color={colors.primary} />
-                </View>
-
-                <View style={styles.body}>
-                  <View style={styles.labelRow}>
-                    <Text variant="bodyMedium">{method.label}</Text>
-                    {method.isDefault ? <Badge label="Default" tone="neutral" /> : null}
+          {list.map((method) => {
+            const caption = paymentCaption(method);
+            return (
+              <Card key={method.id} testID={`payment-method-${method.id}`}>
+                <View style={styles.row}>
+                  <View style={styles.icon}>
+                    <Ionicons name={ICONS[method.type]} size={20} color={colors.primary} />
                   </View>
-                  <Text variant="caption" color={colors.textSecondary}>
-                    {method.expiry
-                      ? `Expires ${method.expiry}`
-                      : describePaymentMethod(method.type)}
-                  </Text>
+
+                  <View style={styles.body}>
+                    <View style={styles.labelRow}>
+                      <Text variant="bodyMedium">{method.label}</Text>
+                      {method.isDefault ? <Badge label="Default" tone="neutral" /> : null}
+                    </View>
+                    {caption ? (
+                      <Text variant="caption" color={colors.textSecondary}>
+                        {caption}
+                      </Text>
+                    ) : null}
+                  </View>
+
+                  <Pressable
+                    onPress={() => handleDelete(method)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove ${method.label}`}
+                    // A 19pt bin icon that deletes a saved card. `hitSlop` of
+                    // 10 made it 39x41 on a handset and left it 19x21 on the web
+                    // build; padding makes the box itself 45 and the negative
+                    // margin keeps the row where it was. Worth more care than
+                    // most: this is the smallest target in the app and one of
+                    // the few that destroys something.
+                    style={{ padding: 13, margin: -13 }}
+                  >
+                    <Ionicons name="trash-outline" size={19} color={colors.textMuted} />
+                  </Pressable>
                 </View>
 
-                <Pressable
-                  onPress={() => handleDelete(method)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Remove ${method.label}`}
-                  // A 19pt bin icon that deletes a saved card. `hitSlop` of
-                  // 10 made it 39x41 on a handset and left it 19x21 on the web
-                  // build; padding makes the box itself 45 and the negative
-                  // margin keeps the row where it was. Worth more care than
-                  // most: this is the smallest target in the app and one of
-                  // the few that destroys something.
-                  style={{ padding: 13, margin: -13 }}
-                >
-                  <Ionicons name="trash-outline" size={19} color={colors.textMuted} />
-                </Pressable>
-              </View>
-
-              {!method.isDefault ? (
-                <Button
-                  label="Make this my default"
-                  onPress={() => setDefault.mutate(method.id)}
-                  variant="text"
-                  size="sm"
-                  fullWidth={false}
-                  style={styles.defaultButton}
-                />
-              ) : null}
-            </Card>
-          ))}
+                {!method.isDefault ? (
+                  <Button
+                    label="Make this my default"
+                    onPress={() => setDefault.mutate(method.id)}
+                    variant="text"
+                    size="sm"
+                    fullWidth={false}
+                    style={styles.defaultButton}
+                  />
+                ) : null}
+              </Card>
+            );
+          })}
 
           <Button
             label="Add a payment method"

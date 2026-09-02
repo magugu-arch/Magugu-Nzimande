@@ -152,6 +152,25 @@ export const savedPaymentMethods: PaymentMethod[] = [
     brand: 'Mastercard',
     isDefault: false,
   },
+  /**
+   * A card that has run out, which every wallet eventually contains.
+   *
+   * Both other cards expire years from now, so nothing in the app had ever
+   * held a card it could not pay with. `expiry` was carried on the type,
+   * printed on two screens as "Expires 03/27", and compared to the clock
+   * nowhere at all — so an expired card was offered at checkout as an ordinary
+   * option and the customer found out it was dead from the gateway, after
+   * committing to the order.
+   */
+  {
+    id: 'payment-visa-expired',
+    type: 'card',
+    label: 'Visa ending 1194',
+    last4: '1194',
+    expiry: '03/24',
+    brand: 'Visa',
+    isDefault: false,
+  },
 ];
 
 export const notifications: AppNotification[] = [

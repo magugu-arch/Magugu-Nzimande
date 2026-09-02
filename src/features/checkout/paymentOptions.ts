@@ -1,4 +1,6 @@
+import { describePaymentMethod } from '@/services/paymentService';
 import type { FulfilmentType, PaymentMethod } from '@/types';
+import { expiryLabel, methodHasExpired } from './cardExpiry';
 
 /**
  * How a customer can pay, which is not the same thing as what they have saved.
@@ -37,12 +39,57 @@ export const STANDING_RAILS: PaymentMethod[] = [
 export function offeredPaymentMethods(
   saved: PaymentMethod[],
   fulfilmentType: FulfilmentType,
+  now: Date = new Date(),
 ): PaymentMethod[] {
-  const seen = new Set(saved.map((method) => method.type));
+  /**
+   * A card that has run out cannot pay for this order, so it is not offered
+   * for it.
+   *
+   * It is not deleted — it stays on the account screen, labelled "Expired", so
+   * a customer who wonders where their card went has somewhere to find out.
+   * What it must not be is one of the choices here, indistinguishable from a
+   * working card until the gateway declines it after the order is committed.
+   *
+   * `seen` is computed from the surviving cards on purpose. If every saved
+   * card has expired, the customer has no card — and must still be offered the
+   * rails, which is exactly the "brand-new customer" case this function was
+   * written for.
+   */
+  const usable = saved.filter((method) => !methodHasExpired(method, now));
+  const seen = new Set(usable.map((method) => method.type));
 
-  const merged = [...saved, ...STANDING_RAILS.filter((rail) => !seen.has(rail.type))];
+  const merged = [...usable, ...STANDING_RAILS.filter((rail) => !seen.has(rail.type))];
 
   // There is nobody to hand the money to on a collection or a dine-in order
   // placed in advance, so cash is a delivery rail only.
   return merged.filter((method) => method.type !== 'cash' || fulfilmentType === 'delivery');
+}
+
+/**
+ * The second line under a payment option, or nothing.
+ *
+ * Both screens wrote this as `expiry ? expiryLabel(…) : describePaymentMethod(…)`,
+ * which reads sensibly and is wrong for every rail. A rail's `label` and its
+ * description are the same sentence — `STANDING_RAILS` names it "SnapScan" and
+ * `describePaymentMethod('snapscan')` returns "SnapScan" — so checkout drew
+ *
+ *     SnapScan
+ *     SnapScan
+ *
+ * three times over. Caught in a browser; no test could have failed on it,
+ * because both strings were exactly what their own unit tests expect. A screen
+ * reader reads the row twice, and a caption that adds nothing teaches a
+ * customer to stop reading captions.
+ *
+ * So the caption is whatever the label does not already say. A card's expiry
+ * always qualifies. A description qualifies only when it differs from the
+ * label — which is how "Credit or debit card" still appears under a saved card
+ * with no expiry on it, and how a rail renamed in one place but not the other
+ * starts explaining itself again rather than staying silent.
+ */
+export function paymentCaption(method: PaymentMethod, now: Date = new Date()): string | null {
+  if (method.expiry) return expiryLabel(method, now);
+
+  const description = describePaymentMethod(method.type);
+  return description === method.label ? null : description;
 }

@@ -21,9 +21,9 @@ import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelecto
 import { useAddresses, usePaymentMethods } from '@/features/account/hooks';
 import { usePlaceOrder } from '@/features/orders/hooks';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
-import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
+import { authorisePayment, voidPayment } from '@/services/paymentService';
 import { safeToRetry, submitOrder, type SubmitFailure } from '@/features/checkout/submitOrder';
-import { offeredPaymentMethods } from '@/features/checkout/paymentOptions';
+import { offeredPaymentMethods, paymentCaption } from '@/features/checkout/paymentOptions';
 import { checkoutDefaults } from '@/features/checkout/checkoutDefaults';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { useNetworkStatus } from '@/features/system/useNetworkStatus';
@@ -527,6 +527,7 @@ export default function CheckoutScreen() {
 
           {offered.map((method) => {
             const selected = method.id === selectedPaymentId;
+            const caption = paymentCaption(method);
             return (
               <Pressable
                 key={method.id}
@@ -559,11 +560,11 @@ export default function CheckoutScreen() {
                 />
                 <View style={styles.paymentBody}>
                   <Text variant="bodyMedium">{method.label}</Text>
-                  <Text variant="caption" color={colors.textSecondary}>
-                    {method.expiry
-                      ? `Expires ${method.expiry}`
-                      : describePaymentMethod(method.type)}
-                  </Text>
+                  {caption ? (
+                    <Text variant="caption" color={colors.textSecondary}>
+                      {caption}
+                    </Text>
+                  ) : null}
                 </View>
                 {method.isDefault ? <Badge label="Default" tone="neutral" /> : null}
                 <View style={[styles.radio, selected ? styles.radioSelected : null]}>

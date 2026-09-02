@@ -118,6 +118,44 @@ a browser: *"Sharing bucket · Sold out · +R 48.00"*, `aria-disabled="true"`,
 tapping does nothing. That is worth recording as a result: the fixtures prove
 the behaviour rather than expose it.
 
+## 2d. A card that has run out
+
+Both seeded cards expired years from now, so the app had never held a card it
+could not pay with. `expiry` was carried on `PaymentMethod`, printed on two
+screens as "Expires 03/27", and compared to the clock **nowhere**. An expired
+card was therefore offered at checkout as an ordinary option, indistinguishable
+from a working one, and the customer learned it was dead from the gateway —
+after committing to the order, at the point in the journey where a failure
+costs the most.
+
+Seeded a third card, `payment-visa-expired`, marked 03/24. `cardHasExpired`
+reads the date the app already holds; checkout stops offering a card it cannot
+pay with, and the account screen says "Expired 03/24" instead of "Expires". No
+commercial rule was invented here — the gateway refuses the card either way;
+all that changed is whether the customer finds out before or after they press
+Place order. Two details the implementation is explicit about: a card is valid
+**through the end** of its month, and an expiry string the app cannot parse is
+never treated as expired.
+
+The filter computes its "already covered" set from the *surviving* cards, so a
+customer whose only card has expired is still offered SnapScan, Instant EFT and
+cash — the same case the rails exist for.
+
+**And a second defect, found only in the browser.** With the payment list open,
+checkout drew
+
+```
+SnapScan
+SnapScan
+```
+
+for all three rails: the caption was `expiry ? expiryLabel(…) : describePaymentMethod(…)`,
+and a rail's label *is* its description. Both strings were exactly what their
+own unit tests expect, so nothing failed and nothing could have — the defect
+exists only where the two are rendered together. `paymentCaption` now returns
+the description only when it differs from the label, so a rail says its name
+once and a saved card with no expiry still reads "Credit or debit card".
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -171,7 +209,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **64 suites, 982 tests**, typecheck and lint clean
+- `npm run verify` — **65 suites, 998 tests**, typecheck and lint clean
 - `npm run audit:screens` — 34 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green
