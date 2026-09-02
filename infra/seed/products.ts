@@ -1,9 +1,17 @@
 import type { Product } from '@bbq/types';
 
 /**
- * The 16-product catalogue, ported from the reference build. Prices are demo
- * values pending CLAUDE.md section 8; the allergen and energy figures are
- * indicative pending the franchisor nutritional analysis.
+ * The catalogue, ported from the reference build and extended since. Prices
+ * are demo values pending CLAUDE.md section 8; the allergen and energy figures
+ * are indicative pending the franchisor nutritional analysis.
+ *
+ * PHOTOGRAPHY. Only sixteen masters were supplied, and masters are never
+ * edited or invented. Items added after that set reuse the master that most
+ * honestly depicts them -- Soy Garlic Wings carries the soy garlic master,
+ * because the sauce is what the picture shows -- and are listed in the
+ * README as awaiting their own photograph. The build refuses any product
+ * whose imageKey has no master, so this stays a deliberate reuse rather than
+ * a gap somebody discovers in the menu.
  *
  * imageKey is the supplied master's file name, which does not always match the
  * slug — the masters were named before the slugs were settled, and masters are
@@ -231,6 +239,117 @@ export const PRODUCTS: readonly Product[] = [
     description: 'Rice cakes in creamy rose sauce with mozzarella. The gentler way in.',
     imageKey: 'rose-ddeok-bokki',
     nutrition: { allergens: 'Milk, wheat, soya', kilojoules: 1_420 },
+    soldOut: false,
+  },
+  {
+    id: 'P-soy-garlic-wings',
+    slug: 'soy-garlic-wings',
+    name: 'Soy Garlic Wings',
+    category: 'Wings',
+    priceCents: 19_900,
+    heat: 2,
+    sauce: 'Soy garlic',
+    description:
+      'Whole wings tossed in the deep soy glaze after frying, so the crust holds under the sauce.',
+    imageKey: 'soy-garlic',
+    nutrition: { allergens: 'Wheat, soya, sesame', kilojoules: 1_210 },
+    soldOut: false,
+  },
+  {
+    id: 'P-honey-garlic-wings',
+    slug: 'honey-garlic-wings',
+    name: 'Honey Garlic Wings',
+    category: 'Wings',
+    priceCents: 19_900,
+    heat: 2,
+    sauce: 'Honey garlic',
+    tag: 'New',
+    description:
+      'Sticky honey and roasted garlic on whole wings, finished with sesame and spring onion.',
+    imageKey: 'honey-garlic',
+    nutrition: { allergens: 'Wheat, soya, sesame', kilojoules: 1_240 },
+    soldOut: false,
+  },
+  {
+    id: 'P-hot-spicy-wings',
+    slug: 'hot-spicy-wings',
+    name: 'Hot Spicy Wings',
+    category: 'Wings',
+    priceCents: 19_900,
+    heat: 5,
+    sauce: 'Hot spicy',
+    description:
+      'Gochujang and fresh chilli on whole wings, cut with sesame. The hottest thing on the menu.',
+    imageKey: 'hot-spicy',
+    nutrition: { allergens: 'Wheat, soya, sesame', kilojoules: 1_255 },
+    soldOut: false,
+  },
+  {
+    id: 'P-secret-sauce-boneless',
+    slug: 'secret-sauce-boneless',
+    name: 'Secret Sauce Boneless',
+    category: 'Wings',
+    priceCents: 18_900,
+    heat: 4,
+    sauce: 'Secret sauce',
+    description:
+      'Breast pieces in the house sauce. Sweet at the front, hot at the back, and no bones to work around.',
+    imageKey: 'secret-sauce',
+    nutrition: { allergens: 'Wheat, soya, sesame', kilojoules: 1_150 },
+    soldOut: false,
+  },
+  {
+    id: 'P-wings-rice-meal',
+    slug: 'wings-rice-meal',
+    name: 'Wings and Rice Meal',
+    category: 'Meals',
+    priceCents: 13_900,
+    heat: 2,
+    sauce: 'Choose sauce',
+    tag: 'Meal deal',
+    description: 'Five wings, steamed rice, house slaw, dipping sauce and a drink.',
+    imageKey: 'chicken-rice-meal',
+    nutrition: { allergens: 'Wheat, soya, egg', kilojoules: 2_180 },
+    soldOut: false,
+  },
+  {
+    id: 'P-cheesling-burger',
+    slug: 'cheesling-burger',
+    name: 'Cheesling Burger',
+    category: 'Meals',
+    priceCents: 10_900,
+    heat: 1,
+    sauce: 'Cheese dust',
+    description:
+      'The fillet under a heavy snow of cheese seasoning, stacked with lettuce and pickles. Fries and a drink included.',
+    imageKey: 'chicken-burger',
+    nutrition: { allergens: 'Wheat, soya, egg, milk', kilojoules: 2_460 },
+    soldOut: false,
+  },
+  {
+    id: 'P-sweet-potato-fries',
+    slug: 'sweet-potato-fries',
+    name: 'Sweet Potato Fries',
+    category: 'Sides',
+    priceCents: 4_900,
+    heat: 0,
+    sauce: 'Salted',
+    description: 'Cut thick and fried twice, so they stay crisp long enough to share.',
+    imageKey: 'french-fries',
+    nutrition: { allergens: 'None declared', kilojoules: 1_040 },
+    soldOut: false,
+  },
+  {
+    id: 'P-cheese-ddeok-bokki',
+    slug: 'cheese-ddeok-bokki',
+    name: 'Cheese Ddeok-Bokki',
+    category: 'Sides',
+    priceCents: 7_900,
+    heat: 3,
+    sauce: 'Gochujang',
+    description: 'Rice cakes in gochujang under a lid of melted mozzarella.',
+    imageKey: 'ddeok-bokki',
+    nutrition: { allergens: 'Milk, wheat, soya, sesame', kilojoules: 1_510 },
     soldOut: false,
   },
 ];

@@ -16,6 +16,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import tokens from '../../packages/ui/src/tokens.json' with { type: 'json' };
+/**
+ * The seed modules are imported by file rather than through ../seed/index.ts,
+ * and directly as TypeScript. Both are deliberate: Node's type stripping
+ * erases the type-only imports these files carry, so no compile step is
+ * needed, while index.ts re-exports with extensionless specifiers that ESM
+ * cannot resolve.
+ */
+import { CATEGORIES, FAQS, SAUCES } from '../seed/catalogue.ts';
+import { FEES, REWARDS_RULES } from '../seed/demo-values.ts';
+import { PRODUCTS } from '../seed/products.ts';
+import { PROMOTIONS, REWARDS, STORES } from '../seed/stores.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../..');
@@ -126,6 +137,82 @@ function paletteCss() {
   return lines.join(' ');
 }
 
+/**
+ * The demo's catalogue, generated from infra/seed rather than kept as a second
+ * copy in the template.
+ *
+ * It was a hand-maintained duplicate: seven datasets written out twice, with
+ * nothing checking they agreed. Adding one product meant editing both, and a
+ * demo quietly showing a different menu from the app is worse than one showing
+ * no menu at all, because nobody looks twice at it.
+ *
+ * The field names differ because the demo's are terser (img, desc, kj); that
+ * mapping lives here, in one place, instead of in a reviewer's memory.
+ */
+function catalogueScript() {
+  const products = PRODUCTS.map((product) => ({
+    slug: product.slug,
+    name: product.name,
+    category: product.category,
+    priceCents: product.priceCents,
+    heat: product.heat,
+    sauce: product.sauce,
+    ...(product.tag ? { tag: product.tag } : {}),
+    img: product.imageKey,
+    desc: product.description,
+    allergens: product.nutrition.allergens,
+    kj: product.nutrition.kilojoules,
+  }));
+
+  const stores = STORES.map((store) => ({
+    id: store.id,
+    name: store.name,
+    address: store.address,
+    tel: store.telephone,
+    opens: store.hours.opensMinute,
+    closes: store.hours.closesMinute,
+    hours: store.hours.label,
+    km: store.distanceKm,
+    services: store.services,
+    zones: store.zones,
+    halaal: store.halaal,
+  }));
+
+  const promotions = PROMOTIONS.map((promotion) => ({
+    id: promotion.id,
+    title: promotion.title,
+    slug: promotion.productSlug,
+    code: promotion.code,
+    rate: promotion.discountRate,
+    valid: promotion.validity,
+    copy: promotion.copy,
+  }));
+
+  const faqs = FAQS.map((faq) => ({ q: faq.question, a: faq.answer }));
+
+  const fees = {
+    deliveryCents: FEES.deliveryCents,
+    freeOverCents: FEES.freeDeliveryOverCents,
+    etaMin: FEES.deliveryEtaMinutes.min,
+    etaMax: FEES.deliveryEtaMinutes.max,
+    collectEta: FEES.collectionEtaMinutes,
+  };
+
+  const declare = (name, value) => `const ${name} = ${JSON.stringify(value)};`;
+
+  return [
+    declare('PRODUCTS', products),
+    declare('CATEGORIES', CATEGORIES),
+    declare('SAUCES', SAUCES),
+    declare('STORES', stores),
+    declare('PROMOTIONS', promotions),
+    declare('REWARDS', REWARDS),
+    declare('TIERS', REWARDS_RULES.tiers),
+    declare('FAQS', faqs),
+    declare('FEES', fees),
+  ].join('\n');
+}
+
 async function main() {
   const portrait = {};
   const wide = {};
@@ -151,6 +238,8 @@ async function main() {
     'image/png',
   );
 
+  const catalogue = catalogueScript();
+
   const assets =
     `const IMG = ${JSON.stringify(portrait)};\n` +
     `const IMG_WIDE = ${JSON.stringify(wide)};\n` +
@@ -158,15 +247,25 @@ async function main() {
     `const LOCKUP_REVERSED = ${JSON.stringify(lockupReversed)};`;
 
   const template = await readFile(path.join(OUT_DIR, 'index.template.html'), 'utf8');
-  for (const placeholder of ['/*__ASSETS__*/', '/*__TOKENS__*/']) {
+  for (const placeholder of ['/*__ASSETS__*/', '/*__TOKENS__*/', '/*__CATALOGUE__*/']) {
     if (!template.includes(placeholder)) {
       throw new Error(`The template has lost its ${placeholder} placeholder`);
     }
   }
 
+  // Every product must have a master, or the page renders a gap. Checked here
+  // rather than discovered by a reviewer opening the menu.
+  const missing = PRODUCTS.filter((product) => !KEYS.includes(product.imageKey));
+  if (missing.length > 0) {
+    throw new Error(
+      `No master for: ${missing.map((product) => `${product.slug} (${product.imageKey})`).join(', ')}`,
+    );
+  }
+
   await mkdir(OUT_DIR, { recursive: true });
   const html = template
     .replace('/*__TOKENS__*/', paletteCss())
+    .replace('/*__CATALOGUE__*/', catalogue)
     .replace('/*__ASSETS__*/', assets);
   const target = path.join(OUT_DIR, 'bbq-chicken-website.html');
   await writeFile(target, html, 'utf8');

@@ -1,9 +1,11 @@
 # bb.q Chicken South Africa — ordering website
 
 The customer-facing ordering site for the bb.q Chicken South Africa master
-franchise. Two stores at launch: Cresta Crossing (Beyers Naude Drive, Randburg)
-and Waterfall Ridge (Allandale off-ramp, Midrand). Delivery, collection and
-dine-in.
+franchise. Three stores: Cresta Crossing (Beyers Naude Drive, Randburg),
+Waterfall Ridge (Allandale off-ramp, Midrand) and Fourways Crossing (Witkoppen
+Road, Fourways). Delivery, collection and dine-in — Waterfall Ridge has dine-in
+switched off, and that rule is enforced by the API rather than only the
+interface.
 
 **Stack:** Next.js 16 App Router · React 19 · TypeScript strict · Tailwind v4 ·
 Zod · Vitest
@@ -170,6 +172,14 @@ optimiser runs at request time.
 Derivatives are generated, not committed: 21 MB that rebuilds in twenty seconds.
 `npm run build` regenerates them, so a master that goes missing fails the build.
 
+**The catalogue has outgrown the supplied set.** Sixteen masters were supplied
+and there are now 24 products. Items added since reuse the master that most
+honestly depicts them — Soy Garlic Wings carries the soy garlic master, because
+the sauce is what the picture shows — rather than an invented image. The demo
+build refuses any product whose `imageKey` has no master, so this stays a
+deliberate reuse rather than a gap somebody finds in the menu. Each reusing
+item is awaiting its own photograph.
+
 The logo is the licensed master in `assets/brand/masters`. Its dark-ground
 reversal is derived by keeping the wordmark bb.q Red and turning only the black
 ink white — the variant the guidelines show on bb.q Black. Nothing is redrawn.
@@ -201,7 +211,9 @@ and `<DemoNotice>`. Setting `DEMO_DATA` to `false` removes every flag at once.
 Awaiting approved figures: menu pricing, delivery fee and threshold, trading
 hours and suburb lists, rewards rules, promotion codes and dates, allergen and
 energy values, store telephone numbers, halaal certification status, the payment
-provider, and the delivery partner model.
+provider, and the delivery partner model. Also awaiting the franchisor: the
+product range itself, and photography for every item added past the sixteen
+supplied masters.
 
 ---
 
@@ -234,6 +246,22 @@ display system, and the customer's own journey page calls it on a timer so the
 states can be watched end to end. Putting it behind the console's session would
 break that, so it is deliberately left reachable. It must become operator-only
 when a real kitchen display system replaces it.
+
+## The single-file review build
+
+`npm run demo:build` writes `static-demo/bbq-chicken-website.html` — the whole
+site in one file, with every master embedded as a data URI, for review from a
+link with no server.
+
+Its catalogue is **generated from `infra/seed`**, not written a second time in
+the template. Nine datasets used to be duplicated there with nothing checking
+they agreed, so adding one product meant editing both, and a demo quietly
+showing a different menu from the app is worse than one showing no menu at all.
+`tests/demo-build.test.ts` fails if any of them is declared in the template
+again.
+
+The build has no server, so anything the demo enforces it enforces client side
+only. Read it as a picture of the journey, never as evidence the rules hold.
 
 ## Deliberately not built
 

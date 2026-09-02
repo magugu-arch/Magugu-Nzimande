@@ -513,100 +513,12 @@ input[type="range"]{width:100%; accent-color:var(--red)}
 const DEMO = true;
 const CRAFT_LINE = 'Twice fried in olive oil. Tossed to order.';
 
-const PRODUCTS = [
-  {slug:'golden-original', name:'Golden Original Chicken', category:'Chicken', priceCents:18900, heat:1, sauce:'No sauce', tag:'Best seller', img:'golden-original',
-   desc:'The original recipe. Twice fried in olive oil, seasoned and served bare so the crunch does the talking.', allergens:'Wheat, soya', kj:1180},
-  {slug:'honey-garlic', name:'Honey Garlic Chicken', category:'Chicken', priceCents:20900, heat:2, sauce:'Honey garlic', tag:'Best seller', img:'honey-garlic',
-   desc:'Sticky honey and roasted garlic, tossed to order and finished with sesame and spring onion.', allergens:'Wheat, soya, sesame', kj:1290},
-  {slug:'soy-garlic', name:'Soy Garlic Chicken', category:'Chicken', priceCents:20900, heat:2, sauce:'Soy garlic', img:'soy-garlic',
-   desc:'Deep soy glaze with slow garlic. The most ordered flavour in Korea, and the easiest place to start.', allergens:'Wheat, soya, sesame', kj:1265},
-  {slug:'secret-sauce', name:'Secret Sauce Chicken', category:'Chicken', priceCents:21500, heat:4, sauce:'Secret sauce', tag:'New', img:'secret-sauce',
-   desc:'Sweet at the front, hot at the back. The house sauce that people come back for.', allergens:'Wheat, soya, sesame', kj:1310},
-  {slug:'hot-spicy', name:'Hot Spicy Chicken', category:'Chicken', priceCents:21500, heat:5, sauce:'Hot spicy', img:'hot-spicy',
-   desc:'Gochujang heat with fresh chilli, cut with sesame. Order water. You will need it.', allergens:'Wheat, soya, sesame', kj:1305},
-  {slug:'cheesling', name:'Cheesling Chicken', category:'Chicken', priceCents:21900, heat:1, sauce:'Cheese dust', img:'cheesling',
-   desc:'Golden Original under a heavy snow of savoury cheese seasoning. A crowd favourite with kids.', allergens:'Wheat, soya, milk', kj:1360},
-  {slug:'half-half', name:'Half and Half Chicken', category:'Chicken', priceCents:22900, heat:3, sauce:'Pick two', tag:'Table share', img:'half-and-half',
-   desc:'One bird, two flavours. Choose any two sauces and settle the argument at the table.', allergens:'Wheat, soya, sesame', kj:1290},
-  {slug:'golden-wings', name:'Golden Original Wings', category:'Wings', priceCents:17900, heat:1, sauce:'No sauce', tag:'Best seller', img:'golden-original-wings',
-   desc:'Whole wings, twice fried, salted while hot. Add any sauce on the side.', allergens:'Wheat, soya', kj:1140},
-  {slug:'boneless', name:'Boneless Chicken', category:'Wings', priceCents:16900, heat:2, sauce:'Choose sauce', img:'boneless',
-   desc:'Breast pieces in the signature crumb. All of the crunch, none of the bones.', allergens:'Wheat, soya', kj:1095},
-  {slug:'chicken-rice', name:'Chicken and Rice Meal', category:'Meals', priceCents:12900, heat:2, sauce:'Choose sauce', tag:'Meal deal', img:'chicken-rice-meal',
-   desc:'Three pieces, steamed rice, house slaw, dipping sauce and a drink.', allergens:'Wheat, soya, egg', kj:2240},
-  {slug:'chicken-burger', name:'Chicken Burger', category:'Meals', priceCents:9900, heat:3, sauce:'Secret sauce', img:'chicken-burger',
-   desc:'Crunchy fillet, glazed and stacked with lettuce, red onion, pickles and house mayo. Served with fries and a drink.', allergens:'Wheat, soya, egg, sesame', kj:2380},
-  {slug:'korean-rice-bowl', name:'Korean Rice Bowl', category:'Meals', priceCents:11900, heat:3, sauce:'Sweet and spicy', tag:'New', img:'korean-rice-bowl',
-   desc:'Boneless chicken over rice with kimchi, cucumber, carrot, seaweed and a creamy drizzle.', allergens:'Wheat, soya, sesame, fish', kj:2150},
-  {slug:'french-fries', name:'French Fries', category:'Sides', priceCents:3900, heat:0, sauce:'Salted', img:'french-fries',
-   desc:'Crispy outside, fluffy inside. Seasoned the moment they leave the fryer.', allergens:'None declared', kj:980},
-  {slug:'cheesling-fries', name:'Cheesling Fries', category:'Sides', priceCents:5900, heat:1, sauce:'Cheese', img:'cheesling-fries',
-   desc:'Fries loaded with cheese sauce, jalapeno and crisp bacon bits.', allergens:'Milk, wheat', kj:1520},
-  {slug:'ddeok-bokki', name:'Ddeok-Bokki', category:'Sides', priceCents:6900, heat:4, sauce:'Gochujang', img:'ddeok-bokki',
-   desc:'Korean rice cakes in a bold gochujang sauce. Spicy, chewy, hard to share.', allergens:'Wheat, soya, sesame', kj:1180},
-  {slug:'rose-ddeok-bokki', name:'Rose Ddeok-Bokki', category:'Sides', priceCents:7900, heat:2, sauce:'Rose', img:'rose-ddeok-bokki',
-   desc:'Rice cakes in creamy rose sauce with mozzarella. The gentler way in.', allergens:'Milk, wheat, soya', kj:1420},
-];
-
-const CATEGORIES = [
-  {key:'Chicken', label:'Chicken', note:'Whole birds and half birds. Every order is tossed after frying, so sauce is chosen at ordering.', img:'golden-original'},
-  {key:'Wings', label:'Wings and boneless', note:'Wings and boneless pieces. Sauces on the side unless you ask for them tossed.', img:'golden-original-wings'},
-  {key:'Meals', label:'Meals', note:'One person, one tray. Chicken with a starch, a side and a drink.', img:'chicken-rice-meal'},
-  {key:'Sides', label:'Sides', note:'Fries, rice cakes and everything that goes in the middle of the table.', img:'french-fries'},
-];
-
-const SAUCES = [
-  {name:'Golden Original', heat:1, note:'No sauce'},
-  {name:'Honey Garlic', heat:2, note:'Sweet'},
-  {name:'Soy Garlic', heat:2, note:'Savoury'},
-  {name:'Secret Sauce', heat:4, note:'Sweet heat'},
-  {name:'Hot Spicy', heat:5, note:'Hot'},
-  {name:'Cheesling', heat:1, note:'Cheese dust'},
-];
-
-const STORES = [
-  {id:'ST-CRE', name:'Cresta Crossing', address:'Beyers Naude Drive, Randburg, Johannesburg',
-   tel:'011 000 0000', opens:660, closes:1320, hours:'11:00 to 22:00, seven days', km:4.2,
-   services:{Delivery:true, Collection:true, 'Dine-in':true},
-   zones:['Randburg','Northcliff','Blackheath','Fairland','Cresta','Linden'],
-   halaal:'Certification confirmed in store'},
-  {id:'ST-WAT', name:'Waterfall Ridge', address:'Allandale off-ramp, Midrand, Johannesburg',
-   tel:'011 000 0001', opens:660, closes:1320, hours:'11:00 to 22:00, seven days', km:28.6,
-   services:{Delivery:true, Collection:true, 'Dine-in':false},
-   zones:['Midrand','Kyalami','Sunninghill','Waterfall','Vorna Valley'],
-   halaal:'Certification confirmed in store'},
-];
-
-const PROMOTIONS = [
-  {id:'OF-1', title:'Half and Half Tuesday', slug:'half-half', code:'PICKTWO', rate:0.15,
-   valid:'Every Tuesday, 11:00 to 22:00', copy:'Two sauces on one bird at the single flavour price. Delivery and collection.'},
-  {id:'OF-2', title:'Rice Meal for one', slug:'chicken-rice', code:'ONETRAY', rate:0.10,
-   valid:'Weekdays before 16:00', copy:'Three pieces, rice, slaw and a drink. Built for a lunch break, not a queue.'},
-  {id:'OF-3', title:'First order, free fries', slug:'french-fries', code:'FIRSTCRUNCH', rate:0.10,
-   valid:'New accounts, one use', copy:'Create an account and your first delivery order comes with regular fries.'},
-];
-
-const REWARDS = [
-  {id:'RW-1', name:'Regular fries', points:120},
-  {id:'RW-2', name:'Ddeok-Bokki side', points:220},
-  {id:'RW-3', name:'Boneless Chicken', points:480},
-  {id:'RW-4', name:'Half and Half Chicken', points:700},
-];
-
-const TIERS = [{name:'Bronze', from:0}, {name:'Silver', from:250}, {name:'Gold', from:1000}];
-
-const FAQS = [
-  {q:'How long does delivery take?', a:'Between 35 and 45 minutes in most suburbs, measured from the moment payment clears. The timer on My journey updates as the order moves through the kitchen, so it is the number to trust rather than the estimate at checkout.'},
-  {q:'Why is the chicken fried twice?', a:'The first fry cooks the bird through. The second drives the moisture out of the crust. It is what keeps the coating crisp under sauce, and it is why an order takes a few minutes longer than a single-fry kitchen.'},
-  {q:'When is the sauce added?', a:'After frying, to order. Nothing sits pre-sauced, which is why you choose the flavour when you order rather than picking from a warmer.'},
-  {q:'Can I order two flavours on one bird?', a:'Yes. Half and Half lets you choose any two sauces on a single bird. Pick them in the product screen before adding to your basket.'},
-  {q:'What if my suburb is not covered?', a:'Collection is available at both stores and takes about 20 minutes. Delivery areas widen as the estate grows, so a suburb outside the zone today may be inside it later.'},
-  {q:'How do points work?', a:'One point for every rand spent, on every fulfilment mode. Points post once the order is completed, and can be spent on any reward you have reached.'},
-  {q:'Can I change an order after placing it?', a:'Call the store directly. Once an order reaches Preparing the kitchen has already started, so changes are limited to additions.'},
-  {q:'Is the chicken halaal?', a:'Certification is confirmed per store and displayed in store. Ask the store before ordering if this matters to your order.'},
-];
-
-const FEES = {deliveryCents:2900, freeOverCents:35000, etaMin:35, etaMax:45, collectEta:20};
+/* The catalogue, generated from infra/seed by build-static-demo.mjs.
+   It used to be written out here a second time, with nothing checking the two
+   agreed. PRODUCTS, CATEGORIES, SAUCES, STORES, PROMOTIONS, REWARDS, TIERS,
+   FAQS and FEES all arrive from the seed now, so the demo cannot show a
+   different menu from the app. */
+/*__CATALOGUE__*/
 const ORDER_STATES = ['received','preparing','ready','out_for_delivery','completed'];
 const STATE_MSG = {
   received:'We have your order and the kitchen has it on the rail.',

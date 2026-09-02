@@ -31,6 +31,8 @@ export const SAUCES: readonly Sauce[] = [
   { name: 'Secret Sauce', heat: 4, note: 'Sweet heat' },
   { name: 'Hot Spicy', heat: 5, note: 'Hot' },
   { name: 'Cheesling', heat: 1, note: 'Cheese dust' },
+  { name: 'Gangnam Mayo', heat: 2, note: 'Creamy' },
+  { name: 'Sweet Chilli', heat: 3, note: 'Sweet heat' },
 ];
 
 const EXTRAS: OptionGroup = {
@@ -180,6 +182,26 @@ export const FAQS: readonly Faq[] = [
     question: 'Is the chicken halaal?',
     answer:
       'Certification is confirmed per store and displayed in store. Ask the store before ordering if this matters to your order.',
+  },
+  {
+    question: 'Do you cater for large tables?',
+    answer:
+      'Half and Half was built for it, and the sauced wings come in whole-wing portions meant to be shared. For a table of eight or more, call the store the day before so the kitchen can stage the order rather than cook it all at once.',
+  },
+  {
+    question: 'Which items are vegetarian?',
+    answer:
+      'Ddeok-Bokki, Rose Ddeok-Bokki, Cheese Ddeok-Bokki, French Fries and Sweet Potato Fries carry no chicken. They are cooked in a shared kitchen, so tell the store if this is an allergy rather than a preference.',
+  },
+  {
+    question: 'What is the difference between wings and boneless?',
+    answer:
+      'Wings are whole wings on the bone. Boneless is breast meat in the same crumb, cut into pieces. Both take any sauce, and boneless is the easier one to eat while walking.',
+  },
+  {
+    question: 'Why do some items show the same photograph?',
+    answer:
+      'Sixteen product photographs were supplied and the menu has grown past them. Items added since carry the closest supplied image rather than an invented one, and each is waiting on its own shoot.',
   },
 ];
 

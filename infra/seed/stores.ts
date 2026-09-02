@@ -1,8 +1,12 @@
 import type { Promotion, Reward, Store } from '@bbq/types';
 
 /**
- * Two stores at launch. Trading hours, telephone numbers, delivery suburb lists
- * and halaal certification are all demo values pending CLAUDE.md section 8.
+ * Three stores. Trading hours, telephone numbers, delivery suburb lists and
+ * halaal certification are all demo values pending CLAUDE.md section 8.
+ *
+ * Fourways Crossing closes at 23:00 rather than 22:00, so the estate has at
+ * least one store whose hours differ from the others -- a locator that only
+ * ever renders identical hours is not really being exercised.
  *
  * Waterfall Ridge has dine-in switched off. That rule is enforced here and in
  * the API, not only in the interface.
@@ -28,6 +32,17 @@ export const STORES: readonly Store[] = [
     distanceKm: 28.6,
     services: { Delivery: true, Collection: true, 'Dine-in': false },
     zones: ['Midrand', 'Kyalami', 'Sunninghill', 'Waterfall', 'Vorna Valley'],
+    halaal: 'Certification confirmed in store',
+  },
+  {
+    id: 'ST-FOU',
+    name: 'Fourways Crossing',
+    address: 'Witkoppen Road, Fourways, Johannesburg',
+    telephone: '011 000 0002',
+    hours: { opensMinute: 11 * 60, closesMinute: 23 * 60, label: '11:00 to 23:00, seven days' },
+    distanceKm: 17.4,
+    services: { Delivery: true, Collection: true, 'Dine-in': true },
+    zones: ['Fourways', 'Douglasdale', 'Lonehill', 'Craigavon', 'Dainfern', 'Broadacres'],
     halaal: 'Certification confirmed in store',
   },
 ];
@@ -60,11 +75,41 @@ export const PROMOTIONS: readonly Promotion[] = [
     validity: 'New accounts, one use',
     copy: 'Create an account and your first delivery order comes with regular fries.',
   },
+  {
+    id: 'OF-4',
+    title: 'Wings Wednesday',
+    productSlug: 'honey-garlic-wings',
+    code: 'MIDWEEK',
+    discountRate: 0.2,
+    validity: 'Every Wednesday, 11:00 to close',
+    copy: 'Twenty percent off every sauced wing. Collection and delivery, all three stores.',
+  },
+  {
+    id: 'OF-5',
+    title: 'Two sides, one price',
+    productSlug: 'sweet-potato-fries',
+    code: 'SIDEBYSIDE',
+    discountRate: 0.15,
+    validity: 'Daily after 20:00',
+    copy: 'Add a second side after eight and the cheaper of the two comes off the bill.',
+  },
+  {
+    id: 'OF-6',
+    title: 'Student Thursday',
+    productSlug: 'boneless',
+    code: 'CAMPUS',
+    discountRate: 0.15,
+    validity: 'Thursdays, with a valid student card at collection',
+    copy: 'Boneless and a side, fifteen percent off, collection only. Card checked in store.',
+  },
 ];
 
 export const REWARDS: readonly Reward[] = [
   { id: 'RW-1', name: 'Regular fries', points: 120 },
+  { id: 'RW-5', name: 'Sweet Potato Fries', points: 140 },
   { id: 'RW-2', name: 'Ddeok-Bokki side', points: 220 },
   { id: 'RW-3', name: 'Boneless Chicken', points: 480 },
+  { id: 'RW-6', name: 'Sauced Wings', points: 520 },
+  { id: 'RW-7', name: 'Wings and Rice Meal', points: 640 },
   { id: 'RW-4', name: 'Half and Half Chicken', points: 700 },
 ];

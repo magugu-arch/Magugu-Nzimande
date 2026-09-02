@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { CATEGORIES, PRODUCTS, PROMOTIONS, REWARDS, STORES, optionGroupsFor } from '@bbq/seed';
 import { OptionGroupSchema, ProductSchema, PromotionSchema, RewardSchema, StoreSchema } from '@bbq/types';
@@ -6,9 +6,14 @@ import { describe, expect, it } from 'vitest';
 
 const REPO = path.resolve(__dirname, '../../..');
 
+/** The supplied masters, read off disk rather than listed a second time. */
+const MASTERS = readdirSync(path.join(REPO, 'assets/food/masters'))
+  .filter((file) => file.endsWith('.jpg'))
+  .map((file) => file.replace(/\.jpg$/, ''));
+
 describe('catalogue', () => {
-  it('carries the sixteen products the handover documents', () => {
-    expect(PRODUCTS).toHaveLength(16);
+  it('carries the products the handover documents', () => {
+    expect(PRODUCTS).toHaveLength(24);
   });
 
   it('parses every product through its schema', () => {
@@ -29,9 +34,24 @@ describe('catalogue', () => {
     }
   });
 
-  it('uses every supplied master exactly once', () => {
+  /**
+   * The catalogue has outgrown the sixteen supplied masters, so a master is no
+   * longer one-to-one with a product: items added since reuse the one that
+   * most honestly depicts them. What must still hold is that no master goes
+   * unused — an unused one means a supplied photograph is being wasted, or a
+   * product was renamed and its image left behind.
+   */
+  it('uses every supplied master at least once', () => {
+    const used = new Set(PRODUCTS.map((product) => product.imageKey));
+    for (const master of MASTERS) {
+      expect(used.has(master), `nothing uses the ${master} master`).toBe(true);
+    }
+  });
+
+  it('reuses a master only where the catalogue has outgrown the supplied set', () => {
     const keys = PRODUCTS.map((product) => product.imageKey);
-    expect(new Set(keys).size).toBe(keys.length);
+    // Sixteen masters, so at most sixteen products can have one to themselves.
+    expect(new Set(keys).size).toBe(MASTERS.length);
   });
 
   it('puts every product in a declared category', () => {
