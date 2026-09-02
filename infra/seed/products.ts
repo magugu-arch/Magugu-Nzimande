@@ -251,7 +251,7 @@ export const PRODUCTS: readonly Product[] = [
     sauce: 'Soy garlic',
     description:
       'Whole wings tossed in the deep soy glaze after frying, so the crust holds under the sauce.',
-    imageKey: 'soy-garlic',
+    imageKey: 'soy-garlic-wings',
     nutrition: { allergens: 'Wheat, soya, sesame', kilojoules: 1_210 },
     soldOut: false,
   },
@@ -266,7 +266,7 @@ export const PRODUCTS: readonly Product[] = [
     tag: 'New',
     description:
       'Sticky honey and roasted garlic on whole wings, finished with sesame and spring onion.',
-    imageKey: 'honey-garlic',
+    imageKey: 'honey-garlic-wings',
     nutrition: { allergens: 'Wheat, soya, sesame', kilojoules: 1_240 },
     soldOut: false,
   },
@@ -280,7 +280,7 @@ export const PRODUCTS: readonly Product[] = [
     sauce: 'Hot spicy',
     description:
       'Gochujang and fresh chilli on whole wings, cut with sesame. The hottest thing on the menu.',
-    imageKey: 'hot-spicy',
+    imageKey: 'hot-spicy-wings',
     nutrition: { allergens: 'Wheat, soya, sesame', kilojoules: 1_255 },
     soldOut: false,
   },
@@ -294,7 +294,7 @@ export const PRODUCTS: readonly Product[] = [
     sauce: 'Secret sauce',
     description:
       'Breast pieces in the house sauce. Sweet at the front, hot at the back, and no bones to work around.',
-    imageKey: 'secret-sauce',
+    imageKey: 'secret-sauce-boneless',
     nutrition: { allergens: 'Wheat, soya, sesame', kilojoules: 1_150 },
     soldOut: false,
   },
@@ -308,7 +308,7 @@ export const PRODUCTS: readonly Product[] = [
     sauce: 'Choose sauce',
     tag: 'Meal deal',
     description: 'Five wings, steamed rice, house slaw, dipping sauce and a drink.',
-    imageKey: 'chicken-rice-meal',
+    imageKey: 'wings-rice-meal',
     nutrition: { allergens: 'Wheat, soya, egg', kilojoules: 2_180 },
     soldOut: false,
   },

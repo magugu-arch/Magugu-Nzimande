@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { CATEGORIES, FAQS, PRODUCTS, PROMOTIONS, REWARDS, SAUCES, STORES } from '@bbq/seed';
 import { describe, expect, it } from 'vitest';
@@ -62,11 +62,13 @@ describe('what the build will inject', () => {
    * on this too; this fails first, and says which product.
    */
   it('has a master for every product', () => {
+    // Read off disk, the same way the build discovers them. This used to parse
+    // a hardcoded KEYS array out of the build script, which meant the test
+    // asserted against a list rather than against the photographs.
     const masters = new Set(
-      readFileSync(path.resolve(__dirname, '../../../infra/scripts/build-static-demo.mjs'), 'utf8')
-        .match(/const KEYS = \[([\s\S]*?)\];/)?.[1]
-        ?.match(/'([^']+)'/g)
-        ?.map((quoted) => quoted.slice(1, -1)) ?? [],
+      readdirSync(path.resolve(__dirname, '../../../assets/food/masters'))
+        .filter((name) => name.endsWith('.jpg'))
+        .map((name) => name.replace(/\.jpg$/, '')),
     );
 
     expect(masters.size).toBeGreaterThan(0);

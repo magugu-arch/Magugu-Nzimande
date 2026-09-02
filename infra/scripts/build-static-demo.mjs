@@ -11,6 +11,7 @@
  * which is generated and not committed.
  */
 
+import { readdirSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,25 +35,18 @@ const FOOD = path.join(REPO, 'assets/food/masters');
 const BRAND = path.join(REPO, 'assets/brand/masters');
 const OUT_DIR = path.join(REPO, 'apps/web/static-demo');
 
-/** Every master, by the image key the catalogue uses. */
-const KEYS = [
-  'golden-original',
-  'honey-garlic',
-  'soy-garlic',
-  'secret-sauce',
-  'hot-spicy',
-  'cheesling',
-  'half-and-half',
-  'golden-original-wings',
-  'boneless',
-  'chicken-rice-meal',
-  'chicken-burger',
-  'korean-rice-bowl',
-  'french-fries',
-  'cheesling-fries',
-  'ddeok-bokki',
-  'rose-ddeok-bokki',
-];
+/**
+ * Every master, by the image key the catalogue uses.
+ *
+ * Read off disk rather than listed here. The list was a second place to
+ * remember a photograph: a master could be added, wired to a product, and
+ * still be missing from the build because nobody edited this array. The
+ * derivative script has always worked this way.
+ */
+const KEYS = readdirSync(FOOD)
+  .filter((name) => name.endsWith('.jpg'))
+  .map((name) => name.replace(/\.jpg$/, ''))
+  .sort();
 
 /** Only these are ever shown in a 16:9 crop, so only these need one. */
 const WIDE = [
