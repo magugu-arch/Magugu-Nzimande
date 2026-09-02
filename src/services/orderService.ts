@@ -420,7 +420,20 @@ function advance(order: Order): Order {
  */
 async function attachDelivery(order: Order, idempotencyKey?: string): Promise<Order> {
   if (order.fulfilmentType !== 'delivery') return order;
-  if (order.status === 'cancelled') return order;
+  /**
+   * A finished order has nothing left to arrange, and this guard is the whole
+   * reason the function checks anything before calling out.
+   *
+   * Without it, every delivery order in the history qualified — `completed` is
+   * past `ready`, so the "kitchen has something to collect" test passed — and
+   * opening the Orders tab dispatched a courier for an order delivered last
+   * week. Once per order, per list fetch, against a real network that bills
+   * for it. The seeded history alone did it to BBQ-4821 every time.
+   *
+   * The job itself is kept: it is part of the record of how that order got
+   * there. It is simply never asked about again.
+   */
+  if (order.status === 'completed' || order.status === 'cancelled') return order;
 
   const sequence = statusSequence(order.fulfilmentType);
   const kitchenReachedReady = sequence.indexOf(order.status) >= sequence.indexOf('ready');

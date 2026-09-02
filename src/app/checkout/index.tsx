@@ -30,6 +30,7 @@ import { useNetworkStatus } from '@/features/system/useNetworkStatus';
 import { useNow } from '@/features/system/useNow';
 import { useCartStore } from '@/store/cartStore';
 import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfilmentStore';
+import { useCourierServiceability } from '@/features/checkout/courierServiceability';
 import { colors, radius, spacing } from '@/theme';
 import { describeOptions, meetsDeliveryMinimum } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
@@ -190,6 +191,15 @@ export default function CheckoutScreen() {
    */
   const mustNotRetry = failure !== null && !safeToRetry(failure);
 
+  /**
+   * The courier network's own answer, which is a different question from the
+   * branch's delivery radius: one says how far bb.q will drive, the other says
+   * whether anybody will actually drive it. Advisory by construction — it
+   * refuses only a *located* address the provider positively declines. See
+   * `courierServiceability`.
+   */
+  const courier = useCourierServiceability(fulfilmentType, store, address, totals.total);
+
   const blocker = useMemo(() => {
     if (lines.length === 0) return 'Your cart is empty';
     if (!meetsDeliveryMinimum(totals.subtotal, fulfilmentType)) {
@@ -204,10 +214,14 @@ export default function CheckoutScreen() {
       now,
     });
     if (fulfilmentBlocker) return fulfilmentBlocker;
+    // After the app's own rules, because those are cheaper and more certain:
+    // an empty cart or a closed store is a better message than a courier's.
+    if (courier.refusal) return courier.refusal;
     if (!selectedPayment) return 'Choose a payment method';
 
     return null;
   }, [
+    courier.refusal,
     lines.length,
     totals.subtotal,
     fulfilmentType,

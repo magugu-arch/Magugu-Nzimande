@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { SubmitFailure } from '@/features/checkout/submitOrder';
 import { stores } from '@/services/data/storeData';
 import { useCartStore } from '@/store/cartStore';
@@ -87,7 +88,14 @@ jest.mock('@/features/system/useNow', () => ({
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const CheckoutScreen = require('@/app/checkout/index').default;
 
+// Checkout asks the courier network whether it will serve the address, which
+// goes through TanStack Query like every other fetch — so the screen needs the
+// provider it has in the app. Retries off, so a query settles immediately and
+// the assertions are about the screen rather than about retry timing.
 function Wrapped({ children }: { children: ReactNode }) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
   return (
     <SafeAreaProvider
       initialMetrics={{
@@ -95,7 +103,7 @@ function Wrapped({ children }: { children: ReactNode }) {
         insets: { top: 47, left: 0, right: 0, bottom: 34 },
       }}
     >
-      {children}
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
     </SafeAreaProvider>
   );
 }

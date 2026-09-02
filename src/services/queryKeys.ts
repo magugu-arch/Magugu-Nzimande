@@ -19,6 +19,18 @@ export const queryKeys = {
    * since been given coordinates, nor overwrite one that was.
    */
   storesAnywhere: () => ['stores', 'anywhere'] as const,
+
+  /**
+   * A courier's serviceability quote. Keyed by everything it depends on, so a
+   * reply for an address the customer has since changed is never read as an
+   * answer about the new one.
+   */
+  courierQuote: (
+    storeId: string | undefined,
+    latitude: number | undefined,
+    longitude: number | undefined,
+    orderValue: number,
+  ) => ['courier', 'quote', storeId ?? '', latitude ?? '', longitude ?? '', orderValue] as const,
   store: (storeId: string) => ['stores', storeId] as const,
 
   orders: ['orders'] as const,

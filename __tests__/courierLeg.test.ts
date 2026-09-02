@@ -1,5 +1,5 @@
 import { mockDeliveryProvider, resetMockDeliveryJobs } from '@/providers/delivery';
-import { fetchOrder, placeOrder, statusSequence } from '@/services/orderService';
+import { fetchOrder, fetchOrders, placeOrder, statusSequence } from '@/services/orderService';
 import { newIdempotencyKey } from '@/utils/idempotency';
 import type { CartTotals, PlaceOrderInput } from '@/types';
 
@@ -112,6 +112,41 @@ describe('requesting a courier', () => {
     const tracked = await fetchOrder(placed.id);
     expect(tracked.delivery).toBeUndefined();
     expect(tracked.driverName).toBeUndefined();
+  });
+});
+
+describe('an order that is over', () => {
+  /**
+   * The defect this closes, found by asking what opening the Orders tab
+   * actually does: every delivery order in the history qualified for a courier,
+   * because `completed` is past `ready` and the guard only asked whether the
+   * kitchen had finished. So the list dispatched a driver for an order
+   * delivered last week — once per order, per fetch, against a network that
+   * bills for it.
+   */
+  it('never dispatches a courier for an order already delivered', async () => {
+    const create = jest.spyOn(mockDeliveryProvider, 'create');
+    const orders = await fetchOrders();
+
+    // The seeded history is what caught this: it contains a completed delivery.
+    expect(orders.some((o) => o.fulfilmentType === 'delivery' && o.status === 'completed')).toBe(
+      true,
+    );
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('does not keep asking about a job once the order is done', async () => {
+    const placed = await placeOrder(deliveryOrder());
+    const now = Date.now();
+
+    // Long enough that the whole journey, courier included, has finished.
+    jest.spyOn(Date, 'now').mockReturnValue(now + 120 * 60_000);
+    const finished = await fetchOrder(placed.id);
+    expect(finished.status).toBe('completed');
+
+    const getStatus = jest.spyOn(mockDeliveryProvider, 'getStatus');
+    await fetchOrder(placed.id);
+    expect(getStatus).not.toHaveBeenCalled();
   });
 });
 

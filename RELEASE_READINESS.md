@@ -47,6 +47,30 @@ gates a live map on `trackingAvailable` — a fact about the provider's
 authorisation, not about the UI. The map itself is deliberately not drawn; see
 blockers.
 
+## 2a. Fixed after the first pass
+
+Two things found by asking what the new code actually does rather than whether
+its tests pass.
+
+**A courier dispatched for orders already delivered.** `attachDelivery` asked
+only whether the kitchen had finished, and `completed` is past `ready` — so
+every delivery order in the history qualified. Opening the Orders tab
+dispatched a driver for an order delivered last week, once per order per fetch,
+against a network that bills for it. The seeded history did it to BBQ-4821
+every time. Terminal orders now return early; the job is kept as part of the
+record and never asked about again.
+
+**`quote()` was on the interface and nothing called it.** An interface method
+nobody invokes is a promise about a boundary rather than a boundary. Checkout
+now asks the courier network whether it will serve the address — a different
+question from the branch's `deliveryRadiusKm`, which says how far bb.q will
+drive rather than whether anybody will drive it. Only a *located* address the
+provider positively declines blocks an order: a refusal caused by the app never
+geocoding the address is the app's own gap, and refusing over it would turn a
+documented limitation into a lost order. A provider that is unreachable never
+blocks either. Verified by `audit:delivery-range`, which still shows a typed-in
+address being accepted.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -100,10 +124,10 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **61 suites, 962 tests**, typecheck and lint clean
+- `npm run verify` — **62 suites, 970 tests**, typecheck and lint clean
 - `npm run audit:screens` — 31 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
-  `audit:handover` — all green
+  `audit:handover`, `audit:delivery-range` — all green
 - The courier leg driven in a browser across a simulated 70 minutes: no driver
   named at placement; "Sipho is collecting your order" at assignment; "Sipho is
   on the way" after pickup; completed at the end. That run caught a real defect
