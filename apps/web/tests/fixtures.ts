@@ -76,6 +76,39 @@ export function aDiscountingChoice(group: OptionGroup): { label: string; deltaCe
   );
 }
 
+/**
+ * A store built to order, for the cases the seed catalogue cannot reach.
+ *
+ * Both seeded stores keep ordinary daytime hours, so the wrap-past-midnight
+ * branch of `isOpenNow` has no real store that exercises it. Rather than bend
+ * the seed data — which is the demo catalogue and answers to the franchisor —
+ * a test that needs a store closing at 02:00 asks for one here.
+ */
+export function storeWithHours(opensMinute: number, closesMinute: number): Store {
+  return {
+    id: 'ST-TEST',
+    name: 'Test Store',
+    address: '1 Test Road',
+    telephone: '011 000 0000',
+    hours: { opensMinute, closesMinute },
+    distanceKm: 1,
+    services: { Delivery: true, Collection: true, 'Dine-in': true },
+    zones: ['Testville'],
+    halaal: 'Not certified',
+  } as Store;
+}
+
+/** Minutes since midnight, for readable trading-hour fixtures. */
+export const at = (hour: number, minute = 0): number => hour * 60 + minute;
+
+/** A UTC instant for a given SAST wall-clock time. SAST is UTC+2, no DST. */
+export function sast(isoDate: string, hour: number, minute = 0): Date {
+  const utcHour = hour - 2;
+  const day = new Date(`${isoDate}T00:00:00Z`);
+  day.setUTCMinutes(utcHour * 60 + minute);
+  return day;
+}
+
 // ---------------------------------------------------------------------------
 // Building requests
 // ---------------------------------------------------------------------------
@@ -170,6 +203,42 @@ export async function operatorCookie(): Promise<string> {
   expect(response.status).toBe(200);
   const value = response.headers.get('set-cookie')?.split(';')[0]?.split('=').slice(1).join('=');
   return `${SESSION_COOKIE}=${value ?? ''}`;
+}
+
+// ---------------------------------------------------------------------------
+// Standing in for the network
+// ---------------------------------------------------------------------------
+
+export type StubbedResponse = { status?: number; body: unknown };
+
+/**
+ * Replaces `fetch` for the browser-side service layer.
+ *
+ * `client-api` is the layer that parses every response through its schema so a
+ * shape the API did not promise fails there rather than three components
+ * later. Testing that means handing it shapes on purpose, which means standing
+ * in for the network rather than reaching it.
+ *
+ * Returns a restore function; call it in `afterEach` so one suite's stub
+ * cannot leak into the next.
+ */
+export function stubFetch(
+  reply: (path: string, init?: RequestInit) => StubbedResponse,
+): () => void {
+  const original = globalThis.fetch;
+
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const path = typeof input === 'string' ? input : input.toString();
+    const { status = 200, body } = reply(path, init);
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { 'content-type': 'application/json' },
+    });
+  }) as typeof fetch;
+
+  return () => {
+    globalThis.fetch = original;
+  };
 }
 
 // ---------------------------------------------------------------------------

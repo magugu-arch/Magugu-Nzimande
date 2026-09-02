@@ -135,6 +135,19 @@ passing an override, not by writing a second definition.
 defaults to one path in the temp directory, so without this two suites that
 both write it race and fail each other in ways neither shows when run alone.
 
+Two fixtures exist to reach what the seed data cannot. `storeWithHours()`
+builds a synthetic store — the seeded stores keep daytime hours, so the
+wrap-past-midnight branch of `isOpenNow` has no real store that exercises it,
+and the demo catalogue answers to the franchisor rather than to a test.
+`stubFetch()` stands in for the network so `client-api` can be handed the
+malformed responses it exists to reject.
+
+New assertions are checked against a mutation rather than assumed: break the
+rule on purpose, confirm the test fails, put it back. That is how the two
+cancellation-reason tests turned out to be pinning only the route's guard and
+not the order store's own — the route refuses first, so deleting the store's
+guard changed nothing they could see.
+
 ---
 
 ## Money
