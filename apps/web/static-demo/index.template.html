@@ -961,14 +961,21 @@ function placeOrder(){
   go('/journey');
 }
 
-function advanceOrder(id){
+/** Moves an order one state along. Returns it if it moved, null if it could not. */
+function stepOrder(id){
   const order = S.orders.find((o) => o.id === id);
-  if(!order || order.status === 'cancelled') return;
+  if(!order || order.status === 'cancelled' || order.status === 'completed') return null;
   const states = statesFor(order.mode);
   const at = states.indexOf(order.status);
-  if(at === -1 || at === states.length - 1) return;
+  if(at === -1 || at === states.length - 1) return null;
   order.status = states[at + 1];
   audit('kitchen', 'Order ' + order.orderNumber + ' moved to ' + stateLabel(order.status, order.mode));
+  return order;
+}
+
+function advanceOrder(id){
+  const order = stepOrder(id);
+  if(!order) return;
   announce('Order status: ' + stateLabel(order.status, order.mode) + '.');
   render();
 }
@@ -1409,7 +1416,9 @@ function viewOffers(){
     + '<ul class="grid grid-3 mt-8">' + PROMOTIONS.map((o) => {
         const p = product(o.slug);
         return '<li class="card" style="box-shadow:var(--e1)">'
-          + (p ? '<img src="' + IMG_WIDE[p.img] || IMG[p.img] + '" alt="' + esc(p.name) + '" loading="lazy" style="height:176px;width:100%;object-fit:cover">' : '')
+          /* Parenthesised: + binds tighter than ||, so without them the tag was
+             cut off after the source and the rest of the attributes were lost. */
+          + (p ? '<img src="' + (IMG_WIDE[p.img] || IMG[p.img]) + '" alt="' + esc(p.name) + '" loading="lazy" style="height:176px;width:100%;object-fit:cover">' : '')
           + '<div class="body" style="padding:20px">'
             + '<h2 class="display h-sm">' + esc(o.title) + '</h2>'
             + '<p class="sm muted mt-2 flex-1" style="line-height:1.7">' + esc(o.copy) + '</p>'
@@ -2313,10 +2322,35 @@ function startTicker(){
   }, 5000);
 }
 
+/* ---------- The kitchen ----------
+   An order moves itself along every twenty seconds, standing in for the
+   kitchen display system the production build polls, so the five states can be
+   watched end to end. The manual control on the journey screen stays, for
+   walking someone through it at their own pace. */
+
+const KITCHEN_TICK_MS = 20000;
+
+function startKitchen(){
+  setInterval(() => {
+    const tracked = S.orders.find((o) => o.id === S.trackedId) || S.orders[0];
+    if(!tracked) return;
+    const order = stepOrder(tracked.id);
+    if(!order) return;
+
+    /* Repainted only where the change is on screen. A repaint under someone
+       part-way through checkout would take their caret with it. */
+    if(S.route === '/journey' || S.route === '/admin'){
+      announce('Order status: ' + stateLabel(order.status, order.mode) + '.');
+      render();
+    }
+  }, KITCHEN_TICK_MS);
+}
+
 /* ---------- Boot ---------- */
 
 load();
 S.route = parseRoute();
 render();
 startTicker();
+startKitchen();
 </script>
