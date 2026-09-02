@@ -32,30 +32,51 @@ export default function OfferDetailScreen() {
   const resetLabel = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
-   * Copy the promo code, and say the code out loud if copying is refused.
+   * Copy the promo code, and say the code out loud if the copy did not happen.
    *
-   * `setStringAsync` had no catch, and `setCopied(true)` sat after the await —
-   * so a rejection was an unhandled promise *and* a button that gave no
-   * feedback whatsoever. The customer taps Copy, nothing changes, and they
-   * still have no code.
+   * Two ways this failed, and the second is the one worth reading.
    *
-   * Rejection is ordinary on web, not exotic. `navigator.clipboard.writeText`
-   * throws `NotAllowedError` when the document is not focused, when the
-   * permission is denied, and inside an iframe without `clipboard-write` —
-   * which is how a published web preview of this app is rendered. Confirmed in
-   * Chromium: an iframe without that permission fails with "Document is not
-   * focused."
+   * `setStringAsync` was awaited with no catch, and `setCopied(true)` sat
+   * after the await — so a rejection was an unhandled promise and a button
+   * that never changed. That is the native path.
    *
-   * The fallback follows `callNumber` in `utils/linking`: when the handoff
+   * `setStringAsync` also *resolves with a boolean*, which the old code threw
+   * away — reading "resolved" as "copied" and putting a tick on the button
+   * whatever came back. That tick is a claim, and a customer who trusts it
+   * reaches checkout with an empty paste.
+   *
+   * Both are handled below. What is **not** handled, and cannot be from here:
+   * a silent failure on web. `expo-clipboard`'s plain-text path tries
+   * `navigator.clipboard.writeText`, falls back on any failure to a textarea
+   * and `document.execCommand('copy')`, and its `legacySetString` then
+   * discards `execCommand`'s own return value and reports `true` unless it
+   * *throws*. Verified in Chromium against this build: with `writeText`
+   * rejecting and `execCommand` returning false, `setStringAsync` still
+   * resolves `true`. So on web the library reports a success the browser did
+   * not perform, and no caller can tell.
+   *
+   * That is survivable here for one reason, and it is worth keeping true: the
+   * code is on screen, in the dashed box beside this button. A customer whose
+   * copy silently failed can still read it and type it. Do not move the code
+   * behind the Copy button.
+   *
+   * The notice follows `callNumber` in `utils/linking`: when the handoff
    * cannot be made, tell them what they need so they can still act on it.
    */
   const handleCopyCode = useCallback(async (code: string) => {
+    let onClipboard = false;
     try {
-      await Clipboard.setStringAsync(code);
+      // Returns whether the text actually landed. Ignoring it was the bug.
+      onClipboard = await Clipboard.setStringAsync(code);
     } catch {
+      onClipboard = false;
+    }
+
+    if (!onClipboard) {
       void tell('Copy the code by hand', `Your code is ${code}. Enter it in the cart at checkout.`);
       return;
     }
+
     setCopied(true);
     // Tracked and cleared on unmount: the label resets 2.2s later, and leaving
     // the timer running meant a customer who tapped Copy and immediately went

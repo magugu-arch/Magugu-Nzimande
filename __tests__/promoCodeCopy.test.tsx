@@ -8,20 +8,28 @@ import { promotions } from '@/services/data/rewardsData';
 import { useDialogStore } from '@/ux/dialog';
 
 /**
- * Copying a promo code, and what happens when the browser says no.
+ * Copying a promo code, and what happens when the copy does not happen.
  *
- * The same family as the `Alert` defect: a tap that silently does nothing on
- * web. `Clipboard.setStringAsync` was awaited with no catch and `setCopied`
- * sat after it, so a rejection was an unhandled promise *and* a button that
- * never changed — the customer taps Copy, nothing happens, and they still have
- * no code to type at checkout.
+ * Found by sweeping for the rest of the `Alert` family — a tap that quietly
+ * does the wrong thing on web — and the two platforms fail differently.
  *
- * Rejection here is ordinary rather than exotic. `navigator.clipboard
- * .writeText` throws `NotAllowedError` when the document is not focused, when
- * the permission is refused, and inside an iframe without `clipboard-write` —
- * which is how a published web preview of this app is rendered. Reproduced in
- * Chromium: an iframe without that permission fails with "Document is not
- * focused."
+ * Native rejects: `setStringAsync` was awaited with no catch and `setCopied`
+ * sat after it, so a failure was an unhandled promise and a button that never
+ * changed.
+ *
+ * The API also *resolves with a boolean*, which the old code threw away: it
+ * read "resolved" as "copied" and put a tick on the button whatever came back.
+ * That tick is a claim, and a customer who trusts it reaches checkout with an
+ * empty paste.
+ *
+ * Both are covered below. One case is **not**, and the test for it would be
+ * dishonest to write: on web, `expo-clipboard`'s `legacySetString` fallback
+ * discards `document.execCommand`'s return value and reports `true` unless it
+ * throws. Verified in Chromium against the real build — with `writeText`
+ * rejecting and `execCommand` returning false, `setStringAsync` still resolves
+ * `true`. The library reports a success the browser did not perform and no
+ * caller can tell. What saves it is that the code is on screen next to the
+ * button, so a silent failure is still readable and typeable.
  */
 const codedOffer = promotions.find((promotion) => promotion.promoCode);
 // `mock`-prefixed so the factory below may close over it.
@@ -77,11 +85,28 @@ describe('copying a promo code', () => {
   });
 
   /**
-   * The defect, as a customer meets it. Before the catch, this test would have
-   * failed on the unhandled rejection rather than on the assertion — which is
-   * the point: there was no path through the failure at all.
+   * The web failure, and the one the old code got wrong in the dangerous
+   * direction: a resolved promise carrying `false`.
    */
-  it('gives the customer the code when the clipboard refuses', async () => {
+  it('never claims a copy that returned false', async () => {
+    jest.spyOn(Clipboard, 'setStringAsync').mockResolvedValue(false);
+    const screen = render(withQueryClient(<OfferDetailScreen />));
+
+    const button = await screen.findByTestId('offer-copy-code');
+    button.props.onClick?.({});
+
+    await waitFor(() => expect(useDialogStore.getState().queue).toHaveLength(1));
+    expect(useDialogStore.getState().queue[0]?.message).toContain(codedOffer?.promoCode);
+    // The tick is the whole hazard: it is a claim the app cannot support.
+    expect(screen.queryByText('Copied')).toBeNull();
+  });
+
+  /**
+   * The native failure. Before the catch, this test would have failed on the
+   * unhandled rejection rather than on the assertion — there was no path
+   * through it at all.
+   */
+  it('gives the customer the code when the clipboard throws', async () => {
     jest
       .spyOn(Clipboard, 'setStringAsync')
       .mockRejectedValue(
