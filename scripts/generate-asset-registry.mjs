@@ -15,38 +15,26 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { foodCatalogue } from './lib/food-catalogue.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const VARIANTS = ['thumb', 'card', 'detail', 'banner'];
 
-/** Catalogue order matches FOOD_ASSET_KEYS in src/constants/foodAssets.ts. */
-const CATALOGUE = [
-  ['goldenOriginal', 'golden-original'],
-  ['honeyGarlic', 'honey-garlic'],
-  ['soyGarlic', 'soy-garlic'],
-  ['secretSauce', 'secret-sauce'],
-  ['hotSpicy', 'hot-spicy'],
-  ['cheesling', 'cheesling'],
-  ['goldenOriginalWings', 'golden-original-wings'],
-  ['boneless', 'boneless'],
-  ['halfAndHalf', 'half-and-half'],
-  ['chickenRiceMeal', 'chicken-rice-meal'],
-  ['chickenBurger', 'chicken-burger'],
-  ['koreanRiceBowl', 'korean-rice-bowl'],
-  ['frenchFries', 'french-fries'],
-  ['cheeslingFries', 'cheesling-fries'],
-  ['ddeokBokki', 'ddeok-bokki'],
-  ['roseDdeokBokki', 'rose-ddeok-bokki'],
-];
+/**
+ * The catalogue, read off `src/constants/foodAssets.ts` rather than typed out
+ * again — see `lib/food-catalogue.mjs` for why this is parsed rather than
+ * imported, and what the second copy used to cost.
+ */
+const CATALOGUE = foodCatalogue();
 
-const present = CATALOGUE.filter(([, filename]) =>
+const present = CATALOGUE.filter(({ filename }) =>
   VARIANTS.every((variant) =>
     fs.existsSync(path.join(root, 'assets', 'food', variant, `${filename}.jpg`)),
   ),
 );
 
 const entries = present
-  .map(([key, filename]) => {
+  .map(({ key, filename }) => {
     const lines = VARIANTS.map(
       (variant) => `    ${variant}: require('@assets/food/${variant}/${filename}.jpg'),`,
     ).join('\n');
@@ -76,5 +64,5 @@ fs.writeFileSync(outPath, file, 'utf8');
 
 console.log(
   `Asset registry: ${present.length}/${CATALOGUE.length} products wired ` +
-    `(${present.map(([key]) => key).join(', ') || 'none'}).`,
+    `(${present.map(({ key }) => key).join(', ') || 'none'}).`,
 );

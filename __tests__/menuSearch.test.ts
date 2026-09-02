@@ -43,7 +43,15 @@ describe('a customer typing the name of a dish', () => {
     const one = names('chicken');
     const two = names('chicken burger');
     expect(one.length).toBeGreaterThan(two.length);
-    expect(two).toEqual(['Chicken Burger']);
+
+    // Both burgers, and that is the right answer: Cheesling Burger's own
+    // description opens "Crispy chicken burger". This asserted the single name
+    // `['Chicken Burger']` while the menu happened to hold one burger — a
+    // claim about the catalogue wearing the shape of a claim about search.
+    // What narrowing means is that every survivor matches both words.
+    expect(two).toContain('Chicken Burger');
+    expect(two).toContain('Cheesling Burger');
+    expect(two.every((name) => one.includes(name))).toBe(true);
   });
 
   it('keeps the menu order among equally good matches', () => {
@@ -60,14 +68,25 @@ describe('a customer typing the name of a dish', () => {
  * the search's fault rather than the kitchen's.
  */
 describe('when no dish matches every word', () => {
+  /**
+   * The query used to be "honey garlic wings", chosen because no single dish
+   * carried all three words — the menu had sauced chicken and plain wings and
+   * nothing in between. The menu extension added Honey Garlic Wings, so that
+   * query now has an exact answer and stopped testing the fallback at all.
+   * It passed for a while as a test of the wrong thing.
+   *
+   * "cheesling rice bowl" is the same shape against the menu as it now stands:
+   * Korean Rice Bowl carries two of the three words, the cheesling dishes
+   * carry one, and nothing carries all three.
+   */
   it('offers what matched some of them, most first', () => {
-    const found = names('honey garlic wings');
-    expect(found[0]).toBe('Honey Garlic Chicken');
-    expect(found).toContain('Golden Original Wings');
+    const found = names('cheesling rice bowl');
+    expect(found[0]).toBe('Korean Rice Bowl');
+    expect(found).toContain('Cheesling Fries');
   });
 
   it('does not fall back so far that it offers the whole menu', () => {
-    expect(names('honey garlic wings').length).toBeLessThan(products.length);
+    expect(names('cheesling rice bowl').length).toBeLessThan(products.length);
   });
 
   it('still finds nothing when there is nothing to find', () => {

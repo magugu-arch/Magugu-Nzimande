@@ -17,9 +17,32 @@ import { promotions, rewards, vouchers } from '@/services/data/rewardsData';
 const VARIANTS: ImageVariant[] = ['thumb', 'card', 'detail', 'banner'];
 
 describe('food asset catalogue', () => {
-  it('covers all 16 products the brief requires', () => {
-    expect(FOOD_ASSET_KEYS).toHaveLength(16);
-    expect(new Set(FOOD_ASSET_KEYS).size).toBe(16);
+  it('names every product exactly once', () => {
+    // The count itself is not the assertion — it was `toHaveLength(16)`, which
+    // is the size of the menu restated in a test, and the menu extension broke
+    // it with nothing wrong. A key appearing twice is the defect: it makes one
+    // product's artwork silently overwrite another's in every record built
+    // from this list.
+    expect(new Set(FOOD_ASSET_KEYS).size).toBe(FOOD_ASSET_KEYS.length);
+    expect(FOOD_ASSET_KEYS.length).toBeGreaterThan(0);
+  });
+
+  it('has artwork for every product on the menu, and no key nothing uses', () => {
+    // The relationship that matters, in place of the count: the catalogue and
+    // the menu describe the same set of products. A key with no product is
+    // artwork nobody sees; a product with no key would not compile.
+    const used = new Set<string>();
+    for (const category of menuSnapshot.categories) used.add(category.assetKey);
+    for (const product of menuSnapshot.products) {
+      used.add(product.assetKey);
+      for (const group of product.optionGroups) {
+        for (const option of group.options) {
+          if (option.assetKey) used.add(option.assetKey);
+        }
+      }
+    }
+    const unused = FOOD_ASSET_KEYS.filter((key) => !used.has(key));
+    expect(unused).toEqual([]);
   });
 
   it('has a label and a filename for every key', () => {

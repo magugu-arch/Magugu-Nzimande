@@ -24,7 +24,19 @@ import { suppliedFoodAssets } from './foodAssetRegistry';
  * and no screen changes — the product stops substituting on the next build.
  */
 
-/** The 16 products the brief requires artwork for. */
+/**
+ * Every product the brief requires artwork for.
+ *
+ * The first sixteen are the original catalogue. The last eight came with the
+ * menu-extension brief, which supplied a photograph per product and required
+ * each to be used as the canonical artwork rather than substituted — so all
+ * twenty-four are wired, and `SUBSTITUTE_ASSET_KEYS` stays empty.
+ *
+ * `scripts/generate-asset-registry.mjs` reads this array to decide what to
+ * wire, and derives each master's filename by kebab-casing the key. Adding a
+ * product is therefore one entry here plus one file in
+ * `assets/food/masters/<kebab-key>.jpg`.
+ */
 export const FOOD_ASSET_KEYS = [
   'goldenOriginal',
   'honeyGarlic',
@@ -42,6 +54,15 @@ export const FOOD_ASSET_KEYS = [
   'cheeslingFries',
   'ddeokBokki',
   'roseDdeokBokki',
+  // Menu extension.
+  'honeyGarlicWings',
+  'soyGarlicWings',
+  'secretSauceBoneless',
+  'hotSpicyWings',
+  'wingsRiceMeal',
+  'cheeslingBurger',
+  'sweetPotatoFries',
+  'cheeseDdeokBokki',
 ] as const;
 
 export type FoodAssetKey = (typeof FOOD_ASSET_KEYS)[number];
@@ -64,9 +85,9 @@ export const foodAssets = suppliedFoodAssets;
 /**
  * Stand-in photography for products whose own shoot has not landed yet.
  *
- * **Empty, and it should stay that way.** All 16 catalogue products now carry
- * their own supplied bb.q photograph, so nothing borrows and nothing renders
- * the placeholder tile.
+ * **Empty, and it should stay that way.** Every catalogue product carries its
+ * own supplied bb.q photograph, so nothing borrows and nothing renders the
+ * placeholder tile.
  *
  * The mechanism is kept for the next product added to the menu ahead of its
  * shoot. Map the new key to the closest supplied asset by visual family —
@@ -137,24 +158,34 @@ export const FOOD_ASSET_LABELS: Record<FoodAssetKey, string> = {
   cheeslingFries: 'Cheesling Fries',
   ddeokBokki: 'Ddeok-Bokki',
   roseDdeokBokki: 'Rose Ddeok-Bokki',
+  honeyGarlicWings: 'Honey Garlic Wings',
+  soyGarlicWings: 'Soy Garlic Wings',
+  secretSauceBoneless: 'Secret Sauce Boneless',
+  hotSpicyWings: 'Hot Spicy Wings',
+  wingsRiceMeal: 'Wings Rice Meal',
+  cheeslingBurger: 'Cheesling Burger',
+  sweetPotatoFries: 'Sweet Potato Fries',
+  cheeseDdeokBokki: 'Cheese Ddeok-Bokki',
 };
 
-/** Filename stem the derivative pipeline expects for each key. */
-export const FOOD_ASSET_FILENAMES: Record<FoodAssetKey, string> = {
-  goldenOriginal: 'golden-original',
-  honeyGarlic: 'honey-garlic',
-  soyGarlic: 'soy-garlic',
-  secretSauce: 'secret-sauce',
-  hotSpicy: 'hot-spicy',
-  cheesling: 'cheesling',
-  goldenOriginalWings: 'golden-original-wings',
-  boneless: 'boneless',
-  halfAndHalf: 'half-and-half',
-  chickenRiceMeal: 'chicken-rice-meal',
-  chickenBurger: 'chicken-burger',
-  koreanRiceBowl: 'korean-rice-bowl',
-  frenchFries: 'french-fries',
-  cheeslingFries: 'cheesling-fries',
-  ddeokBokki: 'ddeok-bokki',
-  roseDdeokBokki: 'rose-ddeok-bokki',
-};
+/**
+ * Filename stem the derivative pipeline expects for each key.
+ *
+ * Derived, not typed out. This was a hand-written record of all sixteen keys
+ * mapped to their own names in kebab-case — `roseDdeokBokki` to
+ * `rose-ddeok-bokki`, sixteen times — beside a second copy in
+ * `generate-asset-registry.mjs` and a third in `audit-food-assets.mjs`, each
+ * with a comment asking the next person to keep it in step with the others.
+ * Nothing checked that any of them had. A key missing from one of those lists
+ * is not a build error; it is a product whose supplied photograph silently
+ * never reaches the app.
+ *
+ * Eight new products was the first time anyone had to add a row to all four.
+ * The scripts now read this module rather than restating it, so the mapping
+ * exists once and adding a product is one key plus one master file.
+ */
+const kebabCase = (key: string): string => key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+
+export const FOOD_ASSET_FILENAMES: Record<FoodAssetKey, string> = Object.fromEntries(
+  FOOD_ASSET_KEYS.map((key) => [key, kebabCase(key)]),
+) as Record<FoodAssetKey, string>;

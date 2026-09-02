@@ -4,7 +4,7 @@
  *
  * The brief requires that every template food image be replaced by a supplied
  * bb.q master, with no generic or placeholder food imagery in the production UI.
- * This script is the gate: it reports which of the 16 catalogue products still
+ * This script is the gate: it reports which catalogue products still
  * have no artwork, and exits non-zero while any are outstanding — so a release
  * build cannot quietly ship with branded placeholders in the menu.
  *
@@ -14,35 +14,27 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { foodCatalogue } from './lib/food-catalogue.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const mastersDir = path.join(root, 'assets', 'food', 'masters');
 const VARIANTS = ['thumb', 'card', 'detail', 'banner'];
 
-// Kept in step with FOOD_ASSET_FILENAMES in src/constants/foodAssets.ts.
 /** Mirrors SUBSTITUTE_ASSET_KEYS in src/constants/foodAssets.ts. */
 // Empty while every product has its own artwork; mirrors
 // SUBSTITUTE_ASSET_KEYS in src/constants/foodAssets.ts.
 const SUBSTITUTES = {};
 
-const CATALOGUE = [
-  ['goldenOriginal', 'golden-original', 'Golden Original Chicken'],
-  ['honeyGarlic', 'honey-garlic', 'Honey Garlic Chicken'],
-  ['soyGarlic', 'soy-garlic', 'Soy Garlic Chicken'],
-  ['secretSauce', 'secret-sauce', 'Secret Sauce Chicken'],
-  ['hotSpicy', 'hot-spicy', 'Hot Spicy Chicken'],
-  ['cheesling', 'cheesling', 'Cheesling Chicken'],
-  ['goldenOriginalWings', 'golden-original-wings', 'Golden Original Wings'],
-  ['boneless', 'boneless', 'Boneless Chicken'],
-  ['halfAndHalf', 'half-and-half', 'Half & Half Chicken'],
-  ['chickenRiceMeal', 'chicken-rice-meal', 'Chicken & Rice Meal'],
-  ['chickenBurger', 'chicken-burger', 'Chicken Burger'],
-  ['koreanRiceBowl', 'korean-rice-bowl', 'Korean Rice Bowl'],
-  ['frenchFries', 'french-fries', 'French Fries'],
-  ['cheeslingFries', 'cheesling-fries', 'Cheesling Fries'],
-  ['ddeokBokki', 'ddeok-bokki', 'Ddeok-Bokki'],
-  ['roseDdeokBokki', 'rose-ddeok-bokki', 'Rose Ddeok-Bokki'],
-];
+/**
+ * Read off src/constants/foodAssets.ts. This was a third hand-written copy of
+ * the catalogue, carrying key, filename and label, under a comment asking to
+ * be kept in step with the record it duplicated — see lib/food-catalogue.mjs.
+ *
+ * An audit built on its own copy of the list is the worst place for one: a
+ * product missing from it is reported as fully supplied, because the audit
+ * never knew to look for it.
+ */
+const CATALOGUE = foodCatalogue();
 
 const warnOnly = process.argv.includes('--warn');
 
@@ -50,7 +42,7 @@ const supplied = [];
 const missingMaster = [];
 const missingDerivatives = [];
 
-for (const [key, filename, label] of CATALOGUE) {
+for (const { key, filename, label } of CATALOGUE) {
   const master = path.join(mastersDir, `${filename}.jpg`);
   if (!fs.existsSync(master)) {
     missingMaster.push({ key, filename, label });
@@ -100,7 +92,9 @@ if (missingMaster.length > 0) {
 const outstanding = missingMaster.length + missingDerivatives.length;
 
 if (outstanding === 0) {
-  console.log('All 16 catalogue products have supplied artwork. Cleared for production.');
+  console.log(
+    `All ${CATALOGUE.length} catalogue products have supplied artwork. Cleared for production.`,
+  );
   process.exit(0);
 }
 

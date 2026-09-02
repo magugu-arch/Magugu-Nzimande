@@ -42,6 +42,29 @@ const SIZE_GROUP = (base: string, prices: [number, number, number]): OptionGroup
   ],
 });
 
+/**
+ * How many wings, which is a different question from what size box.
+ *
+ * Written inline on Golden Original Wings while it was the only product in the
+ * category. Three sauced wings joined it, and a size axis copied four times is
+ * four chances for 10 wings to cost a different amount depending on the sauce.
+ * Called with `'wings'` it reproduces the original ids exactly, so no existing
+ * option id moved to make room for this.
+ */
+const WINGS_SIZE_GROUP = (base: string): OptionGroup => ({
+  id: `${base}-size`,
+  name: 'How many wings?',
+  kind: 'size',
+  minSelect: 1,
+  maxSelect: 1,
+  defaultOptionIds: [`${base}-size-10`],
+  options: [
+    { id: `${base}-size-6`, name: '6 wings', priceDelta: 0, available: true },
+    { id: `${base}-size-10`, name: '10 wings', priceDelta: 65, available: true },
+    { id: `${base}-size-16`, name: '16 wings', priceDelta: 145, available: true },
+  ],
+});
+
 const SAUCE_GROUP = (base: string): OptionGroup => ({
   id: `${base}-sauce`,
   name: 'Extra dipping sauce',
@@ -399,19 +422,7 @@ export const products: Product[] = [
     spiceLevel: 0,
     tags: ['sharing'],
     optionGroups: [
-      {
-        id: 'wings-size',
-        name: 'How many wings?',
-        kind: 'size',
-        minSelect: 1,
-        maxSelect: 1,
-        defaultOptionIds: ['wings-size-10'],
-        options: [
-          { id: 'wings-size-6', name: '6 wings', priceDelta: 0, available: true },
-          { id: 'wings-size-10', name: '10 wings', priceDelta: 65, available: true },
-          { id: 'wings-size-16', name: '16 wings', priceDelta: 145, available: true },
-        ],
-      },
+      WINGS_SIZE_GROUP('wings'),
       SAUCE_GROUP('wings'),
       SIDE_GROUP('wings'),
       DRINK_GROUP('wings'),
@@ -422,6 +433,94 @@ export const products: Product[] = [
     serves: 'Serves 2',
     allergens: ['Gluten', 'Soy'],
     nutrition: { kilojoules: 2280, protein: 42, carbs: 28, fat: 31 },
+  },
+  /**
+   * ── Sauced wings ──────────────────────────────────────────────────────────
+   *
+   * Wings held one product and a size picker, with no sauce axis at all, so
+   * there was no way to order a glazed wing however far you drilled in. These
+   * three follow the Chicken category's convention rather than Boneless's:
+   * flavour as its own product, because that is how a customer looks for
+   * "honey garlic wings" and how search has to find them.
+   *
+   * They carry the same size group as Golden Original Wings so a 6/10/16 means
+   * the same thing across the category, and the same +R10 over plain that the
+   * glazed birds carry over Golden Original.
+   */
+  {
+    id: 'honey-garlic-wings',
+    slug: 'honey-garlic-wings',
+    name: 'Honey Garlic Wings',
+    shortDescription: 'Crispy wings under a sweet, sticky honey garlic glaze.',
+    description:
+      'Crispy chicken wings coated in a rich, sweet and savoury honey garlic glaze, hand-tossed so every wing carries the sauce rather than sitting in it. Finished with sesame and spring onion.',
+    basePrice: 165,
+    categoryId: 'wings',
+    assetKey: 'honeyGarlicWings',
+    spiceLevel: 0,
+    tags: ['new', 'popular'],
+    optionGroups: [
+      WINGS_SIZE_GROUP('honey-garlic-wings'),
+      SAUCE_GROUP('honey-garlic-wings'),
+      SIDE_GROUP('honey-garlic-wings'),
+      DRINK_GROUP('honey-garlic-wings'),
+    ],
+    recommendedProductIds: ['french-fries', 'soy-garlic-wings', 'cheesling-fries'],
+    available: true,
+    preparationMinutes: 16,
+    serves: 'Serves 2',
+    allergens: ['Gluten', 'Soy'],
+    nutrition: { kilojoules: 2410, protein: 41, carbs: 36, fat: 31 },
+  },
+  {
+    id: 'soy-garlic-wings',
+    slug: 'soy-garlic-wings',
+    name: 'Soy Garlic Wings',
+    shortDescription: 'Crispy wings in a deep, savoury soy garlic sauce.',
+    description:
+      'Crispy chicken wings tossed in a deeply savoury soy garlic sauce — the glaze that made bb.q famous, reduced until it turns glossy and clings. Garlic-forward, not sweet.',
+    basePrice: 165,
+    categoryId: 'wings',
+    assetKey: 'soyGarlicWings',
+    spiceLevel: 0,
+    tags: ['new', 'bestseller'],
+    optionGroups: [
+      WINGS_SIZE_GROUP('soy-garlic-wings'),
+      SAUCE_GROUP('soy-garlic-wings'),
+      SIDE_GROUP('soy-garlic-wings'),
+      DRINK_GROUP('soy-garlic-wings'),
+    ],
+    recommendedProductIds: ['french-fries', 'honey-garlic-wings', 'ddeok-bokki'],
+    available: true,
+    preparationMinutes: 16,
+    serves: 'Serves 2',
+    allergens: ['Gluten', 'Soy'],
+    nutrition: { kilojoules: 2360, protein: 42, carbs: 31, fat: 31 },
+  },
+  {
+    id: 'hot-spicy-wings',
+    slug: 'hot-spicy-wings',
+    name: 'Hot Spicy Wings',
+    shortDescription: 'Crispy wings in a bold, fiery, flavour-packed sauce.',
+    description:
+      'Crispy chicken wings coated in a bold, fiery and flavour-packed spicy sauce built on gochujang. Heat that carries flavour with it rather than burning it off.',
+    basePrice: 165,
+    categoryId: 'wings',
+    assetKey: 'hotSpicyWings',
+    spiceLevel: 3,
+    tags: ['new', 'spicy'],
+    optionGroups: [
+      WINGS_SIZE_GROUP('hot-spicy-wings'),
+      SAUCE_GROUP('hot-spicy-wings'),
+      SIDE_GROUP('hot-spicy-wings'),
+      DRINK_GROUP('hot-spicy-wings'),
+    ],
+    recommendedProductIds: ['french-fries', 'cheesling-fries', 'soy-garlic-wings'],
+    available: true,
+    preparationMinutes: 16,
+    serves: 'Serves 2',
+    allergens: ['Gluten', 'Soy'],
+    nutrition: { kilojoules: 2340, protein: 42, carbs: 30, fat: 31 },
   },
   {
     id: 'boneless',
@@ -491,6 +590,41 @@ export const products: Product[] = [
     serves: 'Serves 2 – 3',
     allergens: ['Gluten', 'Soy'],
     nutrition: { kilojoules: 2400, protein: 47, carbs: 34, fat: 29 },
+  },
+  /**
+   * The one flavour Boneless Chicken's picker does not offer.
+   *
+   * Boneless models flavour as an option group — Golden Original, Honey
+   * Garlic, Soy Garlic, Hot Spicy, Cheesling — and Secret Sauce is not in it,
+   * so this was not orderable by any route. It is a product rather than a
+   * sixth option because the supplied brief names it as one and because Secret
+   * Sauce already stands alone in the Chicken category; a customer searching
+   * "secret sauce" should find both.
+   */
+  {
+    id: 'secret-sauce-boneless',
+    slug: 'secret-sauce-boneless',
+    name: 'Secret Sauce Boneless',
+    shortDescription: "Boneless bites in the sauce we won't talk about.",
+    description:
+      "Tender boneless chicken coated in bb.q Chicken's rich and flavourful signature sauce. What is in it stays in it — sweet, savoury, faintly smoky, and the reason people order it twice.",
+    basePrice: 185,
+    categoryId: 'boneless',
+    assetKey: 'secretSauceBoneless',
+    spiceLevel: 1,
+    tags: ['new', 'boneless'],
+    optionGroups: [
+      SIZE_GROUP('secret-sauce-boneless', [0, 55, 105]),
+      SAUCE_GROUP('secret-sauce-boneless'),
+      SIDE_GROUP('secret-sauce-boneless'),
+      DRINK_GROUP('secret-sauce-boneless'),
+    ],
+    recommendedProductIds: ['french-fries', 'cheesling-fries', 'secret-sauce'],
+    available: true,
+    preparationMinutes: 16,
+    serves: 'Serves 2 – 3',
+    allergens: ['Gluten', 'Soy'],
+    nutrition: { kilojoules: 2520, protein: 46, carbs: 41, fat: 30 },
   },
   {
     id: 'half-and-half',
@@ -578,6 +712,59 @@ export const products: Product[] = [
     nutrition: { kilojoules: 3120, protein: 38, carbs: 96, fat: 22 },
   },
   {
+    id: 'wings-rice-meal',
+    slug: 'wings-rice-meal',
+    name: 'Wings Rice Meal',
+    shortDescription: 'Wings, rice, kimchi, radish, slaw. One tray.',
+    description:
+      'Flavourful chicken wings served with steamed rice and Korean-inspired sides — kimchi, pickled radish and slaw, laid out in one tray. A full lunch that eats like a treat.',
+    basePrice: 135,
+    categoryId: 'meals',
+    assetKey: 'wingsRiceMeal',
+    spiceLevel: 2,
+    tags: ['new', 'value'],
+    optionGroups: [
+      {
+        id: 'wings-meal-flavour',
+        name: 'Wing flavour',
+        kind: 'flavour',
+        minSelect: 1,
+        maxSelect: 1,
+        defaultOptionIds: ['wings-meal-flavour-hot'],
+        options: [
+          {
+            id: 'wings-meal-flavour-hot',
+            name: 'Hot Spicy',
+            priceDelta: 0,
+            available: true,
+            assetKey: 'hotSpicyWings',
+          },
+          {
+            id: 'wings-meal-flavour-honey',
+            name: 'Honey Garlic',
+            priceDelta: 0,
+            available: true,
+            assetKey: 'honeyGarlicWings',
+          },
+          {
+            id: 'wings-meal-flavour-soy',
+            name: 'Soy Garlic',
+            priceDelta: 0,
+            available: true,
+            assetKey: 'soyGarlicWings',
+          },
+        ],
+      },
+      DRINK_GROUP('wings-meal'),
+    ],
+    recommendedProductIds: ['ddeok-bokki', 'sweet-potato-fries', 'hot-spicy-wings'],
+    available: true,
+    preparationMinutes: 15,
+    serves: 'Serves 1',
+    allergens: ['Gluten', 'Soy', 'Fish'],
+    nutrition: { kilojoules: 3340, protein: 41, carbs: 102, fat: 24 },
+  },
+  {
     id: 'chicken-burger',
     slug: 'chicken-burger',
     name: 'Chicken Burger',
@@ -636,6 +823,68 @@ export const products: Product[] = [
     serves: 'Serves 1',
     allergens: ['Gluten', 'Soy', 'Milk', 'Egg'],
     nutrition: { kilojoules: 2890, protein: 36, carbs: 62, fat: 34 },
+  },
+  /**
+   * Cheesling is not in Chicken Burger's heat picker — that offers Classic,
+   * Hot Spicy and Honey Garlic — so this adds a flavour to the category rather
+   * than a second way to order one already there.
+   */
+  {
+    id: 'cheesling-burger',
+    slug: 'cheesling-burger',
+    name: 'Cheesling Burger',
+    shortDescription: 'Crispy fillet dusted in cheesling, stacked and sauced.',
+    description:
+      'Crispy chicken burger with creamy cheesling flavour, fresh vegetables and a soft toasted bun. The same cheese seasoning that made Cheesling Chicken famous, dusted over a whole fillet.',
+    basePrice: 125,
+    categoryId: 'burgers',
+    assetKey: 'cheeslingBurger',
+    spiceLevel: 1,
+    tags: ['new', 'popular'],
+    optionGroups: [
+      {
+        id: 'cheesling-burger-extras',
+        name: 'Make it more',
+        kind: 'addon',
+        minSelect: 0,
+        maxSelect: 4,
+        defaultOptionIds: [],
+        options: [
+          {
+            id: 'cheesling-burger-extra-cheese',
+            name: 'Extra cheese slice',
+            priceDelta: 14,
+            available: true,
+          },
+          {
+            id: 'cheesling-burger-extra-dust',
+            name: 'Double cheesling dust',
+            priceDelta: 16,
+            available: true,
+          },
+          {
+            id: 'cheesling-burger-extra-patty',
+            name: 'Double the fillet',
+            priceDelta: 45,
+            available: true,
+          },
+          {
+            id: 'cheesling-burger-extra-jalapeno',
+            name: 'Pickled jalapeño',
+            priceDelta: 12,
+            available: true,
+          },
+        ],
+      },
+      SIDE_GROUP('cheesling-burger'),
+      DRINK_GROUP('cheesling-burger'),
+    ],
+    recommendedProductIds: ['sweet-potato-fries', 'cheesling-fries', 'cheesling'],
+    available: true,
+    preparationMinutes: 12,
+    serves: 'Serves 1',
+    allergens: ['Gluten', 'Soy', 'Milk', 'Egg'],
+    nutrition: { kilojoules: 3040, protein: 37, carbs: 64, fat: 38 },
   },
   {
     id: 'korean-rice-bowl',
@@ -793,6 +1042,66 @@ export const products: Product[] = [
     nutrition: { kilojoules: 1840, protein: 9, carbs: 50, fat: 23 },
   },
   {
+    id: 'sweet-potato-fries',
+    slug: 'sweet-potato-fries',
+    name: 'Sweet Potato Fries',
+    shortDescription: 'Golden, crisp and naturally sweet.',
+    description:
+      'Crispy, golden sweet potato fries with a naturally sweet and satisfying flavour, salted while hot. Sweeter and softer inside than the thick-cut, and the better match for anything spicy.',
+    basePrice: 52,
+    categoryId: 'sides',
+    assetKey: 'sweetPotatoFries',
+    spiceLevel: 0,
+    tags: ['new'],
+    optionGroups: [
+      {
+        id: 'sweet-potato-fries-size',
+        name: 'Size',
+        kind: 'size',
+        minSelect: 1,
+        maxSelect: 1,
+        defaultOptionIds: ['sweet-potato-fries-size-regular'],
+        options: [
+          {
+            id: 'sweet-potato-fries-size-regular',
+            name: 'Regular',
+            priceDelta: 0,
+            available: true,
+          },
+          { id: 'sweet-potato-fries-size-large', name: 'Large', priceDelta: 24, available: true },
+        ],
+      },
+      {
+        id: 'sweet-potato-fries-dip',
+        name: 'Add a dip',
+        kind: 'addon',
+        minSelect: 0,
+        maxSelect: 2,
+        defaultOptionIds: [],
+        options: [
+          {
+            id: 'sweet-potato-fries-dip-spicy-mayo',
+            name: 'Spicy mayo',
+            priceDelta: 16,
+            available: true,
+          },
+          {
+            id: 'sweet-potato-fries-dip-honey',
+            name: 'Honey Garlic dip',
+            priceDelta: 18,
+            available: true,
+          },
+        ],
+      },
+    ],
+    recommendedProductIds: ['cheesling-burger', 'hot-spicy-wings', 'golden-original'],
+    available: true,
+    preparationMinutes: 9,
+    serves: 'Serves 1 – 2',
+    allergens: [],
+    nutrition: { kilojoules: 1610, protein: 4, carbs: 55, fat: 16 },
+  },
+  {
     id: 'ddeok-bokki',
     slug: 'ddeok-bokki',
     name: 'Ddeok-Bokki',
@@ -859,6 +1168,56 @@ export const products: Product[] = [
     serves: 'Serves 1 – 2',
     allergens: ['Gluten', 'Soy', 'Milk', 'Fish'],
     nutrition: { kilojoules: 1980, protein: 13, carbs: 68, fat: 18 },
+  },
+  /**
+   * The third ddeok-bokki, and the one case where the brief's "add it as a
+   * product" and the app's own convention already agreed: Ddeok-Bokki and Rose
+   * Ddeok-Bokki are separate products rather than a sauce option, so Cheese
+   * joins them the same way. Sides, not Rice Bowls, so all three sit together.
+   */
+  {
+    id: 'cheese-ddeok-bokki',
+    slug: 'cheese-ddeok-bokki',
+    name: 'Cheese Ddeok-Bokki',
+    shortDescription: 'Rice cakes under a lid of melted mozzarella.',
+    description:
+      'Korean rice cakes in a rich spicy sauce topped with melted cheese, grilled until it blisters and pulls. The gochujang stays hot underneath; the cheese is what makes it bearable.',
+    basePrice: 88,
+    categoryId: 'sides',
+    assetKey: 'cheeseDdeokBokki',
+    spiceLevel: 2,
+    tags: ['new', 'spicy'],
+    optionGroups: [
+      {
+        id: 'cheese-ddeok-extras',
+        name: 'Add to it',
+        kind: 'addon',
+        minSelect: 0,
+        maxSelect: 3,
+        defaultOptionIds: [],
+        options: [
+          { id: 'cheese-ddeok-extra-egg', name: 'Boiled egg', priceDelta: 12, available: true },
+          {
+            id: 'cheese-ddeok-extra-cheese',
+            name: 'Even more cheese',
+            priceDelta: 22,
+            available: true,
+          },
+          {
+            id: 'cheese-ddeok-extra-fishcake',
+            name: 'Extra fish cake',
+            priceDelta: 20,
+            available: true,
+          },
+        ],
+      },
+    ],
+    recommendedProductIds: ['soy-garlic-wings', 'golden-original', 'rose-ddeok-bokki'],
+    available: true,
+    preparationMinutes: 14,
+    serves: 'Serves 1 – 2',
+    allergens: ['Gluten', 'Soy', 'Milk', 'Fish'],
+    nutrition: { kilojoules: 2140, protein: 18, carbs: 72, fat: 21 },
   },
 ];
 

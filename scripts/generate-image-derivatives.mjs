@@ -122,6 +122,19 @@ OVERRIDES = {
         # Anchor the banner left so the headline is not clipped.
         "focus_x": {"banner": 0.0},
     },
+    # ── Menu extension ────────────────────────────────────────────────────
+    # These eight are clean product photography rather than promo
+    # compositions, so none of them needs a promo_safe rect: there is no
+    # headline to crop around. Only one needs anything at all.
+    #
+    # The burger sits left of centre with a branded bb.q cup at the right
+    # edge. A centred cover crop to 1:1 or 4:5 cuts straight through that
+    # wordmark, which reads as a bug rather than as art direction — the same
+    # reason the promo crops above exist. Biasing left centres the burger and
+    # ends the frame before the cup.
+    "cheesling-burger": {
+        "focus_x": 0.25,
+    },
 }
 
 

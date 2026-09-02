@@ -107,4 +107,52 @@ export const suppliedFoodAssets: Partial<Record<FoodAssetKey, FoodAsset>> = {
     detail: require('@assets/food/detail/rose-ddeok-bokki.jpg'),
     banner: require('@assets/food/banner/rose-ddeok-bokki.jpg'),
   },
+  honeyGarlicWings: {
+    thumb: require('@assets/food/thumb/honey-garlic-wings.jpg'),
+    card: require('@assets/food/card/honey-garlic-wings.jpg'),
+    detail: require('@assets/food/detail/honey-garlic-wings.jpg'),
+    banner: require('@assets/food/banner/honey-garlic-wings.jpg'),
+  },
+  soyGarlicWings: {
+    thumb: require('@assets/food/thumb/soy-garlic-wings.jpg'),
+    card: require('@assets/food/card/soy-garlic-wings.jpg'),
+    detail: require('@assets/food/detail/soy-garlic-wings.jpg'),
+    banner: require('@assets/food/banner/soy-garlic-wings.jpg'),
+  },
+  secretSauceBoneless: {
+    thumb: require('@assets/food/thumb/secret-sauce-boneless.jpg'),
+    card: require('@assets/food/card/secret-sauce-boneless.jpg'),
+    detail: require('@assets/food/detail/secret-sauce-boneless.jpg'),
+    banner: require('@assets/food/banner/secret-sauce-boneless.jpg'),
+  },
+  hotSpicyWings: {
+    thumb: require('@assets/food/thumb/hot-spicy-wings.jpg'),
+    card: require('@assets/food/card/hot-spicy-wings.jpg'),
+    detail: require('@assets/food/detail/hot-spicy-wings.jpg'),
+    banner: require('@assets/food/banner/hot-spicy-wings.jpg'),
+  },
+  wingsRiceMeal: {
+    thumb: require('@assets/food/thumb/wings-rice-meal.jpg'),
+    card: require('@assets/food/card/wings-rice-meal.jpg'),
+    detail: require('@assets/food/detail/wings-rice-meal.jpg'),
+    banner: require('@assets/food/banner/wings-rice-meal.jpg'),
+  },
+  cheeslingBurger: {
+    thumb: require('@assets/food/thumb/cheesling-burger.jpg'),
+    card: require('@assets/food/card/cheesling-burger.jpg'),
+    detail: require('@assets/food/detail/cheesling-burger.jpg'),
+    banner: require('@assets/food/banner/cheesling-burger.jpg'),
+  },
+  sweetPotatoFries: {
+    thumb: require('@assets/food/thumb/sweet-potato-fries.jpg'),
+    card: require('@assets/food/card/sweet-potato-fries.jpg'),
+    detail: require('@assets/food/detail/sweet-potato-fries.jpg'),
+    banner: require('@assets/food/banner/sweet-potato-fries.jpg'),
+  },
+  cheeseDdeokBokki: {
+    thumb: require('@assets/food/thumb/cheese-ddeok-bokki.jpg'),
+    card: require('@assets/food/card/cheese-ddeok-bokki.jpg'),
+    detail: require('@assets/food/detail/cheese-ddeok-bokki.jpg'),
+    banner: require('@assets/food/banner/cheese-ddeok-bokki.jpg'),
+  },
 };

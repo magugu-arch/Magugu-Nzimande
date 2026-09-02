@@ -125,7 +125,7 @@ reaches for a raw colour or type value — everything resolves through `src/them
 
 ## Asset manifest
 
-16 supplied photographs, one per catalogue product, each
+24 supplied photographs, one per catalogue product, each
 derived into four responsive variants by `npm run assets:derive`.
 
 | Variant | Ratio | Width | Used on |
@@ -153,6 +153,14 @@ derived into four responsive variants by `npm run assets:derive`.
 | Cheesling Fries | `sides` | `cheeslingFries` | `cheesling-fries.jpg` |
 | Ddeok-Bokki | `sides` | `ddeokBokki` | `ddeok-bokki.jpg` |
 | Rose Ddeok-Bokki | `sides` | `roseDdeokBokki` | `rose-ddeok-bokki.jpg` |
+| Honey Garlic Wings | `wings` | `honeyGarlicWings` | `honey-garlic-wings.jpg` |
+| Soy Garlic Wings | `wings` | `soyGarlicWings` | `soy-garlic-wings.jpg` |
+| Secret Sauce Boneless | `boneless` | `secretSauceBoneless` | `secret-sauce-boneless.jpg` |
+| Hot Spicy Wings | `wings` | `hotSpicyWings` | `hot-spicy-wings.jpg` |
+| Wings Rice Meal | `meals` | `wingsRiceMeal` | `wings-rice-meal.jpg` |
+| Cheesling Burger | `burgers` | `cheeslingBurger` | `cheesling-burger.jpg` |
+| Sweet Potato Fries | `sides` | `sweetPotatoFries` | `sweet-potato-fries.jpg` |
+| Cheese Ddeok-Bokki | `sides` | `cheeseDdeokBokki` | `cheese-ddeok-bokki.jpg` |
 
 Masters live in `assets/food/masters/` and are never shipped to a list screen.
 Eight of them are campaign compositions carrying their own headline typography;

@@ -90,9 +90,22 @@ describe('menu taxonomy follows the brief', () => {
   });
 
   it('keeps every product in the catalogue, wherever it was filed', () => {
-    // The split moved four products between categories. This is the check that
-    // none was dropped or duplicated on the way.
-    expect(products).toHaveLength(16);
-    expect(new Set(products.map((product) => product.id)).size).toBe(16);
+    // The check is that nothing is dropped or duplicated when products move
+    // between categories, which is what a re-file can silently do.
+    //
+    // This asserted a literal 16 alongside it, which made the count of the
+    // menu a fact stated in a test as well as in the menu — so adding eight
+    // products failed here with nothing wrong. A duplicate id is the defect;
+    // the size of the menu is a business decision, and a test is not where it
+    // gets ratified.
+    const ids = products.map((product) => product.id);
+    expect(new Set(ids).size).toBe(ids.length);
+
+    // Every product still reachable by browsing: the categories partition the
+    // catalogue, so summing them must return the whole of it.
+    const filed = categories.flatMap((category) =>
+      products.filter((product) => product.categoryId === category.id).map((p) => p.id),
+    );
+    expect([...filed].sort()).toEqual([...ids].sort());
   });
 });

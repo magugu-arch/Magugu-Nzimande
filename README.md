@@ -96,17 +96,17 @@ No hand-editing and no screen changes. Metro needs literal `require()` paths, so
 whichever masters are on disk — never edit it by hand.
 
 Run `npm run assets:audit` to see what is still outstanding. It exits non-zero
-while any of the 16 catalogue products lack their own artwork, so it can gate a
+while any of the 24 catalogue products lack their own artwork, so it can gate a
 release build.
 
 ### Current asset status
 
-**All 16 of 16** catalogue products carry their own supplied bb.q photograph.
+**All 24 of 24** catalogue products carry their own supplied bb.q photograph.
 Nothing borrows, nothing renders a placeholder, and `npm run assets:audit`
 exits clean:
 
 ```
-All 16 catalogue products have supplied artwork. Cleared for production.
+All 24 catalogue products have supplied artwork. Cleared for production.
 ```
 
 ### Promo compositions and per-master crop overrides
