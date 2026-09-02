@@ -117,6 +117,26 @@ cover.
 
 ---
 
+## Tests
+
+Vitest, in `tests/`. Most suites drive the **route handlers** rather than the
+helpers underneath them, because that is where the rules are actually enforced:
+the pricing arithmetic was always correct, and the hole was that the numbers
+handed to it came from the request.
+
+`tests/fixtures.ts` holds the shared setup — building a valid order line at the
+catalogue price, posting a create-order body, signing in to the console,
+resetting state. Everything in it reads from the seed catalogue rather than
+hard-coding a slug or a price, so a menu change moves the tests with it instead
+of leaving them green against a product that no longer exists. Add a variant by
+passing an override, not by writing a second definition.
+
+`tests/setup.ts` gives each test file its own demo-state file. The state store
+defaults to one path in the temp directory, so without this two suites that
+both write it race and fail each other in ways neither shows when run alone.
+
+---
+
 ## Money
 
 Integer cents everywhere, formatted only at the edge through `<Price>`. The

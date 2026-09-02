@@ -1,0 +1,187 @@
+import { PRODUCTS, STORES, optionGroupsFor } from '@bbq/seed';
+import type { OptionGroup, OrderLine, Product, Store } from '@bbq/types';
+import { expect } from 'vitest';
+import { POST as createOrderRoute } from '@/app/api/orders/route';
+import { POST as signInRoute } from '@/app/api/admin/session/route';
+import { SESSION_COOKIE } from '@/lib/admin-auth';
+import { mutateState } from '@/lib/demo-state';
+
+/**
+ * Shared fixtures for the route-level suites.
+ *
+ * Two suites had grown their own copies of "build a valid order line" and
+ * "sign in and keep the cookie", which is how two tests come to disagree about
+ * what a valid order looks like and neither one is wrong. One definition here,
+ * and a suite that needs a variant asks for it rather than rewriting it.
+ *
+ * Everything reads from the seed catalogue rather than hard-coding a slug or a
+ * price, so a change to the menu moves the tests with it instead of leaving
+ * them green against a product that no longer exists.
+ */
+
+export const CONSOLE_PASSPHRASE = 'twice-fried-in-olive-oil';
+
+// ---------------------------------------------------------------------------
+// Picking things out of the seed catalogue
+// ---------------------------------------------------------------------------
+
+/** Throws rather than returning undefined: a missing fixture is a broken test. */
+function required<T>(value: T | undefined, what: string): T {
+  if (value === undefined) throw new Error(`the seed catalogue has no ${what} to test with`);
+  return value;
+}
+
+export function aChickenProduct(): Product {
+  return required(
+    PRODUCTS.find((product) => product.category === 'Chicken'),
+    'chicken product',
+  );
+}
+
+export function aProduct(): Product {
+  return required(PRODUCTS[0], 'products at all');
+}
+
+/** A store that takes delivery orders, with at least one suburb on its list. */
+export function aDeliveryStore(): Store {
+  return required(
+    STORES.find((store) => store.services.Delivery && store.zones.length > 0),
+    'store offering delivery',
+  );
+}
+
+export function aCollectionStore(): Store {
+  return required(
+    STORES.find((store) => store.services.Collection),
+    'store offering collection',
+  );
+}
+
+export function sizeGroupOf(product: Product): OptionGroup {
+  return required(
+    optionGroupsFor(product).find((group) => group.key === 'size'),
+    `size group on ${product.slug}`,
+  );
+}
+
+/**
+ * A choice that makes a line *cheaper* — the half bird is R70 off a whole one.
+ * The interesting one for pricing tests: a discount claimed twice is worth
+ * more than a surcharge claimed twice.
+ */
+export function aDiscountingChoice(group: OptionGroup): { label: string; deltaCents: number } {
+  return required(
+    group.choices.find((choice) => choice.deltaCents < 0),
+    `discounting choice in ${group.key}`,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Building requests
+// ---------------------------------------------------------------------------
+
+/** A valid order line at the catalogue price, with anything overridden. */
+export function orderLine(product: Product, over: Partial<OrderLine> = {}): OrderLine {
+  return {
+    key: `${product.slug}::`,
+    slug: product.slug,
+    name: product.name,
+    imageKey: product.imageKey,
+    quantity: 1,
+    unitCents: product.priceCents,
+    options: [],
+    ...over,
+  };
+}
+
+export const customer = {
+  name: 'Thandi Mokoena',
+  email: 'thandi@example.com',
+  mobile: '0821234567',
+};
+
+/** A complete, valid create-order body, with anything overridden. */
+export function orderRequest(
+  lines: OrderLine[],
+  over: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    storeId: aCollectionStore().id,
+    mode: 'Collection',
+    customer,
+    lines,
+    promoCode: null,
+    kitchenNote: '',
+    ...over,
+  };
+}
+
+type RequestOptions = { body?: unknown; cookie?: string; method?: string };
+
+/** A Request for a route handler. GET unless a body is given. */
+export function request(url: string, options: RequestOptions = {}): Request {
+  const { body, cookie, method } = options;
+  return new Request(`http://localhost${url}`, {
+    method: method ?? (body === undefined ? 'GET' : 'POST'),
+    ...(cookie ? { headers: { cookie } } : {}),
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+}
+
+/** Route handlers take `context.params` as a promise in the App Router. */
+export function params<T extends Record<string, string>>(values: T): { params: Promise<T> } {
+  return { params: Promise.resolve(values) };
+}
+
+export async function bodyOf<T = Record<string, unknown>>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
+
+// ---------------------------------------------------------------------------
+// Placing a real order, for the suites that need one to look at
+// ---------------------------------------------------------------------------
+
+/**
+ * Places an order through the real route and returns it, so a journey test is
+ * reading an order the API actually created rather than one it invented and
+ * pushed into the store behind the API's back.
+ */
+export async function placeOrder(over: Record<string, unknown> = {}) {
+  const product = aProduct();
+  const response = await createOrderRoute(
+    request('/api/orders', { body: orderRequest([orderLine(product)], over) }),
+  );
+  expect(response.status).toBe(201);
+  const { order } = await bodyOf<{ order: { id: string; status: string; mode: string } }>(
+    response,
+  );
+  return order;
+}
+
+// ---------------------------------------------------------------------------
+// The console
+// ---------------------------------------------------------------------------
+
+/** Signs in through the real route and returns a Cookie header for later calls. */
+export async function operatorCookie(): Promise<string> {
+  const response = await signInRoute(
+    request('/api/admin/session', { body: { passphrase: CONSOLE_PASSPHRASE } }),
+  );
+  expect(response.status).toBe(200);
+  const value = response.headers.get('set-cookie')?.split(';')[0]?.split('=').slice(1).join('=');
+  return `${SESSION_COOKIE}=${value ?? ''}`;
+}
+
+// ---------------------------------------------------------------------------
+// Resetting between tests
+// ---------------------------------------------------------------------------
+
+/** Puts the shared state back where a fresh deployment starts. */
+export function resetState(): void {
+  mutateState((state) => {
+    state.soldOut = [];
+    state.hidden = [];
+    state.services = {};
+    state.consoleLock = { failures: 0, lockedUntil: null };
+  });
+}

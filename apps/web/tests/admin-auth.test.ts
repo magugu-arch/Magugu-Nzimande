@@ -8,7 +8,7 @@ import {
   POST as signInRoute,
 } from '@/app/api/admin/session/route';
 import { SESSION_COOKIE, isValidToken, signIn } from '@/lib/admin-auth';
-import { mutateState } from '@/lib/demo-state';
+import { CONSOLE_PASSPHRASE, operatorCookie, request, resetState } from './fixtures';
 
 /**
  * The console's auth boundary, driven through the route handlers.
@@ -17,41 +17,17 @@ import { mutateState } from '@/lib/demo-state';
  * endpoints used to answer anyone who found the path.
  */
 
-const PASSPHRASE = 'twice-fried-in-olive-oil';
-
 const cookieValue = (setCookie: string | null) =>
   setCookie?.split(';')[0]?.split('=').slice(1).join('=') ?? '';
 
-/** Signs in through the route and returns the Cookie header for later calls. */
-async function operatorCookie(): Promise<string> {
-  const response = await signInRoute(
-    new Request('http://localhost/api/admin/session', {
-      method: 'POST',
-      body: JSON.stringify({ passphrase: PASSPHRASE }),
-    }),
-  );
-  expect(response.status).toBe(200);
-  return `${SESSION_COOKIE}=${cookieValue(response.headers.get('set-cookie'))}`;
-}
-
-const anonymous = (url: string, body?: unknown) =>
-  new Request(url, {
-    method: body === undefined ? 'GET' : 'POST',
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
+const anonymous = (url: string, body?: unknown) => request(url, { body });
 
 const asOperator = (cookie: string, url: string, body?: unknown) =>
-  new Request(url, {
-    method: body === undefined ? 'GET' : 'POST',
-    headers: { cookie },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
+  request(url, { body, cookie });
 
 beforeEach(() => {
-  process.env.BBQ_ADMIN_PASSWORD = PASSPHRASE;
-  mutateState((state) => {
-    state.consoleLock = { failures: 0, lockedUntil: null };
-  });
+  process.env.BBQ_ADMIN_PASSWORD = CONSOLE_PASSPHRASE;
+  resetState();
 });
 
 afterEach(() => {
@@ -118,7 +94,7 @@ describe('signing in', () => {
 
   it('sets a cookie no script can read and no other site can send', async () => {
     const response = await signInRoute(
-      anonymous('http://localhost/api/admin/session', { passphrase: PASSPHRASE }),
+      anonymous('http://localhost/api/admin/session', { passphrase: CONSOLE_PASSPHRASE }),
     );
     const setCookie = response.headers.get('set-cookie') ?? '';
 
@@ -129,7 +105,7 @@ describe('signing in', () => {
 
   it('never puts the passphrase in the session cookie', async () => {
     const cookie = await operatorCookie();
-    expect(cookie).not.toContain(PASSPHRASE);
+    expect(cookie).not.toContain(CONSOLE_PASSPHRASE);
   });
 
   it('does not echo a submitted passphrase back in an error', async () => {
@@ -152,7 +128,7 @@ describe('signing in', () => {
     // And the lockout holds even for the correct passphrase, or it would be a
     // way to tell a right guess from a wrong one while locked.
     const right = await signInRoute(
-      anonymous('http://localhost/api/admin/session', { passphrase: PASSPHRASE }),
+      anonymous('http://localhost/api/admin/session', { passphrase: CONSOLE_PASSPHRASE }),
     );
     expect(right.status).toBe(429);
   });
@@ -203,7 +179,7 @@ describe('a signed-in operator', () => {
 
 describe('the session token itself', () => {
   it('is refused when its signature is edited', () => {
-    const result = signIn(PASSPHRASE);
+    const result = signIn(CONSOLE_PASSPHRASE);
     if (!result.ok) throw new Error('expected a session');
     const token = cookieValue(result.cookie);
 
@@ -212,7 +188,7 @@ describe('the session token itself', () => {
   });
 
   it('is refused when its expiry is pushed out', () => {
-    const result = signIn(PASSPHRASE);
+    const result = signIn(CONSOLE_PASSPHRASE);
     if (!result.ok) throw new Error('expected a session');
     const [, nonce, signature] = cookieValue(result.cookie).split('.');
 
@@ -221,7 +197,7 @@ describe('the session token itself', () => {
   });
 
   it('expires', () => {
-    const result = signIn(PASSPHRASE);
+    const result = signIn(CONSOLE_PASSPHRASE);
     if (!result.ok) throw new Error('expected a session');
     const token = cookieValue(result.cookie);
 
@@ -230,7 +206,7 @@ describe('the session token itself', () => {
   });
 
   it('stops working when the passphrase is rotated', () => {
-    const result = signIn(PASSPHRASE);
+    const result = signIn(CONSOLE_PASSPHRASE);
     if (!result.ok) throw new Error('expected a session');
     const token = cookieValue(result.cookie);
 

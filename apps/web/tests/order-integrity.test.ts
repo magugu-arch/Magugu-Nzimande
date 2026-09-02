@@ -1,9 +1,17 @@
-import { PRODUCTS, STORES, optionGroupsFor } from '@bbq/seed';
+import { STORES } from '@bbq/seed';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { POST } from '@/app/api/orders/route';
 import { setHidden, setSoldOut } from '@/lib/catalogue-state';
 import { repriceLines } from '@/lib/order-integrity';
 import type { OrderLine } from '@bbq/types';
+import {
+  aChickenProduct,
+  aDiscountingChoice,
+  orderLine,
+  orderRequest,
+  request,
+  sizeGroupOf,
+} from './fixtures';
 
 /**
  * What the API will accept about money.
@@ -14,43 +22,17 @@ import type { OrderLine } from '@bbq/types';
  * of the domain layer alone would have stayed green throughout.
  */
 
-const chicken = PRODUCTS.find((product) => product.category === 'Chicken');
-if (!chicken) throw new Error('seed catalogue has no chicken product to test with');
+const chicken = aChickenProduct();
+const sizeGroup = sizeGroupOf(chicken);
+const halfBird = aDiscountingChoice(sizeGroup);
 const store = STORES[0];
 if (!store) throw new Error('seed catalogue has no stores');
 
-const groups = optionGroupsFor(chicken);
-const sizeGroup = groups.find((group) => group.key === 'size');
-if (!sizeGroup) throw new Error('chicken products are expected to carry a size group');
-
-const halfBird = sizeGroup.choices.find((choice) => choice.deltaCents < 0);
-if (!halfBird) throw new Error('the size group is expected to carry a negative delta');
-
-const line = (over: Partial<OrderLine> = {}): OrderLine => ({
-  key: `${chicken.slug}::`,
-  slug: chicken.slug,
-  name: chicken.name,
-  imageKey: chicken.imageKey,
-  quantity: 1,
-  unitCents: chicken.priceCents,
-  options: [],
-  ...over,
-});
+const line = (over: Partial<OrderLine> = {}): OrderLine => orderLine(chicken, over);
 
 const place = async (lines: OrderLine[], over: Record<string, unknown> = {}) => {
   const response = await POST(
-    new Request('http://localhost/api/orders', {
-      method: 'POST',
-      body: JSON.stringify({
-        storeId: store.id,
-        mode: 'Collection',
-        customer: { name: 'Thandi Mokoena', email: 'thandi@example.com', mobile: '0821234567' },
-        lines,
-        promoCode: null,
-        kitchenNote: '',
-        ...over,
-      }),
-    }),
+    request('/api/orders', { body: orderRequest(lines, { storeId: store.id, ...over }) }),
   );
   return { status: response.status, body: await response.json() };
 };
