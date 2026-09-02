@@ -5,13 +5,11 @@ import type { Product } from '@bbq/types';
  * are demo values pending CLAUDE.md section 8; the allergen and energy figures
  * are indicative pending the franchisor nutritional analysis.
  *
- * PHOTOGRAPHY. Only sixteen masters were supplied, and masters are never
- * edited or invented. Items added after that set reuse the master that most
- * honestly depicts them -- Soy Garlic Wings carries the soy garlic master,
- * because the sauce is what the picture shows -- and are listed in the
- * README as awaiting their own photograph. The build refuses any product
- * whose imageKey has no master, so this stays a deliberate reuse rather than
- * a gap somebody discovers in the menu.
+ * PHOTOGRAPHY. Every product has its own master. For a while the eight items
+ * added past the original sixteen borrowed the image that most honestly
+ * depicted them; each has since been shot and wired to its own. A test holds
+ * the invariant, so a new item added without a photograph fails rather than
+ * quietly wearing another dish's.
  *
  * imageKey is the supplied master's file name, which does not always match the
  * slug — the masters were named before the slugs were settled, and masters are
@@ -322,7 +320,7 @@ export const PRODUCTS: readonly Product[] = [
     sauce: 'Cheese dust',
     description:
       'The fillet under a heavy snow of cheese seasoning, stacked with lettuce and pickles. Fries and a drink included.',
-    imageKey: 'chicken-burger',
+    imageKey: 'cheesling-burger',
     nutrition: { allergens: 'Wheat, soya, egg, milk', kilojoules: 2_460 },
     soldOut: false,
   },
@@ -335,7 +333,7 @@ export const PRODUCTS: readonly Product[] = [
     heat: 0,
     sauce: 'Salted',
     description: 'Cut thick and fried twice, so they stay crisp long enough to share.',
-    imageKey: 'french-fries',
+    imageKey: 'sweet-potato-fries',
     nutrition: { allergens: 'None declared', kilojoules: 1_040 },
     soldOut: false,
   },
@@ -348,7 +346,7 @@ export const PRODUCTS: readonly Product[] = [
     heat: 3,
     sauce: 'Gochujang',
     description: 'Rice cakes in gochujang under a lid of melted mozzarella.',
-    imageKey: 'ddeok-bokki',
+    imageKey: 'cheese-ddeok-bokki',
     nutrition: { allergens: 'Milk, wheat, soya, sesame', kilojoules: 1_510 },
     soldOut: false,
   },

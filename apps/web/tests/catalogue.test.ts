@@ -35,23 +35,33 @@ describe('catalogue', () => {
   });
 
   /**
-   * The catalogue has outgrown the sixteen supplied masters, so a master is no
-   * longer one-to-one with a product: items added since reuse the one that
-   * most honestly depicts them. What must still hold is that no master goes
-   * unused — an unused one means a supplied photograph is being wasted, or a
-   * product was renamed and its image left behind.
+   * No master goes unused — an unused one means a supplied photograph is being
+   * wasted, or a product was renamed and its image left behind.
    */
-  it('uses every supplied master at least once', () => {
+  it('uses every supplied master', () => {
     const used = new Set(PRODUCTS.map((product) => product.imageKey));
     for (const master of MASTERS) {
       expect(used.has(master), `nothing uses the ${master} master`).toBe(true);
     }
   });
 
-  it('reuses a master only where the catalogue has outgrown the supplied set', () => {
-    const keys = PRODUCTS.map((product) => product.imageKey);
-    // Sixteen masters, so at most sixteen products can have one to themselves.
-    expect(new Set(keys).size).toBe(MASTERS.length);
+  /**
+   * Every product has its own photograph.
+   *
+   * For a while it did not: the catalogue outgrew the sixteen supplied masters
+   * and eight items borrowed the one that most honestly depicted them. Now that
+   * each has been shot, two products sharing an image means a new item was
+   * added without one — which reads to a customer as the wrong picture rather
+   * than a missing one, and is the harder mistake to notice.
+   */
+  it('gives every product an image of its own', () => {
+    const byKey = new Map<string, string[]>();
+    for (const product of PRODUCTS) {
+      byKey.set(product.imageKey, [...(byKey.get(product.imageKey) ?? []), product.slug]);
+    }
+
+    const shared = [...byKey.entries()].filter(([, slugs]) => slugs.length > 1);
+    expect(shared.map(([key, slugs]) => `${key}: ${slugs.join(', ')}`)).toEqual([]);
   });
 
   it('puts every product in a declared category', () => {

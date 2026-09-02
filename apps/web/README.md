@@ -167,7 +167,7 @@ amount stays a whole number of cents.
 
 ## Images
 
-The 16 supplied masters in `assets/food/masters` are never edited and never
+The 24 masters in `assets/food/masters` are never edited and never
 served. `infra/scripts/generate-image-derivatives.mjs` produces two crops each —
 portrait 4:5 and wide 16:9 — at 480 / 768 / 1200 wide, in WebP with a JPEG
 fallback. `<FoodImage>` renders a plain `<picture>` with a srcset, so no image
@@ -176,13 +176,14 @@ optimiser runs at request time.
 Derivatives are generated, not committed: 21 MB that rebuilds in twenty seconds.
 `npm run build` regenerates them, so a master that goes missing fails the build.
 
-**The catalogue has outgrown the supplied set.** Sixteen masters were supplied
-and there are now 24 products. Items added since reuse the master that most
-honestly depicts them — Soy Garlic Wings carries the soy garlic master, because
-the sauce is what the picture shows — rather than an invented image. The demo
-build refuses any product whose `imageKey` has no master, so this stays a
-deliberate reuse rather than a gap somebody finds in the menu. Each reusing
-item is awaiting its own photograph.
+**24 products, 24 masters, one each.** Sixteen were supplied at the outset; the
+eight items added since borrowed an image for a while and have each been shot.
+`tests/catalogue.test.ts` holds both halves of that — no master goes unused, and
+no two products share one — so an item added without a photograph fails the
+suite rather than quietly wearing another dish's.
+
+Both scripts discover masters by reading the directory, so a new photograph is
+a file on disk and one `imageKey` in the seed. There is no list to remember.
 
 The logo is the licensed master in `assets/brand/masters`. Its dark-ground
 reversal is derived by keeping the wordmark bb.q Red and turning only the black

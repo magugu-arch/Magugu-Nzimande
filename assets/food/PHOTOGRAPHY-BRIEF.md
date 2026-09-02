@@ -1,14 +1,29 @@
-# Food photography brief — the eight items without a master
+# Food photography brief — the eight most recent items
 
-The catalogue has 24 products and 16 supplied masters. The eight items below
-were added after the supplied set and currently carry a stand-in photograph:
-the master that most honestly depicts them, never an invented one. Each is
-waiting on its own image.
+The catalogue has 24 products and 24 masters, one each. Sixteen were supplied at
+the outset. The eight below were added later, borrowed an image for a while, and
+now carry a **generated comp** — good enough to lay out a page and settle a
+crop, and not a photograph of product.
 
-This brief holds a generation prompt for each. It is written to *Brand Identity
-Guidelines v1.0* §05.2 (Food Photography Standards) and §17 (Food Photography).
+This brief holds the prompt each comp was written from, and doubles as the shot
+list for replacing them. It is written to *Brand Identity Guidelines v1.0*
+§05.2 (Food Photography Standards) and §17 (Food Photography).
+
+**Status: all eight comped, none shot.** Gate 11.1 is not cleared by them.
 
 ---
+
+## Two things to check before these go further
+
+**The logos are generated, not the licensed lockup.** Three of the comps carry
+bb.q packaging in frame — the burger's fries cup, the sweet potato fries carton,
+the ddeok-bokki bowl. The supplied masters carry branding too, so they sit
+consistently, but a rendered wordmark is an approximation of the mark and not
+the mark. Check each against the guidelines' lockup rules before any of this is
+used outside review. This is exactly why the prompts below say *no text, no
+logos, no watermarks*.
+
+**Everything else below still applies.**
 
 ## Before anything is used
 
@@ -73,7 +88,7 @@ none of these eight is in the wide-crop list, so a portrait source is enough.
 
 ## 1 · Soy Garlic Wings — `soy-garlic-wings`
 
-*45° hero shot (§05.2). Currently borrowing the `soy-garlic` master.*
+*45° hero shot (§05.2). Comped, not shot.*
 
 > Korean-style twice-fried whole chicken wings coated in a glossy dark soy
 > garlic glaze, piled generously on a matte black stoneware plate. The craggy
@@ -91,7 +106,7 @@ none of these eight is in the wide-crop list, so a portrait source is enough.
 
 ## 2 · Honey Garlic Wings — `honey-garlic-wings`
 
-*Close-up texture study (§05.2). Currently borrowing the `honey-garlic` master.*
+*Close-up texture study (§05.2). Comped, not shot.*
 
 > Tight close-up of twice-fried Korean chicken wings lacquered in a sticky honey
 > and roasted garlic glaze, golden amber and glistening, with visible strands of
@@ -107,8 +122,7 @@ none of these eight is in the wide-crop list, so a portrait source is enough.
 
 ## 3 · Hot Spicy Wings — `hot-spicy-wings`
 
-*45° hero with steam & freshness (§05.2). Currently borrowing the `hot-spicy`
-master. Heat 5 — the palette carries it, not a filter.*
+*45° hero with steam & freshness (§05.2). Comped, not shot. Heat 5 — the palette carries it, not a filter.*
 
 > Korean-style twice-fried whole chicken wings in a deep scarlet gochujang
 > glaze, glossy and thickly coated, piled on a matte black stoneware plate.
@@ -125,8 +139,7 @@ master. Heat 5 — the palette carries it, not a filter.*
 
 ## 4 · Secret Sauce Boneless — `secret-sauce-boneless`
 
-*45° hero with a cut section (§17.4). Currently borrowing the `secret-sauce`
-master. The broken piece is doing the work — §17.3 "Crispy & Juicy".*
+*45° hero with a cut section (§17.4). Comped, not shot. The broken piece is doing the work — §17.3 "Crispy & Juicy".*
 
 > Boneless Korean fried chicken pieces, bite-sized nuggets of crumbed breast
 > meat with a thick craggy golden crust, tossed in a glossy sweet-and-hot
@@ -143,7 +156,7 @@ master. The broken piece is doing the work — §17.3 "Crispy & Juicy".*
 
 ## 5 · Wings and Rice Meal — `wings-rice-meal`
 
-*Top-down flat lay (§05.2). Currently borrowing the `chicken-rice-meal` master.
+*Top-down flat lay (§05.2). Comped, not shot.
 The §17.6 don't to watch here is overcrowding — the negative space is specified
 deliberately.*
 
@@ -161,8 +174,7 @@ deliberately.*
 
 ## 6 · Cheesling Burger — `cheesling-burger`
 
-*45° hero, layers legible (§17.4 Plated). Currently borrowing the
-`chicken-burger` master.*
+*45° hero, layers legible (§17.4 Plated). Comped, not shot.*
 
 > A Korean fried chicken burger: a thick crumbed chicken breast fillet with a
 > deeply craggy golden crust, dusted heavily with pale savoury cheese seasoning
@@ -179,7 +191,7 @@ deliberately.*
 
 ## 7 · Sweet Potato Fries — `sweet-potato-fries`
 
-*45° close, texture-led (§05.2). Currently borrowing the `french-fries` master.*
+*45° close, texture-led (§05.2). Comped, not shot.*
 
 > Thick-cut sweet potato fries, twice fried so the edges are deeply crisp while
 > the insides stay soft, deep orange-gold, lightly salted with visible flakes of
@@ -196,8 +208,7 @@ deliberately.*
 
 ## 8 · Cheese Ddeok-Bokki — `cheese-ddeok-bokki`
 
-*Cheese pull — the §17.3 "Flavour & Indulgence" hero. Currently borrowing the
-`ddeok-bokki` master. The one shot here that needs a utensil in frame.*
+*Cheese pull — the §17.3 "Flavour & Indulgence" hero. Comped, not shot. The one shot here that needs a utensil in frame.*
 
 > Korean tteokbokki rice cakes in a thick glossy scarlet gochujang sauce in a
 > dark cast iron dish, blanketed with melted mozzarella that is golden and
