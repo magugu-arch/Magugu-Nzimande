@@ -1,4 +1,57 @@
 import type { Address, AppNotification, PaymentMethod, SupportTopic, UserProfile } from '@/types';
+import { groupDigits } from '@/utils/money';
+import {
+  earnRateLine,
+  listSentence,
+  loyaltyAccount,
+  nextTierOf,
+  programmeEarnRateLine,
+  tierNamed,
+} from './rewardsData';
+
+/**
+ * The "you are almost at the next tier" nudge, written from where the member
+ * actually stands.
+ *
+ * Every word of this was typed out: *"You're 2 160 points from Gold"* over
+ * *"Gold unlocks free delivery every week and priority in the kitchen queue"*.
+ * The gap restated a subtraction the ladder already does, and the perks
+ * restated Gold's own list — so a change to a threshold or a perk left this
+ * notification quietly advertising the old programme. It is the same drift the
+ * tier earn rate had, one screen over.
+ *
+ * The earn rate joins the list only when the next tier actually pays better
+ * than the one the member is on. `perksFor` puts it first unconditionally,
+ * which is right on the rewards screen, where each tier is read on its own —
+ * and wrong here, where the sentence says the word *unlocks*. Every tier pays
+ * 1 today, so "Gold unlocks 1 point per R1 spent" would offer a member the
+ * rate they already earn.
+ */
+function tierNudge(): { title: string; body: string } {
+  const next = nextTierOf(loyaltyAccount);
+  if (!next) {
+    return {
+      title: `You're at ${loyaltyAccount.tierName}`,
+      body: `${loyaltyAccount.tierName} is the top of bb.q Rewards. Everything is unlocked.`,
+    };
+  }
+
+  const current = tierNamed(loyaltyAccount.tierName);
+  const gains =
+    next.pointsPerRand > current.pointsPerRand
+      ? [earnRateLine(next.pointsPerRand), ...next.perks]
+      : next.perks;
+
+  // Perks are written as list items — "Free delivery every week" — and land
+  // here mid-sentence. Only the leading character is lowered, so a perk naming
+  // something proper keeps it.
+  const midSentence = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
+
+  return {
+    title: `You're ${groupDigits(loyaltyAccount.pointsToNextTier)} points from ${next.name}`,
+    body: `${next.name} unlocks ${listSentence(gains.map(midSentence))}.`,
+  };
+}
 
 export const demoUser: UserProfile = {
   id: 'user-demo',
@@ -96,8 +149,7 @@ export const notifications: AppNotification[] = [
   },
   {
     id: 'notif-3',
-    title: "You're 2 160 points from Gold",
-    body: 'Gold unlocks free delivery every week and priority in the kitchen queue.',
+    ...tierNudge(),
     receivedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
     read: true,
     category: 'reward',
@@ -160,8 +212,10 @@ export const supportTopics: SupportTopic[] = [
   {
     id: 'help-points',
     question: 'How do bb.q Rewards points work?',
-    answer:
-      'You earn 1 point per R1 spent on food, and more as you move up tiers. Points can be redeemed for free items and discounts from the Rewards tab.',
+    // The rate comes off the ladder. Typed out here it read "1 point per R1
+    // spent on food, and more as you move up tiers" while every tier paid the
+    // same 1 — a promise in the one place a customer goes to check.
+    answer: `${programmeEarnRateLine()}. Points can be redeemed for free items and discounts from the Rewards tab.`,
     category: 'rewards',
   },
   {

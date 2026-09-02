@@ -3,7 +3,14 @@ import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from 
 import { voucherDiscount } from '@/utils/cart';
 import { hasPassed } from '@/utils/datetime';
 import { delay, request } from './apiClient';
-import { loyaltyAccount, promotions, rewards, tiers, vouchers } from './data/rewardsData';
+import {
+  loyaltyAccount,
+  promotions,
+  rewards,
+  standingFor,
+  tiers,
+  vouchers,
+} from './data/rewardsData';
 import { checkedLoyaltyAccount, checkedVouchers } from './wireChecks';
 
 /**
@@ -27,39 +34,6 @@ import { checkedLoyaltyAccount, checkedVouchers } from './wireChecks';
  * nothing. Worth confirming against how the loyalty programme is actually run.
  */
 let account: LoyaltyAccount = { ...loyaltyAccount, history: [...loyaltyAccount.history] };
-
-/** The tier a lifetime total earns, and how far it is from the next one. */
-function standingFor(
-  lifetimePoints: number,
-): Pick<
-  LoyaltyAccount,
-  'tier' | 'tierName' | 'nextTier' | 'pointsToNextTier' | 'tierProgress' | 'lifetimePoints'
-> {
-  const ranked = [...tiers].sort((a, b) => a.threshold - b.threshold);
-  const currentIndex = Math.max(
-    0,
-    ranked.filter((candidate) => lifetimePoints >= candidate.threshold).length - 1,
-  );
-  const current = ranked[currentIndex]!;
-  const next = ranked[currentIndex + 1];
-
-  return {
-    lifetimePoints,
-    tier: current.tier,
-    tierName: current.name,
-    ...(next ? { nextTier: next.tier } : {}),
-    pointsToNextTier: next ? Math.max(0, next.threshold - lifetimePoints) : 0,
-    tierProgress: next
-      ? Math.min(
-          1,
-          Math.max(
-            0,
-            (lifetimePoints - current.threshold) / (next.threshold - current.threshold || 1),
-          ),
-        )
-      : 1,
-  };
-}
 
 /**
  * Move the balance and say why, in the mock only.

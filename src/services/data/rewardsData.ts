@@ -1,4 +1,11 @@
-import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
+import type {
+  LoyaltyAccount,
+  PointsEntry,
+  Promotion,
+  Reward,
+  TierDefinition,
+  Voucher,
+} from '@/types';
 
 /**
  * bb.q Rewards tiers (brief §11).
@@ -68,6 +75,104 @@ export function earnRateLine(pointsPerRand: number): string {
 /** A tier's perks, with its true earn rate at the top. */
 export function perksFor(tier: TierDefinition): string[] {
   return [earnRateLine(tier.pointsPerRand), ...tier.perks];
+}
+
+/**
+ * How the programme as a whole earns, for copy that speaks about the ladder
+ * rather than about one tier.
+ *
+ * Written from the ladder because the interesting half of the sentence is
+ * conditional. The help section used to answer "How do bb.q Rewards points
+ * work?" with *"You earn 1 point per R1 spent on food, and more as you move up
+ * tiers"* — and no tier paid more. It read as true because it described the
+ * programme anyone would assume was there, and only the four `pointsPerRand`
+ * values say whether it is. So the clause about moving up appears when there
+ * is a climb to describe and vanishes when there is not, rather than being a
+ * promise somebody has to remember to withdraw.
+ */
+export function programmeEarnRateLine(ladder: TierDefinition[] = tiers): string {
+  const ranked = [...ladder].sort((a, b) => a.threshold - b.threshold);
+  const entry = ranked[0];
+  if (!entry) return '';
+
+  const best = ranked.reduce((a, b) => (b.pointsPerRand > a.pointsPerRand ? b : a));
+  const base = `You earn ${earnRateLine(entry.pointsPerRand)} on food`;
+  return best.pointsPerRand > entry.pointsPerRand
+    ? `${base}, rising to ${earnRateLine(best.pointsPerRand)} at ${best.name}`
+    : base;
+}
+
+/** A tier by its programme name, for copy that singles one out. */
+export function tierNamed(name: string, ladder: TierDefinition[] = tiers): TierDefinition {
+  const found = ladder.find((tier) => tier.name === name);
+  if (!found) throw new Error(`No such tier: ${name}`);
+  return found;
+}
+
+/** The tier a member is climbing toward, or undefined at the top of the ladder. */
+export function nextTierOf(
+  account: Pick<LoyaltyAccount, 'nextTier'>,
+  ladder: TierDefinition[] = tiers,
+): TierDefinition | undefined {
+  return ladder.find((tier) => tier.tier === account.nextTier);
+}
+
+/**
+ * "a, b and c" — a list read aloud rather than bulleted.
+ *
+ * South African usage, so no serial comma before "and".
+ */
+export function listSentence(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? '';
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
+/**
+ * Where a member stands, read off the ladder.
+ *
+ * Lives here rather than in `rewardsService` because the seeded account needs
+ * it too, and that was the whole defect: the seed wrote out `tier: 'silver'`,
+ * `pointsToNextTier: 2160` and a `tierProgress` fraction over thresholds typed
+ * a second time, while the service computed the same five fields from `tiers`.
+ * They disagreed. At the seeded lifetime total of 4 620 the ladder says Gold
+ * with 4 380 to go, so a member who opened the app on Silver was promoted a
+ * whole tier by their first order — not for crossing a threshold, but because
+ * the first recompute overwrote a standing that had never been consistent.
+ *
+ * One implementation, used by both, and the seed now chooses only the two
+ * figures that are genuinely its own.
+ */
+export function standingFor(
+  lifetimePoints: number,
+  ladder: TierDefinition[] = tiers,
+): Pick<
+  LoyaltyAccount,
+  'tier' | 'tierName' | 'nextTier' | 'pointsToNextTier' | 'tierProgress' | 'lifetimePoints'
+> {
+  const ranked = [...ladder].sort((a, b) => a.threshold - b.threshold);
+  const currentIndex = Math.max(
+    0,
+    ranked.filter((candidate) => lifetimePoints >= candidate.threshold).length - 1,
+  );
+  const current = ranked[currentIndex]!;
+  const next = ranked[currentIndex + 1];
+
+  return {
+    lifetimePoints,
+    tier: current.tier,
+    tierName: current.name,
+    ...(next ? { nextTier: next.tier } : {}),
+    pointsToNextTier: next ? Math.max(0, next.threshold - lifetimePoints) : 0,
+    tierProgress: next
+      ? Math.min(
+          1,
+          Math.max(
+            0,
+            (lifetimePoints - current.threshold) / (next.threshold - current.threshold || 1),
+          ),
+        )
+      : 1,
+  };
 }
 
 export const rewards: Reward[] = [
@@ -204,43 +309,60 @@ export const vouchers: Voucher[] = [
   },
 ];
 
+const seededHistory: PointsEntry[] = [
+  {
+    id: 'points-1',
+    description: 'Order BBQ-4821 · Honey Garlic Chicken',
+    points: 231,
+    occurredAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+    orderReference: 'BBQ-4821',
+  },
+  {
+    id: 'points-2',
+    description: 'Redeemed · Free French Fries',
+    points: -400,
+    occurredAt: new Date(Date.now() - 9 * 86_400_000).toISOString(),
+  },
+  {
+    id: 'points-3',
+    description: 'Order BBQ-4610 · Half & Half Chicken',
+    points: 318,
+    occurredAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
+    orderReference: 'BBQ-4610',
+  },
+  {
+    id: 'points-4',
+    description: 'Tier bonus · Silver unlocked',
+    points: 250,
+    occurredAt: new Date(Date.now() - 20 * 86_400_000).toISOString(),
+  },
+];
+
+/** What is left to spend. The one figure about this member that is a choice. */
+const SEEDED_BALANCE = 1840;
+
+/**
+ * Everything ever earned: what is left, plus everything already spent.
+ *
+ * Derived rather than typed, and that is the fix. It used to read `4620`, a
+ * number picked without reference to the thresholds it has to sit between —
+ * and 4 620 is past Gold's 4 000, so the ladder made this member Gold while
+ * the seed underneath called them Silver. Spending points must not cost
+ * anybody a tier, so redemptions are added back.
+ */
+const SEEDED_LIFETIME =
+  SEEDED_BALANCE +
+  seededHistory
+    .filter((entry) => entry.points < 0)
+    .reduce((spent, entry) => spent + Math.abs(entry.points), 0);
+
 export const loyaltyAccount: LoyaltyAccount = {
   memberId: 'BBQ-SA-004182',
-  pointsBalance: 1840,
-  tier: 'silver',
-  tierName: 'Silver',
-  pointsToNextTier: 2160,
-  nextTier: 'gold',
-  tierProgress: (1840 - 1500) / (4000 - 1500),
-  lifetimePoints: 4620,
-  history: [
-    {
-      id: 'points-1',
-      description: 'Order BBQ-4821 · Honey Garlic Chicken',
-      points: 231,
-      occurredAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-      orderReference: 'BBQ-4821',
-    },
-    {
-      id: 'points-2',
-      description: 'Redeemed · Free French Fries',
-      points: -400,
-      occurredAt: new Date(Date.now() - 9 * 86_400_000).toISOString(),
-    },
-    {
-      id: 'points-3',
-      description: 'Order BBQ-4610 · Half & Half Chicken',
-      points: 318,
-      occurredAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
-      orderReference: 'BBQ-4610',
-    },
-    {
-      id: 'points-4',
-      description: 'Tier bonus · Silver unlocked',
-      points: 250,
-      occurredAt: new Date(Date.now() - 20 * 86_400_000).toISOString(),
-    },
-  ],
+  pointsBalance: SEEDED_BALANCE,
+  // tier, tierName, nextTier, pointsToNextTier and tierProgress are all read
+  // off the ladder. None of them is an independent fact about this member.
+  ...standingFor(SEEDED_LIFETIME),
+  history: seededHistory,
 };
 
 /**
