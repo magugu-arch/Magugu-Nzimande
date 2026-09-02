@@ -26,6 +26,18 @@ type QueueOrder = {
 const TABS = ['Orders', 'Menu', 'Stores', 'Promotions', 'Audit'] as const;
 type Tab = (typeof TABS)[number];
 
+/**
+ * A session lasts a shift, so it can lapse with the console still open on a
+ * pass counter. Every call runs through this: without it a 401 was swallowed
+ * and the operator went on reading a queue frozen at the moment their session
+ * ended, with each write quietly failing.
+ */
+function endedSession(response: Response): boolean {
+  if (response.status !== 401 && response.status !== 503) return false;
+  window.location.assign('/admin/login');
+  return true;
+}
+
 export function OperationsConsole({
   initialProducts,
   initialStores,
@@ -54,6 +66,7 @@ export function OperationsConsole({
   const refreshQueue = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/orders');
+      if (endedSession(response)) return;
       if (!response.ok) return;
       const data = (await response.json()) as { orders: QueueOrder[]; audit: AuditEntry[] };
       setOrders(data.orders);
@@ -76,6 +89,7 @@ export function OperationsConsole({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ slug, ...patch }),
       });
+      if (endedSession(response)) return;
       if (response.ok) {
         const data = (await response.json()) as { products: Product[]; hidden: string[] };
         setProducts(data.products);
@@ -95,6 +109,7 @@ export function OperationsConsole({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ storeId, mode, enabled }),
       });
+      if (endedSession(response)) return;
       if (response.ok) {
         const data = (await response.json()) as { stores: Store[] };
         setStores(data.stores);
@@ -119,6 +134,7 @@ export function OperationsConsole({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ orderId, status, reason }),
       });
+      if (endedSession(response)) return;
       if (response.ok) {
         const data = (await response.json()) as { orders: QueueOrder[]; audit: AuditEntry[] };
         setOrders(data.orders);

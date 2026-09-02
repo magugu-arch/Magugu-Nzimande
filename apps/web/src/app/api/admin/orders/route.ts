@@ -1,10 +1,14 @@
 import { OrderStatusSchema, z } from '@bbq/types';
 import { NextResponse } from 'next/server';
+import { refuseUnlessOperator } from '@/lib/admin-auth';
 import { readAudit } from '@/lib/catalogue-state';
 import { labelFor, listOrders, setOrderStatus } from '@/lib/order-store';
 
 /** GET /api/admin/orders — the queue, plus the audit log. */
-export function GET() {
+export function GET(request: Request) {
+  const refusal = refuseUnlessOperator(request);
+  if (refusal) return refusal;
+
   return NextResponse.json({
     orders: listOrders().map((order) => ({ ...order, statusLabel: labelFor(order) })),
     audit: readAudit(),
@@ -20,6 +24,9 @@ const BodySchema = z.object({
 
 /** POST /api/admin/orders — move an order's status. */
 export async function POST(request: Request) {
+  const refusal = refuseUnlessOperator(request);
+  if (refusal) return refusal;
+
   const parsed = BodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });

@@ -1,5 +1,6 @@
 import { z } from '@bbq/types';
 import { NextResponse } from 'next/server';
+import { refuseUnlessOperator } from '@/lib/admin-auth';
 import {
   hiddenSlugs,
   isHidden,
@@ -22,11 +23,14 @@ const BodySchema = z.object({
 /**
  * POST /api/admin/availability — mark an item sold out, or hide it.
  *
- * Not authenticated. The operations console is a separate auth boundary that
- * has not been built, so this must not reach an environment that serves real
- * customers until it is.
+ * Operator-only: refused without a signed console session. One shared
+ * passphrase rather than staff accounts, so the audit log can say that an
+ * operator did this but not which one.
  */
 export async function POST(request: Request) {
+  const refusal = refuseUnlessOperator(request);
+  if (refusal) return refusal;
+
   const parsed = BodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });

@@ -26,10 +26,24 @@ export type DemoState = {
   orders: Order[];
   sequence: number;
   audit: AuditEntry[];
+  /**
+   * Failed console sign-ins, here rather than in a module variable for the
+   * same reason as everything else in this file: the workers have to agree, or
+   * a lockout is five attempts *per worker*.
+   */
+  consoleLock: { failures: number; lockedUntil: string | null };
 };
 
-const FILE =
-  process.env.BBQ_STATE_FILE ?? path.join(os.tmpdir(), 'bbq-chicken-demo-state.json');
+/**
+ * Read per call rather than captured at import. The value was cached in a
+ * module constant, so anything that set the variable after this module first
+ * loaded was silently ignored — which made two test files sharing one temp
+ * file impossible to separate, and would have done the same to a process that
+ * reconfigured itself at runtime.
+ */
+function stateFile(): string {
+  return process.env.BBQ_STATE_FILE ?? path.join(os.tmpdir(), 'bbq-chicken-demo-state.json');
+}
 
 function seed(): DemoState {
   return {
@@ -38,6 +52,7 @@ function seed(): DemoState {
     services: {},
     orders: [],
     sequence: 0,
+    consoleLock: { failures: 0, lockedUntil: null },
     audit: [
       {
         at: new Date().toISOString(),
@@ -50,7 +65,7 @@ function seed(): DemoState {
 
 export function readState(): DemoState {
   try {
-    const raw = readFileSync(FILE, 'utf8');
+    const raw = readFileSync(stateFile(), 'utf8');
     const parsed = JSON.parse(raw) as Partial<DemoState>;
     return { ...seed(), ...parsed };
   } catch {
@@ -63,9 +78,10 @@ export function writeState(next: DemoState): void {
   try {
     // Written beside the target and renamed, so a reader never catches a
     // half-written file.
-    const temporary = `${FILE}.${process.pid}.tmp`;
+    const file = stateFile();
+    const temporary = `${file}.${process.pid}.tmp`;
     writeFileSync(temporary, JSON.stringify(next), 'utf8');
-    renameSync(temporary, FILE);
+    renameSync(temporary, file);
   } catch {
     // A read-only filesystem costs the console its writes, not the storefront
     // its ability to take orders.

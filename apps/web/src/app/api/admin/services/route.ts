@@ -1,5 +1,6 @@
 import { ServiceModeSchema, z } from '@bbq/types';
 import { NextResponse } from 'next/server';
+import { refuseUnlessOperator } from '@/lib/admin-auth';
 import { currentStores, findStore, recordAudit, setService } from '@/lib/catalogue-state';
 
 const BodySchema = z.object({
@@ -11,10 +12,13 @@ const BodySchema = z.object({
 /**
  * POST /api/admin/services — switch a service on or off for one store.
  *
- * Unauthenticated, like the rest of the console. See the note on the
+ * Operator-only, like the rest of the console. See the note on the
  * availability route.
  */
 export async function POST(request: Request) {
+  const refusal = refuseUnlessOperator(request);
+  if (refusal) return refusal;
+
   const parsed = BodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });

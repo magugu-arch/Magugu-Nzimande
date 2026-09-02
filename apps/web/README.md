@@ -172,12 +172,40 @@ provider, and the delivery partner model.
 
 ---
 
+## The operations console
+
+Behind one shared operator passphrase, set through `BBQ_ADMIN_PASSWORD`. See
+`.env.example`.
+
+- **Fails closed.** With no passphrase configured nobody can sign in and every
+  console write endpoint answers 503. A deployment that forgets the variable
+  gets a locked console, which is recoverable, rather than a world-writable
+  one, which is not.
+- The session is an HMAC-signed, httpOnly, `SameSite=Strict` cookie lasting one
+  eight-hour shift. Its signing key is derived from the passphrase, so
+  rotating the passphrase ends every live session.
+- Five wrong attempts lock sign-in for fifteen minutes, counted in the shared
+  state file so the lockout holds across worker processes rather than being
+  five attempts *each*.
+- Every `/api/admin/*` endpoint carries the guard itself and runs it **before**
+  parsing the body — the page redirect is convenience, not the boundary.
+
+**What this is not.** One passphrase is not a staff directory. There are no
+per-person accounts, no roles and no revocation of one person without changing
+the passphrase for everyone, so the audit log can say an operator made a change
+but not which one. That needs a user store and a way to reach an inbox, neither
+of which this deployment has.
+
+**Still open: `POST /api/orders/:id/advance`.** It stands in for a kitchen
+display system, and the customer's own journey page calls it on a timer so the
+states can be watched end to end. Putting it behind the console's session would
+break that, so it is deliberately left reachable. It must become operator-only
+when a real kitchen display system replaces it.
+
 ## Deliberately not built
 
-Payment capture, driver dispatch, notifications, account tokens and a real
-database. The operations console has **no authentication** — its own auth
-boundary has not been built, so it must not reach an environment serving real
-customers in this state.
+Payment capture, driver dispatch, notifications, customer account tokens and a
+real database.
 
 Orders and console writes live in a JSON file (`BBQ_STATE_FILE`, defaulting to
 the system temp directory) rather than in memory, because the server runs

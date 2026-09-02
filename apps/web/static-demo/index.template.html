@@ -1922,8 +1922,9 @@ function viewAdmin(){
 
   return '<div class="wrap" style="padding:40px 20px">'
     + '<h1 class="display h-lg">Operations</h1>'
-    + '<div class="notice mt-4 max-62"><p class="sm" style="line-height:1.7"><span class="bb">This console has no authentication.</span> '
-      + 'It shares the storefront&rsquo;s deployment and its own auth boundary has not been built, so it must not reach an environment serving real customers in this state.</p></div>'
+    + '<div class="notice mt-4 max-62"><p class="sm" style="line-height:1.7"><span class="bb">Open in this review build only.</span> '
+      + 'On the real site this console sits behind an operator passphrase and every write endpoint refuses without a signed session. '
+      + 'This build has no server to sign in to, so it is left open to walk through &mdash; which is also why it is loaded with sample data and cannot reach a real store.</p></div>'
     + '<div class="tabs mt-8" role="tablist" aria-label="Operations sections">' + tabs + '</div>'
     + '<div class="mt-6" role="tabpanel" aria-label="' + S.adminTab + '">' + panel + '</div>'
     + '</div>';
