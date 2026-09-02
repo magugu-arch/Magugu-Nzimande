@@ -79,8 +79,30 @@ if (builtAt < sourceAt) {
  * The app lays out at 390pt; at 2x that is 780. Anything past ~900 is detail
  * nobody can see on a phone and weight everybody pays for.
  */
-const MAX_EDGE = { banner: 900, card: 800, detail: 900, thumb: 300 };
-const DEFAULT_MAX_EDGE = 600;
+const MAX_EDGE = { banner: 820, card: 720, detail: 840, thumb: 280 };
+const DEFAULT_MAX_EDGE = 560;
+
+/**
+ * WebP quality for the inlined copies.
+ *
+ * Lower than the shipped derivatives on purpose. These are re-encodes of
+ * already-compressed JPEGs viewed at phone width, and base64 adds a third on
+ * top of whatever they weigh, so a few points of quality buys back megabytes
+ * that a viewer would otherwise wait for.
+ */
+const QUALITY = { opaque: 72, alpha: 76 };
+
+/**
+ * What a single-document host will actually accept.
+ *
+ * The caps above were chosen against a sixteen-product menu. Eight more
+ * products took the file to 16.4 MB — past the 16 MB an artifact host allows —
+ * and this script printed "self-contained" and exited 0, because it measured
+ * the file only to report it. A build that cannot be published is a failed
+ * build, and finding that out at the publish step, after a full export, is
+ * finding it out too late.
+ */
+const MAX_BYTES = 16 * 1000 * 1000;
 
 const MIME = {
   '.ttf': 'font/ttf',
@@ -130,9 +152,9 @@ for item in json.load(sys.stdin):
         im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
     buf = io.BytesIO()
     if im.mode in ('RGBA', 'LA', 'P'):
-        im.convert('RGBA').save(buf, 'WEBP', quality=80, method=6)
+        im.convert('RGBA').save(buf, 'WEBP', quality=${QUALITY.alpha}, method=6)
     else:
-        im.convert('RGB').save(buf, 'WEBP', quality=78, method=6)
+        im.convert('RGB').save(buf, 'WEBP', quality=${QUALITY.opaque}, method=6)
     out[item['file']] = base64.b64encode(buf.getvalue()).decode()
 json.dump(out, sys.stdout)
 `,
@@ -228,5 +250,17 @@ const single = html
   .replace('</body>', () => `<script>\n${START_AT_ROOT}\n</script>\n<script>\n${bundle}\n</script>\n</body>`);
 
 writeFileSync(out, single);
-const mb = (statSync(out).size / 1e6).toFixed(1);
+
+const bytes = statSync(out).size;
+const mb = (bytes / 1e6).toFixed(1);
 console.log(`Wrote ${path.relative(root, out)} — ${mb} MB, self-contained.`);
+
+if (bytes > MAX_BYTES) {
+  console.error(
+    `\nThat is past the ${(MAX_BYTES / 1e6).toFixed(0)} MB a single-document host accepts, ` +
+      `by ${((bytes - MAX_BYTES) / 1e6).toFixed(1)} MB.\n` +
+      'Lower MAX_EDGE or QUALITY at the top of this script and run it again — ' +
+      'the export in .preview-web is still good, so `npm run bundle:single` alone is enough.',
+  );
+  process.exit(2);
+}
