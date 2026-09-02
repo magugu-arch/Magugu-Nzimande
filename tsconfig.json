@@ -16,5 +16,6 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "exclude": ["node_modules", "dist", ".expo"]
+  "//": "apps/, packages/ and infra/ belong to the website, which is a separate deliverable with its own tsconfig, its own path aliases and its own `npm run verify`. Typechecking them from here resolves none of those aliases and reports errors that are not errors — the same reason apps/ is excluded from the Jest run.",
+  "exclude": ["node_modules", "dist", ".expo", "apps", "packages", "infra"]
 }

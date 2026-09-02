@@ -48,6 +48,16 @@ import { vouchers } from '@/services/data/rewardsData';
 import type { Order, Reward, Voucher } from '@/types';
 import { DEFAULT_COORDINATES, distanceKm, formatDistance } from '@/utils/geo';
 
+/**
+ * A distinct key per call, because the ledger now replays an order rather than
+ * creating a second one when it sees a key twice. Sharing a key between two
+ * tests would have the second get the first's order back, which is the
+ * behaviour under test everywhere except here.
+ */
+let keySeq = 0;
+const freshKey = () => `test-idem-${(keySeq += 1)}`;
+
+
 describe('menuService', () => {
   it('returns categories in sort order', async () => {
     const categories = await fetchCategories();
@@ -233,6 +243,7 @@ describe('orderService', () => {
       addressId: 'address-home',
       paymentMethodId: 'payment-visa',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
     });
 
     expect(order.status).toBe('received');
@@ -268,6 +279,7 @@ describe('orderService', () => {
       storeId: store!.id,
       paymentMethodId: 'payment-visa',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
     });
 
     expect(order.storeName).toBe(store!.name);
@@ -390,6 +402,7 @@ describe('paymentService', () => {
       paymentMethodId: 'payment-cash',
       methodType: 'cash',
       orderReference: 'BBQ-1',
+      idempotencyKey: freshKey(),
     });
     expect(result).toEqual({ success: true, intentId: 'cash' });
   });
@@ -405,6 +418,7 @@ describe('paymentService', () => {
       paymentMethodId: 'payment-visa',
       methodType: 'card',
       orderReference: 'pending',
+      idempotencyKey: freshKey(),
     });
 
     await expect(voidPayment(authorisation.intentId)).resolves.toBe(true);
@@ -420,6 +434,7 @@ describe('paymentService', () => {
       paymentMethodId: 'payment-visa',
       methodType: 'card',
       orderReference: 'BBQ-1',
+      idempotencyKey: freshKey(),
     });
     expect(result.success).toBe(true);
     expect(result.intentId).toMatch(/^pi_/);
@@ -563,6 +578,7 @@ describe('tracking a scheduled order', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
       scheduledFor: new Date(Date.now() + 28 * 3_600_000).toISOString(),
     });
 
@@ -588,6 +604,7 @@ describe('tracking a scheduled order', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
     });
 
     jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 45 * 60_000);
@@ -641,6 +658,7 @@ describe('what a placed order records about itself', () => {
       addressId: added.id,
       paymentMethodId: 'payment-visa',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
     });
 
     expect(order.addressId).toBe(added.id);
@@ -661,6 +679,7 @@ describe('what a placed order records about itself', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'rail-cash',
       paymentMethodType: 'cash',
+      idempotencyKey: freshKey(),
     });
 
     expect(order.paymentMethodLabel).toBe('Cash on delivery');
@@ -677,6 +696,7 @@ describe('what a placed order records about itself', () => {
       storeId: 'store-sandton',
       paymentMethodId: saved!.id,
       paymentMethodType: saved!.type,
+      idempotencyKey: freshKey(),
     });
 
     expect(order.paymentMethodLabel).toBe(saved!.label);
@@ -712,6 +732,7 @@ describe('calling an order back', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
     });
 
   afterEach(() => {
@@ -790,6 +811,7 @@ describe('the points a customer actually has', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
       ...input,
     });
 
@@ -926,6 +948,7 @@ describe('spending a promo code', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
       voucherCode,
     });
 
@@ -999,6 +1022,7 @@ describe('how long until the food arrives', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
       ...(scheduledFor ? { scheduledFor } : {}),
     });
 
@@ -1161,6 +1185,7 @@ describe('rating an order', () => {
       storeId: 'store-sandton',
       paymentMethodId: 'pm-1',
       paymentMethodType: 'card',
+      idempotencyKey: freshKey(),
     });
 
   afterEach(() => {

@@ -8,6 +8,7 @@ const payment: AuthorisePaymentInput = {
   paymentMethodId: 'payment-visa',
   methodType: 'card',
   orderReference: 'pending',
+  idempotencyKey: 'idem-submit-order',
 };
 
 const orderInput = {
@@ -25,6 +26,7 @@ const orderInput = {
   storeId: 'store-sandton',
   paymentMethodId: 'payment-visa',
   paymentMethodType: 'card',
+  idempotencyKey: 'idem-submit-order',
 } as PlaceOrderInput;
 
 const placedOrder = { id: 'order-1', reference: 'BBQ-1' } as Order;

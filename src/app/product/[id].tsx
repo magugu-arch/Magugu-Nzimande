@@ -57,6 +57,14 @@ export default function ProductDetailScreen() {
   const [quantity, setQuantity] = useState(1);
   const [instructions, setInstructions] = useState('');
   const [showRequiredErrors, setShowRequiredErrors] = useState(false);
+  /**
+   * A refusal from the store, which knows things this screen does not.
+   *
+   * Separate from `showRequiredErrors`: that highlights the group the customer
+   * still has to fill in, this reports a reason the configuration was rejected
+   * outright.
+   */
+  const [addError, setAddError] = useState<string | null>(null);
 
   // Initialise the selection the first time the product resolves.
   const activeSelection = useMemo(() => {
@@ -96,7 +104,16 @@ export default function ProductDetailScreen() {
       return;
     }
 
-    addLine(product.data, selectedOptions, quantity, instructions);
+    // The store validates again, and can refuse for reasons this screen cannot
+    // see — an option withdrawn since the menu was fetched, most likely. Better
+    // heard than dropped: without this the tap did nothing and said nothing.
+    const refusal = addLine(product.data, selectedOptions, quantity, instructions);
+    if (refusal) {
+      setAddError(refusal);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      return;
+    }
+
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   }, [product.data, unmetGroups, addLine, selectedOptions, quantity, instructions, router]);
@@ -317,6 +334,16 @@ export default function ProductDetailScreen() {
 
       {/* Sticky add-to-cart */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+        {addError ? (
+          <Text
+            variant="caption"
+            style={styles.addError}
+            accessibilityLiveRegion="polite"
+            testID="product-add-error"
+          >
+            {addError}
+          </Text>
+        ) : null}
         <QuantityStepper quantity={quantity} onChange={setQuantity} testID="product-quantity" />
         <Button
           label={ctaLabel}
@@ -401,6 +428,12 @@ const styles = StyleSheet.create({
   allergenText: { flex: 1 },
   recommended: { marginHorizontal: -spacing.lg },
   carousel: { gap: spacing.md, paddingHorizontal: spacing.gutter },
+  addError: {
+    // Full width inside a wrapping row, so the message sits above the stepper
+    // and the button rather than squeezing them onto a second line.
+    width: '100%',
+    color: colors.status.error,
+  },
   footer: {
     flexDirection: 'row',
     flexWrap: 'wrap',

@@ -8,7 +8,14 @@ module.exports = defineConfig([
   prettierConfig,
   {
     // .audit-* are generated web bundles, not source.
-    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'coverage/*', '.audit-*/**'],
+    //
+    // apps/web is the ordering website: a Next.js project with its own flat
+    // config, its own aliases and its own `npm run lint`. This config is
+    // eslint-config-expo, which cannot resolve `@/lib/*` or `@bbq/*` and reports
+    // several thousand phantom errors if pointed at it. Same boundary as
+    // tsconfig's `exclude` and jest's ignore patterns: the two projects share a
+    // repository, not a toolchain.
+    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'coverage/*', '.audit-*/**', 'apps/**'],
   },
   {
     rules: {
@@ -18,7 +25,20 @@ module.exports = defineConfig([
   },
   {
     // Build and audit scripts are CLI tools — their whole job is to print.
-    files: ['scripts/**/*.mjs', 'scripts/**/*.js'],
+    // They also read JSON through import attributes (`with { type: 'json' }`),
+    // which the default ecmaVersion is too old to parse.
+    files: ['scripts/**/*.{mjs,js}', 'infra/**/*.{mjs,js}'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        Buffer: 'readonly',
+        URL: 'readonly',
+        console: 'readonly',
+        process: 'readonly',
+        fetch: 'readonly',
+      },
+    },
     rules: {
       'no-console': 'off',
     },

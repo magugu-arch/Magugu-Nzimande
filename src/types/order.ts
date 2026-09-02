@@ -238,4 +238,16 @@ export interface PlaceOrderInput {
   paymentMethodType: PaymentMethodType;
   voucherCode?: string;
   redeemedRewardId?: string;
+  /**
+   * Names the attempt, so a retry of it is not a second order.
+   *
+   * Held by the checkout screen across failures and cleared only once an order
+   * exists — see `features/checkout/idempotency.ts`. The server is expected to
+   * store it against the order it created and return that same order, rather
+   * than creating another, when it sees the key again.
+   *
+   * Required, not optional: a caller that forgets it is a caller that can
+   * charge somebody twice, and that should not typecheck.
+   */
+  idempotencyKey: string;
 }

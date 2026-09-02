@@ -105,6 +105,68 @@ export function unmetOptionGroups(
 }
 
 /**
+ * Why a configuration is not allowed, or null if it is.
+ *
+ * `unmetOptionGroups` answers the screen's question — which group still needs
+ * attention — and only checks the minimum, because the picker physically
+ * cannot exceed the maximum. This answers the domain's question: is this line
+ * legal at all, whoever built it.
+ *
+ * The distinction matters because the picker is no longer the only way a line
+ * is made. Reorder replays an old order, a deep link can carry a
+ * configuration, and both bypass the screen entirely. A rule enforced only
+ * where it is convenient to enforce is a rule with a hole in it, and the
+ * brief's acceptance criterion is that required modifiers cannot be bypassed
+ * — not that they cannot be bypassed from the product screen.
+ */
+export function optionSelectionProblem(
+  groups: OptionGroup[],
+  selectedOptions: SelectedOption[],
+): string | null {
+  const chosenByGroup = new Map<string, string[]>();
+  for (const option of selectedOptions) {
+    chosenByGroup.set(option.groupId, [
+      ...(chosenByGroup.get(option.groupId) ?? []),
+      option.optionId,
+    ]);
+  }
+
+  for (const group of groups) {
+    const chosen = chosenByGroup.get(group.id) ?? [];
+
+    if (chosen.length < group.minSelect) {
+      return `Choose ${group.name.toLowerCase()}`;
+    }
+
+    if (chosen.length > group.maxSelect) {
+      return `Too many choices for ${group.name.toLowerCase()}`;
+    }
+
+    // A duplicate is not a second choice, and left alone it is charged twice.
+    if (new Set(chosen).size !== chosen.length) {
+      return `${group.name} has the same choice twice`;
+    }
+
+    for (const optionId of chosen) {
+      const option = group.options.find((candidate) => candidate.id === optionId);
+      if (!option) return `That ${group.name.toLowerCase()} is no longer on the menu`;
+      if (!option.available) return `${option.name} is unavailable`;
+    }
+  }
+
+  // An option belonging to no group on this product — a stale reorder, or a
+  // payload someone edited. Its price delta would be applied regardless.
+  const groupIds = new Set(groups.map((group) => group.id));
+  for (const option of selectedOptions) {
+    if (!groupIds.has(option.groupId)) {
+      return `${option.optionName} is not an option on this item`;
+    }
+  }
+
+  return null;
+}
+
+/**
  * The terms a voucher was granted under — enough to re-decide it at any time.
  *
  * The cart used to keep the *discount* a voucher produced and throw the terms

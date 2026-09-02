@@ -6,6 +6,7 @@ import {
   buildCartLine,
   cartItemCount,
   clampQuantity,
+  optionSelectionProblem,
   priceBasket,
   type RewardTerms,
   type VoucherTerms,
@@ -44,12 +45,19 @@ interface CartState {
   voucher: AppliedVoucher | null;
   reward: AppliedReward | null;
 
+  /**
+   * Puts a configured product in the basket.
+   *
+   * @returns null when the line was added, or why it was refused. A refusal is
+   * a string a customer can read, because every caller has somewhere to show
+   * one and none of them can do anything useful with a boolean.
+   */
   addLine: (
     product: Product,
     selectedOptions: SelectedOption[],
     quantity: number,
     specialInstructions?: string,
-  ) => void;
+  ) => string | null;
   updateQuantity: (lineId: string, quantity: number) => void;
   updateInstructions: (lineId: string, instructions: string) => void;
   removeLine: (lineId: string) => void;
@@ -102,6 +110,19 @@ export const useCartStore = create<CartState>()(
       reward: null,
 
       addLine: (product, selectedOptions, quantity, specialInstructions) => {
+        /**
+         * The rule enforced where the data enters, not where the picker is.
+         *
+         * The product screen already refuses to call this with an unmet
+         * required group, and it still should — a disabled button is better
+         * than an error. But it is no longer the only caller: reorder replays
+         * a configuration saved weeks ago, against a menu that has since
+         * changed, and a group that has gained a required choice would
+         * otherwise arrive in the basket unfilled and be charged.
+         */
+        const problem = optionSelectionProblem(product.optionGroups, selectedOptions);
+        if (problem) return problem;
+
         const incoming = buildCartLine(product, selectedOptions, quantity, specialInstructions);
 
         set((state) => {
@@ -123,6 +144,8 @@ export const useCartStore = create<CartState>()(
           }
           return { lines: [...state.lines, incoming] };
         });
+
+        return null;
       },
 
       updateQuantity: (lineId, quantity) => {

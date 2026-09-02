@@ -1,4 +1,5 @@
 import { businessRules, config } from '@/constants/config';
+import { IDEMPOTENCY_HEADER } from '@/features/checkout/idempotency';
 import type { Order, OrderStatus, OrderStatusEvent, PlaceOrderInput } from '@/types';
 import { addMinutes } from '@/utils/datetime';
 import { delay, request } from './apiClient';
@@ -349,12 +350,39 @@ function advance(order: Order): Order {
   };
 }
 
+/**
+ * Orders already created, by the key of the attempt that created them.
+ *
+ * The mock's stand-in for the server-side record the brief asks for: an order
+ * is written against its idempotency key, and the key coming back means the
+ * order already exists. Replaying it must not re-award points, re-spend the
+ * voucher or mint a second reference — which is why the replay returns here,
+ * above all of that, rather than somewhere further down.
+ */
+const ordersByIdempotencyKey = new Map<string, Order>();
+
+/** Test seam: forget what has been placed. */
+export function resetIdempotencyLedger(): void {
+  ordersByIdempotencyKey.clear();
+}
+
 export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   if (!config.useMockApi) {
-    return request<Order>('/v1/orders', { method: 'POST', body: input, parse: checkedOrder });
+    return request<Order>('/v1/orders', {
+      method: 'POST',
+      body: input,
+      // Sent as a header as well as in the body: the header is the convention
+      // gateways and proxies understand, and a server that only reads the body
+      // still gets it.
+      headers: { [IDEMPOTENCY_HEADER]: input.idempotencyKey },
+      parse: checkedOrder,
+    });
   }
 
   seedHistory();
+
+  const alreadyPlaced = ordersByIdempotencyKey.get(input.idempotencyKey);
+  if (alreadyPlaced) return delay(alreadyPlaced, 300);
 
   const store = stores.find((candidate) => candidate.id === input.storeId) ?? stores[0];
   // Asked of the ledgers as they stand, not of the arrays they were seeded
@@ -401,6 +429,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   };
 
   ledger.unshift(order);
+  ordersByIdempotencyKey.set(input.idempotencyKey, order);
 
   /**
    * Settle the points with the order, which is where `redeemedRewardId` on

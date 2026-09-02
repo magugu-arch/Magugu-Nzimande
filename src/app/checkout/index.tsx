@@ -23,6 +23,7 @@ import { usePlaceOrder } from '@/features/orders/hooks';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, describePaymentMethod, voidPayment } from '@/services/paymentService';
 import { submitOrder } from '@/features/checkout/submitOrder';
+import { createIdempotencyScope } from '@/features/checkout/idempotency';
 import { offeredPaymentMethods } from '@/features/checkout/paymentOptions';
 import { checkoutDefaults } from '@/features/checkout/checkoutDefaults';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
@@ -92,6 +93,14 @@ export default function CheckoutScreen() {
   const [submitting, setSubmitting] = useState(false);
   /** Guards the submit against a double tap; see `handlePlaceOrder`. */
   const inFlight = useRef(false);
+  /**
+   * Names this checkout attempt for as long as it keeps failing.
+   *
+   * A ref rather than state because nothing renders from it, and one per
+   * mounted screen so two checkouts can never answer for each other. Settled
+   * only once an order exists — see the call site below.
+   */
+  const idempotency = useRef(createIdempotencyScope());
 
   const totals = getTotals();
 
@@ -248,6 +257,13 @@ export default function CheckoutScreen() {
     // should not ask it to charge a figure the app itself knows is stale.
     const totalsNow = getTotals();
 
+    /**
+     * Read once and passed to both calls, so the authorisation and the order
+     * are the same attempt. Minted on the first tap and kept through every
+     * failure, which is what makes the retry safe rather than duplicating.
+     */
+    const idempotencyKey = idempotency.current.current();
+
     try {
       // Authorise, create the order, and give the money back if the order does
       // not happen. The sequence lives in `submitOrder` because it is the one
@@ -259,6 +275,7 @@ export default function CheckoutScreen() {
           paymentMethodId: selectedPayment.id,
           methodType: selectedPayment.type,
           orderReference: 'pending',
+          idempotencyKey,
         },
         {
           lines,
@@ -275,6 +292,7 @@ export default function CheckoutScreen() {
           // against an order with no delivery fee is worth nothing, and
           // sending it anyway spends the customer's points on nothing.
           ...(reward && getRewardWorth() > 0 ? { redeemedRewardId: reward.rewardId } : {}),
+          idempotencyKey,
         },
         {
           authorise: authorisePayment,
@@ -287,6 +305,10 @@ export default function CheckoutScreen() {
         setSubmitError(outcome.message);
         return;
       }
+
+      // Settled only here. Every other outcome keeps the key, so tapping
+      // again retries the same attempt rather than starting a second one.
+      idempotency.current.settle();
 
       // The basket has become an order — clear it before navigating so back
       // navigation can never resubmit.

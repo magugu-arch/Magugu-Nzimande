@@ -1,4 +1,5 @@
-/* eslint-env jest */
+// The jest globals this file uses are declared in eslint.config.js; an
+// `eslint-env` comment here would be an error under flat config in ESLint 10.
 
 // AsyncStorage has no native module under Jest, so the community mock stands in.
 jest.mock('@react-native-async-storage/async-storage', () =>

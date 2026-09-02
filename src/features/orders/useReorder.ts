@@ -41,8 +41,44 @@ export function useReorder(): (order: Order) => void {
         return;
       }
 
+      /**
+       * `planReorder` decides which products are still on the menu; the store
+       * decides whether each saved *configuration* is still legal. They are
+       * different questions, and the second one only started being asked when
+       * the rule moved out of the product screen: a group that has since gained
+       * a required choice, or an option that has been withdrawn, makes a line
+       * that was fine last month invalid today.
+       *
+       * Refusals are collected rather than thrown, because a reorder of six
+       * items where one is no longer configurable should still put the other
+       * five in the basket.
+       */
+      const refused: string[] = [];
       for (const { product, line } of plan.addable) {
-        addLine(product, line.selectedOptions, line.quantity, line.specialInstructions);
+        const refusal = addLine(
+          product,
+          line.selectedOptions,
+          line.quantity,
+          line.specialInstructions,
+        );
+        if (refusal) refused.push(`${product.name}: ${refusal}`);
+      }
+
+      if (refused.length === plan.addable.length) {
+        Alert.alert(
+          'Nothing to reorder',
+          `These items have changed since you last ordered them.\n\n${refused.join('\n')}`,
+        );
+        return;
+      }
+
+      if (refused.length > 0) {
+        Alert.alert(
+          'Some items have changed',
+          `We added the rest to your cart.\n\n${refused.join('\n')}`,
+          [{ text: 'View cart', onPress: () => router.push('/cart') }],
+        );
+        return;
       }
 
       if (notice) {

@@ -77,6 +77,20 @@ export const config = {
     apiKey: str(process.env.EXPO_PUBLIC_MAPS_API_KEY, ''),
   },
 
+  /**
+   * Which delivery partner is dispatching, if any.
+   *
+   * Defaults to the mock, and the mock is the only one registered: the brief's
+   * §12 is explicit that it grants no access to a third-party delivery API, so
+   * there is nothing else to select yet. A real integration is registered in
+   * `src/providers/delivery` and named here.
+   *
+   * Deliberately not defaulted to a real provider name. A release build that
+   * forgot this variable should fall back to the implementation that refuses
+   * honestly, not to one that needs credentials it has not been given.
+   */
+  deliveryProvider: str(process.env.EXPO_PUBLIC_DELIVERY_PROVIDER, 'mock'),
+
   payments: {
     provider: str(process.env.EXPO_PUBLIC_PAYMENT_PROVIDER, 'peach'),
     publicKey: str(process.env.EXPO_PUBLIC_PAYMENT_PUBLIC_KEY, ''),

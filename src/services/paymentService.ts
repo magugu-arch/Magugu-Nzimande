@@ -1,4 +1,5 @@
 import { config } from '@/constants/config';
+import { IDEMPOTENCY_HEADER } from '@/features/checkout/idempotency';
 import type { PaymentMethodType } from '@/types';
 import { delay, request } from './apiClient';
 
@@ -24,6 +25,16 @@ export interface AuthorisePaymentInput {
   paymentMethodId: string;
   methodType: PaymentMethodType;
   orderReference: string;
+  /**
+   * The same key the order carries, so a retried authorisation returns the
+   * original hold instead of placing a second one on the card.
+   *
+   * This is the half that made the `uncertain` outcome in `submitOrder`
+   * unrecoverable: with no key, an authorisation whose reply was lost could
+   * not be safely repeated, so the only honest advice was to send the customer
+   * to their banking app. With one, the retry is the same authorisation.
+   */
+  idempotencyKey: string;
 }
 
 export interface PaymentResult {
@@ -61,19 +72,43 @@ export async function createPaymentIntent(input: AuthorisePaymentInput): Promise
   );
 }
 
+/**
+ * Authorisations already taken, by the key of the attempt that took them.
+ *
+ * The mock's stand-in for the gateway's own idempotency record. Without it a
+ * retry after a lost reply takes a second hold on the card, which is the exact
+ * harm `submitOrder`'s `uncertain` outcome had to warn customers about instead
+ * of preventing.
+ */
+const authorisationsByIdempotencyKey = new Map<string, PaymentResult>();
+
+/** Test seam: forget what has been authorised. */
+export function resetAuthorisationLedger(): void {
+  authorisationsByIdempotencyKey.clear();
+}
+
 export async function authorisePayment(input: AuthorisePaymentInput): Promise<PaymentResult> {
   if (isSettledOnDelivery(input.methodType)) {
     return { success: true, intentId: 'cash' };
   }
 
   if (!config.useMockApi) {
-    return request<PaymentResult>('/v1/payments/authorise', { method: 'POST', body: input });
+    return request<PaymentResult>('/v1/payments/authorise', {
+      method: 'POST',
+      body: input,
+      headers: { [IDEMPOTENCY_HEADER]: input.idempotencyKey },
+    });
   }
+
+  const alreadyAuthorised = authorisationsByIdempotencyKey.get(input.idempotencyKey);
+  if (alreadyAuthorised) return alreadyAuthorised;
 
   const intent = await createPaymentIntent(input);
   await delay(null, 700);
 
-  return { success: true, intentId: intent.intentId };
+  const result: PaymentResult = { success: true, intentId: intent.intentId };
+  authorisationsByIdempotencyKey.set(input.idempotencyKey, result);
+  return result;
 }
 
 /**
