@@ -1,5 +1,5 @@
 import { PRODUCTS, STORES, optionGroupsFor } from '@bbq/seed';
-import type { OptionGroup, OrderLine, Product, Store } from '@bbq/types';
+import type { OptionGroup, Order, OrderLine, Product, Store } from '@bbq/types';
 import { expect } from 'vitest';
 import { POST as createOrderRoute } from '@/app/api/orders/route';
 import { POST as signInRoute } from '@/app/api/admin/session/route';
@@ -40,6 +40,22 @@ export function aChickenProduct(): Product {
 
 export function aProduct(): Product {
   return required(PRODUCTS[0], 'products at all');
+}
+
+/** One product from each category, since each gets a different option shape. */
+export function aProductIn(category: Product['category']): Product {
+  return required(
+    PRODUCTS.find((product) => product.category === category),
+    `${category} product`,
+  );
+}
+
+/** The one product that lets the customer choose two sauces at once. */
+export function halfAndHalf(): Product {
+  return required(
+    PRODUCTS.find((product) => product.slug === 'half-half'),
+    'half-and-half product',
+  );
 }
 
 /** A store that takes delivery orders, with at least one suburb on its list. */
@@ -179,15 +195,15 @@ export async function bodyOf<T = Record<string, unknown>>(response: Response): P
  * reading an order the API actually created rather than one it invented and
  * pushed into the store behind the API's back.
  */
-export async function placeOrder(over: Record<string, unknown> = {}) {
+export async function placeOrder(over: Record<string, unknown> = {}): Promise<Order> {
   const product = aProduct();
   const response = await createOrderRoute(
     request('/api/orders', { body: orderRequest([orderLine(product)], over) }),
   );
   expect(response.status).toBe(201);
-  const { order } = await bodyOf<{ order: { id: string; status: string; mode: string } }>(
-    response,
-  );
+  // Typed as the real Order rather than the two or three fields the first
+  // caller happened to read, so the next one is not narrowed out of the rest.
+  const { order } = await bodyOf<{ order: Order }>(response);
   return order;
 }
 

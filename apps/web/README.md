@@ -144,6 +144,10 @@ and the demo catalogue answers to the franchisor rather than to a test.
 `stubFetch()` stands in for the network so `client-api` can be handed the
 malformed responses it exists to reject.
 
+`aProductIn()` picks one product per category, because the option groups are
+generated per category rather than written per product — a mistake in one
+branch is a mistake on every item in it at once.
+
 New assertions are checked against a mutation rather than assumed: break the
 rule on purpose, confirm the test fails, put it back. That is how the two
 cancellation-reason tests turned out to be pinning only the route's guard and
