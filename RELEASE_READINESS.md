@@ -98,6 +98,26 @@ renders only on a completed order with no rating, so the entry to the rating
 flow was previously unreachable without placing an order and waiting; and the
 screen sweep grew from 31 routes to 34.
 
+## 2c. Fixtures for the "you cannot have that" paths
+
+`product.available` and `option.available` are read in four places — the option
+picker, `defaultSelectionFor`, `reconcileCart` and `planReorder` — and every one
+of the 23 seeded products and 78 seeded options was available. All of that code
+worked and none of it had ever run.
+
+Two fixtures: the sharing bucket of fries is **sold out**, and an older order
+carries a **Winter Pumpkin Soup** that has since left the menu. Between them
+they exercise a withdrawn option being skipped by the default selection, a saved
+basket being broken rather than quietly resized into a different meal, and
+"Order again" naming a dish it cannot re-add.
+
+Unlike the cancelled-order fixture, these found no defect. The option picker
+already drew a greyed label with a "Sold out" caption and refused the tap, and
+the reorder notice already named the dish rather than counting it — confirmed in
+a browser: *"Sharing bucket · Sold out · +R 48.00"*, `aria-disabled="true"`,
+tapping does nothing. That is worth recording as a result: the fixtures prove
+the behaviour rather than expose it.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -151,7 +171,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **63 suites, 976 tests**, typecheck and lint clean
+- `npm run verify` — **64 suites, 982 tests**, typecheck and lint clean
 - `npm run audit:screens` — 34 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green

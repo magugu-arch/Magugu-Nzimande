@@ -461,15 +461,37 @@ function seedHistory(): void {
         unitPrice: 279,
         lineTotal: 279,
       },
+      /**
+       * A dish that has since left the menu.
+       *
+       * Menus change, so an old receipt naturally names things you can no
+       * longer buy — and `planReorder` has always handled it: an item that is
+       * off the menu or withdrawn goes into `unavailable` and the customer is
+       * told by name rather than left to compare a basket against a receipt.
+       * Nothing had ever triggered it, because every line in the seeded
+       * history pointed at a product still on sale. Tapping "Order again" on
+       * this order is the first time that notice can appear.
+       */
+      {
+        id: 'winter-pumpkin-soup',
+        productId: 'winter-pumpkin-soup',
+        name: 'Winter Pumpkin Soup',
+        assetKey: 'frenchFries',
+        unitBasePrice: 45,
+        quantity: 1,
+        selectedOptions: [],
+        unitPrice: 45,
+        lineTotal: 45,
+      },
     ],
     totals: {
-      subtotal: 279,
+      subtotal: 324,
       deliveryFee: 0,
       serviceFee: 5,
       discount: 0,
       rewardsDiscount: 20,
-      total: 264,
-      pointsEarned: 279,
+      total: 309,
+      pointsEarned: 324,
     },
     ...storeSnapshot('store-menlyn'),
     scheduledFor: scheduledFor.toISOString(),

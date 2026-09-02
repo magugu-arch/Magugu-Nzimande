@@ -726,7 +726,16 @@ export const products: Product[] = [
         options: [
           { id: 'fries-size-regular', name: 'Regular', priceDelta: 0, available: true },
           { id: 'fries-size-large', name: 'Large', priceDelta: 22, available: true },
-          { id: 'fries-size-sharing', name: 'Sharing bucket', priceDelta: 48, available: true },
+          // Sold out, and the only unavailable option in the catalogue.
+          //
+          // `OptionGroupPicker` has drawn a disabled option since it was
+          // written — greyed label, a "Sold out" caption in §8 warning — and
+          // every one of the 78 seeded options was available, so it had never
+          // once rendered. The same fixture exercises `defaultSelection`,
+          // which must skip a withdrawn option rather than preselect it, and
+          // `reconcileCart`, which drops a saved line whose configuration can
+          // no longer be made.
+          { id: 'fries-size-sharing', name: 'Sharing bucket', priceDelta: 48, available: false },
         ],
       },
       {
