@@ -59,6 +59,11 @@ const ROUTES = [
   // a cancelled order (grey card, warning badge), a dine-in order carrying a
   // table number, and a scheduled order where "ordered at" and "due at" differ.
   '/order/order-4788', '/order/order-4802', '/order/order-4655',
+  // A kids meal, which is a product shape the sweep had no example of: every
+  // one of its option groups is required and priced at zero, because the drink
+  // and the dip are part of the meal rather than additions to it. The picker
+  // renders a price delta beside each option everywhere else.
+  '/product/little-crunch-chicken-meal',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */

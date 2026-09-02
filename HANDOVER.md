@@ -16,7 +16,7 @@ Africa, built to the supplied brief.
 | Stack            | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
 | Screens          | 34 routes covering every journey in brief §4                                                            |
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
-| Food photography | All 24 catalogue products, own artwork, no placeholders                                                 |
+| Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
 | Tests            | 66 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
@@ -47,7 +47,7 @@ products on the way and they turn up on Home and behind a Menu filter.
 ```bash
 npm run verify        # typecheck → lint → test, the gate before any commit
 npm run preview:web   # the whole app in a browser, no build required
-npm run audit:screens # renders all 34 routes at two widths and reports defects
+npm run audit:screens # renders all 35 routes at two widths and reports defects
 npm run smoke:order   # signs in, adds an item and places an order, for real
 npm run preview:single # builds the web export and folds it into one HTML file
 ```
@@ -398,7 +398,7 @@ These fail loudly rather than rotting quietly — leave them on.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, a real prebuild audit of the native projects, and
   the asset checks.
-- **`npm run assets:audit`** exits non-zero while any of the 24 products lacks
+- **`npm run assets:audit`** exits non-zero while any of the 28 products lacks
   its own photograph, so a new menu item can't ship on a placeholder.
 - **`npm run smoke:order`** places an order: signs in, adds an item, chooses an
   address, submits, checks the confirmation carries a reference and that

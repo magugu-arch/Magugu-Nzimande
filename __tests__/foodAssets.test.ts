@@ -1,3 +1,5 @@
+import { readdirSync } from 'node:fs';
+import path from 'node:path';
 import {
   FOOD_ASSET_FILENAMES,
   FOOD_ASSET_KEYS,
@@ -50,6 +52,32 @@ describe('food asset catalogue', () => {
       expect(FOOD_ASSET_LABELS[key]).toBeTruthy();
       expect(FOOD_ASSET_FILENAMES[key]).toMatch(/^[a-z0-9-]+$/);
     });
+  });
+
+  /**
+   * The derived filename against the files that actually exist.
+   *
+   * `FOOD_ASSET_FILENAMES` kebab-cases each key, and `scripts/lib/food-catalogue.mjs`
+   * does the same thing again in JavaScript the TypeScript cannot import. Two
+   * copies of one rule, and the failure when they disagree is silent in the
+   * worst direction: the scripts derive one name, the app derives another, the
+   * master is never found and the product renders the placeholder tile with
+   * nothing failing anywhere.
+   *
+   * It nearly happened on the first key with two capitals in a row.
+   * `littleKRiceChickenMeal` derived `little-krice-chicken-meal` under the
+   * original rule, against a master named `little-k-rice-chicken-meal`.
+   *
+   * Checking the derived names against the directory catches that whichever
+   * copy is wrong, because the scripts are what put the files there.
+   */
+  it('derives a filename that a master actually exists under', () => {
+    const masters = readdirSync(path.join(__dirname, '..', 'assets', 'food', 'masters'));
+    const missing = FOOD_ASSET_KEYS.filter(
+      (key) => !masters.includes(`${FOOD_ASSET_FILENAMES[key]}.jpg`),
+    ).map((key) => `${key} -> ${FOOD_ASSET_FILENAMES[key]}.jpg`);
+
+    expect(missing).toEqual([]);
   });
 
   it('uses a unique filename per key', () => {

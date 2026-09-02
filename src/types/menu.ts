@@ -26,7 +26,13 @@ export type CategoryId =
   | 'rice-bowls'
   | 'sides'
   | 'drinks'
-  | 'sauces-extras';
+  | 'sauces-extras'
+  /**
+   * Kids Menu, added by the kids-menu brief. Unlike Drinks and Sauces &
+   * Extras it arrived with both its products and its photography, so it is
+   * surfaced in `categories` from the start rather than held back.
+   */
+  | 'kids';
 
 export type SpiceLevel = 0 | 1 | 2 | 3;
 

@@ -89,6 +89,60 @@ if (missingMaster.length > 0) {
   console.log('');
 }
 
+/**
+ * How much of the detail hero's target width the artwork can actually reach.
+ *
+ * The pipeline documents `detail 4:5 1200px (Retina @2x-3x)` and has never
+ * produced it for a single product — not one of the original sixteen, and not
+ * one added since. Every master is a landscape or near-square frame, so a 4:5
+ * cover crop is limited by its height, and the promo compositions lose more
+ * again to their `promo_safe` rects. The pipeline is right to cap rather than
+ * upscale; nothing was ever wrong with the code. What was wrong is that the
+ * number in the comment was a target nobody measured against, so heroes have
+ * been shipping between 530px and 1122px wide into a 390pt box, and the ones
+ * at the bottom of that range are visibly soft on a 3x phone.
+ *
+ * Reported rather than failed: every product is affected, so failing the build
+ * would only teach people to pass --warn. What this can do is put a number on
+ * the shoot list — the fix is taller masters, which is a request to whoever
+ * supplies the photography, not a change anybody can make here.
+ */
+const DETAIL_TARGET = 1200;
+
+function detailWidth(filename) {
+  const file = path.join(root, 'assets', 'food', 'detail', `${filename}.jpg`);
+  if (!fs.existsSync(file)) return null;
+  // JPEG SOF marker: walk the segments rather than adding an image library to
+  // a script whose whole job is to run without one.
+  const buf = fs.readFileSync(file);
+  let offset = 2;
+  while (offset < buf.length) {
+    if (buf[offset] !== 0xff) return null;
+    const marker = buf[offset + 1];
+    if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
+      return buf.readUInt16BE(offset + 7);
+    }
+    offset += 2 + buf.readUInt16BE(offset + 2);
+  }
+  return null;
+}
+
+const soft = supplied
+  .map(({ filename, label }) => ({ label, width: detailWidth(filename) }))
+  .filter((entry) => entry.width !== null && entry.width < DETAIL_TARGET)
+  .sort((a, b) => a.width - b.width);
+
+if (soft.length > 0) {
+  console.log(
+    `Detail heroes below the ${DETAIL_TARGET}px target (${soft.length}/${supplied.length}) — ` +
+      'the masters are not tall enough for a 4:5 crop at that width:',
+  );
+  for (const { label, width } of soft) {
+    console.log(`  · ${label.padEnd(30)} ${String(width).padStart(4)}px`);
+  }
+  console.log('  Fix is taller masters, not a pipeline change: it caps rather than upscales.\n');
+}
+
 const outstanding = missingMaster.length + missingDerivatives.length;
 
 if (outstanding === 0) {

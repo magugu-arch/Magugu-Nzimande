@@ -57,7 +57,9 @@ export const ProductCard = memo(function ProductCard({
       </View>
 
       <View style={styles.body}>
-        <Text variant="h3" numberOfLines={1}>
+        {/* Two lines, for the same reason as ProductRow: this card is 166pt
+            wide, so a four-word meal name loses more here than in the list. */}
+        <Text variant="h3" numberOfLines={2}>
           {product.name}
         </Text>
         <Text variant="caption" color={colors.textSecondary} numberOfLines={2} style={styles.blurb}>

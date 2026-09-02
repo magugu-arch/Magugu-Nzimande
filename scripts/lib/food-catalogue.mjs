@@ -26,7 +26,12 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SOURCE = path.join(root, 'src', 'constants', 'foodAssets.ts');
 
-const kebabCase = (key) => key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+/** Must stay identical to `kebabCase` in src/constants/foodAssets.ts. */
+const kebabCase = (key) =>
+  key
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .toLowerCase();
 
 function fail(message) {
   console.error(`${message}\n  Source: ${SOURCE}`);

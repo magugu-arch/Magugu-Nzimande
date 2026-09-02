@@ -15,7 +15,18 @@ import type { CategoryId } from '@/types';
  * product lands in one are all things the brief decides.
  */
 
-/** §8 and §17, in their order. */
+/**
+ * Every category a brief has asked for, in menu order.
+ *
+ * The first nine are §8 and §17 of the *Advanced App Functionality* brief.
+ * `kids` is §3 of the *Kids Menu Extension* brief, which asked for a new
+ * category rather than more products in an existing one — so the taxonomy now
+ * has two sources, and this list is the union rather than a copy of either.
+ *
+ * What the test protects is unchanged: a category may exist here only because
+ * somebody asked for it in writing. A tenth appearing without a brief behind
+ * it fails, which is the point.
+ */
 const BRIEF_TAXONOMY = [
   'chicken',
   'wings',
@@ -26,6 +37,7 @@ const BRIEF_TAXONOMY = [
   'sides',
   'drinks',
   'sauces-extras',
+  'kids',
 ] as const;
 
 /**

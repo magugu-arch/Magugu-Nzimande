@@ -63,6 +63,11 @@ export const FOOD_ASSET_KEYS = [
   'cheeslingBurger',
   'sweetPotatoFries',
   'cheeseDdeokBokki',
+  // Kids menu.
+  'littleCrunchChickenMeal',
+  'littleChickenStripsMeal',
+  'littleCheeslingBurgerMeal',
+  'littleKRiceChickenMeal',
 ] as const;
 
 export type FoodAssetKey = (typeof FOOD_ASSET_KEYS)[number];
@@ -166,6 +171,10 @@ export const FOOD_ASSET_LABELS: Record<FoodAssetKey, string> = {
   cheeslingBurger: 'Cheesling Burger',
   sweetPotatoFries: 'Sweet Potato Fries',
   cheeseDdeokBokki: 'Cheese Ddeok-Bokki',
+  littleCrunchChickenMeal: 'Little Crunch Chicken Meal',
+  littleChickenStripsMeal: 'Little Chicken Strips Meal',
+  littleCheeslingBurgerMeal: 'Little Cheesling Burger Meal',
+  littleKRiceChickenMeal: 'Little K-Rice Chicken Meal',
 };
 
 /**
@@ -184,7 +193,18 @@ export const FOOD_ASSET_LABELS: Record<FoodAssetKey, string> = {
  * The scripts now read this module rather than restating it, so the mapping
  * exists once and adding a product is one key plus one master file.
  */
-const kebabCase = (key: string): string => key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+const kebabCase = (key: string): string =>
+  key
+    // A run of capitals ending a word: `KRice` is "K Rice", not "KRice".
+    // Without this `littleKRiceChickenMeal` derives `little-krice-…`, the
+    // master on disk is never found, and the product renders the placeholder
+    // tile with nothing failing anywhere. `foodAssets.test.ts` checks each
+    // derived name against the files actually present, so the two copies of
+    // this rule — here and in scripts/lib/food-catalogue.mjs — cannot drift
+    // apart silently.
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .toLowerCase();
 
 export const FOOD_ASSET_FILENAMES: Record<FoodAssetKey, string> = Object.fromEntries(
   FOOD_ASSET_KEYS.map((key) => [key, kebabCase(key)]),

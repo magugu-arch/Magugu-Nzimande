@@ -47,7 +47,18 @@ export const ProductRow = memo(function ProductRow({ product, onPress, testID }:
 
         <View style={styles.body}>
           <View style={styles.titleRow}>
-            <Text variant="h3" numberOfLines={1} style={styles.title}>
+            {/*
+              Two lines, not one.
+
+              Every product name fitted on one line while the longest was
+              "Golden Original Chicken", so the clamp cost nothing and was
+              never noticed. The kids meals are all four words — "Little
+              Cheesling Burger Meal" — and all four truncated in the list, one
+              of them to "Little Cheesling Burge…", which is not the name of
+              anything. Nothing existing wraps as a result: the names that fit
+              on one line still do.
+            */}
+            <Text variant="h3" numberOfLines={2} style={styles.title}>
               {product.name}
             </Text>
             {product.spiceLevel >= 3 ? (
@@ -95,7 +106,10 @@ const styles = StyleSheet.create({
   },
   image: { width: 88, borderRadius: radius.md },
   body: { flex: 1, gap: spacing.xxs },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  // The heat flame sits beside the title. Centred against a two-line name it
+  // floats in the middle of the block; against the first line it reads as part
+  // of the name, which is what it is.
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
   title: { flexShrink: 1 },
   footer: {
     flexDirection: 'row',

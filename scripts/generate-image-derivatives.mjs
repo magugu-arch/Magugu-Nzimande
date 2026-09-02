@@ -135,6 +135,36 @@ OVERRIDES = {
     "cheesling-burger": {
         "focus_x": 0.25,
     },
+    # ── Kids menu ─────────────────────────────────────────────────────────
+    # Four meals photographed in a printed box: food and drink across the top
+    # two-thirds, and a band along the bottom carrying the meal name, the
+    # bb.q mascot and a "Made fresh for kids" badge.
+    #
+    # These are 4:3, and the card and detail crops are 4:5 — so a cover crop
+    # takes a narrow column out of the middle and slices the printed name
+    # horizontally, mid-word, on every one of them. Anchoring vertically does
+    # nothing here because the cut is in the other axis.
+    #
+    # So the catalogue surfaces take the food above the band, and the banner
+    # keeps the whole box: 16:9 cuts height rather than width, so the name
+    # survives there intact. Same mechanism as the promo compositions above,
+    # for the same reason — a halved word reads as a bug.
+    "little-crunch-chicken-meal": {
+        "promo_safe": (0.0, 0.0, 1.0, 0.66),
+        "gravity": {"banner": 0.0},
+    },
+    "little-chicken-strips-meal": {
+        "promo_safe": (0.0, 0.0, 1.0, 0.63),
+        "gravity": {"banner": 0.0},
+    },
+    "little-cheesling-burger-meal": {
+        "promo_safe": (0.0, 0.0, 1.0, 0.66),
+        "gravity": {"banner": 0.0},
+    },
+    "little-k-rice-chicken-meal": {
+        "promo_safe": (0.0, 0.0, 1.0, 0.61),
+        "gravity": {"banner": 0.0},
+    },
 }
 
 

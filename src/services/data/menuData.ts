@@ -65,6 +65,58 @@ const WINGS_SIZE_GROUP = (base: string): OptionGroup => ({
   ],
 });
 
+/**
+ * The drink that comes with a kids meal, and which one.
+ *
+ * Every kids meal in the brief is "a complete meal … and a cool drink", so the
+ * drink is part of what was bought rather than an upsell. `DRINK_GROUP` prices
+ * each one as an addition, which is right for a chicken box and wrong here —
+ * a customer would be charged R22 for the drink the box is photographed with.
+ * So this is the same list at zero, with `minSelect: 1`, because a meal with
+ * no drink chosen is an order the kitchen cannot fill.
+ *
+ * Milkis is deliberately absent. It is the one premium drink in
+ * `DRINK_GROUP` at R32, and whether a kids meal includes it at no charge is a
+ * margin decision rather than a UI one. `audit:launch` asks for the included
+ * set to be signed off along with the prices.
+ */
+const KIDS_DRINK_GROUP = (base: string): OptionGroup => ({
+  id: `${base}-drink`,
+  name: 'Which cool drink?',
+  kind: 'drink',
+  minSelect: 1,
+  maxSelect: 1,
+  defaultOptionIds: [`${base}-drink-coke`],
+  options: [
+    { id: `${base}-drink-coke`, name: 'Coca-Cola 330ml', priceDelta: 0, available: true },
+    { id: `${base}-drink-coke-zero`, name: 'Coke Zero 330ml', priceDelta: 0, available: true },
+    { id: `${base}-drink-sprite`, name: 'Sprite 330ml', priceDelta: 0, available: true },
+    { id: `${base}-drink-water`, name: 'Still water 500ml', priceDelta: 0, available: true },
+  ],
+});
+
+/**
+ * The dip that comes in the box, for the two meals photographed with one.
+ *
+ * Same reasoning as the drink: `SAUCE_GROUP` sells an *extra* dip at R18, and
+ * this is the one already included. The four sauces are the ones the kitchen
+ * already makes for `SAUCE_GROUP`, minus the Secret Sauce, which is the
+ * priciest and the only one that is not obviously a children's flavour.
+ */
+const KIDS_DIP_GROUP = (base: string): OptionGroup => ({
+  id: `${base}-dip`,
+  name: 'Which dipping sauce?',
+  kind: 'addon',
+  minSelect: 1,
+  maxSelect: 1,
+  defaultOptionIds: [`${base}-dip-honey`],
+  options: [
+    { id: `${base}-dip-honey`, name: 'Honey Garlic dip', priceDelta: 0, available: true },
+    { id: `${base}-dip-soy`, name: 'Soy Garlic dip', priceDelta: 0, available: true },
+    { id: `${base}-dip-ranch`, name: 'Creamy ranch', priceDelta: 0, available: true },
+  ],
+});
+
 const SAUCE_GROUP = (base: string): OptionGroup => ({
   id: `${base}-sauce`,
   name: 'Extra dipping sauce',
@@ -255,6 +307,22 @@ export const categories: Category[] = [
     tagline: 'The supporting cast that steals the show',
     assetKey: 'cheeslingFries',
     sortOrder: 7,
+  },
+  /**
+   * Last in the row, which is deliberate rather than dismissive.
+   *
+   * Every existing `sortOrder` is untouched, so no category a customer has
+   * learned the position of has moved. And a parent looking for the kids menu
+   * scans for the word rather than the position, while somebody ordering for
+   * themselves scrolls past it — which is the wrong way round if it sits
+   * between Chicken and Wings.
+   */
+  {
+    id: 'kids',
+    name: 'Kids Menu',
+    tagline: 'Little meals, made fresh',
+    assetKey: 'littleCrunchChickenMeal',
+    sortOrder: 8,
   },
 ];
 
@@ -1218,6 +1286,101 @@ export const products: Product[] = [
     serves: 'Serves 1 – 2',
     allergens: ['Gluten', 'Soy', 'Milk', 'Fish'],
     nutrition: { kilojoules: 2140, protein: 18, carbs: 72, fat: 21 },
+  },
+
+  /**
+   * ── Kids Menu ─────────────────────────────────────────────────────────────
+   *
+   * Four complete meals rather than four small portions: each is the food, a
+   * side and a drink in one box, which is what the packaging says and what a
+   * parent is buying. So the drink and the dip are `minSelect: 1` groups at
+   * zero — included, and chosen — rather than the priced add-ons the grown-up
+   * boxes carry.
+   *
+   * `serves` says "Serves 1 child" rather than the usual "Serves 1". The
+   * portion is the whole point of the range, and a parent scanning the card
+   * has no other way to tell this apart from an adult meal at two-thirds the
+   * price.
+   */
+  {
+    id: 'little-crunch-chicken-meal',
+    slug: 'little-crunch-chicken-meal',
+    name: 'Little Crunch Chicken Meal',
+    shortDescription: 'Crispy chicken, golden fries, a dip and a cool drink.',
+    description:
+      'A kid-friendly serving of crispy, golden fried chicken pieces served as a complete meal with golden fries, a dipping sauce and a cool drink. Small hands, same crunch.',
+    basePrice: 69,
+    categoryId: 'kids',
+    assetKey: 'littleCrunchChickenMeal',
+    spiceLevel: 0,
+    tags: ['new', 'value'],
+    optionGroups: [KIDS_DIP_GROUP('little-crunch'), KIDS_DRINK_GROUP('little-crunch')],
+    recommendedProductIds: ['little-chicken-strips-meal', 'french-fries', 'golden-original'],
+    available: true,
+    preparationMinutes: 12,
+    serves: 'Serves 1 child',
+    allergens: ['Gluten', 'Soy'],
+    nutrition: { kilojoules: 1980, protein: 22, carbs: 68, fat: 21 },
+  },
+  {
+    id: 'little-chicken-strips-meal',
+    slug: 'little-chicken-strips-meal',
+    name: 'Little Chicken Strips Meal',
+    shortDescription: 'Boneless strips, golden fries, a dip and a cool drink.',
+    description:
+      'Tender, crispy boneless chicken strips served as a complete kids meal with golden fries, a dipping sauce and a cool drink. No bones to work around.',
+    basePrice: 69,
+    categoryId: 'kids',
+    assetKey: 'littleChickenStripsMeal',
+    spiceLevel: 0,
+    tags: ['new', 'boneless'],
+    optionGroups: [KIDS_DIP_GROUP('little-strips'), KIDS_DRINK_GROUP('little-strips')],
+    recommendedProductIds: ['little-crunch-chicken-meal', 'french-fries', 'boneless'],
+    available: true,
+    preparationMinutes: 12,
+    serves: 'Serves 1 child',
+    allergens: ['Gluten', 'Soy'],
+    nutrition: { kilojoules: 1920, protein: 24, carbs: 65, fat: 19 },
+  },
+  {
+    id: 'little-cheesling-burger-meal',
+    slug: 'little-cheesling-burger-meal',
+    name: 'Little Cheesling Burger Meal',
+    shortDescription: 'A small Cheesling burger, golden fries and a cool drink.',
+    description:
+      'A smaller, kid-sized Cheesling Burger served as a complete meal with golden fries and a cool drink. The same cheese seasoning, built to fit smaller hands.',
+    basePrice: 75,
+    categoryId: 'kids',
+    assetKey: 'littleCheeslingBurgerMeal',
+    spiceLevel: 0,
+    tags: ['new'],
+    optionGroups: [KIDS_DRINK_GROUP('little-cheesling')],
+    recommendedProductIds: ['little-crunch-chicken-meal', 'cheesling-burger', 'sweet-potato-fries'],
+    available: true,
+    preparationMinutes: 11,
+    serves: 'Serves 1 child',
+    allergens: ['Gluten', 'Soy', 'Milk', 'Egg'],
+    nutrition: { kilojoules: 2180, protein: 23, carbs: 71, fat: 25 },
+  },
+  {
+    id: 'little-k-rice-chicken-meal',
+    slug: 'little-k-rice-chicken-meal',
+    name: 'Little K-Rice Chicken Meal',
+    shortDescription: 'Korean chicken, steamed rice, a Korean side and a drink.',
+    description:
+      'A kid-friendly Korean-style chicken and rice meal — glazed crispy chicken with steamed rice, a small Korean side and a cool drink, in a portion sized for children.',
+    basePrice: 79,
+    categoryId: 'kids',
+    assetKey: 'littleKRiceChickenMeal',
+    spiceLevel: 1,
+    tags: ['new'],
+    optionGroups: [KIDS_DRINK_GROUP('little-k-rice')],
+    recommendedProductIds: ['little-crunch-chicken-meal', 'korean-rice-bowl', 'wings-rice-meal'],
+    available: true,
+    preparationMinutes: 13,
+    serves: 'Serves 1 child',
+    allergens: ['Gluten', 'Soy'],
+    nutrition: { kilojoules: 2060, protein: 25, carbs: 78, fat: 18 },
   },
 ];
 

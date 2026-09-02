@@ -14,7 +14,7 @@ still stands between this repository and a store.
 | --------- | ----- | -------- |
 | Customer can select/save address | Pass | `audit:returning` picks a non-default address and orders to it |
 | Serviceability checked before checkout | Pass | `deliveryRange()` gates the Place order button; `audit:delivery-range` |
-| Menu search and browsing work | Pass | `audit:screens` sweeps 34 routes; search covered in `menu.test.ts` |
+| Menu search and browsing work | Pass | `audit:screens` sweeps 35 routes; search covered in `menu.test.ts` |
 | Required modifiers cannot be bypassed | Pass | `cart.test.ts` — enforcement is in `utils/cart`, not in a screen |
 | Totals update correctly | Pass | `cart.test.ts`, `cartStore.test.ts`; all arithmetic through whole cents |
 | Delivery, pickup and scheduling work | Pass | `tradingHours.test.ts`, `checkout/schedule`, `audit:coldstart` |
@@ -240,7 +240,7 @@ Recorded so they read as decisions rather than oversights.
 ## 6. Verification for this round
 
 - `npm run verify` — **66 suites, 1 005 tests**, typecheck and lint clean
-- `npm run audit:screens` — 34 routes at 390pt and 320pt, no defects
+- `npm run audit:screens` — 35 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green
 - The courier leg driven in a browser across a simulated 70 minutes: no driver

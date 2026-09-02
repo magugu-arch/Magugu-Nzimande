@@ -125,7 +125,7 @@ reaches for a raw colour or type value — everything resolves through `src/them
 
 ## Asset manifest
 
-24 supplied photographs, one per catalogue product, each
+28 supplied photographs, one per catalogue product, each
 derived into four responsive variants by `npm run assets:derive`.
 
 | Variant | Ratio | Width | Used on |
@@ -161,6 +161,10 @@ derived into four responsive variants by `npm run assets:derive`.
 | Cheesling Burger | `burgers` | `cheeslingBurger` | `cheesling-burger.jpg` |
 | Sweet Potato Fries | `sides` | `sweetPotatoFries` | `sweet-potato-fries.jpg` |
 | Cheese Ddeok-Bokki | `sides` | `cheeseDdeokBokki` | `cheese-ddeok-bokki.jpg` |
+| Little Crunch Chicken Meal | `kids` | `littleCrunchChickenMeal` | `little-crunch-chicken-meal.jpg` |
+| Little Chicken Strips Meal | `kids` | `littleChickenStripsMeal` | `little-chicken-strips-meal.jpg` |
+| Little Cheesling Burger Meal | `kids` | `littleCheeslingBurgerMeal` | `little-cheesling-burger-meal.jpg` |
+| Little K-Rice Chicken Meal | `kids` | `littleKRiceChickenMeal` | `—` |
 
 Masters live in `assets/food/masters/` and are never shipped to a list screen.
 Eight of them are campaign compositions carrying their own headline typography;

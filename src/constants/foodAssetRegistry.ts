@@ -155,4 +155,28 @@ export const suppliedFoodAssets: Partial<Record<FoodAssetKey, FoodAsset>> = {
     detail: require('@assets/food/detail/cheese-ddeok-bokki.jpg'),
     banner: require('@assets/food/banner/cheese-ddeok-bokki.jpg'),
   },
+  littleCrunchChickenMeal: {
+    thumb: require('@assets/food/thumb/little-crunch-chicken-meal.jpg'),
+    card: require('@assets/food/card/little-crunch-chicken-meal.jpg'),
+    detail: require('@assets/food/detail/little-crunch-chicken-meal.jpg'),
+    banner: require('@assets/food/banner/little-crunch-chicken-meal.jpg'),
+  },
+  littleChickenStripsMeal: {
+    thumb: require('@assets/food/thumb/little-chicken-strips-meal.jpg'),
+    card: require('@assets/food/card/little-chicken-strips-meal.jpg'),
+    detail: require('@assets/food/detail/little-chicken-strips-meal.jpg'),
+    banner: require('@assets/food/banner/little-chicken-strips-meal.jpg'),
+  },
+  littleCheeslingBurgerMeal: {
+    thumb: require('@assets/food/thumb/little-cheesling-burger-meal.jpg'),
+    card: require('@assets/food/card/little-cheesling-burger-meal.jpg'),
+    detail: require('@assets/food/detail/little-cheesling-burger-meal.jpg'),
+    banner: require('@assets/food/banner/little-cheesling-burger-meal.jpg'),
+  },
+  littleKRiceChickenMeal: {
+    thumb: require('@assets/food/thumb/little-k-rice-chicken-meal.jpg'),
+    card: require('@assets/food/card/little-k-rice-chicken-meal.jpg'),
+    detail: require('@assets/food/detail/little-k-rice-chicken-meal.jpg'),
+    banner: require('@assets/food/banner/little-k-rice-chicken-meal.jpg'),
+  },
 };

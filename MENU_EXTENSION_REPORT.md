@@ -137,7 +137,7 @@ Not only in tests. Against a release build, at 390pt:
   Burger: the total moved R162 → R287 on the quantity change, and the summary
   names it.
 - Golden Original Wings keeps its size picker after the shared-group change.
-- `audit:screens` across 34 routes at 390pt and 320pt: no overflow, no blank
+- `audit:screens` across 35 routes at 390pt and 320pt: no overflow, no blank
   screens, no console errors, no accessibility gaps, every target ≥ 44×44.
 - `audit:coldstart`, `audit:points`, `audit:handover` all green.
 
