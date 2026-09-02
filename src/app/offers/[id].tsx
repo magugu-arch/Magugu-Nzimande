@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
@@ -18,6 +18,7 @@ import { usePromotion } from '@/features/rewards/hooks';
 import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
+import { tell } from '@/ux/dialog';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -28,12 +29,47 @@ export default function OfferDetailScreen() {
   const promotion = usePromotion(id);
 
   const [copied, setCopied] = useState(false);
+  const resetLabel = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /**
+   * Copy the promo code, and say the code out loud if copying is refused.
+   *
+   * `setStringAsync` had no catch, and `setCopied(true)` sat after the await —
+   * so a rejection was an unhandled promise *and* a button that gave no
+   * feedback whatsoever. The customer taps Copy, nothing changes, and they
+   * still have no code.
+   *
+   * Rejection is ordinary on web, not exotic. `navigator.clipboard.writeText`
+   * throws `NotAllowedError` when the document is not focused, when the
+   * permission is denied, and inside an iframe without `clipboard-write` —
+   * which is how a published web preview of this app is rendered. Confirmed in
+   * Chromium: an iframe without that permission fails with "Document is not
+   * focused."
+   *
+   * The fallback follows `callNumber` in `utils/linking`: when the handoff
+   * cannot be made, tell them what they need so they can still act on it.
+   */
   const handleCopyCode = useCallback(async (code: string) => {
-    await Clipboard.setStringAsync(code);
+    try {
+      await Clipboard.setStringAsync(code);
+    } catch {
+      void tell('Copy the code by hand', `Your code is ${code}. Enter it in the cart at checkout.`);
+      return;
+    }
     setCopied(true);
-    setTimeout(() => setCopied(false), 2200);
+    // Tracked and cleared on unmount: the label resets 2.2s later, and leaving
+    // the timer running meant a customer who tapped Copy and immediately went
+    // back left a callback pointed at a screen that no longer exists.
+    if (resetLabel.current) clearTimeout(resetLabel.current);
+    resetLabel.current = setTimeout(() => setCopied(false), 2200);
   }, []);
+
+  useEffect(
+    () => () => {
+      if (resetLabel.current) clearTimeout(resetLabel.current);
+    },
+    [],
+  );
 
   if (promotion.isLoading) {
     return (
