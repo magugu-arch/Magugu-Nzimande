@@ -4,10 +4,10 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   resolve: {
     alias: {
-      '@bbq/types': path.resolve(__dirname, '../../packages/types/src/index.ts'),
-      '@bbq/ui/tokens': path.resolve(__dirname, '../../packages/ui/src/tokens.ts'),
-      '@bbq/seed': path.resolve(__dirname, '../../infra/seed/index.ts'),
-      '@': path.resolve(__dirname, './src'),
+      '@bbq/types': path.resolve(import.meta.dirname, '../../packages/types/src/index.ts'),
+      '@bbq/ui/tokens': path.resolve(import.meta.dirname, '../../packages/ui/src/tokens.ts'),
+      '@bbq/seed': path.resolve(import.meta.dirname, '../../infra/seed/index.ts'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   test: {

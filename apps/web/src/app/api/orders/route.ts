@@ -1,6 +1,7 @@
 import { CreateOrderRequestSchema } from '@bbq/types';
 import { NextResponse } from 'next/server';
-import { findStore, isHidden, isSoldOut, servesMode } from '@/lib/catalogue-state';
+import { deliversTo, findStore, servesMode } from '@/lib/catalogue-state';
+import { repriceLines } from '@/lib/order-integrity';
 import { createOrder } from '@/lib/order-store';
 import { findPromotion, totalsFor } from '@/lib/pricing';
 
@@ -34,14 +35,28 @@ export async function POST(request: Request) {
     );
   }
 
-  const unavailable = order.lines.filter(
-    (line) => isSoldOut(line.slug) || isHidden(line.slug),
-  );
-  if (unavailable.length > 0) {
+  // The schema already guarantees a delivery order carries a suburb; this is
+  // whether the store it was addressed to actually covers it.
+  if (order.mode === 'Delivery' && !deliversTo(store, order.suburb ?? '')) {
+    return NextResponse.json(
+      { error: `${store.name} does not deliver to ${order.suburb}` },
+      { status: 409 },
+    );
+  }
+
+  /**
+   * Every line is priced again from the catalogue. This subsumes the sold-out
+   * and hidden checks that used to stand here and closes what they missed: an
+   * unknown slug is on neither list, so an invented product used to pass, and
+   * the price on every line was whatever the client said it was.
+   */
+  const repriced = repriceLines(order.lines);
+  if (!repriced.ok) {
     return NextResponse.json(
       {
-        error: 'Some items are no longer available',
-        slugs: unavailable.map((line) => line.slug),
+        error: 'Some items are no longer available at the price in your basket',
+        problems: repriced.problems,
+        slugs: repriced.problems.map((problem) => problem.slug),
       },
       { status: 409 },
     );
@@ -51,10 +66,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'That promo code is not valid' }, { status: 409 });
   }
 
-  // Totals are recomputed from the lines rather than trusted from the client,
-  // so a tampered basket cannot set its own price.
-  const totals = totalsFor(order.lines, order.mode, order.promoCode);
-  const created = createOrder(order);
+  // Totals come from the re-priced lines, never from the request.
+  const lines = repriced.lines;
+  const totals = totalsFor(lines, order.mode, order.promoCode);
+  const created = createOrder({ ...order, lines });
 
   return NextResponse.json(
     { order: { ...created, totals } },

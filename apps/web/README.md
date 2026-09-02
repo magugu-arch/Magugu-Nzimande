@@ -100,9 +100,20 @@ Order states run `received`, `preparing`, `ready`, `out_for_delivery`,
 `completed` as Collected or Served. `cancelled` is terminal from any state and
 is refused without a reason.
 
-**Server-side rules.** Totals are recomputed from the lines rather than trusted
-from the client. A store with a service switched off has the order refused by
-the API, not only by the interface. A sold-out or hidden item is refused too.
+**Server-side rules.** Nothing a client sends about money is used. Every line
+is priced again from the catalogue — base price plus the deltas of the options
+it actually carries — and a line whose claimed price disagrees is refused, not
+quietly corrected: a disagreement is either tampering or a basket built before
+a price changed, and the second case is owed the news rather than a different
+amount at the till. `src/lib/order-integrity.ts` holds this, and
+`tests/order-integrity.test.ts` drives it through the route handler rather than
+the helpers, because the arithmetic was never the part that was wrong.
+
+Refused by the API and not only by the interface: a store with the service
+switched off, a sold-out or hidden item, a slug that was never on the menu, an
+option group or choice the product does not have, the same discounting choice
+claimed twice, and a delivery order to a suburb the chosen store does not
+cover.
 
 ---
 

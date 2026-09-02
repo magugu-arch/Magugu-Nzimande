@@ -87,3 +87,19 @@ export function setService(storeId: string, mode: ServiceMode, enabled: boolean)
 export function servesMode(store: Store, mode: ServiceMode): boolean {
   return store.services[mode] === true;
 }
+
+/**
+ * Whether this store delivers to this suburb.
+ *
+ * `POST /api/delivery/quote` has always refused a suburb outside every zone,
+ * but the quote is advisory: nothing made the order route ask. A delivery
+ * order naming a suburb this store does not cover — or covered by the *other*
+ * store — was accepted and reached the kitchen queue as work nobody could do.
+ *
+ * Matched the same way the quote matches, so the two cannot disagree about
+ * what "Sandton" means.
+ */
+export function deliversTo(store: Store, suburb: string): boolean {
+  const wanted = suburb.trim().toLowerCase();
+  return store.zones.some((zone) => zone.toLowerCase() === wanted);
+}

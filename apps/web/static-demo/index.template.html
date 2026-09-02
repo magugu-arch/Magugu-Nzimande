@@ -495,10 +495,14 @@ input[type="range"]{width:100%; accent-color:var(--red)}
    bb.q Chicken South Africa — review build.
 
    The production site is a Next.js app whose service layer talks to a real
-   API, and whose store service rules are enforced on the server as well as in
-   the interface. This build has no server: the same catalogue, pricing and
-   rules run in the browser so the journey can be walked through from a link.
-   Anything it enforces, it enforces client side only.
+   API. There, nothing a client sends about money is used: every line is priced
+   again from the catalogue, and store service rules, availability and delivery
+   zones are all enforced on the server as well as in the interface.
+
+   This build has no server. The same catalogue, pricing and rules run in the
+   browser so the journey can be walked through from a link — which means
+   anything it enforces, it enforces client side only. Read it as a picture of
+   the journey, never as evidence that the rules hold.
    ============================================================ */
 
 /* ---------- 1. Catalogue ------------------------------------
