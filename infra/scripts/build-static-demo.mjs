@@ -182,6 +182,22 @@ function catalogueScript() {
     copy: promotion.copy,
   }));
 
+  /**
+   * A category's tile image is the first product filed under it.
+   *
+   * The seed's Category carries a key, a label and a note — no image, because
+   * the Next.js site has always derived one this way rather than storing a
+   * second reference to a photograph. The demo's own copy of this data used to
+   * hardcode an `img`, and when the copy went away so did the field: every
+   * category tile rendered a broken image. Derived here so both surfaces pick
+   * the same picture for the same reason.
+   */
+  const categories = CATEGORIES.map((category) => {
+    const example = PRODUCTS.find((product) => product.category === category.key);
+    if (!example) throw new Error(`No product is filed under the ${category.key} category`);
+    return { ...category, img: example.imageKey };
+  });
+
   const faqs = FAQS.map((faq) => ({ q: faq.question, a: faq.answer }));
 
   const fees = {
@@ -196,7 +212,7 @@ function catalogueScript() {
 
   return [
     declare('PRODUCTS', products),
-    declare('CATEGORIES', CATEGORIES),
+    declare('CATEGORIES', categories),
     declare('SAUCES', SAUCES),
     declare('STORES', stores),
     declare('PROMOTIONS', promotions),

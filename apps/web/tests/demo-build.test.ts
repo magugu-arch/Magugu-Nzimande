@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { CATEGORIES, FAQS, PRODUCTS, PROMOTIONS, REWARDS, SAUCES, STORES } from '@bbq/seed';
 import { describe, expect, it } from 'vitest';
@@ -89,6 +89,53 @@ describe('what the build will inject', () => {
       if (store.services.Delivery) {
         expect(store.zones.length, store.name).toBeGreaterThan(0);
       }
+    }
+  });
+
+  /**
+   * The bug this exists for.
+   *
+   * The template reads a category's image as `c.img`. The seed's Category has
+   * no image field — the Next.js site derives one from the first product in
+   * the category — so injecting the seed's shape unchanged left `c.img`
+   * undefined and every category tile rendered a broken image. Nothing caught
+   * it: the datasets were all present and non-empty, which is all the checks
+   * below ask. What was wrong was a field the template needed and the seed
+   * never had.
+   */
+  /**
+   * Read out of the built page rather than recomputed here.
+   *
+   * A test that re-derives what the build should have injected passes whether
+   * or not the build injected it — which is how this got out. The template
+   * reads a category's image as `c.img`; the seed's Category has no image
+   * field, because the Next.js site derives one from the first product in the
+   * category. Injecting the seed's shape unchanged left `c.img` undefined and
+   * every category tile rendered a broken image, while every dataset was
+   * present, non-empty and correct.
+   *
+   * The `src` is concatenated in the browser, so the built file never contains
+   * the string `src="undefined"` — the only way to catch this statically is to
+   * read the data the page will build it from.
+   */
+  it('injects a resolvable image for every category', () => {
+    const built = path.resolve(__dirname, '../static-demo/bbq-chicken-website.html');
+    if (!existsSync(built)) return; // generated, not committed; skipped when absent
+
+    const declared = readFileSync(built, 'utf8').match(/const CATEGORIES = (\[.*?\]);/s);
+    expect(declared, 'the built page declares no CATEGORIES').not.toBeNull();
+
+    const injected = JSON.parse(declared?.[1] ?? '[]') as { key: string; img?: string }[];
+    expect(injected).toHaveLength(CATEGORIES.length);
+
+    const masters = new Set(
+      readdirSync(path.resolve(__dirname, '../../../assets/food/masters'))
+        .filter((name) => name.endsWith('.jpg'))
+        .map((name) => name.replace(/\.jpg$/, '')),
+    );
+
+    for (const category of injected) {
+      expect(masters.has(category.img ?? ''), `${category.key} → ${category.img}`).toBe(true);
     }
   });
 

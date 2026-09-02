@@ -1166,7 +1166,7 @@ function viewHome(){
       + '<h2 class="display h-lg">Eat by category</h2>'
       + '<ul class="grid grid-4 mt-6">' + CATEGORIES.map((c) =>
           '<li><a class="cat" href="#/menu?category=' + c.key + '">'
-          + '<img src="' + IMG_WIDE[c.img] + '" alt="" loading="lazy">'
+          + '<img src="' + (IMG_WIDE[c.img] || IMG[c.img]) + '" alt="" loading="lazy">'
           + '<span class="over"><span class="display h-sm">' + esc(c.label) + '</span>'
           + '<span class="xs mt-1" style="color:rgb(255 255 255 / .7)">' + esc(c.note) + '</span></span></a></li>').join('')
         + '</ul>'
