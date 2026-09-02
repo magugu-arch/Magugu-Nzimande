@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,6 +28,7 @@ import { formatShortDate } from '@/utils/datetime';
 import { useNow } from '@/features/system/useNow';
 import { formatPrice, groupDigits } from '@/utils/money';
 import { track } from '@/ux/analytics';
+import { ask } from '@/ux/dialog';
 
 /**
  * Cart (brief §11): product, image, quantity, edit, remove, add more, promo
@@ -122,11 +123,15 @@ export default function CartScreen() {
     }
   }, [promoCode, totals.subtotal, validateVoucher, applyVoucher]);
 
-  const handleClear = useCallback(() => {
-    Alert.alert('Empty your cart?', 'This removes everything you have added so far.', [
-      { text: 'Keep it', style: 'cancel' },
-      { text: 'Empty cart', style: 'destructive', onPress: clear },
-    ]);
+  const handleClear = useCallback(async () => {
+    const confirmed = await ask({
+      title: 'Empty your cart?',
+      message: 'This removes everything you have added so far.',
+      confirmLabel: 'Empty cart',
+      cancelLabel: 'Keep it',
+      destructive: true,
+    });
+    if (confirmed) clear();
   }, [clear]);
 
   if (lines.length === 0) {

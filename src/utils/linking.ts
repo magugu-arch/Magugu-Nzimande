@@ -1,4 +1,5 @@
-import { Alert, Linking, Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
+import { tell } from '@/ux/dialog';
 
 /**
  * Handing off to another app — the dialler, mail, maps, WhatsApp.
@@ -124,7 +125,9 @@ export async function openExternal(
     await Linking.openURL(url);
     return true;
   } catch {
-    Alert.alert(
+    // Not awaited: `openExternal` reports whether the handoff succeeded, not
+    // whether the customer has finished reading about it. See `ux/dialog.ts`.
+    void tell(
       failureTitle,
       failureMessage ?? 'This device does not have an app that can handle it.',
     );
@@ -146,7 +149,7 @@ export async function openAppSettings(): Promise<boolean> {
     await Linking.openSettings();
     return true;
   } catch {
-    Alert.alert(
+    void tell(
       'Could not open settings',
       'Open Settings yourself, find bb.q Chicken, and turn notifications back on.',
     );

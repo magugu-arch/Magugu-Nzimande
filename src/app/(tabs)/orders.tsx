@@ -102,7 +102,7 @@ export default function OrdersScreen() {
           <OrderCard
             order={item}
             onPress={() => router.push(`/order/${item.id}`)}
-            onReorder={() => handleReorder(item)}
+            onReorder={() => void handleReorder(item)}
             onRate={() => router.push(`/order/${item.id}/rate`)}
           />
         )}

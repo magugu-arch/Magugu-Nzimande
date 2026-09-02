@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { OrderStatus } from '@/types';
@@ -33,6 +33,7 @@ import { callNumber, isDiallable, openDirections } from '@/utils/linking';
 import { directionsTargetFor } from '@/features/orders/directions';
 import { formatPrice } from '@/utils/money';
 import { track } from '@/ux/analytics';
+import { ask, tell } from '@/ux/dialog';
 
 /** Live Order Tracking + Order Details + Re-order (brief §4). */
 export default function OrderTrackingScreen() {
@@ -90,24 +91,25 @@ export default function OrderTrackingScreen() {
     announce(`${copy.label}. ${copy.description}`);
   }, [status]);
 
-  const handleCancel = useCallback(() => {
+  const handleCancel = useCallback(async () => {
     if (!order.data) return;
-    Alert.alert('Cancel this order?', 'We can only cancel before the kitchen starts cooking.', [
-      { text: 'Keep it', style: 'cancel' },
-      {
-        text: 'Cancel order',
-        style: 'destructive',
-        onPress: () => {
-          cancelOrder.mutate(order.data.id, {
-            onError: (error) =>
-              Alert.alert(
-                'Too late to cancel',
-                error instanceof Error ? error.message : 'Please call the store.',
-              ),
-          });
-        },
-      },
-    ]);
+    const orderId = order.data.id;
+    const confirmed = await ask({
+      title: 'Cancel this order?',
+      message: 'We can only cancel before the kitchen starts cooking.',
+      confirmLabel: 'Cancel order',
+      cancelLabel: 'Keep it',
+      destructive: true,
+    });
+    if (!confirmed) return;
+
+    cancelOrder.mutate(orderId, {
+      onError: (error) =>
+        void tell(
+          'Too late to cancel',
+          error instanceof Error ? error.message : 'Please call the store.',
+        ),
+    });
   }, [order.data, cancelOrder]);
 
   if (order.isLoading) {
@@ -337,7 +339,7 @@ export default function OrderTrackingScreen() {
             // §15 `reorder` — the "repeat ordering" dashboard. Before the call,
             // because `reorder` navigates away.
             track('reorder', { orderId: order.data.id, itemCount: order.data.lines.length });
-            reorder(order.data);
+            void reorder(order.data);
           }}
           variant={data.status === 'completed' ? 'primary' : 'tertiary'}
           iconLeft="repeat"

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import type { Address } from '@/types';
@@ -23,6 +23,7 @@ import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, spacing } from '@/theme';
 import { required, validateFields, validatePostalCode } from '@/utils/validation';
+import { ask } from '@/ux/dialog';
 
 type Field = 'label' | 'line1' | 'line2' | 'suburb' | 'city' | 'province' | 'postalCode';
 
@@ -69,18 +70,18 @@ export default function AddressScreen() {
   );
 
   const handleDelete = useCallback(
-    (address: Address) => {
-      Alert.alert('Remove this address?', `${address.label} — ${address.line1}`, [
-        { text: 'Keep it', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => {
-            deleteAddress.mutate(address.id);
-            if (selectedAddress?.id === address.id) setAddress(null);
-          },
-        },
-      ]);
+    async (address: Address) => {
+      const confirmed = await ask({
+        title: 'Remove this address?',
+        message: `${address.label} — ${address.line1}`,
+        confirmLabel: 'Remove',
+        cancelLabel: 'Keep it',
+        destructive: true,
+      });
+      if (!confirmed) return;
+
+      deleteAddress.mutate(address.id);
+      if (selectedAddress?.id === address.id) setAddress(null);
     },
     [deleteAddress, selectedAddress, setAddress],
   );

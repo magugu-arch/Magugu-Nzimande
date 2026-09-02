@@ -55,7 +55,7 @@ organisational and never appear in a URL, and `index` collapses into its parent.
 
 ## Component inventory
 
-39 exported components. Screens compose these; none of them
+40 exported components. Screens compose these; none of them
 reaches for a raw colour or type value — everything resolves through `src/theme`.
 
 ### Design system
@@ -97,6 +97,7 @@ reaches for a raw colour or type value — everything resolves through `src/them
 
 | Component | File |
 |---|---|
+| `DialogHost` | `src/components/system/DialogHost.tsx` |
 | `OfflineBanner` | `src/components/system/OfflineBanner.tsx` |
 
 ### Feature components

@@ -20,6 +20,7 @@ import { Montserrat_900Black } from '@expo-google-fonts/montserrat/900Black';
 import { PlayfairDisplay_400Regular_Italic } from '@expo-google-fonts/playfair-display/400Regular_Italic';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/system/OfflineBanner';
+import { DialogHost } from '@/components/system/DialogHost';
 import { useAppFocus } from '@/features/system/useAppFocus';
 import { useReduceMotion } from '@/features/system/useReduceMotion';
 import { useSessionExpiry } from '@/features/system/useSessionExpiry';
@@ -154,6 +155,12 @@ function AppShell() {
       </Stack>
 
       <OfflineBanner />
+      {/*
+       * Above everything, and outside the Stack: a confirmation must survive
+       * the screen that asked for it, and `Alert` — which this replaces — was
+       * never part of the navigator either. See `ux/dialog.ts`.
+       */}
+      <DialogHost />
     </View>
   );
 }

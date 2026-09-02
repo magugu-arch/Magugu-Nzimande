@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   Badge,
@@ -17,6 +17,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
+import { ask, tell } from '@/ux/dialog';
 import {
   minLength,
   required,
@@ -78,7 +79,7 @@ export default function ProfileScreen() {
       setUser(updated);
       setSaved(true);
     } catch (error) {
-      Alert.alert(
+      void tell(
         'Could not save',
         error instanceof Error ? error.message : 'Please try again shortly.',
       );
@@ -94,7 +95,7 @@ export default function ProfileScreen() {
       await requestEmailVerification(user.email);
       setEmailSent(true);
     } catch (error) {
-      Alert.alert(
+      void tell(
         'Could not send that',
         error instanceof Error ? error.message : 'Please try again shortly.',
       );
@@ -103,47 +104,42 @@ export default function ProfileScreen() {
     }
   }, [user]);
 
-  const handleDelete = useCallback(() => {
-    Alert.alert(
-      'Delete your account?',
-      'We remove your personal data within 30 days, keeping only what tax law requires. This cannot be undone.',
-      [
-        { text: 'Keep my account', style: 'cancel' },
-        {
-          text: 'Delete account',
-          style: 'destructive',
-          onPress: () => {
-            void (async () => {
-              /**
-               * The dialogue above promises erasure within thirty days. This
-               * used to call `signOut` — so nothing was ever asked of anyone,
-               * and the promise was a sentence on a screen.
-               *
-               * A failure is not swallowed the way a failed sign-out is. If
-               * the request did not land the account still exists, and leaving
-               * somebody signed out believing their data is gone is the worse
-               * of the two wrong answers by a distance.
-               */
-              try {
-                await deleteAccount();
-              } catch (error) {
-                Alert.alert(
-                  'We could not delete your account',
-                  error instanceof Error
-                    ? `${error.message} Your account is still here — please try again, or contact us.`
-                    : 'Your account is still here — please try again, or contact us.',
-                );
-                return;
-              }
+  const handleDelete = useCallback(async () => {
+    const confirmed = await ask({
+      title: 'Delete your account?',
+      message:
+        'We remove your personal data within 30 days, keeping only what tax law requires. This cannot be undone.',
+      confirmLabel: 'Delete account',
+      cancelLabel: 'Keep my account',
+      destructive: true,
+    });
+    if (!confirmed) return;
 
-              // The account is gone, so there is no session left to sign out
-              // of — only this handset's memory of it to clear.
-              forgetLocally();
-            })();
-          },
-        },
-      ],
-    );
+    /**
+     * The dialogue above promises erasure within thirty days. This used to
+     * call `signOut` — so nothing was ever asked of anyone, and the promise
+     * was a sentence on a screen.
+     *
+     * A failure is not swallowed the way a failed sign-out is. If the request
+     * did not land the account still exists, and leaving somebody signed out
+     * believing their data is gone is the worse of the two wrong answers by a
+     * distance.
+     */
+    try {
+      await deleteAccount();
+    } catch (error) {
+      void tell(
+        'We could not delete your account',
+        error instanceof Error
+          ? `${error.message} Your account is still here — please try again, or contact us.`
+          : 'Your account is still here — please try again, or contact us.',
+      );
+      return;
+    }
+
+    // The account is gone, so there is no session left to sign out of — only
+    // this handset's memory of it to clear.
+    forgetLocally();
   }, [forgetLocally]);
 
   if (!user || isGuest) {

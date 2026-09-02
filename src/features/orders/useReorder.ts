@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { Order } from '@/types';
 import { useMenu } from '@/features/menu/hooks';
 import { useCartStore } from '@/store/cartStore';
 import { describeReorder, planReorder } from './reorder';
+import { ask, tell } from '@/ux/dialog';
 
 /**
  * "Order again", once, for both places that offer it.
@@ -15,17 +15,17 @@ import { describeReorder, planReorder } from './reorder';
  *
  * A tap always produces something now: the basket, or an explanation.
  */
-export function useReorder(): (order: Order) => void {
+export function useReorder(): (order: Order) => Promise<void> {
   const router = useRouter();
   const menu = useMenu();
   const addLine = useCartStore((state) => state.addLine);
 
   return useCallback(
-    (order: Order) => {
+    async (order: Order) => {
       // The menu is what decides this, so without it there is no answer to
       // give. Saying so beats a button that looks broken.
       if (!menu.data) {
-        Alert.alert('One moment', 'We are still loading the menu — try again in a second.');
+        void tell('One moment', 'We are still loading the menu — try again in a second.');
         return;
       }
 
@@ -34,7 +34,7 @@ export function useReorder(): (order: Order) => void {
 
       if (plan.addable.length === 0) {
         // Nothing came back. Never silent, and never a trip to an empty cart.
-        Alert.alert(
+        void tell(
           notice?.title ?? 'Nothing to reorder',
           notice?.message ?? 'None of these items are on the menu right now.',
         );
@@ -46,9 +46,17 @@ export function useReorder(): (order: Order) => void {
       }
 
       if (notice) {
-        Alert.alert(notice.title, notice.message, [
-          { text: 'View cart', onPress: () => router.push('/cart') },
-        ]);
+        // Substitutions are worth reading before the basket is opened, so the
+        // customer decides when to move on rather than arriving to a cart that
+        // quietly differs from the order they tapped.
+        await ask({
+          title: notice.title,
+          message: notice.message,
+          confirmLabel: 'View cart',
+          cancelLabel: 'Not now',
+        }).then((view) => {
+          if (view) router.push('/cart');
+        });
         return;
       }
 

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui';
 import { useOrder, useRateOrder } from '@/features/orders/hooks';
 import { colors, radius, spacing, typography } from '@/theme';
+import { tell } from '@/ux/dialog';
 
 const POSITIVE_TAGS = ['Crispy as always', 'Right on time', 'Well packed', 'Friendly driver'];
 const NEGATIVE_TAGS = ['Arrived cold', 'Late', 'Item missing', 'Wrong order'];
@@ -65,7 +66,7 @@ export default function RateOrderScreen() {
         ...(fullComment.length > 0 ? { comment: fullComment } : {}),
       });
     } catch (error) {
-      Alert.alert(
+      void tell(
         'We could not save that',
         error instanceof Error ? error.message : 'Please try again shortly.',
       );

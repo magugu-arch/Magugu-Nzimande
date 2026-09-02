@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +14,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { groupDigits } from '@/utils/money';
+import { ask } from '@/ux/dialog';
 
 /** More tab — Account hub (brief §4). */
 export default function MoreScreen() {
@@ -30,17 +31,17 @@ export default function MoreScreen() {
 
   const unreadCount = (notifications.data ?? []).filter((item) => !item.read).length;
 
-  const handleSignOut = useCallback(() => {
-    Alert.alert('Sign out?', 'You can sign back in any time.', [
-      { text: 'Stay signed in', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        // The hook does the routing too — it has to clear the cart, the
-        // fulfilment details and the query cache first.
-        onPress: () => void signOut(),
-      },
-    ]);
+  const handleSignOut = useCallback(async () => {
+    const confirmed = await ask({
+      title: 'Sign out?',
+      message: 'You can sign back in any time.',
+      confirmLabel: 'Sign out',
+      cancelLabel: 'Stay signed in',
+      destructive: true,
+    });
+    // The hook does the routing too — it has to clear the cart, the fulfilment
+    // details and the query cache first.
+    if (confirmed) await signOut();
   }, [signOut]);
 
   return (
