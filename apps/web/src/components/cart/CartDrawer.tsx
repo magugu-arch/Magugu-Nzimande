@@ -52,9 +52,13 @@ export function CartDrawer({ suggestions }: { suggestions: readonly Product[] })
         aria-modal="true"
         aria-label="Your basket"
         aria-hidden={!isOpen}
-        // inert keeps the closed panel out of the tab order without unmounting
-        // it, so the open and close transitions both have something to animate.
-        {...(isOpen ? {} : { inert: '' as unknown as boolean })}
+        // inert keeps the closed panel out of the tab order and out of the
+        // accessibility tree without unmounting it, so both transitions still
+        // have something to animate. It has to be the boolean: React renders a
+        // boolean attribute only when the value is truthy, so the empty string
+        // this once passed meant the attribute never reached the DOM and a
+        // keyboard user could tab into the closed basket.
+        inert={!isOpen}
         className={[
           'fixed inset-y-0 right-0 z-70 flex w-full max-w-[420px] flex-col bg-white shadow-e3',
           'transition-transform duration-250 ease-out',

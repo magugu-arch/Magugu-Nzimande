@@ -2071,6 +2071,10 @@ function render(){
   $('drawer').classList.toggle('open', S.drawerOpen);
   $('scrim').classList.toggle('open', S.drawerOpen);
   $('drawer').setAttribute('aria-hidden', String(!S.drawerOpen));
+  /* inert takes the closed panel out of the tab order and the accessibility
+     tree. Without it a keyboard user tabs off the page and into a basket that
+     is sitting off-screen, hitting controls nothing announces. */
+  $('drawer').inert = !S.drawerOpen;
   document.body.style.overflow = S.drawerOpen ? 'hidden' : '';
 
   const name = S.route.indexOf('/menu/') === 0
