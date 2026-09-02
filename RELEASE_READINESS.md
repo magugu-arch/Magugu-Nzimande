@@ -14,7 +14,7 @@ still stands between this repository and a store.
 | --------- | ----- | -------- |
 | Customer can select/save address | Pass | `audit:returning` picks a non-default address and orders to it |
 | Serviceability checked before checkout | Pass | `deliveryRange()` gates the Place order button; `audit:delivery-range` |
-| Menu search and browsing work | Pass | `audit:screens` sweeps 31 routes; search covered in `menu.test.ts` |
+| Menu search and browsing work | Pass | `audit:screens` sweeps 34 routes; search covered in `menu.test.ts` |
 | Required modifiers cannot be bypassed | Pass | `cart.test.ts` — enforcement is in `utils/cart`, not in a screen |
 | Totals update correctly | Pass | `cart.test.ts`, `cartStore.test.ts`; all arithmetic through whole cents |
 | Delivery, pickup and scheduling work | Pass | `tradingHours.test.ts`, `checkout/schedule`, `audit:coldstart` |
@@ -71,6 +71,33 @@ documented limitation into a lost order. A provider that is unreachable never
 blocks either. Verified by `audit:delivery-range`, which still shows a typed-in
 address being accepted.
 
+## 2b. Fixtures, and the defect they found
+
+The seeded history was two orders — both completed, both already rated, neither
+carrying a discount, one delivery and one collection. That is a tidier customer
+than anyone has, and it left whole states of the app with no example to render.
+Added: a **cancelled** delivery order carrying the voucher it was paid with, a
+**dine-in** order with a table number and *no rating*, a **scheduled**
+collection order carrying a redeemed reward, and a saved address with **no
+coordinates** — which is what almost every real address in this app is, since
+the add-address form has no geocoder behind it.
+
+They earned their keep on the first render. A cancelled order drew the entire
+journey it never took — *Preparing · Ready · Driver assigned · Out for delivery
+· Completed — Enjoy. Thanks for ordering with bb.q.* — because `cancelled` is
+not a member of `statusSequence`, so `indexOf` returned -1, nothing was marked
+reached, and every step rendered anyway. A thank-you for food that was never
+made, under the word "Cancelled". Nothing could catch it: the unit tests had no
+cancelled order to build a timeline from, and the browser sweep had no route to
+visit. It now shows what happened and stops — received, then cancelled — and
+`cancelOrder` rebuilds the timeline rather than keeping the one describing a
+journey that has just stopped.
+
+Two more things the fixtures unlocked rather than fixed: "Rate this order"
+renders only on a completed order with no rating, so the entry to the rating
+flow was previously unreachable without placing an order and waiting; and the
+screen sweep grew from 31 routes to 34.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -124,8 +151,8 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **62 suites, 970 tests**, typecheck and lint clean
-- `npm run audit:screens` — 31 routes at 390pt and 320pt, no defects
+- `npm run verify` — **63 suites, 976 tests**, typecheck and lint clean
+- `npm run audit:screens` — 34 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green
 - The courier leg driven in a browser across a simulated 70 minutes: no driver

@@ -98,7 +98,7 @@ deviation rather than an oversight.
 
 ## §10 — Screen inventory
 
-All eleven areas exist across 34 routes. `audit:screens` sweeps 31 of them at
+All eleven areas exist across 34 routes. `audit:screens` sweeps 34 of them at
 390pt and 320pt for overflow, blank screens, console errors, accessibility gaps
 and touch-target size.
 

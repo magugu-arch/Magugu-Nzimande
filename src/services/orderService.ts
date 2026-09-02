@@ -74,7 +74,42 @@ function buildTimeline(
   etaMinutes: number,
   /** When the kitchen starts. Same as `placedAt` unless the order is scheduled. */
   startedAt: Date = placedAt,
+  /** When the order was called off, for a cancelled one. */
+  cancelledAt?: Date,
 ): OrderStatusEvent[] {
+  /**
+   * A cancelled order did not go on a journey, so it is not shown one.
+   *
+   * `cancelled` is not a member of `statusSequence` — it is not a step —
+   * which meant `indexOf` returned -1, nothing was marked reached, and the
+   * screen rendered every remaining step anyway. A customer opening a
+   * cancelled order was shown "Driver assigned", "Out for delivery" and,
+   * at the bottom, "Completed — Enjoy. Thanks for ordering with bb.q."
+   *
+   * Nobody saw it because the seeded history had no cancelled order to
+   * render, in the app or in the browser sweep. It has one now.
+   *
+   * What is shown instead is what actually happened: the order was received,
+   * and then it was called off. Cancellation is only permitted at 'received',
+   * so those two are the whole story.
+   */
+  if (currentStatus === 'cancelled') {
+    return [
+      {
+        status: 'received',
+        label: STATUS_COPY.received.label,
+        description: STATUS_COPY.received.description,
+        occurredAt: placedAt.toISOString(),
+      },
+      {
+        status: 'cancelled',
+        label: STATUS_COPY.cancelled.label,
+        description: STATUS_COPY.cancelled.description,
+        occurredAt: cancelledAt ? cancelledAt.toISOString() : null,
+      },
+    ];
+  }
+
   const sequence = statusSequence(fulfilmentType);
   const currentIndex = sequence.indexOf(currentStatus);
   const stepMinutes = etaMinutes / Math.max(1, sequence.length - 1);
@@ -261,6 +296,188 @@ function seedHistory(): void {
     etaMinutes: 25,
     rating: 4,
     ratingComment: 'Crispy as always, collection was quick.',
+  });
+
+  /**
+   * ── The orders the seed never had ─────────────────────────────────────────
+   *
+   * Until now the history was two orders, both completed, both delivery or
+   * collection, both already rated, neither carrying a discount. That is a
+   * tidier customer than anyone has, and it left whole states of the app with
+   * no example to render:
+   *
+   *   cancelled          the tracking screen draws a grey card, a warning
+   *                      badge and a struck timeline for it, and nothing in
+   *                      the seed had ever put those on a screen
+   *   unrated            "Rate this order" only appears on a completed order
+   *                      with no rating — so the entry point to the rating
+   *                      flow was unreachable without placing an order and
+   *                      waiting for it to finish
+   *   dine-in            a table number on a receipt
+   *   scheduled          a past order that was placed for later, where
+   *                      "ordered at" and "was due at" are different facts
+   *   voucher and reward the discount lines on a receipt, and the two fields
+   *                      that explain them
+   *
+   * Every one of those is code that ships. A seed that never produces them is
+   * a demo that looks finished and a browser sweep that cannot see them.
+   */
+
+  // Cancelled, with the voucher it was paid with — the refund path leaves the
+  // code on the order so the history can explain itself.
+  const cancelledPlacedAt = new Date(Date.now() - 5 * 86_400_000);
+  ledger.push({
+    id: 'order-4788',
+    reference: 'BBQ-4788',
+    placedAt: cancelledPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'cancelled',
+    timeline: buildTimeline(
+      'delivery',
+      'cancelled',
+      cancelledPlacedAt,
+      38,
+      cancelledPlacedAt,
+      new Date(cancelledPlacedAt.getTime() + 4 * 60_000),
+    ),
+    lines: [
+      {
+        id: 'golden-original__golden-original-size:golden-original-size-small',
+        productId: 'golden-original',
+        name: 'Golden Original Chicken',
+        assetKey: 'goldenOriginal',
+        unitBasePrice: 149,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'golden-original-size',
+            groupName: 'Choose your size',
+            optionId: 'golden-original-size-small',
+            optionName: 'Small · 6 pieces',
+            priceDelta: 0,
+          },
+        ],
+        unitPrice: 149,
+        lineTotal: 149,
+      },
+    ],
+    totals: {
+      subtotal: 149,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 50,
+      rewardsDiscount: 0,
+      total: 136,
+      pointsEarned: 149,
+    },
+    ...storeSnapshot('store-sandton'),
+    addressId: 'address-home',
+    addressSummary: '14 Acacia Road, Melrose Arch',
+    voucherCode: 'WELCOME50',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 38,
+  });
+
+  // Dine-in, completed and **unrated** — the only order in the seed that can
+  // reach the rating flow.
+  const dineInPlacedAt = new Date(Date.now() - 2 * 86_400_000);
+  ledger.push({
+    id: 'order-4802',
+    reference: 'BBQ-4802',
+    placedAt: dineInPlacedAt.toISOString(),
+    fulfilmentType: 'dinein',
+    status: 'completed',
+    timeline: buildTimeline('dinein', 'completed', dineInPlacedAt, 18),
+    lines: [
+      {
+        id: 'hot-spicy__hot-spicy-size:hot-spicy-size-medium',
+        productId: 'hot-spicy',
+        name: 'Hot Spicy Chicken',
+        assetKey: 'hotSpicy',
+        unitBasePrice: 159,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'hot-spicy-size',
+            groupName: 'Choose your size',
+            optionId: 'hot-spicy-size-medium',
+            optionName: 'Medium · 9 pieces',
+            priceDelta: 60,
+          },
+        ],
+        unitPrice: 219,
+        lineTotal: 219,
+      },
+    ],
+    totals: {
+      subtotal: 219,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 224,
+      pointsEarned: 219,
+    },
+    ...storeSnapshot('store-rosebank'),
+    tableNumber: '12',
+    paymentMethodLabel: 'SnapScan',
+    etaMinutes: 18,
+  });
+
+  /**
+   * Scheduled, and collected. Placed at lunchtime for a slot that evening, so
+   * `placedAt` and `scheduledFor` are genuinely different — which is the whole
+   * point of carrying both, and something no seeded order demonstrated.
+   *
+   * Also the only order carrying a redeemed reward, so the rewards line on a
+   * receipt has an example.
+   */
+  const scheduledPlacedAt = new Date(Date.now() - 8 * 86_400_000);
+  const scheduledFor = new Date(scheduledPlacedAt.getTime() + 6 * 3_600_000);
+  ledger.push({
+    id: 'order-4655',
+    reference: 'BBQ-4655',
+    placedAt: scheduledPlacedAt.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'completed',
+    timeline: buildTimeline('collection', 'completed', scheduledPlacedAt, 25, scheduledFor),
+    lines: [
+      {
+        id: 'soy-garlic__soy-garlic-size:soy-garlic-size-large',
+        productId: 'soy-garlic',
+        name: 'Soy Garlic Chicken',
+        assetKey: 'soyGarlic',
+        unitBasePrice: 169,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'soy-garlic-size',
+            groupName: 'Choose your size',
+            optionId: 'soy-garlic-size-large',
+            optionName: 'Large · 12 pieces',
+            priceDelta: 110,
+          },
+        ],
+        unitPrice: 279,
+        lineTotal: 279,
+      },
+    ],
+    totals: {
+      subtotal: 279,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 20,
+      total: 264,
+      pointsEarned: 279,
+    },
+    ...storeSnapshot('store-menlyn'),
+    scheduledFor: scheduledFor.toISOString(),
+    redeemedRewardId: 'reward-fries',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 25,
+    rating: 3,
+    ratingComment: 'Good food, but the collection queue was long.',
   });
 }
 
@@ -661,7 +878,22 @@ export async function cancelOrder(orderId: string): Promise<Order> {
     throw new Error(cannotCancelBecause(current.status));
   }
 
-  const cancelled: Order = { ...current, status: 'cancelled' };
+  const cancelledAt = new Date();
+  const cancelled: Order = {
+    ...current,
+    status: 'cancelled',
+    // Rebuilt, not kept. The timeline it was carrying describes a journey that
+    // has just stopped happening, and leaving it in place is how a cancelled
+    // order came to show "Out for delivery" and a thank-you.
+    timeline: buildTimeline(
+      current.fulfilmentType,
+      'cancelled',
+      new Date(current.placedAt),
+      current.etaMinutes,
+      workStartsAt(current),
+      cancelledAt,
+    ),
+  };
   ledger[index] = cancelled;
 
   /**

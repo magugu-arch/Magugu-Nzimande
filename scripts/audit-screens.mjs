@@ -55,6 +55,10 @@ const ROUTES = [
   // both are reachable cold. 4821 is a delivery and 4610 a collection, which
   // is the branch that decides whether the store rows render.
   '/order/order-4821', '/order/order-4610', '/order/order-4610/rate',
+  // The states the seed never produced until now, and so the sweep never saw:
+  // a cancelled order (grey card, warning badge), a dine-in order carrying a
+  // table number, and a scheduled order where "ordered at" and "due at" differ.
+  '/order/order-4788', '/order/order-4802', '/order/order-4655',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */

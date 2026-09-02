@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 62 suites; `npm test` prints the count                                                                  |
+| Tests            | 63 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -47,7 +47,7 @@ products on the way and they turn up on Home and behind a Menu filter.
 ```bash
 npm run verify        # typecheck → lint → test, the gate before any commit
 npm run preview:web   # the whole app in a browser, no build required
-npm run audit:screens # renders all 31 routes at two widths and reports defects
+npm run audit:screens # renders all 34 routes at two widths and reports defects
 npm run smoke:order   # signs in, adds an item and places an order, for real
 npm run preview:single # builds the web export and folds it into one HTML file
 ```

@@ -96,6 +96,32 @@ export const savedAddresses: Address[] = [
     instructions: 'Leave at reception, they will call me.',
     isDefault: false,
   },
+  /**
+   * Typed in, and never located — which is what almost every real address in
+   * this app is.
+   *
+   * The other two carry coordinates, and that made the seed unrepresentative
+   * in the one direction that matters: the add-address form is six text fields
+   * with no geocoder behind it, so a customer who adds an address gets exactly
+   * this. Two rules hang off the difference and neither had a seeded example
+   * to run against — `deliveryRange` lets an unlocated address through rather
+   * than refusing it on a coordinate nobody measured, and `courierRefusal`
+   * declines to read a provider's "cannot route there" as a courier's refusal.
+   *
+   * Both are written to treat absent coordinates as "nobody knows". This is
+   * the fixture that proves they do.
+   */
+  {
+    id: 'address-mum',
+    label: "Mum's place",
+    line1: '27 Protea Avenue',
+    suburb: 'Northcliff',
+    city: 'Johannesburg',
+    province: 'Gauteng',
+    postalCode: '2195',
+    instructions: 'Green gate, second driveway.',
+    isDefault: false,
+  },
 ];
 
 /**
