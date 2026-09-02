@@ -25,6 +25,8 @@
     "assets:typefit": "node scripts/audit-type-fit.mjs",
     "preview:web": "expo start --web",
     "preview:shots": "node scripts/preview-shots.mjs",
+    "preview:build": "EXPO_PUBLIC_USE_MOCK_API=1 expo export --platform web --output-dir .preview-web --clear",
+    "preview:single": "npm run preview:build && npm run bundle:single",
     "bundle:single": "node scripts/bundle-single-file.mjs",
     "audit:screens": "node scripts/audit-screens.mjs",
     "smoke:order": "node scripts/smoke-order.mjs",

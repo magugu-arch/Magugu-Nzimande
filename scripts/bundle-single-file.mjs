@@ -28,10 +28,47 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BUILD = path.join(root, '.preview-web');
 const out = process.argv[2] ?? path.join(root, '.preview-web', 'bbq-chicken-app.html');
 
+const EXPORT_COMMAND =
+  '  EXPO_PUBLIC_USE_MOCK_API=1 npx expo export --platform web --output-dir .preview-web --clear';
+
 if (!existsSync(BUILD)) {
+  console.error('No export found. Run:\n' + EXPORT_COMMAND);
+  process.exit(2);
+}
+
+/**
+ * Refuse to fold an export that is older than the code it claims to be.
+ *
+ * This reads as belt and braces and is not. `expo export` defaults to `dist`,
+ * this script reads `.preview-web`, and the two look identical from the
+ * outside — so `expo export --platform web && npm run bundle:single` rebuilds
+ * one directory and bundles the other, reports success twice, and hands back a
+ * file containing whatever was last built. It shipped a fix to a customer that
+ * the file did not contain, and nothing in either command said a word.
+ *
+ * A build older than `src` is always wrong, so it is worth an error rather
+ * than a note somebody has to remember to read.
+ */
+function newestSourceTime(dir) {
+  let newest = 0;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    newest = Math.max(newest, entry.isDirectory() ? newestSourceTime(full) : statSync(full).mtimeMs);
+  }
+  return newest;
+}
+
+const exportedJs = path.join(BUILD, '_expo');
+const builtAt = existsSync(exportedJs) ? newestSourceTime(exportedJs) : 0;
+const sourceAt = newestSourceTime(path.join(root, 'src'));
+
+if (builtAt < sourceAt) {
+  const behind = Math.round((sourceAt - builtAt) / 60_000);
   console.error(
-    'No export found. Run:\n' +
-      '  EXPO_PUBLIC_USE_MOCK_API=1 npx expo export --platform web --output-dir .preview-web',
+    `The export in .preview-web is ${behind} minute(s) older than src/, so it does not\n` +
+      'contain the current code. Bundling it would produce a file that looks right\n' +
+      'and is not. Rebuild first:\n' +
+      EXPORT_COMMAND,
   );
   process.exit(2);
 }

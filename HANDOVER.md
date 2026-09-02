@@ -49,13 +49,17 @@ npm run verify        # typecheck → lint → test, the gate before any commit
 npm run preview:web   # the whole app in a browser, no build required
 npm run audit:screens # renders all 31 routes at two widths and reports defects
 npm run smoke:order   # signs in, adds an item and places an order, for real
-npm run bundle:single # folds the web export into one self-contained HTML file
+npm run preview:single # builds the web export and folds it into one HTML file
 ```
 
 `bundle:single` is for sending the app to somebody who has no toolchain — a
 franchise partner, a reviewer, anyone with a browser. It inlines the bundle and
 every photograph into a single document, so there is nothing to serve and
-nothing to install. Run `expo export --platform web` first; it reads that build.
+nothing to install. `preview:single` does the export and the fold together;
+`bundle:single` on its own folds whatever is already in `.preview-web`, and
+refuses if that is older than `src/` — the export defaults to `dist`, so the
+two directories are easy to confuse and the failure is a file that looks
+right and is not.
 Two caveats worth stating when you send it: the photographs are re-encoded
 smaller than the store build ships, and because there is only one document,
 deep links into a route cannot work — the app opens at its own start and is
