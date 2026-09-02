@@ -156,6 +156,36 @@ exists only where the two are rendered together. `paymentCaption` now returns
 the description only when it differs from the label, so a rail says its name
 once and a saved card with no expiry still reads "Credit or debit card".
 
+## 2e. A voucher nobody ever spent, and the second door it opened
+
+Every seeded voucher was either live or **both** used and expired. The vouchers
+screen writes a three-way caption — "Already used" / "Expired 12 Aug" /
+"Expires 12 Aug" — and `used` is tested first, so the red expired line had
+never rendered anywhere in the app. Seeded `CHEESE40`: past its date, never
+spent. That is also the state customers actually write in about; "used" is a
+receipt, this is the one they meant to get to and didn't.
+
+**What the fixture led to is the real finding.** There are two doors into the
+cart's voucher slot — typing a code in the cart, and tapping a card on the
+vouchers screen — and each wrote the terms object out field by field. The
+cart's copy carried `expiresAt`. The vouchers screen's listed four fields and
+stopped. So a voucher *tapped* rather than *typed* reached the basket with no
+date on it, `voucherExpired` had nothing to read, and the entire staleness
+guard — built, unit-tested, and previously driven in a browser — was simply
+absent on that path.
+
+Nothing could have caught it. The two objects share four identically-spelled
+fields and differ only in an optional fifth, which is exactly the shape a type
+checker must accept; the defect lived in the gap between two call sites, where
+neither one is wrong on its own.
+
+Proved both ways in a browser, on a pinned clock: tap SPICY15 with a box in the
+basket, move the clock on eight days without leaving the screen, and the old
+build sat there for ninety seconds of ticking still taking the discount off.
+The fixed build says *"That code expired on Mon, 31 Aug"* and stops taking it.
+`voucherTerms()` is now the one derivation both doors use, so a term added to
+`VoucherTerms` is carried through both or through neither.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -209,7 +239,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **65 suites, 998 tests**, typecheck and lint clean
+- `npm run verify` — **66 suites, 1 005 tests**, typecheck and lint clean
 - `npm run audit:screens` — 34 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green

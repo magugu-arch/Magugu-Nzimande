@@ -307,6 +307,32 @@ export const vouchers: Voucher[] = [
     expired: true,
     assetKey: 'soyGarlic',
   },
+  /**
+   * The one that ran out before anybody spent it.
+   *
+   * Every seeded voucher was either live or *both* used and expired, so the
+   * screen's three-way caption — "Already used" / "Expired 12 Aug" /
+   * "Expires 12 Aug" — only ever took two of its branches. `used` is tested
+   * first, so the red expired line had never rendered in the app: the only
+   * voucher past its date was also spent, and said so.
+   *
+   * That is also the state a customer actually writes in about. "Used" is a
+   * receipt; this is the one they meant to get to and did not, and it is the
+   * only case where the date on the card is the whole explanation.
+   */
+  {
+    id: 'voucher-lapsed',
+    code: 'CHEESE40',
+    title: 'R40 off Cheesling Fries',
+    description: 'Sent during the launch week. It ran out before you got to it.',
+    discountType: 'fixed',
+    discountValue: 40,
+    minimumSpend: 150,
+    expiresAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+    used: false,
+    expired: true,
+    assetKey: 'cheeslingFries',
+  },
 ];
 
 const seededHistory: PointsEntry[] = [

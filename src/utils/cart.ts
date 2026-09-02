@@ -136,6 +136,40 @@ export interface VoucherTerms {
   expiresAt?: string;
 }
 
+/**
+ * The terms to hold, taken off the voucher the customer chose.
+ *
+ * There are two doors into the cart's voucher slot — typing a code in the cart
+ * and tapping a card on the vouchers screen — and each wrote this object out
+ * by hand. The cart's copy carried `expiresAt`; the vouchers screen's copy
+ * listed four fields and stopped. So a voucher tapped rather than typed
+ * reached the basket with no date on it, `voucherExpired` had nothing to read,
+ * and the guard above — built, tested and driven in a browser — was simply not
+ * there on that path. Tap SPICY15 today, order in eight days, and the discount
+ * still comes off.
+ *
+ * The two copies could not disagree in any way a type would catch, because
+ * every field they share is spelled the same and the missing one is optional.
+ * Deriving the object once removes the possibility rather than the instance:
+ * a term added to `VoucherTerms` is now carried through both doors or through
+ * neither.
+ */
+export function voucherTerms(voucher: {
+  code: string;
+  discountType: VoucherTerms['discountType'];
+  discountValue: number;
+  minimumSpend: number;
+  expiresAt?: string;
+}): VoucherTerms {
+  return {
+    code: voucher.code,
+    discountType: voucher.discountType,
+    discountValue: voucher.discountValue,
+    minimumSpend: voucher.minimumSpend,
+    ...(voucher.expiresAt ? { expiresAt: voucher.expiresAt } : {}),
+  };
+}
+
 /** Whether the voucher is past its date. No date means it never is. */
 export function voucherExpired(voucher: VoucherTerms, now: Date = new Date()): boolean {
   return hasPassed(voucher.expiresAt, now);

@@ -23,7 +23,13 @@ import { businessRules } from '@/constants/config';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing, typography } from '@/theme';
-import { meetsDeliveryMinimum, priceBasket, voucherExpired, voucherQualifies } from '@/utils/cart';
+import {
+  meetsDeliveryMinimum,
+  priceBasket,
+  voucherExpired,
+  voucherQualifies,
+  voucherTerms,
+} from '@/utils/cart';
 import { formatShortDate } from '@/utils/datetime';
 import { useNow } from '@/features/system/useNow';
 import { formatPrice, groupDigits } from '@/utils/money';
@@ -107,16 +113,10 @@ export default function CartScreen() {
         code: promoCode,
         subtotal: totals.subtotal,
       });
-      // The terms, not the number they produced — see `VoucherTerms`.
-      applyVoucher({
-        code: result.voucher.code,
-        discountType: result.voucher.discountType,
-        discountValue: result.voucher.discountValue,
-        minimumSpend: result.voucher.minimumSpend,
-        // Carried, not dropped. Without it the cart has no way to know the
-        // code has died since it was entered.
-        ...(result.voucher.expiresAt ? { expiresAt: result.voucher.expiresAt } : {}),
-      });
+      // The terms, not the number they produced — see `VoucherTerms`. Derived
+      // rather than written out, so this door and the vouchers screen's cannot
+      // carry different terms for the same voucher.
+      applyVoucher(voucherTerms(result.voucher));
       setPromoCode('');
     } catch (error) {
       setPromoError(error instanceof Error ? error.message : 'That code did not work.');

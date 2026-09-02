@@ -20,6 +20,7 @@ import { useVouchers } from '@/features/rewards/hooks';
 import { useCartStore } from '@/store/cartStore';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing } from '@/theme';
+import { voucherTerms } from '@/utils/cart';
 import { formatShortDate } from '@/utils/datetime';
 import { formatPrice } from '@/utils/money';
 
@@ -142,12 +143,10 @@ export default function VoucherWalletScreen() {
                         // Was applying `discountValue` only for fixed codes,
                         // so a percentage voucher taken from this screen was
                         // worth nothing — and no minimum spend was checked.
-                        applyVoucher({
-                          code: voucher.code,
-                          discountType: voucher.discountType,
-                          discountValue: voucher.discountValue,
-                          minimumSpend: voucher.minimumSpend,
-                        });
+                        // Then it was written out field by field and dropped
+                        // `expiresAt`, so a voucher tapped here reached the
+                        // basket with no date on it and could not lapse.
+                        applyVoucher(voucherTerms(voucher));
                         router.push(cartLines.length > 0 ? '/cart' : '/(tabs)/menu');
                       }
                 }
