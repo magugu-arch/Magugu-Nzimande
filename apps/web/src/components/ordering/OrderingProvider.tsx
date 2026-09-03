@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { lineKey, type CartLine } from '@/lib/cart';
 import { totalsFor } from '@/lib/pricing';
+import { promotionFor } from '@/lib/promotions';
 
 const STORAGE_KEY = 'bbq.ordering.v1';
 
@@ -219,7 +220,21 @@ export function OrderingProvider({
     setOrders((current) => [order, ...current.filter((candidate) => candidate.id !== order.id)]);
   }, []);
 
-  const totals = useMemo(() => totalsFor(lines, mode, promoCode), [lines, mode, promoCode]);
+  /**
+   * The basket's own view of the offer.
+   *
+   * Checks the conditions a browser can check — the day, the time and the
+   * fulfilment mode. It cannot check whether this is a customer's first order,
+   * so it shows that offer as applying and lets the server be the authority:
+   * the order route refuses with the offer's own wording, which the checkout
+   * screen displays. Hiding the offer from everybody instead would be worse.
+   */
+  const promotion = useMemo(() => {
+    const result = promotionFor(promoCode, { mode, isFirstOrder: true });
+    return result.ok ? result.promotion : null;
+  }, [promoCode, mode]);
+
+  const totals = useMemo(() => totalsFor(lines, mode, promotion), [lines, mode, promotion]);
   const itemCount = useMemo(
     () => lines.reduce((count, line) => count + line.quantity, 0),
     [lines],

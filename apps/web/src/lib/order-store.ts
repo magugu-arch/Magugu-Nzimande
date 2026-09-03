@@ -6,6 +6,7 @@ import {
   type Order,
   type OrderState,
   type OrderStatus,
+  type Promotion,
 } from '@bbq/types';
 import { mutateState, pushAudit, readState, type DemoState } from './demo-state';
 import { pointsFor, totalsFor } from './pricing';
@@ -15,11 +16,21 @@ import { pointsFor, totalsFor } from './pricing';
  * and write shapes here are the ones the Prisma implementation has to satisfy.
  */
 
-export function createOrder(request: CreateOrderRequest, accountId: string | null = null): Order {
+/**
+ * @param promotion The offer that applies, already checked against its own
+ *   conditions by `promotionFor`. Passed in rather than looked up from the
+ *   code, so the store cannot resolve a code differently from the route that
+ *   accepted it — which is how a basket and its order come to disagree.
+ */
+export function createOrder(
+  request: CreateOrderRequest,
+  accountId: string | null = null,
+  promotion: Promotion | null = null,
+): Order {
   return mutateState((state) => {
     state.sequence += 1;
 
-    const totals = totalsFor(request.lines, request.mode, request.promoCode);
+    const totals = totalsFor(request.lines, request.mode, promotion);
     // A counter rather than a random number: two orders placed in the same
     // millisecond must not collide on the number a customer reads to the store.
     const stamp = new Date().toISOString().slice(2, 10).replace(/-/g, '');

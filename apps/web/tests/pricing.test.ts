@@ -9,8 +9,21 @@ import {
   subtotalOf,
   totalsFor,
 } from '@/lib/pricing';
+import { findPromotion } from '@/lib/promotions';
 
-const line = (unitCents: number, quantity = 1) => ({ unitCents, quantity });
+/**
+ * A basket line. The slug matters now: a discount comes off the lines of the
+ * product its offer names, not off the whole basket, so a line's identity is
+ * part of what is being priced.
+ */
+const line = (unitCents: number, quantity = 1, slug = 'half-half') => ({
+  unitCents,
+  quantity,
+  slug,
+});
+
+/** The offer behind a code, whether or not it is running right now. */
+const offer = (code: string) => findPromotion(code);
 
 describe('money formatting', () => {
   it('renders cents as rand, never as a float', () => {
@@ -40,24 +53,46 @@ describe('subtotal', () => {
 });
 
 describe('discount', () => {
-  it('is nothing without a code', () => {
-    expect(discountOf(20_000, null)).toBe(0);
+  it('is nothing without an offer', () => {
+    expect(discountOf([line(20_000)], null)).toBe(0);
   });
 
   it('ignores an unknown code rather than guessing a rate', () => {
-    expect(discountOf(20_000, 'NOTACODE')).toBe(0);
+    expect(discountOf([line(20_000)], offer('NOTACODE'))).toBe(0);
   });
 
   it('accepts a code whatever case it was typed in', () => {
-    expect(discountOf(20_000, 'picktwo')).toBe(discountOf(20_000, 'PICKTWO'));
+    expect(discountOf([line(20_000)], offer('picktwo'))).toBe(
+      discountOf([line(20_000)], offer('PICKTWO')),
+    );
   });
 
   it('rounds to a whole cent so the basket and the receipt agree', () => {
     // 13 900 at 15% is 2 085 exactly; 13 901 is 2 085.15, which must not
     // survive as a fraction of a cent into the total.
-    expect(discountOf(13_900, 'PICKTWO')).toBe(2_085);
-    expect(discountOf(13_901, 'PICKTWO')).toBe(2_085);
-    expect(Number.isInteger(discountOf(13_907, 'PICKTWO'))).toBe(true);
+    expect(discountOf([line(13_900)], offer('PICKTWO'))).toBe(2_085);
+    expect(discountOf([line(13_901)], offer('PICKTWO'))).toBe(2_085);
+    expect(Number.isInteger(discountOf([line(13_907)], offer('PICKTWO')))).toBe(true);
+  });
+
+  /**
+   * The bug this signature exists to close. PICKTWO is an offer on the half
+   * bird; taking its fifteen percent off the drinks and the sides in the same
+   * basket is several times the discount it advertises.
+   */
+  it('comes off the product the offer names and nothing else', () => {
+    const basket = [line(13_900, 1, 'half-half'), line(50_000, 1, 'golden-original')];
+    expect(discountOf(basket, offer('PICKTWO'))).toBe(2_085);
+  });
+
+  it('is nothing when the basket does not hold the product at all', () => {
+    expect(discountOf([line(50_000, 1, 'golden-original')], offer('PICKTWO'))).toBe(0);
+  });
+
+  it('counts every line of that product, and its quantity', () => {
+    const basket = [line(10_000, 2, 'half-half'), line(10_000, 1, 'half-half')];
+    // 30 000 at 15%.
+    expect(discountOf(basket, offer('PICKTWO'))).toBe(4_500);
   });
 });
 
@@ -82,7 +117,7 @@ describe('delivery fee', () => {
     // A basket just over the threshold that a promo code pulls back under it
     // pays for delivery, because that is what the customer actually spent.
     const justOver = FEES.freeDeliveryOverCents + 1_000;
-    const totals = totalsFor([line(justOver)], 'Delivery', 'PICKTWO');
+    const totals = totalsFor([line(justOver)], 'Delivery', offer('PICKTWO'));
     expect(totals.subtotalCents).toBeGreaterThan(FEES.freeDeliveryOverCents);
     expect(totals.subtotalCents - totals.discountCents).toBeLessThan(
       FEES.freeDeliveryOverCents,
@@ -100,7 +135,7 @@ describe('totals', () => {
   });
 
   it('holds every amount as a whole number of cents', () => {
-    const totals = totalsFor([line(21_533, 3)], 'Delivery', 'ONETRAY');
+    const totals = totalsFor([line(21_533, 3, 'chicken-rice')], 'Delivery', offer('ONETRAY'));
     for (const amount of Object.values(totals)) {
       expect(Number.isInteger(amount)).toBe(true);
     }
@@ -108,7 +143,7 @@ describe('totals', () => {
 
   it('matches the worked example the journey produces', () => {
     // Honey Garlic at R209, half bird less R70, delivered, with PICKTWO.
-    const totals = totalsFor([line(20_900 - 7_000)], 'Delivery', 'PICKTWO');
+    const totals = totalsFor([line(20_900 - 7_000)], 'Delivery', offer('PICKTWO'));
     expect(totals.subtotalCents).toBe(13_900);
     expect(totals.discountCents).toBe(2_085);
     expect(totals.deliveryCents).toBe(2_900);

@@ -55,6 +55,8 @@ export const PROMOTIONS: readonly Promotion[] = [
     code: 'PICKTWO',
     discountRate: 0.15,
     validity: 'Every Tuesday, 11:00 to 22:00',
+    window: { days: [2], fromMinute: 11 * 60, toMinute: 22 * 60, modes: [] },
+    firstOrderOnly: false,
     copy: 'Two sauces on one bird at the single flavour price. Delivery and collection.',
   },
   {
@@ -64,6 +66,8 @@ export const PROMOTIONS: readonly Promotion[] = [
     code: 'ONETRAY',
     discountRate: 0.1,
     validity: 'Weekdays before 16:00',
+    window: { days: [1, 2, 3, 4, 5], fromMinute: null, toMinute: 16 * 60, modes: [] },
+    firstOrderOnly: false,
     copy: 'Three pieces, rice, slaw and a drink. Built for a lunch break, not a queue.',
   },
   {
@@ -73,6 +77,8 @@ export const PROMOTIONS: readonly Promotion[] = [
     code: 'FIRSTCRUNCH',
     discountRate: 0.1,
     validity: 'New accounts, one use',
+    window: { days: [], fromMinute: null, toMinute: null, modes: ['Delivery'] },
+    firstOrderOnly: true,
     copy: 'Create an account and your first delivery order comes with regular fries.',
   },
   {
@@ -82,6 +88,8 @@ export const PROMOTIONS: readonly Promotion[] = [
     code: 'MIDWEEK',
     discountRate: 0.2,
     validity: 'Every Wednesday, 11:00 to close',
+    window: { days: [3], fromMinute: 11 * 60, toMinute: null, modes: [] },
+    firstOrderOnly: false,
     copy: 'Twenty percent off every sauced wing. Collection and delivery, all three stores.',
   },
   {
@@ -91,6 +99,8 @@ export const PROMOTIONS: readonly Promotion[] = [
     code: 'SIDEBYSIDE',
     discountRate: 0.15,
     validity: 'Daily after 20:00',
+    window: { days: [], fromMinute: 20 * 60, toMinute: null, modes: [] },
+    firstOrderOnly: false,
     copy: 'Add a second side after eight and the cheaper of the two comes off the bill.',
   },
   {
@@ -100,6 +110,10 @@ export const PROMOTIONS: readonly Promotion[] = [
     code: 'CAMPUS',
     discountRate: 0.15,
     validity: 'Thursdays, with a valid student card at collection',
+    // The card is checked at the counter and cannot be checked here. The day
+    // and the mode can be, and are.
+    window: { days: [4], fromMinute: null, toMinute: null, modes: ['Collection'] },
+    firstOrderOnly: false,
     copy: 'Boneless and a side, fifteen percent off, collection only. Card checked in store.',
   },
 ];

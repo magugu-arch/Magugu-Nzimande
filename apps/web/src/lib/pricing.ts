@@ -1,10 +1,11 @@
-import { FEES, PROMOTIONS } from '@bbq/seed';
+import { FEES } from '@bbq/seed';
 import {
   applyPercentage,
   sumCents,
   type Cents,
   type OrderLine,
   type OrderTotals,
+  type Promotion,
   type ServiceMode,
 } from '@bbq/types';
 
@@ -21,18 +22,31 @@ export function subtotalOf(lines: readonly Pick<OrderLine, 'unitCents' | 'quanti
   return sumCents(lines.map(lineTotal));
 }
 
-export function findPromotion(code: string | null) {
-  if (!code) return null;
-  const normalised = code.trim().toUpperCase();
-  return PROMOTIONS.find((promotion) => promotion.code === normalised) ?? null;
-}
-
-export function discountOf(subtotalCents: Cents, code: string | null): Cents {
-  const promotion = findPromotion(code);
+/**
+ * What an offer takes off, given the lines it applies to.
+ *
+ * The discount comes off the named product's lines, not off the whole basket.
+ * It used to come off the subtotal, which meant an offer sold as "twenty
+ * percent off every sauced wing" took twenty percent off the chicken, the sides
+ * and the drinks in the same order — several times what it advertised, on every
+ * basket that was mostly not wings.
+ *
+ * Whether the offer runs at all is decided in `lib/promotions.ts`. By the time
+ * a promotion reaches here it has already been checked; passing null is how a
+ * caller says there is no valid offer.
+ */
+export function discountOf(
+  lines: readonly Pick<OrderLine, 'unitCents' | 'quantity' | 'slug'>[],
+  promotion: Promotion | null,
+): Cents {
   if (!promotion) return 0;
+
+  const eligible = lines.filter((line) => line.slug === promotion.productSlug);
+  if (eligible.length === 0) return 0;
+
   // Rounded once, here, so the discount shown in the basket is the discount
   // charged. Never recomputed from a formatted string.
-  return applyPercentage(subtotalCents, promotion.discountRate);
+  return applyPercentage(subtotalOf(eligible), promotion.discountRate);
 }
 
 /**
@@ -50,12 +64,12 @@ export function deliveryFeeOf(
 }
 
 export function totalsFor(
-  lines: readonly Pick<OrderLine, 'unitCents' | 'quantity'>[],
+  lines: readonly Pick<OrderLine, 'unitCents' | 'quantity' | 'slug'>[],
   mode: ServiceMode,
-  promoCode: string | null,
+  promotion: Promotion | null,
 ): OrderTotals {
   const subtotalCents = subtotalOf(lines);
-  const discountCents = discountOf(subtotalCents, promoCode);
+  const discountCents = discountOf(lines, promotion);
   const deliveryCents = deliveryFeeOf(mode, subtotalCents - discountCents, lines.length);
   return {
     subtotalCents,

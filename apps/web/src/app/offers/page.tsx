@@ -4,6 +4,7 @@ import { FoodImage } from '@/components/food/FoodImage';
 import { ButtonLink } from '@/components/ui/Button';
 import { DemoNotice } from '@/components/ui/DemoValue';
 import { api } from '@/lib/api';
+import { isRunningNow } from '@/lib/promotions';
 
 // Availability and store service rules are written by the operations console
 // at runtime, so this page is rendered per request. With Postgres behind it
@@ -63,7 +64,7 @@ export default function OffersPage() {
                   <div className="flex items-center justify-between gap-3">
                     <dt className="text-muted">Saves</dt>
                     <dd className="tabular font-bold">
-                      {Math.round(promotion.discountRate * 100)}%
+                      {Math.round(promotion.discountRate * 100)}% off {product?.name ?? 'the item'}
                     </dd>
                   </div>
                   <div className="flex items-start justify-between gap-3">
@@ -71,6 +72,18 @@ export default function OffersPage() {
                     <dd className="text-right text-xs font-semibold">{promotion.validity}</dd>
                   </div>
                 </dl>
+
+                {/*
+                  Said on the card rather than discovered at checkout. The
+                  conditions above are enforced now, so an offer that is not
+                  running today would otherwise be an advertised code that
+                  silently fails on the last step of an order.
+                */}
+                {!isRunningNow(promotion) && (
+                  <p className="mt-3 rounded-sm bg-paper px-3 py-2 text-xs font-semibold text-muted">
+                    Not running right now.
+                  </p>
+                )}
 
                 <div className="mt-5">
                   {product ? (

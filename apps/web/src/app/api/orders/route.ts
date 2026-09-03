@@ -3,9 +3,11 @@ import { NextResponse } from 'next/server';
 import { deliversTo, findStore, servesMode } from '@/lib/catalogue-state';
 import { repriceLines } from '@/lib/order-integrity';
 import { currentAccount } from '@/lib/accounts/session';
-import { createOrder } from '@/lib/order-store';
+import { createOrder, ordersForAccount } from '@/lib/order-store';
 import { notifyPlaced } from '@/lib/notifications/send';
-import { findPromotion, totalsFor } from '@/lib/pricing';
+import type { Promotion } from '@bbq/types';
+import { totalsFor } from '@/lib/pricing';
+import { promotionFor } from '@/lib/promotions';
 
 /**
  * POST /api/orders — create an order.
@@ -64,14 +66,6 @@ export async function POST(request: Request) {
     );
   }
 
-  if (order.promoCode && !findPromotion(order.promoCode)) {
-    return NextResponse.json({ error: 'That promo code is not valid' }, { status: 409 });
-  }
-
-  // Totals come from the re-priced lines, never from the request.
-  const lines = repriced.lines;
-  const totals = totalsFor(lines, order.mode, order.promoCode);
-
   /**
    * Bound to the signed-in customer, if there is one.
    *
@@ -81,7 +75,35 @@ export async function POST(request: Request) {
    * guest checkout and gets null.
    */
   const account = currentAccount(request);
-  const created = createOrder({ ...order, lines }, account?.id ?? null);
+
+  /**
+   * The offer, against its own advertised conditions.
+   *
+   * Checked here and nowhere else that matters. The browser applies what it can
+   * see for the basket preview, but a day, a time and a first-order rule are
+   * all things a client can simply not send — so the server resolves the code
+   * itself and prices from what it resolved.
+   */
+  let promotion: Promotion | null = null;
+  if (order.promoCode) {
+    const eligible = promotionFor(order.promoCode, {
+      mode: order.mode,
+      // A guest is never on their first order in the sense the offer means:
+      // there is no account to remember that they used it.
+      isFirstOrder: account ? ordersForAccount(account.id).length === 0 : false,
+    });
+
+    if (!eligible.ok) {
+      return NextResponse.json({ error: eligible.reason }, { status: 409 });
+    }
+    promotion = eligible.promotion;
+  }
+
+  // Totals come from the re-priced lines, never from the request.
+  const lines = repriced.lines;
+  const totals = totalsFor(lines, order.mode, promotion);
+
+  const created = createOrder({ ...order, lines }, account?.id ?? null, promotion);
 
   /**
    * Points are deliberately not credited here.
