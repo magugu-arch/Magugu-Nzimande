@@ -1,3 +1,4 @@
+import { payfastProvider } from './payfast/provider';
 import type { PaymentProvider } from './provider';
 import { sandboxProvider } from './sandbox-provider';
 
@@ -27,7 +28,13 @@ export type ProviderConfig = { name: string; secret: string };
  */
 export type PaymentEnv = {
   BBQ_PAYMENT_PROVIDER?: string | undefined;
+  /** The shared secret: PayFast's passphrase, or the sandbox signing key. */
   BBQ_PAYMENT_SECRET?: string | undefined;
+  BBQ_PAYFAST_MERCHANT_ID?: string | undefined;
+  BBQ_PAYFAST_MERCHANT_KEY?: string | undefined;
+  /** Anything other than "false" keeps the sandbox. See below. */
+  BBQ_PAYFAST_SANDBOX?: string | undefined;
+  BBQ_PUBLIC_URL?: string | undefined;
   // An environment carries more than these two. Named so the index signature
   // reads as deliberate: without it every property here is optional, which
   // makes this a weak type, and TypeScript then refuses `process.env` for
@@ -52,6 +59,39 @@ export function activeProvider(env: PaymentEnv = process.env): PaymentProvider |
   switch (config.name) {
     case 'sandbox':
       return sandboxProvider(config.secret);
+
+    case 'payfast': {
+      const merchantId = env.BBQ_PAYFAST_MERCHANT_ID;
+      const merchantKey = env.BBQ_PAYFAST_MERCHANT_KEY;
+      const publicUrl = env.BBQ_PUBLIC_URL;
+
+      // All four or nothing. A PayFast adapter missing its merchant id builds
+      // a redirect PayFast rejects, and one missing its public URL sends the
+      // notification to a URL that does not exist — the payment then succeeds
+      // and the order never hears about it, which is the worst of the failures
+      // available here.
+      if (!merchantId || !merchantKey || !publicUrl) return null;
+
+      /**
+       * Live only when the variable says exactly "false", so every other value
+       * — unset, empty, "0", a typo — keeps the sandbox. Getting this backwards
+       * would take real money on a deployment somebody believed was a test,
+       * and there is no version of that mistake worth making cheap.
+       */
+      const sandbox = env.BBQ_PAYFAST_SANDBOX !== 'false';
+      const base = publicUrl.replace(/\/+$/, '');
+
+      return payfastProvider({
+        merchantId,
+        merchantKey,
+        passphrase: config.secret,
+        sandbox,
+        returnUrl: `${base}/journey?payment=done`,
+        cancelUrl: `${base}/checkout?payment=cancelled`,
+        notifyUrl: `${base}/api/payments/webhook`,
+      });
+    }
+
     default:
       // A name nobody has written an adapter for. Refused rather than guessed:
       // a typo in a deployment variable should stop payments, not pick one.

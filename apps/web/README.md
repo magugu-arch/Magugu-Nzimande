@@ -291,6 +291,40 @@ Two different behaviours when unconfigured, and the difference is deliberate:
 | Courier | **Degrades** | A store can drive the order out itself. |
 | Messaging | **Degrades** — logs | The order stands whether or not the email sends. |
 
+### PayFast
+
+The one adapter written against a named gateway. It is a redirect integration:
+there is no call that opens a payment, so `createIntent` builds and signs the
+redirect and everything real happens when the notification arrives.
+
+All four of PayFast's documented checks run, cheapest first, and each guards
+something different:
+
+1. **Signature** — proves the sender knows the passphrase. Free.
+2. **Source** — proves it came from PayFast rather than someone who read the
+   passphrase out of a log. One DNS lookup, against their published hostnames
+   rather than a hardcoded netblock that will silently stop matching.
+3. **Amount** — proves it is about this order at the price we asked. Enforced
+   by the ledger, which already refuses an amount it did not ask for.
+4. **Postback** — asks PayFast whether it really sent this. The only check that
+   catches a replay of a genuine, correctly signed notification, so it is not
+   optional and it fails closed. Outbound access to `payfast.co.za` is a
+   deployment requirement.
+
+Two details that break PayFast integrations and are pinned by tests:
+
+- The signature is an MD5 over the fields joined with **PHP's `urlencode`**, not
+  `encodeURIComponent`. Space is `+`, and `!'()*~` are escaped. Get it wrong and
+  the signature is correct for most payments and wrong for the ones containing
+  an apostrophe — much harder to diagnose than always being wrong.
+- Idempotency is keyed on `pf_payment_id` **and the status**. PayFast reuses the
+  id across every notification for one payment, so keying on it alone settles
+  the `PENDING` and drops the `COMPLETE` that follows.
+
+It stays in the sandbox unless `BBQ_PAYFAST_SANDBOX` is exactly `false`. Every
+other value keeps the sandbox, because the mistake in the other direction takes
+real money on a deployment somebody believed was a test.
+
 Refusing an order because no POS is attached turns a missing integration into a
 closed shop, which is worse than the thing it prevents. Accepting a payment
 because no gateway is attached is the opposite kind of mistake, and much more

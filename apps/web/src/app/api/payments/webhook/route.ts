@@ -26,7 +26,9 @@ export async function POST(request: Request) {
 
   const rawBody = await request.text();
 
-  if (!provider.verify(rawBody, request.headers)) {
+  // Awaited: a gateway may need a round trip of its own to confirm a callback
+  // is genuine, and PayFast does.
+  if (!(await provider.verify(rawBody, request.headers))) {
     // Deliberately says nothing about what was wrong with it. A caller probing
     // for the shape of a valid callback learns nothing from this reply.
     return NextResponse.json({ error: 'Signature rejected' }, { status: 401 });

@@ -45,8 +45,14 @@ export interface PaymentProvider {
    * Takes the raw body rather than a parsed object: a signature covers the
    * bytes that were sent, and re-serialising parsed JSON does not reliably
    * reproduce them.
+   *
+   * May be asynchronous. A signature check on its own is synchronous, but some
+   * gateways — PayFast among them — require the receiver to post the callback
+   * back to the gateway and be told it is genuine, which is a network round
+   * trip. Returning a promise is allowed so that adapter does not have to
+   * pretend the check is cheaper than it is; callers await it.
    */
-  verify(rawBody: string, headers: Headers): boolean;
+  verify(rawBody: string, headers: Headers): boolean | Promise<boolean>;
 
   /** The event this callback carries, or null if it is not one we act on. */
   parse(rawBody: string): PaymentEvent | null;
