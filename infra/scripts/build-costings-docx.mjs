@@ -182,12 +182,12 @@ const rule = () =>
 
 // ---------------------------------------------------------------------------
 // The measured facts. Everything numeric below was read out of the repository
-// at commit f3350d1, not estimated.
+// at commit 8090a7e, not estimated.
 // ---------------------------------------------------------------------------
 
 const RATE = 950; // the illustrative blended rate the worked example uses
-const BUILT_DAYS = 70;
-const REMAIN_DAYS = 60;
+const BUILT_DAYS = 114;
+const REMAIN_DAYS = 41;
 const HOURS = (d) => d * 8;
 const rands = (n) => 'R ' + n.toLocaleString('en-ZA');
 const num = (n) => n.toLocaleString('en-ZA');
@@ -205,20 +205,24 @@ const workstreams = [
   ['10', 'Single-file review build', '2,241-line template and generator that inlines every asset, so the site opens from one link with no server', 3],
   ['11', 'Documentation and handover', '279-line website README plus contributions to the handover, audit and readiness documents', 3],
   ['12', 'Audit, hardening and defect work', 'Server-side repricing, checkout idempotency, delivery-zone enforcement on the API, session-expiry handling, focus management, removal of three data duplications', 5],
+  ['13', 'Payment seam', 'Provider-agnostic adapter, HMAC callback verification before parsing, idempotent settlement on the provider event id, sandbox provider; still 501 with no merchant account', 8],
+  ['14', 'Customer accounts and POPIA', 'scrypt passwords, signed sessions, saved addresses, order history scoped to the session, points on the account; access and erasure requests', 10],
+  ['15', 'Notifications and monitoring', 'Message templates, delivery-once ledger, logging transport, health endpoint reporting both liveness and what is configured', 8],
+  ['16', 'POS and courier seams', 'Adapter interfaces, handoff record with retry, availability sync that tells unreachable apart from empty, degrade-not-refuse behaviour', 18],
 ];
 
 const remaining = [
-  ['Payment gateway integration', 'Provider selection, intent and webhook handlers, signature verification, sandbox failure and retry testing', 8, 'Gateway per-transaction fee'],
-  ['POS / order-management integration', 'Store systems adapter, menu and availability sync, order injection, reconciliation', 10, 'POS vendor licence'],
-  ['Delivery provider integration', 'Dispatch, live tracking, provider onboarding against the existing seam', 8, 'Provider commission'],
+  ['Payment gateway adapter', 'One adapter against the seam that now exists, then sandbox failure and retry testing with real credentials', 4, 'Gateway per-transaction fee'],
+  ['POS adapter and onboarding', 'One adapter against the seam, menu mapping, reconciliation against the vendor\u2019s own reports', 6, 'POS vendor licence'],
+  ['Courier adapter and onboarding', 'One adapter against the seam, live tracking, provider onboarding', 5, 'Provider commission'],
   ['Persistent database', 'Postgres replacing the JSON state file; schema, migrations, concurrent-write safety', 6, 'Managed database hosting'],
-  ['Customer accounts and authentication', 'Registration, sign-in, tokens, saved addresses, order history bound to a person', 7, '—'],
-  ['Transactional notifications', 'Order confirmation and status by email and SMS', 4, 'Per-message cost'],
-  ['Privacy, terms and POPIA compliance', 'Consent capture, retention rules, data-subject requests, policy pages', 3, 'Legal review'],
-  ['Production monitoring and rollback', 'Error tracking, uptime checks, structured logging, a tested rollback path', 4, 'Tooling subscription'],
+  ['Password reset', 'The half of accounts that needs a message to reach an inbox', 2, 'Per-message cost'],
+  ['Messaging adapter', 'One adapter against the notification seam, sender identities, deliverability', 3, 'Per-message cost'],
+  ['Privacy policy and legal review', 'Retention periods, consent copy, information officer; the endpoints exist and are tested', 2, 'Legal review'],
+  ['Production monitoring and rollback', 'Error tracking and structured logging on top of the health endpoint, and a tested rollback path', 3, 'Tooling subscription'],
   ['Deployment, domain, CDN and certificates', 'Production environment, secrets management, release pipeline', 3, 'Hosting and domain'],
   ['Food photography integration', 'Replacing the twelve comped items with the commissioned shoot', 3, 'Shoot, stylist, studio'],
-  ['Accessibility and performance audit', 'WCAG and Core Web Vitals measured against the deployed build, not the local one', 4, '—'],
+  ['Accessibility and performance audit', 'WCAG and Core Web Vitals measured against the deployed build, not the local one', 4, '\u2014'],
 ];
 
 const rateCard = [400, 650, 850, 950, 1150, 1450];
@@ -312,8 +316,8 @@ const doc = new Document({
             ['Prepared by', 'Totality Creative'],
             ['Date', '3 September 2026'],
             ['Subject', 'The bb.q Chicken South Africa ordering website as built on branch claude/bbq-chicken-website-4qzv8i'],
-            ['Commit audited', 'f3350d1'],
-            ['Status of the build', 'Feature-complete for everything that does not require a third-party account; not deployed to production'],
+            ['Commit audited', '8090a7e'],
+            ['Status of the build', 'Every integration seam built and tested against a stand-in; no vendor attached, and not deployed to production'],
             ['Status of this document', 'Draft for internal review — the hourly rate is an input, not an approved figure'],
           ],
         ),
@@ -366,13 +370,13 @@ const doc = new Document({
           ['What', 'Count', 'Detail'],
           [
             ['Customer-facing pages', '13', 'Home, menu, product, offers, stores, rewards, account, help, checkout, order journey, app, and two console pages'],
-            ['API endpoints', '16', 'Catalogue, stores, promotions, rewards, delivery, orders, payments, admin'],
+            ['API endpoints', '22', 'Catalogue, stores, promotions, rewards, delivery, orders, payments, accounts, privacy, health, admin'],
             ['React components', '30', 'Across 13 feature areas'],
-            ['Business-logic modules', '12', 'Pricing, cart, order integrity, order store, trading hours, authentication, filters, focus management'],
-            ['Automated tests', '280', 'In 17 files; all passing'],
-            ['Hand-written lines', '13,972', 'Application 6,216 · tests 3,269 · review build 2,241 · data and tooling 1,896 · shared packages 350'],
+            ['Business-logic modules', '24', 'Pricing, cart, order integrity, order store, trading hours, two authentication boundaries, payments, accounts, notifications, fulfilment'],
+            ['Automated tests', '425', 'In 23 files; all passing'],
+            ['Hand-written lines', '18,232', 'Application 7,965 · tests 5,479 · review build 2,241 · data and tooling 2,037 · shared packages 510'],
             ['Generated files', '345', 'Image derivatives and brand assets, rebuilt from masters on every build'],
-            ['Commits', '20', 'Each one reviewable on its own'],
+            ['Commits', '25', 'Each one reviewable on its own'],
           ],
           [undefined, AlignmentType.RIGHT, undefined],
         ),
@@ -441,7 +445,7 @@ const doc = new Document({
             ['Brand rules', 'Clean', 'Mark spelling, unapproved copy, hex outside the token files'],
             ['Type checking', 'Clean', 'TypeScript strict across the whole workspace'],
             ['Linting', 'Clean', 'ESLint with the Next.js configuration'],
-            ['Tests', '280 passing', '17 files, run against route handlers where the risk is'],
+            ['Tests', '425 passing', '23 files, run against route handlers where the risk is'],
             ['Production build', 'Clean', 'Next.js build including asset derivation'],
             ['Review build', '3.83 MB', 'Single file, opens from a link with no server'],
           ],
@@ -451,22 +455,22 @@ const doc = new Document({
         new Paragraph({ children: [new PageBreak()] }),
 
         // -------------------------------------------------------- 3 not built
-        h1('3. What has deliberately not been built'),
+        h1('3. What is waiting on somebody else'),
         p(
-          'These are not omissions. Each one needs an account, a contract or a signature that engineering cannot produce, and the standing rule on this project is to document that rather than invent a credential or a plausible-looking success response.',
+          'Four integrations have no vendor. None of them is a gap in the build any more: each has an interface, a record of what happened, and tests for everything that stays true whichever vendor is eventually chosen. What is missing in every case is an account, a contract or a signature that engineering cannot produce, and the standing rule on this project is to build up to that line and document it rather than invent a credential.',
         ),
         table(
-          cols(4, 2, 6),
-          ['Area', 'State', 'What it is waiting for'],
+          cols(3, 2.6, 6.4),
+          ['Area', 'State', 'What is there, and what is waiting'],
           [
-            ['Payment capture', 'Refuses, on purpose', 'The endpoints answer 501 rather than pretending to succeed. A provider must be selected and merchant credentials issued.'],
-            ['POS / order management', 'Not started', 'Access to the store systems and their integration terms.'],
-            ['Delivery dispatch', 'Seam ready, unconnected', 'The abstraction and the mock provider exist; onboarding with a real provider does not.'],
-            ['Customer accounts', 'Not started', 'A decision on identity, and a database to hold it.'],
-            ['Database', 'Stopgap in place', 'Orders and console writes live in a JSON file so several worker processes agree. Two operators writing in the same instant can still lose an edit. It is a stand-in for Postgres.'],
-            ['Notifications', 'Not started', 'A messaging provider and sender identities.'],
-            ['Privacy and POPIA', 'Not started', 'Legal review and a data-processing position.'],
-            ['Monitoring and rollback', 'Not started', 'A production environment to monitor.'],
+            ['Payment', 'Seam built, refuses', 'Adapter interface, signature verification before parsing, settlement idempotent on the provider event id, sandbox provider. Endpoints answer 501 until a provider and merchant credentials exist.'],
+            ['POS / order management', 'Seam built, degrades', 'Adapter interface, handoff record with retry, availability sync. An order with no POS still reaches the console. Waiting on store-systems access and integration terms.'],
+            ['Courier', 'Seam built, degrades', 'Adapter interface, dispatch requested for delivery orders only, tracking hook. Waiting on provider onboarding.'],
+            ['Messaging', 'Seam built, logs', 'Templates, a deliver-once ledger, a transport that records rather than sends. Waiting on a provider and sender identities.'],
+            ['Customer accounts', 'Built', 'scrypt passwords, signed sessions, saved addresses, order history scoped to the session. Password reset waits on the messaging provider.'],
+            ['Privacy and POPIA', 'Endpoints built', 'Access and erasure work and are tested; erasure keeps the sale and unlinks the person. Waiting on a lawyer for the policy, the retention periods and an information officer.'],
+            ['Monitoring', 'Health endpoint built', 'Liveness and configuration reported separately. Waiting on a production environment to point error tracking at.'],
+            ['Database', 'Stopgap in place', 'Orders, accounts and console writes live in a JSON file so several worker processes agree. Two operators writing in the same instant can still lose an edit. It is a stand-in for Postgres.'],
           ],
         ),
 
@@ -514,12 +518,12 @@ const doc = new Document({
           [
             text('Cross-check. ', { bold: true }),
             text(
-              `13,972 hand-written lines over ${BUILT_DAYS} days is almost exactly 200 lines a day. For tested, typed, reviewed production code that sits in the normal 100–300 band, toward the productive end of it. The reconstruction is not inflated.`,
+              `18,232 hand-written lines over ${BUILT_DAYS} days is about 160 a day. For tested, typed, reviewed production code that sits inside the normal 100–300 band, and lower than the 200 the first version of this document reconstructed — integration work carries more test and less code than storefront work does. The reconstruction is not inflated.`,
             ),
           ],
         ),
         p(
-          `${BUILT_DAYS} days is roughly 14 working weeks, or a little over three months for one person. Two people working in parallel would compress the calendar but not the total, and would add coordination cost.`,
+          `${BUILT_DAYS} days is roughly 23 working weeks, or a little over five months for one person. Two people working in parallel would compress the calendar but not the total, and would add coordination cost.`,
         ),
 
         new Paragraph({ children: [new PageBreak()] }),
@@ -581,7 +585,7 @@ const doc = new Document({
 
         p('', { after: 120 }),
         p(
-          'The four largest lines — storefront routes, the API and state machine, the ordering flow, and the test suite — are 33 of the 70 days between them. That is where the value sits, and it is also the part that does not have to be redone when a payment provider or a POS is finally attached.',
+          'The integration seams — payments, accounts, notifications, POS and courier — are 44 of the 114 days. None of them names a vendor, and none has to be rewritten when one is chosen: what remains per integration is an adapter against an interface that already exists and is already tested.',
         ),
 
         new Paragraph({ children: [new PageBreak()] }),
@@ -633,9 +637,9 @@ const doc = new Document({
         p('', { after: 120 }),
         p(
           [
-            text('Roughly 54% of the engineering is done. ', { bold: true }),
+            text('Roughly 74% of the engineering is done. ', { bold: true }),
             text(
-              'The remaining half is weighted toward integration rather than construction, which means its calendar time depends on how quickly the accounts, credentials and contracts arrive rather than on how fast anyone writes code.',
+              'What is left is weighted toward vendor onboarding rather than construction, so its calendar time depends on how quickly accounts, credentials and contracts arrive rather than on how fast anyone writes code. The engineering estimates fell when the seams went in: a payment integration is four days against a tested interface where it was eight against nothing.',
             ),
           ],
         ),

@@ -92,8 +92,14 @@ POST /api/delivery/quote           { suburb, subtotalCents } -> serviceable, fee
 POST /api/orders                   create, returns orderNumber and status
 GET  /api/orders/:id               status for the journey screen
 POST /api/orders/:id/advance       stands in for a kitchen display system
-POST /api/payments/intent          501 — no provider selected
-POST /api/payments/webhook         501 — no provider selected
+POST /api/payments/intent          opens a payment; 501 with no provider configured
+POST /api/payments/webhook         signed settlement callback; 501 with no provider
+POST /api/account                  register, and sign in
+GET/POST/DELETE /api/account/session   who am I, sign in, sign out
+GET/POST/DELETE /api/account/addresses the customer's address book
+GET  /api/account/orders           this customer's orders, and nobody else's
+GET/DELETE /api/account/privacy    POPIA access and erasure
+GET  /api/health                   uptime check, and what is configured
 GET/POST /api/admin/*              operations console: availability, services, orders
 ```
 
@@ -268,12 +274,51 @@ again.
 The build has no server, so anything the demo enforces it enforces client side
 only. Read it as a picture of the journey, never as evidence the rules hold.
 
-## Deliberately not built
+## Seams, and what is behind them
 
-Payment capture, driver dispatch, notifications, customer account tokens and a
-real database.
+Four integrations have no vendor: payment, the kitchen's point of sale, a
+courier, and a messaging provider. None of them is contracted, so none has an
+adapter for a named system. Each has an interface, a registry that returns
+nothing unless configured, a record of what happened, and tests for everything
+that stays true whichever vendor is eventually chosen.
 
-Orders and console writes live in a JSON file (`BBQ_STATE_FILE`, defaulting to
-the system temp directory) rather than in memory, because the server runs
-several worker processes and they have to agree. It is a stopgap for Postgres:
-two operators writing in the same instant can still lose an edit.
+Two different behaviours when unconfigured, and the difference is deliberate:
+
+| Integration | Unconfigured | Why |
+|---|---|---|
+| Payment | **Refuses** — 501 | Money that cannot be taken must not look taken. |
+| POS | **Degrades** | The console is a working kitchen display. |
+| Courier | **Degrades** | A store can drive the order out itself. |
+| Messaging | **Degrades** — logs | The order stands whether or not the email sends. |
+
+Refusing an order because no POS is attached turns a missing integration into a
+closed shop, which is worse than the thing it prevents. Accepting a payment
+because no gateway is attached is the opposite kind of mistake, and much more
+expensive. `GET /api/health` reports which are attached, so a deployment that
+has quietly lost a secret is visible before a customer finds it.
+
+### Environment
+
+| Variable | Effect when unset |
+|---|---|
+| `BBQ_STATE_FILE` | Falls back to the system temp directory |
+| `BBQ_ADMIN_PASSWORD` | The operations console refuses everyone |
+| `BBQ_SESSION_SECRET` | Customer accounts are switched off (needs 16+ characters) |
+| `BBQ_PAYMENT_PROVIDER` / `BBQ_PAYMENT_SECRET` | Payment endpoints answer 501; both or neither |
+
+No secret is ever written down in the repository, and none appears in a health
+response — only whether one is present.
+
+## Still not built
+
+A real database. Orders, accounts and console writes live in a JSON file
+(`BBQ_STATE_FILE`, defaulting to the system temp directory) rather than in
+memory, because the server runs several worker processes and they have to
+agree. It is a stopgap for Postgres: two operators writing in the same instant
+can still lose an edit.
+
+Password reset, which needs a messaging provider to reach an inbox. Real
+production monitoring beyond the health endpoint. And the legal review behind
+the POPIA endpoints — the access and erasure paths exist and are tested, but a
+lawyer still has to write the policy, set the retention periods and name the
+information officer.
