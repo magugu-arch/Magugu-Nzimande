@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { AA, contrastRatio, luminance, meetsAA, parseHex, ratioOf } from '@/lib/a11y/contrast';
@@ -25,6 +25,15 @@ const TEMPLATE = readFileSync(
 );
 
 const COMPONENTS = path.resolve(__dirname, '../src/components');
+/**
+ * The pages too.
+ *
+ * The scans below read `src/components` and stopped there, which left every
+ * route's own markup unchecked — an image in a page body, a heading level in a
+ * hero, a click handler on a div. Pages are where most of the markup on this
+ * site actually is.
+ */
+const PAGES = path.resolve(__dirname, '../src/app');
 
 describe('the contrast maths', () => {
   /** Anchored against the two ratios everybody knows, or the rest proves nothing. */
@@ -248,11 +257,19 @@ describe('the review build', () => {
   });
 });
 
-describe('the React components', () => {
-  const files = readdirDeep(COMPONENTS).filter((file) => file.endsWith('.tsx'));
+describe('the React components and the pages', () => {
+  const files = [...readdirDeep(COMPONENTS), ...readdirDeep(PAGES)].filter((file) =>
+    file.endsWith('.tsx'),
+  );
 
-  it('has components to check', () => {
-    expect(files.length).toBeGreaterThan(0);
+  /**
+   * A guard. Both halves of this list are found by walking a directory, and a
+   * walk that returned nothing would leave every scan below passing over an
+   * empty set forever.
+   */
+  it('has components and pages to check', () => {
+    expect(readdirDeep(COMPONENTS).length).toBeGreaterThan(10);
+    expect(readdirDeep(PAGES).length).toBeGreaterThan(10);
   });
 
   it('gives every image an alt', () => {
@@ -291,3 +308,61 @@ function readdirDeep(directory: string): string[] {
     return statSync(full).isDirectory() ? readdirDeep(full) : [full];
   });
 }
+
+/**
+ * The screens a customer sees when something has gone wrong.
+ *
+ * There were none: `notFound()` — which the product route calls deliberately
+ * for an unknown slug — landed on the framework's bare default, and any render
+ * error showed a white page reading "Application error", with no branding and
+ * nothing to press. They are the two screens most likely to be somebody's last
+ * impression of the site, and they were the two nobody had written.
+ */
+describe('the error boundaries', () => {
+  const source = (file: string) => readFileSync(path.join(PAGES, file), 'utf8');
+
+  it('exist', () => {
+    for (const file of ['not-found.tsx', 'error.tsx', 'global-error.tsx']) {
+      expect(existsSync(path.join(PAGES, file)), file).toBe(true);
+    }
+  });
+
+  /** A dead end is what makes a 404 the end of the visit. */
+  it('give a customer somewhere to go', () => {
+    expect(source('not-found.tsx')).toMatch(/href="\/menu"/);
+    expect(source('error.tsx')).toMatch(/href="\/menu"/);
+    expect(source('global-error.tsx')).toMatch(/href="\/"/);
+  });
+
+  it('offer a retry where retrying is possible', () => {
+    // `reset` re-renders the segment that failed, which fixes the common case
+    // of one bad response. A 404 has nothing to retry and offers none.
+    expect(source('error.tsx')).toContain('reset');
+    expect(source('global-error.tsx')).toContain('reset');
+  });
+
+  /**
+   * The root layout is what has failed by the time global-error renders, so it
+   * cannot use the site chrome, the fonts, or anything that assumes them.
+   */
+  it('let the last-resort page stand on its own', () => {
+    const global = source('global-error.tsx');
+    expect(global).toMatch(/<html/);
+    expect(global).toMatch(/<body/);
+    expect(global).not.toContain('SiteShell');
+  });
+
+  /**
+   * Styled from the tokens rather than from hex typed into a file nobody
+   * expects to look at. The brand checker enforces this across the repository;
+   * it is asserted here as well because this is exactly the page where a
+   * near-enough red would survive a review.
+   */
+  it('take the last-resort colours from the tokens', () => {
+    expect(source('global-error.tsx')).toContain('BRAND');
+  });
+
+  it('keep the error pages out of the index', () => {
+    expect(source('not-found.tsx')).toMatch(/robots:\s*\{\s*index:\s*false/);
+  });
+});
