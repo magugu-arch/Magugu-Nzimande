@@ -64,7 +64,6 @@ const cols = (...parts) => {
   return parts.map((p) => Math.round((p / total) * W));
 };
 
-const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
 const hairline = { style: BorderStyle.SINGLE, size: 4, color: LINE };
 
 function text(value, opts = {}) {

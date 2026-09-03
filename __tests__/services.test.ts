@@ -57,7 +57,6 @@ import { DEFAULT_COORDINATES, distanceKm, formatDistance } from '@/utils/geo';
 let keySeq = 0;
 const freshKey = () => `test-idem-${(keySeq += 1)}`;
 
-
 describe('menuService', () => {
   it('returns categories in sort order', async () => {
     const categories = await fetchCategories();

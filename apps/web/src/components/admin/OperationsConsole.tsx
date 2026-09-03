@@ -23,7 +23,26 @@ type QueueOrder = {
   kitchenNote: string;
 };
 
-const TABS = ['Orders', 'Menu', 'Stores', 'Promotions', 'Audit'] as const;
+type HandoffRow = {
+  orderId: string;
+  orderNumber: string;
+  kind: string;
+  adapter: string;
+  error: string | null;
+  retryable: boolean;
+  at: string;
+};
+
+type SuppressedRow = { address: string; reason: string; at: string };
+
+type QueueResponse = {
+  orders: QueueOrder[];
+  audit: AuditEntry[];
+  unacknowledged?: HandoffRow[];
+  suppressed?: SuppressedRow[];
+};
+
+const TABS = ['Orders', 'Menu', 'Stores', 'Promotions', 'Problems', 'Audit'] as const;
 type Tab = (typeof TABS)[number];
 
 /**
@@ -61,6 +80,16 @@ export function OperationsConsole({
   // the effect below only has to keep it current.
   const [orders, setOrders] = useState<readonly QueueOrder[]>(initialOrders);
   const [audit, setAudit] = useState<readonly AuditEntry[]>(initialAudit);
+  /**
+   * The two things that go wrong quietly.
+   *
+   * Both were recorded from the day they were built and shown nowhere, which
+   * makes them a log rather than a report. An order the kitchen system refused
+   * and a customer whose confirmation bounced have the same symptom — a
+   * telephone call — and the same cure, which is somebody seeing them.
+   */
+  const [unacknowledged, setUnacknowledged] = useState<readonly HandoffRow[]>([]);
+  const [suppressed, setSuppressed] = useState<readonly SuppressedRow[]>([]);
   const [busy, setBusy] = useState(false);
 
   const refreshQueue = useCallback(async () => {
@@ -68,9 +97,11 @@ export function OperationsConsole({
       const response = await fetch('/api/admin/orders');
       if (endedSession(response)) return;
       if (!response.ok) return;
-      const data = (await response.json()) as { orders: QueueOrder[]; audit: AuditEntry[] };
+      const data = (await response.json()) as QueueResponse;
       setOrders(data.orders);
       setAudit(data.audit);
+      setUnacknowledged(data.unacknowledged ?? []);
+      setSuppressed(data.suppressed ?? []);
     } catch {
       // A failed refresh leaves the last good queue on screen.
     }
@@ -152,6 +183,8 @@ export function OperationsConsole({
     ...initialProducts.filter((product) => hiddenSlugs.includes(product.slug)),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
+  const problemCount = unacknowledged.length + suppressed.length;
+
   return (
     <div>
       <div role="tablist" aria-label="Operations sections" className="flex flex-wrap gap-2">
@@ -168,6 +201,17 @@ export function OperationsConsole({
             ].join(' ')}
           >
             {candidate}
+            {candidate === 'Problems' && problemCount > 0 && (
+              // Counted on the tab, because a report nobody opens is a report
+              // nobody reads. The label carries the number for a screen reader
+              // rather than leaving it as a bare badge.
+              <span
+                className="ml-2 rounded-full bg-red px-2 py-0.5 text-[11px] font-bold text-white"
+                aria-label={`${problemCount} needing attention`}
+              >
+                {problemCount}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -377,6 +421,68 @@ export function OperationsConsole({
               Campaigns are read-only until the promotions service is built. Creating and expiring
               them from here is repository work, not a console gap.
             </p>
+          </section>
+        )}
+
+        {tab === 'Problems' && (
+          <section>
+            <h2 className="display text-2xl">Needs attention</h2>
+            <p className="mt-1 max-w-[60ch] text-sm text-muted">
+              Orders a kitchen system would not take, and customers we can no longer email.
+              Both are recorded as they happen; neither raises an alarm on its own.
+            </p>
+
+            <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.08em] text-muted">
+              Orders the kitchen system refused
+            </h3>
+            {unacknowledged.length === 0 ? (
+              <p className="mt-2 text-sm text-muted">
+                None. Every order has been accepted, or no kitchen system is attached.
+              </p>
+            ) : (
+              <ul className="mt-2 grid gap-2">
+                {unacknowledged.map((entry) => (
+                  <li
+                    key={`${entry.orderId}:${entry.kind}`}
+                    className="rounded-sm border border-line bg-white p-3 text-sm"
+                  >
+                    <span className="font-bold">{entry.orderNumber}</span>{' '}
+                    <span className="text-muted">
+                      — {entry.kind} via {entry.adapter}: {entry.error}
+                    </span>
+                    {entry.retryable && (
+                      <span className="ml-2 text-xs font-bold text-red">worth retrying</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.08em] text-muted">
+              Addresses we have stopped emailing
+            </h3>
+            {suppressed.length === 0 ? (
+              <p className="mt-2 text-sm text-muted">None.</p>
+            ) : (
+              <ul className="mt-2 grid gap-2">
+                {suppressed.map((entry) => (
+                  <li
+                    key={entry.address}
+                    className="rounded-sm border border-line bg-white p-3 text-sm"
+                  >
+                    <span className="font-bold">{entry.address}</span>{' '}
+                    <span className="text-muted">— {entry.reason}</span>
+                    {entry.reason === 'complaint' && (
+                      // Stated on the row, because the obvious next question is
+                      // whether it can be undone, and from here it cannot.
+                      <span className="ml-2 text-xs text-muted">
+                        consent withdrawn; only the customer can restore it
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 

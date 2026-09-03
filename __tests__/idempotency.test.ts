@@ -57,9 +57,7 @@ describe('the key that names an attempt', () => {
   });
 
   it('does not repeat itself across scopes', () => {
-    const keys = new Set(
-      Array.from({ length: 200 }, () => createIdempotencyScope().current()),
-    );
+    const keys = new Set(Array.from({ length: 200 }, () => createIdempotencyScope().current()));
     expect(keys.size).toBe(200);
   });
 

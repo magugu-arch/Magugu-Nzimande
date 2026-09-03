@@ -7,11 +7,6 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { Price } from '@/components/ui/Price';
 import { pointsFor } from '@/lib/pricing';
 
-const SAVED_ADDRESSES = [
-  { label: 'Home', line: '12 Beyers Naude Drive, Randburg' },
-  { label: 'Work', line: '3 Ridge Road, Northcliff' },
-];
-
 export function AccountPanel() {
   const { orders, hydrated, addLine, store, mode } = useOrdering();
 
@@ -133,23 +128,12 @@ export function AccountPanel() {
           </div>
         </div>
 
-        <div className="rounded-md border border-line bg-white p-5">
-          <h2 className="display text-xl">Saved addresses</h2>
-          <ul className="mt-3 space-y-3">
-            {SAVED_ADDRESSES.map((entry) => (
-              <li key={entry.label}>
-                <p className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
-                  {entry.label}
-                </p>
-                <p className="mt-0.5 text-sm">{entry.line}</p>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 text-xs text-muted">
-            Addresses are held in this browser only. Nothing is written to a customer record
-            without an explicit consent action.
-          </p>
-        </div>
+        {/*
+          The saved addresses that were here were two hardcoded strings — the
+          same two for every visitor, which read as a feature and was a mock.
+          The real address book belongs to an account and lives in
+          CustomerAccount above.
+        */}
       </aside>
     </div>
   );

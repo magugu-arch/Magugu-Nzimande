@@ -179,13 +179,7 @@ export function lifecycleFor(fulfilmentType: FulfilmentType): LifecycleState[] {
   ];
 
   if (fulfilmentType === 'delivery') {
-    return [
-      ...common,
-      'COURIER_REQUESTED',
-      'COURIER_ASSIGNED',
-      'OUT_FOR_DELIVERY',
-      'DELIVERED',
-    ];
+    return [...common, 'COURIER_REQUESTED', 'COURIER_ASSIGNED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
   }
 
   return [...common, 'READY_FOR_PICKUP', 'COLLECTED'];

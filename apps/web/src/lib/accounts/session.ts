@@ -129,6 +129,27 @@ export function currentAccount(request: Request, now = Date.now()): Account | nu
   return stored ? publicView(stored) : null;
 }
 
+/**
+ * The signed-in customer during a server render.
+ *
+ * The same resolution as `currentAccount`, reading the cookie through
+ * `next/headers` rather than off a Request. It exists so the account page can
+ * render already signed in — a client effect that fetches who you are shows
+ * everybody a loading state first, including the people who are not signed in
+ * and have nothing to wait for.
+ */
+export async function currentAccountFromCookies(
+  read: () => Promise<{ get(name: string): { value: string } | undefined }>,
+  now = Date.now(),
+): Promise<Account | null> {
+  const token = (await read()).get(COOKIE)?.value ?? null;
+  const id = accountIdFrom(token, now);
+  if (!id) return null;
+
+  const stored = findById(id);
+  return stored ? publicView(stored) : null;
+}
+
 /** The guard an account-only endpoint runs first. A value, so it cannot fail open. */
 export function refuseUnlessSignedIn(request: Request): Response | null {
   if (!areAccountsConfigured()) {
