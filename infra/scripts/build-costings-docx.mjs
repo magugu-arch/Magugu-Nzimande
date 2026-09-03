@@ -182,7 +182,7 @@ const rule = () =>
 
 // ---------------------------------------------------------------------------
 // The measured facts. Everything numeric below was read out of the repository
-// at commit d247e80, not estimated.
+// at commit 5e53a86, not estimated.
 // ---------------------------------------------------------------------------
 
 const RATE = 950; // the illustrative blended rate the worked example uses
@@ -212,6 +212,7 @@ const workstreams = [
   ['18', 'Accessibility and deployment', 'WCAG contrast maths with the palette pairings held to it, static scans of markup and components, environment template checked against the code in both directions', 7],
   ['19', 'Database schema and password reset', 'The Postgres migration the JSON store stands in for, checked against the state shape by test; reset tokens stored as hashes, single-use, and answering identically for an address nobody has', 7],
   ['20', 'Structured logging', 'One JSON object per event, redacting by field name and walking nested objects, with personal data reduced rather than dropped', 3],
+  ['26', 'Bounce handling and the shortfall reports', 'Mailgun bounce and complaint webhook with replay guards in shared state, a suppression list that tells a hard bounce from a complaint from a soft one, and the refused-handoff and suppressed-address reports surfaced on the console', 3],
   ['25', 'POS mapping and integration brief', 'The catalogue-to-till code map with its three-state completeness rule, modifier codes keyed by group and label, an order translated into the facts a till needs, and the specification list to send GAAP', 4],
   ['24', 'Mailgun and Clickatell transports', 'Email and SMS routed to separate providers, each falling back to the log independently; Clickatell\u2019s per-message acceptance read rather than its status code, and Mailgun\u2019s timestamp-and-token signature guarded against replay', 4],
   ['23', 'Complete addresses and a container', 'The postal code through the checkout form, the schema, the order and the courier address; a multi-stage non-root image with the state file on a volume and a healthcheck on the endpoint that reports storage', 3],
@@ -336,7 +337,7 @@ const doc = new Document({
             ['Prepared by', 'Totality Creative'],
             ['Date', '3 September 2026'],
             ['Subject', 'The bb.q Chicken South Africa ordering website as built on branch claude/bbq-chicken-website-4qzv8i'],
-            ['Commit audited', 'd247e80'],
+            ['Commit audited', '5e53a86'],
             ['Status of the build', 'Every integration seam built and tested against a stand-in; no vendor attached, and not deployed to production'],
             ['Status of this document', 'Draft for internal review — the hourly rate is an input, not an approved figure'],
           ],
@@ -390,10 +391,10 @@ const doc = new Document({
           ['What', 'Count', 'Detail'],
           [
             ['Customer-facing pages', '13', 'Home, menu, product, offers, stores, rewards, account, help, checkout, order journey, app, and two console pages'],
-            ['API endpoints', '25', 'Catalogue, stores, promotions, rewards, delivery, orders, payments, accounts, privacy, health, admin'],
+            ['API endpoints', '27', 'Catalogue, stores, promotions, rewards, delivery, orders, payments, accounts, privacy, health, admin'],
             ['React components', '30', 'Across 13 feature areas'],
             ['Business-logic modules', '26', 'Pricing, cart, order integrity, order store, trading hours, two authentication boundaries, payments, accounts, notifications, fulfilment'],
-            ['Automated tests', '672', 'In 34 files; all passing'],
+            ['Automated tests', '699', 'In 35 files; all passing'],
             ['Hand-written lines', '19,998', 'Application 8,369 · tests 6,632 · review build 2,241 · data, schema and tooling 2,246 · shared packages 510'],
             ['Generated files', '345', 'Image derivatives and brand assets, rebuilt from masters on every build'],
             ['Commits', '30', 'Each one reviewable on its own'],
@@ -465,7 +466,7 @@ const doc = new Document({
             ['Brand rules', 'Clean', 'Mark spelling, unapproved copy, hex outside the token files'],
             ['Type checking', 'Clean', 'TypeScript strict across the whole workspace'],
             ['Linting', 'Clean', 'ESLint with the Next.js configuration'],
-            ['Tests', '672 passing', '34 files, including four real worker processes racing on one file'],
+            ['Tests', '699 passing', '35 files, including four real worker processes racing on one file'],
             ['Production build', 'Clean', 'Next.js build including asset derivation'],
             ['Review build', '3.83 MB', 'Single file, opens from a link with no server'],
           ],
