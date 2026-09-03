@@ -9,12 +9,16 @@ import type { Store } from '@bbq/types';
  * text line and a suburb, because that is what a South African customer types
  * and what the delivery-zone check needs.
  *
- * The gap is real and is not papered over here. `dropoffAddress` returns null
- * when it cannot build something a courier could actually drive to, and the
- * adapter refuses the dispatch rather than sending Uber a half address and
- * discovering the problem when a driver rings the customer. Collecting a
- * postal code at checkout is the fix, and it is a change to the checkout form
- * rather than to this file.
+ * `dropoffAddress` returns null when it cannot build something a courier could
+ * actually drive to, and the adapter refuses the dispatch rather than sending
+ * Uber a half address and discovering the problem when a driver rings the
+ * customer.
+ *
+ * The postal code used to be the missing piece — sent empty, because checkout
+ * did not ask for one. Checkout asks now, so a delivery order carries a
+ * complete address. It is still nullable on the type, because orders placed
+ * before that change exist and a courier can be dispatched without it: Uber's
+ * geocoder resolves the street and suburb, less reliably.
  */
 
 export type UberAddress = {
@@ -55,7 +59,10 @@ export function dropoffAddress(order: Order): UberAddress | null {
     // Not collected at checkout. Sent empty rather than invented: a wrong
     // postal code routes a driver somewhere confidently, which is worse than
     // an absent one that Uber's geocoder resolves from the street and suburb.
-    zip_code: '',
+    // Empty only for an order placed before checkout collected one. An
+    // invented code routes a driver somewhere confidently, which is worse than
+    // an absent one Uber has to geocode around.
+    zip_code: order.postalCode ?? '',
     country: COUNTRY,
   };
 }

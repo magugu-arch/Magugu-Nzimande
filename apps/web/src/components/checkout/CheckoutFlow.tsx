@@ -13,7 +13,9 @@ import { CheckoutSummary } from './CheckoutSummary';
 
 const STEPS = ['Fulfilment', 'Details', 'Where to', 'Pay'] as const;
 
-type Errors = Partial<Record<'name' | 'email' | 'mobile' | 'address' | 'suburb', string>>;
+type Errors = Partial<
+  Record<'name' | 'email' | 'mobile' | 'address' | 'suburb' | 'postalCode', string>
+>;
 
 export function CheckoutFlow() {
   const router = useRouter();
@@ -26,6 +28,7 @@ export function CheckoutFlow() {
   const [mobile, setMobile] = useState('');
   const [address, setAddress] = useState('');
   const [suburb, setSuburb] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [kitchenNote, setKitchenNote] = useState('');
   const [errors, setErrors] = useState<Errors>({});
   const [quote, setQuote] = useState<DeliveryQuote | null>(null);
@@ -71,6 +74,10 @@ export function CheckoutFlow() {
     const next: Errors = {};
     if (address.trim().length < 4) next.address = 'Enter your street address';
     if (suburb.trim().length < 2) next.suburb = 'Enter your suburb';
+    // Four digits is every South African postal code. Checked here as well as
+    // on the server, because a courier needs a complete address and the
+    // cheapest place to say so is beside the field.
+    if (!/^\d{4}$/.test(postalCode.trim())) next.postalCode = 'Enter a four-digit postal code';
     if (Object.keys(next).length > 0) {
       setErrors(next);
       return false;
@@ -111,7 +118,7 @@ export function CheckoutFlow() {
         customer: { name, email, mobile },
         lines,
         promoCode,
-        ...(mode === 'Delivery' ? { address, suburb } : {}),
+        ...(mode === 'Delivery' ? { address, suburb, postalCode: postalCode.trim() } : {}),
         kitchenNote,
       });
       recordOrder(order);
@@ -279,6 +286,20 @@ export function CheckoutFlow() {
                   error={errors.suburb}
                   autoComplete="address-level2"
                   hint={`${store.name} delivers to ${store.zones.slice(0, 3).join(', ')} and more.`}
+                />
+                <Field
+                  label="Postal code"
+                  value={postalCode}
+                  onChange={(event) =>
+                    // Digits only, four of them. Filtered as it is typed rather
+                    // than rejected on submit: a customer who pastes "2196 "
+                    // should not be told off for a trailing space.
+                    setPostalCode(event.target.value.replace(/\D/g, '').slice(0, 4))
+                  }
+                  error={errors.postalCode}
+                  autoComplete="postal-code"
+                  inputMode="numeric"
+                  hint="A driver needs this to find you."
                 />
                 {quote?.serviceable && (
                   <p className="self-end rounded-sm bg-red-10 px-3 py-2.5 text-xs font-semibold text-red">

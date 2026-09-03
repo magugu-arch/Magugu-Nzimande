@@ -73,11 +73,25 @@ export const CreateOrderRequestSchema = z
     /** Required for delivery, absent otherwise. Enforced by the refinement below. */
     address: z.string().trim().min(1).optional(),
     suburb: z.string().trim().min(1).optional(),
+    /**
+     * Four digits, which is every South African postal code.
+     *
+     * Optional on the request and required for delivery by the refinement
+     * below, the same way the address and suburb are. It exists because a
+     * courier needs a complete address: the Uber Direct adapter was built
+     * sending an empty postal code and refusing rather than inventing one, and
+     * this is the half of that gap that belongs to the checkout form.
+     */
+    postalCode: z.string().trim().regex(/^\d{4}$/, 'Enter a four-digit postal code').optional(),
     kitchenNote: z.string().trim().max(280).default(''),
   })
   .refine(
-    (order) => order.mode !== 'Delivery' || (!!order.address && !!order.suburb),
-    { message: 'A delivery order needs a street address and suburb', path: ['address'] },
+    (order) =>
+      order.mode !== 'Delivery' || (!!order.address && !!order.suburb && !!order.postalCode),
+    {
+      message: 'A delivery order needs a street address, suburb and postal code',
+      path: ['address'],
+    },
   );
 export type CreateOrderRequest = z.infer<typeof CreateOrderRequestSchema>;
 
@@ -117,6 +131,8 @@ export const OrderSchema = z.object({
    * anybody noticed would have been the first real delivery.
    */
   suburb: z.string().min(1).nullable().default(null),
+  /** Four digits for a delivery, null otherwise. What completes the address. */
+  postalCode: z.string().regex(/^\d{4}$/).nullable().default(null),
   kitchenNote: z.string(),
   pointsEarned: z.number().int().nonnegative(),
 });

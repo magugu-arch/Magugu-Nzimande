@@ -88,16 +88,27 @@ describe('order requests', () => {
     expect(parsed.success).toBe(false);
   });
 
-  it('require an address and suburb for delivery', () => {
-    expect(CreateOrderRequestSchema.safeParse({ ...base, mode: 'Delivery' }).success).toBe(false);
-    expect(
-      CreateOrderRequestSchema.safeParse({
-        ...base,
-        mode: 'Delivery',
-        address: '12 Beyers Naude Drive',
-        suburb: 'Randburg',
-      }).success,
-    ).toBe(true);
+  /**
+   * All three, since a courier needs a complete address. The postal code was
+   * added when the Uber Direct adapter turned out to be sending an empty one
+   * and refusing to invent it.
+   */
+  it('require an address, suburb and postal code for delivery', () => {
+    const complete = {
+      ...base,
+      mode: 'Delivery',
+      address: '12 Beyers Naude Drive',
+      suburb: 'Randburg',
+      postalCode: '2194',
+    };
+
+    expect(CreateOrderRequestSchema.safeParse(complete).success).toBe(true);
+
+    for (const missing of ['address', 'suburb', 'postalCode'] as const) {
+      const { [missing]: _dropped, ...without } = complete;
+      void _dropped;
+      expect(CreateOrderRequestSchema.safeParse(without).success, missing).toBe(false);
+    }
   });
 
   it('do not require an address for collection or dine-in', () => {

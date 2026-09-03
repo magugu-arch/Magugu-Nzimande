@@ -183,12 +183,20 @@ export const customer = {
   mobile: '0821234567',
 };
 
-/** A complete, valid create-order body, with anything overridden. */
+/**
+ * A complete, valid create-order body, with anything overridden.
+ *
+ * A delivery override gets a postal code it did not ask for. Checkout collects
+ * one now — a courier needs a complete address — and without this every caller
+ * that switches the mode to Delivery would have to remember a field it does not
+ * care about. Overriding it explicitly still wins, which is how the tests that
+ * are *about* the postal code leave it out.
+ */
 export function orderRequest(
   lines: OrderLine[],
   over: Record<string, unknown> = {},
 ): Record<string, unknown> {
-  return {
+  const base = {
     storeId: aCollectionStore().id,
     mode: 'Collection',
     customer,
@@ -197,6 +205,9 @@ export function orderRequest(
     kitchenNote: '',
     ...over,
   };
+
+  if (base.mode !== 'Delivery' || 'postalCode' in over) return base;
+  return { ...base, postalCode: '2196' };
 }
 
 type RequestOptions = { body?: unknown; cookie?: string; method?: string };
