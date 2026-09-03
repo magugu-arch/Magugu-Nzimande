@@ -6,6 +6,7 @@ import { labelFor, listOrders, setOrderStatus } from '@/lib/order-store';
 import { notifyMoved } from '@/lib/notifications/send';
 import { requestCourier, unacknowledged } from '@/lib/fulfilment/handoff';
 import { listSuppressed } from '@/lib/notifications/suppression';
+import { listIntents } from '@/lib/payments/ledger';
 import { activeCourier } from '@/lib/fulfilment/registry';
 
 /**
@@ -19,6 +20,12 @@ import { activeCourier } from '@/lib/fulfilment/registry';
  * `suppressed` is the same shape of problem for email. A customer whose
  * confirmation bounced never got their order number, and until an operator can
  * see that, the only symptom is a phone call.
+ *
+ * `payments` is the ledger. It was written, settled and reconciled by tests and
+ * shown to nobody, which left an operator taking an "I paid, where is my food"
+ * call with the order in front of them and no way to see whether the money
+ * arrived. The provider's own reference goes out with it, because the next step
+ * in that call is looking the payment up in the gateway's dashboard.
  */
 export function GET(request: Request) {
   const refusal = refuseUnlessOperator(request);
@@ -29,6 +36,7 @@ export function GET(request: Request) {
     audit: readAudit(),
     unacknowledged: unacknowledged(),
     suppressed: listSuppressed(),
+    payments: listIntents(),
   });
 }
 
@@ -73,5 +81,6 @@ export async function POST(request: Request) {
     audit: readAudit(),
     unacknowledged: unacknowledged(),
     suppressed: listSuppressed(),
+    payments: listIntents(),
   });
 }

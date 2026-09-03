@@ -35,14 +35,26 @@ type HandoffRow = {
 
 type SuppressedRow = { address: string; reason: string; at: string };
 
+type PaymentRow = {
+  id: string;
+  orderNumber: string;
+  amountCents: number;
+  status: string;
+  provider: string;
+  providerRef: string | null;
+  failureReason: string | null;
+  updatedAt: string;
+};
+
 type QueueResponse = {
   orders: QueueOrder[];
   audit: AuditEntry[];
   unacknowledged?: HandoffRow[];
   suppressed?: SuppressedRow[];
+  payments?: PaymentRow[];
 };
 
-const TABS = ['Orders', 'Menu', 'Stores', 'Promotions', 'Problems', 'Audit'] as const;
+const TABS = ['Orders', 'Menu', 'Stores', 'Promotions', 'Payments', 'Problems', 'Audit'] as const;
 type Tab = (typeof TABS)[number];
 
 /**
@@ -90,6 +102,13 @@ export function OperationsConsole({
    */
   const [unacknowledged, setUnacknowledged] = useState<readonly HandoffRow[]>([]);
   const [suppressed, setSuppressed] = useState<readonly SuppressedRow[]>([]);
+  /**
+   * The ledger, which was settled and reconciled by tests and shown to nobody.
+   * An operator taking an "I paid, where is my food" call had the order in
+   * front of them and no way to see whether the money arrived.
+   */
+  const [payments, setPayments] = useState<readonly PaymentRow[]>([]);
+  const [problemNote, setProblemNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const refreshQueue = useCallback(async () => {
@@ -102,6 +121,7 @@ export function OperationsConsole({
       setAudit(data.audit);
       setUnacknowledged(data.unacknowledged ?? []);
       setSuppressed(data.suppressed ?? []);
+      setPayments(data.payments ?? []);
     } catch {
       // A failed refresh leaves the last good queue on screen.
     }
@@ -111,6 +131,51 @@ export function OperationsConsole({
     const timer = window.setInterval(refreshQueue, 15_000);
     return () => window.clearInterval(timer);
   }, [refreshQueue]);
+
+  /**
+   * Acts on one of the problems, and says what happened.
+   *
+   * The outcome is shown rather than swallowed, because both of these can fail
+   * for reasons the operator needs to read: a till that refuses the order again,
+   * or an address that cannot be restored because the customer reported us.
+   * Silently refreshing a list that then looks unchanged is the failure mode
+   * this panel already had.
+   */
+  async function actOnProblem(body: Record<string, string>) {
+    setBusy(true);
+    setProblemNote(null);
+    try {
+      const response = await fetch('/api/admin/problems', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (endedSession(response)) return;
+
+      const data = (await response.json()) as QueueResponse & {
+        outcome?: string;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        setProblemNote(data.error ?? 'That did not work.');
+        return;
+      }
+
+      setAudit(data.audit);
+      setUnacknowledged(data.unacknowledged ?? []);
+      setSuppressed(data.suppressed ?? []);
+      setProblemNote(
+        data.outcome === 'accepted'
+          ? 'Accepted this time.'
+          : (data.outcome ?? 'Done.'),
+      );
+    } catch {
+      setProblemNote('We could not reach the server.');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function setAvailability(slug: string, patch: { soldOut?: boolean; hidden?: boolean }) {
     setBusy(true);
@@ -424,6 +489,56 @@ export function OperationsConsole({
           </section>
         )}
 
+        {tab === 'Payments' && (
+          <section>
+            <h2 className="display text-2xl">Payments</h2>
+            <p className="mt-1 max-w-[60ch] text-sm text-muted">
+              What was asked for and what arrived. The reference is the
+              provider&rsquo;s own, so a payment can be found in their dashboard
+              without going through support.
+            </p>
+
+            {payments.length === 0 ? (
+              <p className="mt-4 text-sm text-muted">
+                Nothing yet. On a deployment with no gateway configured there is nothing to
+                show here, and no order is waiting on money.
+              </p>
+            ) : (
+              <ul className="mt-4 grid gap-2">
+                {payments.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className="rounded-sm border border-line bg-white p-3 text-sm"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="font-bold">{entry.orderNumber}</span>
+                      <Price cents={entry.amountCents} />
+                      <span
+                        className={
+                          entry.status === 'captured'
+                            ? 'text-xs font-bold'
+                            : entry.status === 'failed'
+                              ? 'text-xs font-bold text-red'
+                              : 'text-xs font-bold text-muted'
+                        }
+                      >
+                        {entry.status}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted">
+                      {entry.provider}
+                      {entry.providerRef && ` · ${entry.providerRef}`}
+                    </p>
+                    {entry.failureReason && (
+                      <p className="mt-1 text-xs text-red">{entry.failureReason}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
         {tab === 'Problems' && (
           <section>
             <h2 className="display text-2xl">Needs attention</h2>
@@ -431,6 +546,12 @@ export function OperationsConsole({
               Orders a kitchen system would not take, and customers we can no longer email.
               Both are recorded as they happen; neither raises an alarm on its own.
             </p>
+
+            {problemNote && (
+              <p role="status" className="mt-4 rounded-sm bg-paper px-4 py-3 text-sm font-semibold">
+                {problemNote}
+              </p>
+            )}
 
             <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.08em] text-muted">
               Orders the kitchen system refused
@@ -446,13 +567,36 @@ export function OperationsConsole({
                     key={`${entry.orderId}:${entry.kind}`}
                     className="rounded-sm border border-line bg-white p-3 text-sm"
                   >
-                    <span className="font-bold">{entry.orderNumber}</span>{' '}
-                    <span className="text-muted">
-                      — {entry.kind} via {entry.adapter}: {entry.error}
-                    </span>
-                    {entry.retryable && (
-                      <span className="ml-2 text-xs font-bold text-red">worth retrying</span>
-                    )}
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span>
+                        <span className="font-bold">{entry.orderNumber}</span>{' '}
+                        <span className="text-muted">
+                          — {entry.kind} via {entry.adapter}: {entry.error}
+                        </span>
+                      </span>
+                      {/*
+                        The row used to say "worth retrying" and stop there,
+                        which names an action and then does not provide it.
+                      */}
+                      {entry.retryable ? (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() =>
+                            actOnProblem({
+                              action: 'retry-handoff',
+                              orderId: entry.orderId,
+                              kind: entry.kind,
+                            })
+                          }
+                          className="rounded-sm border border-red px-2.5 py-1 text-xs font-bold text-red disabled:opacity-50"
+                        >
+                          Send it again
+                        </button>
+                      ) : (
+                        <span className="text-xs text-muted">not worth retrying</span>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -470,15 +614,34 @@ export function OperationsConsole({
                     key={entry.address}
                     className="rounded-sm border border-line bg-white p-3 text-sm"
                   >
-                    <span className="font-bold">{entry.address}</span>{' '}
-                    <span className="text-muted">— {entry.reason}</span>
-                    {entry.reason === 'complaint' && (
-                      // Stated on the row, because the obvious next question is
-                      // whether it can be undone, and from here it cannot.
-                      <span className="ml-2 text-xs text-muted">
-                        consent withdrawn; only the customer can restore it
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span>
+                        <span className="font-bold">{entry.address}</span>{' '}
+                        <span className="text-muted">— {entry.reason}</span>
                       </span>
-                    )}
+                      {/*
+                        Only a bounce can be undone here. A complaint and an
+                        unsubscribe are the customer's decision, and an operator
+                        reversing one puts us back to emailing somebody who
+                        asked us to stop — so there is no button to press.
+                      */}
+                      {entry.reason === 'hard-bounce' ? (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() =>
+                            actOnProblem({ action: 'unsuppress', address: entry.address })
+                          }
+                          className="rounded-sm border border-red px-2.5 py-1 text-xs font-bold text-red disabled:opacity-50"
+                        >
+                          Try this address again
+                        </button>
+                      ) : (
+                        <span className="text-xs text-muted">
+                          consent withdrawn; only the customer can restore it
+                        </span>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
