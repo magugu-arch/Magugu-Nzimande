@@ -186,11 +186,10 @@ const rule = () =>
 // ---------------------------------------------------------------------------
 
 const RATE = 950; // the illustrative blended rate the worked example uses
-const BUILT_DAYS = 134;
-const REMAIN_DAYS = 21;
 const HOURS = (d) => d * 8;
 const rands = (n) => 'R ' + n.toLocaleString('en-ZA');
 const num = (n) => n.toLocaleString('en-ZA');
+const sum = (rows, at) => rows.reduce((total, row) => total + row[at], 0);
 
 const workstreams = [
   ['1', 'Foundation, monorepo and tooling', 'Next.js 16 App Router, TypeScript strict, Tailwind v4, Vitest, ESLint, two shared packages, one verify gate', 4],
@@ -224,8 +223,21 @@ const remaining = [
   ['Production monitoring and rollback', 'Error tracking and structured logging on top of the health endpoint, and a tested rollback path', 3, 'Tooling subscription'],
   ['Deployment, domain, CDN and certificates', 'Production environment, secrets management, release pipeline', 3, 'Hosting and domain'],
   ['Food photography integration', 'Replacing the twelve comped items with the commissioned shoot', 3, 'Shoot, stylist, studio'],
-  ['Accessibility and performance audit', 'WCAG and Core Web Vitals measured against the deployed build, not the local one', 4, '\u2014'],
+  ['Accessibility audit with a person', 'A screen-reader pass and Core Web Vitals against the deployed build. The contrast maths and the static scans are done, and neither replaces somebody using it', 3, '\u2014'],
 ];
+
+/**
+ * Both totals are added up from the tables rather than written down.
+ *
+ * They were constants, and one of them went wrong: the remaining table summed
+ * to 36 days while the constant next to it said 21, and the document went out
+ * with a total that contradicted the rows above it. A costing whose own
+ * arithmetic disagrees is worse than no costing, because the rows look
+ * checkable and the total is what gets quoted.
+ */
+const BUILT_DAYS = sum(workstreams, 3);
+const REMAIN_DAYS = sum(remaining, 2);
+const DONE_SHARE = Math.round((BUILT_DAYS / (BUILT_DAYS + REMAIN_DAYS)) * 100);
 
 const rateCard = [400, 650, 850, 950, 1150, 1450];
 
@@ -587,7 +599,7 @@ const doc = new Document({
 
         p('', { after: 120 }),
         p(
-          'The integration seams — payments, accounts, notifications, POS and courier — are 44 of the 134 days. None of them names a vendor, and none has to be rewritten when one is chosen: what remains per integration is an adapter against an interface that already exists and is already tested.',
+          `The integration seams — payments, accounts, notifications, POS and courier — are 44 of the ${BUILT_DAYS} days. None of them names a vendor, and none has to be rewritten when one is chosen: what remains per integration is an adapter against an interface that already exists and is already tested.`,
         ),
 
         new Paragraph({ children: [new PageBreak()] }),
@@ -639,7 +651,7 @@ const doc = new Document({
         p('', { after: 120 }),
         p(
           [
-            text('Roughly 86% of the engineering is done. ', { bold: true }),
+            text(`Roughly ${DONE_SHARE}% of the engineering is done. `, { bold: true }),
             text(
               'What is left is weighted toward vendor onboarding rather than construction, so its calendar time depends on how quickly accounts, credentials and contracts arrive rather than on how fast anyone writes code. The engineering estimates fell when the seams went in: a payment integration is four days against a tested interface where it was eight against nothing.',
             ),
