@@ -1,6 +1,7 @@
 import { readFileSync, renameSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { PRODUCTS } from '@bbq/seed';
 import type { Order, ServiceMode } from '@bbq/types';
 
 /**
@@ -57,7 +58,11 @@ function seed(): DemoState {
       {
         at: new Date().toISOString(),
         who: 'system',
-        what: 'Demo catalogue loaded (16 products)',
+        // Counted rather than written down. It said sixteen for as long as the
+        // menu had sixteen products on it and went quietly wrong the first time
+        // one was added — the kind of stale number an operator reads and
+        // believes, because the rest of the log is generated.
+        what: `Demo catalogue loaded (${PRODUCTS.length} products)`,
       },
     ],
   };

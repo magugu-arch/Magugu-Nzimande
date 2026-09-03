@@ -1,5 +1,9 @@
+import { randomBytes } from 'node:crypto';
+import { rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { PRODUCTS, STORES, optionGroupsFor } from '@bbq/seed';
-import type { OptionGroup, Order, OrderLine, Product, Store } from '@bbq/types';
+import type { OptionGroup, Order, OrderLine, Product, ServiceMode, Store } from '@bbq/types';
 import { expect } from 'vitest';
 import { POST as createOrderRoute } from '@/app/api/orders/route';
 import { POST as signInRoute } from '@/app/api/admin/session/route';
@@ -112,6 +116,33 @@ export function storeWithHours(opensMinute: number, closesMinute: number): Store
     zones: ['Testville'],
     halaal: 'Not certified',
   } as Store;
+}
+
+/** A store fixture with one service switched off, for the refusal paths. */
+export function storeWithout(mode: ServiceMode): Store {
+  const store = storeWithHours(at(9), at(22));
+  return { ...store, services: { ...store.services, [mode]: false } };
+}
+
+/** A suburb this store's own zone list names. */
+export function aSuburbOf(store: Store): string {
+  return required(store.zones[0], `delivery suburb on ${store.name}`);
+}
+
+/**
+ * A suburb this store does not cover.
+ *
+ * Taken from another branch's zone list rather than invented, because that is
+ * the case that actually went wrong: an order for a real suburb that a real
+ * store delivers to, sent to the store that does not. A made-up place name
+ * would pass a weaker version of the same test.
+ */
+export function aSuburbNotServedBy(store: Store): string {
+  const covered = new Set(store.zones.map((zone) => zone.toLowerCase()));
+  return required(
+    STORES.flatMap((candidate) => candidate.zones).find((zone) => !covered.has(zone.toLowerCase())),
+    `suburb outside ${store.name}'s delivery zone`,
+  );
 }
 
 /** Minutes since midnight, for readable trading-hour fixtures. */
@@ -261,7 +292,13 @@ export function stubFetch(
 // Resetting between tests
 // ---------------------------------------------------------------------------
 
-/** Puts the shared state back where a fresh deployment starts. */
+/**
+ * Puts the shared state back where a fresh deployment starts.
+ *
+ * Deliberately leaves the orders, the counter and the audit log alone: a suite
+ * that places an order and then reads it back wants both halves to survive the
+ * next `beforeEach`. `blankState` is the one that clears everything.
+ */
 export function resetState(): void {
   mutateState((state) => {
     state.soldOut = [];
@@ -269,4 +306,63 @@ export function resetState(): void {
     state.services = {};
     state.consoleLock = { failures: 0, lockedUntil: null };
   });
+}
+
+/**
+ * Everything `resetState` clears, plus the orders, the order counter and the
+ * audit log.
+ *
+ * The order suite had been writing the second half itself, inline in its own
+ * `beforeEach`, which is a fixture in everything but name — and one the audit
+ * tests then needed too, at which point there would have been two of them
+ * disagreeing about what "empty" means.
+ */
+export function blankState(): void {
+  resetState();
+  mutateState((state) => {
+    state.orders = [];
+    state.sequence = 0;
+    state.audit = [];
+  });
+}
+
+/** Where the shared state is being kept for this test file. */
+export function stateFile(): string {
+  const file = process.env.BBQ_STATE_FILE;
+  if (!file) throw new Error('BBQ_STATE_FILE is unset; tests/setup.ts should have set it');
+  return file;
+}
+
+/**
+ * Writes bytes straight into the state file, past everything that normally
+ * guards it.
+ *
+ * The persistence layer has to survive a file it did not write — truncated by a
+ * full disk, left behind by an older shape, hand-edited by somebody debugging.
+ * There is no way to reach that path through the module's own API, which is
+ * exactly why it was never covered.
+ */
+export function writeRawState(contents: string): void {
+  writeFileSync(stateFile(), contents, 'utf8');
+}
+
+/**
+ * Runs a block against a state file of its own, then puts the environment back.
+ *
+ * `BBQ_STATE_FILE` is read on every call rather than captured at import, so a
+ * test can move the file mid-run — which is the only way to prove that property
+ * holds, and the only safe way to point the module at a path it cannot write.
+ */
+export async function withStateFile<T>(run: (file: string) => T | Promise<T>): Promise<T> {
+  const previous = process.env.BBQ_STATE_FILE;
+  const file = path.join(os.tmpdir(), `bbq-fixture-state-${randomBytes(8).toString('hex')}.json`);
+  process.env.BBQ_STATE_FILE = file;
+
+  try {
+    return await run(file);
+  } finally {
+    if (previous === undefined) delete process.env.BBQ_STATE_FILE;
+    else process.env.BBQ_STATE_FILE = previous;
+    rmSync(file, { force: true });
+  }
 }
