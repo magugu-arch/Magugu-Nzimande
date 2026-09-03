@@ -4,6 +4,7 @@ import path from 'node:path';
 import { PRODUCTS } from '@bbq/seed';
 import type { Order, PaymentIntent, ServiceMode } from '@bbq/types';
 import type { StoredAccount } from './accounts/store';
+import type { HandoffRecord } from './fulfilment/handoff';
 
 /**
  * The stand-in for Postgres, until /services/api exists.
@@ -52,6 +53,12 @@ export type DemoState = {
    * customer the same "on its way" twice.
    */
   notifications: { sent: string[] };
+  /**
+   * Every attempt to hand an order to the kitchen system or a courier, with
+   * its outcome. Kept so the end-of-service question — which orders did the
+   * kitchen never see — has an answer that is not "ask the customers".
+   */
+  fulfilment: { handoffs: HandoffRecord[] };
 };
 
 /**
@@ -76,6 +83,7 @@ function seed(): DemoState {
     payments: { intents: [], appliedEvents: [] },
     accounts: [],
     notifications: { sent: [] },
+    fulfilment: { handoffs: [] },
     audit: [
       {
         at: new Date().toISOString(),
@@ -110,6 +118,7 @@ export function readState(): DemoState {
       consoleLock: { ...base.consoleLock, ...parsed.consoleLock },
       payments: { ...base.payments, ...parsed.payments },
       notifications: { ...base.notifications, ...parsed.notifications },
+      fulfilment: { ...base.fulfilment, ...parsed.fulfilment },
     };
   } catch {
     // Missing or unreadable on the first request of a fresh deployment.

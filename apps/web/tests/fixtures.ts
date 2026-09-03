@@ -329,6 +329,7 @@ export function blankState(): void {
     state.payments = { intents: [], appliedEvents: [] };
     state.accounts = [];
     state.notifications = { sent: [] };
+    state.fulfilment = { handoffs: [] };
   });
 }
 
