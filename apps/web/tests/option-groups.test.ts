@@ -175,6 +175,46 @@ describe('meals and sides', () => {
   });
 });
 
+describe('the kids menu', () => {
+  const kids = aProductIn('Kids');
+  const keys = keysFor(kids.slug);
+
+  it('is sold as a whole box, so the only choice is the drink', () => {
+    expect(keys).toContain('drink');
+    expect(keys).not.toContain('size');
+    expect(keys).not.toContain('portion');
+    expect(keys).not.toContain('sauceA');
+  });
+
+  it('charges nothing for the drink, because it is in the meal', () => {
+    const groups = optionGroupsFor(kids);
+    const drinks = groups.find((group) => group.key === 'drink')?.choices ?? [];
+
+    expect(drinks.length).toBeGreaterThan(0);
+    for (const choice of drinks) {
+      expect([choice.label, choice.deltaCents]).toEqual([choice.label, 0]);
+    }
+  });
+
+  it('offers the same drinks as the grown-up meals rather than a second list', () => {
+    const mealDrinks = optionGroupsFor(aProductIn('Meals'))
+      .find((group) => group.key === 'drink')
+      ?.choices.map((choice) => choice.label);
+    const kidsDrinks = optionGroupsFor(kids)
+      .find((group) => group.key === 'drink')
+      ?.choices.map((choice) => choice.label);
+
+    expect(kidsDrinks).toEqual(mealDrinks);
+  });
+
+  /** Every kids item is a complete meal, so none of them is a fiery one. */
+  it('keeps every kids item mild', () => {
+    for (const product of PRODUCTS.filter((candidate) => candidate.category === 'Kids')) {
+      expect([product.slug, product.heat <= 1]).toEqual([product.slug, true]);
+    }
+  });
+});
+
 describe('the extras every product carries', () => {
   const extras = optionGroupsFor(aProductIn('Sides')).find((group) => group.key === 'extras');
 

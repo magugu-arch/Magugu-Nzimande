@@ -1,6 +1,15 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { CATEGORIES, FAQS, PRODUCTS, PROMOTIONS, REWARDS, SAUCES, STORES } from '@bbq/seed';
+import {
+  CATEGORIES,
+  FAQS,
+  PRODUCTS,
+  PROMOTIONS,
+  REWARDS,
+  SAUCES,
+  STORES,
+  optionGroupsFor,
+} from '@bbq/seed';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -42,6 +51,7 @@ describe('the demo template', () => {
       'TIERS',
       'FAQS',
       'FEES',
+      'OPTION_GROUPS',
     ]) {
       expect(TEMPLATE, `${name} is declared in the template`).not.toMatch(
         new RegExp(`const\\s+${name}\\s*=`),
@@ -93,17 +103,6 @@ describe('what the build will inject', () => {
   });
 
   /**
-   * The bug this exists for.
-   *
-   * The template reads a category's image as `c.img`. The seed's Category has
-   * no image field — the Next.js site derives one from the first product in
-   * the category — so injecting the seed's shape unchanged left `c.img`
-   * undefined and every category tile rendered a broken image. Nothing caught
-   * it: the datasets were all present and non-empty, which is all the checks
-   * below ask. What was wrong was a field the template needed and the seed
-   * never had.
-   */
-  /**
    * Read out of the built page rather than recomputed here.
    *
    * A test that re-derives what the build should have injected passes whether
@@ -136,6 +135,45 @@ describe('what the build will inject', () => {
 
     for (const category of injected) {
       expect(masters.has(category.img ?? ''), `${category.key} → ${category.img}`).toBe(true);
+    }
+  });
+
+  /**
+   * The second copy that hid the longest.
+   *
+   * The template carried its own `optionGroups(p)` — a branch-per-category
+   * function duplicating the seed's `optionGroupsFor`. It survived the sweep
+   * that removed the duplicated datasets because it is a function, not a
+   * `const`, and nothing compared the two. It went stale the moment a category
+   * was added: kids meals rendered with no drink to choose while the seed had
+   * offered one all along.
+   */
+  it('injects the seed’s own option groups, not a second copy', () => {
+    const built = path.resolve(__dirname, '../static-demo/bbq-chicken-website.html');
+    if (!existsSync(built)) return; // generated, not committed; skipped when absent
+
+    const declared = readFileSync(built, 'utf8').match(/const OPTION_GROUPS = (\{.*?\});\n/s);
+    expect(declared, 'the built page declares no OPTION_GROUPS').not.toBeNull();
+
+    const injected = JSON.parse(declared?.[1] ?? '{}') as Record<
+      string,
+      { key: string; choices: { label: string; delta: number }[] }[]
+    >;
+
+    for (const product of PRODUCTS) {
+      const expected = optionGroupsFor(product).map((group) => ({
+        key: group.key,
+        choices: group.choices.map((choice) => ({
+          label: choice.label,
+          delta: choice.deltaCents,
+        })),
+      }));
+      const actual = (injected[product.slug] ?? []).map((group) => ({
+        key: group.key,
+        choices: group.choices,
+      }));
+
+      expect(actual, product.slug).toEqual(expected);
     }
   });
 

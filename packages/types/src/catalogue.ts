@@ -5,7 +5,7 @@ import { z } from 'zod';
  * parsed through them, never cast.
  */
 
-export const CategoryKeySchema = z.enum(['Chicken', 'Wings', 'Meals', 'Sides']);
+export const CategoryKeySchema = z.enum(['Chicken', 'Wings', 'Meals', 'Sides', 'Kids']);
 export type CategoryKey = z.infer<typeof CategoryKeySchema>;
 
 export const CategorySchema = z.object({

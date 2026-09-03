@@ -24,7 +24,7 @@ import tokens from '../../packages/ui/src/tokens.json' with { type: 'json' };
  * needed, while index.ts re-exports with extensionless specifiers that ESM
  * cannot resolve.
  */
-import { CATEGORIES, FAQS, SAUCES } from '../seed/catalogue.ts';
+import { CATEGORIES, FAQS, SAUCES, optionGroupsFor } from '../seed/catalogue.ts';
 import { FEES, REWARDS_RULES } from '../seed/demo-values.ts';
 import { PRODUCTS } from '../seed/products.ts';
 import { PROMOTIONS, REWARDS, STORES } from '../seed/stores.ts';
@@ -198,6 +198,32 @@ function catalogueScript() {
     return { ...category, img: example.imageKey };
   });
 
+  /**
+   * The option groups each product offers, by slug.
+   *
+   * The template used to carry its own copy of `optionGroupsFor` — a second
+   * branch-per-category function with no test on it. It was missed when the
+   * datasets were injected because it is a function rather than a `const`, and
+   * it went stale the moment a category was added: kids meals rendered with no
+   * drink to choose while the seed had one all along. Injected now, so the demo
+   * asks for exactly what the app asks for.
+   */
+  const optionGroups = Object.fromEntries(
+    PRODUCTS.map((product) => [
+      product.slug,
+      optionGroupsFor(product).map((group) => ({
+        key: group.key,
+        label: group.label,
+        multi: group.multi,
+        def: group.defaultIndex,
+        choices: group.choices.map((choice) => ({
+          label: choice.label,
+          delta: choice.deltaCents,
+        })),
+      })),
+    ]),
+  );
+
   const faqs = FAQS.map((faq) => ({ q: faq.question, a: faq.answer }));
 
   const fees = {
@@ -219,6 +245,7 @@ function catalogueScript() {
     declare('REWARDS', REWARDS),
     declare('TIERS', REWARDS_RULES.tiers),
     declare('FAQS', faqs),
+    declare('OPTION_GROUPS', optionGroups),
     declare('FEES', fees),
   ].join('\n');
 }

@@ -21,6 +21,11 @@ export const CATEGORIES: readonly Category[] = [
     label: 'Sides',
     note: 'Fries, rice cakes and everything that goes in the middle of the table.',
   },
+  {
+    key: 'Kids',
+    label: 'Kids Menu',
+    note: 'Smaller portions built as a whole meal. Chicken, a side and a drink in one box.',
+  },
 ];
 
 /** The sauce range, which also supplies the heat ladder on the home page. */
@@ -109,6 +114,22 @@ export function optionGroupsFor(product: Product): OptionGroup[] {
   }
 
   if (product.category === 'Meals') {
+    groups.push({
+      key: 'drink',
+      label: 'Drink',
+      multi: false,
+      defaultIndex: 0,
+      choices: [
+        { label: 'Cola', deltaCents: 0 },
+        { label: 'Lemonade', deltaCents: 0 },
+        { label: 'Still water', deltaCents: 0 },
+      ],
+    });
+  }
+
+  if (product.category === 'Kids') {
+    // A kids meal is sold as a whole box, so the only choice is what goes in
+    // the cup. Same drinks as the grown-up meals rather than a second list.
     groups.push({
       key: 'drink',
       label: 'Drink',

@@ -583,46 +583,10 @@ const catalogue = () => PRODUCTS.filter((p) => !isHidden(p.slug));
    Derived from the category, so a new product needs no new UI.
    ---------------------------------------------------------- */
 
-const EXTRAS = {key:'extras', label:'Add to it', multi:true, def:0, choices:[
-  {label:'Extra dipping sauce', delta:1500},
-  {label:'Pickled radish', delta:1500},
-  {label:'Cheese dust', delta:2000},
-]};
-
-function optionGroups(p){
-  const groups = [];
-  const sauceChoices = SAUCES.map((s) => ({label:s.name, delta:0}));
-
-  if(p.category === 'Chicken'){
-    groups.push({key:'size', label:'Size', multi:false, def:0, choices:[
-      {label:'Whole bird', delta:0}, {label:'Half bird', delta:-7000},
-    ]});
-    if(p.slug === 'half-half'){
-      groups.push({key:'sauceA', label:'First sauce', multi:false, def:0, choices:sauceChoices});
-      groups.push({key:'sauceB', label:'Second sauce', multi:false, def:1, choices:sauceChoices});
-    }
-  }
-  if(p.category === 'Wings'){
-    groups.push({key:'portion', label:'Portion', multi:false, def:0, choices:[
-      {label:'12 pieces', delta:0}, {label:'20 pieces', delta:9000},
-    ]});
-    groups.push({key:'sauce', label:'Sauce', multi:false, def:0, choices:[
-      {label:'On the side', delta:0}, {label:'Tossed to order', delta:0},
-    ]});
-  }
-  if(p.category === 'Meals'){
-    groups.push({key:'drink', label:'Drink', multi:false, def:0, choices:[
-      {label:'Cola', delta:0}, {label:'Lemonade', delta:0}, {label:'Still water', delta:0},
-    ]});
-  }
-  if(p.category === 'Sides'){
-    groups.push({key:'size', label:'Size', multi:false, def:0, choices:[
-      {label:'Regular', delta:0}, {label:'Large', delta:2000},
-    ]});
-  }
-  groups.push(EXTRAS);
-  return groups;
-}
+/* Option groups are injected from infra/seed, where optionGroupsFor lives.
+   This used to be a second copy of that function — branch per category, no
+   test — and it went stale the moment a category was added. */
+function optionGroups(p){ return OPTION_GROUPS[p.slug] || []; }
 
 const EXCLUSIVE = ['sauceA','sauceB'];
 

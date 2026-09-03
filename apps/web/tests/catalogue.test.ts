@@ -13,7 +13,7 @@ const MASTERS = readdirSync(path.join(REPO, 'assets/food/masters'))
 
 describe('catalogue', () => {
   it('carries the products the handover documents', () => {
-    expect(PRODUCTS).toHaveLength(24);
+    expect(PRODUCTS).toHaveLength(28);
   });
 
   it('parses every product through its schema', () => {
