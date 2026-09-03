@@ -155,6 +155,8 @@ export function OperationsConsole({
       const data = (await response.json()) as QueueResponse & {
         outcome?: string;
         error?: string;
+        products?: Product[];
+        hidden?: string[];
       };
 
       if (!response.ok) {
@@ -165,6 +167,9 @@ export function OperationsConsole({
       setAudit(data.audit);
       setUnacknowledged(data.unacknowledged ?? []);
       setSuppressed(data.suppressed ?? []);
+      // Only the availability sync sends these back, and it sends both.
+      if (data.products) setProducts(data.products);
+      if (data.hidden) setHiddenSlugs(data.hidden);
       setProblemNote(
         data.outcome === 'accepted'
           ? 'Accepted this time.'
@@ -363,6 +368,28 @@ export function OperationsConsole({
               Sold out keeps an item on the menu and blocks it at the basket. Hidden removes it
               from the catalogue entirely.
             </p>
+
+            {/*
+              The till is the source of truth for what has run out, and until
+              this existed nothing ever asked it: an item that ran out at
+              lunchtime went on being sold here until somebody noticed.
+            */}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => actOnProblem({ action: 'sync-availability' })}
+                className="rounded-sm border border-red px-3 py-1.5 text-xs font-bold text-red disabled:opacity-50"
+              >
+                Ask the till what has run out
+              </button>
+              {problemNote && (
+                <span role="status" className="text-xs font-semibold">
+                  {problemNote}
+                </span>
+              )}
+            </div>
+
             <div className="mt-4 overflow-x-auto rounded-md border border-line bg-white">
               <table className="w-full min-w-[34rem] border-collapse text-sm">
                 <thead>

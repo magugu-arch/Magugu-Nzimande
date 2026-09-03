@@ -5,6 +5,8 @@ import { forgetTokens } from '@/lib/fulfilment/uber/auth';
 import { requestCourier } from '@/lib/fulfilment/handoff';
 import { activeCourier } from '@/lib/fulfilment/registry';
 import { intentForOrder, openIntent, settle } from '@/lib/payments/ledger';
+import { isSoldOut, replaceSoldOut, setSoldOut } from '@/lib/catalogue-state';
+import { readState } from '@/lib/demo-state';
 import { suppress } from '@/lib/notifications/suppression';
 import {
   CONSOLE_PASSPHRASE,
@@ -293,5 +295,54 @@ describe('the payment ledger reaches the console', () => {
   it('is refused to somebody who is not signed in', async () => {
     const response = await queueRoute(request('/api/admin/orders'));
     expect(response.status).toBe(401);
+  });
+});
+
+describe('asking the till what has run out', () => {
+  /**
+   * The state this deployment is actually in. No POS vendor has been contracted,
+   * so the console says which system is missing rather than appearing to work.
+   */
+  it('says so when no kitchen system is attached', async () => {
+    const response = await act({ action: 'sync-availability' });
+
+    expect(response.status).toBe(503);
+    expect((await bodyOf<{ error: string }>(response)).error).toMatch(/no kitchen system/i);
+  });
+
+  it('is refused to somebody who is not signed in', async () => {
+    expect((await actSignedOut({ action: 'sync-availability' })).status).toBe(401);
+  });
+});
+
+describe('replacing the sold-out list', () => {
+  /**
+   * A replacement rather than a merge. The till is the source of truth for what
+   * has run out, so merging would leave an item sold out here after the kitchen
+   * restocked it, with no way to tell which system was wrong.
+   */
+  it('takes the till’s list whole, dropping what is no longer on it', () => {
+    setSoldOut('golden-original', true);
+    setSoldOut('soy-garlic', true);
+
+    replaceSoldOut(['soy-garlic']);
+
+    expect(isSoldOut('golden-original')).toBe(false);
+    expect(isSoldOut('soy-garlic')).toBe(true);
+  });
+
+  it('does not record the same item twice', () => {
+    replaceSoldOut(['soy-garlic', 'soy-garlic']);
+    expect(readState().soldOut).toEqual(['soy-garlic']);
+  });
+
+  /**
+   * Only reached through syncSoldOut, which does not call it when the till
+   * could not be read — so an unreachable till cannot empty the list.
+   */
+  it('clears the list when the till genuinely has nothing sold out', () => {
+    setSoldOut('golden-original', true);
+    replaceSoldOut([]);
+    expect(isSoldOut('golden-original')).toBe(false);
   });
 });

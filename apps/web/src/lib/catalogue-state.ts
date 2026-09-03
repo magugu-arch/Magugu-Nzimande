@@ -53,6 +53,23 @@ export function setSoldOut(slug: string, soldOut: boolean): void {
   });
 }
 
+/**
+ * Replaces the whole sold-out list with what the till says.
+ *
+ * A replacement rather than a merge, because the till is the source of truth
+ * for what has run out: merging would leave an item sold out on the website
+ * after the kitchen restocked it, and nobody would know which system to blame.
+ *
+ * Only reached through `syncSoldOut`, which refuses to call it when the till
+ * could not be read — "nothing is sold out" and "I could not ask" must not
+ * become the same instruction.
+ */
+export function replaceSoldOut(slugs: readonly string[]): void {
+  mutateState((state) => {
+    state.soldOut = [...new Set(slugs)];
+  });
+}
+
 export function setHidden(slug: string, hidden: boolean): void {
   mutateState((state) => {
     const without = state.hidden.filter((candidate) => candidate !== slug);

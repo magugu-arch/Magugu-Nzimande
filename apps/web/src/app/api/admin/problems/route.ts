@@ -1,8 +1,14 @@
 import { z } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import { refuseUnlessOperator } from '@/lib/admin-auth';
-import { readAudit } from '@/lib/catalogue-state';
-import { handoffFor, pushToPos, requestCourier, unacknowledged } from '@/lib/fulfilment/handoff';
+import { hiddenSlugs, readAudit, replaceSoldOut, visibleProducts } from '@/lib/catalogue-state';
+import {
+  handoffFor,
+  pushToPos,
+  requestCourier,
+  syncSoldOut,
+  unacknowledged,
+} from '@/lib/fulfilment/handoff';
 import { activeCourier, activePos } from '@/lib/fulfilment/registry';
 import { listSuppressed, suppressionFor, unsuppress } from '@/lib/notifications/suppression';
 import { readOrder } from '@/lib/order-store';
@@ -27,6 +33,7 @@ const BodySchema = z.discriminatedUnion('action', [
     kind: z.enum(['pos', 'courier']),
   }),
   z.object({ action: z.literal('unsuppress'), address: z.string().min(1) }),
+  z.object({ action: z.literal('sync-availability') }),
 ]);
 
 /** What every reply carries, so the console re-renders from one shape. */
@@ -72,6 +79,35 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(problems());
+  }
+
+  if (parsed.data.action === 'sync-availability') {
+    const pos = activePos();
+    if (!pos) {
+      return NextResponse.json(
+        { error: 'No kitchen system is attached to this deployment' },
+        { status: 503 },
+      );
+    }
+
+    /**
+     * The till is asked what has run out, and its answer replaces our list.
+     *
+     * `syncSoldOut` returns false when it could not be read, and applies
+     * nothing in that case: an unreachable till must not put every sold-out
+     * item back on sale, which is what "no news is nothing sold out" does. The
+     * operator is told, because a sync that silently did nothing looks
+     * identical to one that found nothing.
+     */
+    const read = await syncSoldOut(pos, replaceSoldOut);
+    return NextResponse.json({
+      ...problems(),
+      products: visibleProducts(),
+      hidden: hiddenSlugs(),
+      outcome: read
+        ? 'Availability updated from the till.'
+        : 'Could not reach the till. Availability was left as it was.',
+    });
   }
 
   const { orderId, kind } = parsed.data;
