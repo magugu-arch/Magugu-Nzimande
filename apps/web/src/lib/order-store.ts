@@ -15,7 +15,7 @@ import { pointsFor, totalsFor } from './pricing';
  * and write shapes here are the ones the Prisma implementation has to satisfy.
  */
 
-export function createOrder(request: CreateOrderRequest): Order {
+export function createOrder(request: CreateOrderRequest, accountId: string | null = null): Order {
   return mutateState((state) => {
     state.sequence += 1;
 
@@ -29,6 +29,8 @@ export function createOrder(request: CreateOrderRequest): Order {
       storeId: request.storeId,
       mode: request.mode,
       status: 'received',
+      customer: request.customer,
+      accountId,
       cancelledReason: null,
       placedAt: new Date().toISOString(),
       etaMinutes:
@@ -56,6 +58,18 @@ export function readOrder(id: string): Order | null {
 
 export function listOrders(): Order[] {
   return [...readState().orders].sort((a, b) => b.placedAt.localeCompare(a.placedAt));
+}
+
+/**
+ * One customer's orders, newest first.
+ *
+ * Takes an account id rather than a filter, and callers are expected to have
+ * got that id off a verified session. A guest order has `accountId: null`, and
+ * `null` is never a caller's id, so guest orders belong to nobody rather than
+ * to everybody.
+ */
+export function ordersForAccount(accountId: string): Order[] {
+  return listOrders().filter((order) => order.accountId === accountId);
 }
 
 export function advanceOrder(id: string): Order | null {

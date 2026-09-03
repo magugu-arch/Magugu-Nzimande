@@ -7,6 +7,7 @@ import type { OptionGroup, Order, OrderLine, Product, ServiceMode, Store } from 
 import { expect } from 'vitest';
 import { POST as createOrderRoute } from '@/app/api/orders/route';
 import { POST as signInRoute } from '@/app/api/admin/session/route';
+import { CUSTOMER_COOKIE } from '@/lib/accounts/session';
 import { SESSION_COOKIE } from '@/lib/admin-auth';
 import { mutateState } from '@/lib/demo-state';
 import { signBody } from '@/lib/payments/provider';
@@ -326,7 +327,62 @@ export function blankState(): void {
     state.sequence = 0;
     state.audit = [];
     state.payments = { intents: [], appliedEvents: [] };
+    state.accounts = [];
   });
+}
+
+// ---------------------------------------------------------------------------
+// Customer accounts
+// ---------------------------------------------------------------------------
+
+/** Long enough for the session module to accept it as a secret. */
+export const SESSION_SECRET = 'a-test-session-secret-long-enough';
+
+/** A registration body that passes every rule, with anything overridden. */
+export function registration(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return { ...customer, password: 'a-long-enough-password', ...over };
+}
+
+/**
+ * Switches customer accounts on for the duration of a block.
+ *
+ * Accounts fail closed without a secret, so almost every test here needs this;
+ * the ones that do not are the ones checking that it fails closed.
+ */
+export async function withAccounts<T>(run: () => T | Promise<T>): Promise<T> {
+  const before = process.env.BBQ_SESSION_SECRET;
+  process.env.BBQ_SESSION_SECRET = SESSION_SECRET;
+  try {
+    return await run();
+  } finally {
+    if (before === undefined) delete process.env.BBQ_SESSION_SECRET;
+    else process.env.BBQ_SESSION_SECRET = before;
+  }
+}
+
+/**
+ * Registers a customer through the real route and returns their id and cookie.
+ *
+ * Through the route rather than the store, so a test reading an account is
+ * reading one the API created — including the session it was handed, which is
+ * the thing most of these tests are really about.
+ */
+export async function registerCustomer(
+  over: Record<string, unknown> = {},
+): Promise<{ id: string; cookie: string }> {
+  const { POST } = await import('@/app/api/account/route');
+  const response = await POST(request('/api/account', { body: registration(over) }));
+  expect(response.status, await response.clone().text()).toBe(201);
+
+  const { account } = await bodyOf<{ account: { id: string } }>(response);
+  return { id: account.id, cookie: cookieFrom(response, CUSTOMER_COOKIE) };
+}
+
+/** Pulls one cookie's value out of a response's Set-Cookie header. */
+export function cookieFrom(response: Response, name: string): string {
+  const header = response.headers.get('set-cookie') ?? '';
+  const value = header.split(';')[0]?.split('=').slice(1).join('=') ?? '';
+  return `${name}=${value}`;
 }
 
 // ---------------------------------------------------------------------------

@@ -2,6 +2,8 @@ import { CreateOrderRequestSchema } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import { deliversTo, findStore, servesMode } from '@/lib/catalogue-state';
 import { repriceLines } from '@/lib/order-integrity';
+import { currentAccount } from '@/lib/accounts/session';
+import { awardPoints } from '@/lib/accounts/store';
 import { createOrder } from '@/lib/order-store';
 import { findPromotion, totalsFor } from '@/lib/pricing';
 
@@ -69,7 +71,22 @@ export async function POST(request: Request) {
   // Totals come from the re-priced lines, never from the request.
   const lines = repriced.lines;
   const totals = totalsFor(lines, order.mode, order.promoCode);
-  const created = createOrder({ ...order, lines });
+
+  /**
+   * Bound to the signed-in customer, if there is one.
+   *
+   * Read off the session cookie rather than taken from the body: an accountId a
+   * caller could send is an accountId a caller could send somebody else's, and
+   * the order history endpoint trusts this field. A guest checkout stays a
+   * guest checkout and gets null.
+   */
+  const account = currentAccount(request);
+  const created = createOrder({ ...order, lines }, account?.id ?? null);
+
+  // Points follow the account rather than the browser, so they survive a new
+  // phone. A guest earns none, and the response says so rather than promising
+  // points that have nowhere to land.
+  if (account) awardPoints(account.id, created.pointsEarned);
 
   return NextResponse.json(
     { order: { ...created, totals } },

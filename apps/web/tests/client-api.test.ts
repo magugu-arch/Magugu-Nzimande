@@ -39,6 +39,8 @@ const anOrder = () => ({
   storeId: 'ST-CRE',
   mode: 'Collection',
   status: 'received',
+  customer,
+  accountId: null,
   cancelledReason: null,
   placedAt: new Date().toISOString(),
   etaMinutes: 25,

@@ -87,6 +87,20 @@ export const OrderSchema = z.object({
   storeId: z.string().min(1),
   mode: ServiceModeSchema,
   status: OrderStatusSchema,
+  /**
+   * Who placed it. Collected and validated at checkout since the beginning and
+   * then dropped on the floor: the order carried lines, totals and an address,
+   * and no way for a kitchen to ring the person whose food was going cold.
+   */
+  customer: CustomerSchema,
+  /**
+   * The account it belongs to, or null for a guest.
+   *
+   * Nullable rather than required because ordering without an account stays
+   * possible — a customer who wants chicken should not first have to want a
+   * relationship — and because erasure clears this field and leaves the sale.
+   */
+  accountId: z.string().min(1).nullable().default(null),
   cancelledReason: z.string().min(1).nullable().default(null),
   placedAt: z.string().min(1),
   etaMinutes: z.number().int().positive(),

@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { PRODUCTS } from '@bbq/seed';
 import type { Order, PaymentIntent, ServiceMode } from '@bbq/types';
+import type { StoredAccount } from './accounts/store';
 
 /**
  * The stand-in for Postgres, until /services/api exists.
@@ -40,6 +41,12 @@ export type DemoState = {
    * every worker reads.
    */
   payments: { intents: PaymentIntent[]; appliedEvents: string[] };
+  /**
+   * Customer accounts, password hashes included. The one part of this file
+   * that would matter if it leaked, which is why the hashes are scrypt and not
+   * something reversible.
+   */
+  accounts: StoredAccount[];
 };
 
 /**
@@ -62,6 +69,7 @@ function seed(): DemoState {
     sequence: 0,
     consoleLock: { failures: 0, lockedUntil: null },
     payments: { intents: [], appliedEvents: [] },
+    accounts: [],
     audit: [
       {
         at: new Date().toISOString(),
