@@ -130,6 +130,20 @@ export const stores: Store[] = [
     preparationMinutes: 21,
     isOpenNow: true,
   },
+  /**
+   * A counter with no drivers: collection only.
+   *
+   * `supportsFulfilment` is the single gate deciding which branches a customer
+   * is offered, and until now `supportsDelivery` and `supportsCollection` were
+   * `true` on all seven. Only dine-in ever varied, so half of that gate had
+   * never excluded anything — the filter had never removed a branch for
+   * delivery, and `setFulfilmentType` had never had to drop a chosen branch
+   * because it could not deliver.
+   *
+   * A food-court or kiosk site that takes collection and nothing else is an
+   * ordinary thing for a chain to have, and it is the case that exercises the
+   * other half.
+   */
   {
     id: 'store-canalwalk',
     name: 'bb.q Chicken Canal Walk',
@@ -141,7 +155,7 @@ export const stores: Store[] = [
     latitude: -33.8919,
     longitude: 18.5106,
     openingHours: STANDARD_HOURS,
-    supportsDelivery: true,
+    supportsDelivery: false,
     supportsCollection: true,
     supportsDineIn: false,
     deliveryRadiusKm: 10,

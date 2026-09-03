@@ -19,6 +19,7 @@ import {
 } from '@/components/ui';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { useAddresses, useCreateAddress, useDeleteAddress } from '@/features/account/hooks';
+import { locateAddress } from '@/providers/geocoding';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, spacing } from '@/theme';
@@ -102,21 +103,35 @@ export default function AddressScreen() {
     }
 
     /**
-     * Saved without coordinates, because nobody has any.
+     * Located if anything can locate it, and saved without coordinates if not.
      *
-     * These six fields are all the app is given and there is no geocoder
-     * behind them. New addresses used to be anchored to the city centre "so
-     * distance maths stays sane", which was true right up until the
-     * delivery-radius rule started doing distance maths on it: measured from
-     * the Johannesburg CBD, six of the seven branches sit outside their own
-     * radius, so every address anybody typed was refused by six of them and
-     * accepted by the seventh, wherever in the country it actually was.
+     * These six fields are all the app is given. New addresses used to be
+     * anchored to the city centre "so distance maths stays sane", which was
+     * true right up until the delivery-radius rule started doing distance
+     * maths on it: measured from the Johannesburg CBD, six of the seven
+     * branches sit outside their own radius, so every address anybody typed
+     * was refused by six of them and accepted by the seventh, wherever in the
+     * country it actually was.
      *
-     * Leaving them absent is the honest record, and `deliveryRange` reads it
-     * as "unknown" rather than as a place. Whatever geocodes this — the
-     * backend on POST, or a lookup wired in here — fills the fields in and the
-     * radius rule starts working on real distances without further change.
+     * `locateAddress` is the lookup that was missing, behind the boundary a
+     * real provider plugs into. It returns a coordinate only for an *exact*
+     * match and `null` for everything else — an approximate fix, an address it
+     * does not know, a provider that is down. So absent coordinates remain the
+     * normal case and remain the honest record, and `deliveryRange` still
+     * reads them as "unknown" rather than as a place.
+     *
+     * Nothing about saving an address depends on this succeeding. The lookup
+     * cannot fail the form.
      */
+    const located = await locateAddress({
+      line1: form.line1.trim(),
+      ...(form.line2.trim().length > 0 ? { line2: form.line2.trim() } : {}),
+      suburb: form.suburb.trim(),
+      city: form.city.trim(),
+      province: form.province.trim(),
+      postalCode: form.postalCode.trim(),
+    });
+
     const created = await createAddress.mutateAsync({
       label: form.label.trim(),
       line1: form.line1.trim(),
@@ -125,6 +140,7 @@ export default function AddressScreen() {
       city: form.city.trim(),
       province: form.province.trim(),
       postalCode: form.postalCode.trim(),
+      ...(located ? { latitude: located.latitude, longitude: located.longitude } : {}),
       isDefault: makeDefault,
     });
 

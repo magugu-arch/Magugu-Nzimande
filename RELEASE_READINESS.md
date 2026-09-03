@@ -230,6 +230,52 @@ at two in the afternoon — the badge read the flag, the hours row read the
 timetable, and neither knew about the other. It now reads "Temporarily closed"
 and withholds the window that would contradict it. An open branch is unchanged.
 
+## 2g. A geocoding boundary, and three states with no data
+
+**The boundary.** The add-address form was six text fields with nothing behind
+them, so `deliveryRange` answered `'unknown'` for almost every address the app
+held and the radius rule could never refuse an order that genuinely was out of
+range. `GeocodingProvider` is now the boundary a real service plugs into —
+registry, flag, mock — the same shape as `DeliveryProvider`, so connecting one
+is a new file and a flag value.
+
+Two decisions worth stating. **Only an `exact` fix is kept**: an approximate
+one — a suburb centroid, a street without a number — can sit a kilometre from
+the door, and a kilometre is most of the margin the radius rule works in.
+Keeping it would be the original CBD defect wearing a better label. And **the
+mock deliberately locates almost nothing**, because a stand-in that returned a
+plausible coordinate for any string would make every screen look finished while
+recreating exactly that defect.
+
+Proved end to end in a browser: a located Johannesburg address is accepted by
+the Johannesburg branch and refused by the Cape Town one — *"bb.q Chicken V&A
+Waterfront does not deliver to Melrose Arch — collect instead"* — which is the
+half of the radius rule that had never once fired.
+
+**Three fixtures.** A **collection-only branch** (`supportsDelivery` and
+`supportsCollection` were `true` on all seven, so half of `supportsFulfilment`
+had never excluded anything, and the transition that drops a chosen branch when
+the customer switches fulfilment had never run for delivery). A **lapsed
+reward** — `rewardExpired` is read in three places and not one of the seven
+rewards carried a date, so all three read "never expires"; the new one is
+seeded `redeemable: true` on purpose, because the point is that the date
+overrules the record. And an **account that never clicked the email link**,
+which is what most real accounts look like and which the seed described for
+nobody, so the warning badge and the "Send me the link" button rendered on a
+screen the sweep visits every run and never showed.
+
+**And the launch audit was quietly lying.** The geocoding blocker was gated on
+whether the address form mentioned `latitude` — a proxy standing in for "has a
+geocoder". Wiring the boundary in set that field, so the blocker went silent
+while the thing it warns about was still missing. It now reads the provider
+registry and asks the question it means. Proved both ways: register a second
+provider and it clears; remove it and it returns. An audit that under-reports
+is worse than one that nags.
+
+`audit:launch` is at 22 items, down from 23 — reward expiry cleared itself,
+correctly, because it counts rewards without a date rather than restating that
+there are none.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -283,7 +329,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **66 suites, 1 013 tests**, typecheck and lint clean
+- `npm run verify` — **68 suites, 1 034 tests**, typecheck and lint clean
 - `npm run audit:screens` — 35 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green

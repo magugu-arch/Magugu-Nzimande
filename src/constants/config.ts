@@ -99,6 +99,20 @@ export const config = {
   delivery: {
     provider: str(process.env.EXPO_PUBLIC_DELIVERY_PROVIDER, 'mock'),
   },
+
+  /**
+   * Which service turns a typed address into a coordinate.
+   *
+   * Same shape and same reasoning as `delivery` above. The app has never had a
+   * geocoder, which is why `deliveryRange` answers "unknown" for almost every
+   * address it holds; `providers/geocoding` is the boundary a real one plugs
+   * into. Only a publishable key would ever belong in `EXPO_PUBLIC_*`, so a
+   * provider needing a secret key must be called through the backend rather
+   * than configured here.
+   */
+  geocoding: {
+    provider: str(process.env.EXPO_PUBLIC_GEOCODING_PROVIDER, 'mock'),
+  },
 } as const;
 
 /** Commercial rules kept out of screen code (brief §3 architecture rule). */

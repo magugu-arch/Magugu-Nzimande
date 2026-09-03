@@ -108,26 +108,43 @@ if (radii.length === 1) {
 }
 
 /**
- * The radius rule needs a coordinate, and typed-in addresses have none.
+ * The radius rule needs a coordinate, and a real geocoder is what supplies one.
  *
- * Read from the source rather than asserted, so the item disappears by itself
- * once somebody wires a geocoder in: if the add-address form ever starts
- * supplying `latitude`, this stops printing.
+ * This used to check whether the add-address form mentioned `latitude`, on the
+ * reasoning that the item should disappear by itself once somebody wired a
+ * geocoder in. That was a proxy standing in for the fact, and the proxy broke
+ * the moment the wiring landed: the form now sets `latitude` from a provider
+ * boundary whose only implementation is a mock that locates almost nothing, so
+ * the blocker went quiet while the thing it warns about was still missing.
+ *
+ * An audit that under-reports is worse than one that nags. So this asks the
+ * question it actually means — is there a geocoding provider that is not the
+ * mock? — by reading the registry every provider must be added to.
  */
-const addressForm = read('src/app/checkout/address.tsx');
-if (!/latitude:/.test(addressForm)) {
+const geocodingRegistry = read('src/providers/geocoding/index.ts');
+const geocoders = [
+  ...geocodingRegistry
+    .slice(geocodingRegistry.indexOf('const REGISTRY'))
+    .split('};')[0]
+    .matchAll(/^\s*(\w+):/gm),
+].map((match) => match[1]);
+
+if (geocoders.filter((name) => name !== 'mock').length === 0) {
   note(
     'Address geocoding',
-    'The add-address form is six text fields with no geocoder behind it, so an address a ' +
-      'customer types is never located. It used to be stamped with the Johannesburg CBD, and ' +
-      'the delivery-radius rule then measured from that constant — six of the seven branches ' +
-      'refused every typed-in address in the country and the seventh accepted them all. The ' +
-      'app no longer invents the coordinate, and no longer refuses a delivery it cannot ' +
-      'measure. The other half is still open and cannot be closed here: an address that really ' +
-      'is out of range is accepted, because nothing can tell. Either the backend geocodes on ' +
-      'POST /v1/account/addresses and returns the coordinates, or a lookup gets wired into the ' +
-      'form. Until one of them happens, the radius only bites for addresses that arrived with ' +
-      'coordinates already on them — which, for a customer on a new phone, is none of them.',
+    'The add-address form now calls a geocoder before saving, through the same kind of ' +
+      'provider boundary the courier uses — a real service is a new file in ' +
+      'src/providers/geocoding and a value in EXPO_PUBLIC_GEOCODING_PROVIDER. What is missing ' +
+      'is the service itself: the only provider that ships is a mock that locates the suburbs ' +
+      'bb.q has branches in and nothing else, because a stand-in that returned a plausible ' +
+      'coordinate for any string would recreate the original defect. That defect is worth ' +
+      'remembering: new addresses used to be stamped with the Johannesburg CBD, and measured ' +
+      'from that constant six of the seven branches refused every typed-in address in the ' +
+      'country while the seventh accepted them all. Only an exact match is kept — an ' +
+      'approximate fix is discarded, because a suburb centroid can sit a kilometre from the ' +
+      'door and a kilometre is most of the margin the radius rule works in. So an address the ' +
+      'mock cannot place is still unlocated, and the radius still cannot refuse it. Connect a ' +
+      'geocoder, or have the backend return coordinates from POST /v1/account/addresses.',
     'you',
   );
 }

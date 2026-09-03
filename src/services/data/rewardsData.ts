@@ -219,14 +219,50 @@ export const rewards: Reward[] = [
     redeemable: true,
     termsAndConditions: ['Redeemable on any order over R250.', 'One reward per order.'],
   },
+  /**
+   * A reward with a date on it, which none of them had.
+   *
+   * `rewardExpired` is read in three places — the reward screen, the
+   * redeemable filter and the per-reward `redeemable` flag — and every one of
+   * the seven seeded rewards had `expiresAt` undefined, so all three read
+   * "never expires" and the enforcement had nothing to enforce. The caption
+   * that prints the date had never rendered either.
+   *
+   * Ten days out, so it is live and shows its date. The lapsed case is the
+   * next entry.
+   */
   {
     id: 'reward-r50',
     name: 'R50 off your order',
     description: 'Straight R50 off anything on the menu.',
     pointsCost: 1000,
     category: 'discount',
+    expiresAt: new Date(Date.now() + 10 * 86_400_000).toISOString(),
     redeemable: true,
-    termsAndConditions: ['Minimum spend R200.', 'Excludes delivery and service fees.'],
+    termsAndConditions: [
+      'Minimum spend R200.',
+      'Excludes delivery and service fees.',
+      'Available for a limited time.',
+    ],
+  },
+  /**
+   * One that ran out, which is the state a member writes in about.
+   *
+   * Seeded `redeemable: true` deliberately. The point of the fixture is that
+   * the date overrules the flag: `redeemableRewards` and the reward screen
+   * both derive redeemability from `rewardExpired` rather than trusting what
+   * the record claims, and this is the only case where the two disagree. A
+   * fixture that agreed with itself would prove nothing.
+   */
+  {
+    id: 'reward-heritage',
+    name: 'R100 off, Heritage Day',
+    description: 'Our Heritage Day thank-you. This one has closed.',
+    pointsCost: 1800,
+    category: 'discount',
+    expiresAt: new Date(Date.now() - 6 * 86_400_000).toISOString(),
+    redeemable: true,
+    termsAndConditions: ['Minimum spend R350.', 'Heritage Day promotion, September only.'],
   },
   {
     id: 'reward-half-and-half',

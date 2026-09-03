@@ -62,7 +62,22 @@ export const demoUser: UserProfile = {
   dateOfBirth: '1994-07-12',
   avatarInitials: 'TM',
   isGuest: false,
-  emailVerified: true,
+  /**
+   * Phone verified, email not — which is what almost every real account looks
+   * like.
+   *
+   * The signup flow walks a customer through an OTP screen, so the number gets
+   * confirmed. The email link arrives in an inbox later and most people never
+   * click it. The seed had both `true`, so the profile screen's unverified
+   * branches — the warning badge and the "Send me the link" button — rendered
+   * for nobody: the browser sweep visits `/account/profile` as this user and
+   * only ever saw the two success badges.
+   *
+   * This is also the state the launch audit describes as permanent by
+   * construction, since `register` creates every customer unverified. Seeding
+   * it puts the way out of that state on a screen somebody looks at.
+   */
+  emailVerified: false,
   phoneVerified: true,
   createdAt: new Date(Date.now() - 220 * 86_400_000).toISOString(),
 };
