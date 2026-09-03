@@ -182,7 +182,7 @@ const rule = () =>
 
 // ---------------------------------------------------------------------------
 // The measured facts. Everything numeric below was read out of the repository
-// at commit c665de0, not estimated.
+// at commit d247e80, not estimated.
 // ---------------------------------------------------------------------------
 
 const RATE = 950; // the illustrative blended rate the worked example uses
@@ -212,6 +212,7 @@ const workstreams = [
   ['18', 'Accessibility and deployment', 'WCAG contrast maths with the palette pairings held to it, static scans of markup and components, environment template checked against the code in both directions', 7],
   ['19', 'Database schema and password reset', 'The Postgres migration the JSON store stands in for, checked against the state shape by test; reset tokens stored as hashes, single-use, and answering identically for an address nobody has', 7],
   ['20', 'Structured logging', 'One JSON object per event, redacting by field name and walking nested objects, with personal data reduced rather than dropped', 3],
+  ['25', 'POS mapping and integration brief', 'The catalogue-to-till code map with its three-state completeness rule, modifier codes keyed by group and label, an order translated into the facts a till needs, and the specification list to send GAAP', 4],
   ['24', 'Mailgun and Clickatell transports', 'Email and SMS routed to separate providers, each falling back to the log independently; Clickatell\u2019s per-message acceptance read rather than its status code, and Mailgun\u2019s timestamp-and-token signature guarded against replay', 4],
   ['23', 'Complete addresses and a container', 'The postal code through the checkout form, the schema, the order and the courier address; a multi-stage non-root image with the state file on a volume and a healthcheck on the endpoint that reports storage', 3],
   ['22', 'Uber Direct adapter', 'OAuth with a cached token, structured addresses built from what checkout collects, both of Uber\u2019s status vocabularies, raw-byte webhook verification, and dispatch on ready rather than on order', 5],
@@ -220,7 +221,7 @@ const workstreams = [
 
 const remaining = [
   ['PayFast sandbox and go-live', 'The adapter is written and tested. What is left needs a merchant account: confirming PayFast accepts our signature, then failure and retry testing against their sandbox', 2, 'PayFast per-transaction fee'],
-  ['POS adapter and onboarding', 'One adapter against the seam, menu mapping, reconciliation against the vendor\u2019s own reports', 6, 'POS vendor licence'],
+  ['GAAP adapter and onboarding', 'The mapping, the payload and the completeness rule are built. What is left needs GAAP\u2019s integration specification and their per-store code list, neither of which is public \u2014 see POS_INTEGRATION_BRIEF.md', 4, 'GAAP integration fee'],
   ['Uber Direct onboarding', 'The adapter is written and the address is complete. What is left needs an Uber Direct account: confirming they accept our dispatch', 2, 'Uber commission per delivery'],
   ['Persistent database', 'Provisioning a server and moving to it. The migration is written and checked against the state shape; concurrent-write safety is done', 3, 'Managed database hosting'],
   ['Mailgun and Clickatell onboarding', 'Both transports are written. What is left needs accounts: a verified sending domain with SPF and DKIM, a registered Clickatell sender id, and deliverability testing', 2, 'Per-message cost'],
@@ -335,7 +336,7 @@ const doc = new Document({
             ['Prepared by', 'Totality Creative'],
             ['Date', '3 September 2026'],
             ['Subject', 'The bb.q Chicken South Africa ordering website as built on branch claude/bbq-chicken-website-4qzv8i'],
-            ['Commit audited', 'c665de0'],
+            ['Commit audited', 'd247e80'],
             ['Status of the build', 'Every integration seam built and tested against a stand-in; no vendor attached, and not deployed to production'],
             ['Status of this document', 'Draft for internal review — the hourly rate is an input, not an approved figure'],
           ],
@@ -392,7 +393,7 @@ const doc = new Document({
             ['API endpoints', '25', 'Catalogue, stores, promotions, rewards, delivery, orders, payments, accounts, privacy, health, admin'],
             ['React components', '30', 'Across 13 feature areas'],
             ['Business-logic modules', '26', 'Pricing, cart, order integrity, order store, trading hours, two authentication boundaries, payments, accounts, notifications, fulfilment'],
-            ['Automated tests', '653', 'In 33 files; all passing'],
+            ['Automated tests', '672', 'In 34 files; all passing'],
             ['Hand-written lines', '19,998', 'Application 8,369 · tests 6,632 · review build 2,241 · data, schema and tooling 2,246 · shared packages 510'],
             ['Generated files', '345', 'Image derivatives and brand assets, rebuilt from masters on every build'],
             ['Commits', '30', 'Each one reviewable on its own'],
@@ -464,7 +465,7 @@ const doc = new Document({
             ['Brand rules', 'Clean', 'Mark spelling, unapproved copy, hex outside the token files'],
             ['Type checking', 'Clean', 'TypeScript strict across the whole workspace'],
             ['Linting', 'Clean', 'ESLint with the Next.js configuration'],
-            ['Tests', '653 passing', '33 files, including four real worker processes racing on one file'],
+            ['Tests', '672 passing', '34 files, including four real worker processes racing on one file'],
             ['Production build', 'Clean', 'Next.js build including asset derivation'],
             ['Review build', '3.83 MB', 'Single file, opens from a link with no server'],
           ],
