@@ -16,6 +16,7 @@
  * approved. Change RATE and re-run to reprice the whole document.
  */
 
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,6 +47,105 @@ import {
  * site is coloured by, and a change to the palette reaches both.
  */
 import tokens from '../../packages/ui/src/tokens.json' with { type: 'json' };
+
+/**
+ * The counts in section 2, measured now rather than written down.
+ *
+ * They were literals, and they drifted: the document claimed 27 API endpoints
+ * against 25 in the tree, and 280 tests in 17 files long after there were more
+ * than twice that. A number in a costing document that contradicts the thing it
+ * is costing is worse than no number, and the only fix that stays fixed is to
+ * count at build time. Anything below that is genuinely a judgement — what
+ * counts as a business-logic module, say — stays written down, with the wording
+ * saying so.
+ */
+const REPO = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '../..');
+
+/** Files under `dir` matching `match`, ignoring node_modules and build output. */
+function filesUnder(dir, match) {
+  const start = path.join(REPO, dir);
+  if (!fs.existsSync(start)) return [];
+
+  const found = [];
+  const walk = (at) => {
+    for (const entry of fs.readdirSync(at, { withFileTypes: true })) {
+      if (entry.name === 'node_modules' || entry.name === '.next') continue;
+      const full = path.join(at, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (match.test(entry.name)) found.push(full);
+    }
+  };
+  walk(start);
+  return found;
+}
+
+const count = (dir, match) => filesUnder(dir, match).length;
+
+/**
+ * `it(` and `test(` calls in the website's suite.
+ *
+ * The website only: the Expo app in the repository root has its own suite and
+ * is not what this document costs.
+ */
+function countTests() {
+  return filesUnder('apps/web/tests', /\.test\.tsx?$/).reduce((total, file) => {
+    const source = fs.readFileSync(file, 'utf8');
+    return total + (source.match(/^\s*(?:it|test)(?:\.\w+)?\s*\(/gm)?.length ?? 0);
+  }, 0);
+}
+
+/** Lines in every file under `dir` matching `match`. */
+const linesIn = (dir, match) =>
+  filesUnder(dir, match).reduce(
+    (total, file) => total + fs.readFileSync(file, 'utf8').split('\n').length,
+    0,
+  );
+
+const CODE = /\.(?:ts|tsx|mjs|css|json)$/;
+const DEMO_GENERATOR = /^build-static-demo\.mjs$/;
+
+/**
+ * Hand-written lines, by category. Generated files are excluded by construction
+ * — nothing here walks the image derivatives or the built demo — and so is the
+ * Expo app in the repository root, which this document does not cost.
+ */
+const LINES = {
+  application: linesIn('apps/web/src', /\.(?:ts|tsx|css)$/),
+  tests: linesIn('apps/web/tests', /\.tsx?$/),
+  reviewBuild:
+    linesIn('apps/web/static-demo', /^index\.template\.html$/) +
+    linesIn('infra/scripts', DEMO_GENERATOR),
+  dataAndTooling:
+    linesIn('infra/seed', CODE) +
+    linesIn('infra/scripts', /\.mjs$/) -
+    linesIn('infra/scripts', DEMO_GENERATOR) +
+    linesIn('apps/web/scripts', /\.mjs$/),
+  packages: linesIn('packages', CODE),
+};
+LINES.total = Object.values(LINES).reduce((a, b) => a + b, 0);
+
+const MEASURED = {
+  pages: count('apps/web/src/app', /^page\.tsx$/),
+  endpoints: count('apps/web/src/app/api', /^route\.ts$/),
+  components: count('apps/web/src/components', /\.tsx$/),
+  modules: count('apps/web/src/lib', /\.ts$/),
+  tests: countTests(),
+  testFiles: count('apps/web/tests', /\.test\.tsx?$/),
+};
+
+/** Commits on this branch, counted rather than remembered. */
+const COMMITS = Number(
+  execFileSync('git', ['rev-list', '--count', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).trim(),
+);
+
+/**
+ * Thousands separators, since the document is read by people not machines.
+ *
+ * en-ZA groups with a non-breaking space, which left the document carrying two
+ * separators for the same kind of number — 1 304 hours beside 26,230 lines.
+ * One function, one separator.
+ */
+const n = (value) => value.toLocaleString('en-ZA').replace(/[\s\u00a0]/g, ',');
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const bare = (hex) => hex.replace('#', '');
@@ -180,14 +280,15 @@ const rule = () =>
   });
 
 // ---------------------------------------------------------------------------
-// The measured facts. Everything numeric below was read out of the repository
-// at commit 5e53a86, not estimated.
+// The measured facts. Everything numeric below is either counted from the
+// working tree at build time (see MEASURED and LINES above) or added up from
+// the tables — nothing on this page is a number somebody remembered.
 // ---------------------------------------------------------------------------
 
 const RATE = 950; // the illustrative blended rate the worked example uses
 const HOURS = (d) => d * 8;
-const rands = (n) => 'R ' + n.toLocaleString('en-ZA');
-const num = (n) => n.toLocaleString('en-ZA');
+const rands = (amount) => `R ${n(amount)}`;
+const num = n;
 const sum = (rows, at) => rows.reduce((total, row) => total + row[at], 0);
 
 const workstreams = [
@@ -198,7 +299,7 @@ const workstreams = [
   ['5', 'API layer and order state machine', '16 endpoints; five order states with collection, delivery and dine-in variants; cancellation terminal from any state and refused without a reason', 8],
   ['6', 'Basket, configurator, checkout and order journey', 'Live pricing, option selection, line identity, free-delivery meter, trading-hours and delivery-zone gating, idempotent placement', 8],
   ['7', 'Operations console and authentication', '3 components, 4 admin endpoints, HMAC-signed sessions, constant-time comparison, lockout after repeated failures, fail-closed guards', 5],
-  ['8', 'Automated test suite', '280 tests across 17 files, 3,269 lines, driven through route handlers rather than helpers', 7],
+  ['8', 'Automated test suite', `The suite as it stood at this workstream: the ${MEASURED.tests} tests now in ${MEASURED.testFiles} files grew with the workstreams below. Driven through route handlers rather than helpers`, 7],
   ['9', 'Image pipeline and food imagery', 'sharp pipeline producing 336 derivatives from 28 masters at three widths in two formats, plus the written photography brief', 6],
   ['10', 'Single-file review build', '2,241-line template and generator that inlines every asset, so the site opens from one link with no server', 3],
   ['11', 'Documentation and handover', '279-line website README plus contributions to the handover, audit and readiness documents', 3],
@@ -217,6 +318,7 @@ const workstreams = [
   ['23', 'Complete addresses and a container', 'The postal code through the checkout form, the schema, the order and the courier address; a multi-stage non-root image with the state file on a volume and a healthcheck on the endpoint that reports storage', 3],
   ['22', 'Uber Direct adapter', 'OAuth with a cached token, structured addresses built from what checkout collects, both of Uber\u2019s status vocabularies, raw-byte webhook verification, and dispatch on ready rather than on order', 5],
   ['21', 'PayFast adapter', 'PHP-compatible signing, all four of PayFast\u2019s notification checks with the postback failing closed, status mapping, and an idempotency key that survives their PENDING-then-COMPLETE sequence', 4],
+  ['27', 'The account interface', 'The screen for the account system, which had been built and tested as endpoints nothing called: a typed browser client that parses every response rather than casting it, sign-in and registration with the error beside the field that caused it, order history, the address book, and the two POPIA requests as buttons rather than as an email to support. The session is read on the server so the page arrives in its final state', 3],
 ];
 
 const remaining = [
@@ -389,14 +491,18 @@ const doc = new Document({
           cols(5, 2, 5),
           ['What', 'Count', 'Detail'],
           [
-            ['Customer-facing pages', '13', 'Home, menu, product, offers, stores, rewards, account, help, checkout, order journey, app, and two console pages'],
-            ['API endpoints', '27', 'Catalogue, stores, promotions, rewards, delivery, orders, payments, accounts, privacy, health, admin'],
-            ['React components', '30', 'Across 13 feature areas'],
-            ['Business-logic modules', '26', 'Pricing, cart, order integrity, order store, trading hours, two authentication boundaries, payments, accounts, notifications, fulfilment'],
-            ['Automated tests', '699', 'In 35 files; all passing'],
-            ['Hand-written lines', '19,998', 'Application 8,369 · tests 6,632 · review build 2,241 · data, schema and tooling 2,246 · shared packages 510'],
+            ['Customer-facing pages', String(MEASURED.pages), 'Home, menu, product, offers, stores, rewards, account, help, checkout, order journey, app, and two console pages'],
+            ['API endpoints', String(MEASURED.endpoints), 'Catalogue, stores, promotions, rewards, delivery, orders, payments, accounts, privacy, health, admin'],
+            ['React components', String(MEASURED.components), 'Across 13 feature areas'],
+            ['Business-logic modules', String(MEASURED.modules), 'Pricing, cart, order integrity, order store, trading hours, two authentication boundaries, payments, accounts, notifications, fulfilment'],
+            ['Automated tests', String(MEASURED.tests), `In ${MEASURED.testFiles} files; all passing`],
+            [
+              'Hand-written lines',
+              n(LINES.total),
+              `Application ${n(LINES.application)} · tests ${n(LINES.tests)} · review build ${n(LINES.reviewBuild)} · data, schema and tooling ${n(LINES.dataAndTooling)} · shared packages ${n(LINES.packages)}`,
+            ],
             ['Generated files', '345', 'Image derivatives and brand assets, rebuilt from masters on every build'],
-            ['Commits', '30', 'Each one reviewable on its own'],
+            ['Commits', n(COMMITS), 'Each one reviewable on its own'],
           ],
           [undefined, AlignmentType.RIGHT, undefined],
         ),
@@ -465,7 +571,7 @@ const doc = new Document({
             ['Brand rules', 'Clean', 'Mark spelling, unapproved copy, hex outside the token files'],
             ['Type checking', 'Clean', 'TypeScript strict across the whole workspace'],
             ['Linting', 'Clean', 'ESLint with the Next.js configuration'],
-            ['Tests', '699 passing', '35 files, including four real worker processes racing on one file'],
+            ['Tests', `${n(MEASURED.tests)} passing`, `${MEASURED.testFiles} files, including four real worker processes racing on one file`],
             ['Production build', 'Clean', 'Next.js build including asset derivation'],
             ['Review build', '3.83 MB', 'Single file, opens from a link with no server'],
           ],
@@ -538,7 +644,7 @@ const doc = new Document({
           [
             text('Cross-check. ', { bold: true }),
             text(
-              `19,998 hand-written lines over ${BUILT_DAYS} days is about 150 a day. For tested, typed, reviewed production code that sits inside the normal 100–300 band, and lower than the 200 the first version of this document reconstructed — integration work carries more test and less code than storefront work does. The reconstruction is not inflated.`,
+              `${n(LINES.total)} hand-written lines over ${BUILT_DAYS} days is about ${Math.round(LINES.total / BUILT_DAYS)} a day. For tested, typed, reviewed production code that sits inside the normal 100–300 band, and lower than the 200 the first version of this document reconstructed — integration work carries more test and less code than storefront work does. The reconstruction is not inflated.`,
             ),
           ],
         ),
