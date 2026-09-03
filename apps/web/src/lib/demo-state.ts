@@ -5,6 +5,7 @@ import { PRODUCTS } from '@bbq/seed';
 import type { Order, PaymentIntent, ServiceMode } from '@bbq/types';
 import type { StoredAccount } from './accounts/store';
 import type { HandoffRecord } from './fulfilment/handoff';
+import { withLock } from './state-lock';
 
 /**
  * The stand-in for Postgres, until /services/api exists.
@@ -15,9 +16,18 @@ import type { HandoffRecord } from './fulfilment/handoff';
  * operations console whose queue was empty until its first poll.
  *
  * Every read re-reads the file and every write replaces it atomically, so the
- * workers agree. Two operators writing in the same instant can still lose one
- * edit — a read-modify-write race a database would settle with a transaction,
- * and the reason this is a stopgap rather than a design.
+ * workers agree about what is there.
+ *
+ * Atomic writes were never the hard part. The read-modify-write around them
+ * was: two workers both read, both changed their own copy, and the second write
+ * replaced the first. An operator switching a product off while another
+ * cancelled an order lost one of the two silently, and the file looked
+ * perfectly consistent afterwards because each individual write had been
+ * atomic. `mutateState` now holds a cross-process lock for the whole sequence.
+ *
+ * It is still a stopgap and not a design. There is no rollback, no query, no
+ * index, and a change that throws halfway leaves the object half-modified in
+ * memory. What it no longer does is lose an edit.
  */
 
 export type AuditEntry = { at: string; who: string; what: string };
@@ -141,10 +151,12 @@ export function writeState(next: DemoState): void {
 }
 
 export function mutateState<T>(change: (state: DemoState) => T): T {
-  const state = readState();
-  const result = change(state);
-  writeState(state);
-  return result;
+  return withLock(stateFile(), () => {
+    const state = readState();
+    const result = change(state);
+    writeState(state);
+    return result;
+  });
 }
 
 /** Newest first, and bounded: an unbounded log in a long-lived process is a leak. */
