@@ -182,12 +182,12 @@ const rule = () =>
 
 // ---------------------------------------------------------------------------
 // The measured facts. Everything numeric below was read out of the repository
-// at commit 8090a7e, not estimated.
+// at commit 3fe7ac2, not estimated.
 // ---------------------------------------------------------------------------
 
 const RATE = 950; // the illustrative blended rate the worked example uses
-const BUILT_DAYS = 114;
-const REMAIN_DAYS = 41;
+const BUILT_DAYS = 127;
+const REMAIN_DAYS = 28;
 const HOURS = (d) => d * 8;
 const rands = (n) => 'R ' + n.toLocaleString('en-ZA');
 const num = (n) => n.toLocaleString('en-ZA');
@@ -209,13 +209,15 @@ const workstreams = [
   ['14', 'Customer accounts and POPIA', 'scrypt passwords, signed sessions, saved addresses, order history scoped to the session, points on the account; access and erasure requests', 10],
   ['15', 'Notifications and monitoring', 'Message templates, delivery-once ledger, logging transport, health endpoint reporting both liveness and what is configured', 8],
   ['16', 'POS and courier seams', 'Adapter interfaces, handoff record with retry, availability sync that tells unreachable apart from empty, degrade-not-refuse behaviour', 18],
+  ['17', 'Concurrent-write safety', 'Cross-process lock closing the read-modify-write race the JSON store shipped with, proved by four real worker processes and an unlocked control', 6],
+  ['18', 'Accessibility and deployment', 'WCAG contrast maths with the palette pairings held to it, static scans of markup and components, environment template checked against the code in both directions', 7],
 ];
 
 const remaining = [
   ['Payment gateway adapter', 'One adapter against the seam that now exists, then sandbox failure and retry testing with real credentials', 4, 'Gateway per-transaction fee'],
   ['POS adapter and onboarding', 'One adapter against the seam, menu mapping, reconciliation against the vendor\u2019s own reports', 6, 'POS vendor licence'],
   ['Courier adapter and onboarding', 'One adapter against the seam, live tracking, provider onboarding', 5, 'Provider commission'],
-  ['Persistent database', 'Postgres replacing the JSON state file; schema, migrations, concurrent-write safety', 6, 'Managed database hosting'],
+  ['Persistent database', 'Postgres replacing the JSON state file; schema and migrations. Concurrent-write safety is done — the JSON store no longer loses an edit', 5, 'Managed database hosting'],
   ['Password reset', 'The half of accounts that needs a message to reach an inbox', 2, 'Per-message cost'],
   ['Messaging adapter', 'One adapter against the notification seam, sender identities, deliverability', 3, 'Per-message cost'],
   ['Privacy policy and legal review', 'Retention periods, consent copy, information officer; the endpoints exist and are tested', 2, 'Legal review'],
@@ -316,7 +318,7 @@ const doc = new Document({
             ['Prepared by', 'Totality Creative'],
             ['Date', '3 September 2026'],
             ['Subject', 'The bb.q Chicken South Africa ordering website as built on branch claude/bbq-chicken-website-4qzv8i'],
-            ['Commit audited', '8090a7e'],
+            ['Commit audited', '3fe7ac2'],
             ['Status of the build', 'Every integration seam built and tested against a stand-in; no vendor attached, and not deployed to production'],
             ['Status of this document', 'Draft for internal review — the hourly rate is an input, not an approved figure'],
           ],
@@ -372,11 +374,11 @@ const doc = new Document({
             ['Customer-facing pages', '13', 'Home, menu, product, offers, stores, rewards, account, help, checkout, order journey, app, and two console pages'],
             ['API endpoints', '22', 'Catalogue, stores, promotions, rewards, delivery, orders, payments, accounts, privacy, health, admin'],
             ['React components', '30', 'Across 13 feature areas'],
-            ['Business-logic modules', '24', 'Pricing, cart, order integrity, order store, trading hours, two authentication boundaries, payments, accounts, notifications, fulfilment'],
-            ['Automated tests', '425', 'In 23 files; all passing'],
-            ['Hand-written lines', '18,232', 'Application 7,965 · tests 5,479 · review build 2,241 · data and tooling 2,037 · shared packages 510'],
+            ['Business-logic modules', '26', 'Pricing, cart, order integrity, order store, trading hours, two authentication boundaries, payments, accounts, notifications, fulfilment'],
+            ['Automated tests', '466', 'In 26 files; all passing'],
+            ['Hand-written lines', '19,104', 'Application 8,157 · tests 6,157 · review build 2,241 · data and tooling 2,039 · shared packages 510'],
             ['Generated files', '345', 'Image derivatives and brand assets, rebuilt from masters on every build'],
-            ['Commits', '25', 'Each one reviewable on its own'],
+            ['Commits', '28', 'Each one reviewable on its own'],
           ],
           [undefined, AlignmentType.RIGHT, undefined],
         ),
@@ -445,7 +447,7 @@ const doc = new Document({
             ['Brand rules', 'Clean', 'Mark spelling, unapproved copy, hex outside the token files'],
             ['Type checking', 'Clean', 'TypeScript strict across the whole workspace'],
             ['Linting', 'Clean', 'ESLint with the Next.js configuration'],
-            ['Tests', '425 passing', '23 files, run against route handlers where the risk is'],
+            ['Tests', '466 passing', '26 files, including four real worker processes racing on one file'],
             ['Production build', 'Clean', 'Next.js build including asset derivation'],
             ['Review build', '3.83 MB', 'Single file, opens from a link with no server'],
           ],
@@ -518,12 +520,12 @@ const doc = new Document({
           [
             text('Cross-check. ', { bold: true }),
             text(
-              `18,232 hand-written lines over ${BUILT_DAYS} days is about 160 a day. For tested, typed, reviewed production code that sits inside the normal 100–300 band, and lower than the 200 the first version of this document reconstructed — integration work carries more test and less code than storefront work does. The reconstruction is not inflated.`,
+              `19,104 hand-written lines over ${BUILT_DAYS} days is about 150 a day. For tested, typed, reviewed production code that sits inside the normal 100–300 band, and lower than the 200 the first version of this document reconstructed — integration work carries more test and less code than storefront work does. The reconstruction is not inflated.`,
             ),
           ],
         ),
         p(
-          `${BUILT_DAYS} days is roughly 23 working weeks, or a little over five months for one person. Two people working in parallel would compress the calendar but not the total, and would add coordination cost.`,
+          `${BUILT_DAYS} days is roughly 25 working weeks, or a little under six months for one person. Two people working in parallel would compress the calendar but not the total, and would add coordination cost.`,
         ),
 
         new Paragraph({ children: [new PageBreak()] }),
@@ -585,7 +587,7 @@ const doc = new Document({
 
         p('', { after: 120 }),
         p(
-          'The integration seams — payments, accounts, notifications, POS and courier — are 44 of the 114 days. None of them names a vendor, and none has to be rewritten when one is chosen: what remains per integration is an adapter against an interface that already exists and is already tested.',
+          'The integration seams — payments, accounts, notifications, POS and courier — are 44 of the 127 days. None of them names a vendor, and none has to be rewritten when one is chosen: what remains per integration is an adapter against an interface that already exists and is already tested.',
         ),
 
         new Paragraph({ children: [new PageBreak()] }),
@@ -637,7 +639,7 @@ const doc = new Document({
         p('', { after: 120 }),
         p(
           [
-            text('Roughly 74% of the engineering is done. ', { bold: true }),
+            text('Roughly 82% of the engineering is done. ', { bold: true }),
             text(
               'What is left is weighted toward vendor onboarding rather than construction, so its calendar time depends on how quickly accounts, credentials and contracts arrive rather than on how fast anyone writes code. The engineering estimates fell when the seams went in: a payment integration is four days against a tested interface where it was eight against nothing.',
             ),
