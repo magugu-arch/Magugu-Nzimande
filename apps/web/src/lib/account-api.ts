@@ -137,6 +137,29 @@ export async function myOrders(): Promise<Order[]> {
   return (await call('/api/account/orders', OrdersReply)).orders;
 }
 
+/**
+ * Asks for a reset code.
+ *
+ * Resolves the same way whether or not anybody has that address, because the
+ * endpoint answers the same way — that is the point of it, and a client that
+ * turned one of the two answers into an error would undo it by making the
+ * difference visible in the interface instead.
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  await call('/api/account/reset', z.object({}).passthrough(), {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+/** Spends a reset code. The token is single-use and expires within the hour. */
+export async function completePasswordReset(token: string, password: string): Promise<void> {
+  await call('/api/account/reset', z.object({}).passthrough(), {
+    method: 'PUT',
+    body: JSON.stringify({ token, password }),
+  });
+}
+
 /** POPIA §23. Everything held about the signed-in customer, as a file. */
 export async function downloadMyData(): Promise<Blob> {
   const response = await fetch('/api/account/privacy');

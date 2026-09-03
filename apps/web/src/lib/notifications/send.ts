@@ -1,6 +1,7 @@
 import type { Order } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
 import { describe, orderMoved, orderPlaced, passwordReset } from './messages';
+import { publicBaseUrl } from '../deployment';
 import { routedTransport } from './registry';
 import type { Message, NotificationTransport } from './transport';
 
@@ -75,7 +76,10 @@ export async function notifyMoved(order: Order): Promise<number> {
 }
 
 export async function notifyPasswordReset(email: string, token: string): Promise<number> {
-  return send(passwordReset(email, token));
+  // The deployment's own address, so the message can carry a link rather than
+  // 43 characters to retype. Null when none is configured, and the message
+  // falls back to the code alone.
+  return send(passwordReset(email, token, publicBaseUrl()));
 }
 
 /** What was sent, for the console and for tests. */

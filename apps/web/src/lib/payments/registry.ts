@@ -1,3 +1,4 @@
+import { publicBaseUrl } from '../deployment';
 import { payfastProvider } from './payfast/provider';
 import type { PaymentProvider } from './provider';
 import { sandboxProvider } from './sandbox-provider';
@@ -104,15 +105,4 @@ export function isPaymentConfigured(env: PaymentEnv = process.env): boolean {
   return activeProvider(env) !== null;
 }
 
-/**
- * This deployment's own address, without its trailing slash, or null.
- *
- * Exported so the route that opens an intent can build a return URL naming the
- * order being paid for. It is the same value the adapter's fallback URLs are
- * built from, read in one place rather than two: a base URL assembled twice is
- * a base URL that disagrees with itself once somebody adds a path prefix.
- */
-export function publicBaseUrl(env: PaymentEnv = process.env): string | null {
-  const url = env.BBQ_PUBLIC_URL;
-  return url ? url.replace(/\/+$/, '') : null;
-}
+

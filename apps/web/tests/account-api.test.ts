@@ -2,12 +2,14 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   AccountError,
   addAddress,
+  completePasswordReset,
   downloadMyData,
   eraseMe,
   myAddresses,
   myOrders,
   register,
   removeAddress,
+  requestPasswordReset,
   signIn,
   signOut,
   whoAmI,
@@ -278,5 +280,37 @@ describe('signing out', () => {
   it('confirms when the server ended the session', async () => {
     serve(() => ({ body: {} }));
     expect(await signOut()).toBe(true);
+  });
+});
+
+describe('the password reset', () => {
+  /**
+   * The endpoint answers identically whether or not the address is registered,
+   * and this must not undo that by turning one of the two into an error. A
+   * client that threw for an unknown address would put the difference on the
+   * screen instead, which is the thing the endpoint is careful not to say.
+   */
+  it('resolves the same way for an address nobody has', async () => {
+    serve(() => ({ body: { sent: true } }));
+    await expect(requestPasswordReset('nobody@example.com')).resolves.toBeUndefined();
+  });
+
+  it('asks through POST and spends through PUT', async () => {
+    const seen: { method?: string }[] = [];
+    restore = stubFetch((_path, init) => {
+      seen.push({ method: init?.method });
+      return { body: { sent: true } };
+    });
+
+    await requestPasswordReset('thandi@example.com');
+    await completePasswordReset('a-token', 'a-long-enough-password');
+    expect(seen.map((call) => call.method)).toEqual(['POST', 'PUT']);
+  });
+
+  it('carries the refusal through when the code is spent or expired', async () => {
+    serve(() => ({ status: 400, body: { error: 'That reset link is no longer valid' } }));
+    await expect(completePasswordReset('old', 'a-long-enough-password')).rejects.toThrow(
+      /no longer valid/,
+    );
   });
 });

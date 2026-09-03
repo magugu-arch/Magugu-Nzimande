@@ -99,7 +99,9 @@ function labelOf(message: Message): string {
  * be the one that was lost or taken, and a link in an SMS is unverifiable to
  * the person reading it.
  */
-export function passwordReset(email: string, token: string): Message[] {
+export function passwordReset(email: string, token: string, baseUrl?: string | null): Message[] {
+  const link = baseUrl ? `${baseUrl}/account?reset=${encodeURIComponent(token)}` : null;
+
   return [
     {
       // Not keyed on the token: two resets requested a minute apart are two
@@ -109,10 +111,20 @@ export function passwordReset(email: string, token: string): Message[] {
       channel: 'email',
       to: email,
       subject: 'Reset your bb.q Chicken password',
+      /**
+       * The link when this deployment knows its own address, and the code
+       * either way.
+       *
+       * The token is 43 characters of base64url. Sending only that asked a
+       * customer to retype it into a form, which most people get wrong at least
+       * once and some abandon. The code stays for anyone whose mail client
+       * strips links, and for a deployment with no public URL configured.
+       */
       body: [
         'Somebody asked to reset the password on this address.',
         '',
-        `Use this code within the hour: ${token}`,
+        ...(link ? [`Open this within the hour: ${link}`, ''] : []),
+        `Or use this code: ${token}`,
         '',
         'If it was not you, nothing has changed and you can ignore this.',
       ].join('\n'),

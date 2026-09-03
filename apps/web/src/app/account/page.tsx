@@ -15,7 +15,21 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  /**
+   * The token from a reset email, if they arrived by the link.
+   *
+   * Read here and handed to the component rather than pulled out of the URL in
+   * the browser, so the reset form is what renders — a customer who followed a
+   * link from their inbox should not watch a sign-in form appear first and then
+   * be replaced.
+   */
+  const reset = (await searchParams).reset;
+  const resetToken = typeof reset === 'string' && reset.length > 0 ? reset : null;
   /**
    * Resolved here rather than by an effect in the browser.
    *
@@ -45,6 +59,7 @@ export default async function AccountPage() {
           initialAccount={account}
           initialOrders={orders}
           initialAddresses={addresses}
+          resetToken={resetToken}
         />
       </div>
 

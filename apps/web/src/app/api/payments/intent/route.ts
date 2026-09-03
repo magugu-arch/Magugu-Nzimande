@@ -1,7 +1,8 @@
 import { CreatePaymentIntentRequestSchema } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import { openIntent, recordProviderRef } from '@/lib/payments/ledger';
-import { activeProvider, publicBaseUrl } from '@/lib/payments/registry';
+import { publicBaseUrl } from '@/lib/deployment';
+import { activeProvider } from '@/lib/payments/registry';
 
 /**
  * POST /api/payments/intent — opens a payment against an order.

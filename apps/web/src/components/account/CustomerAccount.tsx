@@ -8,12 +8,14 @@ import { Price } from '@/components/ui/Price';
 import {
   AccountError,
   addAddress,
+  completePasswordReset,
   downloadMyData,
   eraseMe,
   myAddresses,
   myOrders,
   register,
   removeAddress,
+  requestPasswordReset,
   signIn,
   signOut,
   whoAmI,
@@ -32,16 +34,19 @@ import {
  * show and when.
  */
 
-type Mode = 'sign-in' | 'register';
+type Mode = 'sign-in' | 'register' | 'reset';
 
 export function CustomerAccount({
   initialAccount,
   initialOrders,
   initialAddresses,
+  resetToken = null,
 }: {
   initialAccount: Account | null;
   initialOrders: readonly Order[];
   initialAddresses: readonly SavedAddress[];
+  /** From the emailed reset link, which opens straight into the reset form. */
+  resetToken?: string | null;
 }) {
   /**
    * Seeded from the server render, so the page arrives in its final state.
@@ -73,7 +78,7 @@ export function CustomerAccount({
     }
   }, []);
 
-  if (!account) return <SignedOut onSignedIn={reload} />;
+  if (!account) return <SignedOut onSignedIn={reload} resetToken={resetToken} />;
 
   return (
     <div className="grid gap-8">
@@ -151,8 +156,15 @@ export function CustomerAccount({
   );
 }
 
-function SignedOut({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
-  const [mode, setMode] = useState<Mode>('sign-in');
+function SignedOut({
+  onSignedIn,
+  resetToken,
+}: {
+  onSignedIn: () => Promise<void>;
+  /** A token from the emailed link, which opens straight into the reset form. */
+  resetToken: string | null;
+}) {
+  const [mode, setMode] = useState<Mode>(resetToken ? 'reset' : 'sign-in');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
@@ -184,6 +196,10 @@ function SignedOut({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (mode === 'reset') {
+    return <ResetPassword token={resetToken} onDone={() => setMode('sign-in')} />;
   }
 
   return (
@@ -255,6 +271,150 @@ function SignedOut({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
           }}
         >
           {mode === 'register' ? 'I already have one' : 'Create one instead'}
+        </Button>
+        {mode === 'sign-in' && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setMode('reset');
+              setError(null);
+              setFieldErrors({});
+            }}
+          >
+            Forgot your password?
+          </Button>
+        )}
+      </div>
+    </form>
+  );
+}
+
+/**
+ * The reset flow, which existed as a tested endpoint nobody could reach.
+ *
+ * Two stages in one component because they are two halves of one errand and a
+ * customer arrives at either: from the sign-in screen with nothing, or from the
+ * emailed link with a token already in hand.
+ *
+ * It says the same thing whether or not the address is registered, which is the
+ * whole design of the endpoint behind it. Confirming that an address has an
+ * account here is a way to find out who orders from us, and putting the answer
+ * on the screen would give away what the API is careful not to.
+ */
+function ResetPassword({ token, onDone }: { token: string | null; onDone: () => void }) {
+  const [stage, setStage] = useState<'ask' | 'spend'>(token ? 'spend' : 'ask');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState(token ?? '');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+
+  if (done) {
+    return (
+      <div className="max-w-md">
+        <h2 className="display text-2xl">Password changed</h2>
+        <p className="mt-2 text-sm text-muted">
+          You are not signed in yet — sign in with the new password to be sure it took.
+        </p>
+        <Button className="mt-4" size="sm" onClick={onDone}>
+          Sign in
+        </Button>
+      </div>
+    );
+  }
+
+  async function ask(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await requestPasswordReset(email);
+      setStage('spend');
+    } catch {
+      setError('Something went wrong. Try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function spend(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await completePasswordReset(code.trim(), password);
+      setDone(true);
+    } catch (caught) {
+      setError(
+        caught instanceof AccountError ? caught.message : 'Something went wrong. Try again.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={stage === 'ask' ? ask : spend} className="max-w-md">
+      <h2 className="display text-2xl">Reset your password</h2>
+
+      {stage === 'ask' ? (
+        <>
+          <p className="mt-1 text-sm text-muted">
+            Tell us the address on the account and we will send a code to it.
+          </p>
+          <div className="mt-4">
+            <Field
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-muted">
+            {token
+              ? 'Choose a new password.'
+              : 'If that address has an account, a code is on its way. It works for an hour.'}
+          </p>
+          <div className="mt-4 grid gap-4">
+            {!token && (
+              <Field
+                label="Code from the email"
+                value={code}
+                onChange={(event) => setCode(event.target.value)}
+                autoComplete="one-time-code"
+              />
+            )}
+            <Field
+              label="New password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+              hint="At least 10 characters."
+            />
+          </div>
+        </>
+      )}
+
+      {error && (
+        <p role="alert" className="mt-3 text-sm font-semibold text-red">
+          {error}
+        </p>
+      )}
+
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={busy}>
+          {stage === 'ask' ? 'Send me a code' : 'Set the new password'}
+        </Button>
+        <Button type="button" variant="ghost" size="sm" onClick={onDone}>
+          Back to sign in
         </Button>
       </div>
     </form>

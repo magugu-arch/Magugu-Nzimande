@@ -1,9 +1,12 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { POST as requestRoute, PUT as completeRoute } from '@/app/api/account/reset/route';
 import { POST as signInRoute } from '@/app/api/account/session/route';
 import { completeReset, liveResetCount, requestReset } from '@/lib/accounts/reset';
 import { readAudit } from '@/lib/catalogue-state';
 import { readState } from '@/lib/demo-state';
+import { passwordReset } from '@/lib/notifications/messages';
 import {
   blankState,
   bodyOf,
@@ -247,5 +250,62 @@ describe('with accounts switched off', () => {
     );
 
     expect([asked.status, spent.status]).toEqual([503, 503]);
+  });
+});
+
+describe('the message that carries the code', () => {
+  const bodyOfReset = (token: string, base?: string | null) => {
+    const [message] = passwordReset('thandi@example.com', token, base);
+    if (!message) throw new Error('passwordReset produced no message');
+    return message.body;
+  };
+
+  /**
+   * The token is 43 characters of base64url. Sending only that asks a customer
+   * to retype it, which most people get wrong at least once.
+   */
+  it('carries a link when the deployment knows its own address', () => {
+    const body = bodyOfReset('a-token', 'https://order.example.test');
+    expect(body).toContain('https://order.example.test/account?reset=a-token');
+  });
+
+  it('still carries the code, for a mail client that strips links', () => {
+    expect(bodyOfReset('a-token', 'https://order.example.test')).toContain('a-token');
+  });
+
+  /** No public URL configured means no link — not a link to nowhere. */
+  it('sends the code alone when there is no address to build one from', () => {
+    const body = bodyOfReset('a-token', null);
+    expect(body).toContain('a-token');
+    expect(body).not.toContain('http');
+  });
+
+  it('escapes a token that would otherwise break the link', () => {
+    expect(bodyOfReset('a+b/c=', 'https://order.example.test')).toContain('reset=a%2Bb%2Fc%3D');
+  });
+
+  it('does not put the address it was sent to in the body', () => {
+    // The subject and the recipient carry it. Repeating an email address inside
+    // a message forwarded to somebody else is a small leak with no upside.
+    expect(bodyOfReset('a-token', null)).not.toContain('thandi@example.com');
+  });
+});
+
+describe('the reset is reachable', () => {
+  const source = (file: string) => readFileSync(path.resolve(__dirname, '../src', file), 'utf8');
+
+  /**
+   * The endpoint was complete, careful and tested for weeks with no way in: no
+   * "forgot your password" existed anywhere on the site.
+   */
+  it('is offered on the sign-in screen', () => {
+    const account = source('components/account/CustomerAccount.tsx');
+    expect(account).toContain('Forgot your password?');
+    expect(account).toContain('requestPasswordReset');
+    expect(account).toContain('completePasswordReset');
+  });
+
+  it('opens straight into the form when arriving from the emailed link', () => {
+    expect(source('app/account/page.tsx')).toContain('resetToken');
   });
 });
