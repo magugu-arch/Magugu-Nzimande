@@ -5,6 +5,7 @@ import { repriceLines } from '@/lib/order-integrity';
 import { currentAccount } from '@/lib/accounts/session';
 import { awardPoints } from '@/lib/accounts/store';
 import { createOrder } from '@/lib/order-store';
+import { notifyPlaced } from '@/lib/notifications/send';
 import { findPromotion, totalsFor } from '@/lib/pricing';
 
 /**
@@ -87,6 +88,12 @@ export async function POST(request: Request) {
   // phone. A guest earns none, and the response says so rather than promising
   // points that have nowhere to land.
   if (account) awardPoints(account.id, created.pointsEarned);
+
+  // Awaited, but it cannot fail the order: `notifyPlaced` records what it could
+  // not send and returns. The food is already being made by this point, and a
+  // 500 because a confirmation bounced tells the customer the opposite of what
+  // has happened.
+  await notifyPlaced({ ...created, totals });
 
   return NextResponse.json(
     { order: { ...created, totals } },

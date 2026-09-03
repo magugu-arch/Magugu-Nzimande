@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { refuseUnlessOperator } from '@/lib/admin-auth';
 import { readAudit } from '@/lib/catalogue-state';
 import { labelFor, listOrders, setOrderStatus } from '@/lib/order-store';
+import { notifyMoved } from '@/lib/notifications/send';
 
 /** GET /api/admin/orders — the queue, plus the audit log. */
 export function GET(request: Request) {
@@ -42,6 +43,8 @@ export async function POST(request: Request) {
   if (!order) {
     return NextResponse.json({ error: 'No such order' }, { status: 404 });
   }
+
+  await notifyMoved(order);
 
   return NextResponse.json({
     orders: listOrders().map((candidate) => ({ ...candidate, statusLabel: labelFor(candidate) })),

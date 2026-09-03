@@ -47,6 +47,11 @@ export type DemoState = {
    * something reversible.
    */
   accounts: StoredAccount[];
+  /**
+   * Ids of messages already delivered. What stops a retried request sending a
+   * customer the same "on its way" twice.
+   */
+  notifications: { sent: string[] };
 };
 
 /**
@@ -70,6 +75,7 @@ function seed(): DemoState {
     consoleLock: { failures: 0, lockedUntil: null },
     payments: { intents: [], appliedEvents: [] },
     accounts: [],
+    notifications: { sent: [] },
     audit: [
       {
         at: new Date().toISOString(),
@@ -103,6 +109,7 @@ export function readState(): DemoState {
       // settling an order twice would come back undefined.
       consoleLock: { ...base.consoleLock, ...parsed.consoleLock },
       payments: { ...base.payments, ...parsed.payments },
+      notifications: { ...base.notifications, ...parsed.notifications },
     };
   } catch {
     // Missing or unreadable on the first request of a fresh deployment.

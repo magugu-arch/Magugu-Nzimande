@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { advanceOrder, labelFor } from '@/lib/order-store';
+import { notifyMoved } from '@/lib/notifications/send';
 
 /**
  * POST /api/orders/:id/advance — move an order to its next state.
@@ -14,5 +15,10 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
   if (!order) {
     return NextResponse.json({ error: 'No such order' }, { status: 404 });
   }
+  // Only some transitions are worth a message, and notifyMoved decides which.
+  // Telling a customer four times about one order is how they stop reading the
+  // one that matters.
+  await notifyMoved(order);
+
   return NextResponse.json({ order, statusLabel: labelFor(order) });
 }
