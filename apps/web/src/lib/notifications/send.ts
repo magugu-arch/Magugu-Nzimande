@@ -1,7 +1,8 @@
 import type { Order } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
 import { describe, orderMoved, orderPlaced, passwordReset } from './messages';
-import { loggingTransport, type Message, type NotificationTransport } from './transport';
+import { routedTransport } from './registry';
+import type { Message, NotificationTransport } from './transport';
 
 /**
  * Sending, and not sending twice.
@@ -19,9 +20,9 @@ import { loggingTransport, type Message, type NotificationTransport } from './tr
  */
 
 function transport(): NotificationTransport {
-  // One transport today. A provider adapter is selected here, the same way a
-  // payment provider is, when there is one to select.
-  return loggingTransport((message) => {
+  // Routed per channel: Mailgun for email, Clickatell for SMS, and the audit
+  // log for whichever of the two this deployment has not configured.
+  return routedTransport((message) => {
     mutateState((state) => pushAudit(state, 'notifications', describe(message)));
   });
 }
