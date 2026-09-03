@@ -110,9 +110,17 @@ describe('the payment endpoints', () => {
    * These answer 501 on purpose: no provider is selected and no merchant
    * credentials exist. A plausible-looking success here is how a build gets
    * mistaken for a live integration, so the refusal is the feature.
+   *
+   * There is a whole adapter behind the refusal now — `tests/payments.test.ts`
+   * drives it with a sandbox provider switched on. These stay because they are
+   * the statement about *this* deployment, with nothing configured, which is
+   * the state it actually ships in.
    */
+  const anyRequest = (body: unknown = {}) =>
+    new Request('http://localhost/api/payments', { method: 'POST', body: JSON.stringify(body) });
+
   it('refuse to create a payment intent', async () => {
-    const response = await intentRoute();
+    const response = await intentRoute(anyRequest({ orderId: 'O-1' }));
     expect(response.status).toBe(501);
 
     const body = await bodyOf<{ error: string }>(response);
@@ -120,11 +128,11 @@ describe('the payment endpoints', () => {
   });
 
   it('refuse to accept a webhook', async () => {
-    expect((await webhookRoute()).status).toBe(501);
+    expect((await webhookRoute(anyRequest())).status).toBe(501);
   });
 
   it('never answer as though a payment had succeeded', async () => {
-    const body = JSON.stringify(await bodyOf(await intentRoute()));
+    const body = JSON.stringify(await bodyOf(await intentRoute(anyRequest({ orderId: 'O-1' }))));
     expect(body).not.toMatch(/"(status|state)"\s*:\s*"(succeeded|paid|authorised|authorized)"/i);
   });
 });

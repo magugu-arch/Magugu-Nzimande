@@ -119,6 +119,31 @@ describe('a state file written by something else', () => {
     expect(state.audit.length).toBeGreaterThan(0);
     expect(state.orders).toEqual([]);
   });
+
+  /**
+   * The half of the upgrade path a top-level spread does not cover.
+   *
+   * A spread fills in a key the file has never heard of. It does nothing for a
+   * key the file *has* but only part of: a file written before appliedEvents
+   * existed carries a payments object, so the spread keeps that one whole and
+   * the list that stops a redelivered callback settling an order twice comes
+   * back undefined. Merged a level deeper for exactly this.
+   */
+  it('fills in a field inside a group the older shape half-wrote', () => {
+    writeRawState(JSON.stringify({ payments: { intents: [] } }));
+
+    const { payments } = readState();
+    expect(payments.intents).toEqual([]);
+    expect(payments.appliedEvents, 'the half that was missing').toEqual([]);
+  });
+
+  it('does the same for a half-written console lock', () => {
+    writeRawState(JSON.stringify({ consoleLock: { failures: 3 } }));
+
+    const { consoleLock } = readState();
+    expect(consoleLock.failures).toBe(3);
+    expect(consoleLock.lockedUntil).toBeNull();
+  });
 });
 
 describe('a state file that cannot be written', () => {

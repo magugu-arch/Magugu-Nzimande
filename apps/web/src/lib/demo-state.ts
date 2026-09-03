@@ -2,7 +2,7 @@ import { readFileSync, renameSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PRODUCTS } from '@bbq/seed';
-import type { Order, ServiceMode } from '@bbq/types';
+import type { Order, PaymentIntent, ServiceMode } from '@bbq/types';
 
 /**
  * The stand-in for Postgres, until /services/api exists.
@@ -33,6 +33,13 @@ export type DemoState = {
    * a lockout is five attempts *per worker*.
    */
   consoleLock: { failures: number; lockedUntil: string | null };
+  /**
+   * Payment intents, and the ids of the provider events already applied to
+   * them. The second list is what stops a redelivered callback settling an
+   * order twice, so it is state rather than a cache and belongs in the file
+   * every worker reads.
+   */
+  payments: { intents: PaymentIntent[]; appliedEvents: string[] };
 };
 
 /**
@@ -54,6 +61,7 @@ function seed(): DemoState {
     orders: [],
     sequence: 0,
     consoleLock: { failures: 0, lockedUntil: null },
+    payments: { intents: [], appliedEvents: [] },
     audit: [
       {
         at: new Date().toISOString(),
@@ -72,7 +80,22 @@ export function readState(): DemoState {
   try {
     const raw = readFileSync(stateFile(), 'utf8');
     const parsed = JSON.parse(raw) as Partial<DemoState>;
-    return { ...seed(), ...parsed };
+    const base = seed();
+
+    return {
+      ...base,
+      ...parsed,
+      // The nested groups are merged a level deeper rather than replaced.
+      //
+      // A spread fills in a key the file has never heard of, which is what
+      // makes an older deployment's file readable by a newer one. It does
+      // nothing for a key the file *does* have but only half of: a file written
+      // when payments held only intents would replace the whole group and take
+      // appliedEvents with it, and the list that stops a redelivered callback
+      // settling an order twice would come back undefined.
+      consoleLock: { ...base.consoleLock, ...parsed.consoleLock },
+      payments: { ...base.payments, ...parsed.payments },
+    };
   } catch {
     // Missing or unreadable on the first request of a fresh deployment.
     return seed();

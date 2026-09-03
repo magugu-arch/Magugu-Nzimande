@@ -9,6 +9,8 @@ import { POST as createOrderRoute } from '@/app/api/orders/route';
 import { POST as signInRoute } from '@/app/api/admin/session/route';
 import { SESSION_COOKIE } from '@/lib/admin-auth';
 import { mutateState } from '@/lib/demo-state';
+import { signBody } from '@/lib/payments/provider';
+import { SANDBOX_SIGNATURE_HEADER } from '@/lib/payments/sandbox-provider';
 
 /**
  * Shared fixtures for the route-level suites.
@@ -323,6 +325,94 @@ export function blankState(): void {
     state.orders = [];
     state.sequence = 0;
     state.audit = [];
+    state.payments = { intents: [], appliedEvents: [] };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Payments
+// ---------------------------------------------------------------------------
+
+/**
+ * The sandbox gateway's shared secret, for tests that sign a callback.
+ *
+ * A literal rather than a random value: a signature test whose secret changes
+ * per run cannot be told apart from a signature test that is simply broken.
+ */
+export const PAYMENT_SECRET = 'sandbox-signing-secret';
+
+/**
+ * Switches the sandbox provider on for the duration of a block.
+ *
+ * Both variables or neither — the registry treats a named provider with no
+ * secret as no provider at all, and a test that sets only one is testing that
+ * rule rather than the one it meant to.
+ */
+function setEnv(key: 'BBQ_PAYMENT_PROVIDER' | 'BBQ_PAYMENT_SECRET', value?: string): void {
+  if (value === undefined) delete process.env[key];
+  else process.env[key] = value;
+}
+
+async function withPaymentEnv<T>(
+  name: string | undefined,
+  secret: string | undefined,
+  run: () => T | Promise<T>,
+): Promise<T> {
+  const before = {
+    name: process.env.BBQ_PAYMENT_PROVIDER,
+    secret: process.env.BBQ_PAYMENT_SECRET,
+  };
+
+  setEnv('BBQ_PAYMENT_PROVIDER', name);
+  setEnv('BBQ_PAYMENT_SECRET', secret);
+
+  try {
+    return await run();
+  } finally {
+    setEnv('BBQ_PAYMENT_PROVIDER', before.name);
+    setEnv('BBQ_PAYMENT_SECRET', before.secret);
+  }
+}
+
+export async function withPaymentProvider<T>(
+  run: () => T | Promise<T>,
+  config: { name?: string; secret?: string } = {},
+): Promise<T> {
+  return withPaymentEnv(config.name ?? 'sandbox', config.secret ?? PAYMENT_SECRET, run);
+}
+
+/**
+ * The state this deployment is actually in.
+ *
+ * A separate helper rather than `withPaymentProvider({ name: undefined })`,
+ * because an options object cannot tell "leave it out" from "I did not say" —
+ * the `??` default would quietly switch the provider back on and the test would
+ * pass for the wrong reason.
+ */
+export async function withoutPaymentProvider<T>(run: () => T | Promise<T>): Promise<T> {
+  return withPaymentEnv(undefined, undefined, run);
+}
+
+/**
+ * A callback signed the way the sandbox provider signs, so a test drives the
+ * real verification rather than reaching past it.
+ */
+export function signedWebhook(event: Record<string, unknown>, secret = PAYMENT_SECRET): Request {
+  const rawBody = JSON.stringify(event);
+  return new Request('http://localhost/api/payments/webhook', {
+    method: 'POST',
+    headers: { [SANDBOX_SIGNATURE_HEADER]: signBody(rawBody, secret) },
+    body: rawBody,
+  });
+}
+
+/** A callback carrying a signature that is merely plausible. */
+export function forgedWebhook(event: Record<string, unknown>): Request {
+  const rawBody = JSON.stringify(event);
+  return new Request('http://localhost/api/payments/webhook', {
+    method: 'POST',
+    headers: { [SANDBOX_SIGNATURE_HEADER]: 'f'.repeat(64) },
+    body: rawBody,
   });
 }
 
