@@ -7,8 +7,9 @@ Companion to [`IMPLEMENTATION_AUDIT.md`](./IMPLEMENTATION_AUDIT.md), which was
 written before the work and says what was wrong. This one says where it now
 stands and what a person has to do next.
 
-**Verified on this branch:** 49 suites, 820 tests passing · `tsc --noEmit` clean ·
-`eslint .` clean.
+**Verified on this branch:** 49 suites, all passing · `tsc --noEmit` clean ·
+`eslint .` clean. Run `npm test` for the test total — it moves with every case
+anybody adds, so it is not written down here where it would go stale.
 
 ---
 
@@ -114,9 +115,14 @@ Plus the 761 that were already passing. Nothing was skipped or relaxed to get
 here.
 
 **`__tests__/docsAccuracy.test.ts` is worth knowing about**: it reads the counts
-out of `README.md` and `HANDOVER.md` and compares them against the repository.
-It caught this branch's own handover going stale at 45 suites. If a documented
-number is wrong, the suite fails.
+out of `README.md`, `HANDOVER.md` and this document, and compares them against
+the repository. It has already caught this branch's own handover going stale —
+a suite count four behind the tree — and, when this document was added to it,
+one here too. If a documented number is wrong, the suite fails.
+
+The website has its own, `apps/web/tests/docs-accuracy.test.ts`, which holds the
+web README's endpoint list against the route files in both directions: a route
+nobody documented, and a documented route that no longer exists.
 
 ---
 

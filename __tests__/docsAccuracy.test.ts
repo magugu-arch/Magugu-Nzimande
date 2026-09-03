@@ -22,6 +22,12 @@ const read = (file: string) => fs.readFileSync(path.join(root, file), 'utf8');
 
 const README = read('README.md');
 const HANDOVER = read('HANDOVER.md');
+/**
+ * The readiness document counts suites too, and nothing was checking it. It is
+ * the document somebody reads to decide whether to ship, which makes a stale
+ * number in it more expensive than the same number in the README.
+ */
+const READINESS = read('RELEASE_READINESS.md');
 
 /** Every number written next to `label` in either document, with its source. */
 function claimed(pattern: RegExp): { where: string; value: number }[] {
@@ -29,6 +35,7 @@ function claimed(pattern: RegExp): { where: string; value: number }[] {
   for (const [where, text] of [
     ['README.md', README],
     ['HANDOVER.md', HANDOVER],
+    ['RELEASE_READINESS.md', READINESS],
   ] as const) {
     for (const match of text.matchAll(pattern)) {
       const digits = match[1];
@@ -72,6 +79,7 @@ describe('the counts in the docs, against the repository', () => {
   it('read both documents and the repository, rather than nothing', () => {
     expect(README.length).toBeGreaterThan(5_000);
     expect(HANDOVER.length).toBeGreaterThan(5_000);
+    expect(READINESS.length).toBeGreaterThan(5_000);
     expect(appRoutes().length).toBeGreaterThan(20);
     expect(testSuites().length).toBeGreaterThan(20);
     expect(sweptRoutes().length).toBeGreaterThan(20);

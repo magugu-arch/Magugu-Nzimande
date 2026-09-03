@@ -99,8 +99,12 @@ GET/POST/DELETE /api/account/session   who am I, sign in, sign out
 GET/POST/DELETE /api/account/addresses the customer's address book
 GET  /api/account/orders           this customer's orders, and nobody else's
 GET/DELETE /api/account/privacy    POPIA access and erasure
+POST/PUT /api/account/reset        ask for a reset code, then spend it
+POST /api/couriers/webhook         signed courier status callback
+POST /api/notifications/webhook    signed bounce and complaint callback
 GET  /api/health                   uptime check, and what is configured
-GET/POST /api/admin/*              operations console: availability, services, orders
+GET/POST /api/admin/*              operations console: availability, services,
+                                   orders, and the Problems tab's two actions
 ```
 
 Order states run `received`, `preparing`, `ready`, `out_for_delivery`,
@@ -351,8 +355,17 @@ memory, because the server runs several worker processes and they have to
 agree. It is a stopgap for Postgres: two operators writing in the same instant
 can still lose an edit.
 
-Password reset, which needs a messaging provider to reach an inbox. Real
-production monitoring beyond the health endpoint. And the legal review behind
-the POPIA endpoints — the access and erasure paths exist and are tested, but a
-lawyer still has to write the policy, set the retention periods and name the
-information officer.
+Real production monitoring beyond the health endpoint. And the legal review
+behind the POPIA endpoints — the access and erasure paths exist and are tested,
+but a lawyer still has to write the policy, set the retention periods and name
+the information officer.
+
+Password reset is built and reachable, and is listed here only for what it
+still needs: a messaging provider account, so the code reaches an inbox rather
+than the audit log. The same is true of the payment journey — checkout opens a
+payment and hands the customer to the gateway, and what is missing is merchant
+credentials, not code.
+
+Every catalogue price is a placeholder carrying `[CONFIRM]`. Nothing
+customer-facing can go live until the client supplies the real ones, and none
+have been invented here.
