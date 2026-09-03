@@ -108,6 +108,15 @@ export const OrderSchema = z.object({
   totals: OrderTotalsSchema,
   promoCode: z.string().min(1).nullable(),
   address: z.string().min(1).nullable(),
+  /**
+   * The suburb, kept rather than only checked.
+   *
+   * It was collected at checkout, used to decide whether the chosen store
+   * delivers there, and then dropped — the same way the customer was. A courier
+   * cannot be dispatched to a street address with no suburb, and the first time
+   * anybody noticed would have been the first real delivery.
+   */
+  suburb: z.string().min(1).nullable().default(null),
   kitchenNote: z.string(),
   pointsEarned: z.number().int().nonnegative(),
 });

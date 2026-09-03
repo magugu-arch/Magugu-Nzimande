@@ -39,6 +39,7 @@ export function createOrder(request: CreateOrderRequest, accountId: string | nul
       totals,
       promoCode: request.promoCode,
       address: request.mode === 'Delivery' ? (request.address ?? null) : null,
+      suburb: request.mode === 'Delivery' ? (request.suburb ?? null) : null,
       kitchenNote: request.kitchenNote,
       pointsEarned: pointsFor(totals.totalCents),
     };

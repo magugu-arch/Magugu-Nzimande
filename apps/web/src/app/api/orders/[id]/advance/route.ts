@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { advanceOrder, labelFor } from '@/lib/order-store';
 import { notifyMoved } from '@/lib/notifications/send';
+import { requestCourier } from '@/lib/fulfilment/handoff';
+import { activeCourier } from '@/lib/fulfilment/registry';
 
 /**
  * POST /api/orders/:id/advance — move an order to its next state.
@@ -19,6 +21,7 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
   // Telling a customer four times about one order is how they stop reading the
   // one that matters.
   await notifyMoved(order);
+  if (order.status === 'ready') await requestCourier(order, activeCourier());
 
   return NextResponse.json({ order, statusLabel: labelFor(order) });
 }

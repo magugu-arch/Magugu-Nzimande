@@ -4,6 +4,8 @@ import { refuseUnlessOperator } from '@/lib/admin-auth';
 import { readAudit } from '@/lib/catalogue-state';
 import { labelFor, listOrders, setOrderStatus } from '@/lib/order-store';
 import { notifyMoved } from '@/lib/notifications/send';
+import { requestCourier } from '@/lib/fulfilment/handoff';
+import { activeCourier } from '@/lib/fulfilment/registry';
 
 /** GET /api/admin/orders — the queue, plus the audit log. */
 export function GET(request: Request) {
@@ -45,6 +47,12 @@ export async function POST(request: Request) {
   }
 
   await notifyMoved(order);
+
+  // A driver is asked for when the kitchen marks it ready, not when the order
+  // is placed: a courier standing in a shop watching chicken fry is a courier
+  // Uber charges for. requestCourier is a no-op for a collection order and for
+  // one already handed off.
+  if (order.status === 'ready') await requestCourier(order, activeCourier());
 
   return NextResponse.json({
     orders: listOrders().map((candidate) => ({ ...candidate, statusLabel: labelFor(candidate) })),

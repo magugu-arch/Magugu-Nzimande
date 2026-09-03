@@ -53,6 +53,7 @@ const anOrder = () => ({
   },
   promoCode: null,
   address: null,
+  suburb: null,
   kitchenNote: '',
   pointsEarned: 1,
 });

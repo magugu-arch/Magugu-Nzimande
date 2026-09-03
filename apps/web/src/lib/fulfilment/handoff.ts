@@ -132,6 +132,22 @@ export function handoffFor(orderId: string, kind: HandoffKind): HandoffRecord | 
 }
 
 /**
+ * The order a provider's own reference belongs to.
+ *
+ * The reverse lookup a courier callback needs. It exists so a webhook can find
+ * its order from the delivery id we recorded when we asked for the driver,
+ * rather than from an id in the request body — the recorded handoff is the
+ * stronger link of the two, because we wrote it.
+ */
+export function orderIdForReference(kind: HandoffKind, reference: string): string | null {
+  return (
+    readState().fulfilment.handoffs.find(
+      (record) => record.kind === kind && record.reference === reference,
+    )?.orderId ?? null
+  );
+}
+
+/**
  * Availability as the till sees it.
  *
  * Returns false when the POS could not be reached, and the caller is expected
