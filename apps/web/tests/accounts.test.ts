@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { POST as registerRoute } from '@/app/api/account/route';
 import {
@@ -20,6 +22,8 @@ import { CUSTOMER_COOKIE, accountIdFrom, mintSession } from '@/lib/accounts/sess
 import { ABSENT_ACCOUNT_HASH, hashPassword, verifyPassword } from '@/lib/accounts/passwords';
 import { authenticate, findByEmail } from '@/lib/accounts/store';
 import { readState } from '@/lib/demo-state';
+import { readOrder, setOrderStatus } from '@/lib/order-store';
+import type { Order } from '@bbq/types';
 import {
   aProduct,
   blankState,
@@ -450,7 +454,14 @@ describe('the order itself', () => {
     expect(order.customer.email).toBe(customer.email);
   });
 
-  it('earns points onto the account rather than the browser', async () => {
+  /**
+   * Points post when the order completes, not when it is placed.
+   *
+   * They used to be credited at placement, which meant a signed-in customer
+   * could place an order, take the points and cancel it — and it contradicted
+   * the rewards page, which says points post once an order is completed.
+   */
+  it('does not credit points for an order that has only been placed', async () => {
     await withAccounts(async () => {
       const { cookie, id } = await registerCustomer();
       await createOrderRoute(
@@ -458,8 +469,67 @@ describe('the order itself', () => {
       );
 
       expect(findByEmail(customer.email)?.id).toBe(id);
-      expect(findByEmail(customer.email)?.points).toBeGreaterThan(0);
+      expect(findByEmail(customer.email)?.points).toBe(0);
     });
+  });
+
+  it('posts them onto the account when the order completes', async () => {
+    await withAccounts(async () => {
+      const { cookie } = await registerCustomer();
+      const placed = await bodyOf<{ order: Order }>(
+        await createOrderRoute(
+          request('/api/orders', { cookie, body: orderRequest([orderLine(aProduct())]) }),
+        ),
+      );
+
+      setOrderStatus(placed.order.id, 'completed');
+
+      expect(findByEmail(customer.email)?.points).toBe(placed.order.pointsEarned);
+      expect(readOrder(placed.order.id)?.pointsPostedAt).not.toBeNull();
+    });
+  });
+
+  /** The loop this closes: place, take the points, cancel, keep them. */
+  it('posts nothing for an order that was cancelled', async () => {
+    await withAccounts(async () => {
+      const { cookie } = await registerCustomer();
+      const placed = await bodyOf<{ order: Order }>(
+        await createOrderRoute(
+          request('/api/orders', { cookie, body: orderRequest([orderLine(aProduct())]) }),
+        ),
+      );
+
+      setOrderStatus(placed.order.id, 'cancelled', 'The customer changed their mind');
+
+      expect(findByEmail(customer.email)?.points).toBe(0);
+    });
+  });
+
+  /** An operator can set a completed order to completed again. */
+  it('does not post the same order twice', async () => {
+    await withAccounts(async () => {
+      const { cookie } = await registerCustomer();
+      const placed = await bodyOf<{ order: Order }>(
+        await createOrderRoute(
+          request('/api/orders', { cookie, body: orderRequest([orderLine(aProduct())]) }),
+        ),
+      );
+
+      setOrderStatus(placed.order.id, 'completed');
+      setOrderStatus(placed.order.id, 'completed');
+
+      expect(findByEmail(customer.email)?.points).toBe(placed.order.pointsEarned);
+    });
+  });
+
+  /** A guest has no account for them to land on. */
+  it('posts nothing for a guest, and does not fall over trying', async () => {
+    const placed = await bodyOf<{ order: Order }>(
+      await createOrderRoute(request('/api/orders', { body: orderRequest([orderLine(aProduct())]) })),
+    );
+
+    setOrderStatus(placed.order.id, 'completed');
+    expect(readOrder(placed.order.id)?.pointsPostedAt).toBeNull();
   });
 });
 
@@ -521,5 +591,29 @@ describe('a data-subject request', () => {
 
       expect(response.headers.get('set-cookie')).toMatch(/Max-Age=0/);
     });
+  });
+});
+
+describe('the rewards page shows one balance', () => {
+  const source = (file: string) => readFileSync(path.resolve(__dirname, '../src', file), 'utf8');
+
+  /**
+   * There were two numbers for the same thing: the rewards page counted this
+   * browser's completed orders under the heading "your balance", while the
+   * account page showed the figure the server keeps. They disagree for anybody
+   * signed in, and on a new phone the browser's answer is zero.
+   */
+  it('reads the account on the server rather than counting in the browser', () => {
+    const page = source('app/rewards/page.tsx');
+    expect(page).toContain('currentAccountFromCookies');
+    expect(page).toContain('accountPoints');
+    // Prerendering it would bake one visitor's balance into the markup.
+    expect(page).toContain("dynamic = 'force-dynamic'");
+  });
+
+  it('labels the device-local figure as such rather than calling it the balance', () => {
+    const balance = source('components/rewards/RewardsBalance.tsx');
+    expect(balance).toContain('On this device');
+    expect(balance).toContain('accountPoints');
   });
 });

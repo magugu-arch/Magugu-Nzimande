@@ -5,18 +5,43 @@ import { useOrdering } from '@/components/ordering/OrderingProvider';
 import { pointsFor } from '@/lib/pricing';
 
 /**
- * The points balance, built from orders actually placed in this browser rather
- * than a seeded number, so the ladder moves as the journey is walked through.
+ * The points balance.
+ *
+ * Two sources, and which one is right depends on whether there is an account.
+ *
+ * It used to count this browser's completed orders and call the result "your
+ * balance", while the account page showed the number the server keeps. For a
+ * signed-in customer those disagree — and on a phone they have not ordered
+ * from, the browser's answer is zero under a heading promising every rand earns
+ * a point. So a signed-in customer is shown their account, and a guest is shown
+ * this device with the label saying so.
+ *
+ * @param accountPoints The signed-in balance, or null for a guest.
  */
-export function RewardsBalance({ rewards }: { rewards: readonly Reward[] }) {
+export function RewardsBalance({
+  rewards,
+  accountPoints = null,
+}: {
+  rewards: readonly Reward[];
+  accountPoints?: number | null;
+}) {
   const { orders, hydrated } = useOrdering();
+  const signedIn = accountPoints !== null;
 
-  const points = hydrated
+  const onThisDevice = hydrated
     ? orders
         .filter((order) => order.status === 'completed')
         .reduce((total, order) => total + pointsFor(order.totals.totalCents), 0)
     : 0;
 
+  const points = signedIn ? accountPoints : onThisDevice;
+
+  /**
+   * Orders still being made. Only ever this browser's: the server knows a
+   * signed-in customer's outstanding orders too, but a number that mixed one
+   * device's pending with the account's posted would be a third figure
+   * agreeing with neither.
+   */
   const pending = hydrated
     ? orders
         .filter((order) => order.status !== 'completed' && order.status !== 'cancelled')
@@ -26,13 +51,24 @@ export function RewardsBalance({ rewards }: { rewards: readonly Reward[] }) {
   return (
     <>
       <div className="mt-8 rounded-lg bg-black p-6 text-white sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-gold">Your balance</p>
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-gold">
+          {signedIn ? 'Your balance' : 'On this device'}
+        </p>
         <p className="tabular display mt-2 text-6xl">{points.toLocaleString('en-ZA')}</p>
         <p className="mt-1 text-sm text-white/60">
           points
           {pending > 0 && ` · ${pending.toLocaleString('en-ZA')} pending on orders in progress`}
         </p>
-        {points === 0 && pending === 0 && (
+        {!signedIn && (
+          <p className="mt-4 max-w-[46ch] text-sm text-white/70">
+            These are the orders this browser remembers.{' '}
+            <a href="/account" className="underline">
+              Sign in
+            </a>{' '}
+            and your points follow you to any phone.
+          </p>
+        )}
+        {signedIn && points === 0 && pending === 0 && (
           <p className="mt-4 max-w-[46ch] text-sm text-white/70">
             Nothing yet. Points post when an order reaches its last step, so place one and watch
             it land here.

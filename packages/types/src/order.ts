@@ -135,6 +135,20 @@ export const OrderSchema = z.object({
   postalCode: z.string().regex(/^\d{4}$/).nullable().default(null),
   kitchenNote: z.string(),
   pointsEarned: z.number().int().nonnegative(),
+  /**
+   * When the points actually landed on an account, or null.
+   *
+   * Separate from `pointsEarned`, which is what this order is worth — a
+   * number known the moment it is priced. This is whether anybody has been
+   * given them, and it exists because the two were being confused: points were
+   * credited when the order was placed, so a signed-in customer could place an
+   * order, take the points, cancel it and keep them, while the rewards page
+   * promised they post on completion.
+   *
+   * Null for a guest's order forever. There is no account for them to land on,
+   * and a guest's balance is whatever this browser remembers.
+   */
+  pointsPostedAt: z.string().nullable().default(null),
 });
 export type Order = z.infer<typeof OrderSchema>;
 

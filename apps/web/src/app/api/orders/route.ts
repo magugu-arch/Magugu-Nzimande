@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { deliversTo, findStore, servesMode } from '@/lib/catalogue-state';
 import { repriceLines } from '@/lib/order-integrity';
 import { currentAccount } from '@/lib/accounts/session';
-import { awardPoints } from '@/lib/accounts/store';
 import { createOrder } from '@/lib/order-store';
 import { notifyPlaced } from '@/lib/notifications/send';
 import { findPromotion, totalsFor } from '@/lib/pricing';
@@ -84,10 +83,18 @@ export async function POST(request: Request) {
   const account = currentAccount(request);
   const created = createOrder({ ...order, lines }, account?.id ?? null);
 
-  // Points follow the account rather than the browser, so they survive a new
-  // phone. A guest earns none, and the response says so rather than promising
-  // points that have nowhere to land.
-  if (account) awardPoints(account.id, created.pointsEarned);
+  /**
+   * Points are deliberately not credited here.
+   *
+   * They post when the order completes, in `postPoints` inside the order store.
+   * Crediting them at placement meant a signed-in customer could place an
+   * order, take the points and cancel it — and it contradicted the rewards
+   * page, which says points post once an order is completed.
+   *
+   * They still follow the account rather than the browser, so they survive a
+   * new phone; a guest earns none, because there is no account for them to
+   * land on.
+   */
 
   // Awaited, but it cannot fail the order: `notifyPlaced` records what it could
   // not send and returns. The food is already being made by this point, and a

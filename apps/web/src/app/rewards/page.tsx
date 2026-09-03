@@ -1,17 +1,30 @@
 import { REWARDS_RULES } from '@bbq/seed';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { ButtonLink } from '@/components/ui/Button';
 import { DemoFlag, DemoNotice } from '@/components/ui/DemoValue';
 import { api } from '@/lib/api';
 import { RewardsBalance } from '@/components/rewards/RewardsBalance';
+import { currentAccountFromCookies } from '@/lib/accounts/session';
+
+/**
+ * Rendered per request, so a signed-in customer sees their own balance.
+ *
+ * The page was prerendered and the balance was counted in the browser, which
+ * meant the number under "your balance" was whatever orders that device
+ * remembered — zero on a phone they had not ordered from, and a different
+ * figure from the one on their account page.
+ */
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Rewards',
   description: 'Earn a point for every rand spent, on delivery, collection and dine-in.',
 };
 
-export default function RewardsPage() {
+export default async function RewardsPage() {
   const { rewards } = api.getRewards();
+  const account = await currentAccountFromCookies(cookies);
 
   return (
     <div className="mx-auto w-full max-w-[1240px] px-5 py-10">
@@ -30,7 +43,7 @@ export default function RewardsPage() {
         <DemoFlag />
       </p>
 
-      <RewardsBalance rewards={rewards} />
+      <RewardsBalance rewards={rewards} accountPoints={account?.points ?? null} />
 
       <section className="mt-12">
         <h2 className="display text-2xl">Tiers</h2>

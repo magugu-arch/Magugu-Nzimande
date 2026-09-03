@@ -129,12 +129,15 @@ export function removeAddress(accountId: string, addressId: string): boolean {
   });
 }
 
-export function awardPoints(accountId: string, points: number): void {
-  mutateState((state) => {
-    const account = state.accounts.find((candidate) => candidate.id === accountId);
-    if (account) account.points += points;
-  });
-}
+/*
+ * There is deliberately no `awardPoints` here.
+ *
+ * There was, and it credited an account in its own state mutation. Points are
+ * now posted by `postPoints` in the order store, inside the same mutation that
+ * stamps the order as posted — so the credit and the record that it happened
+ * cannot come apart, and there is no second way to hand out points for a
+ * future caller to reach for.
+ */
 
 /**
  * Everything held about one person, for a POPIA access request.

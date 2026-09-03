@@ -7,7 +7,7 @@ import {
   type OrderState,
   type OrderStatus,
 } from '@bbq/types';
-import { mutateState, pushAudit, readState } from './demo-state';
+import { mutateState, pushAudit, readState, type DemoState } from './demo-state';
 import { pointsFor, totalsFor } from './pricing';
 
 /**
@@ -43,6 +43,9 @@ export function createOrder(request: CreateOrderRequest, accountId: string | nul
       postalCode: request.mode === 'Delivery' ? (request.postalCode ?? null) : null,
       kitchenNote: request.kitchenNote,
       pointsEarned: pointsFor(totals.totalCents),
+      // Nothing has landed yet. Points post when the order completes; see
+      // `postPoints` below.
+      pointsPostedAt: null,
     };
 
     state.orders.unshift(order);
@@ -88,11 +91,48 @@ export function advanceOrder(id: string): Order | null {
     const next = states[position + 1];
     if (!next) return order;
 
-    const updated: Order = { ...order, status: next };
+    const updated = postPoints(state, { ...order, status: next });
     state.orders[index] = updated;
     pushAudit(state, 'kitchen', `Order ${order.orderNumber} moved to ${labelFor(updated)}`);
     return updated;
   });
+}
+
+/**
+ * Credits an order's points to its account, the first time it completes.
+ *
+ * Here rather than in the routes because there are two ways an order reaches
+ * its last state — the kitchen advancing it and an operator setting it — and a
+ * rule enforced in both places is a rule enforced in neither once a third
+ * caller appears.
+ *
+ * Three things it will not do, each of which was a way to get points for
+ * nothing:
+ *
+ *  - Post for an order that is not completed. They were credited at placement,
+ *    which meant placing an order, taking the points and cancelling it left the
+ *    points behind — and contradicted the rewards page, which says they post
+ *    when the order completes.
+ *  - Post twice. An operator can set a completed order to completed again.
+ *  - Post for a guest. There is no account to put them on.
+ */
+function postPoints(state: DemoState, order: Order): Order {
+  if (order.status !== 'completed') return order;
+  if (order.pointsPostedAt !== null) return order;
+  if (!order.accountId) return order;
+
+  const account = state.accounts.find((candidate) => candidate.id === order.accountId);
+  // An account erased under POPIA between placing and collecting. The order
+  // stands as a sales record; there is nobody left to credit.
+  if (!account) return order;
+
+  account.points += order.pointsEarned;
+  pushAudit(
+    state,
+    'customer',
+    `${order.pointsEarned} points posted for ${order.orderNumber}`,
+  );
+  return { ...order, pointsPostedAt: new Date().toISOString() };
 }
 
 export function setOrderStatus(id: string, status: OrderStatus, reason?: string): Order | null {
@@ -103,11 +143,11 @@ export function setOrderStatus(id: string, status: OrderStatus, reason?: string)
     const order = state.orders[index];
     if (!order) return null;
 
-    const updated: Order = {
+    const updated = postPoints(state, {
       ...order,
       status,
       cancelledReason: status === 'cancelled' ? (reason ?? null) : null,
-    };
+    });
     state.orders[index] = updated;
     pushAudit(
       state,
