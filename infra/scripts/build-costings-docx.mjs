@@ -182,7 +182,7 @@ const rule = () =>
 
 // ---------------------------------------------------------------------------
 // The measured facts. Everything numeric below was read out of the repository
-// at commit c97b043, not estimated.
+// at commit 06d39ae, not estimated.
 // ---------------------------------------------------------------------------
 
 const RATE = 950; // the illustrative blended rate the worked example uses
@@ -211,6 +211,7 @@ const workstreams = [
   ['17', 'Concurrent-write safety', 'Cross-process lock closing the read-modify-write race the JSON store shipped with, proved by four real worker processes and an unlocked control', 6],
   ['18', 'Accessibility and deployment', 'WCAG contrast maths with the palette pairings held to it, static scans of markup and components, environment template checked against the code in both directions', 7],
   ['19', 'Database schema and password reset', 'The Postgres migration the JSON store stands in for, checked against the state shape by test; reset tokens stored as hashes, single-use, and answering identically for an address nobody has', 7],
+  ['20', 'Structured logging', 'One JSON object per event, redacting by field name and walking nested objects, with personal data reduced rather than dropped', 3],
 ];
 
 const remaining = [
@@ -220,7 +221,7 @@ const remaining = [
   ['Persistent database', 'Provisioning a server and moving to it. The migration is written and checked against the state shape; concurrent-write safety is done', 3, 'Managed database hosting'],
   ['Messaging adapter', 'One adapter against the notification seam, sender identities, deliverability', 3, 'Per-message cost'],
   ['Privacy policy and legal review', 'Retention periods, consent copy, information officer; the endpoints exist and are tested', 2, 'Legal review'],
-  ['Production monitoring and rollback', 'Error tracking and structured logging on top of the health endpoint, and a tested rollback path', 3, 'Tooling subscription'],
+  ['Production monitoring and rollback', 'An error-tracking service on top of the health endpoint and the structured logs, and a tested rollback path', 2, 'Tooling subscription'],
   ['Deployment, domain, CDN and certificates', 'Production environment, secrets management, release pipeline', 3, 'Hosting and domain'],
   ['Food photography integration', 'Replacing the twelve comped items with the commissioned shoot', 3, 'Shoot, stylist, studio'],
   ['Accessibility audit with a person', 'A screen-reader pass and Core Web Vitals against the deployed build. The contrast maths and the static scans are done, and neither replaces somebody using it', 3, '\u2014'],
@@ -330,7 +331,7 @@ const doc = new Document({
             ['Prepared by', 'Totality Creative'],
             ['Date', '3 September 2026'],
             ['Subject', 'The bb.q Chicken South Africa ordering website as built on branch claude/bbq-chicken-website-4qzv8i'],
-            ['Commit audited', 'c97b043'],
+            ['Commit audited', '06d39ae'],
             ['Status of the build', 'Every integration seam built and tested against a stand-in; no vendor attached, and not deployed to production'],
             ['Status of this document', 'Draft for internal review — the hourly rate is an input, not an approved figure'],
           ],
@@ -387,7 +388,7 @@ const doc = new Document({
             ['API endpoints', '23', 'Catalogue, stores, promotions, rewards, delivery, orders, payments, accounts, privacy, health, admin'],
             ['React components', '30', 'Across 13 feature areas'],
             ['Business-logic modules', '26', 'Pricing, cart, order integrity, order store, trading hours, two authentication boundaries, payments, accounts, notifications, fulfilment'],
-            ['Automated tests', '498', 'In 28 files; all passing'],
+            ['Automated tests', '514', 'In 29 files; all passing'],
             ['Hand-written lines', '19,998', 'Application 8,369 · tests 6,632 · review build 2,241 · data, schema and tooling 2,246 · shared packages 510'],
             ['Generated files', '345', 'Image derivatives and brand assets, rebuilt from masters on every build'],
             ['Commits', '30', 'Each one reviewable on its own'],
@@ -459,7 +460,7 @@ const doc = new Document({
             ['Brand rules', 'Clean', 'Mark spelling, unapproved copy, hex outside the token files'],
             ['Type checking', 'Clean', 'TypeScript strict across the whole workspace'],
             ['Linting', 'Clean', 'ESLint with the Next.js configuration'],
-            ['Tests', '498 passing', '28 files, including four real worker processes racing on one file'],
+            ['Tests', '514 passing', '29 files, including four real worker processes racing on one file'],
             ['Production build', 'Clean', 'Next.js build including asset derivation'],
             ['Review build', '3.83 MB', 'Single file, opens from a link with no server'],
           ],
