@@ -74,6 +74,7 @@ describe('every part of the state has somewhere to live', () => {
       notifications: 'notifications_sent',
       fulfilment: 'fulfilment_handoffs',
       passwordResets: 'password_resets',
+      suppressed: 'email_suppressions',
     };
 
     for (const key of Object.keys(state) as (keyof typeof state)[]) {

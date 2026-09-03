@@ -5,6 +5,7 @@ import { PRODUCTS } from '@bbq/seed';
 import type { Order, PaymentIntent, ServiceMode } from '@bbq/types';
 import type { StoredAccount } from './accounts/store';
 import type { HandoffRecord } from './fulfilment/handoff';
+import type { Suppressed } from './notifications/suppression';
 import { withLock } from './state-lock';
 
 /**
@@ -62,7 +63,16 @@ export type DemoState = {
    * Ids of messages already delivered. What stops a retried request sending a
    * customer the same "on its way" twice.
    */
-  notifications: { sent: string[] };
+  notifications: {
+    sent: string[];
+    /**
+     * Mailgun webhook tokens already acted on. Their signature covers the
+     * timestamp and token rather than the body, so single use is what stops a
+     * captured triple being replayed inside the freshness window — and a replay
+     * guard one worker keeps to itself is not a guard.
+     */
+    webhookTokens: string[];
+  };
   /**
    * Every attempt to hand an order to the kitchen system or a courier, with
    * its outcome. Kept so the end-of-service question — which orders did the
@@ -75,6 +85,12 @@ export type DemoState = {
    * account on it.
    */
   passwordResets: { accountId: string; tokenHash: string; expiresAt: number }[];
+  /**
+   * Addresses we must stop emailing. A hard bounce is a deliverability
+   * obligation; a complaint is a legal one. Both live here; a soft bounce does
+   * not, because a mailbox that was full this morning works this afternoon.
+   */
+  suppressed: Suppressed[];
 };
 
 /**
@@ -98,9 +114,10 @@ function seed(): DemoState {
     consoleLock: { failures: 0, lockedUntil: null },
     payments: { intents: [], appliedEvents: [] },
     accounts: [],
-    notifications: { sent: [] },
+    notifications: { sent: [], webhookTokens: [] },
     fulfilment: { handoffs: [] },
     passwordResets: [],
+    suppressed: [],
     audit: [
       {
         at: new Date().toISOString(),

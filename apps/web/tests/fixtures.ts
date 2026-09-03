@@ -339,7 +339,8 @@ export function blankState(): void {
     state.audit = [];
     state.payments = { intents: [], appliedEvents: [] };
     state.accounts = [];
-    state.notifications = { sent: [] };
+    state.notifications = { sent: [], webhookTokens: [] };
+    state.suppressed = [];
     state.fulfilment = { handoffs: [] };
     state.passwordResets = [];
   });

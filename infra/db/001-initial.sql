@@ -166,6 +166,26 @@ CREATE TABLE payment_events_applied (
 -- Messages and handoffs
 -- ---------------------------------------------------------------------------
 
+-- Addresses we must stop emailing.
+--
+-- The reason is kept and not just the fact: a hard bounce is a deliverability
+-- obligation and reversible, while a complaint is a withdrawal of consent under
+-- POPIA and is not ours to reverse. Collapsing the two loses which.
+CREATE TABLE email_suppressions (
+  address_key   TEXT PRIMARY KEY,
+  address       TEXT NOT NULL,
+  reason        TEXT NOT NULL CHECK (reason IN ('hard-bounce', 'complaint', 'unsubscribed')),
+  at            TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Mailgun webhook tokens already acted on. Their signature covers the timestamp
+-- and token rather than the body, so single use is what stops a captured triple
+-- being replayed inside the freshness window.
+CREATE TABLE email_webhook_tokens (
+  token         TEXT PRIMARY KEY,
+  seen_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE notifications_sent (
   message_id    TEXT PRIMARY KEY,
   sent_at       TIMESTAMPTZ NOT NULL DEFAULT now()

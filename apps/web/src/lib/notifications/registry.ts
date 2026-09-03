@@ -1,5 +1,6 @@
 import { clickatellTransport } from './clickatell';
 import { mailgunTransport, type MailgunRegion } from './mailgun';
+import { isSuppressed } from './suppression';
 import { loggingTransport, type Message, type NotificationTransport } from './transport';
 
 /**
@@ -87,6 +88,23 @@ export function routedTransport(
     get name() {
       return `email:${email?.name ?? 'log'} sms:${sms?.name ?? 'log'}`;
     },
-    deliver: (message) => chosen(message.channel).deliver(message),
+
+    async deliver(message) {
+      /**
+       * Checked here rather than in the Mailgun transport, so it holds whichever
+       * provider is carrying email — including the log. An address that
+       * complained has withdrawn consent, and writing the message to an audit
+       * log instead of sending it is still not honouring that.
+       *
+       * Reported as not-ok so the audit line says the message did not go, and
+       * `send` has already recorded the id — a suppressed address is not
+       * something to retry on the next order.
+       */
+      if (message.channel === 'email' && isSuppressed(message.to)) {
+        return { ok: false, error: 'That address is suppressed' };
+      }
+
+      return chosen(message.channel).deliver(message);
+    },
   };
 }

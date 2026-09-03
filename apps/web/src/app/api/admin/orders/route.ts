@@ -4,10 +4,22 @@ import { refuseUnlessOperator } from '@/lib/admin-auth';
 import { readAudit } from '@/lib/catalogue-state';
 import { labelFor, listOrders, setOrderStatus } from '@/lib/order-store';
 import { notifyMoved } from '@/lib/notifications/send';
-import { requestCourier } from '@/lib/fulfilment/handoff';
+import { requestCourier, unacknowledged } from '@/lib/fulfilment/handoff';
+import { listSuppressed } from '@/lib/notifications/suppression';
 import { activeCourier } from '@/lib/fulfilment/registry';
 
-/** GET /api/admin/orders — the queue, plus the audit log. */
+/**
+ * GET /api/admin/orders — the queue, the audit log, and the two things that
+ * have gone wrong quietly.
+ *
+ * `unacknowledged` is the end-of-service question: which orders did the kitchen
+ * system never accept. It was recorded from the first handoff and displayed
+ * nowhere, which made it a log nobody reads rather than a report.
+ *
+ * `suppressed` is the same shape of problem for email. A customer whose
+ * confirmation bounced never got their order number, and until an operator can
+ * see that, the only symptom is a phone call.
+ */
 export function GET(request: Request) {
   const refusal = refuseUnlessOperator(request);
   if (refusal) return refusal;
@@ -15,6 +27,8 @@ export function GET(request: Request) {
   return NextResponse.json({
     orders: listOrders().map((order) => ({ ...order, statusLabel: labelFor(order) })),
     audit: readAudit(),
+    unacknowledged: unacknowledged(),
+    suppressed: listSuppressed(),
   });
 }
 
@@ -57,5 +71,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     orders: listOrders().map((candidate) => ({ ...candidate, statusLabel: labelFor(candidate) })),
     audit: readAudit(),
+    unacknowledged: unacknowledged(),
+    suppressed: listSuppressed(),
   });
 }
