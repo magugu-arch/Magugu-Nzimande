@@ -465,6 +465,45 @@ export async function withoutPaymentProvider<T>(run: () => T | Promise<T>): Prom
 }
 
 /**
+ * PayFast, configured the way a deployment would be.
+ *
+ * Its own helper because the PayFast branch of the registry needs four more
+ * variables than the sandbox does, and a test that sets two of them gets `null`
+ * back and then passes for the wrong reason — the registry refusing to build a
+ * half-configured provider, which is correct, rather than the thing under test.
+ *
+ * `BBQ_PUBLIC_URL` matters most here: it is what the per-order return and
+ * cancel URLs are built from, so without it the adapter falls back to the
+ * deployment-wide ones and the test would be checking the fallback.
+ */
+export async function withPayfast<T>(
+  run: () => T | Promise<T>,
+  publicUrl = 'https://order.example.test',
+): Promise<T> {
+  const extra = {
+    BBQ_PAYFAST_MERCHANT_ID: '10000100',
+    BBQ_PAYFAST_MERCHANT_KEY: '46f0cd694581a',
+    BBQ_PAYFAST_SANDBOX: 'true',
+    BBQ_PUBLIC_URL: publicUrl,
+  } as const;
+
+  const before = Object.fromEntries(
+    Object.keys(extra).map((key) => [key, process.env[key]]),
+  ) as Record<string, string | undefined>;
+
+  for (const [key, value] of Object.entries(extra)) process.env[key] = value;
+
+  try {
+    return await withPaymentEnv('payfast', PAYMENT_SECRET, run);
+  } finally {
+    for (const [key, value] of Object.entries(before)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+}
+
+/**
  * A callback signed the way the sandbox provider signs, so a test drives the
  * real verification rather than reaching past it.
  */

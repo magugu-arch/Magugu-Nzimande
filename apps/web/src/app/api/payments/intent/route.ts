@@ -1,7 +1,7 @@
 import { CreatePaymentIntentRequestSchema } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import { openIntent, recordProviderRef } from '@/lib/payments/ledger';
-import { activeProvider } from '@/lib/payments/registry';
+import { activeProvider, publicBaseUrl } from '@/lib/payments/registry';
 
 /**
  * POST /api/payments/intent — opens a payment against an order.
@@ -48,11 +48,19 @@ export async function POST(request: Request) {
   }
 
   const { intent } = opened;
+  const base = publicBaseUrl();
+  const journeyPath = `/journey?order=${encodeURIComponent(intent.orderId)}`;
   const result = await provider.createIntent({
     reference: intent.id,
     amountCents: intent.amountCents,
     currency: 'ZAR',
     description: `bb.q Chicken order ${intent.orderNumber}`,
+    // Named here because only this route knows which order is being paid for.
+    // Left undefined when the deployment has no public URL, which sends the
+    // adapter to its own fallback rather than to a relative path a gateway
+    // would resolve against its own domain.
+    returnUrl: base ? `${base}${journeyPath}&payment=done` : undefined,
+    cancelUrl: base ? `${base}${journeyPath}&payment=cancelled` : undefined,
   });
 
   if (!result.ok) {

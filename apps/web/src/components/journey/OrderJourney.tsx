@@ -1,15 +1,22 @@
 'use client';
 
-import { completedLabel, statesForMode, type Order, type OrderState } from '@bbq/types';
+import {
+  completedLabel,
+  kitchenMayStart,
+  statesForMode,
+  type Order,
+  type OrderPayment,
+  type OrderState,
+} from '@bbq/types';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FoodImage } from '@/components/food/FoodImage';
 import { useOrdering } from '@/components/ordering/OrderingProvider';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { DemoFlag } from '@/components/ui/DemoValue';
 import { Price } from '@/components/ui/Price';
 import { describeOptions } from '@/lib/cart';
-import { advanceOrder } from '@/lib/client-api';
+import { advanceOrder, fetchOrder, openPayment } from '@/lib/client-api';
 
 const MESSAGES: Record<OrderState, string> = {
   received: 'We have your order and the kitchen has it on the rail.',
@@ -21,14 +28,36 @@ const MESSAGES: Record<OrderState, string> = {
 
 const POLL_MS = 20_000;
 
+/**
+ * Faster while a payment is settling.
+ *
+ * Somebody watching "confirming your payment" is watching it, and the gateway's
+ * notification usually lands within seconds of them getting back here. Twenty
+ * seconds of an unexplained wait is how a customer decides it has failed and
+ * pays again somewhere else.
+ */
+const PAYMENT_POLL_MS = 3_000;
+
 export function OrderJourney() {
   const params = useSearchParams();
   const orderId = params.get('order');
+  const cancelled = params.get('payment') === 'cancelled';
   const { orders, recordOrder, addLine, announce } = useOrdering();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [stepping, setStepping] = useState(false);
+  /**
+   * Null until the server has been asked.
+   *
+   * Deliberately not defaulted to "no payment required": that default would
+   * show a paid-for order as needing nothing during the moment before the first
+   * response arrives, which is exactly the moment a customer coming back from
+   * the gateway is looking at it.
+   */
+  const [payment, setPayment] = useState<OrderPayment | null>(null);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
 
   const tracked = useMemo(
     () => order ?? orders.find((candidate) => candidate.id === orderId) ?? orders[0] ?? null,
@@ -38,38 +67,77 @@ export function OrderJourney() {
   const trackedId = tracked?.id ?? null;
   const trackedStatus = tracked?.status ?? null;
 
+  /**
+   * Whether the kitchen may be moved on. Null payment means "not asked yet",
+   * which is treated as no — nothing should advance on an assumption about
+   * money.
+   */
+  const mayAdvance = payment !== null && kitchenMayStart(payment);
+
   useEffect(() => {
     if (!trackedId) return;
     if (trackedStatus === 'completed' || trackedStatus === 'cancelled') return;
 
-    let cancelled = false;
+    let stopped = false;
     // Captured after the guard above, so the nested closure holds a string
     // rather than reaching back for a value the compiler cannot re-narrow.
     const id = trackedId;
 
     async function poll() {
       try {
-        // Advancing on the tick stands in for a kitchen display system, so the
-        // five states can be watched end to end without one.
-        const result = await advanceOrder(id);
-        if (cancelled) return;
+        /**
+         * Two different polls, and which one runs is the whole point.
+         *
+         * Advancing on the tick stands in for a kitchen display system so the
+         * five states can be watched end to end without one. But an order whose
+         * money has not arrived must not be cooked, so while the payment is
+         * outstanding this only asks what the payment is doing. The server
+         * refuses the advance in that state as well; this keeps the screen from
+         * asking for something it knows will be refused.
+         */
+        const result = mayAdvance ? await advanceOrder(id) : await fetchOrder(id);
+        if (stopped) return;
         setOrder(result.order);
+        setPayment(result.payment);
         recordOrder(result.order);
-        announce(`Order status: ${result.statusLabel}.`);
+        if (mayAdvance) announce(`Order status: ${result.statusLabel}.`);
       } catch {
         // The in-process order store does not survive a server restart, which
         // in development is routine. The order held in this browser stays on
         // screen rather than the screen emptying itself.
-        if (!cancelled) setNotFound(true);
+        if (!stopped) setNotFound(true);
       }
     }
 
-    const timer = window.setInterval(poll, POLL_MS);
+    void poll();
+    const timer = window.setInterval(poll, mayAdvance ? POLL_MS : PAYMENT_POLL_MS);
     return () => {
-      cancelled = true;
+      stopped = true;
       window.clearInterval(timer);
     };
-  }, [trackedId, trackedStatus, recordOrder, announce]);
+  }, [trackedId, trackedStatus, mayAdvance, recordOrder, announce]);
+
+  /** Opens a payment for an order that has one outstanding, and hands over. */
+  const payNow = useCallback(async () => {
+    if (!trackedId) return;
+    setPaying(true);
+    setPayError(null);
+    try {
+      const { redirectUrl } = await openPayment(trackedId);
+      if (redirectUrl) {
+        window.location.assign(redirectUrl);
+        return;
+      }
+      // A gateway that took the money without a redirect. The next poll will
+      // pick the settlement up.
+      setPaying(false);
+    } catch (error) {
+      setPayError(
+        error instanceof Error ? error.message : 'We could not start the payment. Try again.',
+      );
+      setPaying(false);
+    }
+  }, [trackedId]);
 
   if (!tracked) {
     return (
@@ -144,6 +212,14 @@ export function OrderJourney() {
               browser.
             </p>
           )}
+
+          <PaymentNotice
+            payment={payment}
+            cancelled={cancelled}
+            paying={paying}
+            error={payError}
+            onPay={payNow}
+          />
 
           <ol className="mt-7">
             {states.map((state, index) => {
@@ -279,6 +355,72 @@ export function OrderJourney() {
           points on this order.
         </p>
       </aside>
+    </div>
+  );
+}
+
+/**
+ * What the money is doing, in the customer's words.
+ *
+ * Silent on a deployment with no gateway configured — there is nothing truthful
+ * and useful to say to a customer about a payment their build was never going
+ * to take, and the checkout screen has already told them. It speaks only when
+ * payment is real and the order is not settled.
+ */
+function PaymentNotice({
+  payment,
+  cancelled,
+  paying,
+  error,
+  onPay,
+}: {
+  payment: OrderPayment | null;
+  cancelled: boolean;
+  paying: boolean;
+  error: string | null;
+  onPay: () => void;
+}) {
+  if (!payment?.required) return null;
+  if (payment.status === 'captured') {
+    return (
+      <p className="mt-4 rounded-sm bg-paper px-4 py-3 text-xs font-semibold">
+        Paid. Your receipt is on its way by email.
+      </p>
+    );
+  }
+
+  // Pending after a redirect means the gateway has the customer's money and has
+  // not told us yet. Nothing for them to do but wait, so nothing is offered.
+  if (payment.status === 'pending' && !cancelled) {
+    return (
+      <p role="status" className="mt-4 rounded-sm bg-paper px-4 py-3 text-xs">
+        <span className="font-semibold">Confirming your payment.</span> This page updates itself —
+        the kitchen starts as soon as it clears.
+      </p>
+    );
+  }
+
+  const heading =
+    payment.status === 'failed'
+      ? 'That payment did not go through'
+      : cancelled
+        ? 'You cancelled the payment'
+        : 'This order has not been paid for';
+
+  return (
+    <div className="mt-4 rounded-sm border border-gold bg-paper px-4 py-3">
+      <p className="text-xs font-semibold">{heading}</p>
+      <p className="mt-1 text-xs text-muted">
+        Your order is held and nothing has been charged. The kitchen starts once the payment clears.
+      </p>
+      {error && (
+        <p role="alert" className="mt-2 text-xs font-semibold text-red">
+          {error}
+        </p>
+      )}
+      <Button className="mt-3" size="sm" onClick={onPay} disabled={paying}>
+        {paying ? 'Taking you to pay…' : 'Pay for this order'}
+      </Button>
     </div>
   );
 }

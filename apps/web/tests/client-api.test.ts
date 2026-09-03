@@ -32,6 +32,17 @@ const serve = (reply: (path: string) => StubbedResponse) => {
 
 const product = aProduct();
 
+/**
+ * The journey response, whole. The payment half is not optional in the schema,
+ * so a fixture that leaves it out is a fixture that no longer describes the API
+ * — which is what two of these were until the schema said so.
+ */
+const anOrderStatus = (payment = { required: false, status: null }) => ({
+  order: anOrder(),
+  statusLabel: 'Order received',
+  payment,
+});
+
 /** A well-formed order, as the API would really answer. */
 const anOrder = () => ({
   id: 'O-1',
@@ -67,7 +78,7 @@ describe('a response the API promised', () => {
   });
 
   it('carries the status label through on a journey read', async () => {
-    serve(() => ({ body: { order: anOrder(), statusLabel: 'Order received' } }));
+    serve(() => ({ body: anOrderStatus() }));
 
     const result = await fetchOrder('O-1');
     expect(result.statusLabel).toBe('Order received');
@@ -166,7 +177,7 @@ describe('the requests it sends', () => {
     const paths: string[] = [];
     restore = stubFetch((path) => {
       paths.push(path);
-      return { body: { order: anOrder(), statusLabel: 'Order received' } };
+      return { body: anOrderStatus() };
     });
 
     await fetchOrder('O-1/../admin');

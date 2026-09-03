@@ -26,6 +26,30 @@ export type IntentRequest = {
   currency: 'ZAR';
   /** For the provider's receipt, not for us. */
   description: string;
+  /**
+   * Where to send the customer once they are done at the gateway.
+   *
+   * Per-request rather than per-deployment, because the page they should come
+   * back to is the journey for *this* order. It was configured once for the
+   * whole deployment and so could not name one, which left a paying customer
+   * landing on whatever order their browser happened to remember — the wrong
+   * order on a shared phone, and nothing at all on a new one.
+   *
+   * Absolute, and built by the caller from the deployment's public URL: an
+   * adapter is not the place to decide what this site is called.
+   */
+  returnUrl?: string;
+
+  /**
+   * Where to send a customer who abandons the payment.
+   *
+   * Also per-order, and for a sharper reason than the return URL. It pointed at
+   * checkout, but the order is placed before the handover and the basket is
+   * cleared with it — so cancelling put the customer on a checkout screen
+   * telling them their basket was empty while a real unpaid order sat behind
+   * it. The order's own screen can at least offer to pay again.
+   */
+  cancelUrl?: string;
 };
 
 export type IntentResult =

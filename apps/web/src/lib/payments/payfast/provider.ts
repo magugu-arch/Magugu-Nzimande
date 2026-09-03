@@ -86,8 +86,10 @@ export function payfastProvider(config: PayfastConfig): PaymentProvider {
       const fields: [string, string][] = [
         ['merchant_id', config.merchantId],
         ['merchant_key', config.merchantKey],
-        ['return_url', config.returnUrl],
-        ['cancel_url', config.cancelUrl],
+        // The caller's return URL when it named one, so the customer comes back
+        // to their own order rather than to a page that has to guess.
+        ['return_url', request.returnUrl ?? config.returnUrl],
+        ['cancel_url', request.cancelUrl ?? config.cancelUrl],
         ['notify_url', config.notifyUrl],
         // Our reference, echoed back on the notification. This is what ties a
         // settlement to an intent, so it is the intent id and nothing else.

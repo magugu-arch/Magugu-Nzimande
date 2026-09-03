@@ -1,8 +1,9 @@
 import { randomBytes } from 'node:crypto';
-import type { PaymentEvent, PaymentIntent, PaymentStatus } from '@bbq/types';
+import type { OrderPayment, PaymentEvent, PaymentIntent, PaymentStatus } from '@bbq/types';
 import { isSettled } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
 import { readOrder } from '../order-store';
+import { isPaymentConfigured } from './registry';
 
 /**
  * The record of what has been asked for and what has been settled.
@@ -161,4 +162,16 @@ export function settle(event: PaymentEvent): SettleResult {
 /** What the customer's order page should say about the money. */
 export function paymentStatusFor(orderId: string): PaymentStatus | null {
   return intentForOrder(orderId)?.status ?? null;
+}
+
+/**
+ * The whole payment answer for one order, as a screen needs it.
+ *
+ * Whether payment is required is read here rather than left to the client,
+ * because it is a property of the deployment's environment: a browser has no
+ * business knowing what this build is configured with, and no business being
+ * able to claim it either.
+ */
+export function paymentFor(orderId: string): OrderPayment {
+  return { required: isPaymentConfigured(), status: paymentStatusFor(orderId) };
 }

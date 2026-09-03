@@ -77,3 +77,32 @@ export type PaymentEvent = z.infer<typeof PaymentEventSchema>;
 export function isSettled(status: PaymentStatus): boolean {
   return status === 'captured' || status === 'failed' || status === 'refunded';
 }
+
+/**
+ * What an order screen is told about the money.
+ *
+ * Two facts rather than one, because they answer different questions and the
+ * screen needs both. `required` is about the deployment — has a gateway been
+ * configured at all — and `status` is about this order. Collapsing them into a
+ * single nullable status would make "this build takes no payments" and "this
+ * order has not been paid yet" the same value, and those want opposite words:
+ * the first is a demonstration build behaving correctly, the second is a
+ * customer whose food is not coming.
+ */
+export const OrderPaymentSchema = z.object({
+  required: z.boolean(),
+  status: PaymentStatusSchema.nullable(),
+});
+export type OrderPayment = z.infer<typeof OrderPaymentSchema>;
+
+/**
+ * Whether the kitchen should be working on an order in this payment state.
+ *
+ * The one place that decides it, so the journey screen, the console and the
+ * order endpoint cannot drift apart on the question of what "paid" means. A
+ * deployment with no gateway configured cooks everything — that is what a
+ * demonstration build is — and one with a gateway waits for the money.
+ */
+export function kitchenMayStart(payment: OrderPayment): boolean {
+  return !payment.required || payment.status === 'captured';
+}

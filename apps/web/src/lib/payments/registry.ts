@@ -79,7 +79,7 @@ export function activeProvider(env: PaymentEnv = process.env): PaymentProvider |
        * and there is no version of that mistake worth making cheap.
        */
       const sandbox = env.BBQ_PAYFAST_SANDBOX !== 'false';
-      const base = publicUrl.replace(/\/+$/, '');
+      const base = publicBaseUrl(env) ?? publicUrl;
 
       return payfastProvider({
         merchantId,
@@ -102,4 +102,17 @@ export function activeProvider(env: PaymentEnv = process.env): PaymentProvider |
 /** Whether this deployment can take a payment at all. */
 export function isPaymentConfigured(env: PaymentEnv = process.env): boolean {
   return activeProvider(env) !== null;
+}
+
+/**
+ * This deployment's own address, without its trailing slash, or null.
+ *
+ * Exported so the route that opens an intent can build a return URL naming the
+ * order being paid for. It is the same value the adapter's fallback URLs are
+ * built from, read in one place rather than two: a base URL assembled twice is
+ * a base URL that disagrees with itself once somebody adds a path prefix.
+ */
+export function publicBaseUrl(env: PaymentEnv = process.env): string | null {
+  const url = env.BBQ_PUBLIC_URL;
+  return url ? url.replace(/\/+$/, '') : null;
 }

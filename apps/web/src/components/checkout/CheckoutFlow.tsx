@@ -8,7 +8,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { DemoFlag } from '@/components/ui/DemoValue';
 import { Field, TextArea } from '@/components/ui/Field';
 import { Price } from '@/components/ui/Price';
-import { ApiError, placeOrder, quoteDelivery } from '@/lib/client-api';
+import { ApiError, openPayment, placeOrder, quoteDelivery } from '@/lib/client-api';
 import { CheckoutSummary } from './CheckoutSummary';
 
 const STEPS = ['Fulfilment', 'Details', 'Where to', 'Pay'] as const;
@@ -17,7 +17,13 @@ type Errors = Partial<
   Record<'name' | 'email' | 'mobile' | 'address' | 'suburb' | 'postalCode', string>
 >;
 
-export function CheckoutFlow() {
+/**
+ * @param paymentConfigured Whether this deployment has a gateway. Read on the
+ *   server and passed in rather than asked for over the network: it decides
+ *   what the last step says and what pressing the button does, and a browser
+ *   that could answer it could also answer it wrongly.
+ */
+export function CheckoutFlow({ paymentConfigured = false }: { paymentConfigured?: boolean }) {
   const router = useRouter();
   const { mode, setMode, store, stores, setStore, lines, totals, promoCode, clearCart, recordOrder, announce } =
     useOrdering();
@@ -111,8 +117,10 @@ export function CheckoutFlow() {
   async function submit() {
     setSubmitting(true);
     setSubmitError(null);
+
+    let order;
     try {
-      const order = await placeOrder({
+      order = await placeOrder({
         storeId: store.id,
         mode,
         customer: { name, email, mobile },
@@ -121,10 +129,6 @@ export function CheckoutFlow() {
         ...(mode === 'Delivery' ? { address, suburb, postalCode: postalCode.trim() } : {}),
         kitchenNote,
       });
-      recordOrder(order);
-      clearCart();
-      announce(`Order ${order.orderNumber} placed.`);
-      router.push(`/journey?order=${order.id}`);
     } catch (error) {
       setSubmitError(
         error instanceof ApiError
@@ -132,6 +136,51 @@ export function CheckoutFlow() {
           : 'We could not place your order. Please try again.',
       );
       setSubmitting(false);
+      return;
+    }
+
+    /**
+     * The order exists from here on, so the basket is cleared before payment
+     * rather than after it.
+     *
+     * Leaving it filled through the redirect would give a customer who comes
+     * back from the gateway a basket holding the meal they have just paid for,
+     * and the obvious thing to do with a full basket is check out again. The
+     * order is recorded in this browser at the same moment, which is what the
+     * journey screen reads if the redirect never happens.
+     */
+    recordOrder(order);
+    clearCart();
+    announce(`Order ${order.orderNumber} placed.`);
+
+    // Inlined at each call rather than held in a variable: Next's typed routes
+    // narrow a template literal in argument position, and a `string` in between
+    // is not a route as far as the compiler is concerned.
+    const placed = order;
+    if (!paymentConfigured) {
+      router.push(`/journey?order=${encodeURIComponent(placed.id)}`);
+      return;
+    }
+
+    try {
+      const { redirectUrl } = await openPayment(order.id);
+      if (redirectUrl) {
+        // A real navigation off this site, so router.push is the wrong tool:
+        // it would try to resolve the gateway's URL as an internal route.
+        window.location.assign(redirectUrl);
+        return;
+      }
+      // A gateway that takes the money without sending the customer anywhere.
+      router.push(`/journey?order=${encodeURIComponent(placed.id)}`);
+    } catch {
+      /**
+       * The order is placed but the payment did not open. Sending them to the
+       * journey is the honest outcome: it is where the order actually is, and
+       * it shows the payment as unpaid with a way to try again — which is
+       * better than a checkout screen for an order that already exists and
+       * would place a second one.
+       */
+      router.push(`/journey?order=${encodeURIComponent(placed.id)}`);
     }
   }
 
@@ -329,15 +378,26 @@ export function CheckoutFlow() {
         {step === 3 && (
           <section>
             <h2 className="display text-2xl">Payment</h2>
-            <div className="mt-4 rounded-md border border-gold bg-white p-5">
-              <p className="text-sm font-extrabold">No payment provider is configured</p>
-              <p className="mt-2 max-w-[56ch] text-sm leading-relaxed text-muted">
-                A provider has not been selected and no merchant credentials exist, so nothing is
-                charged. Placing the order below records it and starts the kitchen journey, exactly
-                as it will once payment is wired in.
-              </p>
-              <DemoFlag label="Not live" />
-            </div>
+            {paymentConfigured ? (
+              <div className="mt-4 rounded-md border border-line bg-white p-5">
+                <p className="text-sm font-extrabold">You will be taken to our payment provider</p>
+                <p className="mt-2 max-w-[56ch] text-sm leading-relaxed text-muted">
+                  Your order is placed first, then you are handed over to pay. Card details are
+                  entered on the provider’s own page and never reach this site. You will come back
+                  here to your order as soon as the payment is done.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-md border border-gold bg-white p-5">
+                <p className="text-sm font-extrabold">No payment provider is configured</p>
+                <p className="mt-2 max-w-[56ch] text-sm leading-relaxed text-muted">
+                  No merchant credentials exist on this deployment, so nothing is charged. Placing
+                  the order below records it and starts the kitchen journey, exactly as it will once
+                  merchant credentials are issued.
+                </p>
+                <DemoFlag label="Not live" />
+              </div>
+            )}
 
             {submitError && (
               <p role="alert" className="mt-4 rounded-sm bg-red-10 px-4 py-3 text-sm font-semibold text-red">
@@ -359,7 +419,13 @@ export function CheckoutFlow() {
             </Button>
           ) : (
             <Button onClick={submit} disabled={submitting}>
-              {submitting ? 'Placing your order…' : 'Place order'}
+              {submitting
+                ? paymentConfigured
+                  ? 'Taking you to pay…'
+                  : 'Placing your order…'
+                : paymentConfigured
+                  ? 'Place order and pay'
+                  : 'Place order'}
               {!submitting && (
                 <>
                   <span aria-hidden="true" className="opacity-70">

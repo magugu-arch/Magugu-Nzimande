@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { labelFor, readOrder } from '@/lib/order-store';
+import { paymentFor } from '@/lib/payments/ledger';
 
 /** GET /api/orders/:id — status for the journey screen. */
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
@@ -8,5 +9,5 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   if (!order) {
     return NextResponse.json({ error: 'No such order' }, { status: 404 });
   }
-  return NextResponse.json({ order, statusLabel: labelFor(order) });
+  return NextResponse.json({ order, statusLabel: labelFor(order), payment: paymentFor(order.id) });
 }
