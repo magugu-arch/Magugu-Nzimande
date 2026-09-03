@@ -1721,7 +1721,7 @@ function viewAccount(){
 
 /* ---------- Operations console ---------- */
 
-const TABS = ['Orders','Menu','Stores','Promotions','Audit'];
+const TABS = ['Orders','Menu','Stores','Promotions','Payments','Problems','Audit'];
 
 function viewAdmin(){
   const tabs = TABS.map((t) =>
@@ -1786,6 +1786,28 @@ function viewAdmin(){
           + '<div class="row gap-4"><code style="background:var(--red-10);color:var(--red);border-radius:var(--r-xs);padding:4px 10px;font-size:12px;font-weight:800">' + o.code + '</code>'
           + '<span class="sm b num">' + Math.round(o.rate * 100) + '%</span></div></li>').join('') + '</ul>'
       + '<p class="xs muted mt-4">Campaigns are read-only until the promotions service is built. Creating and expiring them from here is repository work, not a console gap.</p>';
+  }
+
+  if(S.adminTab === 'Payments'){
+    /* This review build takes no payments, so the ledger is empty and says why
+       rather than showing invented rows. The real console lists every intent
+       with the gateway's own reference beside it, for reconciliation. */
+    panel = '<h2 class="display h-md">Payments</h2>'
+      + '<p class="sm muted mt-1 max-62">What was asked for and what arrived, with the provider&rsquo;s own reference so a payment can be found in their dashboard.</p>'
+      + '<p class="sm muted mt-4">Nothing yet. No gateway is configured on this review build, so no order is waiting on money.</p>';
+  }
+
+  if(S.adminTab === 'Problems'){
+    /* Same: a kitchen system that refused an order and an address that bounced
+       both have the same symptom, a telephone call, and the same cure, which is
+       somebody seeing them. Neither can happen here — there is no till and no
+       mail transport — so both lists are empty and say so. */
+    panel = '<h2 class="display h-md">Needs attention</h2>'
+      + '<p class="sm muted mt-1 max-62">Orders a kitchen system would not take, and customers we can no longer email. Both are recorded as they happen; neither raises an alarm on its own.</p>'
+      + '<h3 class="xxs b muted mt-6" style="letter-spacing:.08em;text-transform:uppercase">Orders the kitchen system refused</h3>'
+      + '<p class="sm muted mt-2">None. No kitchen system is attached to this review build.</p>'
+      + '<h3 class="xxs b muted mt-6" style="letter-spacing:.08em;text-transform:uppercase">Addresses we have stopped emailing</h3>'
+      + '<p class="sm muted mt-2">None. Nothing is sent from this review build, so nothing has bounced.</p>';
   }
 
   if(S.adminTab === 'Audit'){

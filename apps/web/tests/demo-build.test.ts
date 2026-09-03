@@ -191,3 +191,42 @@ describe('what the build will inject', () => {
     }
   });
 });
+
+describe('the console the review build shows', () => {
+  /**
+   * The demo is a sketch of the app, not a second copy of it — it has no
+   * server, no accounts and no gateway, so most of what the real console does
+   * cannot happen in it. What it must not do is show a *different set of
+   * tabs*: a reviewer counting five where the product has seven concludes two
+   * features do not exist.
+   *
+   * So the tab lists are held equal and the panels are left to differ.
+   */
+  it('offers the same tabs as the real one', () => {
+    const demoTabs = TEMPLATE.match(/const TABS = \[([^\]]*)\]/)?.[1];
+    expect(demoTabs, 'the demo template has no TABS list').toBeDefined();
+
+    const console_ = readFileSync(
+      path.resolve(__dirname, '../src/components/admin/OperationsConsole.tsx'),
+      'utf8',
+    );
+    const realTabs = console_.match(/const TABS = \[([^\]]*)\]/)?.[1];
+    expect(realTabs, 'the console has no TABS list').toBeDefined();
+
+    const names = (source: string) =>
+      [...source.matchAll(/'([^']+)'/g)].map((match) => match[1]);
+
+    expect(names(demoTabs ?? '')).toEqual(names(realTabs ?? ''));
+  });
+
+  /**
+   * And each tab has somewhere to land. A tab that renders nothing is worse
+   * than a missing tab: it reads as a broken feature rather than an absent one.
+   */
+  it('renders a panel for every tab it offers', () => {
+    const demoTabs = TEMPLATE.match(/const TABS = \[([^\]]*)\]/)?.[1] ?? '';
+    for (const tab of [...demoTabs.matchAll(/'([^']+)'/g)].map((match) => match[1])) {
+      expect(TEMPLATE, `no panel for the ${tab} tab`).toContain(`S.adminTab === '${tab}'`);
+    }
+  });
+});
