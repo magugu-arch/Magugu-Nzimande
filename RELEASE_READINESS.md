@@ -186,6 +186,50 @@ The fixed build says *"That code expired on Mon, 31 Aug"* and stops taking it.
 `voucherTerms()` is now the one derivation both doors use, so a term added to
 `VoucherTerms` is carried through both or through neither.
 
+## 2f. A branch that has declared itself shut
+
+`Store.isOpenNow` is the kitchen's own veto, distinct from its timetable —
+`isTradingNow` has honoured it since it was written, and its doc comment names
+what it is for: *"a power cut, a burst pipe, a shift nobody turned up for, all
+of which the kitchen knows and the timetable does not."* All seven seeded
+branches were `true`, so **the veto had never once fired**, and everything
+downstream of it had never run against the case it exists for. In a country
+with scheduled load-shedding that is not an exotic state.
+
+Seeded one branch — Menlyn Park — shut today, everything else about it
+ordinary. It found **two defects and a contradiction**.
+
+**Scheduling was a way straight through a shut kitchen.** The blocker offered
+*"closed — schedule for later"*, and the scheduling checks after it validate
+the chosen time against the **timetable**, which for this branch says open. So:
+pick a slot an hour out, every check passes, `missingFulfilmentRequirement`
+returns **null**, and the order goes to a kitchen that has told the app it is
+not cooking. Reproduced by reverting the fix — the old code returns no blocker
+at all. The comment on that scheduling rule says it exists to stop scheduling
+being a way around the closed-kitchen rule; it stopped it for one of the two
+ways a kitchen closes.
+
+`closureReason()` now separates them. A timetable closure reopens at a time
+printed on the card, so "schedule for later" is right. An unplanned closure
+carries no reopening at all, so there is no later to schedule for and the copy
+no longer pretends there is: *"bb.q Chicken Menlyn Park is not taking orders
+right now"*. The distinction is deliberately narrow — a branch flagged shut at
+three in the morning is still reported against its timetable, because it is
+shut either way and "opens at ten" is the more useful answer.
+
+**A default branch nobody could order from.** `preferredStore` picks "the first
+branch that could actually take the order" and checked the opening date and the
+delivery radius — not whether the branch was trading. Its own doc comment
+describes the failure twice over: *"a customer arrives at checkout, finds a
+store silently chosen for them, and is blocked on it… for a store they never
+picked."* A shut branch is the third instance of exactly that, and `audit:coldstart`
+failed on it the moment one branch was seeded shut.
+
+**And a card arguing with itself.** *"Closed"* printed beside *"10:00 – 22:00"*
+at two in the afternoon — the badge read the flag, the hours row read the
+timetable, and neither knew about the other. It now reads "Temporarily closed"
+and withholds the window that would contradict it. An open branch is unchanged.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -239,7 +283,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **66 suites, 1 005 tests**, typecheck and lint clean
+- `npm run verify` — **66 suites, 1 013 tests**, typecheck and lint clean
 - `npm run audit:screens` — 35 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green

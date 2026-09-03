@@ -75,7 +75,6 @@ describe('missingFulfilmentRequirement', () => {
    * then let the order through anyway. A shut kitchen cannot cook.
    */
   describe('a closed store', () => {
-    const closed = { ...store, isOpenNow: false };
     // Injected rather than hardcoded. These fixtures used to pin a literal
     // '2026-08-23T18:30:00.000Z', which was comfortably in the future the day
     // it was written and is now yesterday — the same stale-value shape the
@@ -83,8 +82,26 @@ describe('missingFulfilmentRequirement', () => {
     const now = new Date(2026, 7, 24, 9, 0);
     const laterToday = new Date(2026, 7, 24, 18, 30).toISOString();
 
+    /**
+     * Shut because it is nine in the morning and the branch opens at ten.
+     *
+     * This whole block used to build its closed store as `isOpenNow: false`,
+     * because that is the quickest lever, while every assertion in it was
+     * about being *out of hours*. Those are two different closures and the app
+     * now answers them differently, so each is modelled by the thing that
+     * actually causes it.
+     */
+    const outOfHours = {
+      ...store,
+      openingHours: Array.from({ length: 7 }, (_, day) => ({
+        day,
+        opensAt: '10:00',
+        closesAt: '22:00',
+      })),
+    };
+
     it('blocks an order meant for now', () => {
-      expect(missingFulfilmentRequirement({ ...base, store: closed, address })).toBe(
+      expect(missingFulfilmentRequirement({ ...base, store: outOfHours, address, now })).toBe(
         'bb.q Chicken Rosebank is closed — schedule for later',
       );
     });
@@ -93,7 +110,7 @@ describe('missingFulfilmentRequirement', () => {
       expect(
         missingFulfilmentRequirement({
           ...base,
-          store: closed,
+          store: outOfHours,
           address,
           scheduledFor: laterToday,
           now,
@@ -106,7 +123,7 @@ describe('missingFulfilmentRequirement', () => {
         missingFulfilmentRequirement({
           ...base,
           fulfilmentType: 'dinein',
-          store: closed,
+          store: outOfHours,
           tableNumber: '14',
           scheduledFor: laterToday,
           now,
@@ -116,6 +133,81 @@ describe('missingFulfilmentRequirement', () => {
 
     it('says nothing about opening hours when the store is open', () => {
       expect(missingFulfilmentRequirement({ ...base, store, address })).toBeNull();
+    });
+  });
+
+  /**
+   * The other way a kitchen closes, which had no fixture anywhere in the app.
+   *
+   * `isOpenNow` is the branch's own veto — a power cut, a burst pipe, a shift
+   * nobody turned up for — and every seeded store was `true`, so it had never
+   * once fired. The rule above offers "schedule for later" and the scheduling
+   * checks validate the chosen time against the *timetable*, which for this
+   * store says open. So scheduling was a way straight through: pick a time an
+   * hour out, every check passes, and the order goes to a kitchen that has
+   * told the app it is not cooking.
+   */
+  describe('a store that has declared itself shut', () => {
+    const now = new Date(2026, 7, 24, 14, 0);
+    const laterToday = new Date(2026, 7, 24, 18, 30).toISOString();
+
+    const unavailable = {
+      ...store,
+      isOpenNow: false,
+      openingHours: Array.from({ length: 7 }, (_, day) => ({
+        day,
+        opensAt: '10:00',
+        closesAt: '22:00',
+      })),
+    };
+
+    it('does not offer to schedule around it, because there is no known later', () => {
+      expect(missingFulfilmentRequirement({ ...base, store: unavailable, address, now })).toBe(
+        'bb.q Chicken Rosebank is not taking orders right now',
+      );
+    });
+
+    it('refuses a scheduled order its timetable would otherwise accept', () => {
+      // The defect, stated as the test that would have caught it.
+      expect(
+        missingFulfilmentRequirement({
+          ...base,
+          store: unavailable,
+          address,
+          scheduledFor: laterToday,
+          now,
+        }),
+      ).toBe('bb.q Chicken Rosebank is not taking orders right now');
+    });
+
+    it('refuses collection and dine-in too', () => {
+      for (const fulfilmentType of ['collection', 'dinein'] as const) {
+        expect(
+          missingFulfilmentRequirement({
+            ...base,
+            fulfilmentType,
+            store: unavailable,
+            tableNumber: '14',
+            now,
+          }),
+        ).toBe('bb.q Chicken Rosebank is not taking orders right now');
+      }
+    });
+
+    /**
+     * The narrowness matters. A branch flagged shut at three in the morning is
+     * reported against its timetable, because it is closed either way and
+     * "opens at ten" is the more useful answer than "not right now".
+     */
+    it('still says "closed" when the hours agree it is closed', () => {
+      expect(
+        missingFulfilmentRequirement({
+          ...base,
+          store: unavailable,
+          address,
+          now: new Date(2026, 7, 24, 3, 30),
+        }),
+      ).toBe('bb.q Chicken Rosebank is closed — schedule for later');
     });
   });
 

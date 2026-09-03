@@ -1,5 +1,6 @@
 import type { Address, Store } from '@/types';
 import { deliveryRange, isOpeningLater } from '@/store/fulfilmentStore';
+import { isTradingNow } from '@/utils/tradingHours';
 
 /**
  * Whether the business is trading at all yet, across every branch.
@@ -66,8 +67,30 @@ export function preferredStore(
    * is better than a blocker, and with two branches opening it is a choice
    * between two.
    */
+  /**
+   * A branch that has declared itself shut is the third way this goes wrong,
+   * and it was the one this function did not ask about.
+   *
+   * The two cases above are both "a customer arrives at checkout, finds a
+   * branch chosen for them, and is blocked on it for a reason that is not
+   * their fault". A branch flagged closed by its own kitchen is exactly that
+   * again — and it went unnoticed because every seeded store was open, so
+   * `isTradingNow` had nothing to exclude and nothing to prove it should.
+   * `audit:coldstart` found it the moment one branch was seeded shut: a new
+   * customer was dropped into "bb.q Chicken Menlyn Park is not taking orders
+   * right now" for a branch they had never heard of.
+   *
+   * Only the flag matters here, not the timetable. Outside trading hours
+   * *nothing* is trading, and the fallback below would hand back the same
+   * branch anyway — but skipping a branch shut for the night, when the next
+   * one is shut too, would be work that changes no answer. `isTradingNow`
+   * covers both and the fallback chain handles the case where it excludes
+   * everything.
+   */
   const canTakeIt = (store: Store) =>
-    !isOpeningLater(store, now) && (!address || deliveryRange(store, address) !== 'out');
+    !isOpeningLater(store, now) &&
+    isTradingNow(store, now) &&
+    (!address || deliveryRange(store, address) !== 'out');
 
   return stores.find(canTakeIt) ?? stores.find((store) => !isOpeningLater(store, now)) ?? stores[0];
 }

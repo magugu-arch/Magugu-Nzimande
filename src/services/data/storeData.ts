@@ -80,6 +80,20 @@ export const stores: Store[] = [
     preparationMinutes: 22,
     isOpenNow: true,
   },
+  /**
+   * Shut today, while its published hours say it is open.
+   *
+   * `isOpenNow` is the kitchen's own veto — the power cut, the burst pipe, the
+   * shift nobody turned up for — and `isTradingNow` has honoured it since it
+   * was written. Every one of the seven branches was seeded `true`, so the
+   * veto had never once fired, and the code downstream of it had never run
+   * against the case it exists for. In a country with scheduled load-shedding
+   * this is not an exotic state; it is a Tuesday.
+   *
+   * Everything else about this branch is ordinary on purpose. The fixture is
+   * one flag, so what it exposes is about the flag rather than about a branch
+   * assembled to be strange.
+   */
   {
     id: 'store-menlyn',
     name: 'bb.q Chicken Menlyn Park',
@@ -96,7 +110,7 @@ export const stores: Store[] = [
     supportsDineIn: true,
     deliveryRadiusKm: 10,
     preparationMinutes: 19,
-    isOpenNow: true,
+    isOpenNow: false,
   },
   {
     id: 'store-vanda',

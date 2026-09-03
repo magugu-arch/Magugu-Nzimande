@@ -102,6 +102,35 @@ describe('preferredStore', () => {
   });
 
   /**
+   * The third way a silently-chosen branch blocks a customer, and the one this
+   * function did not ask about.
+   *
+   * A branch shut by its own kitchen — the power cut, the burst pipe — is the
+   * same shape as the two cases above: chosen for them, blocked on it, for a
+   * reason that is not their fault. It went unnoticed because every seeded
+   * store was open, so there was nothing for `isTradingNow` to exclude.
+   * `audit:coldstart` found it the day one branch was seeded shut.
+   */
+  it('skips a branch that has declared itself shut', () => {
+    const shut = { ...branch('nearest-but-shut'), isOpenNow: false };
+    const open = branch('further-but-cooking');
+
+    expect(preferredStore([shut, open], between)?.id).toBe('further-but-cooking');
+  });
+
+  /**
+   * Still returns one, for the same reason as the opening-date fallback: a
+   * customer needs "closed — schedule for later" against a named branch, not
+   * an empty "Choose a store" that explains nothing.
+   */
+  it('falls back to the nearest when every branch is shut', () => {
+    const first = { ...branch('one'), isOpenNow: false };
+    const second = { ...branch('two'), isOpenNow: false };
+
+    expect(preferredStore([first, second], between)?.id).toBe('one');
+  });
+
+  /**
    * Falling back rather than returning nothing matters: "opens on 1 November"
    * tells a customer something, and an empty "Choose a store" tells them
    * nothing about why.

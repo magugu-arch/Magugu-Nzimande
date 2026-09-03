@@ -5,7 +5,7 @@ import type { Address, FulfilmentType, Store } from '@/types';
 import { supportsFulfilment } from '@/utils/fulfilment';
 import { distanceKm, type Coordinates } from '@/utils/geo';
 import { formatShortDate, formatTime } from '@/utils/datetime';
-import { isStoreOpenAt, isTradingNow } from '@/utils/tradingHours';
+import { closureReason, isStoreOpenAt, isTradingNow } from '@/utils/tradingHours';
 import { track } from '@/ux/analytics';
 
 /**
@@ -104,8 +104,31 @@ export function missingFulfilmentRequirement({
   // persisted whole, so the flag here can be days old — and while it was
   // trusted, the guard could not fire at all: an order placed at 03:30 went
   // through against a branch that shut at 22:00.
-  const trading = isTradingNow(store, now);
-  if (!trading && !scheduledFor) return `${store.name} is closed — schedule for later`;
+  /**
+   * A branch shut by its own flag cannot be scheduled around.
+   *
+   * The rule below offers "schedule for later" and the scheduling checks after
+   * it validate the chosen time against the *timetable*. For a branch closed
+   * because it is three in the morning that is exactly right. For one whose
+   * kitchen has declared itself shut while its published hours say it is open,
+   * it is a way straight through: pick a time an hour from now, the timetable
+   * says the branch is open then, every check passes, and the order goes to a
+   * kitchen that has told the app it is not cooking.
+   *
+   * Nothing had ever exercised it because every seeded branch was open. The
+   * comment on the scheduling rule below says it exists to stop scheduling
+   * being a way around the closed-kitchen rule; it stopped it for one of the
+   * two ways a kitchen closes.
+   *
+   * An unplanned closure carries no reopening time, so there is no later to
+   * schedule for and the copy does not pretend otherwise.
+   */
+  const closure = closureReason(store, now);
+  if (closure === 'unavailable') {
+    return `${store.name} is not taking orders right now`;
+  }
+
+  if (closure === 'hours' && !scheduledFor) return `${store.name} is closed — schedule for later`;
 
   // A scheduled time is chosen once and then sat on, and nothing rechecked it.
   // Verified in a browser: pick 18:00 at five o'clock, put the phone down,
@@ -148,7 +171,7 @@ export function missingFulfilmentRequirement({
 
   // Dine-in at a closed store makes no sense even scheduled: there is nowhere
   // to sit until it opens.
-  if (fulfilmentType === 'dinein' && !trading) {
+  if (fulfilmentType === 'dinein' && closure !== null) {
     return `${store.name} is closed`;
   }
 

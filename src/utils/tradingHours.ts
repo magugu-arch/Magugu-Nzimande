@@ -76,3 +76,28 @@ export function isTradingNow(store: Store, now: Date = new Date()): boolean {
   if (store.openingHours.length === 0) return true;
   return isStoreOpenAt(store, now);
 }
+
+/**
+ * *Why* a branch is not trading, which decides what a customer can do about it.
+ *
+ * The two closures above are not the same kind of fact and the app treated
+ * them as one. A branch shut by its timetable reopens at a time everybody can
+ * read off the card, so "schedule for later" is exactly the right offer. A
+ * branch shut by its own flag — the power cut, the burst pipe, the shift
+ * nobody turned up for — has no known reopening at all, and offering to
+ * schedule around it is offering something nobody can honour.
+ *
+ * `'unavailable'` is deliberately narrow: only when the flag is the thing
+ * doing the shutting. A branch that is flag-closed at three in the morning is
+ * reported as `'hours'`, because it is shut either way and the timetable is
+ * the more useful answer — it reopens at ten.
+ */
+export type ClosureReason = 'hours' | 'unavailable';
+
+export function closureReason(store: Store, now: Date = new Date()): ClosureReason | null {
+  if (isTradingNow(store, now)) return null;
+
+  // Its published hours would have it open, and it is shut anyway.
+  const timetableSaysOpen = store.openingHours.length === 0 || isStoreOpenAt(store, now);
+  return !store.isOpenNow && timetableSaysOpen ? 'unavailable' : 'hours';
+}

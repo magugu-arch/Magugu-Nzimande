@@ -7,7 +7,7 @@ import { isOpeningLater } from '@/store/fulfilmentStore';
 import { colors, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import { formatDistance } from '@/utils/geo';
-import { hoursForDay, isTradingNow } from '@/utils/tradingHours';
+import { closureReason, hoursForDay, isTradingNow } from '@/utils/tradingHours';
 import { supportsFulfilment } from '@/utils/fulfilment';
 
 export interface StoreCardProps {
@@ -27,6 +27,17 @@ export const StoreCard = memo(function StoreCard({
   testID,
 }: StoreCardProps) {
   const today = hoursForDay(store, new Date().getDay());
+
+  /**
+   * Why it is shut, which decides both words on this card.
+   *
+   * "Closed" printed beside "10:00 – 22:00" at two in the afternoon is a card
+   * arguing with itself, and that is exactly what a branch shut by its own
+   * flag produced: the badge read the flag, the hours row read the timetable,
+   * and neither knew about the other. A customer reads it as a bug in the app
+   * and taps anyway.
+   */
+  const closure = closureReason(store);
   // A branch that has not opened yet is not "closed" — it has never been open,
   // and no fulfilment type is available at it. Selecting it would only produce
   // a blocker at checkout, so the card refuses the tap here instead.
@@ -109,11 +120,16 @@ export const StoreCard = memo(function StoreCard({
               ? `Opening ${formatShortDate(store.opensOn!)}`
               : trading
                 ? 'Open now'
-                : 'Closed'}
+                : closure === 'unavailable'
+                  ? 'Temporarily closed'
+                  : 'Closed'}
           </Text>
         </View>
 
-        {today ? (
+        {/* Withheld when the timetable is not what is shutting the branch:
+            today's window would otherwise sit beside "Temporarily closed"
+            saying the branch is open now. */}
+        {today && closure !== 'unavailable' ? (
           <Text variant="caption" color={colors.textMuted}>
             {today.opensAt} – {today.closesAt}
           </Text>
