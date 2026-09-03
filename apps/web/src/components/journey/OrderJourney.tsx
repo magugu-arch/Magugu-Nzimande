@@ -283,8 +283,24 @@ export function OrderJourney() {
 
           {tracked.status !== 'completed' && tracked.status !== 'cancelled' && (
             <p className="mt-2 text-xs text-muted">
-              Updating every {POLL_MS / 1000} seconds. Estimated {tracked.etaMinutes} minutes from
-              when the order was placed.
+              {/*
+                The driver's estimate when there is one, and it says so. The
+                courier sends this on every position update and it was being
+                parsed and discarded, so a customer whose driver was stuck in
+                traffic went on reading the window quoted at checkout — a
+                constant — for as long as they waited.
+              */}
+              {tracked.courierEtaMinutes !== null ? (
+                <>
+                  About {tracked.courierEtaMinutes} minutes, from your driver. Updating every{' '}
+                  {POLL_MS / 1000} seconds.
+                </>
+              ) : (
+                <>
+                  Updating every {POLL_MS / 1000} seconds. Estimated {tracked.etaMinutes} minutes
+                  from when the order was placed.
+                </>
+              )}
             </p>
           )}
         </div>

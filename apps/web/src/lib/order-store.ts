@@ -54,6 +54,8 @@ export function createOrder(
       postalCode: request.mode === 'Delivery' ? (request.postalCode ?? null) : null,
       kitchenNote: request.kitchenNote,
       pointsEarned: pointsFor(totals.totalCents),
+      // Nobody has been dispatched yet. Set from the courier's own updates.
+      courierEtaMinutes: null,
       // Nothing has landed yet. Points post when the order completes; see
       // `postPoints` below.
       pointsPostedAt: null,
@@ -167,6 +169,31 @@ export function setOrderStatus(id: string, status: OrderStatus, reason?: string)
         ? `Order ${order.orderNumber} cancelled: ${reason ?? ''}`
         : `Order ${order.orderNumber} moved to ${labelFor(updated)}`,
     );
+    return updated;
+  });
+}
+
+/**
+ * Records what the courier now says the wait is.
+ *
+ * Its own function rather than a parameter on `setOrderStatus`, because the two
+ * are not the same event: a driver's estimate moves several times without the
+ * order changing state at all, and most of those updates arrive while it sits
+ * in `out_for_delivery`.
+ *
+ * A cancelled or completed order is left alone. An estimate arriving after the
+ * food did is a late webhook, and putting a wait back on a finished order is
+ * how a delivered order starts counting down again.
+ */
+export function setCourierEta(id: string, minutes: number | null): Order | null {
+  return mutateState((state) => {
+    const index = state.orders.findIndex((order) => order.id === id);
+    const order = state.orders[index];
+    if (!order) return null;
+    if (order.status === 'completed' || order.status === 'cancelled') return order;
+
+    const updated: Order = { ...order, courierEtaMinutes: minutes };
+    state.orders[index] = updated;
     return updated;
   });
 }

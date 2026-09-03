@@ -4,7 +4,7 @@ import { activeCourier, courierWebhookSecret } from '@/lib/fulfilment/registry';
 import { orderStatusFor, phaseOf } from '@/lib/fulfilment/uber/status';
 import { parseDeliveryEvent, verifyWebhook } from '@/lib/fulfilment/uber/webhook';
 import { notifyMoved } from '@/lib/notifications/send';
-import { readOrder, setOrderStatus } from '@/lib/order-store';
+import { readOrder, setCourierEta, setOrderStatus } from '@/lib/order-store';
 import { logger } from '@/lib/observability/log';
 
 /**
@@ -47,6 +47,16 @@ export async function POST(request: Request) {
     logger.warn('courier.unknown_delivery', { deliveryId: event.deliveryId });
     return NextResponse.json({ received: true, acted: false });
   }
+
+  /**
+   * The driver's estimate, recorded whatever else this event is.
+   *
+   * Before the status is looked at, because most events carrying an ETA are
+   * courier position updates that move no state at all — and those were the
+   * ones being thrown away. The journey shows this in place of the window
+   * quoted at checkout, which never moves.
+   */
+  if (event.etaMinutes !== null) setCourierEta(order.id, event.etaMinutes);
 
   const phase = phaseOf(event.status);
   if (!phase) {

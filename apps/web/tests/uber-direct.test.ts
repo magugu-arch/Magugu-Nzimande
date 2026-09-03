@@ -13,7 +13,7 @@ import {
 } from '@/lib/fulfilment/uber/webhook';
 import { activeCourier, courierWebhookSecret } from '@/lib/fulfilment/registry';
 import { requestCourier } from '@/lib/fulfilment/handoff';
-import { readOrder } from '@/lib/order-store';
+import { readOrder, setOrderStatus } from '@/lib/order-store';
 import { aDeliveryStore, aSuburbOf, blankState, placeOrder } from './fixtures';
 
 /**
@@ -510,3 +510,75 @@ describe('choosing Uber', () => {
 
 /** Kept quiet: the route logs, and a test run should not print. */
 vi.spyOn(console, 'log').mockImplementation(() => {});
+
+describe('the driver’s estimate', () => {
+  async function post(body: string) {
+    const before = { ...process.env };
+    Object.assign(process.env, ENV);
+    try {
+      return await courierWebhook(
+        new Request('http://localhost/api/couriers/webhook', {
+          method: 'POST',
+          headers: { [UBER_SIGNATURE_HEADER]: signPayload(body, SIGNING_KEY) },
+          body,
+        }),
+      );
+    } finally {
+      for (const name of Object.keys(ENV)) delete process.env[name];
+      Object.assign(process.env, before);
+    }
+  }
+
+  const update = (orderId: string, over: Record<string, unknown>) =>
+    JSON.stringify({ delivery_id: 'del_eta', external_id: orderId, ...over });
+
+  /**
+   * The one this exists for. Uber sends an estimate on every courier position
+   * update; the route parsed it carefully and dropped it, so the journey showed
+   * the window quoted at checkout — a constant — for as long as the customer
+   * waited.
+   */
+  it('is recorded from a courier update that moves no state', async () => {
+    const order = await aDeliveryOrder();
+
+    await post(update(order.id, { status: 'courier_update', pickup_eta: 70 }));
+
+    expect(readOrder(order.id)?.courierEtaMinutes).toBe(70);
+  });
+
+  it('replaces the previous one rather than keeping the first', async () => {
+    const order = await aDeliveryOrder();
+
+    await post(update(order.id, { status: 'courier_update', pickup_eta: 70 }));
+    await post(update(order.id, { status: 'courier_update', pickup_eta: 35 }));
+
+    expect(readOrder(order.id)?.courierEtaMinutes).toBe(35);
+  });
+
+  it('leaves it alone when an event carries none', async () => {
+    const order = await aDeliveryOrder();
+
+    await post(update(order.id, { status: 'courier_update', pickup_eta: 70 }));
+    await post(update(order.id, { status: 'pickup' }));
+
+    expect(readOrder(order.id)?.courierEtaMinutes).toBe(70);
+  });
+
+  /**
+   * A late webhook after the food arrived. Putting a wait back on a delivered
+   * order is how a finished order starts counting down again.
+   */
+  it('is not put back onto a completed order', async () => {
+    const order = await aDeliveryOrder();
+    setOrderStatus(order.id, 'completed');
+
+    await post(update(order.id, { status: 'courier_update', pickup_eta: 70 }));
+
+    expect(readOrder(order.id)?.courierEtaMinutes).toBeNull();
+  });
+
+  it('is null on an order no courier has touched', async () => {
+    const order = await aDeliveryOrder();
+    expect(readOrder(order.id)?.courierEtaMinutes).toBeNull();
+  });
+});

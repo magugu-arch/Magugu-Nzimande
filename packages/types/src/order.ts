@@ -136,6 +136,20 @@ export const OrderSchema = z.object({
   kitchenNote: z.string(),
   pointsEarned: z.number().int().nonnegative(),
   /**
+   * The courier's own estimate, in minutes, or null.
+   *
+   * Separate from `etaMinutes`, which is the window quoted when the order was
+   * placed and never moves. This one is what the driver's app says now, and it
+   * arrives on the courier's webhook — which parsed it carefully and threw it
+   * away, so a customer whose driver was stuck in traffic went on being told
+   * the same forty-five minutes for an hour.
+   *
+   * Null until a courier says otherwise, which is most orders: a collection has
+   * no driver, and a delivery has none until one is assigned.
+   */
+  courierEtaMinutes: z.number().int().nonnegative().nullable().default(null),
+
+  /**
    * When the points actually landed on an account, or null.
    *
    * Separate from `pointsEarned`, which is what this order is worth — a
