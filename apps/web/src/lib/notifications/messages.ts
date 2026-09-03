@@ -91,3 +91,31 @@ export function describe(message: Message): string {
 function labelOf(message: Message): string {
   return message.subject || message.body.slice(0, 60);
 }
+
+/**
+ * The reset link.
+ *
+ * Email only. A password reset sent by text lands on the device most likely to
+ * be the one that was lost or taken, and a link in an SMS is unverifiable to
+ * the person reading it.
+ */
+export function passwordReset(email: string, token: string): Message[] {
+  return [
+    {
+      // Not keyed on the token: two resets requested a minute apart are two
+      // messages, and deduplicating them would strand the customer on a link
+      // the second request has already invalidated.
+      id: `reset:${token.slice(0, 12)}`,
+      channel: 'email',
+      to: email,
+      subject: 'Reset your bb.q Chicken password',
+      body: [
+        'Somebody asked to reset the password on this address.',
+        '',
+        `Use this code within the hour: ${token}`,
+        '',
+        'If it was not you, nothing has changed and you can ignore this.',
+      ].join('\n'),
+    },
+  ];
+}

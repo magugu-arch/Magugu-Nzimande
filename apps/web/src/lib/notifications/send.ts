@@ -1,6 +1,6 @@
 import type { Order } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
-import { describe, orderMoved, orderPlaced } from './messages';
+import { describe, orderMoved, orderPlaced, passwordReset } from './messages';
 import { loggingTransport, type Message, type NotificationTransport } from './transport';
 
 /**
@@ -71,6 +71,10 @@ export async function notifyPlaced(order: Order): Promise<number> {
 
 export async function notifyMoved(order: Order): Promise<number> {
   return send(orderMoved(order));
+}
+
+export async function notifyPasswordReset(email: string, token: string): Promise<number> {
+  return send(passwordReset(email, token));
 }
 
 /** What was sent, for the console and for tests. */

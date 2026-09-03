@@ -330,6 +330,7 @@ export function blankState(): void {
     state.accounts = [];
     state.notifications = { sent: [] };
     state.fulfilment = { handoffs: [] };
+    state.passwordResets = [];
   });
 }
 

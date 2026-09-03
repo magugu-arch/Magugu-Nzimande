@@ -69,6 +69,12 @@ export type DemoState = {
    * kitchen never see — has an answer that is not "ask the customers".
    */
   fulfilment: { handoffs: HandoffRecord[] };
+  /**
+   * Live password resets. Only a hash of each token is here: a leaked copy of
+   * this file is then a list of useless strings rather than a way into every
+   * account on it.
+   */
+  passwordResets: { accountId: string; tokenHash: string; expiresAt: number }[];
 };
 
 /**
@@ -94,6 +100,7 @@ function seed(): DemoState {
     accounts: [],
     notifications: { sent: [] },
     fulfilment: { handoffs: [] },
+    passwordResets: [],
     audit: [
       {
         at: new Date().toISOString(),
