@@ -9,6 +9,7 @@ import { DemoFlag } from '@/components/ui/DemoValue';
 import { Field, TextArea } from '@/components/ui/Field';
 import { Price } from '@/components/ui/Price';
 import { ApiError, openPayment, placeOrder, quoteDelivery } from '@/lib/client-api';
+import { isOpenNow } from '@/lib/trading';
 import { CheckoutSummary } from './CheckoutSummary';
 
 const STEPS = ['Fulfilment', 'Details', 'Where to', 'Pay'] as const;
@@ -25,7 +26,7 @@ type Errors = Partial<
  */
 export function CheckoutFlow({ paymentConfigured = false }: { paymentConfigured?: boolean }) {
   const router = useRouter();
-  const { mode, setMode, store, stores, setStore, lines, totals, promoCode, clearCart, recordOrder, announce } =
+  const { mode, setMode, store, stores, setStore, lines, totals, promoCode, clearCart, recordOrder, announce, hydrated } =
     useOrdering();
 
   const [step, setStep] = useState(0);
@@ -41,6 +42,37 @@ export function CheckoutFlow({ paymentConfigured = false }: { paymentConfigured?
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  /**
+   * Said before the form rather than after it.
+   *
+   * The order route refuses a closed store, which is the rule that matters. If
+   * that were the only place it appeared, a customer would fill in three steps
+   * of details and be told on the last one — so the same fact is shown here,
+   * from the same store record, at the point they would start.
+   *
+   * Guarded on `hydrated` because the server and the browser can be a minute
+   * either side of a closing time, and a mismatch there would swap the page out
+   * under the customer.
+   */
+  if (hydrated && !isOpenNow(store)) {
+    return (
+      <div className="rounded-md border border-gold bg-white p-10 text-center">
+        <p className="display text-2xl text-black-60">{store.name} is closed</p>
+        <p className="mt-2 text-sm text-muted">
+          Trading hours are {store.hours.label}. Your basket is kept — come back when they open.
+        </p>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <ButtonLink href="/stores" variant="black">
+            Try another store
+          </ButtonLink>
+          <ButtonLink href="/menu" variant="ghost">
+            Keep browsing
+          </ButtonLink>
+        </div>
+      </div>
+    );
+  }
 
   if (lines.length === 0) {
     return (

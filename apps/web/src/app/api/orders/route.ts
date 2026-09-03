@@ -8,6 +8,7 @@ import { notifyPlaced } from '@/lib/notifications/send';
 import type { Promotion } from '@bbq/types';
 import { totalsFor } from '@/lib/pricing';
 import { promotionFor } from '@/lib/promotions';
+import { isOpenNow } from '@/lib/trading';
 
 /**
  * POST /api/orders — create an order.
@@ -30,6 +31,26 @@ export async function POST(request: Request) {
   const store = findStore(order.storeId);
   if (!store) {
     return NextResponse.json({ error: 'No such store' }, { status: 404 });
+  }
+
+  /**
+   * The store has to be open.
+   *
+   * The site displayed "Open" and "Closed" in the header and on the store list
+   * from the day it was built and never checked either: an order at three in
+   * the morning was accepted, priced, confirmed and sent to a kitchen nobody
+   * was standing in. Refused here rather than in the browser, because a clock
+   * is the easiest thing in the world for a client to be wrong about.
+   *
+   * Refusing is the whole behaviour. Ordering ahead for a later slot is a
+   * feature this build does not have, and pretending to take an order now for
+   * a kitchen that opens in nine hours would be worse than saying no.
+   */
+  if (!isOpenNow(store)) {
+    return NextResponse.json(
+      { error: `${store.name} is closed. Trading hours are ${store.hours.label}.` },
+      { status: 409 },
+    );
   }
 
   if (!servesMode(store, order.mode)) {

@@ -1,5 +1,6 @@
 import { PROMOTIONS } from '@bbq/seed';
 import type { Promotion, ServiceMode } from '@bbq/types';
+import { sastNow } from './trading';
 
 /**
  * Whether an offer actually runs, and on what.
@@ -17,21 +18,14 @@ import type { Promotion, ServiceMode } from '@bbq/types';
  * person at the till and is not silently dropped or silently enforced.
  */
 
-const MINUTES_IN_DAY = 24 * 60;
-/** South Africa does not observe daylight saving, so the offset is a constant. */
-const SAST_OFFSET_MINUTES = 2 * 60;
-
-/** The SAST weekday and minute, whatever the visitor's own clock says. */
-export function sastNow(now: Date = new Date()): { day: number; minute: number } {
-  const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
-  const shifted = utcMinutes + SAST_OFFSET_MINUTES;
-  return {
-    // A time past 22:00 UTC is already tomorrow in Johannesburg.
-    day: (now.getUTCDay() + Math.floor(shifted / MINUTES_IN_DAY)) % 7,
-    minute: shifted % MINUTES_IN_DAY,
-  };
-}
-
+/**
+ * One clock for the whole site, in `lib/trading.ts`.
+ *
+ * This module had its own copy of the SAST offset and the day-rollover
+ * arithmetic. Two clocks that must agree and are written twice are two clocks
+ * that eventually disagree, and the symptom would be an offer running an hour
+ * after the store that sells it has shut.
+ */
 export type Eligibility = {
   mode: ServiceMode;
   /**

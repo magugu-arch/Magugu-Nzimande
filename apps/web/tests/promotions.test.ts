@@ -1,7 +1,8 @@
 import { PROMOTIONS } from '@bbq/seed';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { POST as createOrderRoute } from '@/app/api/orders/route';
-import { findPromotion, isRunningNow, promotionFor, sastNow } from '@/lib/promotions';
+import { findPromotion, isRunningNow, promotionFor } from '@/lib/promotions';
+import { sastNow } from '@/lib/trading';
 import { discountOf } from '@/lib/pricing';
 import {
   aDeliveryStore,

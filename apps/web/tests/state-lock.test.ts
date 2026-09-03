@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   LOCK_STALE_MS,
   lockPathFor,
@@ -11,6 +11,17 @@ import {
   takeLock,
   withLock,
 } from '@/lib/state-lock';
+
+/**
+ * The real clock, back.
+ *
+ * The setup file pins the date so that trading hours do not make the rest of
+ * the suite depend on what time it is run. This file is the exception: the lock
+ * spins until `Date.now()` passes a deadline, and a clock that never advances
+ * is a deadline that never arrives.
+ */
+vi.useRealTimers();
+
 
 /**
  * The lock that closes the read-modify-write race.

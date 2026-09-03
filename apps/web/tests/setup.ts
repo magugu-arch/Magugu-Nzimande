@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterAll } from 'vitest';
+import { afterAll, vi } from 'vitest';
 
 /**
  * One state file per test file.
@@ -22,3 +22,20 @@ process.env.BBQ_STATE_FILE = file;
 afterAll(() => {
   rmSync(file, { force: true });
 });
+
+
+/**
+ * A fixed moment, so the suite does not depend on the wall clock.
+ *
+ * Orders are refused when the store is closed, which is correct and made the
+ * whole suite fail after 22:00 — thirteen files place an order through the real
+ * route, and they passed all day and failed at night. A test that depends on
+ * when it is run is a test nobody trusts the next morning.
+ *
+ * Wednesday 2 September 2026 at 12:00 SAST: inside every store's trading hours,
+ * and a weekday so the weekday offers run. Suites that care about another
+ * moment pass their own `now`; `state-lock.test.ts` puts the real clock back,
+ * because it is the one thing here that waits for time to pass.
+ */
+export const FIXED_NOW = new Date('2026-09-02T10:00:00Z');
+vi.setSystemTime(FIXED_NOW);

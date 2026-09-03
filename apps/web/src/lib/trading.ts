@@ -6,9 +6,27 @@ import type { Store } from '@bbq/types';
  */
 const SAST_OFFSET_MINUTES = 2 * 60;
 
-export function minutesNowInSast(now: Date = new Date()): number {
+const MINUTES_IN_DAY = 24 * 60;
+
+/**
+ * The SAST weekday and minute, whatever the visitor's own clock says.
+ *
+ * The day matters as much as the minute and is easy to get wrong: 23:00 UTC is
+ * already tomorrow in Johannesburg, so anything that runs on a given day —
+ * a Wednesday offer, a store's hours — has to roll the date over with the time
+ * rather than take the UTC day and shift only the clock.
+ */
+export function sastNow(now: Date = new Date()): { day: number; minute: number } {
   const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
-  return (utcMinutes + SAST_OFFSET_MINUTES) % (24 * 60);
+  const shifted = utcMinutes + SAST_OFFSET_MINUTES;
+  return {
+    day: (now.getUTCDay() + Math.floor(shifted / MINUTES_IN_DAY)) % 7,
+    minute: shifted % MINUTES_IN_DAY,
+  };
+}
+
+export function minutesNowInSast(now: Date = new Date()): number {
+  return sastNow(now).minute;
 }
 
 export function isOpenNow(store: Store, now: Date = new Date()): boolean {
