@@ -46,6 +46,11 @@ const ROUTES = [
   '/checkout/store',
   '/product/golden-original',
   '/order/order-4821',
+  // The detail screen, not just the list. It answered a failed fetch with
+  // "That offer has ended" — a claim about the promotions calendar made by an
+  // app that had not reached the promotions calendar. Somebody who taps a push
+  // notification on a train is the person who meets it.
+  '/offers/promo-free-delivery',
 ];
 
 /** Copy that admits the app could not reach the server. */
@@ -77,6 +82,7 @@ const CLAIMS = [
   [/No vouchers yet/i, 'claims the customer has no vouchers'],
   [/No payment methods saved/i, 'claims the customer has no saved cards'],
   [/came off the menu|can't find that item/i, 'blames the menu for a failed fetch'],
+  [/offer has ended|no longer running/i, 'blames the promotions calendar for a failed fetch'],
 ];
 
 

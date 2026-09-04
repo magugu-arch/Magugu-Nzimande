@@ -30,6 +30,7 @@ import {
   useNotificationRouting,
   usePushRegistration,
 } from '@/features/notifications/hooks';
+import { isNotFound } from '@/services/apiClient';
 import { configureNotificationHandler } from '@/services/notificationService';
 import { colors } from '@/theme';
 
@@ -52,7 +53,12 @@ startNetworkMonitoring();
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
+      // Two retries for a transient failure, none for a 404. A not-found is
+      // an answer, not a hiccup: asking three times cannot make a delisted
+      // item or a closed campaign exist, and it costs the customer the
+      // backoff — seconds of spinner before a screen that was ready to tell
+      // them straight away.
+      retry: (failureCount, error) => !isNotFound(error) && failureCount < 2,
       staleTime: 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,

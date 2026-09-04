@@ -2,7 +2,7 @@ import { businessRules, config } from '@/constants/config';
 import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
 import { voucherDiscount } from '@/utils/cart';
 import { hasPassed } from '@/utils/datetime';
-import { delay, request } from './apiClient';
+import { delay, notFound, request } from './apiClient';
 import {
   loyaltyAccount,
   promotions,
@@ -113,7 +113,7 @@ export async function fetchRewards(): Promise<Reward[]> {
 export async function fetchReward(rewardId: string): Promise<Reward> {
   const list = await fetchRewards();
   const reward = list.find((candidate) => candidate.id === rewardId);
-  if (!reward) throw new Error('Reward not found');
+  if (!reward) throw notFound('That reward is no longer available.');
   return reward;
 }
 
@@ -183,24 +183,59 @@ export async function fetchActiveVouchers(): Promise<Voucher[]> {
   return list.filter((voucher) => !voucher.used && !voucher.expired);
 }
 
-export async function fetchPromotions(): Promise<Promotion[]> {
-  if (config.useMockApi) {
-    const now = Date.now();
-    return delay(
-      promotions.filter(
-        (promotion) =>
-          new Date(promotion.validFrom).getTime() <= now &&
-          new Date(promotion.validUntil).getTime() >= now,
-      ),
-    );
-  }
+/** Whether a promotion is inside its window right now. */
+export function promotionIsRunning(promotion: Promotion, now: Date = new Date()): boolean {
+  const at = now.getTime();
+  return (
+    new Date(promotion.validFrom).getTime() <= at && new Date(promotion.validUntil).getTime() >= at
+  );
+}
+
+/** Every promotion on the calendar, running or not. Not for rendering. */
+async function promotionCalendar(): Promise<Promotion[]> {
+  if (config.useMockApi) return delay(promotions);
   return request<Promotion[]>('/v1/promotions');
 }
 
+export async function fetchPromotions(): Promise<Promotion[]> {
+  const now = new Date();
+  // The window is a veto the client can apply from data it already holds —
+  // same shape as `rewardExpired` above and `isTradingNow`. A campaign that
+  // ended an hour ago can still be sitting in a cached list or a slow CDN.
+  return (await promotionCalendar()).filter((promotion) => promotionIsRunning(promotion, now));
+}
+
+/**
+ * A single promotion, if it is running — and if it is not, which way.
+ *
+ * Two things happen here that did not before.
+ *
+ * It is a not-found rather than a bare `Error`, so the detail screen can tell
+ * an offer that is over from a server it could not reach. Those are different
+ * sentences and the screen was saying the first for both.
+ *
+ * And it reads the whole calendar rather than the filtered list, because
+ * "before" and "after" are not the same answer. Seeding a campaign loaded
+ * ahead of its launch showed the app telling a customer that an offer opening
+ * in twelve days "is no longer running" — false, and the more damaging
+ * direction of the two: somebody who followed a teaser is told the thing they
+ * are waiting for is finished. The list still shows neither.
+ */
 export async function fetchPromotion(promotionId: string): Promise<Promotion> {
-  const list = await fetchPromotions();
-  const promotion = list.find((candidate) => candidate.id === promotionId);
-  if (!promotion) throw new Error('That offer has ended.');
+  const now = new Date();
+  const promotion = (await promotionCalendar()).find((candidate) => candidate.id === promotionId);
+
+  // An id the calendar has never heard of gets the ended message: the app
+  // cannot know why it is missing, and "this has finished" is the likelier
+  // history of a link somebody is holding than a campaign that never ran.
+  if (!promotion) throw notFound('That offer has ended.', 'promotion_ended');
+
+  if (!promotionIsRunning(promotion, now)) {
+    throw new Date(promotion.validFrom).getTime() > now.getTime()
+      ? notFound('That offer has not started yet.', 'promotion_not_started')
+      : notFound('That offer has ended.', 'promotion_ended');
+  }
+
   return promotion;
 }
 

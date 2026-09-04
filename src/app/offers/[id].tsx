@@ -10,11 +10,14 @@ import {
   Card,
   ErrorState,
   LoadingState,
+  OfflineState,
   Screen,
   ScreenHeader,
   Text,
 } from '@/components/ui';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { usePromotion } from '@/features/rewards/hooks';
+import { errorCode, isNotFound } from '@/services/apiClient';
 import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
@@ -101,15 +104,61 @@ export default function OfferDetailScreen() {
     );
   }
 
-  if (promotion.isError || !promotion.data) {
+  /**
+   * A customer arrives here from outside the app more often than from the
+   * list: a push notification sent last week, a link forwarded in a group, a
+   * screenshot of a code. So all three ways this screen can fail to show an
+   * offer are reachable, and they were being answered with one sentence.
+   *
+   * "That offer has ended" is a statement about the promotion. The app is only
+   * entitled to it when the fetch succeeded and came back without one — which
+   * is now a real answer, because the seed carries a closed campaign and one
+   * loaded ahead of its launch, and `fetchPromotion` reports both as a 404.
+   *
+   * Offline is the case that made this worth fixing. A paused query is not an
+   * error, so it fell into this branch and a customer with no signal was told
+   * a live offer was over — and then offered a Retry, which contradicts the
+   * sentence above it. Nothing about the offer had been established.
+   */
+  if (isOfflinePending(promotion)) {
     return (
       <Screen edges={['top', 'bottom']}>
         <ScreenHeader title="Offer" />
-        <ErrorState
-          title="That offer has ended"
-          message="It is no longer running. Take a look at what else is on."
-          onRetry={() => void promotion.refetch()}
-        />
+        <OfflineState onRetry={() => void promotion.refetch()} />
+        <Button label="See all offers" onPress={() => router.replace('/offers')} />
+      </Screen>
+    );
+  }
+
+  if (promotion.isError || !promotion.data) {
+    // Only a not-found licenses a claim about the promotions calendar. A
+    // timeout, a dead host or a 500 is the app's problem, and explaining it
+    // with a fact about the calendar invents one.
+    const offCalendar = isNotFound(promotion.error) || (!promotion.isError && !promotion.data);
+    // And "not yet" is not "no longer". Both were reaching the same sentence,
+    // which told somebody following a teaser that the thing they are waiting
+    // for is over.
+    const notStarted = errorCode(promotion.error) === 'promotion_not_started';
+
+    return (
+      <Screen edges={['top', 'bottom']}>
+        <ScreenHeader title="Offer" />
+        {offCalendar ? (
+          <ErrorState
+            title={notStarted ? "That offer hasn't started yet" : 'That offer has ended'}
+            message={
+              notStarted
+                ? "It isn't running just yet. Here's what's on right now."
+                : 'It is no longer running. Take a look at what else is on.'
+            }
+            // No Retry either way: the fetch worked. Repeating it cannot bring
+            // a closed campaign back or start one early, and offering it beside
+            // a sentence that says the offer is not running invites a customer
+            // to keep tapping. The button below is the way on.
+          />
+        ) : (
+          <ErrorState onRetry={() => void promotion.refetch()} />
+        )}
         <Button label="See all offers" onPress={() => router.replace('/offers')} />
       </Screen>
     );

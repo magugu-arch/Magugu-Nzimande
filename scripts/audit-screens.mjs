@@ -64,6 +64,12 @@ const ROUTES = [
   // and the dip are part of the meal rather than additions to it. The picker
   // renders a price delta beside each option everywhere else.
   '/product/little-crunch-chicken-meal',
+  // The offer detail screen, in both states the seed can now produce. It was
+  // never swept: only the list was, and the list cannot render either of
+  // these. `promo-heritage-braai` is a campaign that closed, which is the one
+  // somebody reaches from an old push notification or a forwarded link.
+  '/offers/promo-free-delivery', '/offers/promo-heritage-braai',
+  '/offers/promo-sweet-potato-launch',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -106,6 +112,15 @@ const MUST_SHOW = {
   '/order/order-4821': /BBQ-4821/,
   '/rewards': /\d+\s*(points|pts)|Gold|Silver|Bronze/i,
   '/offers': /R\s?\d|%/,
+  '/offers/promo-free-delivery': /Free delivery|Terms and conditions/,
+  // The point of the fixture: a promotion outside its window is refused, and
+  // the screen says so in those words rather than in the app's generic "we
+  // could not load that". If this ever reads as a failed fetch again, the
+  // not-found plumbing under it has come apart.
+  '/offers/promo-heritage-braai': /That offer has ended/,
+  // And the other direction, which is the one that read as a lie: a campaign
+  // that opens in twelve days must not be described as finished.
+  '/offers/promo-sweet-potato-launch': /hasn't started yet/,
 };
 
 /**

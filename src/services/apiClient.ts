@@ -25,6 +25,37 @@ export function isNotFound(error: unknown): boolean {
 }
 
 /**
+ * The "that thing is not there" failure, in the shape `isNotFound` reads.
+ *
+ * This exists because the mock was failing differently from the world. The
+ * mock product lookup threw `Object.assign(new Error(…), { code: 'not_found' })`
+ * and the mock promotion lookup threw a bare `Error` — neither of which
+ * `isNotFound` can recognise, because neither carries a status. So against the
+ * real API a delisted item read as delisted, and against the mock the identical
+ * situation read as a broken app. The mock build is every preview, every demo
+ * and every screenshot, which means the "We can't find that item" copy was
+ * written, styled, reviewed, and unreachable.
+ *
+ * A mock that fails in its own private way leaves the branch written for the
+ * real failure untested. Services construct their not-found through here so
+ * there is one shape, and it is the server's.
+ */
+export function notFound(message: string, code = 'not_found'): ApiRequestError {
+  return new ApiRequestError({ code, message, status: 404 });
+}
+
+/**
+ * The machine-readable half of a failure, for the screens that branch on it.
+ *
+ * Screens must never branch on `error.message`: it is the sentence shown to
+ * the customer, so rewording the copy would silently change which branch runs.
+ * `undefined` for anything that is not one of ours.
+ */
+export function errorCode(error: unknown): string | undefined {
+  return error instanceof ApiRequestError ? error.code : undefined;
+}
+
+/**
  * Whether a failure leaves the app not knowing what the server did.
  *
  * A 400 or a 422 is an answer: the server received the request, considered it,

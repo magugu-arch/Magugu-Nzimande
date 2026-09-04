@@ -1,6 +1,6 @@
 import { config } from '@/constants/config';
 import type { Category, MenuSnapshot, Product } from '@/types';
-import { delay, request } from './apiClient';
+import { delay, notFound, request } from './apiClient';
 import { menuSnapshot } from './data/menuData';
 import { checkedMenu, checkedProduct } from './wireChecks';
 import { matchProducts } from '@/features/menu/search';
@@ -30,11 +30,10 @@ export async function fetchProduct(productId: string): Promise<Product> {
     const product = menuSnapshot.products.find(
       (candidate) => candidate.id === productId || candidate.slug === productId,
     );
-    if (!product) {
-      throw Object.assign(new Error('That item is no longer on the menu.'), {
-        code: 'not_found',
-      });
-    }
+    // Thrown in the server's shape, not the mock's own. A hand-rolled
+    // `{ code: 'not_found' }` carries no status, so `isNotFound` said false and
+    // the product screen's delisted copy never rendered in a mock build.
+    if (!product) throw notFound('That item is no longer on the menu.');
     return delay(product, 180);
   }
   return request<Product>(`/v1/menu/products/${encodeURIComponent(productId)}`, {

@@ -538,4 +538,43 @@ export const promotions: Promotion[] = [
     terms: ['Applies to delivery orders within standard zones.'],
     usePromotionalComposition: false,
   },
+  /**
+   * The two below are outside their window on purpose, and they are the only
+   * reason `fetchPromotions`' validity filter has ever removed anything.
+   *
+   * Every promotion seeded before them was live, so the filter ran eight times
+   * a session and never once changed its answer, and `fetchPromotion`'s
+   * "That offer has ended" throw had never fired in the life of this app. A
+   * branch nothing reaches is a branch nobody has read.
+   *
+   * Both states are ordinary in a running promotions calendar: marketing sets
+   * an end date, and a campaign is loaded days before it opens. What makes
+   * them worth seeding is that a customer can still arrive at either — a push
+   * notification sent last week, a link forwarded in a family group, a
+   * screenshot. The list will not show them. The detail screen has to.
+   */
+  {
+    id: 'promo-heritage-braai',
+    headline: 'Heritage Day braai box',
+    description: 'The sharing box we ran over Heritage Day. Back again next year.',
+    assetKey: 'halfAndHalf',
+    ctaLabel: 'See what else is on',
+    ctaHref: '/offers',
+    validFrom: new Date(Date.now() - 40 * 86_400_000).toISOString(),
+    validUntil: new Date(Date.now() - 9 * 86_400_000).toISOString(),
+    terms: ['This offer has closed.', 'Ran at participating stores.'],
+    usePromotionalComposition: true,
+  },
+  {
+    id: 'promo-sweet-potato-launch',
+    headline: 'Sweet Potato Fries are coming',
+    description: 'Landing on the menu shortly. We will let you know the day they do.',
+    assetKey: 'sweetPotatoFries',
+    ctaLabel: 'Browse the menu',
+    ctaHref: '/(tabs)/menu',
+    validFrom: new Date(Date.now() + 12 * 86_400_000).toISOString(),
+    validUntil: new Date(Date.now() + 55 * 86_400_000).toISOString(),
+    terms: ['Availability varies by store.'],
+    usePromotionalComposition: true,
+  },
 ];
