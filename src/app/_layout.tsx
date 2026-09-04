@@ -31,6 +31,8 @@ import {
   usePushRegistration,
 } from '@/features/notifications/hooks';
 import { isNotFound } from '@/services/apiClient';
+import { useAuthStore } from '@/store/authStore';
+import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { configureNotificationHandler } from '@/services/notificationService';
 import { colors } from '@/theme';
 
@@ -102,6 +104,20 @@ export default function RootLayout() {
   // life of the app, because the store it listens to outlives every screen —
   // a heart can be given on the menu, the product page or a reorder row.
   useEffect(() => startFavouritesSync(), []);
+
+  /**
+   * Honour "Default order type" on a cold start, which nothing did.
+   *
+   * The Preferences screen says "What we pre-select when you open the app" and
+   * `defaultFulfilment` was read by nobody — a customer who set Collection
+   * opened on Delivery every time. Run once, after both stores have rehydrated
+   * from storage, and `applyDefaultFulfilment` defers to a branch already
+   * chosen so this can never overrule an order in progress.
+   */
+  useEffect(() => {
+    const { defaultFulfilment } = useAuthStore.getState().preferences;
+    useFulfilmentStore.getState().applyDefaultFulfilment(defaultFulfilment);
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 

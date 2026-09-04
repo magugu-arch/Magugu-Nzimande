@@ -6,6 +6,8 @@ import { FoodImage } from '@/components/food/FoodImage';
 import { Badge, FavouriteButton, Text } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 import { formatPrice } from '@/utils/money';
+import { showsHeatBadge } from '@/features/menu/heat';
+import { useHeatPreference } from '@/features/menu/useHeatPreference';
 
 export interface ProductRowProps {
   product: Product;
@@ -28,6 +30,8 @@ export interface ProductRowProps {
  * and each has its own target and its own name.
  */
 export const ProductRow = memo(function ProductRow({ product, onPress, testID }: ProductRowProps) {
+  const preferMildFirst = useHeatPreference();
+
   return (
     <View style={styles.row}>
       <Pressable
@@ -61,7 +65,7 @@ export const ProductRow = memo(function ProductRow({ product, onPress, testID }:
             <Text variant="h3" numberOfLines={2} style={styles.title}>
               {product.name}
             </Text>
-            {product.spiceLevel >= 3 ? (
+            {showsHeatBadge(product.spiceLevel, preferMildFirst) ? (
               <Ionicons name="flame" size={15} color={colors.primary} />
             ) : null}
           </View>

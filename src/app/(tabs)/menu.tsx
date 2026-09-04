@@ -11,6 +11,8 @@ import { useFavouritesStore } from '@/store/favouritesStore';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { ProductRow } from '@/features/menu/components/ProductRow';
 import { useCategories, useMenu, useProductSearch } from '@/features/menu/hooks';
+import { orderedForHeat } from '@/features/menu/heat';
+import { useHeatPreference } from '@/features/menu/useHeatPreference';
 import { track } from '@/ux/analytics';
 import { POPULAR_SEARCH_TERMS } from '@/services/menuService';
 import {
@@ -55,19 +57,34 @@ export default function MenuScreen() {
   const search = useProductSearch(query);
 
   const isSearching = query.trim().length >= 2;
+  const preferMildFirst = useHeatPreference();
 
+  /**
+   * The list, then the customer's heat preference over the top of it.
+   *
+   * `orderedForHeat` is applied last and only once, to whichever list this
+   * screen ended up with. The sort is stable, so a category keeps its
+   * merchandising order inside each heat level, a search keeps its relevance
+   * order, and favourites stay newest-hearted first — the preference lifts the
+   * gentler things up without discarding the reason the list was in the order
+   * it was.
+   */
   const listedProducts: Product[] = useMemo(() => {
-    if (isSearching) return search.data ?? [];
-    const all = menu.data?.products ?? [];
-    if (activeCategory === 'all') return all;
-    if (activeCategory === 'favourites') {
-      // Ordered by when they were hearted, newest first, not by menu order.
-      return favouriteIds
-        .map((id) => all.find((product) => product.id === id))
-        .filter((product): product is Product => Boolean(product));
-    }
-    return all.filter((product) => product.categoryId === activeCategory);
-  }, [isSearching, search.data, menu.data, activeCategory, favouriteIds]);
+    const chosen = (): Product[] => {
+      if (isSearching) return search.data ?? [];
+      const all = menu.data?.products ?? [];
+      if (activeCategory === 'all') return all;
+      if (activeCategory === 'favourites') {
+        // Ordered by when they were hearted, newest first, not by menu order.
+        return favouriteIds
+          .map((id) => all.find((product) => product.id === id))
+          .filter((product): product is Product => Boolean(product));
+      }
+      return all.filter((product) => product.categoryId === activeCategory);
+    };
+
+    return orderedForHeat(chosen(), preferMildFirst);
+  }, [isSearching, search.data, menu.data, activeCategory, favouriteIds, preferMildFirst]);
 
   const openProduct = useCallback(
     (product: Product) => router.push(`/product/${product.id}`),

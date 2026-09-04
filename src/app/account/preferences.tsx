@@ -5,6 +5,7 @@ import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelecto
 import { usePushRegistration } from '@/features/notifications/hooks';
 import { useRemotePreferences } from '@/features/account/useRemotePreferences';
 import { useAuthStore } from '@/store/authStore';
+import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
 import { openAppSettings } from '@/utils/linking';
 
@@ -13,6 +14,7 @@ export default function PreferencesScreen() {
   const notificationPreferences = useAuthStore((state) => state.notificationPreferences);
   const preferences = useAuthStore((state) => state.preferences);
   const setPreference = useAuthStore((state) => state.setPreference);
+  const applyDefaultFulfilment = useFulfilmentStore((state) => state.applyDefaultFulfilment);
 
   // Every switch below used to write to AsyncStorage and stop there, so
   // switching off "Promotions" changed a local boolean and the promotions kept
@@ -56,7 +58,13 @@ export default function PreferencesScreen() {
           </Text>
           <FulfilmentSelector
             value={preferences.defaultFulfilment}
-            onChange={(value) => setPreference('defaultFulfilment', value)}
+            onChange={(value) => {
+              setPreference('defaultFulfilment', value);
+              // Applied now as well as on the next open, so the control does
+              // something the customer can see. Declines if a branch is
+              // already chosen — see `applyDefaultFulfilment`.
+              applyDefaultFulfilment(value);
+            }}
             compact
           />
         </Card>

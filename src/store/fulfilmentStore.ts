@@ -191,6 +191,21 @@ interface FulfilmentState {
   locationPermissionAsked: boolean;
 
   setFulfilmentType: (fulfilmentType: FulfilmentType) => void;
+  /**
+   * Adopt the customer's preferred order type, if nothing is under way.
+   *
+   * The Preferences screen offers "Default order type — What we pre-select
+   * when you open the app", and nothing pre-selected it: `defaultFulfilment`
+   * was written to the auth store, persisted, and read by no one. A customer
+   * who set Collection opened the app on Delivery every time, for as long as
+   * they used it.
+   *
+   * "Pre-select" is a claim about a fresh start, not a licence to overrule
+   * somebody mid-order, so this defers to a branch already chosen. After an
+   * order `reset` clears the branch, which is precisely when the next open
+   * should honour the preference again.
+   */
+  applyDefaultFulfilment: (fulfilmentType: FulfilmentType) => void;
   setStore: (store: Store | null) => void;
   setAddress: (address: Address | null) => void;
   setDeliveryInstructions: (instructions: string) => void;
@@ -226,6 +241,13 @@ export const useFulfilmentStore = create<FulfilmentState>()(
       scheduledFor: null,
       coordinates: null,
       locationPermissionAsked: false,
+
+      applyDefaultFulfilment: (fulfilmentType) => {
+        // A chosen branch means an order is under way. Leave it alone.
+        if (get().store !== null) return;
+        if (get().fulfilmentType === fulfilmentType) return;
+        get().setFulfilmentType(fulfilmentType);
+      },
 
       setFulfilmentType: (fulfilmentType) => {
         // §15 `select_fulfilment` — the event the "fulfilment mix" dashboard is

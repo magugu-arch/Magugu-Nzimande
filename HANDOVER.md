@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 72 suites; `npm test` prints the count                                                                  |
+| Tests            | 73 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 

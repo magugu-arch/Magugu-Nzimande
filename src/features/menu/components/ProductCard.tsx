@@ -6,6 +6,8 @@ import { FoodImage } from '@/components/food/FoodImage';
 import { Badge, Text } from '@/components/ui';
 import { colors, elevation, radius, spacing } from '@/theme';
 import { formatPrice } from '@/utils/money';
+import { showsHeatBadge } from '@/features/menu/heat';
+import { useHeatPreference } from '@/features/menu/useHeatPreference';
 
 export interface ProductCardProps {
   product: Product;
@@ -32,6 +34,7 @@ export const ProductCard = memo(function ProductCard({
   testID,
 }: ProductCardProps) {
   const tag = primaryTag(product);
+  const preferMildFirst = useHeatPreference();
 
   return (
     <Pressable
@@ -49,7 +52,7 @@ export const ProductCard = memo(function ProductCard({
       <View>
         <FoodImage assetKey={product.assetKey} variant="card" rounded="none" />
         {tag ? <Badge label={tag.label} tone={tag.tone} style={styles.tag} /> : null}
-        {product.spiceLevel >= 3 ? (
+        {showsHeatBadge(product.spiceLevel, preferMildFirst) ? (
           <View style={styles.heat}>
             <Ionicons name="flame" size={13} color={colors.onPrimary} />
           </View>
