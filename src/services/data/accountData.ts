@@ -53,13 +53,44 @@ function tierNudge(): { title: string; body: string } {
   };
 }
 
+/**
+ * An ISO date of birth in whatever month it is now.
+ *
+ * The day is clamped to the month's length so a 31st never rolls into the
+ * next month — which would put the seeded customer's birthday one month out
+ * and quietly undo the point of the fixture.
+ */
+function birthdayThisMonth(year: number, day: number): string {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const lastDay = new Date(now.getFullYear(), month, 0).getDate();
+  const safeDay = Math.min(day, lastDay);
+
+  return `${year}-${String(month).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`;
+}
+
 export const demoUser: UserProfile = {
   id: 'user-demo',
   firstName: 'Thandi',
   lastName: 'Mokoena',
   email: 'thandi@example.co.za',
   phone: '+27821234567',
-  dateOfBirth: '1994-07-12',
+  /**
+   * A birthday in the current month, which is the one month of twelve that
+   * makes the birthday reward reachable.
+   *
+   * This was a fixed `1994-07-12`. Eleven months in twelve the Birthday
+   * Boneless Box was *correctly* locked, which is exactly why nobody looked at
+   * it: the twelfth read like a date somebody had not got round to. Behind it,
+   * `fetchRewards` excluded the whole category outright, so the reward that
+   * says "Unlocks automatically during your birthday month" — four times, on
+   * two screens — would have stayed locked in July too.
+   *
+   * Relative, so the seeded customer is always in their birthday month. That
+   * is the state a twelfth of a real customer base is in on any given day, and
+   * the only one in which the reward is supposed to do anything.
+   */
+  dateOfBirth: birthdayThisMonth(1994, 12),
   avatarInitials: 'TM',
   isGuest: false,
   /**

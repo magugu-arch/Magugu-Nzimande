@@ -17,6 +17,7 @@ import {
 import { useLoyaltyAccount, useRedeemReward, useReward } from '@/features/rewards/hooks';
 import { useNow } from '@/features/system/useNow';
 import { rewardExpired } from '@/services/rewardsService';
+import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
@@ -37,6 +38,7 @@ export default function RewardDetailScreen() {
   const cartLines = useCartStore((state) => state.lines);
 
   const now = useNow();
+  const user = useAuthStore((state) => state.user);
   const [error, setError] = useState<string | null>(null);
 
   const handleRedeem = useCallback(async () => {
@@ -102,6 +104,16 @@ export default function RewardDetailScreen() {
   const balance = loyalty.data.pointsBalance;
   const shortfall = Math.max(0, data.pointsCost - balance);
   const progress = data.pointsCost > 0 ? Math.min(1, balance / data.pointsCost) : 1;
+  /**
+   * Why a locked birthday reward is locked, which is never the points.
+   *
+   * The box costs nothing, so "Not enough points yet" was not merely the
+   * wrong reason — it contradicted the zero printed a few lines above it. The
+   * two walls a customer can actually hit are the month and a profile with no
+   * date of birth in it, and the second is one they can do something about.
+   */
+  const birthdayLocked = data.category === 'birthday' && !data.redeemable && !expired;
+  const noDateOnFile = birthdayLocked && !user?.dateOfBirth;
 
   return (
     <Screen scroll edges={['top', 'bottom']} padded={false} testID="reward-detail-screen">
@@ -159,13 +171,27 @@ export default function RewardDetailScreen() {
 
           <Text
             variant="caption"
-            color={data.redeemable ? colors.status.success : colors.textSecondary}
+            color={data.redeemable && !expired ? colors.status.success : colors.textSecondary}
           >
-            {data.category === 'birthday'
-              ? 'Unlocks automatically during your birthday month.'
-              : data.redeemable
-                ? 'You have enough points. Redeem it whenever you like.'
-                : `${groupDigits(shortfall)} points to go — roughly ${formatPrice(shortfall)} of spending.`}
+            {/*
+              Expiry answers first, because it is the only wall points cannot
+              get past. The Heritage reward is seeded expired with a balance
+              well over its cost, and this card was quoting the shortfall of a
+              reward nobody can have: "0 points to go — roughly R 0.00 of
+              spending", directly above a button reading "This reward has
+              expired". Two claims on one card, one of them an invitation.
+            */}
+            {expired
+              ? 'This one has closed. Have a look at what else is on the ladder.'
+              : data.category === 'birthday'
+                ? noDateOnFile
+                  ? 'Add your date of birth to your profile and this unlocks in your birthday month.'
+                  : data.redeemable
+                    ? 'It is your birthday month. This is yours whenever you want it.'
+                    : 'Unlocks automatically during your birthday month.'
+                : data.redeemable
+                  ? 'You have enough points. Redeem it whenever you like.'
+                  : `${groupDigits(shortfall)} points to go — roughly ${formatPrice(shortfall)} of spending.`}
           </Text>
         </Card>
 
@@ -204,7 +230,11 @@ export default function RewardDetailScreen() {
               ? 'This reward has expired'
               : data.redeemable
                 ? 'Redeem this reward'
-                : 'Not enough points yet'
+                : noDateOnFile
+                  ? 'Add your date of birth'
+                  : birthdayLocked
+                    ? 'Unlocks in your birthday month'
+                    : 'Not enough points yet'
           }
           onPress={() => void handleRedeem()}
           disabled={!data.redeemable}

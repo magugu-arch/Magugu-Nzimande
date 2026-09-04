@@ -38,8 +38,19 @@ export const queryKeys = {
   activeOrder: ['orders', 'active'] as const,
 
   loyalty: ['loyalty'] as const,
-  rewards: ['loyalty', 'rewards'] as const,
-  reward: (rewardId: string) => ['loyalty', 'reward', rewardId] as const,
+  /**
+   * Keyed by birthday month, because redeemability now depends on it.
+   *
+   * Without it a list cached in June would still say the birthday box is
+   * locked on the first of July, and a customer who adds their date of birth
+   * to their profile would see no change until something else invalidated the
+   * query. The month, not the date: the rule only reads that far, and a key
+   * that carried the whole date would leak a birthday into cache diagnostics
+   * for nothing.
+   */
+  rewards: (birthdayMonth: number | null = null) => ['loyalty', 'rewards', birthdayMonth] as const,
+  reward: (rewardId: string, birthdayMonth: number | null = null) =>
+    ['loyalty', 'reward', rewardId, birthdayMonth] as const,
   tiers: ['loyalty', 'tiers'] as const,
   vouchers: ['loyalty', 'vouchers'] as const,
 

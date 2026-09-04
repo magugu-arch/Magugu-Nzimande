@@ -2,6 +2,7 @@ import { businessRules, config } from '@/constants/config';
 import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
 import { voucherDiscount } from '@/utils/cart';
 import { hasPassed } from '@/utils/datetime';
+import { inBirthdayMonth } from '@/features/rewards/birthday';
 import { delay, notFound, request } from './apiClient';
 import {
   loyaltyAccount,
@@ -89,29 +90,51 @@ export function rewardExpired(reward: Reward, now: Date = new Date()): boolean {
   return hasPassed(reward.expiresAt, now);
 }
 
-export async function fetchRewards(): Promise<Reward[]> {
+/**
+ * Whether a birthday reward is available to this customer right now.
+ *
+ * `reward.category !== 'birthday'` used to sit in the middle of the
+ * redeemability expression, which excluded the whole category outright — so a
+ * reward that says "Unlocks automatically during your birthday month", four
+ * times over, in the customer's own birthday month, was locked. The promise
+ * was made everywhere and kept nowhere. See `features/rewards/birthday`.
+ *
+ * Only birthday rewards are affected; everything else answers `true` and is
+ * judged on points and expiry as before.
+ */
+function birthdayGatePasses(reward: Reward, dateOfBirth: string | undefined): boolean {
+  return reward.category !== 'birthday' || inBirthdayMonth(dateOfBirth);
+}
+
+export async function fetchRewards(dateOfBirth?: string): Promise<Reward[]> {
   if (config.useMockApi) {
     const balance = (await fetchLoyaltyAccount()).pointsBalance;
     // Redeemability is a function of the live balance, never a static flag.
     return rewards.map((reward) => ({
       ...reward,
       redeemable:
-        !rewardExpired(reward) && reward.category !== 'birthday' && balance >= reward.pointsCost,
+        !rewardExpired(reward) &&
+        birthdayGatePasses(reward, dateOfBirth) &&
+        balance >= reward.pointsCost,
     }));
   }
 
   // The server owns the balance judgement; expiry is a veto the client can
   // apply from data it already holds. Same shape as `isTradingNow`: both
-  // sources can close a door, neither can force one open.
+  // sources can close a door, neither can force one open. The birthday month
+  // is the same kind of veto and joins it — the app holds the date of birth,
+  // and a server that has not applied the rule must not be able to force the
+  // reward open.
   const remote = await request<Reward[]>('/v1/loyalty/rewards');
   return remote.map((reward) => ({
     ...reward,
-    redeemable: reward.redeemable && !rewardExpired(reward),
+    redeemable:
+      reward.redeemable && !rewardExpired(reward) && birthdayGatePasses(reward, dateOfBirth),
   }));
 }
 
-export async function fetchReward(rewardId: string): Promise<Reward> {
-  const list = await fetchRewards();
+export async function fetchReward(rewardId: string, dateOfBirth?: string): Promise<Reward> {
+  const list = await fetchRewards(dateOfBirth);
   const reward = list.find((candidate) => candidate.id === rewardId);
   if (!reward) throw notFound('That reward is no longer available.');
   return reward;
@@ -294,6 +317,7 @@ export function discountFor(voucher: Voucher, subtotal: number): number {
 
 export async function redeemReward(
   rewardId: string,
+  dateOfBirth?: string,
 ): Promise<{ reward: Reward; discount: number }> {
   if (!config.useMockApi) {
     return request<{ reward: Reward; discount: number }>('/v1/loyalty/redeem', {
@@ -302,11 +326,21 @@ export async function redeemReward(
     });
   }
 
-  const reward = await fetchReward(rewardId);
+  const reward = await fetchReward(rewardId, dateOfBirth);
   // Checked before redeemability, which is now false for an expired reward
   // too — without this the customer would be told they are short of points
   // when the points were never the problem.
   if (rewardExpired(reward)) throw new Error('That reward has expired.');
+  // And before it for the same reason: a birthday box costs nothing, so
+  // "you do not have enough points" is not merely the wrong reason, it
+  // contradicts the price printed beside it.
+  if (!birthdayGatePasses(reward, dateOfBirth)) {
+    throw new Error(
+      dateOfBirth
+        ? 'This unlocks in your birthday month.'
+        : 'Add your date of birth to your profile to unlock your birthday reward.',
+    );
+  }
   if (!reward.redeemable) throw new Error('You do not have enough points for this reward yet.');
 
   /**

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/services/queryKeys';
 import { useIsSignedOut } from '@/features/system/AccountRequired';
+import { useAuthStore } from '@/store/authStore';
+import { birthdayMonthOf } from '@/features/rewards/birthday';
 import {
   fetchLoyaltyAccount,
   fetchPromotion,
@@ -23,20 +25,36 @@ export function useLoyaltyAccount() {
   });
 }
 
+/**
+ * The signed-in customer's date of birth, which the birthday reward turns on.
+ *
+ * Read here rather than in the service: `rewardsService` has no business
+ * reaching into a Zustand store, and against a real API the token identifies
+ * the customer anyway. The hooks are the seam where client state meets a
+ * query, so this is where it belongs.
+ */
+function useDateOfBirth(): string | undefined {
+  return useAuthStore((state) => state.user?.dateOfBirth);
+}
+
 export function useRewards() {
   const signedOut = useIsSignedOut();
+  const dateOfBirth = useDateOfBirth();
+
   return useQuery({
-    queryKey: queryKeys.rewards,
-    queryFn: fetchRewards,
+    queryKey: queryKeys.rewards(birthdayMonthOf(dateOfBirth)),
+    queryFn: () => fetchRewards(dateOfBirth),
     staleTime: 60 * 1000,
     enabled: !signedOut,
   });
 }
 
 export function useReward(rewardId: string | undefined) {
+  const dateOfBirth = useDateOfBirth();
+
   return useQuery({
-    queryKey: queryKeys.reward(rewardId ?? ''),
-    queryFn: () => fetchReward(rewardId as string),
+    queryKey: queryKeys.reward(rewardId ?? '', birthdayMonthOf(dateOfBirth)),
+    queryFn: () => fetchReward(rewardId as string, dateOfBirth),
     enabled: Boolean(rewardId),
   });
 }
@@ -80,11 +98,14 @@ export function useValidateVoucher() {
 
 export function useRedeemReward() {
   const queryClient = useQueryClient();
+  const dateOfBirth = useDateOfBirth();
+
   return useMutation({
-    mutationFn: (rewardId: string) => redeemReward(rewardId),
+    mutationFn: (rewardId: string) => redeemReward(rewardId, dateOfBirth),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.loyalty });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.rewards });
+      // Prefix-matched, so every birthday-month variant of the list is dropped.
+      void queryClient.invalidateQueries({ queryKey: ['loyalty', 'rewards'] });
     },
   });
 }

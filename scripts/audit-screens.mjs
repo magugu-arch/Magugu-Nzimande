@@ -75,6 +75,11 @@ const ROUTES = [
   // no sweep had ever rendered a driver, a moving progress bar or an estimate
   // with time left on it.
   '/order/order-4830',
+  // The birthday reward, in the month it is supposed to unlock. The seeded
+  // date of birth was fixed, so eleven months in twelve this screen was
+  // correctly locked — and the twelfth would have been locked too, because
+  // the whole category was excluded from redeemability.
+  '/rewards/reward-birthday',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -121,6 +126,10 @@ const MUST_SHOW = {
   // sentence promises a driver, and the card underneath has to name one.
   '/order/order-4830': /Out for delivery/,
   '/rewards': /\d+\s*(points|pts)|Gold|Silver|Bronze/i,
+  // Unlocked, in the seeded customer's birthday month. If this ever reads
+  // "Not enough points yet" again, the gate has gone back to excluding the
+  // category — and it would be saying it about a reward that costs nothing.
+  '/rewards/reward-birthday': /It is your birthday month/,
   '/offers': /R\s?\d|%/,
   '/offers/promo-free-delivery': /Free delivery|Terms and conditions/,
   // The point of the fixture: a promotion outside its window is refused, and
