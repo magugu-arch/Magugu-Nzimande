@@ -501,6 +501,98 @@ function seedHistory(): void {
     rating: 3,
     ratingComment: 'Good food, but the collection queue was long.',
   });
+
+  /**
+   * An order that is actually happening, which the seed has never had.
+   *
+   * Four completed and one cancelled: every seeded order was over. So the
+   * Orders tab opened on an Active list that was empty by construction — the
+   * screen sweep's own notes say as much — and every screen that renders a
+   * live order was reachable only by placing one in the session and watching
+   * the mock advance it. Nothing cold ever showed a driver, a moving progress
+   * bar, or a "cancel this order" refusal.
+   *
+   * Thirty-four minutes into a forty-two minute delivery, which is chosen
+   * rather than picked: it puts the order eight minutes from due — late
+   * enough that an estimate fixed at checkout is visibly stale, early enough
+   * that it is not overdue — and it puts the courier leg twelve minutes into
+   * its own twenty-four, so the mock provider reports a driver actually on the
+   * road rather than a job it has only just confirmed. Both clocks have to
+   * land inside their windows for the fixture to be one coherent order instead
+   * of two systems disagreeing on one screen. `placedAt` is relative, so it
+   * stays there whenever anyone opens the app.
+   *
+   * Seeded at `out_for_delivery` rather than left to the clock, because
+   * `advance` deliberately stops the kitchen at "ready" — the road belongs to
+   * the courier network, and there is no provider connected here to hand it
+   * over. The status is never walked backwards, so this survives the fetch.
+   */
+  const inFlightPlacedAt = new Date(Date.now() - 34 * 60_000);
+  ledger.push({
+    id: 'order-4830',
+    reference: 'BBQ-4830',
+    placedAt: inFlightPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'out_for_delivery',
+    timeline: buildTimeline('delivery', 'out_for_delivery', inFlightPlacedAt, 42),
+    lines: [
+      {
+        id: 'hot-spicy__hot-spicy-size:hot-spicy-size-medium',
+        productId: 'hot-spicy',
+        name: 'Hot Spicy Chicken',
+        assetKey: 'hotSpicy',
+        unitBasePrice: 169,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'hot-spicy-size',
+            groupName: 'Choose your size',
+            optionId: 'hot-spicy-size-medium',
+            optionName: 'Medium · 9 pieces',
+            priceDelta: 60,
+          },
+        ],
+        unitPrice: 229,
+        lineTotal: 229,
+      },
+      {
+        id: 'french-fries__fries-size:fries-size-regular',
+        productId: 'french-fries',
+        name: 'French Fries',
+        assetKey: 'frenchFries',
+        unitBasePrice: 45,
+        quantity: 2,
+        selectedOptions: [
+          {
+            groupId: 'fries-size',
+            groupName: 'Size',
+            optionId: 'fries-size-regular',
+            optionName: 'Regular',
+            priceDelta: 0,
+          },
+        ],
+        unitPrice: 45,
+        lineTotal: 90,
+      },
+    ],
+    totals: {
+      subtotal: 319,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 356,
+      pointsEarned: 319,
+    },
+    ...storeSnapshot('store-rosebank'),
+    addressId: 'address-home',
+    addressSummary: '14 Acacia Road, Melrose Arch',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 42,
+    // No `driverName`: the courier job is what names a driver, and stating it
+    // here too would be the same fact in two places with one of them
+    // authoritative. `attachDelivery` fills it in on the first fetch.
+  });
 }
 
 /**

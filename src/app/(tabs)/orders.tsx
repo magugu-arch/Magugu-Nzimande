@@ -19,10 +19,11 @@ import {
   Text,
 } from '@/components/ui';
 import { isOfflinePending } from '@/features/system/queryPhase';
+import { useNow } from '@/features/system/useNow';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { useOrders } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
-import { readyLabelFor, statusCopy } from '@/services/orderService';
+import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatDateTime, formatEtaWindow, formatRelativeDay } from '@/utils/datetime';
@@ -157,7 +158,24 @@ interface OrderCardProps {
 }
 
 function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
+  const now = useNow();
   const isActive = order.status !== 'completed' && order.status !== 'cancelled';
+  /**
+   * A countdown, the same one the tracking screen shows.
+   *
+   * This printed `order.etaMinutes` — how long the order *takes*, fixed when
+   * it was placed — so the card never moved. Tracking was found doing exactly
+   * this and fixed; the card that leads to tracking was not, and nothing
+   * noticed, because every seeded order was finished and the Active list was
+   * empty by construction. With a live one in the seed the two screens
+   * disagree out loud: "Out for delivery in 40 – 50 min" on the list, eight
+   * minutes on the detail, same order, same second.
+   *
+   * Past due the window is dropped rather than restated or turned negative,
+   * again matching tracking. The status line above already says where the
+   * order is, and a time nobody believes is worse than no time.
+   */
+  const dueInMinutes = minutesUntilDue(order, now);
   const completedSteps = order.timeline.filter((event) => event.occurredAt !== null).length;
   const firstLine = order.lines[0];
 
@@ -198,7 +216,9 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
           <Text variant="caption" color={colors.primary}>
             {order.scheduledFor
               ? `Scheduled · ${formatDateTime(order.scheduledFor)}`
-              : `${readyLabelFor(order.fulfilmentType)} in ${formatEtaWindow(order.etaMinutes)}`}
+              : dueInMinutes > 0
+                ? `${readyLabelFor(order.fulfilmentType)} in ${formatEtaWindow(dueInMinutes)}`
+                : statusCopy(order.status).description}
           </Text>
         </>
       ) : null}

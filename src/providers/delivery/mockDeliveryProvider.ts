@@ -74,6 +74,32 @@ function minutesRemaining(createdAt: number, now: number): number {
   return Math.max(0, Math.round(total - (now - createdAt) / 60_000));
 }
 
+/**
+ * Who is carrying it, if anybody is — and in one place, because it was in two.
+ *
+ * A name only once somebody is actually assigned. Before that there is no
+ * driver, and inventing one puts a stranger's name on a customer's screen.
+ *
+ * `getStatus` had this rule and `create` did not, which looked harmless
+ * because a freshly created job is normally `CONFIRMED` and nobody is on it
+ * yet. It is not harmless here: `create` anchors the leg to `readyAt` rather
+ * than to the moment it was asked, deliberately — a client-side mock can only
+ * create a job when somebody reads — so it can and does return a job that is
+ * already `ON_THE_WAY`. It returned that job with no courier on it.
+ *
+ * What a customer saw, on the screen a hungry person actually watches: "Out
+ * for delivery · Your driver has collected the order and is on the way", and
+ * no driver anywhere on the card, because the card will not name somebody it
+ * has not been told about. Then a second later the next fetch called
+ * `getStatus`, the same job answered with a name, and a driver blinked into
+ * existence. One rule, two implementations, and only one of them had it.
+ */
+function courierFor(status: DeliveryStatus): { courierName?: string } {
+  return status === 'COURIER_ASSIGNED' || status === 'PICKED_UP' || status === 'ON_THE_WAY'
+    ? { courierName: 'Sipho' }
+    : {};
+}
+
 export const mockDeliveryProvider: DeliveryProvider = {
   name: 'mock',
 
@@ -116,11 +142,15 @@ export const mockDeliveryProvider: DeliveryProvider = {
     const requestedAt = Date.now();
     const readyAt = input.readyAt ? new Date(input.readyAt).getTime() : requestedAt;
     const now = Number.isFinite(readyAt) ? Math.min(readyAt, requestedAt) : requestedAt;
+    const status = statusAt(now, requestedAt);
     const job: DeliveryJob = {
       externalJobId,
       provider: 'mock',
-      status: statusAt(now, requestedAt),
+      status,
       etaMinutes: minutesRemaining(now, requestedAt),
+      // Named here too, not only in `getStatus`: anchoring to `readyAt` means
+      // a job can be born already on the road.
+      ...courierFor(status),
       // Unauthorised by default — see the note at the top of this file.
       trackingAvailable: false,
       updatedAt: new Date(requestedAt).toISOString(),
@@ -143,11 +173,7 @@ export const mockDeliveryProvider: DeliveryProvider = {
       ...(status === 'DELIVERED' || status === 'CANCELLED'
         ? {}
         : { etaMinutes: minutesRemaining(record.createdAt, now) }),
-      // A name only once somebody is actually assigned. Before that there is no
-      // driver, and inventing one puts a stranger's name on a customer's screen.
-      ...(status === 'COURIER_ASSIGNED' || status === 'PICKED_UP' || status === 'ON_THE_WAY'
-        ? { courierName: 'Sipho' }
-        : {}),
+      ...courierFor(status),
       updatedAt: new Date(now).toISOString(),
     };
 

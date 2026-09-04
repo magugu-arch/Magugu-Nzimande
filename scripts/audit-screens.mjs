@@ -70,6 +70,11 @@ const ROUTES = [
   // somebody reaches from an old push notification or a forwarded link.
   '/offers/promo-free-delivery', '/offers/promo-heritage-braai',
   '/offers/promo-sweet-potato-launch',
+  // An order that is actually happening. The seed had four completed and one
+  // cancelled, so the Orders tab's Active list was empty by construction and
+  // no sweep had ever rendered a driver, a moving progress bar or an estimate
+  // with time left on it.
+  '/order/order-4830',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -105,11 +110,16 @@ const MUST_SHOW = {
   '/menu': /Golden Original|Soy Garlic|Half & Half/,
   '/home': /Golden Original|Soy Garlic|Wings|Chicken/,
   '/product/golden-original': /R\s?\d/,
-  // Not /orders: it opens on the Active tab, and a cold app has nothing
-  // cooking — both seeded orders are completed and sit under Past orders. An
-  // empty Active tab is the correct screen, so asserting a reference here
-  // would be asserting a bug. /order/order-4821 covers an order rendering.
+  // /orders can be asserted now. It used to open on an Active tab that a cold
+  // app left empty — every seeded order was finished — so an empty list was
+  // the correct screen and asserting a reference here would have been
+  // asserting a bug. The seed carries a live order, so the tab has something
+  // to show and the card that shows it is worth checking.
+  '/orders': /BBQ-4830/,
   '/order/order-4821': /BBQ-4821/,
+  // Live tracking, with the courier on it. Both halves matter: the status
+  // sentence promises a driver, and the card underneath has to name one.
+  '/order/order-4830': /Out for delivery/,
   '/rewards': /\d+\s*(points|pts)|Gold|Silver|Bronze/i,
   '/offers': /R\s?\d|%/,
   '/offers/promo-free-delivery': /Free delivery|Terms and conditions/,

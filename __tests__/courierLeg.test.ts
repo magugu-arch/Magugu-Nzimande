@@ -124,15 +124,71 @@ describe('an order that is over', () => {
    * delivered last week — once per order, per fetch, against a network that
    * bills for it.
    */
+  /**
+   * Asserted per order rather than across the whole fetch, which is a
+   * correction the seed forced and a fair one.
+   *
+   * `expect(create).not.toHaveBeenCalled()` was only ever true because every
+   * seeded delivery order was over. Adding one that is genuinely out with a
+   * driver made it fail — and that call is correct: it is the same idempotent
+   * `create`, keyed on the order's own reference, that adopts any live
+   * delivery the app is not already holding a job for. A blanket assertion
+   * would have been a test defending the seed's limits rather than the rule,
+   * and it would have blocked the fixture instead of catching a defect.
+   *
+   * What the rule actually says is about the finished ones, so that is what is
+   * checked: no reference belonging to a completed or cancelled order may
+   * appear in a dispatch.
+   */
   it('never dispatches a courier for an order already delivered', async () => {
     const create = jest.spyOn(mockDeliveryProvider, 'create');
     const orders = await fetchOrders();
 
     // The seeded history is what caught this: it contains a completed delivery.
-    expect(orders.some((o) => o.fulfilmentType === 'delivery' && o.status === 'completed')).toBe(
-      true,
+    const over = orders.filter(
+      (o) =>
+        o.fulfilmentType === 'delivery' && (o.status === 'completed' || o.status === 'cancelled'),
     );
+    expect(over.length).toBeGreaterThan(0);
+
+    const dispatched = create.mock.calls.map(([request]) => request.orderReference);
+    for (const order of over) {
+      expect(dispatched).not.toContain(order.reference);
+    }
+  });
+
+  /**
+   * And the other half of the same rule, which nothing could state until the
+   * seed had a live delivery in it: an order out with a driver is exactly what
+   * the courier leg is for.
+   */
+  it('does arrange one for an order that is still on the road', async () => {
+    const orders = await fetchOrders();
+    const live = orders.find(
+      (o) => o.fulfilmentType === 'delivery' && o.status === 'out_for_delivery',
+    );
+
+    expect(live).toBeDefined();
+    // Asserted on the order rather than on the spy: the ledger carries across
+    // this file, so whether *this* fetch was the one that created the job is
+    // an accident of test ordering. What must hold is that a live delivery
+    // ends up holding one, however many times it has been looked at.
+    expect(live!.delivery).toBeDefined();
+    expect(live!.driverName).toBeTruthy();
+  });
+
+  /** And looking at it again does not put a second driver on the road. */
+  it('adopts the same job on the next look rather than dispatching again', async () => {
+    const first = await fetchOrders();
+    const live = first.find(
+      (o) => o.fulfilmentType === 'delivery' && o.status === 'out_for_delivery',
+    )!;
+
+    const create = jest.spyOn(mockDeliveryProvider, 'create');
+    const second = await fetchOrder(live.id);
+
     expect(create).not.toHaveBeenCalled();
+    expect(second.delivery?.externalJobId).toBe(live.delivery?.externalJobId);
   });
 
   it('does not keep asking about a job once the order is done', async () => {
