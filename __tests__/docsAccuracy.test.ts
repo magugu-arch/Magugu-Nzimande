@@ -22,6 +22,21 @@ const read = (file: string) => fs.readFileSync(path.join(root, file), 'utf8');
 
 const README = read('README.md');
 const HANDOVER = read('HANDOVER.md');
+/**
+ * Added after this guard let one through.
+ *
+ * `RELEASE_READINESS.md` describes the *current* state of the branch — it is
+ * the page somebody reads to decide whether this ships — and it was still
+ * claiming a 35-route sweep and 68 suites five commits after both had moved.
+ * The guard covered the two documents it was written for and the third drifted
+ * beside it.
+ *
+ * The two report files are deliberately *not* here. `MENU_EXTENSION_REPORT.md`
+ * and `KIDS_MENU_REPORT.md` are records of what was true on the day they were
+ * written; holding them to today's counts would be rewriting history to keep a
+ * test green.
+ */
+const RELEASE = read('RELEASE_READINESS.md');
 
 /** Every number written next to `label` in either document, with its source. */
 function claimed(pattern: RegExp): { where: string; value: number }[] {
@@ -29,6 +44,7 @@ function claimed(pattern: RegExp): { where: string; value: number }[] {
   for (const [where, text] of [
     ['README.md', README],
     ['HANDOVER.md', HANDOVER],
+    ['RELEASE_READINESS.md', RELEASE],
   ] as const) {
     for (const match of text.matchAll(pattern)) {
       const digits = match[1];
@@ -69,9 +85,10 @@ describe('the counts in the docs, against the repository', () => {
    * return nothing — a heading reworded, a directory moved. A check that
    * stopped reading anything would go on reporting green forever.
    */
-  it('read both documents and the repository, rather than nothing', () => {
+  it('read all three documents and the repository, rather than nothing', () => {
     expect(README.length).toBeGreaterThan(5_000);
     expect(HANDOVER.length).toBeGreaterThan(5_000);
+    expect(RELEASE.length).toBeGreaterThan(5_000);
     expect(appRoutes().length).toBeGreaterThan(20);
     expect(testSuites().length).toBeGreaterThan(20);
     expect(sweptRoutes().length).toBeGreaterThan(20);
@@ -125,7 +142,7 @@ describe('the counts in the docs, against the repository', () => {
    * useful to a reader, so neither document may name one: they point at
    * `npm test`, which counts for itself.
    */
-  it('does not name a total test count in either document', () => {
+  it('does not name a total test count in any of them', () => {
     const named = claimed(/(\d+) tests\b/g).filter((claim) => claim.value > 1);
     expect(named).toEqual([]);
   });
