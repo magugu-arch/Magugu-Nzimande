@@ -43,7 +43,7 @@ export type PaymentEnv = {
   readonly [other: string]: string | undefined;
 };
 
-export function configuredProvider(env: PaymentEnv = process.env): ProviderConfig | null {
+function configuredProvider(env: PaymentEnv = process.env): ProviderConfig | null {
   const name = env.BBQ_PAYMENT_PROVIDER;
   const secret = env.BBQ_PAYMENT_SECRET;
 

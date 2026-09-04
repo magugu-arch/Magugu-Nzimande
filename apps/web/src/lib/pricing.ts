@@ -14,7 +14,7 @@ import {
  * rounding step at the discount, so a basket and its order always agree.
  */
 
-export function lineTotal(line: Pick<OrderLine, 'unitCents' | 'quantity'>): Cents {
+function lineTotal(line: Pick<OrderLine, 'unitCents' | 'quantity'>): Cents {
   return line.unitCents * line.quantity;
 }
 

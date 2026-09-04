@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import type { OrderPayment, PaymentEvent, PaymentIntent, PaymentStatus } from '@bbq/types';
+import type { OrderPayment, PaymentEvent, PaymentIntent } from '@bbq/types';
 import { isSettled } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
 import { readOrder } from '../order-store';
@@ -28,7 +28,7 @@ function now(): string {
   return new Date().toISOString();
 }
 
-export function readIntent(id: string): PaymentIntent | null {
+function readIntent(id: string): PaymentIntent | null {
   return readState().payments.intents.find((intent) => intent.id === id) ?? null;
 }
 
@@ -159,11 +159,6 @@ export function settle(event: PaymentEvent): SettleResult {
   return { ok: true, intent: updated, replayed: false };
 }
 
-/** What the customer's order page should say about the money. */
-export function paymentStatusFor(orderId: string): PaymentStatus | null {
-  return intentForOrder(orderId)?.status ?? null;
-}
-
 /**
  * The whole payment answer for one order, as a screen needs it.
  *
@@ -171,7 +166,16 @@ export function paymentStatusFor(orderId: string): PaymentStatus | null {
  * because it is a property of the deployment's environment: a browser has no
  * business knowing what this build is configured with, and no business being
  * able to claim it either.
+ *
+ * This replaced an exported `paymentStatusFor`, which returned the status
+ * alone. Both existed side by side for a while, which is one export too many
+ * for one question: a caller reaching for the narrower one gets a null it
+ * cannot interpret, because "no gateway here" and "not paid yet" look the same
+ * from it.
  */
 export function paymentFor(orderId: string): OrderPayment {
-  return { required: isPaymentConfigured(), status: paymentStatusFor(orderId) };
+  return {
+    required: isPaymentConfigured(),
+    status: intentForOrder(orderId)?.status ?? null,
+  };
 }
