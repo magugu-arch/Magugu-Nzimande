@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import { Linking, Platform } from 'react-native';
 import { useDialogStore } from '@/ux/dialog';
 import {
@@ -216,5 +218,70 @@ describe('building a directions link out of API data', () => {
   it('still builds an ordinary link', () => {
     const url = directionsUrl({ latitude: -26.1446, longitude: 28.0424, label: 'bb.q Rosebank' });
     expect(url).toContain('-26.1446,28.0424');
+  });
+});
+
+/**
+ * Nobody builds one of these by hand again.
+ *
+ * `utils/linking` exists because call sites were interpolating URLs inline —
+ * the order screen once dialled `tel:bb.q Chicken Rosebank`. Three screens
+ * were converted to `callNumber`; one was missed, and it was the worst of the
+ * three: the "Call the store" button that appears only after a payment whose
+ * outcome is unknown, where the phone is the way out rather than the button.
+ * A raw `tel:011 883 0100` keeps the spaces some diallers reject, and the
+ * `void` in front of it discarded the rejection, so the tap did nothing and
+ * said nothing.
+ *
+ * A grep is the right shape of test for this. The defect was not that any one
+ * screen was wrong; it was that the rule lived in a helper nothing obliged
+ * anyone to use.
+ */
+describe('no screen builds a dial or maps URL by hand', () => {
+  const sources = () => {
+    const roots = [path.join(__dirname, '..', 'src')];
+    const files: string[] = [];
+    while (roots.length > 0) {
+      const dir = roots.pop()!;
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) roots.push(full);
+        else if (/\.tsx?$/.test(entry.name) && !full.includes('utils/linking')) files.push(full);
+      }
+    }
+    return files;
+  };
+
+  /**
+   * Comments removed first. The first version of this failed on the very file
+   * it had just been written to clear, because the comment there quotes the
+   * old `tel:${store.phone}` to explain what it replaced. A guard that cannot
+   * tell code from prose about code teaches people to delete the prose.
+   */
+  const code = (file: string) =>
+    readFileSync(file, 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  const offending = (pattern: RegExp) =>
+    sources()
+      .filter((file) => pattern.test(code(file)))
+      .map((file) => path.relative(path.join(__dirname, '..'), file));
+
+  it('routes every tel: through telUrl', () => {
+    expect(offending(/['"`]tel:/)).toEqual([]);
+  });
+
+  it('routes every maps handoff through openDirections', () => {
+    expect(offending(/['"`](https:\/\/maps\.|maps:|geo:)/)).toEqual([]);
+  });
+
+  /**
+   * The guard has to be able to fail, or it is decoration. This is the shape
+   * the checkout screen was in until it was found.
+   */
+  it('would catch a call site that built one by hand', () => {
+    const raw = 'onPress={() => void Linking.openURL(`tel:${store.phone}`)}';
+    expect(/['"`]tel:/.test(raw)).toBe(true);
   });
 });

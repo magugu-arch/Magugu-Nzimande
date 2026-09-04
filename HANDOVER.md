@@ -19,8 +19,8 @@ Africa, built to the supplied brief.
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
 | Tests            | 68 suites; `npm test` prints the count                                                                  |
-| Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
-| Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
+| Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
+| Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
 It runs **end to end with no backend**. `EXPO_PUBLIC_USE_MOCK_API` defaults to
 `1`, so a bundled mock service layer serves menu, stores, orders, rewards and

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,6 +38,7 @@ import { formatPrice, sumRand } from '@/utils/money';
 import { track } from '@/ux/analytics';
 import { newIdempotencyKey } from '@/utils/idempotency';
 import { a11yState } from '@/utils/a11yState';
+import { callNumber, isDiallable } from '@/utils/linking';
 
 /**
  * Checkout (brief §11): fulfilment, location, payment, review and confirm — as
@@ -665,11 +666,26 @@ export default function CheckoutScreen() {
           phone, not the button. Offered first and given the store's own number,
           because "call the store" with no number is advice, not an action.
         */}
-        {mustNotRetry && store?.phone ? (
+        {/*
+          Through `callNumber`, like the other two call sites.
+
+          This one was still building the URL inline — `tel:${store.phone}` —
+          which is the exact thing `utils/linking` was written to stop, and it
+          was missed when the others were converted. Seeded numbers are written
+          with spaces ("011 883 0100"), which `telUrl` strips and a raw
+          interpolation does not; and `void` discarded a promise that genuinely
+          rejects on a handset with no dialler, so the tap did nothing and said
+          nothing.
+
+          Of the three call sites this is the one that could least afford it:
+          it appears only after a payment whose outcome is unknown, where the
+          phone is the way out rather than the button.
+        */}
+        {mustNotRetry && isDiallable(store?.phone) ? (
           <Button
-            label={`Call ${store.name}`}
+            label={`Call ${store!.name}`}
             variant="secondary"
-            onPress={() => void Linking.openURL(`tel:${store.phone}`)}
+            onPress={() => void callNumber(store!.phone)}
             size="lg"
             testID="checkout-call-store"
           />
