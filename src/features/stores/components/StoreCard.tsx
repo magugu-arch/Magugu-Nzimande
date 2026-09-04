@@ -7,7 +7,7 @@ import { isOpeningLater } from '@/store/fulfilmentStore';
 import { colors, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import { formatDistance } from '@/utils/geo';
-import { closureReason, hoursForDay, isTradingNow } from '@/utils/tradingHours';
+import { closureReason, isTradingNow, windowInForce } from '@/utils/tradingHours';
 import { supportsFulfilment } from '@/utils/fulfilment';
 
 export interface StoreCardProps {
@@ -26,7 +26,10 @@ export const StoreCard = memo(function StoreCard({
   fulfilmentType,
   testID,
 }: StoreCardProps) {
-  const today = hoursForDay(store, new Date().getDay());
+  // The window in force, which is today's row except when a late window from
+  // the night before is still running. Printing today's row there put
+  // "Open now · 11:00 – 22:00" on a card fifteen minutes from last orders.
+  const today = windowInForce(store);
 
   /**
    * Why it is shut, which decides both words on this card.

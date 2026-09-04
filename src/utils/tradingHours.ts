@@ -44,15 +44,96 @@ export function hoursForDay(
  * is UTC+2 with no daylight saving, so it is fixed-offset arithmetic and does
  * not need `Intl`, which Hermes ships without.
  */
-export function isStoreOpenAt(store: Store, when: Date = new Date()): boolean {
-  const hours = hoursForDay(store, when.getDay());
-  if (!hours) return false;
+const MINUTES_IN_A_DAY = 24 * 60;
 
+/**
+ * A published window as minutes from the start of its own day, unwrapped.
+ *
+ * The rule that needs to exist exactly once: **a closing time at or before the
+ * opening time means the kitchen shuts after midnight.** Two places compare
+ * these strings — this file and the scheduler in `utils/datetime` — and both
+ * had their own copy of the arithmetic, both reading `closesAt` as a plain
+ * count of minutes from midnight. Handed `11:00`–`00:30` that makes the close
+ * *thirty minutes* and the open *six hundred and sixty*, so the window is
+ * empty and the branch is shut for the entire day — not merely after midnight,
+ * which is the part somebody would think to check.
+ *
+ * So the close is pushed past 1440 rather than left to sort itself out at each
+ * call site. `close` may therefore exceed a day, and callers have to say what
+ * they mean by "now" in the same terms; that is the point of returning it this
+ * way rather than a boolean.
+ *
+ * Equal times read as a full 24 hours, which is the only sensible reading of
+ * "10:00 to 10:00" and costs nothing to allow.
+ */
+export function tradingWindow(hours: { opensAt: string; closesAt: string }): {
+  open: number;
+  close: number;
+} {
   const [openHour = 0, openMinute = 0] = hours.opensAt.split(':').map(Number);
   const [closeHour = 0, closeMinute = 0] = hours.closesAt.split(':').map(Number);
-  const minutesNow = when.getHours() * 60 + when.getMinutes();
 
-  return minutesNow >= openHour * 60 + openMinute && minutesNow < closeHour * 60 + closeMinute;
+  const open = openHour * 60 + openMinute;
+  const close = closeHour * 60 + closeMinute;
+
+  return { open, close: close <= open ? close + MINUTES_IN_A_DAY : close };
+}
+
+export function isStoreOpenAt(store: Store, when: Date = new Date()): boolean {
+  const minutesNow = when.getHours() * 60 + when.getMinutes();
+  const day = when.getDay();
+
+  const today = hoursForDay(store, day);
+  if (today) {
+    const { open, close } = tradingWindow(today);
+    if (minutesNow >= open && minutesNow < close) return true;
+  }
+
+  /**
+   * Yesterday's window may still be running.
+   *
+   * At a quarter past midnight on a Saturday the branch is open on the
+   * strength of *Friday's* entry, and Saturday's own has not started. Checking
+   * only today's row is why the naive fix — clamping the close to the end of
+   * the day — would still have turned the customer away at the counter at
+   * 00:15 with the lights on.
+   */
+  const yesterday = hoursForDay(store, (day + 6) % 7);
+  if (yesterday) {
+    const { close } = tradingWindow(yesterday);
+    if (close > MINUTES_IN_A_DAY && minutesNow + MINUTES_IN_A_DAY < close) return true;
+  }
+
+  return false;
+}
+
+/**
+ * The window a card should print: the one actually running, not today's row.
+ *
+ * Found in the browser rather than in a test, at a quarter past midnight on a
+ * Sunday. The V&A branch trades to 00:30 on a Saturday night, so it was open —
+ * correctly — and the card printed Sunday's row beside the badge: **"Open now ·
+ * 11:00 – 22:00"**, fifteen minutes before last orders. Both halves were
+ * true of some day and the pair was a lie, which is the same shape as the
+ * defect this card's own notes describe: the badge reading one source and the
+ * hours row another.
+ *
+ * Outside a spill this is just today's row, so nothing changes for the six
+ * branches that shut before midnight.
+ */
+export function windowInForce(
+  store: Store,
+  now: Date = new Date(),
+): { opensAt: string; closesAt: string } | null {
+  const minutesNow = now.getHours() * 60 + now.getMinutes();
+
+  const yesterday = hoursForDay(store, (now.getDay() + 6) % 7);
+  if (yesterday) {
+    const { close } = tradingWindow(yesterday);
+    if (close > MINUTES_IN_A_DAY && minutesNow + MINUTES_IN_A_DAY < close) return yesterday;
+  }
+
+  return hoursForDay(store, now.getDay());
 }
 
 /**

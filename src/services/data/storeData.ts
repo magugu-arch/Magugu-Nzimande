@@ -14,6 +14,26 @@ const LATE_HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) => ({
 }));
 
 /**
+ * A kitchen that shuts after midnight.
+ *
+ * Every window in this seed used to end before it: 22:00, and 23:00 on a
+ * Friday. So `closesAt` was always a larger number of minutes than `opensAt`,
+ * and the two places that compare them — `isStoreOpenAt` and the scheduler's
+ * `windowForDay` — were only ever asked the easy question. Neither had seen a
+ * window that wraps.
+ *
+ * Korean fried chicken is late-night food and the V&A is a late-night part of
+ * Cape Town, so this is the ordinary shape of a weekend, not an edge case
+ * invented to break something. The exact times are a placeholder like every
+ * other trading hour in this file — the real ones come from the franchise.
+ */
+const AFTER_MIDNIGHT_HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) => ({
+  day,
+  opensAt: '11:00',
+  closesAt: day === 5 || day === 6 ? '00:30' : '22:00',
+}));
+
+/**
  * bb.q Chicken South Africa store network.
  *
  * `distanceKm` is not seeded, because it is a fact about the customer rather
@@ -122,7 +142,7 @@ export const stores: Store[] = [
     phone: '021 418 9900',
     latitude: -33.9036,
     longitude: 18.4201,
-    openingHours: LATE_HOURS,
+    openingHours: AFTER_MIDNIGHT_HOURS,
     supportsDelivery: true,
     supportsCollection: true,
     supportsDineIn: true,

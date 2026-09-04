@@ -1,4 +1,5 @@
 import { businessRules } from '@/constants/config';
+import { tradingWindow } from '@/utils/tradingHours';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -136,12 +137,21 @@ function windowForDay(store: SchedulableStore | null | undefined, weekday: numbe
   // rather than a grid of times nobody will be there for.
   if (!hours) return null;
 
-  const [openHour = 0, openMinute = 0] = hours.opensAt.split(':').map(Number);
-  const [closeHour = 0, closeMinute = 0] = hours.closesAt.split(':').map(Number);
-  return {
-    openMinutes: openHour * 60 + openMinute,
-    closeMinutes: closeHour * 60 + closeMinute,
-  };
+  /**
+   * Shared with `isStoreOpenAt` rather than reimplemented, which is how this
+   * went wrong: both files parsed the strings themselves, both read a closing
+   * time of `00:30` as thirty minutes past midnight, and a branch trading late
+   * on a Friday was reported shut *and* offered no slots — two symptoms of one
+   * rule, in two places, agreeing by coincidence rather than construction.
+   *
+   * `closeMinutes` can now exceed a day. The slot loop below wants exactly
+   * that: `new Date(y, m, d, 24, 15)` is a quarter past midnight on the next
+   * morning, so a window that wraps produces the late slots on the card for
+   * the night they belong to, which is how anybody ordering at eleven on a
+   * Friday thinks about it.
+   */
+  const { open, close } = tradingWindow(hours);
+  return { openMinutes: open, closeMinutes: close };
 }
 
 /** Just the part of a Store scheduling needs, so this stays free of the model. */
