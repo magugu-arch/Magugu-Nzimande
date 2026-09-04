@@ -139,6 +139,30 @@ const COMMITS = Number(
 );
 
 /**
+ * The commit this document describes, and the day it was built.
+ *
+ * Both were written on the cover by hand. The commit went nine behind the
+ * branch without anybody noticing, which makes the whole document harder to
+ * trust: a reader who checks the one field they can check finds it wrong.
+ */
+const HEAD = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+  cwd: REPO,
+  encoding: 'utf8',
+}).trim();
+
+const BUILT_ON = new Date().toLocaleDateString('en-ZA', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+/** The branch, so the subject line cannot name one the audit did not come from. */
+const BRANCH = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+  cwd: REPO,
+  encoding: 'utf8',
+}).trim();
+
+/**
  * Thousands separators, since the document is read by people not machines.
  *
  * en-ZA groups with a non-breaking space, which left the document carrying two
@@ -361,7 +385,7 @@ const DONE_SHARE = Math.round((BUILT_DAYS / (BUILT_DAYS + REMAIN_DAYS)) * 100);
 const rateCard = [400, 650, 850, 950, 1150, 1450];
 
 const doc = new Document({
-  creator: 'Totality Creative',
+  creator: 'Magugu Nzimande',
   title: 'bb.q Chicken South Africa — Ordering Website: Build Audit and Costings',
   description: 'Measured scope of the delivered ordering website, with an effort reconstruction and a rate-based costing.',
   numbering: {
@@ -446,11 +470,11 @@ const doc = new Document({
           cols(3, 7),
           ['Field', 'Value'],
           [
-            ['Prepared by', 'Totality Creative'],
-            ['Date', '3 September 2026'],
-            ['Subject', 'The bb.q Chicken South Africa ordering website as built on branch claude/bbq-chicken-website-4qzv8i'],
-            ['Commit audited', '5e53a86'],
-            ['Status of the build', 'Every integration seam built and tested against a stand-in; no vendor attached, and not deployed to production'],
+            ['Prepared by', 'Magugu Nzimande'],
+            ['Date', BUILT_ON],
+            ['Subject', `The bb.q Chicken South Africa ordering website as built on branch ${BRANCH}`],
+            ['Commit audited', HEAD],
+            ['Status of the build', 'Adapters written and tested for PayFast, Uber Direct, Mailgun and Clickatell; no merchant account, courier account or sending domain issued, so every one of them refuses or falls back. No POS vendor specification received. Not deployed to production.'],
             ['Status of this document', 'Draft for internal review — the hourly rate is an input, not an approved figure'],
           ],
         ),
@@ -460,7 +484,7 @@ const doc = new Document({
           [
             text('Read section 6 before section 5. ', { bold: true }),
             text(
-              'The effort in this document is measured; the money is not. Every rand figure here is arithmetic on a rate that Totality Creative has to supply. Until that rate is filled in, treat the totals as a shape, not a quote.',
+              'The effort in this document is measured; the money is not. Every rand figure here is arithmetic on a rate that Magugu Nzimande has to supply. Until that rate is filled in, treat the totals as a shape, not a quote.',
             ),
           ],
           { after: 200 },
@@ -671,7 +695,7 @@ const doc = new Document({
           [
             text('The rate is an input. ', { bold: true }),
             text(
-              'The table below is not a quote and does not reflect any rate card Totality Creative has approved. It shows what the delivered scope costs at a range of rates, so the correct figure can be read off once the rate is chosen.',
+              'The table below is not a quote and does not reflect any rate card Magugu Nzimande has approved. It shows what the delivered scope costs at a range of rates, so the correct figure can be read off once the rate is chosen.',
             ),
           ],
         ),
@@ -815,7 +839,7 @@ const doc = new Document({
         h2('7.2 What this document is not'),
         bullet([
           text('It is not a quote. ', { bold: true }),
-          text('No rate here has been approved by Totality Creative, and the worked example uses an illustrative figure only.'),
+          text('No rate here has been approved by Magugu Nzimande, and the worked example uses an illustrative figure only.'),
         ]),
         bullet([
           text('It is not a valuation. ', { bold: true }),
