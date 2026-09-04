@@ -251,6 +251,42 @@ for (const opening of openings) {
 // The menu prices are what a customer is charged. Fictional ones are worse
 // than an empty menu, because they look authoritative.
 const menuData = read('src/services/data/menuData.ts');
+
+/**
+ * Allergen data, which is the one field on the menu that can hurt somebody.
+ *
+ * Read as a list of products declaring nothing, rather than as a rule about
+ * how many allergens an item ought to have — that is not something a script
+ * can know. What it can see is a product whose list is empty while a product
+ * cooked in the same equipment declares an allergen it can only have picked
+ * up there, and that disagreement is worth naming.
+ *
+ * The product screen no longer hides the shared-kitchen notice when the list
+ * is empty, so nobody is shown less in the meantime. The data is still yours.
+ *
+ * Split on `slug:`, which only a product has. Matching backwards from
+ * `allergens: []` to the nearest `name:` finds an *option* name instead — the
+ * first run of this reported "Sharing bucket", which is a fries size.
+ */
+const undeclared = menuData
+  .split(/\n\s*slug: '/)
+  .slice(1)
+  .filter((block) => /allergens: \[\]/.test(block))
+  .map((block) => block.match(/name: '([^']+)'/)?.[1] ?? 'unnamed product');
+if (undeclared.length > 0) {
+  note(
+    'Allergen data',
+    `${undeclared.length} product(s) declare no allergens at all: ${undeclared.join(', ')}. ` +
+      'That is a gap in the data rather than a statement that the item is free of anything, ' +
+      'and the catalogue disagrees with itself about it — French Fries declares Gluten, which ' +
+      'for a plain potato can only be the fryer, while Sweet Potato Fries beside it in the same ' +
+      'fryer declares nothing. Have the franchise confirm the allergen list for every item, ' +
+      'including the shared-equipment ones. Until then the product screen says the details are ' +
+      'not confirmed and to check with the store, rather than showing nothing — but "not ' +
+      'confirmed" is a worse answer than the right one for somebody with a severe allergy.',
+    'you',
+  );
+}
 const priceCount = [...menuData.matchAll(/basePrice: \d+/g)].length;
 if (priceCount > 0) {
   note(

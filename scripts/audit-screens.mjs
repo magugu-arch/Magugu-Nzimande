@@ -80,6 +80,11 @@ const ROUTES = [
   // correctly locked — and the twelfth would have been locked too, because
   // the whole category was excluded from redeemability.
   '/rewards/reward-birthday',
+  // The one product in the catalogue that declares no allergens. Its screen
+  // used to draw the whole allergen block — the shared-kitchen notice
+  // included — only when there was something to list, so this was the one
+  // product shown nothing at all.
+  '/product/sweet-potato-fries',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -140,6 +145,10 @@ const MUST_SHOW = {
   // And the other direction, which is the one that read as a lie: a campaign
   // that opens in twelve days must not be described as finished.
   '/offers/promo-sweet-potato-launch': /hasn't started yet/,
+  // Both halves. The kitchen notice is the one that matters and the one that
+  // used to disappear; "not confirmed" is what the screen is entitled to say
+  // in place of a list it does not have.
+  '/product/sweet-potato-fries': /kitchen that handles other allergens/,
 };
 
 /**

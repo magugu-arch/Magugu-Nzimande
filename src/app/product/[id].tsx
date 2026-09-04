@@ -322,16 +322,31 @@ export default function ProductDetailScreen() {
             </Text>
           </View>
 
-          {/* Allergens */}
-          {item.allergens.length > 0 ? (
-            <View style={styles.allergens}>
-              <Ionicons name="information-circle-outline" size={17} color={colors.textMuted} />
-              <Text variant="caption" color={colors.textSecondary} style={styles.allergenText}>
-                Contains {item.allergens.join(', ').toLowerCase()}. Prepared in a kitchen that
-                handles other allergens.
-              </Text>
-            </View>
-          ) : null}
+          {/*
+            Allergens — and the shared-kitchen notice, which is not conditional
+            on there being a declared allergen.
+
+            The whole block used to sit behind `allergens.length > 0`, so the
+            one product in the catalogue with an empty list showed nothing at
+            all. That product is Sweet Potato Fries. French Fries beside it
+            declares Gluten, which for a plain potato can only be the fryer —
+            so the two fries disagree about a kitchen they share, and the one
+            that says nothing is the one that also loses the sentence telling
+            somebody to ask.
+
+            An empty list is a gap in the data, not a statement that the item
+            is free of anything, and the screen must not read as the second.
+            `audit:launch` carries the missing data as a blocker; this makes
+            sure a customer is not quietly told less in the meantime.
+          */}
+          <View style={styles.allergens}>
+            <Ionicons name="information-circle-outline" size={17} color={colors.textMuted} />
+            <Text variant="caption" color={colors.textSecondary} style={styles.allergenText}>
+              {item.allergens.length > 0
+                ? `Contains ${item.allergens.join(', ').toLowerCase()}. Prepared in a kitchen that handles other allergens.`
+                : 'Allergen details for this item are not confirmed — please check with the store. Prepared in a kitchen that handles other allergens.'}
+            </Text>
+          </View>
 
           {/* Nutrition. Present for every product in the catalogue and, until
               now, shown for none of them. */}
