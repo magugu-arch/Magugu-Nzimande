@@ -1,5 +1,5 @@
 import type { Order, OrderStatusEvent } from '@/types';
-import { readyLabelFor, statusCopy } from '@/services/orderService';
+import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
 
 /**
  * What the tracking screen's hero is entitled to say about an order that is
@@ -113,6 +113,37 @@ export function timelineFor(order: Pick<Order, 'timeline' | 'delivery'>): OrderS
   );
   return order.timeline.slice(0, lastReached + 1);
 }
+
+/**
+ * Past the estimate, and still cooking.
+ *
+ * The countdown is dropped once `minutesUntilDue` goes negative, and that is
+ * right — "a time nobody believes any more is worse than no time at all", as
+ * the tracking screen's own note puts it. What was missing is anything in its
+ * place: twenty-three minutes past a twenty-five minute estimate, the screen
+ * showed the same status sentence and the same progress bar as an order two
+ * minutes old, and said nothing at all about the wait.
+ *
+ * Nobody had seen it because the mock kitchen was never late. `advance` is a
+ * pure function of elapsed time, so every order arrived exactly when the
+ * estimate said it would; backdating a fixture just walked it to `completed`
+ * before anybody looked. `RUNNING_LATE` in the order service is what makes the
+ * state reachable.
+ *
+ * What the app says is the fact and nothing more. A revised time would have to
+ * come from the kitchen, and there is no endpoint that carries one; what bb.q
+ * does about a late order is an operations decision, and `audit:launch` asks
+ * for it.
+ */
+export function runningLate(order: Order, now: Date = new Date()): boolean {
+  if (order.status === 'completed' || order.status === 'cancelled') return false;
+  if (deliveryFailed(order)) return false;
+  if (!countdownStillApplies(order)) return false;
+  return minutesUntilDue(order, now) <= 0;
+}
+
+/** The line that stands where the countdown was. */
+export const RUNNING_LATE_LABEL = 'Taking longer than expected';
 
 /**
  * What the badge beside the store name says.

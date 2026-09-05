@@ -24,7 +24,12 @@ import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { useOrders } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
 import { minutesUntilDue, readyLabelFor } from '@/services/orderService';
-import { countdownStillApplies, liveStatusCopy } from '@/features/orders/liveStatus';
+import {
+  countdownStillApplies,
+  liveStatusCopy,
+  runningLate,
+  RUNNING_LATE_LABEL,
+} from '@/features/orders/liveStatus';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatDateTime, formatEtaWindow, formatRelativeDay } from '@/utils/datetime';
@@ -225,7 +230,9 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
               ? `Scheduled · ${formatDateTime(order.scheduledFor)}`
               : dueInMinutes > 0 && countdownStillApplies(order)
                 ? `${readyLabelFor(order.fulfilmentType)} in ${formatEtaWindow(dueInMinutes)}`
-                : liveStatusCopy(order).description}
+                : runningLate(order, now)
+                  ? RUNNING_LATE_LABEL
+                  : liveStatusCopy(order).description}
           </Text>
         </>
       ) : null}

@@ -108,6 +108,10 @@ const ROUTES = [
   '/order/order-4838',
   // A product still marked available whose one required group has emptied.
   '/product/cheesling-fries',
+  // An order the kitchen is behind on, placed at a delivery-only branch that
+  // publishes no phone number. Until now the mock clock was never late: every
+  // order arrived exactly when the estimate said it would.
+  '/order/order-4848',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -141,7 +145,10 @@ const FOCUS_RING_ROUTES = ['/menu', '/sign-in', '/account/preferences'];
  */
 const MUST_SHOW = {
   '/menu': /Golden Original|Soy Garlic|Half & Half/,
-  '/home': /Golden Original|Soy Garlic|Wings|Chicken/,
+  // Plus the favourites carousel, which nothing had ever put anything in — so
+  // it, the Menu tab's filter and the filled heart were all written, styled and
+  // shipped for a list that was empty by construction.
+  '/home': /Your favourites[\s\S]*Popular right now/,
   '/product/golden-original': /R\s?\d/,
   // /orders can be asserted now. It used to open on an Active tab that a cold
   // app left empty — every seeded order was finished — so an empty list was
@@ -224,6 +231,12 @@ const MUST_SHOW = {
   // Available, and unorderable: a till marks options out, not products, and
   // the button used to ask for a size on a screen where none could be chosen.
   '/product/cheesling-fries': /Sold out[\s\S]*Every choice under "Size" is sold out/,
+  // Past its estimate and still cooking. The countdown is dropped once the
+  // estimate is spent, which is right — what was missing is anything in its
+  // place, so an order twenty-three minutes late showed the same screen as one
+  // two minutes old.
+  '/order/order-4848': /Preparing[\s\S]*Taking longer than expected/,
+
 };
 
 /**

@@ -34,6 +34,26 @@ const AFTER_MIDNIGHT_HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) 
 }));
 
 /**
+ * A branch that does not trade on Sundays.
+ *
+ * `OpeningHours` is a row per day and every branch in this seed had all seven,
+ * built by `Array.from({ length: 7 })` with identical times — so a timetable
+ * with a *gap* in it had never existed. Three separate rules read the array by
+ * day and every one of them has a "no entry for this day" path that had never
+ * run: `hoursForDay` returns null, `isStoreOpenAt` falls through to yesterday's
+ * window, and the scheduler's `windowForDay` returns null so the day is skipped
+ * rather than filled with times nobody will be there for.
+ *
+ * A six-day trading week is the ordinary shape of an office-district branch,
+ * not an edge case invented to break something. Sunday is day 0.
+ */
+const SIX_DAY_HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) => ({
+  day,
+  opensAt: '10:00',
+  closesAt: '22:00',
+})).filter((hours) => hours.day !== 0);
+
+/**
  * bb.q Chicken South Africa store network.
  *
  * `distanceKm` is not seeded, because it is a fact about the customer rather
@@ -180,6 +200,39 @@ export const stores: Store[] = [
     supportsDineIn: false,
     deliveryRadiusKm: 10,
     preparationMinutes: 20,
+    isOpenNow: true,
+  },
+  /**
+   * Delivery and nothing else, from a kitchen with no counter — and no phone
+   * number published yet.
+   *
+   * Two states the network had no example of. `supportsCollection` was `true`
+   * on all seven branches, so the collection list had never had to leave one
+   * out and `setFulfilmentType` had never dropped a chosen branch for want of a
+   * counter; Canal Walk above is the mirror of this and covers delivery.
+   *
+   * And every branch carried a phone number, so `isDiallable` had only ever
+   * been asked the easy question. A delivery-only kitchen does not take
+   * customer calls — there is nobody at a front desk to answer one — which
+   * makes the empty string a fact about this site rather than a gap in the
+   * data. The screens that offer "Call the store" have to notice.
+   */
+  {
+    id: 'store-bryanston',
+    name: 'bb.q Chicken Bryanston Kitchen',
+    addressLine: 'Unit 4, Bryanston Business Park, Ballyclare Dr',
+    suburb: 'Bryanston',
+    city: 'Johannesburg',
+    province: 'Gauteng',
+    phone: '',
+    latitude: -26.0605,
+    longitude: 28.0184,
+    openingHours: SIX_DAY_HOURS,
+    supportsDelivery: true,
+    supportsCollection: false,
+    supportsDineIn: false,
+    deliveryRadiusKm: 10,
+    preparationMinutes: 21,
     isOpenNow: true,
   },
   {

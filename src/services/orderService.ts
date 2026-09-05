@@ -1210,6 +1210,93 @@ function seedHistory(): void {
     etaMinutes: 25,
     rating: 5,
   });
+
+  /**
+   * An order that is late, which nothing in the seed had ever been.
+   *
+   * Every live fixture sits inside its estimate on purpose — BBQ-4830 eight
+   * minutes from due, BBQ-4842 finished early — so `minutesUntilDue` had never
+   * gone negative on a screen. It is a common state: the kitchen is backed up,
+   * the driver is stuck, and the customer is looking at the app precisely
+   * because the food has not come.
+   *
+   * The countdown is dropped once the estimate is spent, which is right — "a
+   * time nobody believes any more is worse than no time at all", as the
+   * tracking screen's own note puts it. What the fixture asks is what stands
+   * in its place.
+   *
+   * Twenty-three minutes past a forty-one minute delivery estimate, so it is
+   * unambiguously late rather than a rounding away from due. Held at
+   * `preparing`, which also keeps `attachDelivery` out of it: the kitchen has
+   * not reached the counter, so no courier job is created and the fixture stays
+   * a kitchen running late rather than a courier leg doing something else.
+   *
+   * Placed at the Bryanston kitchen on purpose, which carries the other half of
+   * this fixture. That branch is delivery-only and publishes no phone number —
+   * there is no front desk to answer one — so this is the receipt where "Call
+   * the store" correctly does not appear, on the order where somebody most
+   * wants to ask. `isDiallable` had only ever been given a real number.
+   * "Need help with this order?" is still there, which is why the absence is
+   * a gap in the data rather than a dead end.
+   */
+  const latePlacedAt = new Date(Date.now() - 64 * 60_000);
+  ledger.push({
+    id: 'order-4848',
+    reference: 'BBQ-4848',
+    placedAt: latePlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'preparing',
+    timeline: buildTimeline('delivery', 'preparing', latePlacedAt, 41),
+    lines: [
+      {
+        id: 'half-and-half__half-and-half-size:half-and-half-size-medium',
+        productId: 'half-and-half',
+        name: 'Half & Half Chicken',
+        assetKey: 'halfAndHalf',
+        unitBasePrice: 189,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'half-and-half-flavours',
+            groupName: 'Pick your two flavours',
+            optionId: 'half-flavour-golden',
+            optionName: 'Golden Original',
+            priceDelta: 0,
+          },
+          {
+            groupId: 'half-and-half-flavours',
+            groupName: 'Pick your two flavours',
+            optionId: 'half-flavour-cheesling',
+            optionName: 'Cheesling',
+            priceDelta: 0,
+          },
+          {
+            groupId: 'half-and-half-size',
+            groupName: 'Choose your size',
+            optionId: 'half-and-half-size-medium',
+            optionName: 'Medium · 9 pieces',
+            priceDelta: 60,
+          },
+        ],
+        unitPrice: 249,
+        lineTotal: 249,
+      },
+    ],
+    totals: {
+      subtotal: 249,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 286,
+      pointsEarned: 249,
+    },
+    ...storeSnapshot('store-bryanston'),
+    addressId: 'address-home',
+    addressSummary: '14 Acacia Road, Melrose Arch',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 41,
+  });
 }
 
 /**
@@ -1299,8 +1386,27 @@ function readyAt(order: Order): Date {
   return addMinutes(workStartsAt(order), kitchenMinutes(order));
 }
 
+/**
+ * Orders the mock kitchen is behind on, so the clock does not move them.
+ *
+ * `advance` is a pure function of elapsed time: every order marches through
+ * its sequence on schedule and arrives exactly when the estimate said it
+ * would. A real kitchen does not. It gets backed up, and the customer opens
+ * the app precisely because the food has not come — so "late" is one of the
+ * commonest states a live order is in, and this mock could not produce it at
+ * all. Seeding an order and backdating it does not work: the clock simply
+ * walks it to `completed` before anybody looks.
+ *
+ * A mock kinder than the world hides the defects it was built to catch, and
+ * this one had a kitchen that was never late. Mock-only, and by id rather than
+ * by a field on `Order`, because being behind is a fact about the kitchen
+ * rather than a property of the order the wire would carry.
+ */
+const RUNNING_LATE = new Set(['order-4848']);
+
 function advance(order: Order): Order {
   if (order.status === 'completed' || order.status === 'cancelled') return order;
+  if (RUNNING_LATE.has(order.id)) return order;
 
   const sequence = statusSequence(order.fulfilmentType);
   const placedAt = new Date(order.placedAt);

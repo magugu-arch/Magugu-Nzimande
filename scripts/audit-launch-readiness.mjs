@@ -370,6 +370,26 @@ note(
   'you',
 );
 
+/**
+ * A late order, and what anyone is entitled to be told about it.
+ *
+ * The app now says "Taking longer than expected" where the countdown was,
+ * which is the fact and no more than the fact. It cannot say anything better
+ * without a number nobody sends it.
+ */
+note(
+  'Late orders',
+  'An order can run past its estimate — a backed-up kitchen, a driver stuck in traffic — and ' +
+    'until now the app said nothing at all when it did: the countdown was dropped, correctly, ' +
+    'and the screen showed the same sentence as an order two minutes old. It now says "Taking ' +
+    'longer than expected". What it cannot say is a new time, because nothing sends one: ' +
+    'etaMinutes is fixed at checkout and no endpoint revises it. Two things are yours. Decide ' +
+    'whether the POS can push a revised ready time (then the tracking screen can quote it ' +
+    'instead of a phrase), and decide what a customer is owed when an order is badly late — ' +
+    'that is a service and margin question, not a UI one.',
+  'you',
+);
+
 const priceCount = [...menuData.matchAll(/basePrice: \d+/g)].length;
 if (priceCount > 0) {
   note(

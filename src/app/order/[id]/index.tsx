@@ -30,6 +30,8 @@ import {
   liveStatusBadge,
   liveStatusCopy,
   liveStatusTone,
+  runningLate,
+  RUNNING_LATE_LABEL,
   timelineFor,
 } from '@/features/orders/liveStatus';
 import { isOfflinePending } from '@/features/system/queryPhase';
@@ -216,6 +218,18 @@ export default function OrderTrackingScreen() {
             ) : dueInMinutes > 0 && countdownStillApplies(data) ? (
               <Text variant="captionMedium" color={colors.textOnDark} testID="tracking-eta">
                 {`${readyLabelFor(data.fulfilmentType)} in ${formatEtaWindow(dueInMinutes)}`}
+              </Text>
+            ) : runningLate(data, now) ? (
+              /*
+                Where the countdown was. Dropping it once the estimate is spent
+                is right; leaving nothing in its place is not — an order
+                twenty-three minutes past its time showed the same sentence and
+                the same bar as one two minutes old. The fact, and no more than
+                the fact: a revised time would have to come from the kitchen,
+                and nothing here has one.
+              */
+              <Text variant="captionMedium" color={colors.textOnDark} testID="tracking-eta">
+                {RUNNING_LATE_LABEL}
               </Text>
             ) : null}
           </>

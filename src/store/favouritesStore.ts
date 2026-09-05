@@ -1,6 +1,34 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { config } from '@/constants/config';
+
+/**
+ * Dishes already hearted, on a demo build only.
+ *
+ * Nothing had ever put anything in this list, and three surfaces are hidden
+ * until it is non-empty: Home's "Your favourites" carousel, which onboarding
+ * promises will keep them "one tap away"; the Menu tab's Favourites filter;
+ * and the filled heart on every row and card. All three were written, styled
+ * and shipped for a list that was empty by construction.
+ *
+ * Local rather than seeded into `accountService`'s ledger, and deliberately.
+ * That ledger is keyed by a customer id derived from whatever email is typed
+ * at sign-in, so seeding it would either belong to every account or belong to
+ * the audit harness's own address — the first is the bug the file warns about
+ * and the second is rigging the sweep. A favourite is device state; this is
+ * the device.
+ *
+ * `claimFor` keeps it: `ownerId` starts null, and claiming an unowned list
+ * sets the owner without clearing it — a guest may be the same person, signed
+ * out for a moment. Signing in as somebody else still empties it.
+ *
+ * Cheesling Fries is in here on purpose. Its sizes have all been withdrawn, so
+ * it is a favourite that cannot currently be ordered — which is the state a
+ * real favourites list reaches within a week, and the one the carousel had
+ * never been asked to draw.
+ */
+const SEEDED_FAVOURITES = ['honey-garlic', 'cheesling-fries', 'korean-rice-bowl'];
 
 /**
  * Products the customer has hearted.
@@ -51,7 +79,7 @@ interface FavouritesState {
 export const useFavouritesStore = create<FavouritesState>()(
   persist(
     (set, get) => ({
-      productIds: [],
+      productIds: config.useMockApi ? [...SEEDED_FAVOURITES] : [],
       ownerId: null,
 
       isFavourite: (productId) => get().productIds.includes(productId),

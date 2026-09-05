@@ -75,7 +75,18 @@ function sweptRoutes(): string[] {
   const source = read('scripts/audit-screens.mjs');
   const block = source.match(/const ROUTES\s*=\s*\[([\s\S]*?)\n\];/);
   if (!block?.[1]) throw new Error('could not find ROUTES in scripts/audit-screens.mjs');
-  return [...block[1].matchAll(/'([^']+)'/g)].map((match) => match[1] ?? '');
+  /*
+    Only strings that are actually routes.
+
+    This used to take every quoted run inside the block, and the block is
+    mostly prose: an apostrophe in "the Orders tab's Active list" opens a
+    match that runs to the next real quote, swallowing a route and returning
+    the comment in its place. The count came out right anyway, because the
+    routes it lost and the fragments it gained happened to cancel — so the
+    check was a coincidence rather than a measurement, and adding one comment
+    with an odd number of apostrophes broke it.
+  */
+  return [...block[1].matchAll(/'(\/[^']*)'/g)].map((match) => match[1] ?? '');
 }
 
 describe('the counts in the docs, against the repository', () => {
