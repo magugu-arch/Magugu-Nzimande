@@ -1021,6 +1021,195 @@ function seedHistory(): void {
     paymentMethodLabel: 'Mastercard ending 7702',
     etaMinutes: 25,
   });
+
+  /**
+   * A dine-in order that is actually happening.
+   *
+   * The seed's one dine-in order was `completed`, so two things had never
+   * rendered. `readyLabelFor('dinein')` — "Ready at your table" — has been
+   * written since the timeline was, and no seeded order ever reached `ready`
+   * on a dine-in journey to print it. And `tableNumber`, which the customer
+   * types at checkout and the order carries, is drawn on exactly one screen:
+   * the confirmation, seen once, immediately after paying. Come back to the
+   * order a minute later and the number is gone — from the tracking screen, the
+   * Orders card and the receipt alike — which is the one fact somebody sitting
+   * in the restaurant wants to check.
+   *
+   * Nine minutes into an eighteen-minute kitchen, so it is genuinely mid-cook
+   * rather than sitting at a rung chosen for the screenshot.
+   */
+  const dineInLivePlacedAt = new Date(Date.now() - 9 * 60_000);
+  ledger.push({
+    id: 'order-4844',
+    reference: 'BBQ-4844',
+    placedAt: dineInLivePlacedAt.toISOString(),
+    fulfilmentType: 'dinein',
+    status: 'preparing',
+    timeline: buildTimeline('dinein', 'preparing', dineInLivePlacedAt, 18),
+    lines: [
+      {
+        id: 'chicken-burger__burger-heat:burger-heat-spicy',
+        productId: 'chicken-burger',
+        name: 'Chicken Burger',
+        assetKey: 'chickenBurger',
+        unitBasePrice: 109,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'burger-heat',
+            groupName: 'Heat level',
+            optionId: 'burger-heat-spicy',
+            optionName: 'Hot Spicy',
+            priceDelta: 8,
+          },
+        ],
+        unitPrice: 117,
+        lineTotal: 117,
+      },
+    ],
+    totals: {
+      subtotal: 117,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 122,
+      pointsEarned: 117,
+    },
+    ...storeSnapshot('store-rosebank'),
+    tableNumber: '14',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 18,
+  });
+
+  /**
+   * The last rung of the status sequence nothing had reached cold, and the
+   * longest note anybody can type.
+   *
+   * `courier_assigned` sits between the counter and the road: the food is
+   * boxed, a driver has been given the job and has not collected it yet. The
+   * ledger held `received`, `preparing` (above), `ready`, `out_for_delivery`,
+   * `completed` and `cancelled`, and this one was reachable only by placing an
+   * order in the session and catching a two-minute window.
+   *
+   * The note is 200 characters, which is exactly what `product/[id]` allows and
+   * a length nothing had ever been asked to lay out. Every screen that draws a
+   * note clamps it — two lines on the cart row, two in the checkout review,
+   * three on the receipt — and the seeded notes are one short sentence, so the
+   * clamp had never truncated anything. A customer who spends their whole
+   * allowance on access details and gets forty characters of it back cannot
+   * check what they asked for.
+   *
+   * Twenty-five minutes is chosen rather than picked, the same way BBQ-4830's
+   * thirty-four is. A 42-minute delivery estimate is 22 minutes of kitchen plus
+   * the 20-minute road buffer, so `readyAt` is three minutes ago and the mock's
+   * courier leg is three minutes in — past `COURIER_ASSIGNED` at two and short
+   * of `PICKED_UP` at six. Both clocks have to land inside that window or the
+   * fixture is an order and a courier job disagreeing on one screen.
+   */
+  const assignedPlacedAt = new Date(Date.now() - 25 * 60_000);
+  ledger.push({
+    id: 'order-4846',
+    reference: 'BBQ-4846',
+    placedAt: assignedPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'courier_assigned',
+    timeline: buildTimeline('delivery', 'courier_assigned', assignedPlacedAt, 42),
+    lines: [
+      {
+        id: 'secret-sauce__secret-sauce-size:secret-sauce-size-medium',
+        productId: 'secret-sauce',
+        name: 'Secret Sauce Chicken',
+        assetKey: 'secretSauce',
+        unitBasePrice: 175,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'secret-sauce-size',
+            groupName: 'Choose your size',
+            optionId: 'secret-sauce-size-medium',
+            optionName: 'Medium · 9 pieces',
+            priceDelta: 60,
+          },
+        ],
+        unitPrice: 235,
+        lineTotal: 235,
+        // 200 characters, the maximum the note box accepts.
+        specialInstructions:
+          'The gate code is 4417 but it sticks, so press it twice and wait. If nobody answers the intercom please ring my mobile rather than leaving it with the guard — the last order sat in the hut all evening.',
+      },
+    ],
+    totals: {
+      subtotal: 235,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 272,
+      pointsEarned: 235,
+    },
+    ...storeSnapshot('store-sandton'),
+    addressId: 'address-home',
+    addressSummary: '14 Acacia Road, Melrose Arch',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 42,
+  });
+
+  /**
+   * A finished order nobody can place again.
+   *
+   * Rose Ddeok-Bokki is the product the previous round withdrew, and no order
+   * contained it — so `planReorder`'s "nothing came back" branch, and the
+   * dialogue `useReorder` shows instead of navigating, had never run against
+   * anything in the seed. Every seeded order reorders cleanly, which is exactly
+   * the shape a real history does not have.
+   *
+   * One line, deliberately: a mixed order would exercise the *partial* branch,
+   * which already has a seeded path through it. This is the empty one.
+   */
+  const gonePlacedAt = new Date(Date.now() - 19 * 86_400_000);
+  ledger.push({
+    id: 'order-4838',
+    reference: 'BBQ-4838',
+    placedAt: gonePlacedAt.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'completed',
+    timeline: buildTimeline('collection', 'completed', gonePlacedAt, 25),
+    lines: [
+      {
+        id: 'rose-ddeok-bokki__rose-extras:rose-extra-cheese',
+        productId: 'rose-ddeok-bokki',
+        name: 'Rose Ddeok-Bokki',
+        assetKey: 'roseDdeokBokki',
+        unitBasePrice: 82,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'rose-extras',
+            groupName: 'Add to it',
+            optionId: 'rose-extra-cheese',
+            optionName: 'Extra melted cheese',
+            priceDelta: 22,
+          },
+        ],
+        unitPrice: 104,
+        lineTotal: 104,
+      },
+    ],
+    totals: {
+      subtotal: 104,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 109,
+      pointsEarned: 104,
+    },
+    ...storeSnapshot('store-vanda'),
+    paymentMethodLabel: 'Mastercard ending 7702',
+    etaMinutes: 25,
+    rating: 5,
+  });
 }
 
 /**

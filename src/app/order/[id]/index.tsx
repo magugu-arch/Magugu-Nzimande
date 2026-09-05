@@ -254,6 +254,35 @@ export default function OrderTrackingScreen() {
             </View>
           </View>
         ) : null}
+
+        {/*
+          The table, which the order has carried since checkout and which was
+          drawn on exactly one screen: the confirmation, seen once, immediately
+          after paying. Close it and come back — which is what somebody does
+          while they wait — and the number was gone from the tracking screen,
+          the Orders card and the receipt alike.
+
+          It sits with the driver row rather than beside the store details for
+          the same reason that row does: this is the "where is my food going"
+          line, and for a dine-in order the answer is a table rather than a
+          street. Nobody had seen the gap because every seeded dine-in order
+          was `completed`, so no live one had ever been opened.
+        */}
+        {data.tableNumber ? (
+          <View style={styles.driverRow} testID="order-table">
+            <View style={styles.driverAvatar}>
+              <Ionicons name="restaurant-outline" size={15} color={colors.onPrimary} />
+            </View>
+            <View style={styles.driverBody}>
+              <Text variant="bodyMedium" color={colors.textOnDark}>
+                Table {data.tableNumber}
+              </Text>
+              <Text variant="caption" color={colors.textOnDarkMuted}>
+                {`Bringing it to you at ${data.storeName}`}
+              </Text>
+            </View>
+          </View>
+        ) : null}
       </Card>
 
       {/* Live courier map (brief §2), when a provider is authorised to expose one */}
@@ -299,8 +328,17 @@ export default function OrderTrackingScreen() {
                 this is the same fact one screen later and a customer who read
                 it in quotation marks before paying should recognise it after.
               */}
+              {/*
+                Never clamped. The box that produces this caps it at 200
+                characters (`product/[id]`), and at 320pt three lines showed 57
+                pixels of 285 — a fifth of what somebody typed, cut mid-word,
+                with no ellipsis, because React Native Web compiles the clamp to
+                `overflow: clip`. A customer who spends the whole allowance on
+                access details cannot check what they asked for. Two hundred
+                characters is four or five lines on a page that already scrolls.
+              */}
               {line.specialInstructions ? (
-                <Text variant="caption" color={colors.textMuted} numberOfLines={3}>
+                <Text variant="caption" color={colors.textMuted}>
                   “{line.specialInstructions}”
                 </Text>
               ) : null}

@@ -1096,9 +1096,23 @@ export const products: Product[] = [
         minSelect: 1,
         maxSelect: 1,
         defaultOptionIds: ['cheesling-fries-size-regular'],
+        /**
+         * Every option in a required group withdrawn, which is a different
+         * state from the product being withdrawn and the one the app had no
+         * example of.
+         *
+         * A till marks options out, not products. When the last size in a
+         * required group goes, the product record still says `available: true`
+         * and nothing anywhere notices: `defaultSelection` correctly refuses to
+         * preselect a withdrawn option, so the group starts empty, `minSelect:
+         * 1` is never satisfied, and the button reads "Choose size" for a
+         * screen on which no size can be chosen. Every one of the 79 seeded
+         * options but one was available, and that one had two available
+         * siblings, so the group always had something left to pick.
+         */
         options: [
-          { id: 'cheesling-fries-size-regular', name: 'Regular', priceDelta: 0, available: true },
-          { id: 'cheesling-fries-size-large', name: 'Large', priceDelta: 24, available: true },
+          { id: 'cheesling-fries-size-regular', name: 'Regular', priceDelta: 0, available: false },
+          { id: 'cheesling-fries-size-large', name: 'Large', priceDelta: 24, available: false },
         ],
       },
     ],

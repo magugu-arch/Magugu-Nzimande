@@ -22,7 +22,7 @@ import {
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { isNotFound } from '@/services/apiClient';
 import { NutritionPanel } from '@/features/menu/components/NutritionPanel';
-import { isSoldOut, SOLD_OUT_LABEL } from '@/features/menu/availability';
+import { isSoldOut, SOLD_OUT_LABEL, soldOutReason } from '@/features/menu/availability';
 import { OptionGroupPicker } from '@/features/menu/components/OptionGroupPicker';
 import { ProductCard } from '@/features/menu/components/ProductCard';
 import { useProduct, useProductsByIds } from '@/features/menu/hooks';
@@ -305,8 +305,7 @@ export default function ProductDetailScreen() {
               <View style={styles.allergens} testID="product-sold-out">
                 <Ionicons name="alert-circle-outline" size={17} color={colors.status.warning} />
                 <Text variant="caption" color={colors.textSecondary} style={styles.allergenText}>
-                  This is sold out right now, so it cannot be added to your basket. Please check
-                  back later or ask the store.
+                  {soldOutReason(item)}
                 </Text>
               </View>
             ) : null}

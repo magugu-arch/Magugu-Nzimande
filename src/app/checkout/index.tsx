@@ -612,8 +612,11 @@ export default function CheckoutScreen() {
                     {describeOptions(line)}
                   </Text>
                 ) : null}
+                {/* Unclamped, for the same reason as the receipt: this is the
+                    last screen before the money moves, so it has to show the
+                    whole of what the kitchen is being asked to do. */}
                 {line.specialInstructions ? (
-                  <Text variant="caption" color={colors.textMuted} numberOfLines={2}>
+                  <Text variant="caption" color={colors.textMuted}>
                     “{line.specialInstructions}”
                   </Text>
                 ) : null}

@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { Order } from '@/types';
 import { fetchMenu } from '@/services/menuService';
 import { fetchOrders } from '@/services/orderService';
-import { isSoldOut, productListLabel, SOLD_OUT_LABEL } from '@/features/menu/availability';
+import { productListLabel, SOLD_OUT_LABEL } from '@/features/menu/availability';
 import {
   countdownStillApplies,
   deliveryFailed,
@@ -32,29 +32,43 @@ const code = (file: string) =>
  * every option, priced them, and offered "Add to cart R 82.00".
  */
 describe('a product that is sold out', () => {
+  /**
+   * Asked of the flag itself, not of `isSoldOut`. The helper has since grown a
+   * second reason to refuse a product — a required group whose every option has
+   * been withdrawn, which is a till marking options out rather than a product —
+   * and this case is about the flag.
+   */
   it('is seeded, so the false branch has something to run against', async () => {
     const menu = await fetchMenu();
-    const withdrawn = menu.products.filter((product) => isSoldOut(product));
+    const withdrawn = menu.products.filter((product) => !product.available);
 
     expect(withdrawn.map((product) => product.name)).toEqual(['Rose Ddeok-Bokki']);
   });
 
   it('says so before it says the price', () => {
-    const label = productListLabel({ name: 'Rose Ddeok-Bokki', basePrice: 82, available: false });
+    const label = productListLabel({
+      name: 'Rose Ddeok-Bokki',
+      basePrice: 82,
+      available: false,
+      optionGroups: [],
+    });
 
     expect(label).toBe('Rose Ddeok-Bokki, Sold out, from R 82.00');
     expect(label.indexOf(SOLD_OUT_LABEL)).toBeLessThan(label.indexOf('R 82.00'));
   });
 
   it("leaves an available product's label alone", () => {
-    expect(productListLabel({ name: 'French Fries', basePrice: 45, available: true })).toBe(
-      'French Fries, from R 45.00',
-    );
+    expect(
+      productListLabel({ name: 'French Fries', basePrice: 45, available: true, optionGroups: [] }),
+    ).toBe('French Fries, from R 45.00');
   });
 
   it('keeps the description clause the list rows already carried', () => {
     expect(
-      productListLabel({ name: 'French Fries', basePrice: 45, available: true }, 'Thick cut.'),
+      productListLabel(
+        { name: 'French Fries', basePrice: 45, available: true, optionGroups: [] },
+        'Thick cut.',
+      ),
     ).toBe('French Fries, from R 45.00. Thick cut.');
   });
 

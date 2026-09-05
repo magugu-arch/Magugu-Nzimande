@@ -52,12 +52,11 @@ export const CartLineRow = memo(function CartLineRow({
         {line.specialInstructions ? (
           <View style={styles.note}>
             <Ionicons name="chatbubble-ellipses-outline" size={12} color={colors.textMuted} />
-            <Text
-              variant="caption"
-              color={colors.textMuted}
-              numberOfLines={2}
-              style={styles.noteText}
-            >
+            {/* Unclamped. Two lines showed 38 pixels of 152 at 320pt, and the
+                clamp compiles to `overflow: clip` on web, so it stopped
+                mid-word without so much as an ellipsis. The 200-character cap
+                on the input is what bounds this, not the row. */}
+            <Text variant="caption" color={colors.textMuted} style={styles.noteText}>
               {line.specialInstructions}
             </Text>
           </View>

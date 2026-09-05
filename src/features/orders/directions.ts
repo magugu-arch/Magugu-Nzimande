@@ -7,7 +7,8 @@ import type { Order } from '@/types';
  * Three things have to be true before the tracking screen offers "Get
  * directions", and only the first was being checked:
  *
- *  1. They are coming to fetch it. A delivery is coming to them.
+ *  1. They are coming to fetch it. A delivery is coming to them, and a dine-in
+ *     order is being eaten where it was ordered.
  *  2. There is an address to show under the button.
  *  3. The record actually carries the branch's coordinates.
  *
@@ -23,7 +24,18 @@ import type { Order } from '@/types';
  * not at all, reaches here unchallenged.
  */
 export function directionsTargetFor(order: Order): DirectionsTarget | null {
-  if (order.fulfilmentType === 'delivery') return null;
+  /*
+    Dine-in belongs here too, and did not until a live one was seeded.
+
+    Every seeded dine-in order was `completed`, so nobody had opened one
+    mid-meal — and the rule read "collection and dine-in are the orders
+    somebody travels to", which is half right. You travel to collect. You are
+    already sitting down to dine in: the table number the order carries was
+    typed at that table. Offering "Get directions · The Zone @ Rosebank" to
+    somebody nine minutes into a meal at The Zone @ Rosebank is the app
+    telling them how to reach the chair they are in.
+  */
+  if (order.fulfilmentType !== 'collection') return null;
   if (order.storeAddress.length === 0) return null;
 
   const { storeLatitude: latitude, storeLongitude: longitude } = order;

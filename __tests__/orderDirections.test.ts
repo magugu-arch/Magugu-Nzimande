@@ -62,9 +62,18 @@ describe('where the tracking screen will send somebody', () => {
     expect(directionsTargetFor({ ...collection, storeAddress: '' })).toBeNull();
   });
 
-  it('still offers the branch for dine-in, which somebody travels to', () => {
-    expect(directionsTargetFor({ ...collection, fulfilmentType: 'dinein' })?.label).toBe(
-      'bb.q Chicken Rosebank',
-    );
+  /**
+   * This used to assert the opposite — "still offers the branch for dine-in,
+   * which somebody travels to" — and the premise was wrong.
+   *
+   * You travel to collect. You are already sitting down to dine in: the table
+   * number the order carries was typed at that table, so there is no journey
+   * left to give directions for. Nobody noticed because every seeded dine-in
+   * order was `completed`, and a finished meal is not a screen anyone reads.
+   * Seeding a live one put "Get directions · The Zone @ Rosebank" in front of
+   * somebody nine minutes into a meal at The Zone @ Rosebank.
+   */
+  it('offers nothing for dine-in, because the customer is already there', () => {
+    expect(directionsTargetFor({ ...collection, fulfilmentType: 'dinein' })).toBeNull();
   });
 });

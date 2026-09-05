@@ -97,6 +97,17 @@ const ROUTES = [
   // A product the kitchen has run out of. Every one of the 28 was available,
   // so the menu, the card grid and this screen had never drawn the other case.
   '/product/rose-ddeok-bokki',
+  // A dine-in order in flight, which the seed had only ever had `completed`.
+  // The table number and the directions rule both hang off it.
+  '/order/order-4844',
+  // The last rung of the sequence, carrying a note at the 200-character cap
+  // that every screen used to clamp to a fifth of itself.
+  '/order/order-4846',
+  // A finished order whose only product has since been withdrawn, so "Order
+  // this again" has nothing to add.
+  '/order/order-4838',
+  // A product still marked available whose one required group has emptied.
+  '/product/cheesling-fries',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -201,6 +212,18 @@ const MUST_SHOW = {
   // `reorder` and `reconcileCart`, so this screen offered "Add to cart R
   // 82.00" for a dish nobody can cook.
   '/product/rose-ddeok-bokki': /Sold out[\s\S]*cannot be added to your basket/,
+  // The table, which used to live on the confirmation screen alone — seen once,
+  // immediately after paying, and gone by the time somebody at the table
+  // looked again. "Ready at your table" is the dine-in branch of
+  // `readyLabelFor`, which no seeded order had ever reached either.
+  '/order/order-4844': /Ready at your table[\s\S]*Table 14/,
+  // The whole note, not the first fifth of it. At 320pt the receipt showed 57
+  // pixels of 285, cut mid-word with no ellipsis.
+  '/order/order-4846': /Driver assigned[\s\S]*sat in the hut all evening/,
+  '/order/order-4838': /BBQ-4838[\s\S]*Rose Ddeok-Bokki/,
+  // Available, and unorderable: a till marks options out, not products, and
+  // the button used to ask for a size on a screen where none could be chosen.
+  '/product/cheesling-fries': /Sold out[\s\S]*Every choice under "Size" is sold out/,
 };
 
 /**
