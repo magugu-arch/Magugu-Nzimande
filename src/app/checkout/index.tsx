@@ -20,6 +20,7 @@ import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { useAddresses, usePaymentMethods } from '@/features/account/hooks';
 import { usePlaceOrder } from '@/features/orders/hooks';
+import { orderLineLabel } from '@/features/orders/lineLabel';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { authorisePayment, voidPayment } from '@/services/paymentService';
 import { safeToRetry, submitOrder, type SubmitFailure } from '@/features/checkout/submitOrder';
@@ -589,7 +590,12 @@ export default function CheckoutScreen() {
           <Text variant="h3">Your order</Text>
 
           {lines.map((line) => (
-            <View key={line.id} style={styles.reviewLine}>
+            <View
+              key={line.id}
+              style={styles.reviewLine}
+              accessible
+              accessibilityLabel={orderLineLabel(line)}
+            >
               <FoodImage
                 assetKey={line.assetKey}
                 variant="thumb"

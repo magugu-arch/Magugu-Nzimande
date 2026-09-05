@@ -23,6 +23,7 @@ import { OrderTimeline } from '@/features/orders/components/OrderTimeline';
 import { CourierTracking } from '@/features/orders/components/CourierTracking';
 import { useCancelOrder, useOrder } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
+import { orderLineLabel } from '@/features/orders/lineLabel';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
 import { useNow } from '@/features/system/useNow';
@@ -261,7 +262,13 @@ export default function OrderTrackingScreen() {
         <Text variant="h3">What you ordered</Text>
 
         {data.lines.map((line) => (
-          <View key={line.id} style={styles.line}>
+          <View
+            key={line.id}
+            style={styles.line}
+            accessible
+            accessibilityLabel={orderLineLabel(line)}
+            testID={`order-line-${line.id}`}
+          >
             <FoodImage
               assetKey={line.assetKey}
               variant="thumb"
@@ -276,6 +283,17 @@ export default function OrderTrackingScreen() {
               {describeOptions(line).length > 0 ? (
                 <Text variant="caption" color={colors.textSecondary} numberOfLines={2}>
                   {describeOptions(line)}
+                </Text>
+              ) : null}
+              {/*
+                The note the customer typed, which the receipt had been
+                dropping. Drawn the way the checkout review draws it, because
+                this is the same fact one screen later and a customer who read
+                it in quotation marks before paying should recognise it after.
+              */}
+              {line.specialInstructions ? (
+                <Text variant="caption" color={colors.textMuted} numberOfLines={3}>
+                  “{line.specialInstructions}”
                 </Text>
               ) : null}
             </View>

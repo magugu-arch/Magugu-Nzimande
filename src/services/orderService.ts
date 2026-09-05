@@ -200,6 +200,10 @@ function seedHistory(): void {
         ],
         unitPrice: 225,
         lineTotal: 225,
+        // And one on a finished order, because "Order again" copies the note
+        // forward (`useReorder`) and that copy had never run against a stored
+        // one either.
+        specialInstructions: 'Extra crispy please.',
       },
       {
         id: 'cheesling-fries__cheesling-fries-size:cheesling-fries-size-regular',
@@ -647,6 +651,18 @@ function seedHistory(): void {
         ],
         unitPrice: 229,
         lineTotal: 229,
+        /**
+         * A note to the kitchen, which no seeded order had ever carried.
+         *
+         * `specialInstructions` is offered on every product screen (200
+         * characters, `product/[id]`), survives into the cart, and is drawn on
+         * the cart row and again in the checkout review — and then no order in
+         * the seed had one, so nothing downstream of payment had ever been
+         * asked to render it. Put on the order that is actually happening,
+         * because that is where a note matters: somebody watching a courier
+         * approach wants to check what they asked for before it arrives.
+         */
+        specialInstructions: 'Easy on the chilli please — one portion is for a child.',
       },
       {
         id: 'french-fries__fries-size:fries-size-regular',

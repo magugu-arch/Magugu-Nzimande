@@ -130,10 +130,16 @@ const MUST_SHOW = {
   // asserting a bug. The seed carries a live order, so the tab has something
   // to show and the card that shows it is worth checking.
   '/orders': /BBQ-4830/,
-  '/order/order-4821': /BBQ-4821/,
+  // The reference, and the note the customer typed. `specialInstructions` was
+  // drawn on the cart row and again in the checkout review, then dropped by
+  // the receipt — the app showed somebody their own words at every step up to
+  // the moment they paid, and then they were gone from the only record kept.
+  '/order/order-4821': /BBQ-4821[\s\S]*Extra crispy please/,
   // Live tracking, with the courier on it. Both halves matter: the status
-  // sentence promises a driver, and the card underneath has to name one.
-  '/order/order-4830': /Out for delivery/,
+  // sentence promises a driver, and the card underneath has to name one. The
+  // note is asserted here too because this is the order where one matters —
+  // somebody watching a courier approach, checking what they asked for.
+  '/order/order-4830': /Out for delivery[\s\S]*Easy on the chilli/,
   '/rewards': /\d+\s*(points|pts)|Gold|Silver|Bronze/i,
   // Unlocked, in the seeded customer's birthday month. If this ever reads
   // "Not enough points yet" again, the gate has gone back to excluding the
