@@ -496,10 +496,103 @@ function seedHistory(): void {
     ...storeSnapshot('store-menlyn'),
     scheduledFor: scheduledFor.toISOString(),
     redeemedRewardId: 'reward-fries',
+    rewardName: 'Free French Fries',
     paymentMethodLabel: 'Visa ending 4821',
     etaMinutes: 25,
     rating: 3,
     ratingComment: 'Good food, but the collection queue was long.',
+  });
+
+  /**
+   * An order that used a voucher *and* a reward, which no seeded order had.
+   *
+   * Five orders carried one or the other and never both — `discount` and
+   * `rewardsDiscount` are separate fields, separate business decisions and
+   * separate lines on a receipt, and the pair had never been rendered
+   * anywhere. Somebody who has a welcome code and enough points to spend is
+   * not an exotic customer; they are a customer in their first month.
+   *
+   * It is also the fixture that asks a question nobody has answered.
+   * `reward-fries` states "Cannot be combined with another voucher" in its own
+   * terms, on a screen a customer reads, and seven other rewards say nothing
+   * either way. Nothing in the app enforces any of it — `applyVoucher` and
+   * `applyReward` are independent setters and `calculateTotals` subtracts
+   * both. Whether rewards stack with vouchers is a commercial decision, so it
+   * is written up in `audit:launch` rather than decided here; this order is
+   * what the answer will apply to.
+   *
+   * The arithmetic is spelled out because it is money: R209 for a medium
+   * Golden Original plus R45 of fries is R254; the welcome code takes R50 and
+   * the fries reward R20 (400 points at the seeded R0.05 a point); R32 of
+   * delivery and R5 of service bring it to R221. Points accrue on food value
+   * after discounts, so 254 − 50 − 20 = 184.
+   */
+  const bothPlacedAt = new Date(Date.now() - 8 * 86_400_000);
+  ledger.push({
+    id: 'order-4795',
+    reference: 'BBQ-4795',
+    placedAt: bothPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'completed',
+    timeline: buildTimeline('delivery', 'completed', bothPlacedAt, 40),
+    lines: [
+      {
+        id: 'golden-original__golden-original-size:golden-original-size-medium',
+        productId: 'golden-original',
+        name: 'Golden Original Chicken',
+        assetKey: 'goldenOriginal',
+        unitBasePrice: 149,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'golden-original-size',
+            groupName: 'Choose your size',
+            optionId: 'golden-original-size-medium',
+            optionName: 'Medium · 9 pieces',
+            priceDelta: 60,
+          },
+        ],
+        unitPrice: 209,
+        lineTotal: 209,
+      },
+      {
+        id: 'french-fries__fries-size:fries-size-regular',
+        productId: 'french-fries',
+        name: 'French Fries',
+        assetKey: 'frenchFries',
+        unitBasePrice: 45,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'fries-size',
+            groupName: 'Size',
+            optionId: 'fries-size-regular',
+            optionName: 'Regular',
+            priceDelta: 0,
+          },
+        ],
+        unitPrice: 45,
+        lineTotal: 45,
+      },
+    ],
+    totals: {
+      subtotal: 254,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 50,
+      rewardsDiscount: 20,
+      total: 221,
+      pointsEarned: 184,
+    },
+    ...storeSnapshot('store-fourways'),
+    addressId: 'address-home',
+    addressSummary: '14 Acacia Road, Melrose Arch',
+    voucherCode: 'WELCOME50',
+    redeemedRewardId: 'reward-fries',
+    rewardName: 'Free French Fries',
+    paymentMethodLabel: 'Mastercard ending 7702',
+    etaMinutes: 40,
+    rating: 4,
   });
 
   /**
@@ -845,6 +938,16 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   const placedAt = new Date();
   referenceCounter += 1;
 
+  /**
+   * The redeemed reward, read once and used twice: its name goes onto the
+   * order so the receipt can attribute the discount, and its points cost is
+   * what gets deducted below. It was fetched only for the second, after the
+   * order had already been built, so the first was not possible.
+   */
+  const redeemed = input.redeemedRewardId
+    ? await fetchReward(input.redeemedRewardId).catch(() => null)
+    : null;
+
   const order: Order = {
     id: `order-${referenceCounter}`,
     reference: `BBQ-${referenceCounter}`,
@@ -871,6 +974,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     // an order somebody is paying for in cash at their front door.
     paymentMethodLabel: payment?.label ?? describePaymentMethod(input.paymentMethodType),
     ...(input.redeemedRewardId ? { redeemedRewardId: input.redeemedRewardId } : {}),
+    // The name as well as the id, so the receipt can say which reward took the
+    // money rather than "Rewards discount". Read once, here, and kept.
+    ...(redeemed ? { rewardName: redeemed.name } : {}),
     ...(input.voucherCode ? { voucherCode: input.voucherCode } : {}),
     etaMinutes,
     // No `driverName` here. There is no driver at placement — one is assigned
@@ -891,15 +997,12 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
    * still had the points by the time the order arrived — this records, it does
    * not adjudicate.
    */
-  if (input.redeemedRewardId) {
-    const reward = await fetchReward(input.redeemedRewardId).catch(() => null);
-    if (reward) {
-      recordPoints({
-        description: `${reward.name} · order ${order.reference}`,
-        points: -reward.pointsCost,
-        orderReference: order.reference,
-      });
-    }
+  if (redeemed) {
+    recordPoints({
+      description: `${redeemed.name} · order ${order.reference}`,
+      points: -redeemed.pointsCost,
+      orderReference: order.reference,
+    });
   }
 
   // A one-time code is only one-time if something spends it.

@@ -85,6 +85,10 @@ const ROUTES = [
   // included — only when there was something to list, so this was the one
   // product shown nothing at all.
   '/product/sweet-potato-fries',
+  // An order that used a voucher *and* a reward. Five seeded orders carried
+  // one or the other and never both, so the receipt had never drawn the two
+  // discount lines together — and they are separate money.
+  '/order/order-4795',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -157,6 +161,9 @@ const MUST_SHOW = {
   // Two shapes in one list: an advisory with no artwork, and a promotion with
   // a photograph on it. The second is what the row had no room for at all.
   '/account/notifications': /Load-shedding[\s\S]*Wings, four ways|Wings, four ways[\s\S]*Load-shedding/,
+  // Both discount lines, attributed to the two different things that produced
+  // them. A receipt that lumped them together would lose which was which.
+  '/order/order-4795': /Promo · WELCOME50[\s\S]*Reward ·/,
 };
 
 /**

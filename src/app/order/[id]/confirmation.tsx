@@ -87,7 +87,20 @@ export default function OrderConfirmationScreen() {
       </Card>
 
       <Card style={styles.card}>
-        <OrderTotals totals={data.totals} fulfilmentType={data.fulfilmentType} showNudge={false} />
+        <OrderTotals
+          totals={data.totals}
+          fulfilmentType={data.fulfilmentType}
+          showNudge={false}
+          /*
+            The order carries both. Without them the receipt read "Promo
+            discount" and "Rewards discount" while the cart the customer had
+            just left said "Promo · WELCOME50" and "Reward · Free French
+            Fries" — the record held the facts, the component had the slots,
+            and nothing joined them up.
+          */
+          {...(data.voucherCode ? { voucherCode: data.voucherCode } : {})}
+          {...(data.rewardName ? { rewardName: data.rewardName } : {})}
+        />
       </Card>
 
       <View style={styles.actions}>

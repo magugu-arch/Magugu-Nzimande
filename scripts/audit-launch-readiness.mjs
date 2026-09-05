@@ -72,7 +72,7 @@ if (apiHost) {
     'API host',
     `The production build points at ${apiHost}. Nothing in this repo can tell whether that ` +
       'host exists, is yours, or serves the endpoints the app calls — the app only finds out ' +
-      'in a customer\'s hand. Confirm it answers before shipping.',
+      "in a customer's hand. Confirm it answers before shipping.",
     'you',
   );
 }
@@ -246,6 +246,45 @@ for (const opening of openings) {
       'you',
     );
   }
+}
+
+/**
+ * Whether a reward and a voucher can be used on the same order.
+ *
+ * Nothing in the app decides this. `applyVoucher` and `applyReward` are
+ * independent setters on the cart and `calculateTotals` subtracts both, so a
+ * customer with a welcome code and enough points gets both — and a customer in
+ * their first month is exactly who has both.
+ *
+ * The app is not silent about it either, which is the part that needs
+ * answering. One reward states "Cannot be combined with another voucher" in
+ * its own terms, on a screen a customer reads, and the other seven say nothing
+ * either way. So the app carries a restriction it does not keep, on one item
+ * out of eight, with no policy behind any of it.
+ *
+ * Not decided here: stacking is a margin decision, and enforcing a term that
+ * may be seed boilerplate would take a benefit away from customers on nobody's
+ * authority. What the repository can do is make the state visible and stop it
+ * being invisible — BBQ-4795 is a seeded order carrying both, so the two
+ * discount lines render on a receipt somebody can look at.
+ */
+const rewardTerms = read('src/services/data/rewardsData.ts');
+if (/Cannot be combined with another voucher/.test(rewardTerms)) {
+  const cart = read('src/utils/cart.ts');
+  const enforced = /combin|stack/i.test(cart);
+  note(
+    'Reward and voucher stacking',
+    'A reward and a voucher can both be applied to one order — independent ' +
+      "setters on the cart, and the totals subtract both. One reward's terms say " +
+      '"Cannot be combined with another voucher" and seven say nothing either way, ' +
+      'so the app states a restriction on one item in eight and enforces it on ' +
+      `none${enforced ? ' (though utils/cart now mentions one — check it matches)' : ''}. ` +
+      'Decide the policy: rewards stack with vouchers, or they do not, or it is ' +
+      'per reward. Then the terms and the cart can be made to agree. BBQ-4795 in ' +
+      'the seeded history is an order that used both, so whatever is decided has ' +
+      'something to be checked against.',
+    'you',
+  );
 }
 
 // The menu prices are what a customer is charged. Fictional ones are worse
@@ -434,7 +473,7 @@ if (apiClient.includes('sign_in_required')) {
       'order it cannot ring about, and the customer cannot look at it afterwards, because ' +
       'the Orders tab needs an account. That last part is newly visible rather than newly ' +
       'broken: a guest never had a way to see a real order, they just used to be shown ' +
-      'somebody else\'s. So the question is yours and it is one of three. Either the ' +
+      "somebody else's. So the question is yours and it is one of three. Either the " +
       'backend accepts guest orders and checkout must collect a name and a number for the ' +
       'driver; or checkout asks them to sign in before they build a basket rather than ' +
       'after; or guest browsing stays and guest ordering does not. I have not chosen: each ' +

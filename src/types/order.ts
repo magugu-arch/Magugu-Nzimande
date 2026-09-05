@@ -228,6 +228,16 @@ export interface Order {
    * the points back if the order was called off.
    */
   redeemedRewardId?: string;
+  /**
+   * What the reward was called when it was redeemed.
+   *
+   * A snapshot, for the same reason `paymentMethodLabel` and `addressSummary`
+   * are: a reward can be renamed, repriced or withdrawn, and a receipt has to
+   * go on saying what it said at the time. The id alone cannot do that, and
+   * resolving it on the tracking screen would put a second query behind a
+   * label and still answer with today's name.
+   */
+  rewardName?: string;
   /** The promo code spent on this order, for the same reasons. */
   voucherCode?: string;
   /** Minutes until ready/delivered, from `placedAt`. */
