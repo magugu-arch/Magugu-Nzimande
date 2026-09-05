@@ -11,6 +11,7 @@ import {
   type VoucherTerms,
 } from '@/utils/cart';
 import { track } from '@/ux/analytics';
+import { config } from '@/constants/config';
 
 /**
  * Cart state.
@@ -94,10 +95,70 @@ interface CartState {
   hasLine: (lineId: string) => boolean;
 }
 
+/**
+ * A basket saved before the menu moved, on a demo build only.
+ *
+ * `reconcileCart` exists to bring a saved basket back into agreement with the
+ * live menu, and `cart/index` draws a notice saying what it changed — a screen
+ * that had never rendered, because the cart starts empty and nothing had ever
+ * put a stale line in it. Both branches were written for a state the seed
+ * could not produce.
+ *
+ * Every line here is one reconciliation must drop, which is deliberate twice
+ * over. It is the case that produces the notice, and it leaves the basket
+ * empty afterwards — so `audit:points`, which builds its own basket and
+ * asserts the points on it, starts from exactly where it started before.
+ *
+ * Rose Ddeok-Bokki was withdrawn; Cheesling Fries still stands but the last
+ * option in its required Size group has gone, so a line configured with
+ * `cheesling-fries-size-regular` can no longer be made. Two different reasons,
+ * which the notice has to distinguish.
+ */
+const STALE_BASKET: CartLine[] = [
+  {
+    id: 'rose-ddeok-bokki__rose-extras:rose-extra-egg',
+    productId: 'rose-ddeok-bokki',
+    name: 'Rose Ddeok-Bokki',
+    assetKey: 'roseDdeokBokki',
+    unitBasePrice: 82,
+    quantity: 1,
+    selectedOptions: [
+      {
+        groupId: 'rose-extras',
+        groupName: 'Add to it',
+        optionId: 'rose-extra-egg',
+        optionName: 'Boiled egg',
+        priceDelta: 12,
+      },
+    ],
+    unitPrice: 94,
+    lineTotal: 94,
+  },
+  {
+    id: 'cheesling-fries__cheesling-fries-size:cheesling-fries-size-regular',
+    productId: 'cheesling-fries',
+    name: 'Cheesling Fries',
+    assetKey: 'cheeslingFries',
+    unitBasePrice: 62,
+    quantity: 1,
+    selectedOptions: [
+      {
+        groupId: 'cheesling-fries-size',
+        groupName: 'Size',
+        optionId: 'cheesling-fries-size-regular',
+        optionName: 'Regular',
+        priceDelta: 0,
+      },
+    ],
+    unitPrice: 62,
+    lineTotal: 62,
+  },
+];
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
-      lines: [],
+      lines: config.useMockApi ? [...STALE_BASKET] : [],
       fulfilmentType: 'delivery',
       voucher: null,
       reward: null,

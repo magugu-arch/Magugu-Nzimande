@@ -573,8 +573,11 @@ if (rewardsService.includes('recordPoints')) {
       'and a cancelled order puts the points and the reward straight back. That is a ' +
       'reading of `redeemedRewardId` on the order payload, not a rule anybody has ' +
       'given me. Confirm it against how the programme is actually run, along with three ' +
-      'numbers the seed invents: 1 point per R1 on food value only (no fees, no ' +
-      'discounted amounts), the Bronze/Silver/Gold/Black thresholds at ' +
+      'numbers the seed invents: the per-tier earn rates on food value only (no fees, ' +
+      'no discounted amounts) at 1 / 1.25 / 1.5 / 2 points per R1 for ' +
+      'Bronze/Silver/Gold/Black — the app now pays the member their own tier rate ' +
+      'rather than a flat one, so these four are what a Gold member is actually ' +
+      'credited — the Bronze/Silver/Gold/Black thresholds at ' +
       '0/1 500/4 000/9 000 lifetime points, and — the one that decides what a ' +
       `redemption is worth — R${rule('randPerPoint') ?? '0.05'} per point coming back the other way. ` +
       `At that rate the seeded rewards convert as ${redemptionExamples}. ` +

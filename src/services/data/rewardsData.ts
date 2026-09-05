@@ -1,5 +1,6 @@
 import { config } from '@/constants/config';
 import type {
+  MembershipTier,
   LoyaltyAccount,
   PointsEntry,
   Promotion,
@@ -42,21 +43,21 @@ export const tiers: TierDefinition[] = [
     tier: 'silver',
     name: 'Silver',
     threshold: 1500,
-    pointsPerRand: 1,
+    pointsPerRand: 1.25,
     perks: ['Free delivery twice a month', 'Early access to new drops'],
   },
   {
     tier: 'gold',
     name: 'Gold',
     threshold: 4000,
-    pointsPerRand: 1,
+    pointsPerRand: 1.5,
     perks: ['Free delivery every week', 'Priority kitchen queue'],
   },
   {
     tier: 'black',
     name: 'Black',
     threshold: 9000,
-    pointsPerRand: 1,
+    pointsPerRand: 2,
     perks: ['Unlimited free delivery', 'Invitations to bb.q tasting events'],
   },
 ];
@@ -74,6 +75,18 @@ export function earnRateLine(pointsPerRand: number): string {
 }
 
 /** A tier's perks, with its true earn rate at the top. */
+/**
+ * What one tier earns per rand, by name.
+ *
+ * The rate lives on the ladder and the member record carries only a tier, so
+ * anything that needs the rate has to come through here rather than keep its
+ * own copy. Falls back to the flat business rule for a tier the ladder does
+ * not describe — a guest, or a tier a backend invents that this build predates.
+ */
+export function earnRateFor(tier: MembershipTier): number {
+  return tiers.find((definition) => definition.tier === tier)?.pointsPerRand ?? 1;
+}
+
 export function perksFor(tier: TierDefinition): string[] {
   return [earnRateLine(tier.pointsPerRand), ...tier.perks];
 }
@@ -400,26 +413,52 @@ export const vouchers: Voucher[] = [
   },
 ];
 
+/**
+ * The ledger, with the order rows written from the orders.
+ *
+ * Two of these describe an order and both of them lied about it. The entry for
+ * BBQ-4821 credited 231 points while the order's own receipt says 287; BBQ-4610
+ * was credited 318 against a receipt of 304. Nobody had put the two screens
+ * side by side — the receipt is in Orders and the ledger is in Rewards — and
+ * the numbers were typed independently, so there was nothing to notice with.
+ *
+ * The reference was typed twice as well: once inside the sentence and once in
+ * `orderReference`, which no screen read. A fact must be derived, never
+ * restated beside itself.
+ *
+ * So the order rows are built from the ledger of orders: the reference, the
+ * first line's name and the points all come off the order, and the sentence is
+ * assembled rather than written. `orderPointsEntry` is given the order by
+ * `orderService`, which owns them — this file has no business importing that
+ * one, and a circular import is the least of the reasons.
+ */
+export function orderPointsEntry(
+  id: string,
+  order: { reference: string; lines: { name: string }[]; totals: { pointsEarned: number } },
+  occurredAt: Date,
+): PointsEntry {
+  const first = order.lines[0]?.name;
+  return {
+    id,
+    description: first ? `Order ${order.reference} · ${first}` : `Order ${order.reference}`,
+    points: order.totals.pointsEarned,
+    occurredAt: occurredAt.toISOString(),
+    orderReference: order.reference,
+  };
+}
+
+/**
+ * The rows that are not about an order, which have nothing to derive from.
+ *
+ * A redemption and a tier bonus are events in the programme rather than
+ * records of a basket, so they are written here and stay written here.
+ */
 const seededHistory: PointsEntry[] = [
-  {
-    id: 'points-1',
-    description: 'Order BBQ-4821 · Honey Garlic Chicken',
-    points: 231,
-    occurredAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-    orderReference: 'BBQ-4821',
-  },
   {
     id: 'points-2',
     description: 'Redeemed · Free French Fries',
     points: -400,
     occurredAt: new Date(Date.now() - 9 * 86_400_000).toISOString(),
-  },
-  {
-    id: 'points-3',
-    description: 'Order BBQ-4610 · Half & Half Chicken',
-    points: 318,
-    occurredAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
-    orderReference: 'BBQ-4610',
   },
   {
     id: 'points-4',

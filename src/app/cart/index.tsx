@@ -18,7 +18,8 @@ import { CartLineRow } from '@/features/cart/components/CartLineRow';
 import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
-import { useValidateVoucher } from '@/features/rewards/hooks';
+import { useLoyaltyAccount, useValidateVoucher } from '@/features/rewards/hooks';
+import { earnRateFor } from '@/services/data/rewardsData';
 import { useMenu } from '@/features/menu/hooks';
 import { voucherStatus } from '@/features/cart/voucherStatus';
 import { businessRules } from '@/constants/config';
@@ -80,9 +81,27 @@ export default function CartScreen() {
    * one the arithmetic actually uses, or the reward's worth could be worked out
    * against a different order to the total it is shown beside.
    */
+  /**
+   * The member's own earn rate, so the points line quotes what they will
+   * actually be paid.
+   *
+   * `randToPoints` has taken a per-tier rate since tiers were written and its
+   * only caller never passed one, so every basket quoted the flat business
+   * rule to Bronze and Black alike. Absent for a guest, who has no tier.
+   */
+  const loyalty = useLoyaltyAccount();
+  const earnRate = loyalty.data ? earnRateFor(loyalty.data.tier) : undefined;
+
   const { totals, rewardWorth } = useMemo(
-    () => priceBasket({ lines, fulfilmentType: cartFulfilment, voucher, reward }),
-    [lines, cartFulfilment, voucher, reward],
+    () =>
+      priceBasket({
+        lines,
+        fulfilmentType: cartFulfilment,
+        voucher,
+        reward,
+        ...(earnRate !== undefined ? { pointsPerRand: earnRate } : {}),
+      }),
+    [lines, cartFulfilment, voucher, reward, earnRate],
   );
   const belowMinimum = !meetsDeliveryMinimum(totals.subtotal, fulfilmentType);
 
@@ -147,10 +166,54 @@ export default function CartScreen() {
     return (
       <Screen edges={['top', 'bottom']} testID="cart-empty-screen">
         <ScreenHeader title="Your cart" />
+        {/*
+          An empty basket is not always an untouched one.
+
+          `reconcileCart` can empty a saved basket by itself — every line in it
+          withdrawn, or configured with an option the kitchen no longer has —
+          and the notice explaining that lived only in the branch below, the
+          one that draws a list. So the customer came back to "Your cart is
+          empty · Nothing in here yet", which is the wrong sentence twice over:
+          there had been something in there, and the app is what took it out.
+
+          Nobody had seen it because the cart starts empty and nothing had ever
+          put a stale line in it.
+        */}
+        {reconciliation.notice ? (
+          <View style={styles.notice} testID="cart-reconciliation-notice">
+            <Ionicons name="information-circle" size={18} color={colors.status.info} />
+            <Text variant="caption" color={colors.textSecondary} style={styles.noticeBody}>
+              {reconciliation.notice}
+            </Text>
+            <Pressable
+              onPress={reconciliation.dismiss}
+              /*
+                14, not 10. A 16pt icon with 10 of slop is 36 to a thumb, four
+                short of §22.9's 44 — and it had been that way since the notice
+                was written, invisible to the sweep because nothing had ever
+                made the notice appear. Seeding a stale basket is what put it
+                on screen for the first time, and `audit:screens` failed on it
+                the same run.
+              */
+              hitSlop={14}
+              // `hitSlop` is invisible to a browser, so it is declared where
+              // the sweep can read it — the same way Chip and Button do.
+              dataSet={{ slopX: 14, slopY: 14 }}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss menu update notice"
+            >
+              <Ionicons name="close" size={16} color={colors.textMuted} />
+            </Pressable>
+          </View>
+        ) : null}
         <EmptyState
           icon="basket-outline"
           title="Your cart is empty"
-          message="Nothing in here yet. Have a look at what is coming out of the fryer."
+          message={
+            reconciliation.notice
+              ? 'Have a look at what is coming out of the fryer.'
+              : 'Nothing in here yet. Have a look at what is coming out of the fryer.'
+          }
           actionLabel="Browse the menu"
           onActionPress={() => router.replace('/(tabs)/menu')}
           testID="cart-empty-state"
@@ -197,7 +260,18 @@ export default function CartScreen() {
             </Text>
             <Pressable
               onPress={reconciliation.dismiss}
-              hitSlop={10}
+              /*
+                14, not 10. A 16pt icon with 10 of slop is 36 to a thumb, four
+                short of §22.9's 44 — and it had been that way since the notice
+                was written, invisible to the sweep because nothing had ever
+                made the notice appear. Seeding a stale basket is what put it
+                on screen for the first time, and `audit:screens` failed on it
+                the same run.
+              */
+              hitSlop={14}
+              // `hitSlop` is invisible to a browser, so it is declared where
+              // the sweep can read it — the same way Chip and Button do.
+              dataSet={{ slopX: 14, slopY: 14 }}
               accessibilityRole="button"
               accessibilityLabel="Dismiss menu update notice"
             >

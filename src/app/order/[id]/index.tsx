@@ -435,11 +435,33 @@ export default function OrderTrackingScreen() {
         ) : null}
 
         {data.rating !== undefined ? (
-          <View style={styles.ratedRow}>
-            <Ionicons name="star" size={16} color={colors.primary} />
-            <Text variant="caption" color={colors.textSecondary}>
-              You rated this order {data.rating} out of 5
-            </Text>
+          <View style={styles.ratedBlock}>
+            <View style={styles.ratedRow}>
+              <Ionicons name="star" size={16} color={colors.primary} />
+              <Text variant="caption" color={colors.textSecondary}>
+                You rated this order {data.rating} out of 5
+              </Text>
+            </View>
+            {/*
+              And what they said, which the app collected and never showed
+              back. `ratingComment` is typed on the rating screen, stored on
+              the order by `rateOrder`, carried on the wire — and rendered by
+              nothing. Two seeded orders have carried one since the ledger was
+              written, so the data was there the whole time and no screen ever
+              asked for it. The same shape as the kitchen note the receipt used
+              to drop: somebody writes something, the app keeps it, and they
+              never see it again.
+            */}
+            {data.ratingComment ? (
+              <Text
+                variant="caption"
+                color={colors.textMuted}
+                style={styles.ratedComment}
+                testID="order-rating-comment"
+              >
+                “{data.ratingComment}”
+              </Text>
+            ) : null}
           </View>
         ) : null}
 
@@ -511,6 +533,8 @@ const styles = StyleSheet.create({
   // every other row in the app.
   contactRows: { paddingHorizontal: spacing.lg },
   actions: { gap: spacing.sm, paddingBottom: spacing.xxxl },
+  ratedBlock: { gap: spacing.xs },
+  ratedComment: { paddingLeft: spacing.lg + spacing.xs },
   ratedRow: {
     flexDirection: 'row',
     alignItems: 'center',

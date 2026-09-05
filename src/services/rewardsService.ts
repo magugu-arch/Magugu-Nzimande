@@ -1,5 +1,12 @@
 import { businessRules, config } from '@/constants/config';
-import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
+import type {
+  LoyaltyAccount,
+  PointsEntry,
+  Promotion,
+  Reward,
+  TierDefinition,
+  Voucher,
+} from '@/types';
 import { voucherDiscount } from '@/utils/cart';
 import { hasPassed } from '@/utils/datetime';
 import { inBirthdayMonth } from '@/features/rewards/birthday';
@@ -44,6 +51,34 @@ let account: LoyaltyAccount = { ...loyaltyAccount, history: [...loyaltyAccount.h
  * them. A cancelled order is the one case that does reduce it, because that
  * order's points were never really earned.
  */
+/**
+ * Put the seeded orders' points rows into the ledger, once.
+ *
+ * Written by `orderService` when it seeds its own ledger, because the orders
+ * are what these rows describe and only that file has them. `rewardsData` used
+ * to carry them typed out by hand, and the numbers had drifted: BBQ-4821 was
+ * credited 231 points against a receipt reading 287, and BBQ-4610 was credited
+ * 318 against 304. Nobody had put the two screens side by side.
+ *
+ * The balance is left alone. `SEEDED_BALANCE` is a chosen figure that already
+ * accounts for this history rather than being computed from it, so adding the
+ * rows must not add the points again.
+ *
+ * Mock-only: a real backend serves one ledger and has no seeding to do.
+ */
+export function seedOrderPoints(entries: PointsEntry[]): void {
+  const known = new Set(account.history.map((entry) => entry.id));
+  const missing = entries.filter((entry) => !known.has(entry.id));
+  if (missing.length === 0) return;
+
+  account = {
+    ...account,
+    history: [...missing, ...account.history].sort(
+      (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
+    ),
+  };
+}
+
 export function recordPoints(entry: {
   description: string;
   points: number;

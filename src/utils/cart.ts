@@ -354,6 +354,8 @@ export interface BasketInput {
   fulfilmentType: FulfilmentType;
   voucher?: VoucherTerms | null;
   reward?: RewardTerms | null;
+  /** The member's earn rate. See `TotalsInput.pointsPerRand`. */
+  pointsPerRand?: number;
   now?: Date;
 }
 
@@ -362,6 +364,7 @@ export function priceBasket({
   fulfilmentType,
   voucher = null,
   reward = null,
+  pointsPerRand,
   now = new Date(),
 }: BasketInput): { totals: CartTotals; rewardWorth: number } {
   const subtotal = sumRand(lines.map((line) => line.lineTotal));
@@ -376,6 +379,7 @@ export function priceBasket({
   const withoutReward = calculateTotals({
     lines,
     fulfilmentType,
+    ...(pointsPerRand !== undefined ? { pointsPerRand } : {}),
     voucherDiscount: voucherOff,
     ...(voucherFreesIt ? { deliveryFeeOverride: 0 } : {}),
   });
@@ -383,6 +387,7 @@ export function priceBasket({
   const totals = calculateTotals({
     lines,
     fulfilmentType,
+    ...(pointsPerRand !== undefined ? { pointsPerRand } : {}),
     voucherDiscount: voucherOff,
     rewardsDiscount: applied.rewardsDiscount,
     ...(voucherFreesIt || applied.freeDelivery ? { deliveryFeeOverride: 0 } : {}),
@@ -404,6 +409,23 @@ export function priceBasket({
 export interface TotalsInput {
   lines: CartLine[];
   fulfilmentType: FulfilmentType;
+  /**
+   * The member's own earn rate, when there is a member.
+   *
+   * `randToPoints` has taken this since tiers were written — "the tier's rate
+   * when one is known, the flat business rule otherwise" — and its only caller
+   * never passed one, so every basket in the app quoted
+   * `businessRules.pointsPerRand` no matter who was looking at it. The
+   * mechanism existed on paper and nothing ran it.
+   *
+   * It went unnoticed because all four seeded tiers carried `pointsPerRand: 1`,
+   * so the tier rate and the flat rule agreed by coincidence. A ladder whose
+   * rungs all earn the same is the one shape that hides this.
+   *
+   * Absent for a guest, who has no tier: quoting them the base rate beats
+   * quoting them nothing.
+   */
+  pointsPerRand?: number;
   /** Rand discount from a voucher/promo code. */
   voucherDiscount?: number;
   /** Rand discount from redeemed loyalty points. */
@@ -418,6 +440,7 @@ export function calculateTotals({
   voucherDiscount = 0,
   rewardsDiscount = 0,
   deliveryFeeOverride,
+  pointsPerRand,
 }: TotalsInput): CartTotals {
   const subtotal = sumRand(lines.map((line) => line.lineTotal));
 
@@ -446,7 +469,10 @@ export function calculateTotals({
     rewardsDiscount: rewards,
     total,
     // Points accrue on food value only, never on fees or discounted amounts.
-    pointsEarned: randToPoints(Math.max(0, sumRand([subtotal, -discount, -rewards]))),
+    pointsEarned: randToPoints(
+      Math.max(0, sumRand([subtotal, -discount, -rewards])),
+      pointsPerRand,
+    ),
   };
 }
 

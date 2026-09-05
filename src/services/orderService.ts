@@ -5,7 +5,14 @@ import { delay, request } from './apiClient';
 import { stores } from './data/storeData';
 import { currentAddresses, currentPaymentMethods } from './accountService';
 import { describePaymentMethod } from './paymentService';
-import { fetchReward, markVoucherUsed, recordPoints, restoreVoucher } from './rewardsService';
+import {
+  fetchReward,
+  markVoucherUsed,
+  recordPoints,
+  restoreVoucher,
+  seedOrderPoints,
+} from './rewardsService';
+import { orderPointsEntry } from './data/rewardsData';
 import {
   deliveryProvider,
   deliveryStatusToOrderStatus,
@@ -371,6 +378,23 @@ function familyBasket(): CartLine[] {
       lineTotal: 154,
     },
   ];
+}
+
+/**
+ * Put the seeded orders in the ledger, and the points rows they produce into
+ * the rewards ledger. Idempotent, and mock-only.
+ *
+ * Exported because the Rewards tab needs the second half of that sentence. The
+ * points history has two rows that describe orders, and those rows are written
+ * from the orders — so a customer who opens Rewards without having opened
+ * Orders would otherwise see a ledger missing the two entries that account for
+ * most of their balance. That is what the browser showed.
+ *
+ * A real backend serves one ledger and has nothing to seed, which is why this
+ * is behind `config.useMockApi` at every call site.
+ */
+export function seedOrderLedger(): void {
+  seedHistory();
 }
 
 function seedHistory(): void {
@@ -1487,6 +1511,28 @@ function seedHistory(): void {
     etaMinutes: 22,
     rating: 4,
   });
+
+  /**
+   * And the points ledger's account of those orders, written from the orders.
+   *
+   * `rewardsData` used to carry these two rows typed out by hand, and the
+   * numbers had drifted: BBQ-4821 was credited 231 points while its own
+   * receipt reads 287, and BBQ-4610 was credited 318 against 304. The receipt
+   * is in Orders and the ledger is in Rewards, so nobody had put them side by
+   * side — and a fact typed in two places had nothing to hold it together.
+   *
+   * The reference was doubled too: written into the sentence and again into
+   * `orderReference`, which no screen read.
+   */
+  for (const [id, reference] of [
+    ['points-1', 'BBQ-4821'],
+    ['points-3', 'BBQ-4610'],
+  ] as const) {
+    const order = ledger.find((candidate) => candidate.reference === reference);
+    if (order) {
+      seedOrderPoints([orderPointsEntry(id, order, new Date(order.placedAt))]);
+    }
+  }
 }
 
 /**

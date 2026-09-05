@@ -14,12 +14,29 @@ import {
   redeemReward,
   validateVoucherCode,
 } from '@/services/rewardsService';
+import { seedOrderLedger } from '@/services/orderService';
+import { config } from '@/constants/config';
 
 export function useLoyaltyAccount() {
   const signedOut = useIsSignedOut();
   return useQuery({
     queryKey: queryKeys.loyalty,
-    queryFn: fetchLoyaltyAccount,
+    /*
+      The orders first, in mock mode.
+
+      Two rows of the points history describe orders and are written from them,
+      so the order ledger has to exist before the loyalty ledger is read.
+      Opening Rewards without having opened Orders showed a history missing the
+      two entries that account for most of the balance — seen in the browser.
+
+      Composed here rather than inside `rewardsService`, which cannot import
+      `orderService` without a cycle. A real backend serves one ledger and this
+      does nothing.
+    */
+    queryFn: async () => {
+      if (config.useMockApi) seedOrderLedger();
+      return fetchLoyaltyAccount();
+    },
     staleTime: 60 * 1000,
     enabled: !signedOut,
   });

@@ -117,6 +117,10 @@ const ROUTES = [
   '/order/order-4560', '/order/order-4850', '/order/order-4520',
   // A campaign still running for a dish that cannot be ordered today.
   '/offers/promo-cheesling-fries',
+  // The Favourites deep link Home offers under "See all". Nothing had ever put
+  // anything in that list, so the route existed and the screen it opened was
+  // empty by construction.
+  '/menu?category=favourites',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -250,6 +254,11 @@ const MUST_SHOW = {
   // The reward covered the food, so the points line is absent rather than
   // offering nought.
   '/order/order-4520': /Reward · Free Half & Half Chicken/,
+  // The words, not only the stars. `ratingComment` was typed on the rating
+  // screen, stored on the order and rendered by nothing.
+  '/order/order-4610': /You rated this order[\s\S]*Crispy as always/,
+  // The Favourites list, which had nothing in it until favourites were seeded.
+  '/menu?category=favourites': /Honey Garlic Chicken[\s\S]*Korean Rice Bowl/,
   // A campaign whose dish lost the last option in its required group. The
   // promotion stands; the button stops promising it.
   '/offers/promo-cheesling-fries': /Every choice under "Size" is sold out[\s\S]*Sold out/,
