@@ -558,6 +558,20 @@ function minutesNow(){
   const now = new Date();
   return (now.getUTCHours() * 60 + now.getUTCMinutes() + 120) % 1440;
 }
+
+/**
+ * The SAST weekday, which needs the same rollover the minute already has.
+ *
+ * 23:00 UTC is already tomorrow in Johannesburg, so anything that runs on a
+ * given day — a Wednesday offer — has to roll the date over with the time
+ * rather than take the UTC day and shift only the clock. Mirrors sastNow in
+ * apps/web/src/lib/trading.ts.
+ */
+function sastDay(){
+  const now = new Date();
+  const shifted = now.getUTCHours() * 60 + now.getUTCMinutes() + 120;
+  return (now.getUTCDay() + Math.floor(shifted / 1440)) % 7;
+}
 function isOpen(store){
   const m = minutesNow();
   return store.closes > store.opens
@@ -659,11 +673,81 @@ const promotion = (code) => code
   ? PROMOTIONS.find((p) => p.code === String(code).trim().toUpperCase()) || null
   : null;
 
+/**
+ * Whether an offer actually runs, and on what.
+ *
+ * The same rules as apps/web/src/lib/promotions.ts, read off the same seed
+ * fields. This build used to look a code up, find it, and apply the discount at
+ * any hour on any day to any basket — while printing "Every Wednesday, 11:00 to
+ * close" next to it. An offer that advertises a condition and does not apply it
+ * is money leaving the business every time somebody learns the code.
+ *
+ * The refusal quotes the offer's own validity sentence rather than a
+ * paraphrase, so a customer turned away reads the words that sold them the
+ * offer instead of a second, subtly different account of the rule.
+ */
+function promotionFor(code, at){
+  const promo = promotion(code);
+  if(!promo) return {ok:false, reason:'That promo code is not one of ours'};
+
+  const m = minutesNow();
+  const day = sastDay();
+  const w = promo.window;
+
+  if(w.days.length > 0 && w.days.indexOf(day) === -1)
+    return {ok:false, reason:promo.title + ' runs ' + promo.valid.toLowerCase()};
+
+  /* Half-open, so an offer running "to 22:00" is over at 22:00 rather than
+     lasting one minute longer than it says. */
+  if(w.fromMinute !== null && m < w.fromMinute)
+    return {ok:false, reason:promo.title + ' runs ' + promo.valid.toLowerCase()};
+  if(w.toMinute !== null && m >= w.toMinute)
+    return {ok:false, reason:promo.title + ' runs ' + promo.valid.toLowerCase()};
+
+  if(w.modes.length > 0 && w.modes.indexOf(at.mode) === -1)
+    return {ok:false, reason:promo.title + ' is ' + w.modes.join(' and ').toLowerCase() + ' only'};
+
+  if(promo.firstOrderOnly && !at.isFirstOrder)
+    return {ok:false, reason:promo.title + ' is for a first order on a new account'};
+
+  return {ok:true, promo:promo};
+}
+
+/**
+ * Whether an offer is running now, for the offers page to say so.
+ *
+ * Asked as a question about the clock, not about a customer: an offer for first
+ * orders is still running today even for somebody it is not for.
+ */
+const isRunningNow = (promo) =>
+  promotionFor(promo.code, {mode:(promo.window.modes[0] || 'Collection'), isFirstOrder:true}).ok;
+
+/** This build has no accounts, so a first order is the first one placed here. */
+const isFirstOrder = () => S.orders.length === 0;
+
+/** The offer applied to this basket, or null if its conditions are not met. */
+function activePromotion(){
+  const result = promotionFor(S.promoCode, {mode:S.mode, isFirstOrder:isFirstOrder()});
+  return result.ok ? result.promo : null;
+}
+
 const subtotal = () => S.lines.reduce((sum, l) => sum + l.unitCents * l.qty, 0);
 
+/**
+ * The discount, on the product the offer names.
+ *
+ * Every offer names a product — Wings Wednesday is twenty percent off wings —
+ * and this used to take its rate off the whole basket, so adding a bird and a
+ * side to a wings order discounted those too. The rate applies to the lines
+ * that are the named product and to nothing else.
+ */
 function discount(){
-  const promo = promotion(S.promoCode);
-  return promo ? Math.round(subtotal() * promo.rate) : 0;
+  const promo = activePromotion();
+  if(!promo) return 0;
+  const eligible = S.lines
+    .filter((l) => l.slug === promo.slug)
+    .reduce((sum, l) => sum + l.unitCents * l.qty, 0);
+  return Math.round(eligible * promo.rate);
 }
 
 /**
@@ -679,6 +763,24 @@ const grandTotal = () => subtotal() - discount() + deliveryFee();
 const itemCount = () => S.lines.reduce((n, l) => n + l.qty, 0);
 const remainingToFree = () => Math.max(0, FEES.freeOverCents - (subtotal() - discount()));
 const pointsFor = (cents) => Math.floor(cents / 100);
+
+/**
+ * Which rung of the ladder a balance is on. Mirrors tierFor in
+ * apps/web/src/lib/rewards.ts.
+ *
+ * The three tiers were listed here from the day this page was built and nothing
+ * worked out which one anybody had reached: a ladder with no "you are here".
+ *
+ * Reduce rather than a search from the top, so a ladder whose first rung does
+ * not start at zero still returns something — the lowest tier stands in, which
+ * is what a brand-new balance should see.
+ */
+function tierFor(points){
+  const tiers = TIERS.slice().sort((a, b) => a.from - b.from);
+  const current = tiers.reduce((reached, t) => (points >= t.from ? t : reached), tiers[0]);
+  const next = tiers.find((t) => t.from > points) || null;
+  return {current:current, next:next, toNext:next ? Math.max(0, next.from - points) : 0};
+}
 
 const statesFor = (mode) => mode === 'Delivery'
   ? ORDER_STATES.slice()
@@ -774,11 +876,13 @@ function setQty(key, qty){
 }
 
 function applyPromo(code){
-  const promo = promotion(code);
-  if(!promo){ toast('That code is not valid.'); return; }
-  S.promoCode = promo.code;
+  const result = promotionFor(code, {mode:S.mode, isFirstOrder:isFirstOrder()});
+  /* Refused here rather than at checkout, and in the offer's own words: a code
+     accepted now and silently worth nothing later is worse than a no. */
+  if(!result.ok){ toast(result.reason + '.'); return; }
+  S.promoCode = result.promo.code;
   save();
-  toast('Promo code ' + promo.code + ' applied');
+  toast('Promo code ' + result.promo.code + ' applied');
   render();
 }
 
@@ -814,6 +918,21 @@ function setStore(id){
 
 function placeOrder(){
   const c = S.checkout;
+
+  /**
+   * A shut store cannot cook.
+   *
+   * The stores page has always shown "Closed" and the basket has always taken
+   * the order anyway. Somebody paying at 23:40 for a kitchen that stopped at
+   * 22:00 gets a confirmation number and no dinner, and the store finds out in
+   * the morning.
+   */
+  const s = store();
+  if(!isOpen(s)){
+    toast(s.name + ' is closed. Trading hours are ' + s.hours + '.');
+    return;
+  }
+
   S.sequence += 1;
   const stamp = new Date().toISOString().slice(2, 10).replace(/-/g, '');
   const totals = {
@@ -1290,17 +1409,22 @@ function viewProduct(slug){
 
 function viewOffers(){
   return '<div class="wrap" style="padding:40px 20px">'
-    + '<p class="eyebrow">Running now</p>'
+    + '<p class="eyebrow">' + PROMOTIONS.filter(isRunningNow).length + ' of ' + PROMOTIONS.length + ' running now</p>'
     + '<h1 class="display h-lg mt-2">Offers</h1>'
-    + '<p class="sm muted mt-3 max-56">Enter the code in your basket before checking out. One code per order.</p>'
+    + '<p class="sm muted mt-3 max-56">Enter the code in your basket before checking out. One code per order. An offer outside its hours is shown here but will not apply.</p>'
     + '<ul class="grid grid-3 mt-8">' + PROMOTIONS.map((o) => {
         const p = product(o.slug);
+        /* The page was headed "Running now" and listed all of them, running or
+           not. The offer's own window decides, so the heading and the card can
+           no longer disagree with the basket. */
+        const live = isRunningNow(o);
         return '<li class="card" style="box-shadow:var(--e1)">'
           /* Parenthesised: + binds tighter than ||, so without them the tag was
              cut off after the source and the rest of the attributes were lost. */
           + (p ? '<img src="' + (IMG_WIDE[p.img] || IMG[p.img]) + '" alt="' + esc(p.name) + '" loading="lazy" style="height:176px;width:100%;object-fit:cover">' : '')
           + '<div class="body" style="padding:20px">'
-            + '<h2 class="display h-sm">' + esc(o.title) + '</h2>'
+            + '<div class="between"><h2 class="display h-sm">' + esc(o.title) + '</h2>'
+              + '<span class="badge ' + (live ? 'badge-soft' : 'badge-grey') + '">' + (live ? 'Running now' : 'Not now') + '</span></div>'
             + '<p class="sm muted mt-2 flex-1" style="line-height:1.7">' + esc(o.copy) + '</p>'
             + '<dl class="totals mt-4" style="border-top:1px solid var(--line);padding-top:16px">'
               + '<div class="row"><dt>Code</dt><dd><code style="background:var(--red-10);color:var(--red);border-radius:var(--r-xs);padding:4px 10px;font-size:12px;font-weight:800;letter-spacing:.08em">' + o.code + '</code></dd></div>'
@@ -1344,10 +1468,24 @@ function viewRewards(){
             + '</li>';
         }).join('') + '</ul></section>'
     + '<section class="mt-12"><h2 class="display h-md">Tiers</h2>'
-      + '<ul class="grid grid-3 mt-4">' + TIERS.map((t) =>
-          '<li class="panel"><h3 class="display h-sm red">' + t.name + '</h3>'
-          + '<p class="sm b num mt-1">' + t.from.toLocaleString('en-ZA') + ' points</p>'
-          + '<p class="xs muted mt-2">' + (t.from === 0 ? 'Where every account starts.' : 'Reached at ' + t.from.toLocaleString('en-ZA') + ' lifetime points.') + '</p></li>').join('')
+      + (function(){
+          const st = tierFor(earned);
+          return '<p class="sm muted mt-3 max-56">You are on <span class="b">' + esc(st.current.name) + '</span>'
+            + (st.next
+                ? '. ' + st.toNext.toLocaleString('en-ZA') + ' more '
+                  + (st.toNext === 1 ? 'point' : 'points') + ' reaches ' + esc(st.next.name) + '.'
+                : ', the top of the ladder.')
+            + '</p>';
+        })()
+      + '<ul class="grid grid-3 mt-4">' + TIERS.map((t) => {
+          const st = tierFor(earned);
+          const here = t.name === st.current.name;
+          return '<li class="panel" style="' + (here ? 'border-color:var(--red);box-shadow:var(--e1)' : '') + '">'
+            + '<div class="between"><h3 class="display h-sm red">' + esc(t.name) + '</h3>'
+            + (here ? '<span class="badge badge-soft">You are here</span>' : '') + '</div>'
+            + '<p class="sm b num mt-1">' + t.from.toLocaleString('en-ZA') + ' points</p>'
+            + '<p class="xs muted mt-2">' + (t.from === 0 ? 'Where every account starts.' : 'Reached at ' + t.from.toLocaleString('en-ZA') + ' lifetime points.') + '</p></li>';
+        }).join('')
       + '</ul></section>'
     + '<div class="panel mt-10">' + demoNotice() + '</div>'
     + '<div class="mt-8"><a class="btn btn-red" href="#/menu">Start earning</a></div>'
@@ -1878,10 +2016,23 @@ function viewDrawer(){
       + '</div></section>'
     : '';
 
+  /**
+   * A code can be accepted and then stop qualifying — switch to collection with
+   * a delivery-only code and it is still in the basket. Saying "applied" over a
+   * discount of nothing is the drawer telling the customer something the total
+   * below it contradicts, so the refusal is shown in the offer's own words.
+   */
+  const promoState = S.promoCode
+    ? promotionFor(S.promoCode, {mode:S.mode, isFirstOrder:isFirstOrder()})
+    : null;
+
   const promo = S.promoCode
-    ? '<div class="between" style="align-items:center;background:var(--red-10);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:12px">'
-      + '<span class="sm b red">' + S.promoCode + ' applied</span>'
-      + '<button type="button" class="xs b muted" style="text-decoration:underline" data-action="clear-promo">Remove</button></div>'
+    ? '<div style="background:var(--red-10);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:12px">'
+      + '<div class="between" style="align-items:center">'
+        + '<span class="sm b red">' + S.promoCode + (promoState.ok ? ' applied' : ' not applied') + '</span>'
+        + '<button type="button" class="xs b muted" style="text-decoration:underline" data-action="clear-promo">Remove</button></div>'
+      + (promoState.ok ? '' : '<p class="xs muted mt-1">' + esc(promoState.reason) + '.</p>')
+      + '</div>'
     : '<div class="row gap-2" style="margin-bottom:12px">'
       + '<label class="flex-1"><span class="sr">Promo code</span>'
         + '<input type="text" id="promo" placeholder="Promo code" style="width:100%;height:40px;border:1px solid var(--line);border-radius:var(--pill);padding:0 16px;font-size:14px;text-transform:uppercase"></label>'

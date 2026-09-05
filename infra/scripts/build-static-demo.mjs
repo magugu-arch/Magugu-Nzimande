@@ -172,6 +172,15 @@ function catalogueScript() {
     halaal: store.halaal,
   }));
 
+  /**
+   * The offers, with the conditions they advertise.
+   *
+   * `window` and `firstOrderOnly` used to be dropped here. That was not a
+   * display decision — it was the reason the review build applied every code at
+   * any hour on any day to any basket while printing the sentence that says
+   * otherwise beside it. A field the page needs to keep its own promise cannot
+   * be filtered out on the way in.
+   */
   const promotions = PROMOTIONS.map((promotion) => ({
     id: promotion.id,
     title: promotion.title,
@@ -179,6 +188,8 @@ function catalogueScript() {
     code: promotion.code,
     rate: promotion.discountRate,
     valid: promotion.validity,
+    window: promotion.window,
+    firstOrderOnly: promotion.firstOrderOnly,
     copy: promotion.copy,
   }));
 
