@@ -42,7 +42,14 @@ export function CourierTracking({ job }: CourierTrackingProps) {
   // A finished job has nothing left to track. Saying "the progress below is
   // updated as your order moves" under a delivered order is copy describing a
   // journey that has ended.
-  const settled = job.status === 'DELIVERED' || job.status === 'CANCELLED';
+  //
+  // `FAILED` belongs here and was missing. The mock walked from `ON_THE_WAY`
+  // straight to `DELIVERED`, so no seeded job had ever failed and the gap did
+  // not show: a courier who turned back left this card printing "the progress
+  // below is updated as your order moves" and an ETA, over a delivery that had
+  // stopped.
+  const settled =
+    job.status === 'DELIVERED' || job.status === 'CANCELLED' || job.status === 'FAILED';
 
   return (
     <Card style={styles.card} testID="courier-tracking">
@@ -67,7 +74,9 @@ export function CourierTracking({ job }: CourierTrackingProps) {
         <Text variant="caption" color={colors.textSecondary}>
           {job.status === 'DELIVERED'
             ? 'Delivered by your driver.'
-            : 'This delivery was cancelled.'}
+            : job.status === 'FAILED'
+              ? 'Your driver could not complete this delivery.'
+              : 'This delivery was cancelled.'}
         </Text>
       ) : (
         <Text variant="caption" color={colors.textSecondary}>

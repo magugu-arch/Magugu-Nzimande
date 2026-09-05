@@ -23,7 +23,8 @@ import { useNow } from '@/features/system/useNow';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { useOrders } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
-import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
+import { minutesUntilDue, readyLabelFor } from '@/services/orderService';
+import { countdownStillApplies, liveStatusCopy } from '@/features/orders/liveStatus';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatDateTime, formatEtaWindow, formatRelativeDay } from '@/utils/datetime';
@@ -183,7 +184,7 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
     <Card
       onPress={onPress}
       raised={isActive}
-      accessibilityLabel={`Order ${order.reference}, ${statusCopy(order.status).label}`}
+      accessibilityLabel={`Order ${order.reference}, ${liveStatusCopy(order).label}`}
       testID={`order-card-${order.id}`}
     >
       <View style={styles.cardHeader}>
@@ -191,7 +192,7 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
           <Text variant="caption" color={colors.textMuted}>
             {formatRelativeDay(order.placedAt)} · {order.reference}
           </Text>
-          <Text variant="h3">{statusCopy(order.status).label}</Text>
+          <Text variant="h3">{liveStatusCopy(order).label}</Text>
         </View>
 
         <Badge
@@ -214,11 +215,17 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
             accessibilityLabel="Order progress"
           />
           <Text variant="caption" color={colors.primary}>
+            {/*
+              The same two rules as the tracking hero, because this card makes
+              the same two claims: a countdown that has nothing left to measure
+              (a collection order already boxed, or a delivery that failed), and
+              a status sentence the courier leg has overruled.
+            */}
             {order.scheduledFor
               ? `Scheduled · ${formatDateTime(order.scheduledFor)}`
-              : dueInMinutes > 0
+              : dueInMinutes > 0 && countdownStillApplies(order)
                 ? `${readyLabelFor(order.fulfilmentType)} in ${formatEtaWindow(dueInMinutes)}`
-                : statusCopy(order.status).description}
+                : liveStatusCopy(order).description}
           </Text>
         </>
       ) : null}

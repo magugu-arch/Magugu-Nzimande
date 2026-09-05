@@ -74,4 +74,8 @@ export function deliveryStatusToOrderStatus(status: DeliveryStatus): OrderStatus
   }
 }
 
-export { mockDeliveryProvider, resetMockDeliveryJobs } from './mockDeliveryProvider';
+export {
+  mockDeliveryProvider,
+  resetMockDeliveryJobs,
+  seedFailedDeliveryJob,
+} from './mockDeliveryProvider';

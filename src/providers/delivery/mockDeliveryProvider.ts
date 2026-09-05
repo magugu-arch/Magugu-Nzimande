@@ -45,6 +45,8 @@ interface MockJob {
   job: DeliveryJob;
   createdAt: number;
   cancelled: boolean;
+  /** The courier gave up. See `seedFailedDeliveryJob`. */
+  failed: boolean;
 }
 
 /** Keyed by job id, and by idempotency key so a retry returns the same job. */
@@ -58,6 +60,32 @@ export function resetMockDeliveryJobs(): void {
   jobs.clear();
   byIdempotencyKey.clear();
   sequence = 0;
+}
+
+/**
+ * A courier leg that ended without the food changing hands.
+ *
+ * `FAILED` is a member of `DeliveryStatus` — nobody home, the gate locked, an
+ * address that turned out not to exist — and `PROGRESSION` walks straight from
+ * `ON_THE_WAY` to `DELIVERED`, so the mock had never once produced it. A mock
+ * kinder than the world hides the defects it was built to catch, and this one
+ * hid two: `deliveryStatusToOrderStatus` maps `FAILED` to `'ready'`, and
+ * `CourierTracking` counts only `DELIVERED` and `CANCELLED` as settled.
+ *
+ * Mock-only, like `resetMockDeliveryJobs`. A real provider reports its own
+ * failures; this is how the seeded order gets one to report.
+ */
+export function seedFailedDeliveryJob(externalJobId: string, createdAt: number): DeliveryJob {
+  const job: DeliveryJob = {
+    externalJobId,
+    provider: 'mock',
+    status: 'FAILED',
+    trackingAvailable: false,
+    updatedAt: new Date(createdAt).toISOString(),
+  };
+
+  jobs.set(externalJobId, { job, createdAt, cancelled: false, failed: true });
+  return { ...job };
 }
 
 function statusAt(createdAt: number, now: number): DeliveryStatus {
@@ -156,7 +184,7 @@ export const mockDeliveryProvider: DeliveryProvider = {
       updatedAt: new Date(requestedAt).toISOString(),
     };
 
-    jobs.set(externalJobId, { job, createdAt: now, cancelled: false });
+    jobs.set(externalJobId, { job, createdAt: now, cancelled: false, failed: false });
     byIdempotencyKey.set(input.idempotencyKey, externalJobId);
     return Promise.resolve({ ...job });
   },
@@ -166,11 +194,17 @@ export const mockDeliveryProvider: DeliveryProvider = {
     if (!record) return Promise.reject(new Error(`No such delivery job: ${externalJobId}`));
 
     const now = Date.now();
-    const status = record.cancelled ? 'CANCELLED' : statusAt(record.createdAt, now);
+    // A failed leg is terminal: the courier is not going to try again on a
+    // timer, so the wall clock must not walk it on to DELIVERED.
+    const status = record.failed
+      ? 'FAILED'
+      : record.cancelled
+        ? 'CANCELLED'
+        : statusAt(record.createdAt, now);
     const updated: DeliveryJob = {
       ...record.job,
       status,
-      ...(status === 'DELIVERED' || status === 'CANCELLED'
+      ...(status === 'DELIVERED' || status === 'CANCELLED' || status === 'FAILED'
         ? {}
         : { etaMinutes: minutesRemaining(record.createdAt, now) }),
       ...courierFor(status),

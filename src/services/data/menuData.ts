@@ -1167,7 +1167,21 @@ export const products: Product[] = [
     preparationMinutes: 9,
     serves: 'Serves 1 – 2',
     allergens: [],
-    nutrition: { kilojoules: 1610, protein: 4, carbs: 55, fat: 16 },
+    /**
+     * No `nutrition`, which nothing in the app had ever been handed.
+     *
+     * `nutrition` is optional on `Product` and all 28 products carried it, so
+     * `item.nutrition ? <NutritionPanel …> : null` had only ever taken the
+     * first branch. The panel simply vanishes on the false one — no heading,
+     * no sentence, nothing to say the figures are missing rather than nil.
+     *
+     * This product is where the absence is honest rather than arranged. Its
+     * `allergens` are already `[]` and the screen already says so in words,
+     * because bb.q has not confirmed them — that is an open `audit:launch`
+     * blocker. A product whose allergen list is unconfirmed has no business
+     * quoting four exact kilojoule figures beside it: the same supplier data
+     * is missing for both, and only one of them admitted it.
+     */
   },
   {
     id: 'ddeok-bokki',
@@ -1231,7 +1245,22 @@ export const products: Product[] = [
       },
     ],
     recommendedProductIds: ['cheesling', 'secret-sauce', 'ddeok-bokki'],
-    available: true,
+    /**
+     * A whole product withdrawn, which the seed had never had.
+     *
+     * `Product.available` is on the type, and all 28 products carried `true`.
+     * It is read in exactly two places — `reorder` drops an unavailable item
+     * from an "Order again", and `reconcileCart` drops a saved line whose
+     * product has gone — and in neither of the places a customer meets first:
+     * the menu list, the category grid and the product screen never look at
+     * it. So a withdrawn product was an ordinary tappable row that configured,
+     * priced and added to the basket like any other, and the customer found
+     * out at the cart.
+     *
+     * Rice cakes are the realistic one to run out — a supply item rather than
+     * something the fryer makes to order.
+     */
+    available: false,
     preparationMinutes: 13,
     serves: 'Serves 1 – 2',
     allergens: ['Gluten', 'Soy', 'Milk', 'Fish'],

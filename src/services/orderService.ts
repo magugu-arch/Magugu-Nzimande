@@ -1,12 +1,16 @@
 import { businessRules, config } from '@/constants/config';
-import type { Order, OrderStatus, OrderStatusEvent, PlaceOrderInput } from '@/types';
+import type { CartLine, Order, OrderStatus, OrderStatusEvent, PlaceOrderInput } from '@/types';
 import { addMinutes } from '@/utils/datetime';
 import { delay, request } from './apiClient';
 import { stores } from './data/storeData';
 import { currentAddresses, currentPaymentMethods } from './accountService';
 import { describePaymentMethod } from './paymentService';
 import { fetchReward, markVoucherUsed, recordPoints, restoreVoucher } from './rewardsService';
-import { deliveryProvider, deliveryStatusToOrderStatus } from '@/providers/delivery';
+import {
+  deliveryProvider,
+  deliveryStatusToOrderStatus,
+  seedFailedDeliveryJob,
+} from '@/providers/delivery';
 import { checkedOrder, checkedOrders } from './wireChecks';
 
 /**
@@ -166,6 +170,207 @@ function storeSnapshot(
     // have offered directions to it.
     ...(store ? { storeLatitude: store.latitude, storeLongitude: store.longitude } : {}),
   };
+}
+
+/**
+ * Nine lines, which is more than the whole seeded history put together.
+ *
+ * Every price here is the menu's: `basePrice` plus the `priceDelta` on the
+ * option chosen, taken from `menuData` rather than typed beside it. A basket
+ * whose arithmetic drifts from the menu is a fixture that tests nothing.
+ *
+ *   Golden Original  149 + 115 (Large)               = 264
+ *   Hot Spicy        169 + 115 (Large)               = 284
+ *   Cheesling        175 +  60 (Medium)              = 235
+ *   Boneless         169 +  55 (Medium)              = 224
+ *   GO Wings         155 +  65 (10 wings)            = 220
+ *   French Fries      45 +  22 (Large) × 2           = 134
+ *   Cheesling Fries   62 +   0 (Regular)             =  62
+ *   Ddeok-Bokki       72 +  22 (Melted cheese)       =  94
+ *   Chicken Burger   109 +   0 (Classic) + 45 (patty)= 154
+ *                                             subtotal 1 671
+ */
+function familyBasket(): CartLine[] {
+  return [
+    {
+      id: 'golden-original__golden-original-size:golden-original-size-large',
+      productId: 'golden-original',
+      name: 'Golden Original Chicken',
+      assetKey: 'goldenOriginal',
+      unitBasePrice: 149,
+      quantity: 1,
+      selectedOptions: [
+        {
+          groupId: 'golden-original-size',
+          groupName: 'Choose your size',
+          optionId: 'golden-original-size-large',
+          optionName: 'Large · 12 pieces',
+          priceDelta: 115,
+        },
+      ],
+      unitPrice: 264,
+      lineTotal: 264,
+    },
+    {
+      id: 'hot-spicy__hot-spicy-size:hot-spicy-size-large',
+      productId: 'hot-spicy',
+      name: 'Hot Spicy Chicken',
+      assetKey: 'hotSpicy',
+      unitBasePrice: 169,
+      quantity: 1,
+      selectedOptions: [
+        {
+          groupId: 'hot-spicy-size',
+          groupName: 'Choose your size',
+          optionId: 'hot-spicy-size-large',
+          optionName: 'Large · 12 pieces',
+          priceDelta: 115,
+        },
+      ],
+      unitPrice: 284,
+      lineTotal: 284,
+    },
+    {
+      id: 'cheesling__cheesling-size:cheesling-size-medium',
+      productId: 'cheesling',
+      name: 'Cheesling Chicken',
+      assetKey: 'cheesling',
+      unitBasePrice: 175,
+      quantity: 1,
+      selectedOptions: [
+        {
+          groupId: 'cheesling-size',
+          groupName: 'Choose your size',
+          optionId: 'cheesling-size-medium',
+          optionName: 'Medium · 9 pieces',
+          priceDelta: 60,
+        },
+      ],
+      unitPrice: 235,
+      lineTotal: 235,
+    },
+    {
+      id: 'boneless__boneless-size:boneless-size-medium',
+      productId: 'boneless',
+      name: 'Boneless Chicken',
+      assetKey: 'boneless',
+      unitBasePrice: 169,
+      quantity: 1,
+      selectedOptions: [
+        {
+          groupId: 'boneless-size',
+          groupName: 'Choose your size',
+          optionId: 'boneless-size-medium',
+          optionName: 'Medium · 9 pieces',
+          priceDelta: 55,
+        },
+      ],
+      unitPrice: 224,
+      lineTotal: 224,
+    },
+    {
+      id: 'golden-original-wings__wings-size:wings-size-10',
+      productId: 'golden-original-wings',
+      name: 'Golden Original Wings',
+      assetKey: 'goldenOriginalWings',
+      unitBasePrice: 155,
+      quantity: 1,
+      selectedOptions: [
+        {
+          groupId: 'wings-size',
+          groupName: 'How many wings?',
+          optionId: 'wings-size-10',
+          optionName: '10 wings',
+          priceDelta: 65,
+        },
+      ],
+      unitPrice: 220,
+      lineTotal: 220,
+    },
+    {
+      id: 'french-fries__fries-size:fries-size-large',
+      productId: 'french-fries',
+      name: 'French Fries',
+      assetKey: 'frenchFries',
+      unitBasePrice: 45,
+      quantity: 2,
+      selectedOptions: [
+        {
+          groupId: 'fries-size',
+          groupName: 'Size',
+          optionId: 'fries-size-large',
+          optionName: 'Large',
+          priceDelta: 22,
+        },
+      ],
+      unitPrice: 67,
+      lineTotal: 134,
+    },
+    {
+      id: 'cheesling-fries__cheesling-fries-size:cheesling-fries-size-regular',
+      productId: 'cheesling-fries',
+      name: 'Cheesling Fries',
+      assetKey: 'cheeslingFries',
+      unitBasePrice: 62,
+      quantity: 1,
+      selectedOptions: [
+        {
+          groupId: 'cheesling-fries-size',
+          groupName: 'Size',
+          optionId: 'cheesling-fries-size-regular',
+          optionName: 'Regular',
+          priceDelta: 0,
+        },
+      ],
+      unitPrice: 62,
+      lineTotal: 62,
+    },
+    {
+      id: 'ddeok-bokki__ddeok-extras:ddeok-extra-cheese',
+      productId: 'ddeok-bokki',
+      name: 'Ddeok-Bokki',
+      assetKey: 'ddeokBokki',
+      unitBasePrice: 72,
+      quantity: 1,
+      selectedOptions: [
+        {
+          groupId: 'ddeok-extras',
+          groupName: 'Add to it',
+          optionId: 'ddeok-extra-cheese',
+          optionName: 'Melted cheese',
+          priceDelta: 22,
+        },
+      ],
+      unitPrice: 94,
+      lineTotal: 94,
+    },
+    {
+      id: 'chicken-burger__burger-heat:burger-heat-classic|burger-extras:burger-extra-patty',
+      productId: 'chicken-burger',
+      name: 'Chicken Burger',
+      assetKey: 'chickenBurger',
+      unitBasePrice: 109,
+      quantity: 1,
+      selectedOptions: [
+        {
+          groupId: 'burger-heat',
+          groupName: 'Heat level',
+          optionId: 'burger-heat-classic',
+          optionName: 'Classic',
+          priceDelta: 0,
+        },
+        {
+          groupId: 'burger-extras',
+          groupName: 'Make it more',
+          optionId: 'burger-extra-patty',
+          optionName: 'Double the fillet',
+          priceDelta: 45,
+        },
+      ],
+      unitPrice: 154,
+      lineTotal: 154,
+    },
+  ];
 }
 
 function seedHistory(): void {
@@ -701,6 +906,120 @@ function seedHistory(): void {
     // No `driverName`: the courier job is what names a driver, and stating it
     // here too would be the same fact in two places with one of them
     // authoritative. `attachDelivery` fills it in on the first fetch.
+  });
+
+  /**
+   * A delivery that failed, which nothing in the app had ever produced.
+   *
+   * `FAILED` is a member of `DeliveryStatus` — nobody home, the gate locked,
+   * an address that turned out not to exist — and the mock's `PROGRESSION`
+   * walks from `ON_THE_WAY` straight to `DELIVERED`, so it had never once
+   * been reported. Two things were waiting behind it:
+   *
+   *   - `deliveryStatusToOrderStatus` maps `FAILED` to `'ready'`, and
+   *     `attachDelivery` is forward-only, so an order already at
+   *     `out_for_delivery` keeps that status. The screen goes on reading
+   *     "Out for delivery · Your driver has collected the order and is on the
+   *     way" with an ETA counting down, about food that is going back to the
+   *     store.
+   *   - `CourierTracking` counts only `DELIVERED` and `CANCELLED` as settled,
+   *     so it prints "The progress below is updated as your order moves"
+   *     under a journey that has stopped.
+   *
+   * Fifty-one minutes ago, so the estimate it was quoting is visibly spent.
+   * What bb.q does next — refund, redeliver, or hold it at the store — is an
+   * operations decision nobody has given, so it goes to `audit:launch` rather
+   * than being invented here. The app's job is to stop claiming the driver is
+   * still coming.
+   */
+  const failedPlacedAt = new Date(Date.now() - 51 * 60_000);
+  ledger.push({
+    id: 'order-4840',
+    reference: 'BBQ-4840',
+    placedAt: failedPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'out_for_delivery',
+    timeline: buildTimeline('delivery', 'out_for_delivery', failedPlacedAt, 42),
+    lines: [
+      {
+        id: 'soy-garlic__soy-garlic-size:soy-garlic-size-medium',
+        productId: 'soy-garlic',
+        name: 'Soy Garlic Chicken',
+        assetKey: 'soyGarlic',
+        unitBasePrice: 165,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'soy-garlic-size',
+            groupName: 'Choose your size',
+            optionId: 'soy-garlic-size-medium',
+            optionName: 'Medium · 9 pieces',
+            priceDelta: 60,
+          },
+        ],
+        unitPrice: 225,
+        lineTotal: 225,
+      },
+    ],
+    totals: {
+      subtotal: 225,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 262,
+      pointsEarned: 225,
+    },
+    ...storeSnapshot('store-fourways'),
+    addressId: 'address-mum',
+    addressSummary: '27 Protea Avenue, Northcliff',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 42,
+    // Registered with the mock provider under this id, so `getStatus` keeps
+    // answering FAILED rather than walking the wall clock on to DELIVERED.
+    delivery: seedFailedDeliveryJob('mock-job-failed-4840', failedPlacedAt.getTime()),
+  });
+
+  /**
+   * A collection order sitting at the counter, and the biggest basket the seed
+   * has ever held. Two states in one order because they are one order in life:
+   * a family orders a lot at once and one person drives over to fetch it.
+   *
+   *   - `ready` had never been a seeded status. The ledger held `received`,
+   *     `out_for_delivery`, `completed` and `cancelled`; the three middle
+   *     rungs — `preparing`, `ready`, `courier_assigned` — were reachable only
+   *     by placing an order in the session and waiting for the mock to advance
+   *     it. So "Ready for collection", the screen whose whole job is to tell
+   *     somebody to go to the counter, had never been rendered cold.
+   *   - Nine lines. The largest seeded order had two, and every list in the
+   *     app is short by construction: three addresses, three cards, seven
+   *     orders. Nothing had ever been asked to lay out a receipt, an order
+   *     card or a checkout review at 320pt with a basket this size.
+   *
+   * Eleven minutes ago against a twenty-five minute collection estimate, so
+   * the kitchen is genuinely done early rather than the clock having run out.
+   */
+  const readyPlacedAt = new Date(Date.now() - 11 * 60_000);
+  ledger.push({
+    id: 'order-4842',
+    reference: 'BBQ-4842',
+    placedAt: readyPlacedAt.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'ready',
+    timeline: buildTimeline('collection', 'ready', readyPlacedAt, 25),
+    lines: familyBasket(),
+    totals: {
+      subtotal: 1_671,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 1_676,
+      pointsEarned: 1_671,
+    },
+    ...storeSnapshot('store-sandton'),
+    paymentMethodLabel: 'Mastercard ending 7702',
+    etaMinutes: 25,
   });
 }
 

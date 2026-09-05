@@ -24,6 +24,14 @@ import { CourierTracking } from '@/features/orders/components/CourierTracking';
 import { useCancelOrder, useOrder } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
 import { orderLineLabel } from '@/features/orders/lineLabel';
+import {
+  countdownStillApplies,
+  deliveryFailed,
+  liveStatusBadge,
+  liveStatusCopy,
+  liveStatusTone,
+  timelineFor,
+} from '@/features/orders/liveStatus';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
 import { useNow } from '@/features/system/useNow';
@@ -161,27 +169,27 @@ export default function OrderTrackingScreen() {
       <ScreenHeader title={data.reference} subtitle={formatDateTime(data.placedAt)} />
 
       {/* Status hero */}
-      <Card style={[styles.statusCard, data.status === 'cancelled' ? styles.cancelledCard : null]}>
+      <Card
+        style={[
+          styles.statusCard,
+          data.status === 'cancelled' || deliveryFailed(data) ? styles.cancelledCard : null,
+        ]}
+      >
         <View style={styles.statusHeader}>
-          <Badge
-            label={
-              isActive ? 'In progress' : data.status === 'cancelled' ? 'Cancelled' : 'Completed'
-            }
-            tone={isActive ? 'primary' : data.status === 'cancelled' ? 'warning' : 'success'}
-          />
+          <Badge label={liveStatusBadge(data)} tone={liveStatusTone(data)} />
           <Text variant="caption" color={colors.textOnDarkMuted}>
             {data.storeName}
           </Text>
         </View>
 
         <Text variant="h1" color={colors.textOnDark} testID="tracking-status">
-          {statusCopy(data.status).label}
+          {liveStatusCopy(data).label}
         </Text>
         <Text variant="body" color={colors.textOnDarkMuted}>
-          {statusCopy(data.status).description}
+          {liveStatusCopy(data).description}
         </Text>
 
-        {isActive ? (
+        {isActive && !deliveryFailed(data) ? (
           <>
             <ProgressBar
               progress={progress}
@@ -205,7 +213,7 @@ export default function OrderTrackingScreen() {
               <Text variant="captionMedium" color={colors.textOnDark} testID="tracking-eta">
                 {`Scheduled for ${formatDateTime(data.scheduledFor)}`}
               </Text>
-            ) : dueInMinutes > 0 ? (
+            ) : dueInMinutes > 0 && countdownStillApplies(data) ? (
               <Text variant="captionMedium" color={colors.textOnDark} testID="tracking-eta">
                 {`${readyLabelFor(data.fulfilmentType)} in ${formatEtaWindow(dueInMinutes)}`}
               </Text>
@@ -254,7 +262,7 @@ export default function OrderTrackingScreen() {
       {/* Timeline */}
       <Card style={styles.card}>
         <Text variant="h3">Progress</Text>
-        <OrderTimeline timeline={data.timeline} currentStatus={data.status} />
+        <OrderTimeline timeline={timelineFor(data)} currentStatus={data.status} />
       </Card>
 
       {/* Items */}

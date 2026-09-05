@@ -89,6 +89,14 @@ const ROUTES = [
   // one or the other and never both, so the receipt had never drawn the two
   // discount lines together — and they are separate money.
   '/order/order-4795',
+  // A courier that gave up, and the states nothing had produced cold: a
+  // delivery reported FAILED, and a nine-line collection order sitting on the
+  // counter at `ready`. The second is also the widest basket the sweep has,
+  // which is what makes 320pt worth checking on it.
+  '/order/order-4840', '/order/order-4842',
+  // A product the kitchen has run out of. Every one of the 28 was available,
+  // so the menu, the card grid and this screen had never drawn the other case.
+  '/product/rose-ddeok-bokki',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -158,7 +166,12 @@ const MUST_SHOW = {
   // Both halves. The kitchen notice is the one that matters and the one that
   // used to disappear; "not confirmed" is what the screen is entitled to say
   // in place of a list it does not have.
-  '/product/sweet-potato-fries': /kitchen that handles other allergens/,
+  // Both notices on one product, which is the point of it. Its allergen list
+  // is empty and its nutrition figures are absent, and until now only the
+  // first of those said so — the nutrition panel simply vanished. One item,
+  // two datasets the franchise has not confirmed, and one of them silent.
+  '/product/sweet-potato-fries':
+    /kitchen that handles other allergens[\s\S]*Nutritional information for this item is not confirmed/,
   // The fourth notification category, which the seed never had. Its row has
   // no destination, and every row used to be drawn as a pressable card — so
   // this was a button that did nothing. The sweep's own §32.6 pass is what
@@ -170,6 +183,24 @@ const MUST_SHOW = {
   // Both discount lines, attributed to the two different things that produced
   // them. A receipt that lumped them together would lose which was which.
   '/order/order-4795': /Promo · WELCOME50[\s\S]*Reward ·/,
+  // A courier that gave up. `FAILED` was in the type and the mock walked
+  // straight from ON_THE_WAY to DELIVERED, so nothing had ever reported one:
+  // the hero went on reading "Out for delivery · Your driver has collected the
+  // order and is on the way" with an estimate counting down, about food going
+  // back to the store. Both halves are asserted — the heading, and the courier
+  // card that used to print "the progress below is updated as your order
+  // moves" over a journey that had stopped.
+  '/order/order-4840': /Delivery unsuccessful[\s\S]*could not complete this delivery/,
+  // Nine lines and a status the ledger had never held cold. "Ready for
+  // collection" is the heading, not "Ready": the timeline three lines below
+  // has said the longer phrase since it was written, and the hero used to say
+  // the vaguer one. Chicken Burger is the ninth line, so asserting it proves
+  // the whole basket rendered.
+  '/order/order-4842': /Ready for collection[\s\S]*Chicken Burger/,
+  // A product the kitchen has run out of. `Product.available` was read only by
+  // `reorder` and `reconcileCart`, so this screen offered "Add to cart R
+  // 82.00" for a dish nobody can cook.
+  '/product/rose-ddeok-bokki': /Sold out[\s\S]*cannot be added to your basket/,
 };
 
 /**

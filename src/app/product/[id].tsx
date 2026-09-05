@@ -22,6 +22,7 @@ import {
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { isNotFound } from '@/services/apiClient';
 import { NutritionPanel } from '@/features/menu/components/NutritionPanel';
+import { isSoldOut, SOLD_OUT_LABEL } from '@/features/menu/availability';
 import { OptionGroupPicker } from '@/features/menu/components/OptionGroupPicker';
 import { ProductCard } from '@/features/menu/components/ProductCard';
 import { useProduct, useProductsByIds } from '@/features/menu/hooks';
@@ -135,6 +136,10 @@ export default function ProductDetailScreen() {
 
   const handleAddToCart = useCallback(() => {
     if (!product.data) return;
+    // The guard as well as the disabled button: a screen reader can still
+    // activate a control, and `reconcileCart` would drop the line anyway —
+    // silently, one screen later.
+    if (isSoldOut(product.data)) return;
 
     if (unmetGroups.length > 0) {
       setShowRequiredErrors(true);
@@ -195,8 +200,21 @@ export default function ProductDetailScreen() {
   }
 
   const item = product.data;
-  const ctaLabel =
-    unmetGroups.length > 0 ? `Choose ${unmetGroups[0]?.name.toLowerCase()}` : 'Add to cart';
+  /**
+   * A withdrawn product cannot be added, and the button has to say so rather
+   * than offer the basket and let the cart refuse later.
+   *
+   * `Product.available` was read only by `reorder` and `reconcileCart`, so
+   * this screen offered "Add to cart R 82.00" for something the kitchen has
+   * none of. Sold out outranks an unmet required group: there is no point
+   * telling somebody to choose a size for a dish nobody can cook.
+   */
+  const soldOut = isSoldOut(item);
+  const ctaLabel = soldOut
+    ? SOLD_OUT_LABEL
+    : unmetGroups.length > 0
+      ? `Choose ${unmetGroups[0]?.name.toLowerCase()}`
+      : 'Add to cart';
 
   return (
     <View style={styles.root}>
@@ -254,8 +272,15 @@ export default function ProductDetailScreen() {
           {/* Title block */}
           <View style={styles.titleBlock}>
             <View style={styles.tagRow}>
-              {item.tags.includes('bestseller') ? <Badge label="Bestseller" tone="dark" /> : null}
-              {item.tags.includes('new') ? <Badge label="New" tone="primary" /> : null}
+              {/*
+                First, and instead of the others. "New" beside "Sold out" reads
+                as an invitation to a dish the kitchen cannot make.
+              */}
+              {soldOut ? <Badge label={SOLD_OUT_LABEL} tone="warning" /> : null}
+              {!soldOut && item.tags.includes('bestseller') ? (
+                <Badge label="Bestseller" tone="dark" />
+              ) : null}
+              {!soldOut && item.tags.includes('new') ? <Badge label="New" tone="primary" /> : null}
               {item.spiceLevel >= 2 ? (
                 <Badge
                   label={item.spiceLevel === 3 ? 'Hot' : 'Mild heat'}
@@ -269,6 +294,22 @@ export default function ProductDetailScreen() {
             <Text variant="bodyLarge" color={colors.textSecondary}>
               {item.description}
             </Text>
+
+            {/*
+              Said in a sentence, above the options, not only on the button at
+              the bottom of a long screen. Somebody who has scrolled through
+              three option groups and typed a note to the kitchen should not
+              meet the news at the end.
+            */}
+            {soldOut ? (
+              <View style={styles.allergens} testID="product-sold-out">
+                <Ionicons name="alert-circle-outline" size={17} color={colors.status.warning} />
+                <Text variant="caption" color={colors.textSecondary} style={styles.allergenText}>
+                  This is sold out right now, so it cannot be added to your basket. Please check
+                  back later or ask the store.
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.metaRow}>
               <View style={styles.meta}>
@@ -348,11 +389,37 @@ export default function ProductDetailScreen() {
             </Text>
           </View>
 
-          {/* Nutrition. Present for every product in the catalogue and, until
-              now, shown for none of them. */}
+          {/*
+            Nutrition, or the sentence that says there isn't any.
+
+            `nutrition` is optional and all 28 products carried it, so this
+            ternary had only ever taken the first branch. On the second the
+            panel simply vanished: no heading, no note, nothing between the
+            allergen line and "Goes well with" to say the figures were missing
+            rather than nil.
+
+            Sweet Potato Fries is where that became visible, and it is the
+            product that makes the inconsistency plain. Its `allergens` are
+            empty and the line above says so in words, because an empty list is
+            a gap in the data rather than a claim about the food. The same is
+            true of absent nutrition — and it was the half that stayed silent.
+            One product, two datasets the franchise has not confirmed, and only
+            one of them admitted it.
+
+            `audit:launch` carries the missing figures as a blocker. This makes
+            sure a customer is not quietly told less in the meantime.
+          */}
           {item.nutrition ? (
             <NutritionPanel nutrition={item.nutrition} serves={item.serves} />
-          ) : null}
+          ) : (
+            <View style={styles.allergens} testID="nutrition-unconfirmed">
+              <Ionicons name="information-circle-outline" size={17} color={colors.textMuted} />
+              <Text variant="caption" color={colors.textSecondary} style={styles.allergenText}>
+                Nutritional information for this item is not confirmed — please check with the
+                store.
+              </Text>
+            </View>
+          )}
 
           {/* Recommended add-ons */}
           {(recommended.data?.length ?? 0) > 0 ? (
@@ -382,7 +449,8 @@ export default function ProductDetailScreen() {
         <Button
           label={ctaLabel}
           onPress={handleAddToCart}
-          trailingLabel={unmetGroups.length > 0 ? undefined : formatPrice(lineTotal)}
+          disabled={soldOut}
+          trailingLabel={soldOut || unmetGroups.length > 0 ? undefined : formatPrice(lineTotal)}
           size="lg"
           style={styles.cta}
           testID="product-add-to-cart"

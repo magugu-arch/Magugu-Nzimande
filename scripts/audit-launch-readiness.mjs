@@ -326,6 +326,50 @@ if (undeclared.length > 0) {
     'you',
   );
 }
+/**
+ * Nutrition figures, for the products that carry none.
+ *
+ * Same shape as the allergen check and, on the same product, the same cause:
+ * data the franchise has not confirmed. The product screen says so in words
+ * rather than dropping the panel silently, which is what it used to do — but a
+ * sentence saying nobody knows is not the same as the figures.
+ */
+const unmeasured = menuData
+  .split(/\n\s*slug: '/)
+  .slice(1)
+  .filter((block) => !/nutrition: \{/.test(block))
+  .map((block) => block.match(/name: '([^']+)'/)?.[1] ?? 'unnamed product');
+if (unmeasured.length > 0) {
+  note(
+    'Nutrition data',
+    `${unmeasured.length} product(s) publish no nutritional information: ${unmeasured.join(', ')}. ` +
+      'Energy, protein, carbohydrate and fat per serving are supplier facts, not something this ' +
+      'app can derive or estimate. Have the franchise supply them, or confirm that the item is ' +
+      'to ship without them. Until then the product screen says the information is not confirmed ' +
+      'and to check with the store, in the same words the allergen line uses.',
+    'you',
+  );
+}
+
+/**
+ * What happens after a courier gives up, which nothing has decided.
+ *
+ * `DeliveryStatus.FAILED` is now produced, surfaced and tested: the tracking
+ * screen stops claiming a driver is on the way, says the delivery could not be
+ * completed, and points at the branch. What it does not say is what the
+ * customer gets, because nobody has said.
+ */
+note(
+  'Failed delivery policy',
+  'A delivery can come back FAILED — nobody home, a locked gate, an address that does not ' +
+    'exist. The app now tells the customer plainly and points them at the store, which is the ' +
+    'part it can decide on its own. Whether bb.q refunds, redelivers, holds the food at the ' +
+    'branch, or charges for a second attempt is an operations and margin decision, and how long ' +
+    'a driver waits before declaring failure belongs to the courier contract. Settle both, then ' +
+    'the wording on the tracking screen can name the remedy instead of asking for a phone call.',
+  'you',
+);
+
 const priceCount = [...menuData.matchAll(/basePrice: \d+/g)].length;
 if (priceCount > 0) {
   note(

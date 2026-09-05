@@ -7,6 +7,7 @@ import { Badge, FavouriteButton, Text } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 import { formatPrice } from '@/utils/money';
 import { showsHeatBadge } from '@/features/menu/heat';
+import { isSoldOut, productListLabel, SOLD_OUT_LABEL } from '@/features/menu/availability';
 import { useHeatPreference } from '@/features/menu/useHeatPreference';
 
 export interface ProductRowProps {
@@ -31,6 +32,7 @@ export interface ProductRowProps {
  */
 export const ProductRow = memo(function ProductRow({ product, onPress, testID }: ProductRowProps) {
   const preferMildFirst = useHeatPreference();
+  const soldOut = isSoldOut(product);
 
   return (
     <View style={styles.row}>
@@ -38,8 +40,16 @@ export const ProductRow = memo(function ProductRow({ product, onPress, testID }:
         testID={testID}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${product.name}, from ${formatPrice(product.basePrice)}. ${product.shortDescription}`}
-        style={({ pressed }) => [styles.main, pressed ? styles.pressed : null]}
+        accessibilityLabel={productListLabel(product, product.shortDescription)}
+        style={({ pressed }) => [
+          styles.main,
+          pressed ? styles.pressed : null,
+          // Dimmed, not hidden and not disabled: the row still opens, because
+          // the product screen is where somebody reads what it was and decides
+          // to come back. The same treatment a sold-out option gets one level
+          // down.
+          soldOut ? styles.soldOut : null,
+        ]}
       >
         <FoodImage
           assetKey={product.assetKey}
@@ -78,7 +88,9 @@ export const ProductRow = memo(function ProductRow({ product, onPress, testID }:
             <Text variant="price" color={colors.primary}>
               {formatPrice(product.basePrice)}
             </Text>
-            {product.tags.includes('bestseller') ? (
+            {soldOut ? (
+              <Badge label={SOLD_OUT_LABEL} tone="warning" />
+            ) : product.tags.includes('bestseller') ? (
               <Badge label="Bestseller" tone="neutral" />
             ) : product.tags.includes('new') ? (
               <Badge label="New" tone="primary" />
@@ -122,4 +134,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.xxs,
   },
   pressed: { opacity: 0.7 },
+  soldOut: { opacity: 0.55 },
 });

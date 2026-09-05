@@ -7,6 +7,7 @@ import { Badge, Text } from '@/components/ui';
 import { colors, elevation, radius, spacing } from '@/theme';
 import { formatPrice } from '@/utils/money';
 import { showsHeatBadge } from '@/features/menu/heat';
+import { isSoldOut, productListLabel, SOLD_OUT_LABEL } from '@/features/menu/availability';
 import { useHeatPreference } from '@/features/menu/useHeatPreference';
 
 export interface ProductCardProps {
@@ -35,23 +36,29 @@ export const ProductCard = memo(function ProductCard({
 }: ProductCardProps) {
   const tag = primaryTag(product);
   const preferMildFirst = useHeatPreference();
+  const soldOut = isSoldOut(product);
 
   return (
     <Pressable
       testID={testID}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${product.name}, from ${formatPrice(product.basePrice)}`}
+      accessibilityLabel={productListLabel(product)}
       accessibilityHint="Opens the product page"
       style={({ pressed }) => [
         styles.card,
         width !== undefined ? { width } : styles.flexible,
         pressed ? styles.pressed : null,
+        soldOut ? styles.soldOut : null,
       ]}
     >
       <View>
         <FoodImage assetKey={product.assetKey} variant="card" rounded="none" />
-        {tag ? <Badge label={tag.label} tone={tag.tone} style={styles.tag} /> : null}
+        {soldOut ? (
+          <Badge label={SOLD_OUT_LABEL} tone="warning" style={styles.tag} />
+        ) : tag ? (
+          <Badge label={tag.label} tone={tag.tone} style={styles.tag} />
+        ) : null}
         {showsHeatBadge(product.spiceLevel, preferMildFirst) ? (
           <View style={styles.heat}>
             <Ionicons name="flame" size={13} color={colors.onPrimary} />
@@ -73,9 +80,13 @@ export const ProductCard = memo(function ProductCard({
           <Text variant="price" color={colors.primary}>
             {formatPrice(product.basePrice)}
           </Text>
-          <View style={styles.addButton}>
-            <Ionicons name="add" size={17} color={colors.onPrimary} />
-          </View>
+          {/* No "+" on something that cannot be added. The glyph is a promise
+              the card cannot keep once the product is withdrawn. */}
+          {soldOut ? null : (
+            <View style={styles.addButton}>
+              <Ionicons name="add" size={17} color={colors.onPrimary} />
+            </View>
+          )}
         </View>
       </View>
     </Pressable>
@@ -121,4 +132,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   pressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
+  soldOut: { opacity: 0.55 },
 });
