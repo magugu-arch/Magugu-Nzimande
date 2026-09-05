@@ -154,7 +154,9 @@ const MUST_SHOW = {
   // this was a button that did nothing. The sweep's own §32.6 pass is what
   // would catch a control with no accessible name; this asserts the row is
   // there at all.
-  '/account/notifications': /Load-shedding/,
+  // Two shapes in one list: an advisory with no artwork, and a promotion with
+  // a photograph on it. The second is what the row had no room for at all.
+  '/account/notifications': /Load-shedding[\s\S]*Wings, four ways|Wings, four ways[\s\S]*Load-shedding/,
 };
 
 /**

@@ -1,3 +1,5 @@
+import type { FoodAssetKey } from '@/constants/foodAssets';
+
 export interface UserProfile {
   id: string;
   firstName: string;
@@ -45,6 +47,21 @@ export interface AppNotification {
   read: boolean;
   category: 'order' | 'promotion' | 'reward' | 'system';
   href?: string;
+  /**
+   * Artwork, for the notifications that arrive with a photograph.
+   *
+   * Every push a quick-service chain actually sends looks like this: a title,
+   * a line of copy, and a picture of the food. The app had no room for the
+   * third — the row drew a category icon in a rounded square and nothing
+   * else — so a promotion about chicken arrived looking exactly like a
+   * password reset. Twenty-eight photographs in the catalogue and the one
+   * screen most like a real push notification used none of them.
+   *
+   * Optional, because most notifications have no photograph to show: an order
+   * update, a tier nudge and a service advisory are all text. The row keeps
+   * the category icon when this is absent.
+   */
+  assetKey?: FoodAssetKey;
 }
 
 export interface SupportTopic {

@@ -13,6 +13,7 @@ import {
   ScreenHeader,
   Text,
 } from '@/components/ui';
+import { FoodImage } from '@/components/food/FoodImage';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import {
   useMarkAllNotificationsRead,
@@ -181,6 +182,22 @@ export default function NotificationsScreen() {
                   </Text>
                 </View>
 
+                {/*
+                  The photograph, at the trailing edge, which is where every
+                  push notification a customer has ever seen puts it. `thumb`
+                  and nothing larger: this is a list, and §15 is explicit that
+                  a list must never load a `detail` or `banner` derivative.
+                */}
+                {notification.assetKey ? (
+                  <FoodImage
+                    assetKey={notification.assetKey}
+                    variant="thumb"
+                    rounded="sm"
+                    compactPlaceholder
+                    style={styles.artwork}
+                  />
+                ) : null}
+
                 {!notification.read ? <View style={styles.unreadDot} /> : null}
               </View>
             </Card>
@@ -206,6 +223,7 @@ const styles = StyleSheet.create({
   },
   iconRead: { backgroundColor: colors.surfaceAlt },
   body: { flex: 1, gap: spacing.xxs },
+  artwork: { width: 44, height: 44 },
   unreadDot: {
     width: 9,
     height: 9,

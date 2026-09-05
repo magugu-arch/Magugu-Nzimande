@@ -1,5 +1,6 @@
 import type { Address, AppNotification, PaymentMethod, SupportTopic, UserProfile } from '@/types';
-import { groupDigits } from '@/utils/money';
+import { formatPrice, groupDigits } from '@/utils/money';
+import { menuSnapshot } from './menuData';
 import {
   earnRateLine,
   listSentence,
@@ -219,6 +220,42 @@ export const savedPaymentMethods: PaymentMethod[] = [
   },
 ];
 
+/**
+ * A promotion push, written from the menu rather than typed beside it.
+ *
+ * The shape a real one takes: a title, a choice, a price, and a photograph of
+ * the food. The price is the part worth being careful about — a notification
+ * saying "from R155" with `155` typed into it is the same drift `tierNudge`
+ * above was written to stop, one screen over. A wings price changes in
+ * `menuData` and this sentence would go on advertising the old one to
+ * everybody's lock screen.
+ *
+ * So it is derived: the cheapest wings on the menu, formatted through the same
+ * helper every price in the app goes through. Nothing here invents a number.
+ * (What those numbers *should* be is still a franchise decision — `audit:launch`
+ * carries all 28 of them.)
+ */
+function wingsPush(): Pick<AppNotification, 'title' | 'body' | 'assetKey' | 'href'> {
+  const wings = menuSnapshot.products.filter((product) => product.categoryId === 'wings');
+  const cheapest = wings.reduce(
+    (lowest, product) => (product.basePrice < lowest.basePrice ? product : lowest),
+    wings[0]!,
+  );
+
+  // Named from the menu too, so a flavour that is delisted cannot go on being
+  // advertised by a sentence nobody thought to look at.
+  const flavours = wings
+    .map((product) => product.name.replace(/ Wings$/, ''))
+    .filter((name) => name !== cheapest.name.replace(/ Wings$/, ''));
+
+  return {
+    title: 'Wings, four ways 🎉',
+    body: `${cheapest.name.replace(/ Wings$/, '')}, ${listSentence(flavours)}? Take your pick, from ${formatPrice(cheapest.basePrice)}.`,
+    assetKey: cheapest.assetKey,
+    href: '/menu?category=wings',
+  };
+}
+
 export const notifications: AppNotification[] = [
   /**
    * The order this actually refers to, and a link that reaches it.
@@ -255,6 +292,20 @@ export const notifications: AppNotification[] = [
    * told. The copy names no schedule and no stage, because neither is
    * something this repository knows.
    */
+  /**
+   * The first notification with a photograph on it (§9, §11).
+   *
+   * Sits second so the list shows one of each shape in the first two rows —
+   * an order update with no artwork, and a promotion with it — which is what
+   * makes the row's two layouts visible in a single screenshot.
+   */
+  {
+    id: 'notif-6',
+    ...wingsPush(),
+    receivedAt: new Date(Date.now() - 35 * 60_000).toISOString(),
+    read: false,
+    category: 'promotion',
+  },
   {
     id: 'notif-5',
     title: 'Load-shedding may delay orders tonight',

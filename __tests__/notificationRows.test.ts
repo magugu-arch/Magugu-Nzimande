@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { FOOD_ASSET_KEYS } from '@/constants/foodAssets';
 import { notifications } from '@/services/data/accountData';
+import { menuSnapshot } from '@/services/data/menuData';
+import { formatPrice } from '@/utils/money';
 import { fetchOrder } from '@/services/orderService';
 import { inAppRoute } from '@/utils/linking';
 
@@ -72,6 +75,95 @@ describe('the order notification', () => {
     const entry = notifications.find((n) => n.category === 'order')!;
 
     expect(entry.href).toBe('/order/order-4830');
+  });
+});
+
+/**
+ * A notification with a photograph on it.
+ *
+ * Every push a quick-service chain sends looks the same: a title, a line of
+ * copy, a price, and a picture of the food. `AppNotification` had no room for
+ * the fourth — the row drew a category icon in a rounded square and nothing
+ * else — so a promotion about chicken arrived looking exactly like a password
+ * reset. Twenty-eight photographs in the catalogue, and the one screen most
+ * like a real push notification used none of them.
+ */
+describe('the promotion push', () => {
+  const push = () => notifications.find((entry) => entry.id === 'notif-6')!;
+
+  it('carries artwork, which no notification could before', () => {
+    expect(push().assetKey).toBeTruthy();
+    expect(FOOD_ASSET_KEYS).toContain(push().assetKey);
+  });
+
+  it('is the only shape that does, so the row still has to draw both', () => {
+    const withArt = notifications.filter((entry) => entry.assetKey);
+    const without = notifications.filter((entry) => !entry.assetKey);
+
+    expect(withArt.length).toBeGreaterThan(0);
+    expect(without.length).toBeGreaterThan(0);
+  });
+
+  /**
+   * The part worth being careful about. A notification saying "from R155"
+   * with `155` typed into it is the drift `tierNudge` was written to stop, one
+   * screen over: a wings price changes in `menuData` and the sentence goes on
+   * advertising the old one to everybody's lock screen.
+   */
+  it('quotes a price that comes off the menu, not out of the copy', () => {
+    const wings = menuSnapshot.products.filter((p) => p.categoryId === 'wings');
+    const cheapest = Math.min(...wings.map((p) => p.basePrice));
+
+    expect(push().body).toContain(formatPrice(cheapest));
+    // And it is genuinely the cheapest, not just some wings price.
+    for (const product of wings) {
+      expect(product.basePrice).toBeGreaterThanOrEqual(cheapest);
+    }
+  });
+
+  it('names flavours that are actually on the menu', () => {
+    const names = menuSnapshot.products
+      .filter((p) => p.categoryId === 'wings')
+      .map((p) => p.name.replace(/ Wings$/, ''));
+
+    for (const name of names) {
+      expect(push().body).toContain(name);
+    }
+  });
+
+  it('shows the artwork of the item whose price it quotes', () => {
+    const wings = menuSnapshot.products.filter((p) => p.categoryId === 'wings');
+    const cheapest = wings.reduce((low, p) => (p.basePrice < low.basePrice ? p : low), wings[0]!);
+
+    expect(push().assetKey).toBe(cheapest.assetKey);
+  });
+
+  /**
+   * The guard that actually holds the claim up.
+   *
+   * Asserting the body matches a price computed from the menu is half a test —
+   * both halves read the same source. What stops the drift is that there is no
+   * rand figure typed into the seed at all, so there is nothing to go stale.
+   */
+  it('has no price typed into the seed for it to go stale', () => {
+    const seed = readFileSync(
+      path.join(__dirname, '..', 'src/services/data/accountData.ts'),
+      'utf8',
+    );
+    const push = seed.slice(
+      seed.indexOf('function wingsPush'),
+      seed.indexOf('export const notifications'),
+    );
+
+    expect(push).toMatch(/formatPrice\(/);
+    // No `R155`, no `155`, no rand literal of any kind.
+    expect(push).not.toMatch(/R\s?\d/);
+    expect(push).not.toMatch(/\b\d{2,}\b/);
+  });
+
+  it('is drawn as a thumb, never a banner in a list', () => {
+    expect(screen).toMatch(/assetKey=\{notification\.assetKey\}[\s\S]{0,80}variant="thumb"/);
+    expect(screen).not.toMatch(/notification\.assetKey[\s\S]{0,120}variant="(banner|detail)"/);
   });
 });
 
