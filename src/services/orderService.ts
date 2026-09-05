@@ -1297,6 +1297,196 @@ function seedHistory(): void {
     paymentMethodLabel: 'Visa ending 4821',
     etaMinutes: 41,
   });
+
+  /**
+   * A delivery whose fee a voucher paid, which no order had ever recorded.
+   *
+   * Five seeded orders carried a voucher and every one of them was a rand
+   * discount off the food. `freeDelivery` is a different mechanic — it does not
+   * touch the subtotal at all, it zeroes the fee — and `OrderTotals` prints
+   * `deliveryFee === 0 ? 'Free'`. Which is true, and says nothing about why:
+   * an order over the R350 free-delivery threshold prints exactly the same
+   * word. A customer checking whether their code actually worked cannot tell
+   * from the receipt, and the record holds the answer.
+   *
+   * The same shape as the fix that made "Promo discount" into "Promo ·
+   * WELCOME50": the order carries `voucherCode`, and the component that draws
+   * the fee had nothing joining them up.
+   *
+   * R231 of food, under the R350 threshold on purpose — above it the fee would
+   * be free anyway and the fixture would prove nothing.
+   */
+  const freeDelPlacedAt = new Date(Date.now() - 26 * 86_400_000);
+  ledger.push({
+    id: 'order-4560',
+    reference: 'BBQ-4560',
+    placedAt: freeDelPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'completed',
+    timeline: buildTimeline('delivery', 'completed', freeDelPlacedAt, 40),
+    lines: [
+      {
+        id: 'soy-garlic-wings__soy-garlic-wings-size:soy-garlic-wings-size-10',
+        productId: 'soy-garlic-wings',
+        name: 'Soy Garlic Wings',
+        assetKey: 'soyGarlicWings',
+        unitBasePrice: 165,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'soy-garlic-wings-size',
+            groupName: 'How many wings?',
+            optionId: 'soy-garlic-wings-size-10',
+            optionName: '10 wings',
+            priceDelta: 65,
+          },
+        ],
+        unitPrice: 230,
+        lineTotal: 230,
+      },
+    ],
+    totals: {
+      subtotal: 230,
+      // Zeroed by the voucher, not by the threshold: R230 is well under R350.
+      deliveryFee: 0,
+      deliveryFreedByVoucher: true,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 235,
+      pointsEarned: 230,
+    },
+    ...storeSnapshot('store-rosebank'),
+    addressId: 'address-work',
+    addressSummary: '5 Alice Lane, Sandton',
+    voucherCode: 'FREEDEL',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 40,
+    rating: 5,
+  });
+
+  /**
+   * An order booked for tomorrow, which the seed had only ever had finished.
+   *
+   * `scheduledFor` was on one order and that order was `completed`, so the
+   * tracking hero's first branch — "Scheduled for …", printed instead of a
+   * countdown — had never been drawn on a live order, and neither had
+   * `workStartsAt` deferring the kitchen on one somebody could still open. An
+   * order paid for now and due tomorrow evening is an ordinary thing to have
+   * in the Active list and the app had never shown one.
+   *
+   * Placed a few minutes ago for 18:30 tomorrow. `workStartsAt` puts the
+   * kitchen's clock 25 minutes before the slot, so nothing about this order is
+   * due to move for the better part of a day — which is the point: a scheduled
+   * order must sit still, and the clock used to walk it to "Completed" by
+   * teatime today.
+   */
+  const bookedAt = new Date(Date.now() - 4 * 60_000);
+  const slot = new Date(bookedAt);
+  slot.setDate(slot.getDate() + 1);
+  slot.setHours(18, 30, 0, 0);
+  ledger.push({
+    id: 'order-4850',
+    reference: 'BBQ-4850',
+    placedAt: bookedAt.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'received',
+    scheduledFor: slot.toISOString(),
+    timeline: buildTimeline('collection', 'received', bookedAt, 25, slot),
+    lines: [
+      {
+        id: 'korean-rice-bowl__bowl-extras:bowl-extra-egg',
+        productId: 'korean-rice-bowl',
+        name: 'Korean Rice Bowl',
+        assetKey: 'koreanRiceBowl',
+        unitBasePrice: 129,
+        quantity: 2,
+        selectedOptions: [
+          {
+            groupId: 'bowl-extras',
+            groupName: 'Add to your bowl',
+            optionId: 'bowl-extra-egg',
+            optionName: 'Extra fried egg',
+            priceDelta: 15,
+          },
+        ],
+        unitPrice: 144,
+        lineTotal: 288,
+      },
+    ],
+    totals: {
+      subtotal: 288,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 293,
+      pointsEarned: 288,
+    },
+    ...storeSnapshot('store-sandton'),
+    paymentMethodLabel: 'Mastercard ending 7702',
+    etaMinutes: 25,
+  });
+
+  /**
+   * An order that earned nothing, which nothing had ever produced.
+   *
+   * Points accrue on food value after discounts, so a reward big enough to
+   * cover the food leaves nothing to earn on. Every seeded order earned
+   * something — 184 was the lowest — so `pointsEarned: 0` had never been
+   * handed to `OrderTotals`, whose points line is guarded by
+   * `pointsEarned > 0`. The guard is right and had never run.
+   *
+   * A R175 reward on a R109 burger, which is the ordinary way this happens: a
+   * big reward spent on a small order. The discount is capped at the food
+   * value rather than paying out the difference, so 109 − 109 leaves nothing
+   * to earn on and the R5 service fee is all there is left to pay.
+   */
+  const nothingEarnedAt = new Date(Date.now() - 33 * 86_400_000);
+  ledger.push({
+    id: 'order-4520',
+    reference: 'BBQ-4520',
+    placedAt: nothingEarnedAt.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'completed',
+    timeline: buildTimeline('collection', 'completed', nothingEarnedAt, 22),
+    lines: [
+      {
+        id: 'chicken-burger__burger-heat:burger-heat-classic',
+        productId: 'chicken-burger',
+        name: 'Chicken Burger',
+        assetKey: 'chickenBurger',
+        unitBasePrice: 109,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'burger-heat',
+            groupName: 'Heat level',
+            optionId: 'burger-heat-classic',
+            optionName: 'Classic',
+            priceDelta: 0,
+          },
+        ],
+        unitPrice: 109,
+        lineTotal: 109,
+      },
+    ],
+    totals: {
+      subtotal: 109,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 109,
+      total: 5,
+      pointsEarned: 0,
+    },
+    ...storeSnapshot('store-fourways'),
+    redeemedRewardId: 'reward-half-and-half',
+    rewardName: 'Free Half & Half Chicken',
+    paymentMethodLabel: 'Mastercard ending 7702',
+    etaMinutes: 22,
+    rating: 4,
+  });
 }
 
 /**

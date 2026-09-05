@@ -65,7 +65,22 @@ export const OrderTotals = memo(function OrderTotals({
       {fulfilmentType === 'delivery' ? (
         <Row
           label="Delivery fee"
-          value={totals.deliveryFee === 0 ? 'Free' : formatPrice(totals.deliveryFee)}
+          /*
+            "Free", and — when a code is what made it free — which code.
+
+            This printed the bare word either way, so an order over the R350
+            threshold and an order that used FREEDEL read identically, and a
+            customer checking whether their code had actually been taken had
+            nothing to check. The same shape as "Promo discount" once being
+            printed over an order that knew it was WELCOME50.
+          */
+          value={
+            totals.deliveryFee === 0
+              ? totals.deliveryFreedByVoucher && voucherCode
+                ? `Free · ${voucherCode}`
+                : 'Free'
+              : formatPrice(totals.deliveryFee)
+          }
           positive={totals.deliveryFee === 0}
         />
       ) : null}

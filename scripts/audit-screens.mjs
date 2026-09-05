@@ -112,6 +112,11 @@ const ROUTES = [
   // publishes no phone number. Until now the mock clock was never late: every
   // order arrived exactly when the estimate said it would.
   '/order/order-4848',
+  // A receipt whose delivery fee a voucher paid, one booked for tomorrow, and
+  // one whose reward covered the food so nothing was earned.
+  '/order/order-4560', '/order/order-4850', '/order/order-4520',
+  // A campaign still running for a dish that cannot be ordered today.
+  '/offers/promo-cheesling-fries',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -236,6 +241,18 @@ const MUST_SHOW = {
   // place, so an order twenty-three minutes late showed the same screen as one
   // two minutes old.
   '/order/order-4848': /Preparing[\s\S]*Taking longer than expected/,
+  // "Free" said which code did it. It used to print the bare word, so an order
+  // over the R350 threshold and one that used FREEDEL read identically.
+  '/order/order-4560': /Delivery fee[\s\S]{0,40}Free · FREEDEL/,
+  // A live scheduled order: the hero prints the slot instead of a countdown,
+  // and the seed had only ever had a finished one.
+  '/order/order-4850': /Scheduled for/,
+  // The reward covered the food, so the points line is absent rather than
+  // offering nought.
+  '/order/order-4520': /Reward · Free Half & Half Chicken/,
+  // A campaign whose dish lost the last option in its required group. The
+  // promotion stands; the button stops promising it.
+  '/offers/promo-cheesling-fries': /Every choice under "Size" is sold out[\s\S]*Sold out/,
 
 };
 

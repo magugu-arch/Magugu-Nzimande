@@ -17,6 +17,13 @@ import {
 } from '@/components/ui';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { usePromotion } from '@/features/rewards/hooks';
+import { useMenu } from '@/features/menu/hooks';
+import {
+  isSoldOut,
+  promotedProductId,
+  SOLD_OUT_LABEL,
+  soldOutReason,
+} from '@/features/menu/availability';
 import { errorCode, isNotFound } from '@/services/apiClient';
 import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
@@ -30,6 +37,18 @@ export default function OfferDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const promotion = usePromotion(id);
+  /**
+   * The dish this campaign points at, when it points at one. The menu is what
+   * knows whether it can be ordered today; the promotion only knows where it
+   * wanted to send somebody.
+   */
+  const menu = useMenu();
+  const promotedItem = (() => {
+    const href = promotion.data?.ctaHref;
+    const productId = href ? promotedProductId(href) : null;
+    if (!productId) return null;
+    return menu.data?.products.find((product) => product.id === productId) ?? null;
+  })();
 
   const [copied, setCopied] = useState(false);
   const resetLabel = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -239,13 +258,35 @@ export default function OfferDetailScreen() {
           ))}
         </Card>
 
+        {/*
+          A campaign runs for a fortnight; stock does not. A dish can be
+          withdrawn, or lose the last option in a required group, while the
+          promotion for it is still on the Offers screen — and nothing joined
+          the two up, so "CHEESLING FRIES, LOADED · Add them to any box for
+          R55" sat there with an "Order now" button opening a product that
+          cannot be added to a basket.
+
+          The promotion is left standing, because taking a franchise campaign
+          down is not this app's call. What changes is that the button stops
+          promising something the kitchen cannot do.
+        */}
+        {promotedItem && isSoldOut(promotedItem) ? (
+          <View style={styles.soldOutNotice} testID="offer-sold-out">
+            <Ionicons name="alert-circle-outline" size={17} color={colors.status.warning} />
+            <Text variant="caption" color={colors.textSecondary} style={styles.soldOutText}>
+              {soldOutReason(promotedItem)}
+            </Text>
+          </View>
+        ) : null}
+
         <Button
-          label={data.ctaLabel}
+          label={promotedItem && isSoldOut(promotedItem) ? SOLD_OUT_LABEL : data.ctaLabel}
           // Server data, so not followed on trust. This pushed whatever
           // arrived: a promotion carrying "https://evil.example" navigated
           // off-site on the web build. A broken link opens the menu instead
           // of the void.
           onPress={() => router.push(inAppRoute(data.ctaHref, '/(tabs)/menu') as Href)}
+          disabled={Boolean(promotedItem && isSoldOut(promotedItem))}
           size="lg"
           testID="offer-cta"
           preserveCase
@@ -256,6 +297,8 @@ export default function OfferDetailScreen() {
 }
 
 const styles = StyleSheet.create({
+  soldOutNotice: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
+  soldOutText: { flex: 1 },
   headerWrap: { paddingHorizontal: spacing.gutter },
   hero: { width: SCREEN_WIDTH },
   body: { gap: spacing.lg, padding: spacing.lg, paddingBottom: spacing.xxxl },

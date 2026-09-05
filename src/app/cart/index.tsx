@@ -19,18 +19,13 @@ import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { useValidateVoucher } from '@/features/rewards/hooks';
+import { useMenu } from '@/features/menu/hooks';
+import { voucherStatus } from '@/features/cart/voucherStatus';
 import { businessRules } from '@/constants/config';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing, typography } from '@/theme';
-import {
-  meetsDeliveryMinimum,
-  priceBasket,
-  voucherExpired,
-  voucherQualifies,
-  voucherTerms,
-} from '@/utils/cart';
-import { formatShortDate } from '@/utils/datetime';
+import { meetsDeliveryMinimum, priceBasket, voucherTerms } from '@/utils/cart';
 import { useNow } from '@/features/system/useNow';
 import { formatPrice, groupDigits } from '@/utils/money';
 import { track } from '@/ux/analytics';
@@ -45,7 +40,6 @@ export default function CartScreen() {
   const insets = useSafeAreaInsets();
 
   const lines = useCartStore((state) => state.lines);
-
   /**
    * The step between adding and checking out — where a basket is abandoned
    * before checkout is ever reached. Once per visit, with a basket in it.
@@ -91,6 +85,21 @@ export default function CartScreen() {
     [lines, cartFulfilment, voucher, reward],
   );
   const belowMinimum = !meetsDeliveryMinimum(totals.subtotal, fulfilmentType);
+
+  /**
+   * The name of the product a free-item voucher makes free, for the sentence
+   * that tells somebody to add it. Resolved here because the menu is what
+   * knows product names; `voucherStatus` knows about vouchers.
+   */
+  const menu = useMenu();
+  const freeItemName = useMemo(
+    () =>
+      voucher?.freeProductId
+        ? (menu.data?.products.find((product) => product.id === voucher.freeProductId)?.name ??
+          null)
+        : null,
+    [menu.data, voucher],
+  );
 
   useEffect(() => {
     if (announcedCart.current || lines.length === 0) return;
@@ -235,20 +244,16 @@ export default function CartScreen() {
             <View style={styles.appliedRow}>
               <Badge label={voucher.code} tone="success" icon="checkmark-circle" />
               <Text variant="caption" color={colors.textSecondary} style={styles.appliedText}>
-                {voucherExpired(voucher, now)
-                  ? // Expired while it sat in the basket. Distinguished from
-                    // the minimum-spend case below because the two ask for
-                    // completely different things from the customer: one can
-                    // be fixed by adding an item, the other cannot be fixed
-                    // at all.
-                    `That code expired on ${formatShortDate(voucher.expiresAt!)}`
-                  : voucherQualifies(voucher, totals.subtotal, now)
-                    ? voucher.discountType === 'freeDelivery'
-                      ? 'Free delivery applied'
-                      : `${formatPrice(totals.discount)} off applied`
-                    : // Applied, but the basket has since dropped below what the
-                      // code asks for. Saying so beats silently charging full price.
-                      `Spend ${formatPrice(voucher.minimumSpend)} to use this code`}
+                {/*
+                  One of four things, because a voucher can be stuck for three
+                  different reasons and they ask for three different things.
+                  Expiry cannot be fixed at all; a minimum can be fixed by
+                  adding anything; a free-item voucher can only be fixed by
+                  adding that item — and that third case used to fall through
+                  to the minimum-spend sentence, or, when the basket was big
+                  enough, to a green tick reading "R 0.00 off applied".
+                */}
+                {voucherStatus(voucher, totals, lines, freeItemName, now)}
               </Text>
               <Pressable
                 onPress={removeVoucher}

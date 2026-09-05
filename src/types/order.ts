@@ -37,6 +37,21 @@ export interface CartTotals {
   total: number;
   /** Loyalty points this order will earn. */
   pointsEarned: number;
+  /**
+   * Whether a promo code is what made delivery free, as opposed to the basket
+   * clearing the free-delivery threshold.
+   *
+   * `OrderTotals` prints `deliveryFee === 0 ? 'Free'`, which is true and says
+   * nothing about why — an order over R350 prints exactly the same word as one
+   * that used FREEDEL, and a customer checking whether their code actually
+   * worked cannot tell from the receipt. The order already carries
+   * `voucherCode`; what was missing was the fact that the code is what did it.
+   *
+   * Recorded where it is known — `priceBasket` computes `voucherFreesDelivery`
+   * and then threw the answer away — rather than inferred later from a zero fee
+   * and a code sitting near each other.
+   */
+  deliveryFreedByVoucher?: boolean;
 }
 
 /**

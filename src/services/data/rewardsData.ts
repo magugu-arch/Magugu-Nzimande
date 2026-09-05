@@ -318,6 +318,34 @@ export const vouchers: Voucher[] = [
     used: false,
     expired: false,
   },
+  /**
+   * The fourth discount mechanic, which nothing had ever used.
+   *
+   * `discountType` has four members and the wallet has a case for each — the
+   * `freeItem` one prints "Free item". Three vouchers were `fixed`, one
+   * `freeDelivery`, one `percentage`, and `freeItem` had never been seeded, so
+   * the only arithmetic behind that label had never run against anything.
+   *
+   * What it does is take a rand amount off, exactly like `fixed`:
+   * `voucherDiscount` returns `Math.min(discountValue, subtotal)` for both. So
+   * the wallet promises an item and the basket removes a number that has
+   * nothing to do with any item, and nothing anywhere says *which* item is
+   * free — `Voucher` had no field that could.
+   */
+  {
+    id: 'voucher-freefries',
+    code: 'FRIESONUS',
+    title: 'Free French Fries',
+    description: 'A regular French Fries on us with any chicken box.',
+    discountType: 'freeItem',
+    freeProductId: 'french-fries',
+    discountValue: 0,
+    minimumSpend: 150,
+    expiresAt: new Date(Date.now() + 21 * 86_400_000).toISOString(),
+    used: false,
+    expired: false,
+    assetKey: 'frenchFries',
+  },
   {
     id: 'voucher-spicy15',
     code: 'SPICY15',

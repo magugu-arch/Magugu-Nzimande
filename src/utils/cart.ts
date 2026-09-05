@@ -119,6 +119,14 @@ export function unmetOptionGroups(
 export interface VoucherTerms {
   code: string;
   discountType: 'percentage' | 'fixed' | 'freeItem' | 'freeDelivery';
+  /**
+   * Which product a `freeItem` voucher makes free. See `Voucher.freeProductId`.
+   *
+   * Carried in the terms rather than looked up, for the same reason every
+   * other term is: the discount is a function of the basket and the terms
+   * travel with the cart.
+   */
+  freeProductId?: string;
   discountValue: number;
   minimumSpend: number;
   /**
@@ -185,9 +193,41 @@ export function voucherQualifies(
   voucher: VoucherTerms,
   subtotal: number,
   now: Date = new Date(),
+  lines: CartLine[] = [],
 ): boolean {
-  if (voucherExpired(voucher, now)) return false;
-  return subtotal >= voucher.minimumSpend;
+  return voucherBlocker(voucher, subtotal, now, lines) === null;
+}
+
+/**
+ * What is stopping this voucher being worth anything, or nothing.
+ *
+ * Three different things, asking three different things of the customer, and
+ * the cart screen had copy for two of them. A `freeItem` voucher wants a
+ * particular product in the basket, and without it `voucherDiscount` returns
+ * zero while `voucherQualifies` — which only knew about spend and expiry —
+ * went on saying yes. The cart would then have printed "R 0.00 off applied"
+ * under a green tick, which is the same class of untruth as the "Free item"
+ * label that started this.
+ *
+ * Returned as a reason rather than a boolean so the screen can say which one
+ * it is: an expired code cannot be fixed at all, a minimum can be fixed by
+ * adding anything, and a missing item can only be fixed by adding that item.
+ */
+export function voucherBlocker(
+  voucher: VoucherTerms,
+  subtotal: number,
+  now: Date = new Date(),
+  lines: CartLine[] = [],
+): 'expired' | 'minimum' | 'missingItem' | null {
+  if (voucherExpired(voucher, now)) return 'expired';
+  if (subtotal < voucher.minimumSpend) return 'minimum';
+  if (
+    voucher.discountType === 'freeItem' &&
+    !lines.some((line) => line.productId === voucher.freeProductId)
+  ) {
+    return 'missingItem';
+  }
+  return null;
 }
 
 /**
@@ -200,13 +240,41 @@ export function voucherDiscount(
   voucher: VoucherTerms,
   subtotal: number,
   now: Date = new Date(),
+  /**
+   * The basket, for the one mechanic whose worth is a thing in it rather than
+   * a number on the voucher. Optional so the four call sites that only have a
+   * subtotal keep working; a `freeItem` voucher without them is worth nothing,
+   * which is the safe direction — it charges full price rather than taking
+   * money off for an item nobody put in.
+   */
+  lines: CartLine[] = [],
 ): number {
-  if (!voucherQualifies(voucher, subtotal, now)) return 0;
+  if (!voucherQualifies(voucher, subtotal, now, lines)) return 0;
 
   switch (voucher.discountType) {
     case 'fixed':
-    case 'freeItem':
       return Math.min(voucher.discountValue, subtotal);
+    /**
+     * The price of the item, not a rand amount that happens to sit beside it.
+     *
+     * This shared the `fixed` case, so a voucher the wallet advertised as
+     * "Free item" took `Math.min(discountValue, subtotal)` off — and nothing
+     * on `Voucher` said which item was meant, so the two numbers could not
+     * agree even in principle. A free French Fries against a `discountValue`
+     * of 0 was worth nothing at all; against 62 it would have discounted a
+     * basket containing no fries.
+     *
+     * One unit, at the price actually charged for it — `unitPrice` includes
+     * the options chosen, so a large fries is worth more than a regular one,
+     * which is what "free fries" means to somebody who ordered a large. The
+     * cheapest matching line when there are several, so a voucher for one item
+     * cannot be spent on the dearest configuration of it by accident.
+     */
+    case 'freeItem': {
+      const matching = lines.filter((line) => line.productId === voucher.freeProductId);
+      if (matching.length === 0) return 0;
+      return Math.min(Math.min(...matching.map((line) => line.unitPrice)), subtotal);
+    }
     case 'percentage':
       return Math.round(subtotal * (voucher.discountValue / 100) * 100) / 100;
     case 'freeDelivery':
@@ -300,7 +368,7 @@ export function priceBasket({
 
   // The voucher's worth is recomputed against the basket as it stands, never
   // read back from what it was worth when it was entered.
-  const voucherOff = voucher ? voucherDiscount(voucher, subtotal, now) : 0;
+  const voucherOff = voucher ? voucherDiscount(voucher, subtotal, now, lines) : 0;
   const voucherFreesIt = voucher !== null && voucherFreesDelivery(voucher, subtotal, now);
 
   const applied = rewardEffect(reward, fulfilmentType);
@@ -321,7 +389,14 @@ export function priceBasket({
   });
 
   return {
-    totals,
+    /*
+      The reason, kept rather than discarded. `voucherFreesIt` is worked out
+      here and was used only to zero the fee, so the receipt was left printing
+      "Free" with no way to say whether the code did it or the basket simply
+      cleared R350. Only when the voucher is what did it: a basket over the
+      threshold is free on its own account, code or no code.
+    */
+    totals: voucherFreesIt ? { ...totals, deliveryFreedByVoucher: true } : totals,
     rewardWorth: Math.max(0, sumRand([withoutReward.total, -totals.total])),
   };
 }

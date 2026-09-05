@@ -81,6 +81,24 @@ export function soldOutReason(product: Orderable): string | null {
 }
 
 /**
+ * The product a promotion sends somebody to, when it sends them to one.
+ *
+ * A promotion's `ctaHref` is server data and mostly points at `/product/<id>`.
+ * Stock is not: a dish can be withdrawn or lose the last option in a required
+ * group while a fortnight-long campaign is still running, and nothing joined
+ * the two up — the Offers screen went on headlining "CHEESLING FRIES, LOADED /
+ * Add them to any box for R55" with an "Order now" button opening a product
+ * that cannot be added to a basket.
+ *
+ * Returns the id only for a plain product route, so `/offers` and `/(tabs)/menu`
+ * are left alone.
+ */
+export function promotedProductId(ctaHref: string): string | null {
+  const match = /^\/product\/([A-Za-z0-9-]+)$/.exec(ctaHref);
+  return match?.[1] ?? null;
+}
+
+/**
  * What a screen reader is told about a product in a list.
  *
  * The name, the price it starts from, and — when it applies — that it cannot

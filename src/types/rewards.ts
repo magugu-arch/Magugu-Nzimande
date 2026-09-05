@@ -45,6 +45,20 @@ export interface Voucher {
   description: string;
   /** Percentage (0-100) or fixed rand amount, per `discountType`. */
   discountType: 'percentage' | 'fixed' | 'freeItem' | 'freeDelivery';
+  /**
+   * Which product a `freeItem` voucher makes free.
+   *
+   * Without it the type cannot say what the wallet's "Free item" label
+   * promises, and the arithmetic behind that label was `Math.min(
+   * discountValue, subtotal)` — a rand amount off, exactly like a `fixed`
+   * voucher, with nothing tying it to anything on the menu. A customer whose
+   * free item costs R95 against a `discountValue` of R62 would have paid R33
+   * for it.
+   *
+   * Only meaningful for `freeItem`; the other three mechanics carry their
+   * whole meaning in `discountValue`.
+   */
+  freeProductId?: string;
   discountValue: number;
   minimumSpend: number;
   expiresAt: string;
