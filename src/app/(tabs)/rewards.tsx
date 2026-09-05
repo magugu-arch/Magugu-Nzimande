@@ -26,6 +26,7 @@ import {
 } from '@/features/rewards/hooks';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
+import { tierProgressLabel } from '@/features/rewards/progressLabel';
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatRelativeDay } from '@/utils/datetime';
 import { groupDigits } from '@/utils/money';
@@ -141,7 +142,7 @@ export default function RewardsScreen() {
               progress={account.tierProgress}
               trackColor="rgba(255,255,255,0.22)"
               fillColor={colors.onPrimary}
-              accessibilityLabel={`${Math.round(account.tierProgress * 100)} percent to next tier`}
+              accessibilityLabel={tierProgressLabel(account)}
             />
             <Text variant="caption" color={colors.textOnDark}>
               {account.nextTier

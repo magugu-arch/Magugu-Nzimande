@@ -1,3 +1,4 @@
+import { config } from '@/constants/config';
 import type {
   LoyaltyAccount,
   PointsEntry,
@@ -418,12 +419,30 @@ const SEEDED_LIFETIME =
     .filter((entry) => entry.points < 0)
     .reduce((spent, entry) => spent + Math.abs(entry.points), 0);
 
+/**
+ * A member who has reached the top of the ladder.
+ *
+ * Black asks for 9 000 lifetime points and the seeded member has about 2 240,
+ * so the top rung could only be reached by placing thirty-odd orders in one
+ * session. Everything the app says to somebody who has arrived — "You're at
+ * our top tier", and the notification reading "Black is the top of bb.q
+ * Rewards. Everything is unlocked." — was written, styled, and rendered for
+ * nobody.
+ *
+ * Derived from the ladder rather than typed, so a threshold that moves takes
+ * this with it: the top tier's own requirement plus a margin, which is what
+ * having arrived actually looks like. `standingFor` then answers `nextTier`
+ * undefined, `pointsToNextTier` nought and `tierProgress` one, and every
+ * branch that reads those has something to read.
+ */
+const TOP_TIER_LIFETIME = Math.max(...tiers.map((tier) => tier.threshold)) + 1_250;
+
 export const loyaltyAccount: LoyaltyAccount = {
   memberId: 'BBQ-SA-004182',
   pointsBalance: SEEDED_BALANCE,
   // tier, tierName, nextTier, pointsToNextTier and tierProgress are all read
   // off the ladder. None of them is an independent fact about this member.
-  ...standingFor(SEEDED_LIFETIME),
+  ...standingFor(config.seedProfile === 'top-tier' ? TOP_TIER_LIFETIME : SEEDED_LIFETIME),
   history: seededHistory,
 };
 

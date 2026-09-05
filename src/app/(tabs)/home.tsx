@@ -26,6 +26,7 @@ import { useActiveOrder } from '@/features/orders/hooks';
 import { useLoyaltyAccount, usePromotions } from '@/features/rewards/hooks';
 import { statusCopy } from '@/services/orderService';
 import { greetingFor, useAuthStore } from '@/store/authStore';
+import { tierProgressLabel } from '@/features/rewards/progressLabel';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import {
@@ -344,7 +345,7 @@ export default function HomeScreen() {
 
             <ProgressBar
               progress={loyalty.data.tierProgress}
-              accessibilityLabel={`${Math.round(loyalty.data.tierProgress * 100)} percent to next tier`}
+              accessibilityLabel={tierProgressLabel(loyalty.data)}
             />
 
             <Text variant="caption" color={colors.textSecondary}>

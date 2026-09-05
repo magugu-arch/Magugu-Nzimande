@@ -47,13 +47,23 @@ export const config = {
    * nothing saved, nothing ordered, nothing earned. That is every customer
    * bb.q gains on 1 October, and it was the one account nobody could test as.
    *
-   * Read only through the mock layer, so it cannot affect a real build — and
+   * `top-tier` is the other end, and it was unreachable for a different
+   * reason. Black asks for 9 000 lifetime points and the seeded member has
+   * about 2 240, so the top of the ladder could only be reached by placing
+   * roughly thirty orders in one session. Everything the app says to somebody
+   * who has arrived — "You're at our top tier", the notification that reads
+   * "Black is the top of bb.q Rewards. Everything is unlocked." — was written,
+   * styled, and rendered for nobody.
+   *
+   * Read only through the mock layer, so neither can affect a real build — and
    * `audit:launch` fails production if the mock is on at all.
    */
-  seedProfile:
-    str(process.env.EXPO_PUBLIC_SEED_PROFILE, 'full') === 'new-customer'
-      ? ('new-customer' as const)
-      : ('full' as const),
+  seedProfile: ((): 'full' | 'new-customer' | 'top-tier' => {
+    const named = str(process.env.EXPO_PUBLIC_SEED_PROFILE, 'full');
+    if (named === 'new-customer') return 'new-customer';
+    if (named === 'top-tier') return 'top-tier';
+    return 'full';
+  })(),
   /**
    * The mock layer, which makes the app fully explorable before the backend
    * exists. On in development; off in any release build unless something asks

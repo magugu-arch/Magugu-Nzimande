@@ -17,6 +17,7 @@ import {
 import { useLoyaltyAccount, useRedeemReward, useReward } from '@/features/rewards/hooks';
 import { useNow } from '@/features/system/useNow';
 import { rewardExpired } from '@/services/rewardsService';
+import { rewardProgressLabel } from '@/features/rewards/progressLabel';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing } from '@/theme';
@@ -166,7 +167,7 @@ export default function RewardDetailScreen() {
 
           <ProgressBar
             progress={progress}
-            accessibilityLabel={`${Math.round(progress * 100)} percent of the points needed`}
+            accessibilityLabel={rewardProgressLabel(data.pointsCost, progress)}
           />
 
           <Text
