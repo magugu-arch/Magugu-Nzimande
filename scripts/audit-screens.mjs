@@ -149,6 +149,12 @@ const MUST_SHOW = {
   // used to disappear; "not confirmed" is what the screen is entitled to say
   // in place of a list it does not have.
   '/product/sweet-potato-fries': /kitchen that handles other allergens/,
+  // The fourth notification category, which the seed never had. Its row has
+  // no destination, and every row used to be drawn as a pressable card — so
+  // this was a button that did nothing. The sweep's own §32.6 pass is what
+  // would catch a control with no accessible name; this asserts the row is
+  // there at all.
+  '/account/notifications': /Load-shedding/,
 };
 
 /**

@@ -40,6 +40,14 @@ export default function NotificationsScreen() {
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
+  /**
+   * Whether a tap on this row would change anything: somewhere to go, or an
+   * unread mark to clear. Neither, and the card must not present itself as a
+   * control. See the note at the call site.
+   */
+  const canOpen = (notification: AppNotification) =>
+    Boolean(notification.href) || !notification.read;
+
   const handleOpen = useCallback(
     (notification: AppNotification) => {
       if (!notification.read) markRead.mutate(notification.id);
@@ -129,7 +137,22 @@ export default function NotificationsScreen() {
           {list.map((notification) => (
             <Card
               key={notification.id}
-              onPress={() => handleOpen(notification)}
+              /**
+               * A button only when a tap can do something.
+               *
+               * Every row was a pressable card. That is right for the three
+               * categories the seed used to carry, because each of them has
+               * somewhere to go — but `href` is optional and `system` is a
+               * category, and a service advisory has no destination at all.
+               * Seeding one showed what that produced: a card drawn as a
+               * button, announced to a screen reader as a button, that did
+               * nothing whatsoever when a customer tapped it.
+               *
+               * Marking it read counts as something, so an unread row stays
+               * pressable either way. A read one with nowhere to go is a
+               * plain card, which is what it always was.
+               */
+              onPress={canOpen(notification) ? () => handleOpen(notification) : undefined}
               style={notification.read ? styles.readCard : styles.unreadCard}
               accessibilityLabel={`${notification.title}. ${notification.body}`}
               testID={`notification-${notification.id}`}

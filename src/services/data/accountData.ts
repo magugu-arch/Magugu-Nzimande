@@ -220,14 +220,48 @@ export const savedPaymentMethods: PaymentMethod[] = [
 ];
 
 export const notifications: AppNotification[] = [
+  /**
+   * The order this actually refers to, and a link that reaches it.
+   *
+   * It named BBQ-4821 — an order completed three days ago — and said it was
+   * on the way, received forty minutes ago. Two false statements on a screen
+   * a customer reads, produced by a seed written before there was any live
+   * order to point at. There is one now, so it points at that.
+   *
+   * The link went to `/orders`. An order notification that lands on the list
+   * rather than on the order is the app making the customer find the thing it
+   * just told them about.
+   */
   {
     id: 'notif-1',
     title: 'Your order is on the way',
-    body: 'Sipho has collected order BBQ-4821 and is heading to you.',
-    receivedAt: new Date(Date.now() - 40 * 60_000).toISOString(),
+    body: 'Your driver has collected order BBQ-4830 and is heading to you.',
+    receivedAt: new Date(Date.now() - 12 * 60_000).toISOString(),
     read: false,
     category: 'order',
-    href: '/orders',
+    href: '/order/order-4830',
+  },
+  /**
+   * A notification with nowhere to go, which is the shape the seed never had.
+   *
+   * `AppNotification.category` has four members and only three were ever
+   * seeded; `href` is optional and every seeded notification carried one. So
+   * the row that has no destination had never rendered — and every row is
+   * drawn as a pressable card, which meant a notification like this one
+   * presented itself as a button and did nothing when a customer tapped it.
+   *
+   * A service advisory is the ordinary case for that. Load-shedding delaying
+   * a kitchen is not a screen anybody can be sent to; it is a thing to be
+   * told. The copy names no schedule and no stage, because neither is
+   * something this repository knows.
+   */
+  {
+    id: 'notif-5',
+    title: 'Load-shedding may delay orders tonight',
+    body: 'Some kitchens are on backup power. Collection is quickest if you are nearby.',
+    receivedAt: new Date(Date.now() - 5 * 3_600_000).toISOString(),
+    read: false,
+    category: 'system',
   },
   {
     id: 'notif-2',
