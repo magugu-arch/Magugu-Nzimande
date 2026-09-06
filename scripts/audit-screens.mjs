@@ -125,6 +125,14 @@ const ROUTES = [
   // failed, a booking whose slot has been and gone, and a push pointing at an
   // order that is no longer there.
   '/order/order-4854', '/order/order-4856', '/order/order-3980',
+  // Cash on delivery with the first unhappy rating, Instant EFT with a line
+  // nobody chose an option on, dine-in ordered at the counter with no table,
+  // and an order whose branch has since closed.
+  '/order/order-4862', '/order/order-4864', '/order/order-4866', '/order/order-4870',
+  // The one category with a single product in it.
+  '/menu?category=rice-bowls',
+  // A reward reached from a notification rather than the rewards list.
+  '/rewards/reward-fries',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -273,6 +281,19 @@ const MUST_SHOW = {
   // "Something went wrong · Check your connection" over a Try again button
   // that could never work.
   '/order/order-3980': /We can't find that order/,
+  // The rail the app offers most for delivery, and the first order anybody was
+  // unhappy with. `describePaymentMethod`'s cash branch had no seeded example.
+  '/order/order-4862': /Cash on delivery[\s\S]*Arrived cold/,
+  // Instant EFT, on a line where nothing was chosen — every seeded line had
+  // carried at least one option, so the empty caption had never been hidden.
+  '/order/order-4864': /Instant EFT/,
+  // Dine-in with no table to bring it to.
+  '/order/order-4866': /BBQ-4866/,
+  // A branch that has closed. The order carries its own snapshot, which is why
+  // the receipt still knows where it was bought.
+  '/order/order-4870': /bb\.q Chicken Braamfontein/,
+  '/menu?category=rice-bowls': /Korean Rice Bowl/,
+  '/rewards/reward-fries': /Free French Fries/,
   // A campaign whose dish lost the last option in its required group. The
   // promotion stands; the button stops promising it.
   '/offers/promo-cheesling-fries': /Every choice under "Size" is sold out[\s\S]*Sold out/,

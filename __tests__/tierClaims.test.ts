@@ -153,7 +153,19 @@ describe('what the copy claims about tiers', () => {
 
   it('quotes the gap to the next tier that the ladder computes', () => {
     const next = nextTierOf(loyaltyAccount);
-    const nudges = sentences.filter(({ text }) => /points? (?:from|to)\s+[A-Z]/.test(text));
+    /*
+      A number, then "points to <Tier>" — not any sentence that happens to put
+      a capital letter after the word.
+
+      The filter was `/points? (?:from|to)\s+[A-Z]/`, which is a shape and not
+      a claim: a promotion reading "Every order earns twice the points from
+      Friday to Sunday" matched it, and the check then extracted no digits at
+      all and compared 0 against the ladder's gap. A guard that fires on a
+      sentence with no number in it is not checking a number.
+    */
+    const nudges = sentences.filter(({ text }) =>
+      /\d[\d\s  ]*\s*points? (?:from|to)\s+[A-Z]/.test(text),
+    );
     expect(nudges.length).toBeGreaterThan(0);
 
     for (const { where, text } of nudges) {

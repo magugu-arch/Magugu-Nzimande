@@ -352,6 +352,59 @@ export const notifications: AppNotification[] = [
    * branch are what catch it; this is what makes them reachable from a real
    * row rather than only by typing a URL.
    */
+  /**
+   * A list long enough to scroll, which the seed had never had.
+   *
+   * Seven rows fit on a phone with room to spare, so the notifications screen
+   * had only ever been rendered as a short list — no scrolling, no read/unread
+   * mix past the fold, and the "Mark all read" control always in view. Somebody
+   * who has used the app for a season has dozens. These are the ordinary
+   * shapes: order updates that came and went, and promotions that expired.
+   */
+  {
+    id: 'notif-8',
+    title: 'Your order is on its way',
+    body: 'BBQ-4795 has left bb.q Chicken Fourways.',
+    receivedAt: new Date(Date.now() - 8 * 86_400_000).toISOString(),
+    read: true,
+    category: 'order',
+    href: '/order/order-4795',
+  },
+  {
+    id: 'notif-9',
+    title: 'Double points this weekend',
+    body: 'Every order earns twice the points from Friday to Sunday.',
+    receivedAt: new Date(Date.now() - 11 * 86_400_000).toISOString(),
+    read: true,
+    category: 'promotion',
+    href: '/rewards',
+  },
+  {
+    id: 'notif-10',
+    title: 'Free French Fries is ready to claim',
+    body: 'You have enough points. It is waiting in your rewards.',
+    receivedAt: new Date(Date.now() - 13 * 86_400_000).toISOString(),
+    read: true,
+    category: 'reward',
+    href: '/rewards/reward-fries',
+  },
+  {
+    id: 'notif-11',
+    title: 'Thanks for rating BBQ-4610',
+    body: 'Your feedback goes straight to the branch.',
+    receivedAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
+    read: true,
+    category: 'order',
+    href: '/order/order-4610',
+  },
+  {
+    id: 'notif-12',
+    title: 'Your card was charged',
+    body: 'R 324.00 for BBQ-4821, paid with Visa ending 4821.',
+    receivedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+    read: true,
+    category: 'system',
+  },
   {
     id: 'notif-7',
     title: 'Your order is on its way',

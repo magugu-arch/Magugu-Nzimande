@@ -12,7 +12,7 @@ import {
   restoreVoucher,
   seedOrderPoints,
 } from './rewardsService';
-import { orderPointsEntry } from './data/rewardsData';
+import { cancelledPointsEntry, orderPointsEntry } from './data/rewardsData';
 import {
   deliveryProvider,
   deliveryStatusToOrderStatus,
@@ -1573,6 +1573,219 @@ function seedHistory(): void {
   });
 
   /**
+   * Cash on delivery, and the first order anybody was unhappy with.
+   *
+   * Two gaps in one, because they belong together: the rail the app offers
+   * most prominently for delivery had never appeared on a receipt, and every
+   * seeded rating was 3 or better. `paymentMethodLabel` had only ever read
+   * "Visa ending 4821", "Mastercard ending 7702" or "SnapScan", so
+   * `describePaymentMethod`'s cash branch — the one that stops a receipt
+   * saying "Paid with: Card" for money handed over at a front door — had no
+   * seeded example. And the rating screen's whole unhappy half, "What went
+   * wrong?" and `NEGATIVE_TAGS`, was reachable only by tapping a star in the
+   * session.
+   */
+  const cashPlacedAt = new Date(Date.now() - 41 * 86_400_000);
+  ledger.push({
+    id: 'order-4862',
+    reference: 'BBQ-4862',
+    placedAt: cashPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'completed',
+    timeline: buildTimeline('delivery', 'completed', cashPlacedAt, 42),
+    lines: [
+      {
+        id: 'hot-spicy-wings__hot-spicy-wings-size:hot-spicy-wings-size-6',
+        productId: 'hot-spicy-wings',
+        name: 'Hot Spicy Wings',
+        assetKey: 'hotSpicyWings',
+        unitBasePrice: 165,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'hot-spicy-wings-size',
+            groupName: 'How many wings?',
+            optionId: 'hot-spicy-wings-size-6',
+            optionName: '6 wings',
+            priceDelta: 0,
+          },
+        ],
+        unitPrice: 165,
+        lineTotal: 165,
+      },
+    ],
+    totals: {
+      subtotal: 165,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 202,
+      pointsEarned: 165,
+    },
+    ...storeSnapshot('store-fourways'),
+    addressId: 'address-home',
+    addressSummary: '14 Acacia Road, Melrose Arch',
+    paymentMethodLabel: describePaymentMethod('cash'),
+    etaMinutes: 42,
+    rating: 1,
+    ratingComment: 'Arrived cold and forty minutes past the time I was given.',
+  });
+
+  /**
+   * Instant EFT, and a line with nothing chosen on it.
+   *
+   * The second rail, and the second gap: every one of the ~30 seeded lines
+   * carried at least one selected option, because every product has at least
+   * one option group and the seeded ones all picked something. A product whose
+   * only group is optional — Rose Ddeok-Bokki, the ddeok-bokki, the cheese one
+   * — can perfectly well be ordered plain, and then `describeOptions` returns
+   * an empty string and every screen that draws a line has to hide its caption
+   * rather than print a stray separator.
+   */
+  const eftPlacedAt = new Date(Date.now() - 47 * 86_400_000);
+  ledger.push({
+    id: 'order-4864',
+    reference: 'BBQ-4864',
+    placedAt: eftPlacedAt.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'completed',
+    timeline: buildTimeline('collection', 'completed', eftPlacedAt, 22),
+    lines: [
+      {
+        id: 'ddeok-bokki',
+        productId: 'ddeok-bokki',
+        name: 'Ddeok-Bokki',
+        assetKey: 'ddeokBokki',
+        unitBasePrice: 72,
+        quantity: 2,
+        selectedOptions: [],
+        unitPrice: 72,
+        lineTotal: 144,
+      },
+    ],
+    totals: {
+      subtotal: 144,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 149,
+      pointsEarned: 144,
+    },
+    ...storeSnapshot('store-vanda'),
+    paymentMethodLabel: describePaymentMethod('eft'),
+    etaMinutes: 22,
+    rating: 4,
+  });
+
+  /**
+   * Dine-in, ordered at the counter, with no table to bring it to.
+   *
+   * `tableNumber` is optional and both seeded dine-in orders carried one, so
+   * the branches that guard it — the confirmation row and, since a live
+   * dine-in order was seeded, the tracking screen's — had only ever been
+   * true. Somebody who orders at the till and then finds a seat is the
+   * ordinary way a dine-in order has no table on it.
+   */
+  const counterPlacedAt = new Date(Date.now() - 53 * 86_400_000);
+  ledger.push({
+    id: 'order-4866',
+    reference: 'BBQ-4866',
+    placedAt: counterPlacedAt.toISOString(),
+    fulfilmentType: 'dinein',
+    status: 'completed',
+    timeline: buildTimeline('dinein', 'completed', counterPlacedAt, 18),
+    lines: [
+      {
+        id: 'chicken-rice-meal',
+        productId: 'chicken-rice-meal',
+        name: 'Chicken & Rice Meal',
+        assetKey: 'chickenRiceMeal',
+        unitBasePrice: 119,
+        quantity: 1,
+        selectedOptions: [],
+        unitPrice: 119,
+        lineTotal: 119,
+      },
+    ],
+    totals: {
+      subtotal: 119,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 124,
+      pointsEarned: 119,
+    },
+    ...storeSnapshot('store-rosebank'),
+    paymentMethodLabel: 'Mastercard ending 7702',
+    etaMinutes: 18,
+    rating: 5,
+  });
+
+  /**
+   * An order placed at a branch that has since closed.
+   *
+   * Every seeded order named a branch still in `stores`, so the reason the
+   * order carries a *snapshot* of the store rather than an id had never been
+   * demonstrated: the name, phone and address are copied at placement
+   * precisely so a receipt survives the branch. Written out here rather than
+   * through `storeSnapshot`, which looks the id up and falls back to the first
+   * branch in the list — a fallback that would have quietly re-attributed this
+   * order to Sandton City.
+   *
+   * No coordinates, so the receipt offers no directions: sending somebody to a
+   * shopfront that is not there any more is worse than saying nothing.
+   */
+  const closedPlacedAt = new Date(Date.now() - 96 * 86_400_000);
+  ledger.push({
+    id: 'order-4870',
+    reference: 'BBQ-4870',
+    placedAt: closedPlacedAt.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'completed',
+    timeline: buildTimeline('collection', 'completed', closedPlacedAt, 20),
+    lines: [
+      {
+        id: 'cheesling__cheesling-size:cheesling-size-small',
+        productId: 'cheesling',
+        name: 'Cheesling Chicken',
+        assetKey: 'cheesling',
+        unitBasePrice: 175,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'cheesling-size',
+            groupName: 'Choose your size',
+            optionId: 'cheesling-size-small',
+            optionName: 'Small · 6 pieces',
+            priceDelta: 0,
+          },
+        ],
+        unitPrice: 175,
+        lineTotal: 175,
+      },
+    ],
+    totals: {
+      subtotal: 175,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 180,
+      pointsEarned: 175,
+    },
+    storeId: 'store-braamfontein',
+    storeName: 'bb.q Chicken Braamfontein',
+    storePhone: '',
+    storeAddress: '72 Juta Street, Braamfontein',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 20,
+    rating: 4,
+  });
+
+  /**
    * A courier the network is authorised to track, which nothing had produced.
    *
    * `trackingAvailable` is `false` on every job the mock creates, deliberately
@@ -1656,6 +1869,16 @@ function seedHistory(): void {
     if (order) {
       seedOrderPoints([orderPointsEntry(id, order, new Date(order.placedAt))]);
     }
+  }
+
+  /*
+    And the row for the order that was called off, which is the third shape the
+    ledger can hold and the one it had never held. Derived like the others: the
+    first draft typed −212 against an order that had earned 149.
+  */
+  const cancelled = ledger.find((candidate) => candidate.reference === 'BBQ-4788');
+  if (cancelled) {
+    seedOrderPoints([cancelledPointsEntry('points-5', cancelled, new Date(cancelled.placedAt))]);
   }
 }
 

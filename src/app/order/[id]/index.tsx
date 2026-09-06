@@ -421,6 +421,30 @@ export default function OrderTrackingScreen() {
           {...(data.voucherCode ? { voucherCode: data.voucherCode } : {})}
           {...(data.rewardName ? { rewardName: data.rewardName } : {})}
         />
+
+        {/*
+          How it was paid for, which the receipt had never said.
+
+          `paymentMethodLabel` is written onto every order at placement — and
+          carefully: `describePaymentMethod` exists so that an order settled in
+          cash at a front door does not come back reading "Paid with: Card".
+          All that care, and the label was drawn on exactly one screen, the
+          confirmation, seen once immediately after paying. Come back to the
+          order and there was nothing to say whether the money left a card, a
+          bank account or a wallet.
+
+          The third fact in a row to do this — the dine-in table number and the
+          words somebody wrote when they rated an order were the other two. A
+          receipt is what somebody checks a week later; a confirmation is what
+          they glance at once.
+        */}
+        <Divider spacingSize="sm" />
+        <View style={styles.paidRow} testID="order-paid-with">
+          <Ionicons name="card-outline" size={16} color={colors.textMuted} />
+          <Text variant="caption" color={colors.textSecondary}>
+            Paid with {data.paymentMethodLabel}
+          </Text>
+        </View>
       </Card>
 
       {/* Reaching the store */}
@@ -577,6 +601,7 @@ const styles = StyleSheet.create({
   // every other row in the app.
   contactRows: { paddingHorizontal: spacing.lg },
   actions: { gap: spacing.sm, paddingBottom: spacing.xxxl },
+  paidRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   ratedBlock: { gap: spacing.xs },
   ratedComment: { paddingLeft: spacing.lg + spacing.xs },
   ratedRow: {

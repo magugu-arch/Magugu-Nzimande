@@ -479,6 +479,33 @@ export function orderPointsEntry(
 }
 
 /**
+ * Points taken back, which the ledger had never shown.
+ *
+ * Three shapes of row exist and only two were seeded: an order earning, and a
+ * redemption spending. `cancelOrder` takes the points back with a negative
+ * `lifetimeDelta` — the one case where lifetime falls, because an order that
+ * was called off never really earned anything — and no seeded row described
+ * it. A customer whose balance went down for a reason that is not a redemption
+ * had nothing in the list to explain it.
+ *
+ * Derived from the order, like the earning rows, and for the same reason: the
+ * first draft of this typed −212 against an order that had earned 149.
+ */
+export function cancelledPointsEntry(
+  id: string,
+  order: { reference: string; totals: { pointsEarned: number } },
+  occurredAt: Date,
+): PointsEntry {
+  return {
+    id,
+    description: `Order ${order.reference} cancelled · points returned`,
+    points: -order.totals.pointsEarned,
+    occurredAt: occurredAt.toISOString(),
+    orderReference: order.reference,
+  };
+}
+
+/**
  * The rows that are not about an order, which have nothing to derive from.
  *
  * A redemption and a tier bonus are events in the programme rather than

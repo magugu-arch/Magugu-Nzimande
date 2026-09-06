@@ -176,16 +176,23 @@ describe('an earn rate that follows the tier', () => {
  * nobody had put them side by side.
  */
 describe('the points ledger and the receipts', () => {
+  /**
+   * Earning rows credit what the receipt says; the reversal row for a
+   * cancelled order takes exactly that back. Both are written from the order,
+   * which is the point — this used to compare every order row against
+   * `pointsEarned` and would have called the reversal wrong for being negative.
+   */
   it('credits each order exactly what its receipt says', async () => {
     seedOrderLedger();
     const [orders, account] = await Promise.all([fetchOrders(), fetchLoyaltyAccount()]);
     const rows = account.history.filter((entry) => entry.orderReference);
 
-    expect(rows.length).toBeGreaterThanOrEqual(2);
+    expect(rows.length).toBeGreaterThanOrEqual(3);
     for (const row of rows) {
       const order = orders.find((candidate) => candidate.reference === row.orderReference);
       expect(order).toBeDefined();
-      expect(row.points).toBe(order?.totals.pointsEarned);
+      expect(Math.abs(row.points)).toBe(order?.totals.pointsEarned);
+      expect(row.points < 0).toBe(order?.status === 'cancelled');
     }
   });
 
