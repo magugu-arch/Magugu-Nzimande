@@ -43,8 +43,28 @@ export function DialogHost() {
         // Tapping the scrim is a dismissal, not an answer — so it resolves
         // false even where the affirmative is the friendly option.
         onPress={() => answer(id, false)}
-        accessibilityLabel="Dismiss"
-        accessibilityRole="button"
+        /*
+          Out of the tab order, and no longer announced as a control.
+
+          The scrim is a pointer convenience: tap outside to dismiss. It was
+          also a focusable button called "Dismiss", and because it comes first
+          in the modal it was the first thing a keyboard or screen-reader user
+          met — an offer to close the question, announced before the question.
+          Driven in Chromium, the tab cycle opened: Dismiss → title → Empty
+          cart → Keep it.
+
+          Nothing is lost by taking it out. Escape dismisses, `Keep it` is the
+          same answer said properly, and both are inside the card where somebody
+          looking for a way out will find them.
+
+          `focusable` and the role only — deliberately **not** `aria-hidden` or
+          `importantForAccessibility="no"`. The first attempt used those and the
+          dialog's own tests failed instantly: this element wraps the card, and
+          both of those are inherited, so hiding the scrim hid the question
+          inside it from the accessibility tree as well. A scrim that is not a
+          control is the goal; a dialog nobody can hear is not.
+        */
+        focusable={false}
         testID="dialog-scrim"
       >
         {/* Swallows taps so a press inside the card never reaches the scrim. */}
