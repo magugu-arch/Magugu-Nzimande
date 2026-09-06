@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 91 suites; `npm test` prints the count                                                                  |
+| Tests            | 92 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -408,6 +408,16 @@ These fail loudly rather than rotting quietly — leave them on.
   journey; this is the only thing that checks the pieces connect. It runs
   against the mock layer, so it needs no backend — which also makes it a check
   that the mock still models the real API.
+
+  Four of its twelve steps are refusals, because the journey completing is only
+  half of what has to be true. It orders at half past three in the morning
+  against a branch saved while it was open, pays at 19:30 for an 18:00 slot
+  chosen at five, takes a voucher into a basket it has already outlived, and —
+  the one added last — sits on checkout with a live voucher until it dies and
+  then taps Place order. That tap used to reach a confirmation: the screen read
+  R 483.55 and the order went through at R 568.00, because the total is
+  recomputed at the tap and the recomputed figure went straight to the gateway
+  without anybody telling the customer it had changed.
 - **`npm run audit:screens`** renders every route at 390pt and 320pt and fails
   on anything sitting past the right edge, a page that scrolls sideways, a
   blank screen, a console error, a §32.6 gap — an interactive element with no

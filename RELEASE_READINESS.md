@@ -329,8 +329,15 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **91 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **92 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
+- `npm run smoke:order` — 12 steps, console clean. One order placed and four
+  refused, the last of them the one added this round: a customer sitting on
+  checkout when their voucher expires under them. Before the fix that tap
+  reached a confirmation — the screen read R 483.55 and the order was placed at
+  R 568.00, because the total is recomputed at the tap and the recomputed
+  figure went to the gateway without anybody telling the customer it had
+  changed. Driven both ways in Chromium to be sure the fix is what stopped it.
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green
 - The courier leg driven in a browser across a simulated 70 minutes: no driver

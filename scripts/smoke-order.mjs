@@ -407,6 +407,94 @@ try {
   }
   step('dropped a voucher that expired in the basket, and charged full price');
   await lapsed.close();
+
+  /**
+   * ── The number under the button, and the number the card is charged ───────
+   *
+   * The pass above advances the clock and *then* opens checkout, so the screen
+   * is drawn with the voucher already dead and the price it shows is the price
+   * it charges. That is the honest half of the story.
+   *
+   * The other half is the customer sitting on checkout when the code dies
+   * under them. `handlePlaceOrder` recomputes the total at the tap — a comment
+   * there says exactly why, "a voucher can expire between a render and a tap"
+   * — and then handed the recomputed figure straight to `authorise`. The new
+   * number was the correct number. Nobody told the customer it was a different
+   * one.
+   *
+   * Driven here before the fix: the screen read R 483.55, the tap went through
+   * to a confirmation, and the order was placed at R 568.00. Eighty-four rand
+   * more than the figure the button sat under.
+   */
+  const drifting = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+    timezoneId: 'Africa/Johannesburg',
+  });
+  await drifting.addInitScript(pinClock(LUNCHTIME));
+  const driftPage = await drifting.newPage();
+  const goDrift = (route) =>
+    driftPage.goto(BASE + route, { waitUntil: 'networkidle', timeout: 45000 });
+  const tapDrift = (id) =>
+    driftPage.locator(`[data-testid="${id}"]`).first().click({ timeout: 10000 });
+
+  await goDrift('/sign-in');
+  await driftPage.locator('[data-testid="sign-in-email"]').fill('smoke@example.co.za');
+  await driftPage.locator('[data-testid="sign-in-password"]').fill('chickenchicken');
+  await tapDrift('sign-in-submit');
+  await driftPage.waitForURL((u) => !u.pathname.endsWith('/sign-in'), { timeout: 20000 });
+
+  await goDrift('/menu');
+  await driftPage
+    .getByText('Golden Original Chicken', { exact: false })
+    .first()
+    .click({ timeout: 10000 });
+  await driftPage.waitForURL(/product\//, { timeout: 15000 });
+  await tapDrift('product-add-to-cart');
+
+  await goDrift('/checkout/address');
+  const driftAddress = await driftPage.evaluate(() =>
+    [...document.querySelectorAll('[data-testid]')]
+      .map((e) => e.getAttribute('data-testid'))
+      .find((i) => i?.startsWith('address-card-')),
+  );
+  if (!driftAddress) throw new Error('no saved address to choose (drift pass)');
+  await tapDrift(driftAddress);
+
+  await goDrift('/cart');
+  await driftPage.locator('[data-testid="cart-promo-input"]').fill(LAPSING_CODE);
+  await tapDrift('cart-promo-apply');
+  await driftPage.waitForTimeout(1500);
+
+  // In-app, so the voucher survives — and checkout therefore *renders* it live.
+  // That is the whole difference from the pass above.
+  await tapDrift('cart-checkout');
+  await driftPage.waitForURL(/checkout/, { timeout: 15000 });
+  await driftPage.waitForTimeout(1500);
+
+  const onScreen = await driftPage.evaluate(() => document.body.innerText);
+  if (!onScreen.includes(LAPSING_CODE_MARKER)) {
+    throw new Error('the voucher was not live at checkout; this pass would prove nothing');
+  }
+
+  // Eight days on, in the moment before `useNow`'s one-minute tick would
+  // redraw the screen. This is the window the customer taps in.
+  await driftPage.evaluate(() =>
+    window.__advanceTo(new Date(window.__t + 8 * 86400000).toISOString()),
+  );
+  await tapDrift('checkout-place-order');
+  await driftPage.waitForTimeout(3500);
+
+  if (/confirmation/.test(driftPage.url())) {
+    throw new Error('an order was placed at a total the screen never showed');
+  }
+  const refusal = await driftPage.evaluate(() => document.body.innerText);
+  if (!/Your total has gone up/.test(refusal) || !/Nothing has been charged/.test(refusal)) {
+    throw new Error(`the tap was refused without saying why: ${refusal.slice(0, 200)}`);
+  }
+  step('refused to charge a total the screen never showed, and said both figures');
+  await drifting.close();
 } catch (error) {
   failed = error instanceof Error ? error.message : String(error);
 } finally {

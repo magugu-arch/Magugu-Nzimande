@@ -245,7 +245,48 @@ export const savedPaymentMethods: PaymentMethod[] = [
     brand: 'Visa',
     isDefault: false,
   },
+  /**
+   * A card in its last month, which is the only card that can change its mind.
+   *
+   * The three above are settled: two expire years out and one expired years
+   * ago, so every card in the wallet gives the same answer today, tomorrow and
+   * next year. `cardHasExpired` is a comparison against the clock and nothing
+   * seeded had ever made it return a *different* answer than it did a moment
+   * earlier — which is exactly the state that showed checkout was deciding
+   * this once per screen and never again.
+   *
+   * A card valid through the end of this month and dead on the 1st is also the
+   * ordinary case. Everybody's wallet contains one twelve times over.
+   */
+  {
+    id: 'payment-mastercard-lastmonth',
+    type: 'card',
+    label: 'Mastercard ending 3310',
+    last4: '3310',
+    /*
+      Derived, not typed. A literal here would be a card expiring in some fixed
+      month, and the fixture would quietly become a fourth long-expired card
+      the month after it was written — still passing every test, testing
+      nothing. The same rule the notification copy follows one screen down: a
+      fact is derived, never restated beside itself.
+    */
+    expiry: expiryOfCurrentMonth(),
+    brand: 'Mastercard',
+    isDefault: false,
+  },
 ];
+
+/**
+ * This month, in the two-digit form printed on a card.
+ *
+ * `cardHasExpired` treats a card as valid through the end of the month it
+ * names, so this is a card that works today and does not work on the 1st.
+ */
+function expiryOfCurrentMonth(now: Date = new Date()): string {
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear() % 100).padStart(2, '0');
+  return `${month}/${year}`;
+}
 
 /**
  * A promotion push, written from the menu rather than typed beside it.

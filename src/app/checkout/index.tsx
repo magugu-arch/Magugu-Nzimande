@@ -26,6 +26,7 @@ import { authorisePayment, voidPayment } from '@/services/paymentService';
 import { safeToRetry, submitOrder, type SubmitFailure } from '@/features/checkout/submitOrder';
 import { offeredPaymentMethods, paymentCaption } from '@/features/checkout/paymentOptions';
 import { checkoutDefaults } from '@/features/checkout/checkoutDefaults';
+import { checkoutStillHonest } from '@/features/checkout/checkoutDrift';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { useNetworkStatus } from '@/features/system/useNetworkStatus';
 import { useNow } from '@/features/system/useNow';
@@ -113,15 +114,27 @@ export default function CheckoutScreen() {
 
   const totals = getTotals();
 
-  /** Rails offered for this fulfilment type — cash is delivery-only. */
   /**
-   * Saved cards plus the rails bb.q always accepts. This used to be only what
+   * How this order can be paid for: saved cards plus the rails bb.q always
+   * accepts, minus cash on anything but a delivery. This used to be only what
    * the account endpoint returned, which left a customer with no saved card
    * unable to pay at all — not even cash on delivery, which nobody saves.
+   *
+   * `now` is a dependency because the answer depends on it.
+   * `offeredPaymentMethods` also drops a card that has run out, and this memo
+   * was keyed on the saved list and the fulfilment type alone — so the filter
+   * ran once and its answer was fixed for as long as the screen stayed open,
+   * however long that was. A card expiring at the end of this month stayed
+   * selectable into next month. The same shape as the `blocker` memo before
+   * `useNow` existed, and written up there: a memo caching an answer derived
+   * from something it never declared.
+   *
+   * `useNow` already re-renders this screen every minute, so the tick costs
+   * nothing new; it was only ever the dependency list that ignored it.
    */
   const offered = useMemo(
-    () => offeredPaymentMethods(paymentMethods.data ?? [], fulfilmentType),
-    [paymentMethods.data, fulfilmentType],
+    () => offeredPaymentMethods(paymentMethods.data ?? [], fulfilmentType, now),
+    [paymentMethods.data, fulfilmentType, now],
   );
 
   /**
@@ -335,6 +348,37 @@ export default function CheckoutScreen() {
     // should not ask it to charge a figure the app itself knows is stale.
     const totalsNow = getTotals();
 
+    /*
+      The number under the button, against the number the card is charged.
+
+      `totalsNow` is recomputed here rather than taken from the render's
+      closure — the comment above says why — and the recomputed figure then
+      went straight to `authorise`. The new number is the right number. Nobody
+      told the customer it was a different one: they read R215 under a button,
+      pressed it, and their card was authorised for R245.
+
+      The card is re-read for the same reason. Its expiry was decided by the
+      `offered` memo, which is honest again now that it declares the clock, but
+      a memo is still a render's answer and this is a tap. Both are cheap and
+      both refuse rather than charge; see `checkoutDrift`.
+    */
+    const dishonest = checkoutStillHonest({
+      shownTotal: totals.total,
+      chargedTotal: totalsNow.total,
+      method: selectedPayment,
+      now: new Date(),
+    });
+    if (dishonest) {
+      // Released before returning, exactly as the fulfilment re-check above
+      // must — a blocked tap is the one a customer follows with another, and
+      // leaving the ref raised kills the button for the life of the screen.
+      inFlight.current = false;
+      // Nothing was sent anywhere, so this is as retryable as a decline. The
+      // screen re-renders on the next tick with the figure the message quotes.
+      setFailure({ status: 'declined', message: dishonest });
+      return;
+    }
+
     try {
       // Authorise, create the order, and give the money back if the order does
       // not happen. The sequence lives in `submitOrder` because it is the one
@@ -394,18 +438,26 @@ export default function CheckoutScreen() {
        *
        * `track` never throws, so nothing here can come between a paid order
        * and its confirmation screen.
+       *
+       * `totalsNow`, not the render's `totals`. This event is the app's own
+       * record of money taken, and it was reporting the figure on the screen
+       * rather than the figure sent to the gateway. The two are equal on every
+       * ordinary order — `checkoutStillHonest` above now refuses the tap when
+       * they are not — but reconciling revenue against a number the payment
+       * processor never saw is the kind of disagreement nobody traces back to
+       * a checkout screen.
        */
       track('purchase', {
         orderId: outcome.order.id,
-        value: totals.total,
+        value: totalsNow.total,
         // Through the rand helpers, not `+`. These figures are reconciled
         // against takings, and a float that drifts a cent per order is a
         // discrepancy somebody has to chase at month end.
-        fees: sumRand([totals.deliveryFee, totals.serviceFee]),
+        fees: sumRand([totalsNow.deliveryFee, totalsNow.serviceFee]),
         // Both kinds. A voucher and a redeemed reward are separate fields and
         // separate business decisions, but to a discount chart they are money
         // that did not arrive.
-        discount: sumRand([totals.discount, totals.rewardsDiscount]),
+        discount: sumRand([totalsNow.discount, totalsNow.rewardsDiscount]),
         itemCount: lines.length,
         fulfilment: fulfilmentType,
         storeId: store.id,
@@ -432,9 +484,19 @@ export default function CheckoutScreen() {
     lines,
     fulfilmentType,
     address,
-    // In the deps, unlike the analytics figures below it: this one is sent to
-    // the server. A stale closure here would hand the driver the note from
-    // before the customer edited it.
+    /*
+      The figure on screen, and it has to be *this* render's.
+
+      `checkoutStillHonest` compares what the customer read against what the
+      card would be charged, and a stale closure here would compare the tap's
+      total with some earlier render's — which is either a false alarm on an
+      order that never moved, or silence on one that did. It is the one value
+      in this callback where being out of date inverts the answer.
+    */
+    totals.total,
+    // In the deps for a different reason: this one is sent to the server. A
+    // stale closure here would hand the driver the note from before the
+    // customer edited it.
     deliveryInstructions,
     tableNumber,
     scheduledFor,
