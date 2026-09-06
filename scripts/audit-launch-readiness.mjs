@@ -456,23 +456,30 @@ if (unpaid.length > 0) {
 }
 
 /**
- * Enlarged text is the other thing only a handset can answer.
+ * Enlarged text, which the browser sweep can now answer for — up to a point.
  *
- * `assets:typefit` measures real advance widths and reports the headroom, and
- * it is 1.05× — beyond that the Button deliberately takes a second line and a
- * taller box rather than truncating, which is a considered trade rather than a
- * defect. What no browser can check is whether the *screens* still lay out
- * around those taller buttons, because React Native Web reports `fontScale` as
- * 1 whatever the OS is set to.
+ * This used to say a browser could check none of it, because React Native Web
+ * reports `fontScale: 1` whatever the OS is set to. That was true and it was
+ * also a defect rather than only a gap: RNW emits sizes in absolute pixels, so
+ * the web build ignored the *browser's* text-size setting outright and failed
+ * WCAG 1.4.4 while the native builds passed. `useFontScale` reads the setting
+ * the way a browser expresses it and `Text` applies it under the existing
+ * per-variant caps, so `audit:text-scale` can now drive 1.3× and 2× for real.
+ *
+ * What is left needs a handset, and it is a shorter list than it was.
  */
 note(
   'Enlarged text',
-  'Button labels fit on one line up to 1.05× the OS text size; past that they wrap to two ' +
-    'lines and the button grows, by design. Nothing here can check what that does to the ' +
-    'screens around them — React Native Web always reports a font scale of 1, so the browser ' +
-    'sweep is blind to it. On a device, turn the text size up to the largest non-accessibility ' +
-    'setting and walk the ordering journey: the checkout footer and the tracking card are the ' +
-    'two worth watching, since both put a tall button under content that is already dense.',
+  'Layout at enlarged text is now checked rather than assumed: `npm run audit:text-scale` ' +
+    'renders 24 of the densest routes at 1.3× and 2× at 320pt and fails on clipped text, ' +
+    'overlapping text or sideways scroll. It found the category tiles on Home clipping every ' +
+    'tagline at 2×, which is fixed. Two things still need a real device. The scales are the ' +
+    'browser\'s, and iOS reaches about 3.1× at the largest accessibility size — past 2× is ' +
+    'untested, and 2× is where WCAG stops rather than where iOS does. And the font metrics ' +
+    'are the browser\'s Montserrat, not the handset\'s, so line breaks in a button label can ' +
+    'fall differently by a word. On a device, turn the text size to the largest ' +
+    'accessibility setting and walk the ordering journey: the checkout footer and the ' +
+    'tracking card are still the two worth watching.',
   'you',
 );
 

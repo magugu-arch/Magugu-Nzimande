@@ -27,9 +27,32 @@ export default function RateOrderScreen() {
   const order = useOrder(id);
   const rateOrder = useRateOrder();
 
-  const [rating, setRating] = useState(0);
+  /**
+   * What the customer has changed, over what the order already says.
+   *
+   * The order carries a rating and this screen ignored it. Fourteen seeded
+   * orders have one, `rateOrder` stores it and the receipt shows it back — and
+   * opening this screen for an order already rated drew five empty stars, no
+   * tags, an empty comment box and a disabled "Submit rating". Somebody who
+   * came to change their mind was shown a form denying they had ever rated it;
+   * somebody who came to check what they had said was told nothing.
+   *
+   * Held as "null until touched" and resolved during render rather than copied
+   * into state by an effect. The order arrives asynchronously, so an effect
+   * would have to fire on the render after it lands and then never again — a
+   * ref and a guard, which the React Compiler correctly refuses ("calling
+   * setState synchronously within an effect can trigger cascading renders").
+   * Derived, there is no moment when the two disagree: before the customer
+   * touches anything the record shows through, and the instant they do, their
+   * edit wins for good.
+   */
+  const [ratingEdit, setRatingEdit] = useState<number | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [comment, setComment] = useState('');
+  const [commentEdit, setCommentEdit] = useState<string | null>(null);
+
+  const rating = ratingEdit ?? order.data?.rating ?? 0;
+  const comment = commentEdit ?? order.data?.ratingComment ?? '';
+  const setComment = setCommentEdit;
 
   const tags = rating >= 4 ? POSITIVE_TAGS : rating > 0 ? NEGATIVE_TAGS : [];
 
@@ -40,7 +63,7 @@ export default function RateOrderScreen() {
   }, []);
 
   const handleRatingChange = useCallback((value: number) => {
-    setRating(value);
+    setRatingEdit(value);
     // Tag sets differ by sentiment, so clear stale selections on a flip.
     setSelectedTags([]);
   }, []);
@@ -147,7 +170,14 @@ export default function RateOrderScreen() {
         ) : null}
 
         <Button
-          label="Submit rating"
+          /*
+            "Submit" is the wrong word for a rating that already exists. The
+            screen is reached from a receipt that shows the stars, so somebody
+            arriving here has either come to change their mind or to check what
+            they said — and being offered "Submit rating" over their own answer
+            reads as though it had never been recorded.
+          */
+          label={order.data.rating ? 'Update rating' : 'Submit rating'}
           onPress={() => void handleSubmit()}
           disabled={rating === 0}
           loading={rateOrder.isPending}

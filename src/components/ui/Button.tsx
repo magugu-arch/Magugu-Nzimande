@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  useWindowDimensions,
   View,
   type StyleProp,
   type ViewStyle,
@@ -11,6 +10,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, spacing, MIN_TOUCH_TARGET, elevation } from '@/theme';
+import { useFontScale } from '@/features/system/useFontScale';
 import { Text } from './Text';
 import { a11yState } from '@/utils/a11yState';
 
@@ -151,7 +151,13 @@ export const Button = memo(function Button({
    * and is allowed a second line and a taller box once the setting is turned
    * up. The cap in the type scale bounds how tall that can get.
    */
-  const { fontScale } = useWindowDimensions();
+  /*
+    Through `useFontScale` rather than `useWindowDimensions`, which reports 1 on
+    web whatever the browser is set to. That is what kept the second line from
+    ever appearing in a browser: the cap in the type scale was doing its half of
+    the job and the wrapping that absorbs the growth was doing none of it.
+  */
+  const fontScale = useFontScale();
   const enlarged = fontScale > 1;
 
   const handlePress = useCallback(() => {

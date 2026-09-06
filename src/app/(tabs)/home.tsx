@@ -255,18 +255,34 @@ export default function HomeScreen() {
                 accessibilityLabel={`${category.name}. ${category.tagline}`}
                 style={({ pressed }) => [styles.categoryTile, pressed ? styles.pressed : null]}
               >
+                {/*
+                  The photograph sits *behind* the label rather than above it in
+                  the flow, and the label is what gives the tile its height.
+
+                  It was the other way round: a 3:2 image defined the box and an
+                  absolutely-filled label floated over it, inside
+                  `overflow: hidden`. That is fine until the text grows. At the
+                  browser's largest text size `audit:text-scale` found every
+                  tagline on this screen cut off — 32px of "Double-fried,
+                  hand-glazed, unmistakably bb.q" gone — because the label had
+                  outgrown a box whose height came from a picture.
+
+                  `minHeight` keeps the tile the shape it was designed as while
+                  the text is small enough to fit, and lets it grow past that
+                  rather than clipping. The image covers whatever height results.
+                */}
                 <FoodImage
                   assetKey={category.assetKey}
                   variant="card"
-                  aspectRatio={3 / 2}
                   rounded="none"
                   withScrim
+                  style={styles.categoryImage}
                 />
                 <View style={styles.categoryLabel}>
                   <Text variant="h3" color={colors.textOnDark}>
                     {category.name}
                   </Text>
-                  <Text variant="micro" color={colors.textOnDarkMuted} numberOfLines={1}>
+                  <Text variant="micro" color={colors.textOnDarkMuted}>
                     {category.tagline}
                   </Text>
                 </View>
@@ -454,8 +470,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: colors.brand.black,
   },
+  categoryImage: absoluteFill,
   categoryLabel: {
-    ...absoluteFill,
+    /*
+      108 is what a 3:2 card comes to at the width these tiles take on a 320pt
+      screen, so at normal text size the grid looks exactly as it did. Past that
+      the label wins and the tile grows — which is the whole point.
+    */
+    minHeight: 108,
     justifyContent: 'flex-end',
     padding: spacing.md,
   },

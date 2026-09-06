@@ -15,6 +15,8 @@ import {
   Text,
 } from '@/components/ui';
 import { useLoyaltyAccount, useRedeemReward, useReward } from '@/features/rewards/hooks';
+import { rewardUnavailableReason } from '@/features/rewards/rewardAvailability';
+import { useMenu } from '@/features/menu/hooks';
 import { useNow } from '@/features/system/useNow';
 import { rewardExpired } from '@/services/rewardsService';
 import { rewardProgressLabel } from '@/features/rewards/progressLabel';
@@ -34,6 +36,8 @@ export default function RewardDetailScreen() {
 
   const reward = useReward(id);
   const loyalty = useLoyaltyAccount();
+  // Stock is the menu's business, not the reward record's. See `unavailable`.
+  const menu = useMenu();
   const redeemReward = useRedeemReward();
   const applyReward = useCartStore((state) => state.applyReward);
   const cartLines = useCartStore((state) => state.lines);
@@ -115,6 +119,16 @@ export default function RewardDetailScreen() {
    */
   const birthdayLocked = data.category === 'birthday' && !data.redeemable && !expired;
   const noDateOnFile = birthdayLocked && !user?.dateOfBirth;
+  /**
+   * Whether the dish this reward promises can be ordered today.
+   *
+   * The reward catalogue is a set of claims about the menu and nothing checked
+   * them: "Free Cheesling Fries" offered itself at 650 points while Cheesling
+   * Fries had every option in its required Size group sold out. See
+   * `rewardUnavailableReason` — and `promotedProductId`, which is the same
+   * problem the Offers screen solved for promotions a while ago.
+   */
+  const unavailable = rewardUnavailableReason(data, menu.data?.products);
 
   return (
     <Screen scroll edges={['top', 'bottom']} padded={false} testID="reward-detail-screen">
@@ -184,15 +198,17 @@ export default function RewardDetailScreen() {
             */}
             {expired
               ? 'This one has closed. Have a look at what else is on the ladder.'
-              : data.category === 'birthday'
-                ? noDateOnFile
-                  ? 'Add your date of birth to your profile and this unlocks in your birthday month.'
+              : unavailable
+                ? unavailable
+                : data.category === 'birthday'
+                  ? noDateOnFile
+                    ? 'Add your date of birth to your profile and this unlocks in your birthday month.'
+                    : data.redeemable
+                      ? 'It is your birthday month. This is yours whenever you want it.'
+                      : 'Unlocks automatically during your birthday month.'
                   : data.redeemable
-                    ? 'It is your birthday month. This is yours whenever you want it.'
-                    : 'Unlocks automatically during your birthday month.'
-                : data.redeemable
-                  ? 'You have enough points. Redeem it whenever you like.'
-                  : `${groupDigits(shortfall)} points to go — roughly ${formatPrice(shortfall)} of spending.`}
+                    ? 'You have enough points. Redeem it whenever you like.'
+                    : `${groupDigits(shortfall)} points to go — roughly ${formatPrice(shortfall)} of spending.`}
           </Text>
         </Card>
 
@@ -229,16 +245,20 @@ export default function RewardDetailScreen() {
             // here. Say which wall they have hit.
             expired
               ? 'This reward has expired'
-              : data.redeemable
-                ? 'Redeem this reward'
-                : noDateOnFile
-                  ? 'Add your date of birth'
-                  : birthdayLocked
-                    ? 'Unlocks in your birthday month'
-                    : 'Not enough points yet'
+              : unavailable
+                ? 'Sold out right now'
+                : data.redeemable
+                  ? 'Redeem this reward'
+                  : noDateOnFile
+                    ? 'Add your date of birth'
+                    : birthdayLocked
+                      ? 'Unlocks in your birthday month'
+                      : 'Not enough points yet'
           }
           onPress={() => void handleRedeem()}
-          disabled={!data.redeemable}
+          // Points are not the only wall. Spending them on a dish the kitchen
+          // cannot make is the one that costs the customer something.
+          disabled={!data.redeemable || Boolean(unavailable)}
           loading={redeemReward.isPending}
           size="lg"
           testID="reward-redeem"

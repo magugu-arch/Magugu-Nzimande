@@ -30,6 +30,24 @@ export interface Reward {
   description: string;
   pointsCost: number;
   assetKey?: FoodAssetKey;
+  /**
+   * The dish this reward is worth, when it is worth a dish.
+   *
+   * A `food` reward promises a specific item and had no way to name one. It
+   * carried a picture of it and a sentence about it, and neither is something
+   * the app can check anything against — so "Free Cheesling Fries" went on
+   * offering itself at 650 points while Cheesling Fries had every option in its
+   * required Size group sold out. A member could spend the points on a reward
+   * for something the menu would refuse to put in their basket.
+   *
+   * The Offers screen already solved exactly this for promotions, by reading
+   * the product id out of `ctaHref` — see `promotedProductId`. Rewards had no
+   * equivalent because there was nothing to read.
+   *
+   * Absent for `discount`, `delivery` and `birthday` rewards, which are worth a
+   * rand amount or a fee rather than a thing on the menu.
+   */
+  productId?: string;
   /** ISO date; undefined = no expiry. */
   expiresAt?: string;
   category: 'food' | 'discount' | 'delivery' | 'birthday';

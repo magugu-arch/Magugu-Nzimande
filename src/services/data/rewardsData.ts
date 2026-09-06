@@ -196,6 +196,7 @@ export const rewards: Reward[] = [
     description: 'A regular portion of our thick-cut fries, on the house.',
     pointsCost: 400,
     assetKey: 'frenchFries',
+    productId: 'french-fries',
     category: 'food',
     redeemable: true,
     termsAndConditions: [
@@ -210,6 +211,9 @@ export const rewards: Reward[] = [
     description: 'Upgrade to the fries everyone actually fights over.',
     pointsCost: 650,
     assetKey: 'cheeslingFries',
+    // The one whose dish cannot currently be made: every option in Cheesling
+    // Fries' required Size group is sold out. See `rewardAvailability`.
+    productId: 'cheesling-fries',
     category: 'food',
     redeemable: true,
     termsAndConditions: ['Redeemable on any order over R150.', 'One reward per order.'],
@@ -229,6 +233,7 @@ export const rewards: Reward[] = [
     description: 'Six wings added to your order, no charge.',
     pointsCost: 1200,
     assetKey: 'goldenOriginalWings',
+    productId: 'golden-original-wings',
     category: 'food',
     redeemable: true,
     termsAndConditions: ['Redeemable on any order over R250.', 'One reward per order.'],

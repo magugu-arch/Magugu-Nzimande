@@ -329,7 +329,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **87 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **88 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `audit:points`, `audit:returning`, `audit:guest`, `audit:offline`,
   `audit:handover`, `audit:delivery-range` — all green

@@ -43,6 +43,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run assets:typefit` | Measure every button label against §22.4's geometry and fail on overflow |
 | `npm run preview:web` | Run the whole app in a browser — layout and type, no build needed |
 | `npm run audit:screens` | Render all 69 routes at two widths; fail on overflow, blank screens, console errors or §32.6 gaps |
+| `npm run audit:text-scale` | Render 24 dense routes at 1.3x and 2x the browser's text size; fail on clipped or overlapping text |
 | `npm run smoke:order` | Sign in, add an item and place an order end to end against the mock layer |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |
