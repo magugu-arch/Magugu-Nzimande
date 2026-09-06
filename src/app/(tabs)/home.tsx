@@ -15,6 +15,7 @@ import { openingStatus } from '@/features/stores/opening';
 import { useStoresForFulfilment } from '@/features/stores/hooks';
 import { PromotionBanner } from '@/features/home/components/PromotionBanner';
 import { ProductCard } from '@/features/menu/components/ProductCard';
+import { orderableFirst } from '@/features/menu/availability';
 import {
   useBestSellers,
   useCategories,
@@ -68,6 +69,24 @@ export default function HomeScreen() {
   const categories = useCategories();
   const popular = usePopularProducts(8);
   const bestSellers = useBestSellers(6);
+  /**
+   * Both rows with today's stock applied over the catalogue's ranking.
+   *
+   * `orderableFirst` was written for the "Goes well with" carousel on the
+   * product screen and applied only there, which left the same defect on the
+   * busiest screen in the app. Rose Ddeok-Bokki is tagged `popular` and is
+   * withdrawn, so "Popular right now" led with a dish nobody could buy — on
+   * Home, above the fold, to every customer who opens the app.
+   *
+   * Sunk rather than dropped, for the same reason as before: the card says
+   * "Sold out" in its badge and its accessible name, and a shorter row that
+   * pretends the dish never existed is worse than an honest one.
+   */
+  const popularRanked = useMemo(() => orderableFirst(popular.data ?? []), [popular.data]);
+  const bestSellersRanked = useMemo(
+    () => orderableFirst(bestSellers.data ?? []),
+    [bestSellers.data],
+  );
   const promotions = usePromotions();
   const loyalty = useLoyaltyAccount();
   const activeOrder = useActiveOrder();
@@ -331,7 +350,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.carousel}
           >
-            {(popular.data ?? []).map((product) => (
+            {popularRanked.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -386,7 +405,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.carousel}
           >
-            {(bestSellers.data ?? []).map((product) => (
+            {bestSellersRanked.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}

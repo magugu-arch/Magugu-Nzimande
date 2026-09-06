@@ -115,8 +115,26 @@ function serve() {
 
   return new Promise((resolve) => {
     const server = createServer((req, res) => {
-      const url = decodeURIComponent((req.url ?? '/').split('?')[0]);
-      let file = path.join(OUT, url);
+      /*
+        Contained, which the first version of this file was not.
+
+        It built the path from the raw request target — `path.join(OUT, url)`
+        after a bare `decodeURIComponent` — and Node's http server does not
+        normalise `req.url`. So `..` segments survived into the join, and
+        `%2e%2e` was decoded into them first. Every other audit script in this
+        repository goes through `new URL(...).pathname`, which folds both forms;
+        this one had dropped that step. A security review of the branch found
+        it, and it was the only finding.
+
+        Two guards rather than one. The URL parser does the folding, and the
+        resolve-and-prefix check states the invariant these servers actually
+        depend on instead of leaving it as a side effect of somebody else's
+        parser. Both are cheap and only one of them can be got wrong quietly.
+      */
+      const pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
+      let file = path.resolve(OUT, '.' + pathname);
+      if (file !== OUT && !file.startsWith(OUT + path.sep)) file = path.join(OUT, 'index.html');
+
       // Client-side routing: anything without an extension is the app itself.
       if (!path.extname(file) || !existsSync(file) || statSync(file).isDirectory()) {
         file = path.join(OUT, 'index.html');
@@ -124,7 +142,9 @@ function serve() {
       res.writeHead(200, { 'content-type': types[path.extname(file)] ?? 'application/octet-stream' });
       createReadStream(file).pipe(res);
     });
-    server.listen(PORT, () => resolve(server));
+    // Loopback only. These servers exist for the length of one sweep and have
+    // no business being reachable from the network the machine happens to be on.
+    server.listen(PORT, '127.0.0.1', () => resolve(server));
   });
 }
 

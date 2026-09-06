@@ -1,4 +1,5 @@
 import type { CartLine, Product } from '@/types';
+import { isSoldOut } from '@/features/menu/availability';
 
 /**
  * What a reorder can actually put back in the basket.
@@ -30,9 +31,26 @@ export function planReorder(lines: CartLine[], products: Product[]): ReorderPlan
 
   for (const line of lines) {
     const product = byId.get(line.productId);
-    // Off the menu entirely, or on it and withdrawn — the same outcome for the
-    // customer, and both worth naming.
-    if (!product || !product.available) {
+    /*
+      Three ways a dish cannot come back, not two.
+
+      This read `!product.available`, which is the narrower question, and the
+      rest of the app stopped asking it a while ago: the menu list, the product
+      screen, the offers screen and the rewards catalogue all go through
+      `isSoldOut`, which also catches a product still marked available whose
+      required option group has nothing left in it.
+
+      Reorder was the last caller reading the flag directly, and there is a
+      seeded order that proves it. BBQ-4821 contains Cheesling Fries, which is
+      on the menu with every option in its required Size group withdrawn. "Order
+      again" put the line straight back in the basket and said nothing —
+      `product.available` is true — and `reconcileCart` then dropped it on the
+      cart screen, because that *does* re-resolve every chosen option. So the
+      customer was told "Added what we could", opened a basket that quietly
+      differed from it, and the dialogue that exists to name exactly that had
+      named nothing.
+    */
+    if (!product || isSoldOut(product)) {
       unavailable.push(line.name);
       continue;
     }

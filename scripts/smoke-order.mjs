@@ -47,7 +47,7 @@ function serve() {
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
     createReadStream(file).pipe(res);
   });
-  return new Promise((resolve) => server.listen(PORT, () => resolve(server)));
+  return new Promise((resolve) => server.listen(PORT, '127.0.0.1', () => resolve(server)));
 }
 
 let chromium;

@@ -74,7 +74,7 @@ const server = createServer((request, response) => {
   createReadStream(file).pipe(response);
 });
 
-await new Promise((resolve) => server.listen(PORT, resolve));
+await new Promise((resolve) => server.listen(PORT, '127.0.0.1', resolve));
 
 mkdirSync(SHOTS, { recursive: true });
 

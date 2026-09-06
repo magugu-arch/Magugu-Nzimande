@@ -292,6 +292,23 @@ export default function CheckoutScreen() {
       now: new Date(),
     });
     if (stillBlocked) {
+      /*
+        Released before returning, and that was missing.
+
+        `inFlight` is raised above and lowered in the `finally` of the try
+        below — but this return happens before the try, so nothing lowered it.
+        One blocked tap left the ref true for the life of the screen, and every
+        later tap hit `if (inFlight.current) return` at the top and did
+        nothing at all.
+
+        The blocked tap is exactly the one a customer follows with another.
+        They tap Place order as the branch closes, are told so, pick a later
+        slot or a different store — and the button is dead, silently, with no
+        failure on screen and no way back short of leaving checkout. Found by
+        a security review of this branch, as a functional note rather than a
+        vulnerability, which is what it is.
+      */
+      inFlight.current = false;
       // Nothing was sent anywhere, so this is as retryable as a decline.
       setFailure({ status: 'declined', message: stillBlocked });
       return;
