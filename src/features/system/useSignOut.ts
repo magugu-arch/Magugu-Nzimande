@@ -31,7 +31,10 @@ import { useFulfilmentStore } from '@/store/fulfilmentStore';
  * sheet has been shown. Those are facts about the handset rather than about
  * whoever was holding it.
  */
-export function useSignOut(): { signOut: () => Promise<void>; forgetLocally: () => void } {
+export function useSignOut(): {
+  signOut: () => Promise<void>;
+  forgetLocally: (options?: { redirect?: boolean }) => void;
+} {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -40,13 +43,26 @@ export function useSignOut(): { signOut: () => Promise<void>; forgetLocally: () 
   const clearCart = useCartStore((state) => state.clear);
   const forgetFulfilment = useFulfilmentStore((state) => state.forgetPerson);
 
-  /** Everything except telling the server, which the two paths differ on. */
-  const forget = useCallback(() => {
-    clearCart();
-    forgetFulfilment();
-    queryClient.clear();
-    router.replace('/(auth)/sign-in');
-  }, [clearCart, forgetFulfilment, queryClient, router]);
+  /**
+   * Everything except telling the server, which the two paths differ on.
+   *
+   * `redirect` is false for exactly one caller: a session that expired while a
+   * payment was in flight. Everything is still forgotten — the basket, the
+   * address, the query cache — because none of that depends on where the
+   * customer is standing. What must not happen is replacing the route, because
+   * the screen underneath is holding "your order did not go through, but your
+   * card was authorised — call the store", and navigating away from that
+   * leaves somebody with a hold on their card and no idea it exists.
+   */
+  const forget = useCallback(
+    ({ redirect = true }: { redirect?: boolean } = {}) => {
+      clearCart();
+      forgetFulfilment();
+      queryClient.clear();
+      if (redirect) router.replace('/(auth)/sign-in');
+    },
+    [clearCart, forgetFulfilment, queryClient, router],
+  );
 
   const signOut = useCallback(async () => {
     // Unbind the handset first, while the request can still authenticate.
@@ -66,15 +82,18 @@ export function useSignOut(): { signOut: () => Promise<void>; forgetLocally: () 
     }
   }, [signOutRemote, forget]);
 
-  const forgetLocally = useCallback(() => {
-    // An expired session cannot authenticate a revoke, so this only drops the
-    // app's own memory of the token. The server will stop trusting the session
-    // anyway; the binding is cleaned up on the next deliberate sign-out or the
-    // next sign-in, whichever comes first.
-    void revokePushToken().catch(() => false);
-    signOutLocally();
-    forget();
-  }, [signOutLocally, forget]);
+  const forgetLocally = useCallback(
+    ({ redirect = true }: { redirect?: boolean } = {}) => {
+      // An expired session cannot authenticate a revoke, so this only drops the
+      // app's own memory of the token. The server will stop trusting the session
+      // anyway; the binding is cleaned up on the next deliberate sign-out or the
+      // next sign-in, whichever comes first.
+      void revokePushToken().catch(() => false);
+      signOutLocally();
+      forget({ redirect });
+    },
+    [signOutLocally, forget],
+  );
 
   return { signOut, forgetLocally };
 }

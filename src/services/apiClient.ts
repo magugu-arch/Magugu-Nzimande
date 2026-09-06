@@ -164,9 +164,78 @@ async function parseError(response: Response): Promise<ApiError> {
  * way out is finding Sign out in the account menu.
  */
 
-type SessionExpiredHandler = () => void;
+/**
+ * Why the handler is told *when* the session died, not only that it did.
+ *
+ * The ordinary expiry is somebody returning to a stale app: forget them, and
+ * put them on the sign-in screen rather than a page of error states.
+ *
+ * An expiry that lands while a payment is in flight is a different event, and
+ * it was driven by `audit:wire`. The card authorises; `/v1/orders` answers 401;
+ * the refresh fails; this handler fires and clears the basket and replaces the
+ * route — all while `submitOrder` is still awaiting. It then returns
+ * `stranded`, the outcome that exists to say "your card was authorised and
+ * there is no order; call the store" — and there is no longer a screen to say
+ * it on. The customer reads "Welcome back. Sign in to reorder your
+ * favourites." with a hold on their card and no idea it is there.
+ *
+ * So the app is given the one fact it needs to keep that message on screen.
+ */
+export interface SessionExpiry {
+  /** True when money may already have moved. See `holdSessionExpiryWhile`. */
+  duringPayment: boolean;
+}
+
+type SessionExpiredHandler = (expiry: SessionExpiry) => void;
 
 let sessionExpiredHandler: SessionExpiredHandler | null = null;
+
+/**
+ * Depth of the "money is moving" latch, and whether an expiry arrived under it.
+ *
+ * A counter rather than a boolean because nothing stops two attempts
+ * overlapping — checkout's in-flight guard makes that unlikely rather than
+ * impossible, and a boolean would let the inner one lower the latch for the
+ * outer.
+ */
+let paymentDepth = 0;
+let expiryDeferred = false;
+
+/**
+ * Run `work` with session expiry held back until it finishes.
+ *
+ * Held, not suppressed: the handler still fires, once, after the sequence has
+ * produced its outcome — so the screen has already been handed a message to
+ * render before anything clears or navigates.
+ */
+export async function holdSessionExpiryWhile<T>(work: () => Promise<T>): Promise<T> {
+  paymentDepth += 1;
+  try {
+    return await work();
+  } finally {
+    paymentDepth -= 1;
+    if (paymentDepth === 0 && expiryDeferred) {
+      expiryDeferred = false;
+      sessionExpiredHandler?.({ duringPayment: true });
+    }
+  }
+}
+
+/**
+ * Fire now, or note it for when the money has stopped moving.
+ *
+ * Exported alongside `resetSessionState` for the same reason: the branch that
+ * calls it is reached through a 401 on a real response, and driving the latch
+ * through a mocked fetch, keychain and refresh would test those three rather
+ * than this.
+ */
+export function reportSessionExpired(): void {
+  if (paymentDepth > 0) {
+    expiryDeferred = true;
+    return;
+  }
+  sessionExpiredHandler?.({ duringPayment: false });
+}
 
 /**
  * Called once when refreshing fails and the customer has to sign in again.
@@ -238,6 +307,8 @@ function refreshAccessToken(): Promise<string | null> {
 export function resetSessionState(): void {
   refreshInFlight = null;
   sessionExpiredHandler = null;
+  paymentDepth = 0;
+  expiryDeferred = false;
 }
 
 export async function request<T>(path: string, options: RequestOptions<T> = {}): Promise<T> {
@@ -309,7 +380,7 @@ async function execute<T>(
       }
 
       await clearTokens();
-      sessionExpiredHandler?.();
+      reportSessionExpired();
 
       throw new ApiRequestError({
         code: 'session_expired',

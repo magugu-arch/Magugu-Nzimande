@@ -352,6 +352,48 @@ const CASES = [
     },
     forbid: /NaN|undefined/,
   },
+  /*
+    Not a shape at all — a sequence. The card authorises, and the access token
+    ages out before the order is created.
+
+    `submitOrder` handles that: it releases the hold, and failing that returns
+    `stranded`, whose message is the one sentence a customer with an
+    unexplained hold on their card needs. What it could not handle was the
+    session-expiry handler firing underneath it and replacing the route, which
+    took that sentence off the screen before anybody read it.
+
+    Both refresh and void are 401'd too, because an expired session cannot
+    authenticate either — which is exactly what makes the hold stranded.
+  */
+  {
+    name: 'the session dies between authorising and ordering',
+    why: 'a card held, an order that does not exist, and a screen that navigated away',
+    route: '/checkout',
+    basket: true,
+    reaches: '/v1/payments/authorise',
+    bend: (bodies, statuses) => {
+      bodies['/v1/payments/authorise'] = { success: true, intentId: 'pi_stranded' };
+      statuses['/v1/orders'] = 401;
+      statuses['/v1/auth/refresh'] = 401;
+      /*
+        The void endpoint by its full path, not by `/v1/payments`.
+
+        The forced-status list is matched by prefix, so the broader key 401'd
+        `/v1/payments/authorise` as well — the card never authorised, the
+        sequence under test never ran, and the case reported a failure that was
+        entirely this file's own. The third time a stub in this script has been
+        wrong in a way that looked like an app defect; each one is written up
+        where it happened.
+      */
+      statuses['/v1/payments/pi_stranded'] = 401;
+    },
+    // The customer must be told about the hold, and must still be standing
+    // where they can read it — checked as a route, because "Sign in to finish
+    // this" is a legitimate message *on* checkout and a word-match cannot tell
+    // that apart from having been sent to the sign-in screen.
+    expect: /card was authorised/i,
+    staysOn: /\/checkout/,
+  },
   {
     name: 'a null where a list was promised',
     why: 'an endpoint with nothing to return, written the lazy way',
@@ -380,6 +422,16 @@ execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT,
 /** Mutable so a case can bend one endpoint between page loads. */
 let bodies = baseline();
 
+/**
+ * Endpoints answered with a status rather than a body.
+ *
+ * One case needs the *sequence* bent rather than a shape: the card authorises,
+ * and then the token ages out before the order is created. That is a 401 on
+ * `/v1/orders` after a 200 on `/v1/payments/authorise`, and nothing about a
+ * response body can express it.
+ */
+let statuses = {};
+
 /*
   Which endpoints the app actually asked for, per case.
 
@@ -404,6 +456,15 @@ const api = createServer((req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     res.end();
+    return;
+  }
+
+  const forced = Object.keys(statuses).find(
+    (key) => pathname === key || pathname.startsWith(key + '/'),
+  );
+  if (forced !== undefined) {
+    res.writeHead(statuses[forced], { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ code: 'unauthorised', message: 'Session expired' }));
     return;
   }
 
@@ -484,14 +545,27 @@ const rows = [];
 try {
   for (const testCase of CASES) {
     bodies = baseline();
+    statuses = {};
     asked = new Set();
-    testCase.bend(bodies);
+    testCase.bend(bodies, statuses);
 
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     await context.addInitScript(
       ({ session, basket }) => {
         try {
           window.localStorage.setItem('bbq.auth', session);
+          /*
+            The tokens as well as the profile, and they are not the same store.
+
+            `secureStorage` puts tokens in the keychain on a device and falls
+            back to AsyncStorage on web, under their own keys. Seeding only
+            `bbq.auth` leaves every request without an `Authorization` header —
+            and `execute` reads a 401 with no header as a *guest* who never had
+            a session, not as one that expired. The session-expiry case was
+            therefore driving the guest path under another name, and passing.
+          */
+          window.localStorage.setItem('bbq.auth.accessToken', 'at_wire');
+          window.localStorage.setItem('bbq.auth.refreshToken', 'rt_wire');
           if (basket !== null) window.localStorage.setItem('bbq.cart', basket);
         } catch {
           // A context that refuses storage is a browser problem, not an app one.
@@ -551,6 +625,8 @@ try {
     ).replace(/\n+/g, ' | ');
 
     const neverAsked = testCase.reaches !== undefined && !asked.has(testCase.reaches);
+    const navigatedAway =
+      testCase.staysOn !== undefined && !testCase.staysOn.test(new URL(page.url()).pathname);
 
     const caughtByBoundary = await page.evaluate(() =>
       Boolean(document.querySelector('[data-testid="error-boundary"]')),
@@ -562,7 +638,21 @@ try {
     const missingExpected = testCase.expect ? !testCase.expect.test(text) : false;
     const crashed = crashes.length > 0 || caughtByBoundary;
 
-    rows.push({ name: testCase.name, crashed, showedNonsense, missingExpected, neverAsked, text });
+    rows.push({
+      name: testCase.name,
+      crashed,
+      showedNonsense: showedNonsense || navigatedAway,
+      missingExpected,
+      neverAsked,
+      text,
+    });
+
+    if (navigatedAway) {
+      findings.push(
+        `${testCase.name}: left ${testCase.staysOn} for ${new URL(page.url()).pathname} — ` +
+          `the message it was meant to show went with it`,
+      );
+    }
 
     if (neverAsked) {
       findings.push(

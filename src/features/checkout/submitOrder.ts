@@ -1,6 +1,6 @@
 import type { Order, PlaceOrderInput } from '@/types';
 import type { AuthorisePaymentInput, PaymentResult } from '@/services/paymentService';
-import { didNotHearBack } from '@/services/apiClient';
+import { didNotHearBack, holdSessionExpiryWhile } from '@/services/apiClient';
 
 /**
  * Authorise, then create the order, and give the money back if the order does
@@ -82,7 +82,32 @@ function reasonFor(error: unknown): string {
   return error instanceof Error && error.message.length > 0 ? error.message : GENERIC;
 }
 
+/**
+ * The whole sequence, with session expiry held back until it has an answer.
+ *
+ * Driven by `audit:wire`: the card authorises, `/v1/orders` answers 401, the
+ * refresh fails, and the app's session-expired handler clears the basket and
+ * replaces the route — while this function is still awaiting. By the time it
+ * returns `stranded`, the outcome that exists to say "your card was authorised
+ * and there is no order; call the store", there is no screen to say it on. The
+ * customer reads "Welcome back" with a hold on their card.
+ *
+ * The one failure this file was written to prevent, arriving through a door it
+ * did not know about.
+ *
+ * `holdSessionExpiryWhile` defers the handler until this returns and tells it
+ * the expiry happened during a payment, so the app forgets everything as usual
+ * and leaves the message on screen. See `apiClient` and `useSessionExpiry`.
+ */
 export async function submitOrder(
+  payment: AuthorisePaymentInput,
+  order: PlaceOrderInput,
+  deps: SubmitOrderDeps,
+): Promise<SubmitOutcome> {
+  return holdSessionExpiryWhile(() => attemptOrder(payment, order, deps));
+}
+
+async function attemptOrder(
   payment: AuthorisePaymentInput,
   order: PlaceOrderInput,
   { authorise, place, release }: SubmitOrderDeps,

@@ -388,6 +388,47 @@ the path after the CORS short-circuit and then lost the line to a reformat, so
 every money-path case reported "asked for nothing" while the screens plainly
 showed stub data. The check was right and its instrument was not.
 
+## 2k. A session that expires while the money is moving
+
+Reaching this needs three things in order, which is why nothing had produced
+it. The card authorises. `POST /v1/orders` answers 401 — an access token that
+aged out in the seconds between the two calls. The refresh fails, so the API
+client clears the tokens and fires the session-expired handler, which clears
+the basket and replaces the route.
+
+All of that happens while `submitOrder` is still awaiting. It then returns
+`stranded` — the outcome that exists to say *"your order did not go through,
+but your card was authorised; call the store"* — and there is no longer a
+screen to say it on. Driven in Chromium, the customer ended on:
+
+> **Welcome back**
+> Sign in to reorder your favourites, track deliveries and spend your points.
+
+Card held. Order never created. Basket emptied. Told nothing. It is the exact
+failure `submitOrder` was written to prevent, arriving through a door it did
+not know about.
+
+Two changes, both narrow. `holdSessionExpiryWhile` defers the handler until the
+sequence has an outcome and tells it the expiry happened during a payment, so
+the app forgets everything as usual and does not navigate. And checkout lets a
+money message outrank its empty-basket state — because `forget()` still clears
+the basket, and "Nothing to check out. Add something to your cart first." was
+the second thing to take that sentence off the screen.
+
+`safeToRetry` is already the app's word for "nothing was taken", so the two
+outcomes it calls unsafe are exactly the two worth interrupting an empty state
+for.
+
+**A correction worth recording.** The first counterfactual for this round
+showed no difference at all, and I nearly reported the defect as not existing.
+The sweep was seeding the customer's profile into `bbq.auth` and nothing else —
+tokens live in `secureStorage`, which falls back to AsyncStorage on web under
+its own keys. Every request went out with no `Authorization` header, and
+`execute` reads a 401 with no header as a **guest** who never had a session
+rather than one that expired. The case was driving the guest path under another
+name, and passing. It took seeding the tokens to reach the code the fix is
+about.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -441,7 +482,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **97 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **98 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

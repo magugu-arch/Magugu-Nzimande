@@ -20,7 +20,16 @@ export function useSessionExpiry(): void {
   const { forgetLocally } = useSignOut();
 
   useEffect(() => {
-    setSessionExpiredHandler(forgetLocally);
+    /*
+      One exception to "send them to sign in".
+
+      An expiry that arrives while a payment is in flight is held by the API
+      client until `submitOrder` has produced its outcome, then reported with
+      `duringPayment`. By then the checkout screen is showing the sentence that
+      says the card was authorised and there is no order. Replacing the route
+      at that moment takes it away from the one customer who has to read it.
+    */
+    setSessionExpiredHandler(({ duringPayment }) => forgetLocally({ redirect: !duringPayment }));
     return () => setSessionExpiredHandler(null);
   }, [forgetLocally]);
 }

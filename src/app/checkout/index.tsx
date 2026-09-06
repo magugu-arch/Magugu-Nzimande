@@ -536,7 +536,22 @@ export default function CheckoutScreen() {
     router,
   ]);
 
-  if (lines.length === 0) {
+  /*
+    An empty basket is an ordinary state and "add something first" is the right
+    thing to say about it — unless there is an unfinished piece of business
+    about the customer's money, in which case it is the wrong screen entirely.
+
+    Driven by `audit:wire`: the card authorises, the session expires before the
+    order is created, and the app forgets everything — including the basket —
+    while `submitOrder` is still deciding. It then returns `stranded`, whose
+    message is the only place a hold on a card is ever explained. Checkout was
+    by then rendering "Nothing to check out. Add something to your cart first."
+
+    A message about money outranks a claim about a basket. `safeToRetry` is
+    already the app's word for "nothing was taken", so the two failures it
+    calls unsafe are exactly the two worth interrupting an empty state for.
+  */
+  if (lines.length === 0 && !mustNotRetry) {
     return (
       <Screen edges={['top', 'bottom']} testID="checkout-empty">
         <ScreenHeader title="Checkout" />
