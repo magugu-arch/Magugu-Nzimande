@@ -51,7 +51,8 @@
     "audit:guest": "node scripts/audit-guest.mjs",
     "audit:delivery-range": "node scripts/audit-delivery-range.mjs",
     "audit:text-scale": "node scripts/audit-text-scale.mjs",
-    "audit:keyboard": "node scripts/audit-keyboard.mjs"
+    "audit:keyboard": "node scripts/audit-keyboard.mjs",
+    "audit:wire": "node scripts/audit-wire.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",

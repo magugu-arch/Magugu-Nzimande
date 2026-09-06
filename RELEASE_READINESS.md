@@ -309,6 +309,42 @@ screen promises only what it can keep ("Nothing has been ordered") and, after a
 retry has already failed, offers **Start fresh** — the escape hatch for the
 shape nobody anticipated, which is the only kind that ever gets through.
 
+## 2i. A backend that answers nearly right
+
+`wireChecks.ts` turns a response the app cannot believe into one honest failure
+at the fetch, rather than a strange number three components away. It covered
+**ten of the forty-eight** `request<T>` calls, and none of the loyalty ones —
+the endpoints carrying points a member spends and rand off a bill.
+
+`npm run audit:wire` builds a production bundle with the mock off, points it at
+a stub backend, and bends one field per run. With `pointsCost` arriving as a
+string — the ordinary way to keep floats off a wire — the check now refuses the
+response, the query errors, and the Rewards screen used to read
+`rewards.data ?? []` and tell a member holding 9 000 points:
+
+> Ready to redeem · **0 rewards you can claim now**
+> Keep ordering — your first reward unlocks at 300 points.
+
+Both sentences are claims about that member's account, made by an app that had
+just failed to read it. The balance above them was gated and honest; the list
+beneath was not. The wallet line under it did the same thing — "No active
+vouchers right now" about a wallet nobody could open.
+
+Checks added for rewards, tiers, redemption and voucher validation; the screen
+now gates its list the way it already gated its balance. Tiers are deliberately
+*not* in that gate — a failed tier fetch drops the perks block and claims
+nothing in its place, and taking a working rewards list away from a member over
+a missing perks list is the trade in the wrong direction. The sweep checks that
+decision rather than trusting it: with a bad earn rate the reward must still be
+claimable, and the screen must not quote a rate it could not read.
+
+One correction worth recording. The sweep's first run reported five crashed
+screens and none of them was real: its stub answered `/v1/loyalty/tiers` with
+invented field names, so every case failed for the baseline's reasons. A stub
+that is wrong everywhere proves only that the app dislikes rubbish. The
+baseline is now written field-for-field from `types/rewards.ts`, and the tests
+hold it there.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -362,7 +398,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **95 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **96 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

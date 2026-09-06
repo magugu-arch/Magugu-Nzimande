@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 95 suites; `npm test` prints the count                                                                  |
+| Tests            | 96 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -50,6 +50,7 @@ npm run preview:web   # the whole app in a browser, no build required
 npm run audit:screens # renders all 69 routes at two widths and reports defects
 npm run audit:text-scale # re-renders the dense ones at 1.3x and 2x text and reports clipping
 npm run audit:keyboard   # orders dinner with Tab, Enter and Escape — no pointer at all
+npm run audit:wire    # answers every endpoint slightly wrong, and reads what the customer sees
 npm run smoke:order   # signs in, adds an item and places an order, for real
 npm run preview:single # builds the web export and folds it into one HTML file
 ```
@@ -479,6 +480,15 @@ These fail loudly rather than rotting quietly — leave them on.
     defect `/offers/[id]` was fixed for, one screen over. The rating screen
     blamed itself with the generic error while knowing perfectly well the
     device was offline. Sixteen routes now, all clean.
+  - `audit:wire` — the one aimed at the risk this project actually carries.
+    The backend does not exist; thirty endpoints are declared, typed and called,
+    and every one is served by a mock written in this repository by the same
+    hand that wrote the caller. A mock and its caller agree by construction.
+    This builds a production bundle with the mock **off**, points it at a stub
+    backend, and bends one field at a time — money as a string, a list wrapped
+    in `{ data: … }`, a null where an array was promised. Each is a thing a
+    competent backend team ships on purpose. What it measures is not whether
+    the app crashes but whether the customer is told something false.
   - `audit:coldstart` — ordering as somebody who installed the app that
     morning: nothing saved, nothing ordered. The account the seed could never
     represent.

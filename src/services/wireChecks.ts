@@ -1,4 +1,13 @@
-import type { LoyaltyAccount, MenuSnapshot, Order, Product, Store, Voucher } from '@/types';
+import type {
+  LoyaltyAccount,
+  MenuSnapshot,
+  Order,
+  Product,
+  Reward,
+  Store,
+  TierDefinition,
+  Voucher,
+} from '@/types';
 
 /**
  * What has to be true of a response before the app is allowed to believe it.
@@ -182,13 +191,101 @@ export function checkedLoyaltyAccount(value: unknown): LoyaltyAccount {
   return value as LoyaltyAccount;
 }
 
+/* -------------------------------------------------------------------------- */
+/*
+  The loyalty side, added after `audit:wire` drove it.
+
+  That sweep points a production bundle at a stub backend and bends one field
+  at a time — money as a string, a list wrapped in an envelope, a null where an
+  array was promised. Each is a thing a competent backend team ships on
+  purpose, and every one of them reached a screen unexamined: ten of the
+  forty-eight `request<T>` calls carried a `parse`, and none of the loyalty
+  ones did.
+
+  Worth recording how the first run of that sweep misled me, because it is the
+  failure this file exists to prevent, committed by the tool written to find
+  it. Its stub answered `/v1/loyalty/tiers` with `{ id, minPoints }` — invented
+  field names, not the ones in `types/rewards.ts` — so every case failed for
+  the baseline's reasons and the sweep reported five crashed screens. The app
+  had not crashed. A stub that is wrong everywhere proves only that the app
+  dislikes rubbish. Against a baseline written field-for-field from the types,
+  nothing crashed at all, and the real defect turned out to be quieter and
+  worse: see `(tabs)/rewards.tsx`.
+*/
+
+function checkReward(value: unknown, where: string): void {
+  const reward = record(value, where);
+  text(reward.id, `${where}.id`);
+  // Points a member spends, and rand off a bill. Both are arithmetic, and
+  // both are printed beside a button that takes something away for good.
+  number(reward.pointsCost, `${where}.pointsCost`);
+  number(reward.discountValue, `${where}.discountValue`);
+}
+
+export function checkedRewards(value: unknown): Reward[] {
+  for (const [index, reward] of items(value, 'rewards').entries()) {
+    checkReward(reward, `rewards[${index}]`);
+  }
+  return value as Reward[];
+}
+
+/**
+ * The redemption itself, which is the moment the points actually leave.
+ *
+ * `discount` is not read off the reward — a delivery reward is worth the fee
+ * when there is one and nothing at all when there is not — so it is a separate
+ * number on the wire and needs its own check.
+ */
+export function checkedRedemption(value: unknown): { reward: Reward; discount: number } {
+  const redemption = record(value, 'redemption');
+  checkReward(redemption.reward, 'redemption.reward');
+  number(redemption.discount, 'redemption.discount');
+  return value as { reward: Reward; discount: number };
+}
+
+/**
+ * The tier ladder.
+ *
+ * `pointsPerRand` is the number every points figure in the app is multiplied
+ * by — the basket's "you'll earn", the confirmation, the balance a member
+ * watches. A string here does not throw where it is used, because `*` coerces;
+ * it throws two components away, or worse, does not.
+ */
+export function checkedTiers(value: unknown): TierDefinition[] {
+  for (const [index, raw] of items(value, 'tiers').entries()) {
+    const tier = record(raw, `tiers[${index}]`);
+    text(tier.name, `tiers[${index}].name`);
+    number(tier.threshold, `tiers[${index}].threshold`);
+    number(tier.pointsPerRand, `tiers[${index}].pointsPerRand`);
+  }
+  return value as TierDefinition[];
+}
+
+/**
+ * A promo code the customer just typed, answered by the server.
+ *
+ * `discount` is what comes off the bill on the next screen. The voucher inside
+ * carries its own two figures, and they are checked by the same rule the
+ * wallet's are.
+ */
+export function checkedVoucherValidation<T>(value: unknown): T {
+  const result = record(value, 'voucherValidation');
+  number(result.discount, 'voucherValidation.discount');
+  checkVoucher(result.voucher, 'voucherValidation.voucher');
+  return value as T;
+}
+
+function checkVoucher(value: unknown, where: string): void {
+  const voucher = record(value, where);
+  text(voucher.code, `${where}.code`);
+  // Both feed the discount that comes off a bill.
+  number(voucher.discountValue, `${where}.discountValue`);
+  number(voucher.minimumSpend, `${where}.minimumSpend`);
+}
+
 export function checkedVouchers(value: unknown): Voucher[] {
   for (const [index, raw] of items(value, 'vouchers').entries()) {
-    const voucher = record(raw, `vouchers[${index}]`);
-    text(voucher.code, `vouchers[${index}].code`);
-    // Both feed the discount that comes off a bill.
-    number(voucher.discountValue, `vouchers[${index}].discountValue`);
-    number(voucher.minimumSpend, `vouchers[${index}].minimumSpend`);
+    checkVoucher(raw, `vouchers[${index}]`);
   }
   return value as Voucher[];
 }

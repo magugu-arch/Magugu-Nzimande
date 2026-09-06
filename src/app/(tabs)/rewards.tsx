@@ -79,11 +79,39 @@ export default function RewardsScreen() {
     return <OfflineState onRetry={() => void loyalty.refetch()} />;
   }
 
-  if (loyalty.isError || !loyalty.data) {
+  /*
+    The rewards list, gated like the balance beside it.
+
+    `audit:wire` points a production bundle at a stub backend and bends one
+    field. With `pointsCost` arriving as a string — the ordinary way a backend
+    keeps floats off a wire — `checkedRewards` correctly refuses the response,
+    the query errors, and this screen read `rewards.data ?? []` and told a
+    member holding 9 000 points:
+
+        Ready to redeem · 0 rewards you can claim now
+        Keep ordering — your first reward unlocks at 300 points.
+
+    Both sentences are claims about that member's account, made by an app that
+    had just failed to read it. The balance above them was gated and honest;
+    the list under it was not. Same rule as everywhere else in this app — an
+    empty state is a claim about the world — one layer deeper than offline,
+    because here the server answered and the answer was refused.
+
+    `tiers` is deliberately *not* gated with them. A failed tier fetch drops
+    the perks block and claims nothing in its place, and taking a working
+    rewards list away from somebody over a missing perks list is the trade in
+    the wrong direction.
+  */
+  if (loyalty.isError || !loyalty.data || rewards.isError) {
     return (
       <View style={[styles.stateRoot, { paddingTop: insets.top }]}>
         <StatusBar style="light" />
-        <ErrorState onRetry={() => void loyalty.refetch()} />
+        <ErrorState
+          onRetry={() => {
+            void loyalty.refetch();
+            void rewards.refetch();
+          }}
+        />
       </View>
     );
   }
@@ -219,9 +247,17 @@ export default function RewardsScreen() {
               <View style={styles.walletBody}>
                 <Text variant="bodyMedium">Voucher wallet</Text>
                 <Text variant="caption" color={colors.textSecondary}>
-                  {activeVouchers.length > 0
-                    ? `${activeVouchers.length} voucher${activeVouchers.length === 1 ? '' : 's'} ready to use`
-                    : 'No active vouchers right now'}
+                  {/*
+                    "No active vouchers right now" is a claim about the wallet,
+                    and the wallet is a separate fetch that can fail on its own
+                    while everything around it is fine. Saying nothing about a
+                    wallet nobody could open beats saying it is empty.
+                  */}
+                  {vouchers.isSuccess
+                    ? activeVouchers.length > 0
+                      ? `${activeVouchers.length} voucher${activeVouchers.length === 1 ? '' : 's'} ready to use`
+                      : 'No active vouchers right now'
+                    : 'Tap to see your codes'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textDisabled} />

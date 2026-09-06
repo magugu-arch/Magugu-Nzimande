@@ -19,7 +19,14 @@ import {
   tiers,
   vouchers,
 } from './data/rewardsData';
-import { checkedLoyaltyAccount, checkedVouchers } from './wireChecks';
+import {
+  checkedLoyaltyAccount,
+  checkedRedemption,
+  checkedRewards,
+  checkedTiers,
+  checkedVoucherValidation,
+  checkedVouchers,
+} from './wireChecks';
 
 /**
  * The mock's loyalty ledger, which until now did not move.
@@ -160,7 +167,7 @@ export async function fetchRewards(dateOfBirth?: string): Promise<Reward[]> {
   // is the same kind of veto and joins it — the app holds the date of birth,
   // and a server that has not applied the rule must not be able to force the
   // reward open.
-  const remote = await request<Reward[]>('/v1/loyalty/rewards');
+  const remote = await request<Reward[]>('/v1/loyalty/rewards', { parse: checkedRewards });
   return remote.map((reward) => ({
     ...reward,
     redeemable:
@@ -177,7 +184,7 @@ export async function fetchReward(rewardId: string, dateOfBirth?: string): Promi
 
 export async function fetchTiers(): Promise<TierDefinition[]> {
   if (config.useMockApi) return delay(tiers, 120);
-  return request<TierDefinition[]>('/v1/loyalty/tiers');
+  return request<TierDefinition[]>('/v1/loyalty/tiers', { parse: checkedTiers });
 }
 
 /**
@@ -317,6 +324,7 @@ export async function validateVoucherCode(
 
   if (!config.useMockApi) {
     return request<VoucherValidation>('/v1/vouchers/validate', {
+      parse: checkedVoucherValidation<VoucherValidation>,
       method: 'POST',
       body: { code: normalised, subtotal },
     });
@@ -356,6 +364,7 @@ export async function redeemReward(
 ): Promise<{ reward: Reward; discount: number }> {
   if (!config.useMockApi) {
     return request<{ reward: Reward; discount: number }>('/v1/loyalty/redeem', {
+      parse: checkedRedemption,
       method: 'POST',
       body: { rewardId },
     });
