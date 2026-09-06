@@ -84,17 +84,43 @@ export function OfflineBanner() {
 
   return (
     <Animated.View style={[styles.clip, { height }]} testID="offline-banner">
-      <View
-        onLayout={onMeasure}
-        style={[styles.banner, { paddingBottom: insets.bottom + spacing.sm + 2 }]}
-        accessibilityRole="alert"
-        accessibilityLabel={isOffline ? 'You are offline' : ''}
-      >
-        <Ionicons name="cloud-offline-outline" size={16} color={colors.textOnDark} />
-        <Text variant="captionMedium" color={colors.textOnDark} style={styles.label}>
-          You&apos;re offline — browse and build your cart, checkout needs a connection
-        </Text>
-      </View>
+      {/*
+        Rendered only while it applies, rather than kept at zero height.
+
+        The clip container collapses to 0 and hides the bar visually, and that
+        was taken to be enough. It is not: the sentence stayed in the tree on
+        every screen of a perfectly online app, inside a `View` marked
+        `accessibilityRole="alert"`. A screen reader is entitled to announce an
+        alert it finds, and "You're offline — browse and build your cart" is a
+        poor thing to hear while online.
+
+        It also made the bar impossible to test honestly. `audit:offline` looked
+        for the element and found it every time, so its new recovery check
+        reported a working build as offline — and the same string had been
+        turning up in the text of every browser probe in this repository,
+        reading like a defect that was not there. A control that is invisible
+        but present is one that lies to a screen reader and to a test in the
+        same breath.
+
+        The cost is one frame on the very first drop: with nothing mounted there
+        is nothing measured, so `onMeasure` snaps the height rather than sliding
+        it. Every subsequent transition animates. That is the right way round —
+        the first time somebody loses signal is when they most want to be told
+        immediately.
+      */}
+      {isOffline ? (
+        <View
+          onLayout={onMeasure}
+          style={[styles.banner, { paddingBottom: insets.bottom + spacing.sm + 2 }]}
+          accessibilityRole="alert"
+          accessibilityLabel="You are offline"
+        >
+          <Ionicons name="cloud-offline-outline" size={16} color={colors.textOnDark} />
+          <Text variant="captionMedium" color={colors.textOnDark} style={styles.label}>
+            You&apos;re offline — browse and build your cart, checkout needs a connection
+          </Text>
+        </View>
+      ) : null}
     </Animated.View>
   );
 }

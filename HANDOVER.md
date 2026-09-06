@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 88 suites; `npm test` prints the count                                                                  |
+| Tests            | 89 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -428,7 +428,9 @@ These fail loudly rather than rotting quietly — leave them on.
   reach. They exist because every one of them caught something:
   - `audit:offline` — every data screen with the mock off and a host that does
     not answer. A screen that fetched nothing may only say so about itself, and
-    must name the reason rather than blaming itself.
+    must name the reason rather than blaming itself. Then a second pass with the
+    mock on, cutting the network and restoring it, because losing a connection
+    and regaining one are different questions and only the first was ever asked.
   - `audit:coldstart` — ordering as somebody who installed the app that
     morning: nothing saved, nothing ordered. The account the seed could never
     represent.

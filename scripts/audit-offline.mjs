@@ -235,9 +235,115 @@ try {
     await context.close();
   }
 } finally {
-  await browser.close();
   server.close();
 }
+
+/**
+ * ── Phase two: coming back ─────────────────────────────────────────────────
+ *
+ * Everything above is about a connection that is *gone*, and it needs a build
+ * with the mock off and a host that does not answer — which is exactly why it
+ * could never show recovery. With `isInternetReachable` false forever, putting
+ * the network back changes nothing: the app is still, correctly, offline.
+ *
+ * `audit:launch` has carried an item saying so — "could not be shown to detect
+ * regaining it: driven in a browser it stayed offline with navigator.onLine
+ * true again" — since before `useNetworkStatus` grew its recovery poll. The
+ * poll went in, the note stayed, and nothing here could tell whether it worked.
+ *
+ * This is the missing half. A second build with the mock on, so the app is
+ * genuinely usable from the device and `isOffline` reduces to `!isConnected` —
+ * which on web is `navigator.onLine`, which Playwright can flip. Drop it, watch
+ * the banner arrive; restore it, watch the banner clear on its own.
+ *
+ * Two builds in one script is the cost of asking two questions that need
+ * opposite worlds. It is worth it: this is the half a customer actually meets,
+ * because everybody who loses signal in a lift also comes out of it.
+ */
+const RECOVERY_OUT = path.join(root, '.audit-offline-mock');
+const recoveryFindings = [];
+
+console.log('\nBuilding again with the mock layer on, to watch it come back…');
+execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', RECOVERY_OUT, '--clear'], {
+  cwd: root,
+  stdio: ['ignore', 'ignore', 'inherit'],
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
+});
+
+const recoveryServer = await new Promise((resolve) => {
+  const s = createServer((req, res) => {
+    const pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    let file = path.join(RECOVERY_OUT, pathname);
+    if (!existsSync(file) || statSync(file).isDirectory()) file = path.join(RECOVERY_OUT, 'index.html');
+    res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
+    createReadStream(file).pipe(res);
+  });
+  s.listen(PORT + 1, () => resolve(s));
+});
+
+try {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  /*
+    Measured, not merely present. The bar is a clip container that is always
+    mounted and animates its height, so `querySelector` finds it whether or not
+    anybody can see it — which is exactly how the first version of this check
+    reported a working build as offline. Height is the only honest question.
+  */
+  const bannerUp = () =>
+    page.evaluate(() => {
+      const el = document.querySelector('[data-testid="offline-banner"]');
+      return el ? el.getBoundingClientRect().height > 1 : false;
+    });
+
+  await page.goto(`http://localhost:${PORT + 1}/menu`, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.waitForTimeout(2500);
+
+  if (await bannerUp()) {
+    recoveryFindings.push('the banner was already up on a working build, before anything was cut');
+  }
+
+  await context.setOffline(true);
+  // The drop is event-driven, so it should be immediate. Given a second anyway.
+  await page.waitForTimeout(1500);
+  const droppedTo = await bannerUp();
+  if (!droppedTo) recoveryFindings.push('losing the connection did not raise the banner');
+  else console.log('  ✓ the banner arrives when the connection goes');
+
+  await context.setOffline(false);
+  /*
+    Longer than the drop, deliberately. Recovery is the case the browser does
+    *not* reliably report, which is the whole reason `useNetworkStatus` polls
+    every 3s while it believes it is offline. Five seconds is one poll plus
+    room; anything longer than that is a customer standing outside a lift
+    watching a banner that is no longer true.
+  */
+  await page.waitForTimeout(5000);
+  if (await bannerUp()) {
+    recoveryFindings.push(
+      'the banner was still up 5s after the connection came back — the recovery poll in ' +
+        'useNetworkStatus is not firing, or NetInfo is not re-reading navigator.onLine',
+    );
+  } else {
+    console.log('  ✓ the banner clears on its own when it comes back');
+  }
+
+  // And the app is usable again rather than merely quiet: the menu has to
+  // still be there, which is what a paused query resuming looks like.
+  const menuText = await page.evaluate(() => document.body.innerText);
+  if (!/Golden Original|Chicken/i.test(menuText)) {
+    recoveryFindings.push('the menu was gone after the connection came back');
+  } else {
+    console.log('  ✓ the menu is still there afterwards');
+  }
+
+  await context.close();
+} finally {
+  await browser.close();
+  recoveryServer.close();
+}
+
+findings.push(...recoveryFindings);
 
 console.log('\nroute                          says it could not reach the server');
 for (const row of rows) {

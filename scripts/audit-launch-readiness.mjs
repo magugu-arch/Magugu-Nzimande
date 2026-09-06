@@ -483,17 +483,29 @@ note(
   'you',
 );
 
-// Connectivity recovery could not be confirmed off-device. Flagged rather
-// than fixed, because the fix would have to be verified on a handset.
+/**
+ * Recovery is now demonstrated on web and still assumed on native.
+ *
+ * This used to say the app "could not be shown to detect regaining" a
+ * connection. That was true and the cause turned out to be a dependency, not a
+ * device: NetInfo's web layer binds to `navigator.connection`'s `change` event
+ * wherever that API exists — every Chromium browser — and never to `online` or
+ * `offline`. `change` fires on the way down and not on the way back, so the
+ * banner stayed up for as long as anybody watched. The app now reads the
+ * browser's own events for connectivity and leaves reachability to NetInfo, and
+ * `audit:offline` drives a drop and a recovery to prove it.
+ */
 note(
   'Offline recovery',
-  'The app detects losing signal reliably and could not be shown to detect ' +
-    'regaining it: driven in a browser it stayed "offline" with navigator.onLine ' +
-    'true again. On a handset NetInfo takes connectivity from the OS and should ' +
-    'recover, but confirm it on a real device — walk into a lift, come out, and ' +
-    'check the banner clears and a paused menu load completes. Checkout only ' +
-    'warns about being offline, never blocks, so a stale reading cannot stop ' +
-    'someone paying.',
+  'Losing and regaining a connection is now driven end to end by ' +
+    '`npm run audit:offline`, which cuts the network in a browser, checks the banner ' +
+    'arrives, restores it, and checks the banner clears on its own and the menu is ' +
+    'still there. That half is settled. What it does not cover is a handset: NetInfo ' +
+    'takes connectivity from the OS on iOS and Android rather than from the web events ' +
+    'the fix uses, so that path is unchanged and untested here. Confirm it on a real ' +
+    'device — walk into a lift, come out, and check the banner clears and a paused menu ' +
+    'load completes. Checkout only warns about being offline, never blocks, so a stale ' +
+    'reading cannot stop someone paying.',
   'you',
 );
 
