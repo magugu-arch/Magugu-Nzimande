@@ -690,6 +690,19 @@ try {
   api.close();
 }
 
+/*
+  What the screen actually read, on request.
+
+  A row of ticks says the rules passed; it does not say the screen was worth
+  looking at. Twice now a case has been green over a page that was honest and
+  awful — a stranded-payment message stacked over an empty order summary
+  reading R 0.00. `WIRE_TEXT=1` prints the body text each case ended on, which
+  is the only way to see that from here.
+*/
+if (process.env.WIRE_TEXT) {
+  for (const row of rows) console.log(`\n— ${row.name}\n  ${row.text}`);
+}
+
 console.log('\ncase                                    crashed  nonsense  missing  unreached');
 for (const row of rows) {
   const mark = (value) => (value ? '   ✗   ' : '   ✓   ');

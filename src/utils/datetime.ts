@@ -1,15 +1,24 @@
 import { businessRules } from '@/constants/config';
+import { instantAtStoreTime, storeClockAt } from '@/utils/storeClock';
 import { tradingWindow } from '@/utils/tradingHours';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-/** `14:35` — 24-hour, matching South African convention. */
+/**
+ * `14:35` — 24-hour, matching South African convention, on the store's clock.
+ *
+ * Every instant this formats is a fact about a South African kitchen: when an
+ * order was placed, when it is due, which slot was chosen. Rendering those on
+ * the device's clock made the app tell a customer abroad that their collection
+ * order was ready at an hour nobody at the counter would recognise. See
+ * `utils/storeClock` for why this is the app's single clock and why the
+ * conversion is arithmetic rather than `Intl`.
+ */
 export function formatTime(value: string | Date): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+  const { hour, minute } = storeClockAt(date);
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
 
 const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -41,7 +50,11 @@ const SHORT_MONTHS = [
 export function formatShortDate(value: string | Date): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
-  return `${SHORT_DAYS[date.getDay()]}, ${date.getDate()} ${SHORT_MONTHS[date.getMonth()]}`;
+  // Store time, for the same reason `formatTime` is: an order placed at 01:00
+  // SAST on a Sunday was placed on the Sunday, whatever Saturday evening the
+  // customer's phone was still showing.
+  const { day, date: dayOfMonth, month } = storeClockAt(date);
+  return `${SHORT_DAYS[day]}, ${dayOfMonth} ${SHORT_MONTHS[month]}`;
 }
 
 /** `Fri, 21 Aug · 14:35` */
@@ -51,12 +64,19 @@ export function formatDateTime(value: string | Date): string {
   return `${formatShortDate(date)} · ${formatTime(date)}`;
 }
 
-/** `Today` / `Yesterday` / `Fri, 21 Aug` */
+/**
+ * `Today` / `Yesterday` / `Fri, 21 Aug`
+ *
+ * "Today" means the kitchen's today. Comparing store day numbers rather than
+ * subtracting two local midnights also drops a rounding hazard the old version
+ * carried: `Math.round` over a difference of local midnights is only exact
+ * because neither of these zones has daylight saving, which is a property of
+ * the deployment rather than of the code.
+ */
 export function formatRelativeDay(value: string | Date, now: Date = new Date()): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
-  const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  const diffDays = Math.round((startOf(now) - startOf(date)) / 86_400_000);
+  const diffDays = storeClockAt(now).dayNumber - storeClockAt(date).dayNumber;
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';
   if (diffDays === -1) return 'Tomorrow';
@@ -195,9 +215,33 @@ export function buildScheduleDays(
     Math.max(addMinutes(now, businessRules.minScheduleLeadMinutes).getTime(), opensAt),
   );
 
+  /**
+   * The grid is laid out on the kitchen's calendar, not the phone's.
+   *
+   * This loop used to build each day with `new Date(y, m, d + offset)` from the
+   * device's local fields, and each slot the same way — so the label came from
+   * one clock and the instant sent to the store came from the same wrong one.
+   * Two consequences, and the second is the expensive one:
+   *
+   *   - The days were the customer's days. At 20:00 on a Saturday in Los
+   *     Angeles it is already Sunday in Johannesburg, so the grid opened on
+   *     Saturday's published hours for a branch that had been trading its
+   *     Sunday shift for five hours.
+   *   - The slot labelled `18:00` was 18:00 *there*. The instant that reached
+   *     the kitchen was some other hour entirely — for a phone far enough
+   *     behind, an hour after the branch had shut, having passed a lead-time
+   *     check and a trading-hours check that both agreed with it because they
+   *     read the same clock.
+   */
+  const today = storeClockAt(now);
+
   for (let offset = 0; offset < businessRules.maxScheduleDays; offset += 1) {
-    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
-    const window = windowForDay(store, day.getDay());
+    const midnight = instantAtStoreTime({
+      year: today.year,
+      month: today.month,
+      date: today.date + offset,
+    });
+    const window = windowForDay(store, storeClockAt(midnight).day);
     if (!window) continue;
 
     const slots: ScheduleSlot[] = [];
@@ -209,21 +253,24 @@ export function buildScheduleDays(
       minutes <= window.closeMinutes - SLOT_STEP_MINUTES;
       minutes += SLOT_STEP_MINUTES
     ) {
-      const slot = new Date(
-        day.getFullYear(),
-        day.getMonth(),
-        day.getDate(),
-        Math.floor(minutes / 60),
-        minutes % 60,
-      );
+      // `hour` here may be 24 or more for a branch trading past midnight;
+      // `instantAtStoreTime` normalises that onto the next morning, which is
+      // the night those slots belong to.
+      const slot = instantAtStoreTime({
+        year: today.year,
+        month: today.month,
+        date: today.date + offset,
+        hour: Math.floor(minutes / 60),
+        minute: minutes % 60,
+      });
       if (slot.getTime() < earliest.getTime()) continue;
       slots.push({ iso: slot.toISOString(), label: formatTime(slot) });
     }
 
     if (slots.length > 0) {
       days.push({
-        dateIso: day.toISOString(),
-        label: formatRelativeDay(day, now),
+        dateIso: midnight.toISOString(),
+        label: formatRelativeDay(midnight, now),
         slots,
       });
     }

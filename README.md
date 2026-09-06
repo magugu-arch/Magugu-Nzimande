@@ -46,6 +46,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run audit:text-scale` | Render 24 dense routes at 1.3x and 2x the browser's text size; fail on clipped or overlapping text |
 | `npm run audit:keyboard` | Sign in, add an item, answer a dialog and place an order using only Tab, Enter and Escape |
 | `npm run audit:wire` | Point a production build at a stub backend that answers *nearly* right, and check what the customer is told |
+| `npm run audit:clock` | Drive the app from six device timezones at one pinned instant, and fail if two phones are shown different times |
 | `npm run smoke:order` | Place an order end to end against the mock layer, and refuse four that must not go through |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |

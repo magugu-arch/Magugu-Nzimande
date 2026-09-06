@@ -8,11 +8,24 @@ import {
   formatTime,
 } from '@/utils/datetime';
 import { businessRules } from '@/constants/config';
+import { instantAtStoreTime, storeClockAt } from '@/utils/storeClock';
+
+/**
+ * Fixtures on the store's clock.
+ *
+ * `new Date(2026, 0, 5, 9, 5)` builds an instant in whatever zone the process
+ * is running in — UTC, under this suite's runner — and every assertion below
+ * is about a South African kitchen. While the code read the device clock too
+ * the two mistakes cancelled and the suite passed; they do not cancel any more.
+ * See `utils/storeClock`.
+ */
+const sast = (year: number, month: number, date: number, hour = 0, minute = 0) =>
+  instantAtStoreTime({ year, month, date, hour, minute });
 
 describe('formatTime', () => {
   it('formats 24-hour time with zero padding', () => {
-    expect(formatTime(new Date(2026, 0, 5, 9, 5))).toBe('09:05');
-    expect(formatTime(new Date(2026, 0, 5, 14, 35))).toBe('14:35');
+    expect(formatTime(sast(2026, 0, 5, 9, 5))).toBe('09:05');
+    expect(formatTime(sast(2026, 0, 5, 14, 35))).toBe('14:35');
   });
 
   it('returns an empty string for an invalid date', () => {
@@ -29,11 +42,11 @@ describe('formatTime', () => {
  */
 describe('formatShortDate', () => {
   it('puts the day before the month, South African style', () => {
-    expect(formatShortDate(new Date(2026, 7, 21))).toBe('Fri, 21 Aug');
+    expect(formatShortDate(sast(2026, 7, 21))).toBe('Fri, 21 Aug');
   });
 
   it('does not pad the day', () => {
-    expect(formatShortDate(new Date(2026, 0, 5))).toBe('Mon, 5 Jan');
+    expect(formatShortDate(sast(2026, 0, 5))).toBe('Mon, 5 Jan');
   });
 
   it('handles every month', () => {
@@ -67,16 +80,16 @@ describe('formatShortDate', () => {
 });
 
 describe('formatRelativeDay', () => {
-  const now = new Date(2026, 0, 5, 12, 0);
+  const now = sast(2026, 0, 5, 12, 0);
 
   it('names today, yesterday and tomorrow', () => {
-    expect(formatRelativeDay(new Date(2026, 0, 5, 8, 0), now)).toBe('Today');
-    expect(formatRelativeDay(new Date(2026, 0, 4, 22, 0), now)).toBe('Yesterday');
-    expect(formatRelativeDay(new Date(2026, 0, 6, 8, 0), now)).toBe('Tomorrow');
+    expect(formatRelativeDay(sast(2026, 0, 5, 8, 0), now)).toBe('Today');
+    expect(formatRelativeDay(sast(2026, 0, 4, 22, 0), now)).toBe('Yesterday');
+    expect(formatRelativeDay(sast(2026, 0, 6, 8, 0), now)).toBe('Tomorrow');
   });
 
   it('falls back to a short date further out', () => {
-    expect(formatRelativeDay(new Date(2026, 0, 1, 8, 0), now)).not.toBe('Today');
+    expect(formatRelativeDay(sast(2026, 0, 1, 8, 0), now)).not.toBe('Today');
   });
 });
 
@@ -92,7 +105,7 @@ describe('formatEtaWindow', () => {
 
 describe('addMinutes', () => {
   it('advances the clock', () => {
-    const base = new Date(2026, 0, 5, 12, 0);
+    const base = sast(2026, 0, 5, 12, 0);
     expect(formatTime(addMinutes(base, 45))).toBe('12:45');
   });
 });
@@ -108,7 +121,7 @@ describe('dayName', () => {
 
 describe('buildScheduleDays', () => {
   it('only offers slots after the minimum lead time', () => {
-    const now = new Date(2026, 0, 5, 12, 0);
+    const now = sast(2026, 0, 5, 12, 0);
     const days = buildScheduleDays(now);
     const earliest = addMinutes(now, businessRules.minScheduleLeadMinutes).getTime();
 
@@ -120,19 +133,19 @@ describe('buildScheduleDays', () => {
   });
 
   it('stays within the scheduling horizon and drops empty days', () => {
-    const days = buildScheduleDays(new Date(2026, 0, 5, 12, 0));
+    const days = buildScheduleDays(sast(2026, 0, 5, 12, 0));
     expect(days.length).toBeGreaterThan(0);
     expect(days.length).toBeLessThanOrEqual(businessRules.maxScheduleDays);
     days.forEach((day) => expect(day.slots.length).toBeGreaterThan(0));
   });
 
   it('labels the first day relative to now', () => {
-    const days = buildScheduleDays(new Date(2026, 0, 5, 12, 0));
+    const days = buildScheduleDays(sast(2026, 0, 5, 12, 0));
     expect(days[0]?.label).toBe('Today');
   });
 
   it('offers no same-day slots after trading hours', () => {
-    const days = buildScheduleDays(new Date(2026, 0, 5, 23, 30));
+    const days = buildScheduleDays(sast(2026, 0, 5, 23, 30));
     expect(days[0]?.label).not.toBe('Today');
   });
 });
@@ -148,7 +161,7 @@ describe('buildScheduleDays against a branch', () => {
     days.map((day) => ({ day, opensAt, closesAt }));
 
   // 09:00 on a Monday, so today's whole window is still ahead.
-  const monday9am = new Date(2026, 7, 24, 9, 0);
+  const monday9am = sast(2026, 7, 24, 9, 0);
   const today = (store?: { openingHours: { day: number; opensAt: string; closesAt: string }[] }) =>
     buildScheduleDays(monday9am, store)[0];
 
@@ -200,7 +213,7 @@ describe('buildScheduleDays against a branch', () => {
     for (const day of buildScheduleDays(monday9am, branch)) {
       for (const slot of day.slots) {
         const at = new Date(slot.iso);
-        const minutes = at.getHours() * 60 + at.getMinutes();
+        const minutes = storeClockAt(at).minutesIntoDay;
         expect(minutes).toBeGreaterThanOrEqual(11 * 60);
         expect(minutes).toBeLessThan(23 * 60);
       }

@@ -1,4 +1,5 @@
 import type { OpeningHours, Store } from '@/types';
+import { storeClockAt } from '@/utils/storeClock';
 
 /**
  * Whether a branch is trading, worked out from its hours rather than read off
@@ -31,18 +32,23 @@ export function hoursForDay(
 }
 
 /**
- * Published hours are store-local wall-clock strings ("10:00"), and this compares
- * them against the device's wall clock. For a South African chain on a South
- * African customer's phone those are the same clock, which is the case worth
- * getting right first.
+ * Published hours are store-local wall-clock strings ("10:00"), and these
+ * compare them against the store's clock — `storeClockAt`, not `getHours`.
  *
- * They come apart for a customer whose phone is set to another timezone, who
- * would be told a Johannesburg branch is open on their own local hours. Left
- * alone deliberately: scheduling, the ETA windows and the order timeline all
- * read the device clock too, so converting openness alone would trade one
- * wrong answer for an inconsistent app. Worth revisiting as one piece — SAST
- * is UTC+2 with no daylight saving, so it is fixed-offset arithmetic and does
- * not need `Intl`, which Hermes ships without.
+ * That sentence used to read the other way. This file compared published hours
+ * against the *device's* wall clock, with a note saying the two are the same
+ * for a South African chain on a South African customer's phone, that they
+ * come apart for a phone set elsewhere, and that converting openness alone
+ * would trade one wrong answer for an inconsistent app — so it was worth
+ * revisiting as one piece.
+ *
+ * It has now been done as one piece: `utils/storeClock` carries the offset,
+ * and the scheduler, the formatters and this file all read the kitchen's
+ * clock. See that file for why it is fixed-offset arithmetic rather than
+ * `Intl`, and for the part that turned this from a travelling-customer edge
+ * case into something worth stopping for — the test suite runs in UTC, so
+ * every assertion in this repository about a trading window has been checking
+ * the app on a clock two hours behind the kitchen's, and agreeing with it.
  */
 const MINUTES_IN_A_DAY = 24 * 60;
 
@@ -80,8 +86,7 @@ export function tradingWindow(hours: { opensAt: string; closesAt: string }): {
 }
 
 export function isStoreOpenAt(store: Store, when: Date = new Date()): boolean {
-  const minutesNow = when.getHours() * 60 + when.getMinutes();
-  const day = when.getDay();
+  const { minutesIntoDay: minutesNow, day } = storeClockAt(when);
 
   const today = hoursForDay(store, day);
   if (today) {
@@ -125,15 +130,15 @@ export function windowInForce(
   store: Store,
   now: Date = new Date(),
 ): { opensAt: string; closesAt: string } | null {
-  const minutesNow = now.getHours() * 60 + now.getMinutes();
+  const { minutesIntoDay: minutesNow, day } = storeClockAt(now);
 
-  const yesterday = hoursForDay(store, (now.getDay() + 6) % 7);
+  const yesterday = hoursForDay(store, (day + 6) % 7);
   if (yesterday) {
     const { close } = tradingWindow(yesterday);
     if (close > MINUTES_IN_A_DAY && minutesNow + MINUTES_IN_A_DAY < close) return yesterday;
   }
 
-  return hoursForDay(store, now.getDay());
+  return hoursForDay(store, day);
 }
 
 /**

@@ -10,6 +10,7 @@ import { buildScheduleDays } from '@/utils/datetime';
 import { isDiallable } from '@/utils/linking';
 import { isSoldOut } from '@/features/menu/availability';
 import { runningLate, RUNNING_LATE_LABEL, liveStatusCopy } from '@/features/orders/liveStatus';
+import { instantAtStoreTime, storeClockAt } from '@/utils/storeClock';
 
 const code = (file: string) =>
   readFileSync(path.join(__dirname, '..', file), 'utf8')
@@ -23,9 +24,15 @@ const bryanston = (): Store => {
   return store;
 };
 
-/** 2026-09-06 is a Sunday; 2026-09-07 a Monday. */
-const sundayNoon = new Date(2026, 8, 6, 12, 0);
-const mondayNoon = new Date(2026, 8, 7, 12, 0);
+/**
+ * 2026-09-06 is a Sunday; 2026-09-07 a Monday — on the store's calendar, which
+ * is the only one these rules read. See `utils/storeClock`.
+ */
+const sast = (year: number, month: number, date: number, hour = 0, minute = 0) =>
+  instantAtStoreTime({ year, month, date, hour, minute });
+
+const sundayNoon = sast(2026, 8, 6, 12, 0);
+const mondayNoon = sast(2026, 8, 7, 12, 0);
 
 /**
  * FIXTURE 1 — a branch that does not trade on Sundays.
@@ -59,7 +66,7 @@ describe('a branch with a six-day trading week', () => {
    * path exists for the V&A branch, which closes at 00:30.
    */
   it('is not held open by Saturday spilling over', () => {
-    expect(isStoreOpenAt(bryanston(), new Date(2026, 8, 6, 0, 15))).toBe(false);
+    expect(isStoreOpenAt(bryanston(), sast(2026, 8, 6, 0, 15))).toBe(false);
   });
 
   /**
@@ -68,19 +75,19 @@ describe('a branch with a six-day trading week', () => {
    * returning null had never happened against seeded data.
    */
   it('offers no slots on the day it is shut', () => {
-    const days = buildScheduleDays(new Date(2026, 8, 4, 12, 0), bryanston());
-    const sunday = days.find((day) => new Date(day.dateIso).getDay() === 0);
-    const monday = days.find((day) => new Date(day.dateIso).getDay() === 1);
+    const days = buildScheduleDays(sast(2026, 8, 4, 12, 0), bryanston());
+    const sunday = days.find((day) => storeClockAt(new Date(day.dateIso)).day === 0);
+    const monday = days.find((day) => storeClockAt(new Date(day.dateIso)).day === 1);
 
     expect(sunday).toBeUndefined();
     expect(monday?.slots.length).toBeGreaterThan(0);
   });
 
   it('still offers slots on the six days it does trade', () => {
-    const days = buildScheduleDays(new Date(2026, 8, 4, 12, 0), bryanston());
+    const days = buildScheduleDays(sast(2026, 8, 4, 12, 0), bryanston());
 
     expect(days.length).toBeGreaterThan(0);
-    expect(days.every((day) => new Date(day.dateIso).getDay() !== 0)).toBe(true);
+    expect(days.every((day) => storeClockAt(new Date(day.dateIso)).day !== 0)).toBe(true);
   });
 
   it('leaves every other branch on a seven-day week', () => {

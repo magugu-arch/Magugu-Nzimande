@@ -3,6 +3,7 @@ import path from 'node:path';
 import { act } from '@testing-library/react-native';
 import type { Address, Store } from '@/types';
 import { supportsFulfilment } from '@/utils/fulfilment';
+import { instantAtStoreTime } from '@/utils/storeClock';
 import {
   deliveryRange,
   isOpeningLater,
@@ -10,6 +11,18 @@ import {
   useFulfilmentStore,
   type FulfilmentRequirements,
 } from '@/store/fulfilmentStore';
+
+/**
+ * Fixtures on the store's clock.
+ *
+ * `new Date(2026, 7, 24, 9, 0)` builds an instant in whatever zone the process
+ * is running in — UTC, under this suite's runner — and every assertion below
+ * is about a South African kitchen. While the code read the device clock too
+ * the two mistakes cancelled and the suite passed; they do not cancel any more.
+ * See `utils/storeClock`.
+ */
+const sast = (year: number, month: number, date: number, hour = 0, minute = 0) =>
+  instantAtStoreTime({ year, month, date, hour, minute });
 
 const store: Store = {
   id: 'rosebank',
@@ -79,8 +92,8 @@ describe('missingFulfilmentRequirement', () => {
     // '2026-08-23T18:30:00.000Z', which was comfortably in the future the day
     // it was written and is now yesterday — the same stale-value shape the
     // guard below exists to catch, in the test that checks it.
-    const now = new Date(2026, 7, 24, 9, 0);
-    const laterToday = new Date(2026, 7, 24, 18, 30).toISOString();
+    const now = sast(2026, 7, 24, 9, 0);
+    const laterToday = sast(2026, 7, 24, 18, 30).toISOString();
 
     /**
      * Shut because it is nine in the morning and the branch opens at ten.
@@ -148,8 +161,8 @@ describe('missingFulfilmentRequirement', () => {
    * told the app it is not cooking.
    */
   describe('a store that has declared itself shut', () => {
-    const now = new Date(2026, 7, 24, 14, 0);
-    const laterToday = new Date(2026, 7, 24, 18, 30).toISOString();
+    const now = sast(2026, 7, 24, 14, 0);
+    const laterToday = sast(2026, 7, 24, 18, 30).toISOString();
 
     const unavailable = {
       ...store,
@@ -205,7 +218,7 @@ describe('missingFulfilmentRequirement', () => {
           ...base,
           store: unavailable,
           address,
-          now: new Date(2026, 7, 24, 3, 30),
+          now: sast(2026, 7, 24, 3, 30),
         }),
       ).toBe('bb.q Chicken Rosebank is closed — schedule for later');
     });
@@ -444,8 +457,8 @@ describe('a store that has shut since it was chosen', () => {
   // Built in the running process's own zone: published hours are compared
   // against the device's wall clock, so a pinned offset here would be testing
   // the harness's timezone rather than the rule.
-  const middleOfTheNight = new Date(2026, 7, 24, 3, 30);
-  const lunchtime = new Date(2026, 7, 24, 14, 0);
+  const middleOfTheNight = sast(2026, 7, 24, 3, 30);
+  const lunchtime = sast(2026, 7, 24, 14, 0);
 
   it('refuses the order rather than trusting the saved flag', () => {
     expect(
@@ -512,9 +525,9 @@ describe('a scheduled time that is no longer any good', () => {
   }));
   const branch: Store = { ...store, openingHours: TRADING_HOURS, isOpenNow: true };
 
-  const fivePm = new Date(2026, 7, 24, 17, 0);
-  const halfPastSeven = new Date(2026, 7, 24, 19, 30);
-  const sixPm = new Date(2026, 7, 24, 18, 0).toISOString();
+  const fivePm = sast(2026, 7, 24, 17, 0);
+  const halfPastSeven = sast(2026, 7, 24, 19, 30);
+  const sixPm = sast(2026, 7, 24, 18, 0).toISOString();
 
   const check = (scheduledFor: string, now: Date) =>
     missingFulfilmentRequirement({ ...base, store: branch, address, scheduledFor, now });
@@ -529,7 +542,7 @@ describe('a scheduled time that is no longer any good', () => {
 
   /** The boundary is worth pinning: the slot itself is too late to start. */
   it('refuses the slot at the very moment it arrives', () => {
-    expect(check(sixPm, new Date(2026, 7, 24, 18, 0))).toBe('That time has passed — pick another');
+    expect(check(sixPm, sast(2026, 7, 24, 18, 0))).toBe('That time has passed — pick another');
   });
 
   /**
@@ -538,14 +551,14 @@ describe('a scheduled time that is no longer any good', () => {
    * out.
    */
   it('refuses a time outside the branch hours, however far ahead it is', () => {
-    const threeAmTomorrow = new Date(2026, 7, 25, 3, 0).toISOString();
+    const threeAmTomorrow = sast(2026, 7, 25, 3, 0).toISOString();
     expect(check(threeAmTomorrow, fivePm)).toBe(
       'bb.q Chicken Rosebank is closed at 03:00 — pick another time',
     );
   });
 
   it('refuses a slot at closing time, when the kitchen cannot start it', () => {
-    const atClosing = new Date(2026, 7, 24, 22, 0).toISOString();
+    const atClosing = sast(2026, 7, 24, 22, 0).toISOString();
     expect(check(atClosing, fivePm)).toBe(
       'bb.q Chicken Rosebank is closed at 22:00 — pick another time',
     );
@@ -553,7 +566,7 @@ describe('a scheduled time that is no longer any good', () => {
 
   it('has no opinion on hours for a branch that publishes none', () => {
     const noHours: Store = { ...branch, openingHours: [] };
-    const threeAmTomorrow = new Date(2026, 7, 25, 3, 0).toISOString();
+    const threeAmTomorrow = sast(2026, 7, 25, 3, 0).toISOString();
     expect(
       missingFulfilmentRequirement({
         ...base,

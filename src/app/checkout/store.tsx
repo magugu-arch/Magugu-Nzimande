@@ -20,6 +20,7 @@ import { useDeviceLocation, useStoresForFulfilment } from '@/features/stores/hoo
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, spacing } from '@/theme';
+import { clockNotice } from '@/utils/storeClock';
 
 /** Store Selection + Store Locator (brief §4 / §11). */
 export default function StoreSelectionScreen() {
@@ -53,6 +54,14 @@ export default function StoreSelectionScreen() {
    * location back on unreachable for exactly the person who needed it.
    */
   const located = coordinates !== null;
+
+  /*
+    Read once per render rather than on a ticking clock, unlike the schedule
+    screen's. Nothing on this screen turns on the minute — the badge is
+    recomputed by the store list itself — and a phone does not change timezone
+    while somebody is looking at a list of branches.
+  */
+  const notice = clockNotice();
 
   const handleSelect = useCallback(
     (store: Store) => {
@@ -150,6 +159,25 @@ export default function StoreSelectionScreen() {
               {list.length} store{list.length === 1 ? '' : 's'}
               {located ? ' nearby' : ''}
             </Text>
+
+            {/*
+              The hours on these cards are the branch's own, and so is the
+              "Open now" badge beside them — both South African time, on a phone
+              that may not be. Said here rather than on each card: it is one
+              fact about the whole list, and repeating it seven times would be
+              the same sentence claiming to be seven.
+
+              `audit:clock` is what put this here. The sweep drives this screen
+              from six device timezones and asserts the notice appears exactly
+              when the phone and the kitchen disagree; it found the schedule
+              screen carrying it and this one, which prints trading hours a
+              customer will check against their own watch, saying nothing.
+            */}
+            {notice ? (
+              <Text variant="caption" color={colors.textMuted} testID="store-clock-notice">
+                {notice}
+              </Text>
+            ) : null}
           </View>
         }
       />

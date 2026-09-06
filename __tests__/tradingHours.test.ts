@@ -1,4 +1,5 @@
 import type { OpeningHours, Store } from '@/types';
+import { instantAtStoreTime } from '@/utils/storeClock';
 import { hoursForDay, isStoreOpenAt, isTradingNow } from '@/utils/tradingHours';
 
 const HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) => ({
@@ -30,17 +31,32 @@ const store = (overrides: Partial<Store> = {}): Store =>
   }) as Store;
 
 /**
- * A Monday, so every fixture lands on a day the branch trades.
+ * A Monday, so every fixture lands on a day the branch trades — and pinned to
+ * the store's clock, which is the whole point of the fixture.
  *
- * Built in the running process's own zone rather than pinned to +02:00, on
- * purpose: `isStoreOpenAt` compares published wall-clock hours against the
- * device's wall clock, so a fixed offset here would test the test harness's
- * timezone rather than the rule. (It caught me out first time — the suite runs
- * in UTC, so a "10:00 SAST" fixture read as 08:00 and the branch was shut.)
+ * This helper used to build its instants in the running process's own zone,
+ * with a comment explaining that a fixed +02:00 offset would "test the test
+ * harness's timezone rather than the rule", and noting that it had caught
+ * somebody out first time: the suite runs in UTC, so a 10:00 SAST fixture read
+ * as 08:00 and the branch came back shut.
+ *
+ * That reading was upside down, and the evidence for it was the finding. A
+ * 10:00 SAST fixture is 08:00 UTC; the old `isStoreOpenAt` read `getHours()`,
+ * got 8, and reported the branch shut two hours before it was. The correct
+ * fixture had surfaced a real defect on the first attempt. Building it in the
+ * process's own zone instead made the fixture wrong in precisely the way the
+ * code was wrong, at which point they agreed and the suite went green.
+ *
+ * The fix went into the fixture and the defect stayed in the app — the failure
+ * this file exists to catch, committed by this file.
+ *
+ * Built through `instantAtStoreTime` rather than a hand-written `- 2 hours`,
+ * so the fixture and the rule cannot drift apart: if the offset is ever wrong
+ * they are wrong together and every other test here says so.
  */
 const at = (time: string) => {
-  const [hour, minute] = time.split(':').map(Number);
-  return new Date(2026, 7, 24, hour, minute);
+  const [hour = 0, minute = 0] = time.split(':').map(Number);
+  return instantAtStoreTime({ year: 2026, month: 7, date: 24, hour, minute });
 };
 
 describe('hoursForDay', () => {
@@ -108,6 +124,8 @@ describe('isTradingNow', () => {
   it('is shut on a day the branch does not trade', () => {
     const closedSundays = store({ openingHours: HOURS.filter((h) => h.day !== 0) });
     // 23 August 2026 is a Sunday.
-    expect(isTradingNow(closedSundays, new Date(2026, 7, 23, 14, 0))).toBe(false);
+    expect(
+      isTradingNow(closedSundays, instantAtStoreTime({ year: 2026, month: 7, date: 23, hour: 14 })),
+    ).toBe(false);
   });
 });

@@ -2,6 +2,7 @@ import type { OpeningHours, Store } from '@/types';
 import { buildScheduleDays } from '@/utils/datetime';
 import { closureReason, isStoreOpenAt, isTradingNow, windowInForce } from '@/utils/tradingHours';
 import { stores } from '@/services/data/storeData';
+import { instantAtStoreTime, storeClockAt } from '@/utils/storeClock';
 
 /**
  * A trading window that ends after midnight.
@@ -53,13 +54,17 @@ const store = (openingHours: OpeningHours[], overrides: Partial<Store> = {}): St
   }) as Store;
 
 /**
- * Built in the running process's own zone rather than at a fixed offset, for
- * the reason `tradingHours.test.ts` gives: the rule compares published
- * wall-clock hours against the device's wall clock, so pinning an offset here
- * would test the harness's timezone instead of the rule.
+ * Built on the store's clock, which is what a fixture reading "Saturday 00:15"
+ * has always meant.
+ *
+ * It used to be built in the running process's own zone, citing the note in
+ * `tradingHours.test.ts` about pinning an offset testing the harness rather
+ * than the rule. That note has been rewritten: it was describing a defect and
+ * calling it a design. The rule now reads the kitchen's clock, so a fixture
+ * that says quarter past midnight in Johannesburg says it here too.
  */
 const at = (year: number, month: number, day: number, hour: number, minute = 0) =>
-  new Date(year, month - 1, day, hour, minute);
+  instantAtStoreTime({ year, month: month - 1, date: day, hour, minute });
 
 // 2026-09-04 is a Friday, 2026-09-05 a Saturday, 2026-09-06 a Sunday.
 const FRIDAY_EVENING = at(2026, 9, 4, 20, 0);
@@ -138,9 +143,15 @@ describe('scheduling against a window that wraps', () => {
 
     // The window ends at 00:30 on Saturday and last orders are a step before
     // it, so the final slot is 00:15 the next calendar day.
-    expect(latest.getHours()).toBe(0);
-    expect(latest.getMinutes()).toBe(15);
-    expect(latest.getDate()).toBe(5);
+    // Read on the kitchen's clock, not the process's. These assertions used to
+    // call `getHours()` on the instant directly, which is the device reading
+    // again — under a UTC test runner the correct 00:15 SAST slot comes back as
+    // 22:15 the day before, and the assertion that caught this was the fixture
+    // agreeing with the bug rather than the bug being absent.
+    const at15 = storeClockAt(latest);
+    expect(at15.hour).toBe(0);
+    expect(at15.minute).toBe(15);
+    expect(at15.date).toBe(5);
   });
 
   it('never offers a slot the branch would be shut for', () => {
@@ -158,8 +169,8 @@ describe('scheduling against a window that wraps', () => {
     const days = buildScheduleDays(at(2026, 9, 4, 12, 0), ordinary);
     const latest = new Date(days[0]!.slots[days[0]!.slots.length - 1]!.iso);
 
-    expect(latest.getHours()).toBe(21);
-    expect(latest.getMinutes()).toBe(45);
+    expect(storeClockAt(latest).hour).toBe(21);
+    expect(storeClockAt(latest).minute).toBe(45);
   });
 });
 

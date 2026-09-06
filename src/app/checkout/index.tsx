@@ -551,7 +551,51 @@ export default function CheckoutScreen() {
     already the app's word for "nothing was taken", so the two failures it
     calls unsafe are exactly the two worth interrupting an empty state for.
   */
-  if (lines.length === 0 && !mustNotRetry) {
+  if (lines.length === 0) {
+    /*
+      Its own screen rather than the ordinary one with the summary suppressed.
+
+      The first version of this fix kept rendering the whole checkout body over
+      an emptied basket, which was honest and a mess: an order summary of
+      R 0.00, "Your cart is empty" nagging in the footer beside the message
+      about the customer's card, and a disabled Place order button offering to
+      charge nothing. There is nothing left to check out and nothing left to
+      place — only something to be told, and a phone number to be given.
+    */
+    if (mustNotRetry) {
+      return (
+        <Screen edges={['top', 'bottom']} testID="checkout-stranded">
+          <ScreenHeader title="Checkout" />
+          <View style={styles.strandedBody}>
+            <View style={styles.errorBox} accessibilityRole="alert" testID="checkout-submit-error">
+              <Ionicons name="alert-circle" size={17} color={colors.status.error} />
+              <Text variant="caption" color={colors.status.error} style={styles.errorText}>
+                {failure!.message}
+              </Text>
+            </View>
+
+            {isDiallable(store?.phone) ? (
+              <Button
+                label={`Call ${store!.name}`}
+                variant="secondary"
+                onPress={() => void callNumber(store!.phone)}
+                size="lg"
+                testID="checkout-call-store"
+              />
+            ) : null}
+
+            <Button
+              label="Browse the menu"
+              variant="text"
+              onPress={() => router.replace('/(tabs)/menu')}
+              size="lg"
+              testID="checkout-stranded-menu"
+            />
+          </View>
+        </Screen>
+      );
+    }
+
     return (
       <Screen edges={['top', 'bottom']} testID="checkout-empty">
         <ScreenHeader title="Checkout" />
@@ -985,6 +1029,10 @@ const styles = StyleSheet.create({
   reviewLine: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   reviewImage: { width: 48, borderRadius: radius.sm },
   reviewBody: { flex: 1, gap: spacing.xxs },
+  strandedBody: {
+    padding: spacing.lg,
+    gap: spacing.lg,
+  },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',

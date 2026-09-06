@@ -429,6 +429,82 @@ rather than one that expired. The case was driving the guest path under another
 name, and passing. It took seeding the tokens to reach the code the fix is
 about.
 
+## 2l. A phone that is not in South Africa
+
+Every browser sweep in this repository pins `timezoneId: 'Africa/Johannesburg'`
+and every unit suite runs under a UTC runner. So the app had been driven on
+exactly two clocks — the kitchen's, and one that was two hours out in the same
+direction as the code reading it. A customer whose phone is set anywhere else
+is a state the app has always supported and nothing had ever put it in.
+
+`utils/tradingHours` had carried a note about this since it was written: that
+openness compares published wall-clock hours against the *device's* wall clock,
+that the two come apart for a phone set elsewhere, and that converting openness
+alone would trade one wrong answer for an inconsistent app — so it was worth
+revisiting as one piece. This is that piece.
+
+`npm run audit:clock` drives `/checkout/schedule` and `/checkout/store` from six
+device timezones at one pinned instant: 03:00 on a Sunday in Johannesburg. Only
+`timezoneId` varies, so any difference in what comes back is the timezone and
+nothing else. Against the previous code:
+
+| Zone | What the customer was shown at 03:00 SAST |
+| ---- | ----------------------------------------- |
+| America/Los_Angeles | **"Open now"** on every branch, kitchens shut |
+| Pacific/Auckland | the same, and a slot grid opening at 13:45 |
+| America/Sao_Paulo | "Open now · 11:00 – 00:30" at the V&A, and Menlyn Park reported "Temporarily closed" where Johannesburg said "Closed" |
+
+Seven findings across three of the six zones, with every existing test and
+sweep green at the same time.
+
+The first row is order BBQ-4823 exactly — the failure `isTradingNow` was
+written to prevent, arriving again through the one input nobody had varied. The
+third is sharper than it looks: `closureReason` decides whether the app offers
+to schedule around a closure or says it cannot be scheduled around at all, so
+the *reason* a branch was shut changed with where the phone was.
+
+And it was not only a travelling customer. The scheduler built each slot's
+label from the device's wall clock and stamped its instant from the same, so a
+slot labelled `18:00` reached the kitchen as some other hour — past closing, for
+a phone far enough behind, having passed a lead-time check and a trading-hours
+check that both agreed with it because all three read the same clock.
+
+`utils/storeClock` now holds the offset once. It converts through the UTC
+getters and returns plain numbers rather than a shifted `Date`, so an instant in
+this app always means an instant; `instantAtStoreTime` is the inverse and its
+overflow is load-bearing, because `{ hour: 24, minute: 15 }` is how the
+after-midnight slots are built. Fixed-offset arithmetic, not `Intl` — SAST has
+no daylight saving, and Hermes ships without full ICU on some builds, which is
+already why `formatTime` and `groupDigits` are hand-rolled.
+
+Where the phone and the kitchen disagree, both screens now say so once. The app
+converts correctly either way; a customer in London shown `18:00` when their own
+phone says `17:00` deserves the sentence, and a customer in Cape Town must never
+see it. The sweep checks both halves against `getTimezoneOffset` in the browser
+rather than against a list of zones it could agree with by construction.
+
+**Two corrections worth recording, both in the harness rather than the app.**
+
+`__tests__/tradingHours.test.ts` carried a comment saying its fixtures were
+built in the running process's own zone on purpose, because pinning +02:00
+"would test the test harness's timezone rather than the rule" — and noting it
+had caught somebody out first time, since a 10:00 SAST fixture came back with
+the branch shut. That reading was upside down: the correct fixture had surfaced
+the real defect on the first attempt, and rebuilding it in the process's zone
+made the fixture wrong in precisely the way the code was wrong. They agreed, and
+the suite went green. The fix went into the fixture and the defect stayed in the
+app. Twenty-one assertions across five suites had to move to the store's clock
+before any of them could see this round's change, and each one that moved was a
+place the two mistakes had been cancelling.
+
+The sweep's own first run reported five disagreements that were entirely its
+own. It compared `document.body.innerText` between zones; the new notice is one
+more line of layout, so a phone abroad had slightly less room and its
+virtualised slot list mounted a few fewer rows. The two strings shared an
+identical prefix and the shorter simply stopped. It now compares the day chips
+and branch cards exactly and the slot grid as a prefix — a slot that differed
+breaks it, a slot not yet mounted cannot.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -482,7 +558,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **98 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **99 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

@@ -52,6 +52,7 @@
     "audit:delivery-range": "node scripts/audit-delivery-range.mjs",
     "audit:text-scale": "node scripts/audit-text-scale.mjs",
     "audit:keyboard": "node scripts/audit-keyboard.mjs",
+    "audit:clock": "node scripts/audit-clock.mjs",
     "audit:wire": "node scripts/audit-wire.mjs"
   },
   "dependencies": {

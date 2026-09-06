@@ -8,6 +8,7 @@ import { useNow } from '@/features/system/useNow';
 import { isOpeningLater, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
 import { buildScheduleDays, formatDateTime, formatShortDate } from '@/utils/datetime';
+import { clockNotice } from '@/utils/storeClock';
 
 /** Order Scheduling (brief §4). */
 export default function ScheduleScreen() {
@@ -36,6 +37,11 @@ export default function ScheduleScreen() {
   }, [draft, setScheduledFor, router]);
 
   const verb = fulfilmentType === 'delivery' ? 'delivered' : 'ready';
+
+  // Recomputed off the same tick as the slots, so a phone that crosses a
+  // daylight-saving boundary while this screen sits open stops claiming a
+  // difference that is no longer there.
+  const notice = useMemo(() => clockNotice(now), [now]);
 
   /**
    * No slots is two different situations, and they need different words.
@@ -98,6 +104,22 @@ export default function ScheduleScreen() {
         </Card>
 
         <Text variant="h3">Or pick a time</Text>
+
+        {/*
+          Only when the phone and the kitchen disagree, which is why it is a
+          nullable string from `clockNotice` rather than a flag checked here.
+
+          Every time on this screen is South African time, because every one of
+          them is a claim about a South African kitchen. That is right and it is
+          also surprising: a customer in London choosing "18:00" is choosing an
+          hour their own phone will never show them. Saying so is the difference
+          between a converted time and a wrong one.
+        */}
+        {notice ? (
+          <Text variant="caption" color={colors.textMuted} testID="schedule-clock-notice">
+            {notice}
+          </Text>
+        ) : null}
 
         <FlatList
           data={days}
