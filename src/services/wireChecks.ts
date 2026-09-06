@@ -283,6 +283,129 @@ function checkVoucher(value: unknown, where: string): void {
   number(voucher.minimumSpend, `${where}.minimumSpend`);
 }
 
+/* -------------------------------------------------------------------------- */
+/*
+  The money and identity paths, which were the last unchecked ones that decide
+  something rather than display it.
+
+  `authorisePayment` is the sharpest of them. `submitOrder` reads the result as
+  `if (!authorisation.success)` and then hands `authorisation.intentId` to
+  `release`, and neither was checked. A gateway that answers
+
+      { "success": "false", "message": "Insufficient funds" }
+
+  — a string, which is what a backend written against a JSON:API-ish house
+  style or a loosely typed ORM produces without anybody noticing — is read as a
+  **successful** authorisation, because `"false"` is truthy. The order is
+  placed against a payment that did not happen.
+
+  The mirror case is as bad in the other direction: `success` absent is falsy,
+  so a payment the gateway *did* take is reported to the customer as a decline,
+  under a button inviting them to try again.
+
+  And `intentId` is what releases a hold. Missing, it goes into
+  `/v1/payments/undefined/void` and the authorisation stays on the card.
+
+  These are the three lines the brief's §7 rules are about, so they get the
+  strictest checks in this file: `success` must be an actual boolean, not
+  merely something truthy.
+*/
+
+/** A real boolean. Not truthy, not "true", not 1. */
+function flag(value: unknown, where: string): void {
+  if (typeof value !== 'boolean') {
+    throw new MalformedResponse(
+      `${where} should be true or false, got ${typeof value} ${JSON.stringify(value)}`,
+    );
+  }
+}
+
+export function checkedPaymentResult<T>(value: unknown): T {
+  const result = record(value, 'payment');
+  flag(result.success, 'payment.success');
+  // The handle a hold is released by. Required on both outcomes: a failed
+  // authorisation can still have taken one, which is the whole reason
+  // `submitOrder` releases before it gives up.
+  text(result.intentId, 'payment.intentId');
+  return value as T;
+}
+
+export function checkedPaymentIntent<T>(value: unknown): T {
+  const intent = record(value, 'intent');
+  text(intent.intentId, 'intent.intentId');
+  // The figure the customer is about to be charged.
+  number(intent.amount, 'intent.amount');
+  return value as T;
+}
+
+/**
+ * A session, which is the difference between being signed in and appearing to
+ * be.
+ *
+ * A response missing `accessToken` leaves the app believing somebody is signed
+ * in while every request it then makes is anonymous — so the customer sees
+ * their name on Home and a 401 everywhere behind it. Better to fail the
+ * sign-in.
+ */
+export function checkedSession<T>(value: unknown): T {
+  const session = record(value, 'session');
+  text(session.accessToken, 'session.accessToken');
+  text(session.refreshToken, 'session.refreshToken');
+  number(session.expiresAt, 'session.expiresAt');
+  text(record(session.user, 'session.user').id, 'session.user.id');
+  return value as T;
+}
+
+/**
+ * Saved cards and rails.
+ *
+ * `type` is not decoration: `offeredPaymentMethods` filters cash off anything
+ * but a delivery, `requiresRedirect` decides whether the customer is sent to a
+ * provider-hosted page, and `isSettledOnDelivery` decides whether anything is
+ * authorised at all. A `type` the app does not know falls through all three —
+ * so it would be charged inline, as a card, whatever it actually is.
+ */
+const PAYMENT_TYPES = ['card', 'eft', 'snapscan', 'cash', 'applepay', 'googlepay'];
+
+export function checkedPaymentMethods<T>(value: unknown): T {
+  for (const [index, raw] of items(value, 'paymentMethods').entries()) {
+    const method = record(raw, `paymentMethods[${index}]`);
+    text(method.id, `paymentMethods[${index}].id`);
+    text(method.label, `paymentMethods[${index}].label`);
+    if (typeof method.type !== 'string' || !PAYMENT_TYPES.includes(method.type)) {
+      throw new MalformedResponse(
+        `paymentMethods[${index}].type should be one of ${PAYMENT_TYPES.join(', ')}, got ` +
+          JSON.stringify(method.type),
+      );
+    }
+  }
+  return value as T;
+}
+
+/**
+ * A saved address, and the coordinates the delivery radius is measured from.
+ *
+ * This file's own opening note lists `deliveryRange` measuring `NaN` and
+ * reading it as out of range among the holes it was written for — and the fix
+ * for that went to `checkStore`, the branch end of the same measurement.
+ * `deliveryRange` guards the customer end with `Number.isFinite`, which is the
+ * consumer-side patch this file exists to replace with one honest failure at
+ * the fetch.
+ *
+ * Optional throughout: an address with no coordinates is the ordinary case
+ * here, because the add-address form has no geocoder behind it.
+ */
+export function checkedAddresses<T>(value: unknown): T {
+  for (const [index, raw] of items(value, 'addresses').entries()) {
+    const address = record(raw, `addresses[${index}]`);
+    text(address.id, `addresses[${index}].id`);
+    text(address.line1, `addresses[${index}].line1`);
+    optionalNumber(address.latitude, `addresses[${index}].latitude`);
+    optionalNumber(address.longitude, `addresses[${index}].longitude`);
+  }
+  return value as T;
+}
+
 export function checkedVouchers(value: unknown): Voucher[] {
   for (const [index, raw] of items(value, 'vouchers').entries()) {
     checkVoucher(raw, `vouchers[${index}]`);

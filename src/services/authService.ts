@@ -2,6 +2,7 @@ import { config } from '@/constants/config';
 import type { AuthSession, UserProfile } from '@/types';
 import { toE164 } from '@/utils/validation';
 import { delay, request } from './apiClient';
+import { checkedSession } from './wireChecks';
 import { demoUser } from './data/accountData';
 import { clearTokens, storeTokens } from './secureStorage';
 
@@ -82,6 +83,7 @@ async function persist(session: AuthSession): Promise<AuthSession> {
 export async function signIn({ email, password }: SignInInput): Promise<AuthSession> {
   if (!config.useMockApi) {
     const session = await request<AuthSession>('/v1/auth/sign-in', {
+      parse: checkedSession<AuthSession>,
       method: 'POST',
       body: { email, password },
       anonymous: true,
@@ -106,6 +108,7 @@ export async function signIn({ email, password }: SignInInput): Promise<AuthSess
 export async function register(input: RegisterInput): Promise<AuthSession> {
   if (!config.useMockApi) {
     const session = await request<AuthSession>('/v1/auth/register', {
+      parse: checkedSession<AuthSession>,
       method: 'POST',
       body: { ...input, phone: toE164(input.phone) },
       anonymous: true,

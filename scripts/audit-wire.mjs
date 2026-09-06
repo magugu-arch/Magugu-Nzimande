@@ -136,6 +136,56 @@ const LOYALTY = {
   history: [],
 };
 
+/*
+  Everything checkout touches, so a case can be driven all the way to the
+  button that takes money rather than stopping at a list screen.
+*/
+const STORE = {
+  id: 'store-wire',
+  name: 'bb.q Chicken Wire Street',
+  addressLine: '1 Wire Street',
+  suburb: 'Rosebank',
+  city: 'Johannesburg',
+  province: 'Gauteng',
+  phone: '011 000 0000',
+  latitude: -26.1446,
+  longitude: 28.0417,
+  openingHours: [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+    day,
+    opensAt: '00:00',
+    closesAt: '23:59',
+  })),
+  supportsDelivery: true,
+  supportsCollection: true,
+  supportsDineIn: true,
+  deliveryRadiusKm: 50,
+  preparationMinutes: 18,
+  isOpenNow: true,
+};
+
+const ADDRESS = {
+  id: 'address-wire',
+  label: 'Home',
+  line1: '14 Acacia Road',
+  suburb: 'Rosebank',
+  city: 'Johannesburg',
+  province: 'Gauteng',
+  postalCode: '2196',
+  latitude: -26.1446,
+  longitude: 28.0417,
+  isDefault: true,
+};
+
+const CARD = {
+  id: 'payment-wire',
+  type: 'card',
+  label: 'Visa ending 4821',
+  last4: '4821',
+  expiry: '09/28',
+  brand: 'Visa',
+  isDefault: true,
+};
+
 /** Endpoint → body, before any case bends one of them. */
 const baseline = () => ({
   '/v1/menu': MENU,
@@ -144,10 +194,10 @@ const baseline = () => ({
   '/v1/loyalty/account': LOYALTY,
   '/v1/loyalty/vouchers': [],
   '/v1/promotions': [],
-  '/v1/stores': [],
+  '/v1/stores': [STORE],
   '/v1/orders': [],
-  '/v1/account/addresses': [],
-  '/v1/account/payment-methods': [],
+  '/v1/account/addresses': [ADDRESS],
+  '/v1/account/payment-methods': [CARD],
   '/v1/account/favourites': [],
   '/v1/account/notifications': [],
 });
@@ -254,6 +304,54 @@ const CASES = [
     expect: HONEST,
     forbid: /R 0\.00/,
   },
+  /*
+    ── The money path ───────────────────────────────────────────────────────
+
+    These three drive checkout with a seeded basket rather than a list screen,
+    because the thing being measured is what happens at the button.
+  */
+  {
+    name: 'authorised, said as a string',
+    why: '"false" is truthy — the order goes through on a payment that did not',
+    route: '/checkout',
+    basket: true,
+    reaches: '/v1/payments/authorise',
+    bend: (bodies) => {
+      bodies['/v1/payments/authorise'] = {
+        success: 'false',
+        intentId: 'pi_wire',
+        message: 'Insufficient funds',
+      };
+    },
+    // What must never appear is a confirmation. An order reference here is an
+    // order placed against a declined card.
+    expect: HONEST,
+    forbid: /BBQ-\d|Order placed|Thanks for ordering/i,
+  },
+  {
+    name: 'a payment method type nobody knows',
+    why: 'type decides cash vs redirect vs charged inline, and falls through all three',
+    route: '/checkout',
+    basket: true,
+    reaches: '/v1/account/payment-methods',
+    bend: (bodies) => {
+      bodies['/v1/account/payment-methods'] = [{ ...CARD, type: 'crypto' }];
+    },
+    forbid: /NaN|undefined/,
+  },
+  {
+    name: 'an address with coordinates as strings',
+    why: 'the delivery radius is measured from these',
+    route: '/checkout',
+    basket: true,
+    reaches: '/v1/account/addresses',
+    bend: (bodies) => {
+      bodies['/v1/account/addresses'] = [
+        { ...ADDRESS, latitude: '-26.1446', longitude: '28.0417' },
+      ];
+    },
+    forbid: /NaN|undefined/,
+  },
   {
     name: 'a null where a list was promised',
     why: 'an endpoint with nothing to return, written the lazy way',
@@ -282,8 +380,24 @@ execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT,
 /** Mutable so a case can bend one endpoint between page loads. */
 let bodies = baseline();
 
+/*
+  Which endpoints the app actually asked for, per case.
+
+  A case that bends `/v1/payments/authorise` and never causes that call proves
+  nothing, and passes — which is the emptiest possible way for a sweep to be
+  green, and the failure `audit:text-scale` had on its first run. So a case may
+  declare the endpoint it is *about*, and the run fails if that endpoint was
+  never reached.
+*/
+let asked = new Set();
+
 const api = createServer((req, res) => {
   const pathname = new URL(req.url ?? '/', 'http://x').pathname;
+  // Recorded before the CORS short-circuit below, so a preflight counts as the
+  // app having asked. The first version of this recorded after it and after a
+  // reflow moved the line entirely — every case then reported "asked for
+  // nothing" while the screens plainly showed stub data. See `reaches`.
+  asked.add(pathname);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
@@ -339,22 +453,52 @@ const SIGNED_IN = JSON.stringify({
   version: 1,
 });
 
+/*
+  A basket, for the cases that have to reach the button rather than a list.
+  Seeded through storage because there is no mock layer in this build to add an
+  item through, and the line is the one the stub menu serves.
+*/
+const BASKET = JSON.stringify({
+  state: {
+    lines: [
+      {
+        id: 'golden-original__wire',
+        productId: 'golden-original',
+        name: 'Golden Original Chicken',
+        assetKey: 'goldenOriginal',
+        unitBasePrice: 149,
+        quantity: 1,
+        selectedOptions: [],
+        unitPrice: 149,
+        lineTotal: 149,
+      },
+    ],
+    fulfilmentType: 'delivery',
+  },
+  version: 1,
+});
+
 const findings = [];
 const rows = [];
 
 try {
   for (const testCase of CASES) {
     bodies = baseline();
+    asked = new Set();
     testCase.bend(bodies);
 
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-    await context.addInitScript((session) => {
-      try {
-        window.localStorage.setItem('bbq.auth', session);
-      } catch {
-        // A context that refuses storage is a browser problem, not an app one.
-      }
-    }, SIGNED_IN);
+    await context.addInitScript(
+      ({ session, basket }) => {
+        try {
+          window.localStorage.setItem('bbq.auth', session);
+          if (basket !== null) window.localStorage.setItem('bbq.cart', basket);
+        } catch {
+          // A context that refuses storage is a browser problem, not an app one.
+        }
+      },
+      { session: SIGNED_IN, basket: testCase.basket ? BASKET : null },
+    );
     const page = await context.newPage();
 
     /*
@@ -376,6 +520,24 @@ try {
     });
     await page.waitForTimeout(6000);
 
+    /*
+      A case about the money path has to press the button, or the endpoint it
+      bends is never called at all — and a sweep that never reaches the code it
+      is aiming at passes for the emptiest possible reason.
+
+      Tolerant of a button that refuses: a blocked checkout is itself a
+      finding-free outcome for some of these, and the text read below says
+      which happened.
+    */
+    if (testCase.basket) {
+      await page
+        .locator('[data-testid="checkout-place-order"]')
+        .first()
+        .click({ timeout: 8000 })
+        .catch(() => {});
+      await page.waitForTimeout(5000);
+    }
+
     const text = (
       await page.evaluate(() => {
         const banner = document.querySelector('[data-testid="offline-banner"]');
@@ -388,6 +550,8 @@ try {
       })
     ).replace(/\n+/g, ' | ');
 
+    const neverAsked = testCase.reaches !== undefined && !asked.has(testCase.reaches);
+
     const caughtByBoundary = await page.evaluate(() =>
       Boolean(document.querySelector('[data-testid="error-boundary"]')),
     );
@@ -398,7 +562,14 @@ try {
     const missingExpected = testCase.expect ? !testCase.expect.test(text) : false;
     const crashed = crashes.length > 0 || caughtByBoundary;
 
-    rows.push({ name: testCase.name, crashed, showedNonsense, missingExpected, text });
+    rows.push({ name: testCase.name, crashed, showedNonsense, missingExpected, neverAsked, text });
+
+    if (neverAsked) {
+      findings.push(
+        `${testCase.name}: never reached ${testCase.reaches}, so this case proved nothing. ` +
+          `The app asked for: ${[...asked].join(', ') || '(nothing)'}`,
+      );
+    }
 
     if (crashed) {
       findings.push(
@@ -429,11 +600,12 @@ try {
   api.close();
 }
 
-console.log('\ncase                                    crashed  nonsense  missing');
+console.log('\ncase                                    crashed  nonsense  missing  unreached');
 for (const row of rows) {
   const mark = (value) => (value ? '   ✗   ' : '   ✓   ');
   console.log(
-    `  ${row.name.padEnd(38)}${mark(row.crashed)}${mark(row.showedNonsense)}${mark(row.missingExpected)}`,
+    `  ${row.name.padEnd(38)}${mark(row.crashed)}${mark(row.showedNonsense)}` +
+      `${mark(row.missingExpected)}${mark(row.neverAsked)}`,
   );
 }
 
@@ -444,7 +616,14 @@ for (const row of rows) {
 */
 if (process.env.WIRE_VERBOSE) {
   for (const row of rows) {
+    /*
+      The tail as well as the head for a case that presses the button: the
+      screen's own failure notice sits under the order summary, so a head-only
+      excerpt shows a perfectly ordinary checkout and says nothing about what
+      the tap did.
+    */
     console.log(`\n--- ${row.name} ---\n  ${row.text.slice(0, 300)}`);
+    if (row.text.length > 300) console.log(`  …${row.text.slice(-320)}`);
   }
 }
 

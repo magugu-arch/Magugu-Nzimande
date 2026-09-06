@@ -1,6 +1,7 @@
 import { config } from '@/constants/config';
 import type { PaymentMethodType } from '@/types';
 import { delay, request } from './apiClient';
+import { checkedPaymentIntent, checkedPaymentResult } from './wireChecks';
 
 /**
  * Payment-gateway abstraction (brief §3).
@@ -47,7 +48,11 @@ export function isSettledOnDelivery(methodType: PaymentMethodType): boolean {
 
 export async function createPaymentIntent(input: AuthorisePaymentInput): Promise<PaymentIntent> {
   if (!config.useMockApi) {
-    return request<PaymentIntent>('/v1/payments/intents', { method: 'POST', body: input });
+    return request<PaymentIntent>('/v1/payments/intents', {
+      method: 'POST',
+      body: input,
+      parse: checkedPaymentIntent<PaymentIntent>,
+    });
   }
 
   return delay(
@@ -67,7 +72,11 @@ export async function authorisePayment(input: AuthorisePaymentInput): Promise<Pa
   }
 
   if (!config.useMockApi) {
-    return request<PaymentResult>('/v1/payments/authorise', { method: 'POST', body: input });
+    return request<PaymentResult>('/v1/payments/authorise', {
+      method: 'POST',
+      body: input,
+      parse: checkedPaymentResult<PaymentResult>,
+    });
   }
 
   const intent = await createPaymentIntent(input);

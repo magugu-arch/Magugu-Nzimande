@@ -7,6 +7,7 @@ import type {
   SupportTopic,
 } from '@/types';
 import { delay, request } from './apiClient';
+import { checkedAddresses, checkedPaymentMethods } from './wireChecks';
 import {
   notifications,
   savedAddresses,
@@ -74,7 +75,7 @@ export function currentPaymentMethods(): PaymentMethod[] {
 
 export async function fetchAddresses(): Promise<Address[]> {
   if (config.useMockApi) return delay(addressLedger);
-  return request<Address[]>('/v1/account/addresses');
+  return request<Address[]>('/v1/account/addresses', { parse: checkedAddresses<Address[]> });
 }
 
 export type AddressInput = Omit<Address, 'id'>;
@@ -125,7 +126,9 @@ export async function setDefaultAddress(addressId: string): Promise<Address[]> {
 
 export async function fetchPaymentMethods(): Promise<PaymentMethod[]> {
   if (config.useMockApi) return delay(paymentLedger);
-  return request<PaymentMethod[]>('/v1/account/payment-methods');
+  return request<PaymentMethod[]>('/v1/account/payment-methods', {
+    parse: checkedPaymentMethods<PaymentMethod[]>,
+  });
 }
 
 export async function deletePaymentMethod(methodId: string): Promise<void> {

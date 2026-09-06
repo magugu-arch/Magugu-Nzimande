@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 96 suites; `npm test` prints the count                                                                  |
+| Tests            | 97 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -489,6 +489,10 @@ These fail loudly rather than rotting quietly — leave them on.
     in `{ data: … }`, a null where an array was promised. Each is a thing a
     competent backend team ships on purpose. What it measures is not whether
     the app crashes but whether the customer is told something false.
+    Ten bent responses now, three of which drive checkout to the button. The
+    sharpest is the authorisation: `submitOrder` reads `!authorisation.success`,
+    and `{ "success": "false" }` is truthy — an order placed against a payment
+    that did not happen. `checkedPaymentResult` requires a real boolean.
   - `audit:coldstart` — ordering as somebody who installed the app that
     morning: nothing saved, nothing ordered. The account the seed could never
     represent.

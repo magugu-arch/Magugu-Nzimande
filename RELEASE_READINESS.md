@@ -345,6 +345,49 @@ that is wrong everywhere proves only that the app dislikes rubbish. The
 baseline is now written field-for-field from `types/rewards.ts`, and the tests
 hold it there.
 
+## 2j. The money path off the wire
+
+`audit:wire` grew from 7 bent responses to 10, and the three new ones drive
+checkout to the button rather than stopping at a list screen.
+
+The sharpest was `/v1/payments/authorise`. `submitOrder` reads it as
+`if (!authorisation.success)` and then hands `authorisation.intentId` to
+`release`, and neither was checked. A gateway answering
+
+```json
+{ "success": "false", "intentId": "pi_1", "message": "Insufficient funds" }
+```
+
+is read as a **successful** authorisation, because `"false"` is truthy — the
+order is placed against a payment that did not happen. The mirror is as bad:
+`success` absent is falsy, so a payment the gateway *did* take is reported as a
+decline under a button inviting a second attempt. A string boolean is not an
+exotic response; it is what a loosely typed ORM produces without anybody
+deciding to.
+
+`checkedPaymentResult` therefore requires an actual boolean rather than
+something truthy, and requires `intentId` on **both** outcomes — a failed
+authorisation can still have taken a hold, which is why `submitOrder` releases
+before it gives up.
+
+Also checked this round: the payment intent's amount, `PaymentMethod.type`
+against the six rails the app implements (an unknown type falls through
+`requiresRedirect`, `isSettledOnDelivery` and the cash filter alike, so it
+would be charged inline as a card), saved-address coordinates, and the
+sign-in/register session — a response missing `accessToken` leaves the app
+believing somebody is signed in while every request behind it is anonymous.
+
+Wire-checked calls: **20 of 49**, up from 10 two rounds ago. Driven in
+Chromium, the bent authorisation now ends at *"We couldn't read that. Please
+try again."* with no order and no reference.
+
+One correction. The three new cases only reach their endpoints if the button is
+actually pressed, so the sweep now fails a case that never reached the endpoint
+it bends — and that check found the first version of itself broken: it recorded
+the path after the CORS short-circuit and then lost the line to a reformat, so
+every money-path case reported "asked for nothing" while the screens plainly
+showed stub data. The check was right and its instrument was not.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -398,7 +441,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **96 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **97 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on
