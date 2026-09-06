@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { products } from '@/services/data/menuData';
@@ -153,6 +154,39 @@ describe('the counts in the docs, against the repository', () => {
    * useful to a reader, so neither document may name one: they point at
    * `npm test`, which counts for itself.
    */
+  /**
+   * The launch blockers, counted by running the audit rather than by trusting
+   * the sentence beside them.
+   *
+   * `RELEASE_READINESS.md` said `audit:launch` lists 23 items while the script
+   * printed 28 — found by running it during a progress audit, five items and
+   * several commits after it stopped being true. It is the worst number in the
+   * repository to have stale: it is the one somebody reads to decide how far
+   * from shipping this is, and understating it flatters the answer.
+   *
+   * Run rather than parsed, because four of the thirty-two `note()` call sites
+   * are conditional — the allergen and nutrition ones fire only while the data
+   * is actually missing — so counting them statically would give a number the
+   * audit never prints. It costs about 65ms; the script only reads files.
+   */
+  it('counts the launch blockers by running the audit that lists them', () => {
+    const printed = execFileSync('node', ['scripts/audit-launch-readiness.mjs'], {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    const listed = printed.split('\n').filter((line) => line.startsWith('  • ')).length;
+    expect(listed).toBeGreaterThan(5);
+
+    const claims = claimed(
+      /lists \*\*(\d+)\*\* such items|`audit:launch` lists (\d+)|carries all (\d+) of them/g,
+    );
+    expect(claims.length).toBeGreaterThan(0);
+
+    for (const claim of claims) {
+      expect({ ...claim }).toEqual({ where: claim.where, value: listed });
+    }
+  });
+
   it('does not name a total test count in any of them', () => {
     const named = claimed(/(\d+) tests\b/g).filter((claim) => claim.value > 1);
     expect(named).toEqual([]);

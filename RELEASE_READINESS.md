@@ -292,7 +292,7 @@ there are none.
 ## 4. Blockers, and why each is a blocker rather than a task
 
 Per §8's rule — document architectural and commercial dependencies rather than
-inventing APIs or credentials. `npm run audit:launch` lists **23** such items and
+inventing APIs or credentials. `npm run audit:launch` lists **28** such items and
 fails a production build while they stand. The ones that bear on this round:
 
 1. **No authorised delivery provider.** §12 requires contracts, credentials and
