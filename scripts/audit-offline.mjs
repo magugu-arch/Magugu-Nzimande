@@ -63,6 +63,36 @@ const ROUTES = [
    * shown the brand-new-customer screen with no hint that anything had failed.
    */
   '/checkout',
+  /**
+   * ── The routes this sweep had never visited ──────────────────────────────
+   *
+   * Worth stating plainly, because the pattern is the point: every screen in
+   * this app that uses `isOfflinePending` is a screen this list already
+   * contained, and every screen that does not is one it did not. The fix
+   * followed the sweep. Wherever the sweep never went, the hole stayed open.
+   *
+   * `/home` is the worst of them — the front door, and the busiest screen in
+   * the app. Against a dead host it drew itself in full and empty: "Popular
+   * right now · What everyone else is ordering · See all" over an empty row,
+   * Best sellers the same, no categories, and not one word about the server.
+   *
+   * `/account/help` drew the category chips and no topics, over "Still stuck?
+   * Our team can look into your specific order and sort it out." Nobody is
+   * stuck on the help centre; they are stuck on something else, and the app
+   * had just told them nothing is written about it.
+   *
+   * `/rewards/reward-birthday` said "We can't find that reward. It may have
+   * expired." — a claim about the rewards catalogue from an app that had not
+   * reached the rewards catalogue, and the exact defect `/offers/[id]` was
+   * fixed for one screen over.
+   *
+   * `/order/order-4610/rate` blamed itself with the generic error while
+   * knowing perfectly well the device was offline.
+   */
+  '/home',
+  '/account/help',
+  '/rewards/reward-birthday',
+  '/order/order-4610/rate',
 ];
 
 /**
@@ -146,6 +176,29 @@ const CLAIMS = [
   */
   [/Choose a store/i, 'tells the customer to pick a branch it cannot list', '/checkout'],
   [/Add a delivery address/i, 'claims the customer has no saved address', '/checkout'],
+  /*
+    The reward detail, which said the same thing `/offers/[id]` used to say
+    about a promotion — that it had ended — on the strength of a fetch that
+    never happened. Scoped, because "may have expired" is the right sentence
+    for a reward that really has.
+  */
+  [
+    /can't find that reward|may have expired/i,
+    'blames the rewards catalogue for a failed fetch',
+    '/rewards/reward-birthday',
+  ],
+  /*
+    Home, where the lie is a shape rather than a sentence: the section headings
+    are drawn over empty carousels, so the screen reads as a menu with nothing
+    on it. "Still stuck?" on the help centre is the same trick — a footer
+    offering to escalate, under a list that never loaded.
+  */
+  [
+    /What everyone else is ordering|Tried, tested and repeatedly reordered/i,
+    'draws its carousels with nothing in them',
+    '/home',
+  ],
+  [/Still stuck\?/i, 'offers to escalate under a help list that never loaded', '/account/help'],
 ];
 
 /**
@@ -167,7 +220,6 @@ const RAILS_WITHOUT_A_WORD = {
   admission: /couldn't load your saved cards/i,
   why: 'offers the standing rails as if they were the customer’s saved cards',
 };
-
 
 /**
  * A customer who signed in earlier and has since lost signal.
@@ -221,9 +273,15 @@ const SIGNED_IN = JSON.stringify({
 });
 
 const TYPES = {
-  '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf',
-  '.ico': 'image/x-icon', '.json': 'application/json', '.svg': 'image/svg+xml',
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ttf': 'font/ttf',
+  '.ico': 'image/x-icon',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
 };
 
 function serve() {
@@ -241,7 +299,9 @@ let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch {
-  console.error('Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium');
+  console.error(
+    'Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium',
+  );
   process.exit(2);
 }
 
@@ -360,17 +420,22 @@ const RECOVERY_OUT = path.join(root, '.audit-offline-mock');
 const recoveryFindings = [];
 
 console.log('\nBuilding again with the mock layer on, to watch it come back…');
-execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', RECOVERY_OUT, '--clear'], {
-  cwd: root,
-  stdio: ['ignore', 'ignore', 'inherit'],
-  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
-});
+execFileSync(
+  'npx',
+  ['expo', 'export', '--platform', 'web', '--output-dir', RECOVERY_OUT, '--clear'],
+  {
+    cwd: root,
+    stdio: ['ignore', 'ignore', 'inherit'],
+    env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
+  },
+);
 
 const recoveryServer = await new Promise((resolve) => {
   const s = createServer((req, res) => {
     const pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     let file = path.join(RECOVERY_OUT, pathname);
-    if (!existsSync(file) || statSync(file).isDirectory()) file = path.join(RECOVERY_OUT, 'index.html');
+    if (!existsSync(file) || statSync(file).isDirectory())
+      file = path.join(RECOVERY_OUT, 'index.html');
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
     createReadStream(file).pipe(res);
   });
@@ -392,7 +457,10 @@ try {
       return el ? el.getBoundingClientRect().height > 1 : false;
     });
 
-  await page.goto(`http://localhost:${PORT + 1}/menu`, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.goto(`http://localhost:${PORT + 1}/menu`, {
+    waitUntil: 'networkidle',
+    timeout: 45000,
+  });
   await page.waitForTimeout(2500);
 
   if (await bannerUp()) {

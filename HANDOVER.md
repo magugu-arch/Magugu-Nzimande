@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 93 suites; `npm test` prints the count                                                                  |
+| Tests            | 94 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -453,6 +453,21 @@ These fail loudly rather than rotting quietly — leave them on.
     customer with three saved cards, with nothing on the page admitting
     anything had failed. All four now say what actually happened, and the sweep
     fails if any of them goes back to claiming otherwise.
+
+    Then the same question was asked of the route list itself, and the answer
+    was uncomfortable: **every screen in the app that used `isOfflinePending`
+    was a screen this sweep already visited, and every screen that did not was
+    one it did not.** The fix had followed the sweep, so wherever the sweep had
+    never gone the hole stayed open. Four more routes went on, and all four
+    were lying. `/home` — the front door — drew itself in full and empty:
+    "Popular right now · What everyone else is ordering · See all" over an
+    empty row, Best sellers the same, no categories, not one word about the
+    server. `/account/help` drew its category chips over no topics at all and
+    offered "Still stuck? Our team can look into your specific order." A reward
+    detail said "We can't find that reward. It may have expired." — the same
+    defect `/offers/[id]` was fixed for, one screen over. The rating screen
+    blamed itself with the generic error while knowing perfectly well the
+    device was offline. Sixteen routes now, all clean.
   - `audit:coldstart` — ordering as somebody who installed the app that
     morning: nothing saved, nothing ordered. The account the seed could never
     represent.

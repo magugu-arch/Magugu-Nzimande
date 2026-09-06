@@ -7,7 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { Product } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
-import { Badge, Card, ErrorState, LoadingState, ProgressBar, Section, Text } from '@/components/ui';
+import {
+  Badge,
+  Card,
+  ErrorState,
+  LoadingState,
+  OfflineState,
+  ProgressBar,
+  Section,
+  Text,
+} from '@/components/ui';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { FulfilmentSelector } from '@/features/home/components/FulfilmentSelector';
 import { OpeningSoonBanner } from '@/features/stores/components/OpeningSoonBanner';
@@ -22,6 +31,7 @@ import {
   usePopularProducts,
   useProductsByIds,
 } from '@/features/menu/hooks';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { useFavouritesStore } from '@/store/favouritesStore';
 import { useActiveOrder } from '@/features/orders/hooks';
 import { useLoyaltyAccount, usePromotions } from '@/features/rewards/hooks';
@@ -105,6 +115,11 @@ export default function HomeScreen() {
   const isLoading =
     categories.isLoading || popular.isLoading || promotions.isLoading || bestSellers.isLoading;
   const isError = categories.isError || popular.isError || promotions.isError;
+  /*
+    Read from the same queries as the two lines around it, so this is the third
+    answer to one question rather than a fourth question. See the branch below.
+  */
+  const isOffline = [categories, popular, promotions, bestSellers].some(isOfflinePending);
   const isRefreshing = categories.isRefetching || popular.isRefetching || promotions.isRefetching;
 
   const handleRefresh = useCallback(() => {
@@ -130,6 +145,34 @@ export default function HomeScreen() {
       <View style={[styles.stateContainer, { paddingTop: insets.top }]}>
         <StatusBar style="dark" />
         <LoadingState message="Warming up the fryers…" />
+      </View>
+    );
+  }
+
+  /**
+   * The hole between the two branches above, on the screen that meets everyone.
+   *
+   * `queryPhase.ts` was written about exactly this shape — loading, then error,
+   * then `data ?? []` — and a paused query falls between all three: `isLoading`
+   * false, `isError` false, `data` undefined. Home therefore drew itself in
+   * full with nothing in it: "Popular right now · What everyone else is
+   * ordering · See all" over an empty row, the same again for Best sellers, no
+   * categories, and not a word about the server anywhere on the page.
+   *
+   * `isOfflinePending` exists for this and twelve screens use it. Home is not
+   * one of them, and the reason is worth writing down: every screen that has it
+   * is a screen `audit:offline` visits, and `/home` was not on that list. The
+   * fix followed the sweep, so the routes the sweep never reached never got it.
+   *
+   * The same four queries the branches above are built from, so this cannot
+   * change what either of them already does — it only catches what was falling
+   * past both.
+   */
+  if (isOffline) {
+    return (
+      <View style={[styles.stateContainer, { paddingTop: insets.top }]}>
+        <StatusBar style="dark" />
+        <OfflineState onRetry={handleRefresh} />
       </View>
     );
   }

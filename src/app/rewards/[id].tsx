@@ -9,12 +9,14 @@ import {
   Card,
   ErrorState,
   LoadingState,
+  OfflineState,
   ProgressBar,
   Screen,
   ScreenHeader,
   Text,
 } from '@/components/ui';
 import { useLoyaltyAccount, useRedeemReward, useReward } from '@/features/rewards/hooks';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { rewardUnavailableReason } from '@/features/rewards/rewardAvailability';
 import { useMenu } from '@/features/menu/hooks';
 import { useNow } from '@/features/system/useNow';
@@ -85,6 +87,26 @@ export default function RewardDetailScreen() {
       <Screen edges={['top', 'bottom']}>
         <ScreenHeader title="Reward" />
         <LoadingState />
+      </Screen>
+    );
+  }
+
+  /*
+    Before the sentence below, because that sentence is a claim about the
+    rewards catalogue and this is an app that has not reached the rewards
+    catalogue.
+
+    "We can't find that reward. It may have expired." — said to somebody in a
+    lift who tapped a reward they were looking at a minute ago. Exactly the
+    defect `/offers/[id]` was fixed for ("That offer has ended"), one screen
+    over, and it survived because `audit:offline` visits `/offers/[id]` and
+    has never visited a reward.
+  */
+  if (isOfflinePending(reward) || isOfflinePending(loyalty)) {
+    return (
+      <Screen edges={['top', 'bottom']}>
+        <ScreenHeader title="Reward" />
+        <OfflineState onRetry={() => void reward.refetch()} />
       </Screen>
     );
   }

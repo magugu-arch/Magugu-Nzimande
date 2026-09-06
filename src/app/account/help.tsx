@@ -9,11 +9,13 @@ import {
   Chip,
   ErrorState,
   LoadingState,
+  OfflineState,
   Screen,
   ScreenHeader,
   Text,
 } from '@/components/ui';
 import { useSupportTopics } from '@/features/account/hooks';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { colors, spacing } from '@/theme';
 import { a11yState } from '@/utils/a11yState';
 
@@ -46,6 +48,25 @@ export default function HelpScreen() {
       <Screen edges={['top', 'bottom']}>
         <ScreenHeader title="Help centre" />
         <LoadingState />
+      </Screen>
+    );
+  }
+
+  /*
+    Between the two. A paused query is neither loading nor errored, so the
+    screen fell through to its own body and drew a help centre with no help in
+    it: the category chips across the top — All, Orders, Delivery, Payments,
+    Rewards, Account — and under them nothing at all, then "Still stuck? Our
+    team can look into your specific order and sort it out."
+
+    Nobody is stuck on the help centre. They are stuck on something else, and
+    the app has just told them there is nothing written about it.
+  */
+  if (isOfflinePending(topics)) {
+    return (
+      <Screen edges={['top', 'bottom']}>
+        <ScreenHeader title="Help centre" />
+        <OfflineState onRetry={() => void topics.refetch()} />
       </Screen>
     );
   }

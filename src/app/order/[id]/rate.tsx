@@ -7,12 +7,14 @@ import {
   Chip,
   ErrorState,
   LoadingState,
+  OfflineState,
   Screen,
   ScreenHeader,
   StarRating,
   Text,
 } from '@/components/ui';
 import { useOrder, useRateOrder } from '@/features/orders/hooks';
+import { isOfflinePending } from '@/features/system/queryPhase';
 import { colors, radius, spacing, typography } from '@/theme';
 import { tell } from '@/ux/dialog';
 
@@ -104,6 +106,23 @@ export default function RateOrderScreen() {
       <Screen edges={['top', 'bottom']}>
         <ScreenHeader title="Rate your order" />
         <LoadingState />
+      </Screen>
+    );
+  }
+
+  /*
+    "Something went wrong. We couldn't load this right now. Check your
+    connection and try again." — honest, and blaming the wrong thing. The app
+    knows the query is paused for want of a network; a generic error reads as a
+    fault in the app, so the customer restarts it and it happens again. Order
+    tracking one route up already draws the distinction, and this screen is
+    reached from it.
+  */
+  if (isOfflinePending(order)) {
+    return (
+      <Screen edges={['top', 'bottom']}>
+        <ScreenHeader title="Rate your order" />
+        <OfflineState onRetry={() => void order.refetch()} />
       </Screen>
     );
   }

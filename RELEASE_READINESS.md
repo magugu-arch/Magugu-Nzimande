@@ -329,7 +329,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **93 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **94 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on
@@ -338,7 +338,7 @@ Recorded so they read as decisions rather than oversights.
   R 568.00, because the total is recomputed at the tap and the recomputed
   figure went to the gateway without anybody telling the customer it had
   changed. Driven both ways in Chromium to be sure the fix is what stopped it.
-- `npm run audit:offline` — 12 routes now, not 11. `/checkout` had never been
+- `npm run audit:offline` — 16 routes now, not 11. `/checkout` had never been
   swept, because it renders from the basket and needs one seeded first; the
   route that takes setting up is the route that goes unswept, and it is the
   route where the money is. Swept for the first time against a dead host it
@@ -347,6 +347,15 @@ Recorded so they read as decisions rather than oversights.
   delivery — the brand-new-customer screen, shown to a customer with three
   saved cards, with nothing on the page admitting a request had failed. Four
   honest lines now, and four new rules in the sweep so they stay honest.
+
+  Then the list itself was audited. Every screen using `isOfflinePending` was a
+  screen the sweep already visited; every screen without it was one it had
+  never reached. The fix had followed the sweep, so wherever the sweep had not
+  gone the hole stayed open. Four more routes went on and all four were lying —
+  `/home` drawing its carousels empty with no mention of the server,
+  `/account/help` offering to escalate under a list that never loaded, a reward
+  detail claiming the reward had expired, and the rating screen blaming itself
+  for a connection it knew was gone. All four fixed, all four now swept.
 - `audit:points`, `audit:returning`, `audit:guest`,
   `audit:handover`, `audit:delivery-range` — all green
 - The courier leg driven in a browser across a simulated 70 minutes: no driver
