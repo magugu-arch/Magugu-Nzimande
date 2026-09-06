@@ -78,6 +78,17 @@ export interface DeliveryCreateRequest {
   orderReference: string;
   storeId: string;
   dropoffSummary: string;
+  /**
+   * What the customer said about getting to the door.
+   *
+   * The one field on this request that a coordinate cannot replace: a gate
+   * buzzer, a reception desk, "second driveway, green gate". Optional, because
+   * most orders carry none — and absent means the customer said nothing, not
+   * that the app forgot to pass it on, which is what used to happen.
+   *
+   * Provider-facing text, sent as the customer typed it.
+   */
+  dropoffInstructions?: string;
   dropoffLatitude?: number;
   dropoffLongitude?: number;
   /**

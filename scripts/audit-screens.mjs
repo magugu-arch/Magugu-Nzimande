@@ -129,6 +129,13 @@ const ROUTES = [
   // nobody chose an option on, dine-in ordered at the counter with no table,
   // and an order whose branch has since closed.
   '/order/order-4862', '/order/order-4864', '/order/order-4866', '/order/order-4870',
+  // A courier authorised to report a position that has not reported one, a
+  // courier job the network handed back, and an order whose food a reward
+  // covered entirely.
+  '/order/order-4874', '/order/order-4876', '/order/order-4878',
+  // A promotion advertising a code this customer has already spent, and the
+  // kids box whose required drink group can take money off the price.
+  '/offers/promo-soy-fan', '/product/little-crunch-chicken-meal',
   // The one category with a single product in it.
   '/menu?category=rice-bowls',
   // A reward reached from a notification rather than the rewards list.
@@ -292,6 +299,22 @@ const MUST_SHOW = {
   // A branch that has closed. The order carries its own snapshot, which is why
   // the receipt still knows where it was bought.
   '/order/order-4870': /bb\.q Chicken Braamfontein/,
+  // Authorised to track, nothing reported yet. This used to read "Live map
+  // tracking is not available for this delivery" beside the icon it draws when
+  // tracking *is* available.
+  // The note sits in the destination card, above the courier card that carries
+  // the tracking sentence — which is the order they appear in on the page.
+  '/order/order-4874': /What we told your driver[\s\S]*Waiting for your driver/,
+  // The network handed the job back, in its own words. The order stays `ready`:
+  // the food is made and sitting at the branch.
+  '/order/order-4876': /No driver was available in the area/,
+  // A reward worth more than the basket. The food comes to nothing and the
+  // service fee is what is left to pay.
+  '/order/order-4878': /R50 off your order[\s\S]*R 5\.00/,
+  // A code the wallet says is spent, on a campaign that is still running.
+  '/offers/promo-soy-fan': /already used this code/,
+  // The first option in the catalogue that takes money off.
+  '/product/little-crunch-chicken-meal': /No drink, thanks[\s\S]*−R 12\.00/,
   '/menu?category=rice-bowls': /Korean Rice Bowl/,
   '/rewards/reward-fries': /Free French Fries/,
   // A campaign whose dish lost the last option in its required group. The

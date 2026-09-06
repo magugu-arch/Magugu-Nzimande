@@ -32,30 +32,73 @@ describe('a saved basket the menu has moved under', () => {
   });
 
   /**
-   * Two different reasons, which the notice has to distinguish: Rose
-   * Ddeok-Bokki was withdrawn, and Cheesling Fries still stands but the last
-   * option in its required Size group has gone.
+   * Two different reasons for the two dropped lines, which the notice has to
+   * distinguish: Rose Ddeok-Bokki was withdrawn, and Cheesling Fries still
+   * stands but the last option in its required Size group has gone.
    */
-  it('is emptied by reconciliation, with both items named', async () => {
+  it('drops the two lines that cannot be made, and names both', async () => {
     const menu = await fetchMenu();
     const result = reconcileCart(useCartStore.getState().lines, menu.products);
     const notice = describeReconciliation(result);
 
-    expect(result.lines).toHaveLength(0);
+    expect(result.dropped.map(({ line }) => line.name).sort()).toEqual([
+      'Cheesling Fries',
+      'Rose Ddeok-Bokki',
+    ]);
     expect(result.changed).toBe(true);
     expect(notice).toMatch(/Rose Ddeok-Bokki/);
     expect(notice).toMatch(/Cheesling Fries/);
   });
 
   /**
-   * Emptied rather than reduced, deliberately: `audit:points` builds its own
-   * basket and asserts the points on it, so it has to start where it started
-   * before.
+   * The other two outcomes, which had no example until the basket grew.
+   *
+   * `repriced` and `quietlyUpdated` are the two ways a line can *survive*
+   * reconciliation, and both were unreachable while every seeded line was
+   * dropped — so the sentence written for a price change had never been shown
+   * to anybody, and the silent-correction path had never run.
    */
-  it('leaves nothing behind for the ordering audit to trip over', async () => {
+  it('keeps the line whose price moved, and says what it now costs', async () => {
     const menu = await fetchMenu();
+    const result = reconcileCart(useCartStore.getState().lines, menu.products);
+    const notice = describeReconciliation(result);
 
-    expect(reconcileCart(useCartStore.getState().lines, menu.products).lines).toEqual([]);
+    expect(result.repriced).toHaveLength(1);
+    const [moved] = result.repriced;
+    expect(moved?.line.name).toBe('Honey Garlic Chicken');
+    expect(moved?.previousUnitPrice).toBe(215);
+    expect(moved?.line.unitPrice).toBe(225);
+    expect(notice).toMatch(/Honey Garlic Chicken is now R 225\.00, was R 215\.00\./);
+  });
+
+  it('corrects the renamed line without saying anything about it', async () => {
+    const menu = await fetchMenu();
+    const result = reconcileCart(useCartStore.getState().lines, menu.products);
+
+    const bowl = result.lines.find((line) => line.productId === 'korean-rice-bowl');
+    expect(bowl?.name).toBe('Korean Rice Bowl');
+    expect(bowl?.unitPrice).toBe(129);
+    // Nothing in the notice about it: a rename is not worth interrupting anybody.
+    expect(describeReconciliation(result)).not.toMatch(/Korean/);
+  });
+
+  /**
+   * What the basket is left holding, which the ordering audits start from.
+   *
+   * It used to be nothing — every seeded line was dropped — and `audit:points`
+   * was noted as depending on that. It does not: it reads the points off the
+   * checkout screen and compares them against the balance it moves, so what
+   * else is in the basket is beside the point. What matters here is that the
+   * survivors are exactly the two that should survive.
+   */
+  it('leaves the two lines that can still be made', async () => {
+    const menu = await fetchMenu();
+    const result = reconcileCart(useCartStore.getState().lines, menu.products);
+
+    expect(result.lines.map((line) => line.productId)).toEqual([
+      'honey-garlic',
+      'korean-rice-bowl',
+    ]);
   });
 
   /**

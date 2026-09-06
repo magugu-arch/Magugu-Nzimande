@@ -16,6 +16,8 @@ import { cancelledPointsEntry, orderPointsEntry } from './data/rewardsData';
 import {
   deliveryProvider,
   deliveryStatusToOrderStatus,
+  seedAwaitingPositionJob,
+  seedCancelledDeliveryJob,
   seedFailedDeliveryJob,
   seedTrackedDeliveryJob,
 } from '@/providers/delivery';
@@ -1850,6 +1852,199 @@ function seedHistory(): void {
   });
 
   /**
+   * A delivery carrying the one sentence that gets a driver to the door, and
+   * the first order in the ledger that carries one at all.
+   *
+   * `Address.instructions` has existed since accounts were written and three
+   * seeded addresses have one. The add-address form collects it, `setAddress`
+   * copies it into `fulfilmentStore.deliveryInstructions`, and the checkout
+   * summary prints it back under the address — so a customer typed it, saw the
+   * app repeat it, and paid. It stopped there: `PlaceOrderInput` had no field
+   * for it, the order did not carry it, and `DeliveryCreateRequest` was built
+   * with the street address alone. Every part of that chain looked finished
+   * from the end the customer stands at.
+   *
+   * `mockDropoffBriefing` is how a test can tell the provider was told, since
+   * "the note never arrived" and "the note was never sent" look the same from
+   * outside a courier network.
+   */
+  const gatedPlacedAt = new Date(Date.now() - 22 * 60_000);
+  ledger.push({
+    id: 'order-4874',
+    reference: 'BBQ-4874',
+    placedAt: gatedPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'courier_assigned',
+    timeline: buildTimeline('delivery', 'courier_assigned', gatedPlacedAt, 38),
+    lines: [
+      {
+        id: 'golden-original__golden-original-size:golden-original-size-medium',
+        productId: 'golden-original',
+        name: 'Golden Original Chicken',
+        assetKey: 'goldenOriginal',
+        unitBasePrice: 149,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'golden-original-size',
+            groupName: 'Choose your size',
+            optionId: 'golden-original-size-medium',
+            optionName: 'Medium · 9 pieces',
+            priceDelta: 60,
+          },
+        ],
+        unitPrice: 209,
+        lineTotal: 209,
+      },
+    ],
+    totals: {
+      subtotal: 209,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 246,
+      pointsEarned: 209,
+    },
+    ...storeSnapshot('store-rosebank'),
+    addressId: 'address-mum',
+    addressSummary: '27 Protea Avenue, Northcliff',
+    // The seeded address's own note, not a second copy of it typed here.
+    deliveryInstructions:
+      currentAddresses().find((candidate) => candidate.id === 'address-mum')?.instructions ??
+      'Green gate, second driveway.',
+    paymentMethodLabel: describePaymentMethod('card'),
+    etaMinutes: 38,
+    driverName: 'Naledi',
+    delivery: seedAwaitingPositionJob('mock-job-awaiting-4874', Date.now() - 3 * 60_000),
+  });
+
+  /**
+   * A courier network that handed the job back.
+   *
+   * `CANCELLED` is the last unseeded member of `DeliveryStatus`, and it is not
+   * the customer cancelling their order — the food was made, a job was
+   * accepted, and no driver could be found. `attachDelivery` says in as many
+   * words that this must not cancel the customer's order, and nothing had ever
+   * put that rule to the test: the order stays `ready`, because the food is
+   * sitting at the branch and somebody has to decide what happens to it.
+   */
+  const handedBackAt = new Date(Date.now() - 33 * 60_000);
+  ledger.push({
+    id: 'order-4876',
+    reference: 'BBQ-4876',
+    placedAt: handedBackAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'ready',
+    timeline: buildTimeline('delivery', 'ready', handedBackAt, 40),
+    lines: [
+      {
+        id: 'hot-spicy__hot-spicy-size:hot-spicy-size-small',
+        productId: 'hot-spicy',
+        name: 'Hot Spicy Chicken',
+        assetKey: 'hotSpicy',
+        unitBasePrice: 169,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'hot-spicy-size',
+            groupName: 'Choose your size',
+            optionId: 'hot-spicy-size-small',
+            optionName: 'Small · 6 pieces',
+            priceDelta: 0,
+          },
+        ],
+        unitPrice: 169,
+        lineTotal: 169,
+      },
+    ],
+    totals: {
+      subtotal: 169,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 206,
+      pointsEarned: 169,
+    },
+    ...storeSnapshot('store-fourways'),
+    addressId: 'address-home',
+    addressSummary: '14 Acacia Road, Melrose Arch',
+    paymentMethodLabel: describePaymentMethod('snapscan'),
+    etaMinutes: 40,
+    delivery: seedCancelledDeliveryJob('mock-job-cancelled-4876', handedBackAt.getTime()),
+  });
+
+  /**
+   * An order whose food cost nothing, and which was still a payment.
+   *
+   * `calculateTotals` caps every discount at what is actually being charged for
+   * food — "Discounts can never exceed what the customer is actually paying" —
+   * and then adds the fees back on top, so a basket entirely covered by a
+   * reward comes out at the service fee alone. Two consequences had never been
+   * seen because no seeded order ever reached them:
+   *
+   *   - `pointsEarned` is 0. Points accrue on food value after discounts, and
+   *     there is none, so an order that looked like a win earns nothing. That is
+   *     the intended rule and it is worth being able to point at.
+   *   - R11 of the R50 reward is dropped on the floor. `Math.min` caps the
+   *     reward at the R39 of fries it is spent on, and the customer is not told
+   *     that the rest is gone. Whether an unspent remainder carries over, is
+   *     forfeited, or should stop the redemption before it happens is a
+   *     programme decision, not an arithmetic one — it goes to `audit:launch`
+   *     rather than being invented here.
+   *
+   * Collection, deliberately: a delivery order would put the R32 fee alongside
+   * the R5 and blur which of the two survives a full discount.
+   */
+  const coveredAt = new Date(Date.now() - 4 * 86_400_000);
+  ledger.push({
+    id: 'order-4878',
+    reference: 'BBQ-4878',
+    placedAt: coveredAt.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'completed',
+    timeline: buildTimeline('collection', 'completed', coveredAt, 14),
+    lines: [
+      {
+        id: 'french-fries__fries-size:fries-size-regular',
+        productId: 'french-fries',
+        name: 'French Fries',
+        assetKey: 'frenchFries',
+        unitBasePrice: 45,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'fries-size',
+            groupName: 'Size',
+            optionId: 'fries-size-regular',
+            optionName: 'Regular',
+            priceDelta: 0,
+          },
+        ],
+        unitPrice: 45,
+        lineTotal: 45,
+      },
+    ],
+    totals: {
+      subtotal: 45,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      // Capped at the subtotal by `calculateTotals`, which is why this reads 45
+      // against a reward worth 50.
+      rewardsDiscount: 45,
+      total: 5,
+      pointsEarned: 0,
+    },
+    ...storeSnapshot('store-sandton'),
+    paymentMethodLabel: describePaymentMethod('card'),
+    redeemedRewardId: 'reward-r50',
+    rewardName: 'R50 off your order',
+    etaMinutes: 14,
+  });
+
+  /**
    * And the points ledger's account of those orders, written from the orders.
    *
    * `rewardsData` used to carry these two rows typed out by hand, and the
@@ -2085,6 +2280,13 @@ async function attachDelivery(order: Order, idempotencyKey?: string): Promise<Or
           orderReference: order.reference,
           storeId: order.storeId,
           dropoffSummary: order.addressSummary ?? '',
+          // The sentence that gets the driver through the gate. Recorded on the
+          // order at placement and handed on here — this was the second half of
+          // the gap: even once the order carried it, the provider was still
+          // being told only the street address.
+          ...(order.deliveryInstructions
+            ? { dropoffInstructions: order.deliveryInstructions }
+            : {}),
           ...(order.deliveryLatitude !== undefined
             ? { dropoffLatitude: order.deliveryLatitude }
             : {}),
@@ -2178,6 +2380,13 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
           ...(address.latitude !== undefined ? { deliveryLatitude: address.latitude } : {}),
           ...(address.longitude !== undefined ? { deliveryLongitude: address.longitude } : {}),
         }
+      : {}),
+    // Taken from the input rather than from `address.instructions`, because the
+    // two are not the same thing: the saved address carries what the customer
+    // usually says, and checkout lets them change it for this order. What was
+    // on the screen when they paid is what the driver is owed.
+    ...(input.deliveryInstructions?.trim()
+      ? { deliveryInstructions: input.deliveryInstructions.trim() }
       : {}),
     ...(input.tableNumber ? { tableNumber: input.tableNumber } : {}),
     ...(input.scheduledFor ? { scheduledFor: input.scheduledFor } : {}),

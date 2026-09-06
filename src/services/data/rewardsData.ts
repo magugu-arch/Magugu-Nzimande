@@ -631,6 +631,34 @@ export const promotions: Promotion[] = [
     terms: ['Tuesdays only.', 'Discount applies to Hot Spicy items only.'],
     usePromotionalComposition: true,
   },
+  /**
+   * A campaign still running against a code this customer has already spent.
+   *
+   * The two promotions that carry a code point at WELCOME50 and SPICY15, both
+   * live and both unused, so the Offers screen had only ever drawn a code the
+   * customer could actually use. It draws them all the same way — a big box
+   * under "Use this code at checkout" and a Copy button — because it never
+   * asked the wallet anything.
+   *
+   * SOYFAN is spent, and a campaign outliving one customer's use of its code is
+   * the ordinary case rather than a mistake: the promotion runs for a fortnight
+   * and each account uses it once. What was wrong was the app inviting them to
+   * copy it and letting the cart break the news.
+   */
+  {
+    id: 'promo-soy-fan',
+    headline: 'Soy Garlic, R30 off',
+    description:
+      'The benchmark box, lacquered dark and finished with sesame. R30 off with your code.',
+    assetKey: 'soyGarlic',
+    ctaLabel: 'See the box',
+    ctaHref: '/product/soy-garlic',
+    promoCode: 'SOYFAN',
+    validFrom: new Date(Date.now() - 6 * 86_400_000).toISOString(),
+    validUntil: new Date(Date.now() + 20 * 86_400_000).toISOString(),
+    terms: ['One use per account.', 'Minimum spend R120.'],
+    usePromotionalComposition: true,
+  },
   {
     id: 'promo-korean-rice-bowl',
     headline: 'The Korean Rice Bowl has landed',

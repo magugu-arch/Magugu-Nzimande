@@ -17,11 +17,11 @@ import {
 } from '@/components/ui';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { useVouchers } from '@/features/rewards/hooks';
+import { voucherStandingCopy } from '@/features/rewards/voucherStanding';
 import { useCartStore } from '@/store/cartStore';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing } from '@/theme';
 import { voucherTerms } from '@/utils/cart';
-import { formatShortDate } from '@/utils/datetime';
 import { formatPrice } from '@/utils/money';
 
 type Filter = 'active' | 'used';
@@ -192,11 +192,8 @@ export default function VoucherWalletScreen() {
                           : colors.textSecondary
                     }
                   >
-                    {voucher.used
-                      ? 'Already used'
-                      : voucher.expired
-                        ? `Expired ${formatShortDate(voucher.expiresAt)}`
-                        : `Expires ${formatShortDate(voucher.expiresAt)}`}
+                    {/* The Offers screen says the same thing; see `voucherStandingCopy`. */}
+                    {voucherStandingCopy(voucher)}
                   </Text>
                 </View>
 

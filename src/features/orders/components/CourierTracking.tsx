@@ -87,6 +87,24 @@ export function CourierTracking({ job }: CourierTrackingProps) {
                 ? 'Your driver could not complete this delivery.'
                 : 'This delivery was cancelled.'}
         </Text>
+      ) : job.trackingAvailable ? (
+        /*
+          Authorised, and no fix yet — the ordinary first minute of a tracked
+          delivery, and a state this card used to describe as its own opposite.
+          `trackingAvailable && courierPosition` gated the map slot, and
+          everything that failed that gate fell through to "Live map tracking is
+          not available for this delivery" — over a header icon that reads
+          `trackingAvailable` on its own and was, correctly, the navigation
+          arrow. One card, saying tracking was unavailable next to the icon it
+          draws when tracking is available.
+
+          The difference is worth the branch, because the two states ask
+          different things of the customer: one is "this is as much as you will
+          ever get", the other is "wait a moment".
+        */
+        <Text variant="caption" color={colors.textSecondary} testID="courier-awaiting-position">
+          Waiting for your driver&rsquo;s first position. It will appear here once they set off.
+        </Text>
       ) : (
         <Text variant="caption" color={colors.textSecondary}>
           Live map tracking is not available for this delivery. The progress below is updated as

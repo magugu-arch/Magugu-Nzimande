@@ -221,6 +221,24 @@ export interface Order {
   addressId?: string;
   addressSummary?: string;
   /**
+   * What the customer told the driver — "Buzzer 3 at the gate, please call on
+   * arrival" — snapshotted at placement like every other delivery fact.
+   *
+   * It was collected and thrown away. The add-address form has had an
+   * instructions field since it was written, three seeded addresses carry one,
+   * `setAddress` copies it into `fulfilmentStore.deliveryInstructions`, and the
+   * checkout summary prints it back to the customer under the address. Then
+   * `PlaceOrderInput` had no field for it, so the order was submitted without
+   * it and the courier job was created without it. A customer typed the one
+   * sentence that gets a driver through a locked gate, watched the app repeat
+   * it to them, and the driver never saw it.
+   *
+   * Snapshotted rather than looked up for the same reason `addressSummary` is:
+   * the customer can edit or delete that address afterwards, and what the
+   * driver was told has to stay what the driver was told.
+   */
+  deliveryInstructions?: string;
+  /**
    * Where the food is going, snapshotted at placement.
    *
    * Same rule as `storeLatitude`: carried on the order rather than looked up,
@@ -308,6 +326,8 @@ export interface PlaceOrderInput {
   fulfilmentType: FulfilmentType;
   storeId: string;
   addressId?: string;
+  /** What the driver needs to find the door. See `Order.deliveryInstructions`. */
+  deliveryInstructions?: string;
   tableNumber?: string;
   scheduledFor?: string;
   paymentMethodId: string;

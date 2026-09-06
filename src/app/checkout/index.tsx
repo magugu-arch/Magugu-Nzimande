@@ -337,6 +337,12 @@ export default function CheckoutScreen() {
           fulfilmentType,
           storeId: store.id,
           ...(address ? { addressId: address.id } : {}),
+          // Only on a delivery. A collection or dine-in order has no door to
+          // find, and sending the note anyway would put "Buzzer 3 at the gate"
+          // on a courier job that does not exist.
+          ...(fulfilmentType === 'delivery' && deliveryInstructions.trim()
+            ? { deliveryInstructions: deliveryInstructions.trim() }
+            : {}),
           ...(fulfilmentType === 'dinein' ? { tableNumber } : {}),
           ...(scheduledFor ? { scheduledFor } : {}),
           paymentMethodId: selectedPayment.id,
@@ -409,6 +415,10 @@ export default function CheckoutScreen() {
     lines,
     fulfilmentType,
     address,
+    // In the deps, unlike the analytics figures below it: this one is sent to
+    // the server. A stale closure here would hand the driver the note from
+    // before the customer edited it.
+    deliveryInstructions,
     tableNumber,
     scheduledFor,
     voucher,

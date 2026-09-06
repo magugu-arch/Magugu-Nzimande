@@ -153,6 +153,76 @@ const STALE_BASKET: CartLine[] = [
     unitPrice: 62,
     lineTotal: 62,
   },
+  /**
+   * A line that survives, at a price that has moved under it.
+   *
+   * `reconcileCart` has three outcomes and the seed produced one. Both lines
+   * above are dropped, so `repriced` was always empty and the sentence
+   * `describeReconciliation` writes for it had never once been shown to
+   * anybody. It is the outcome that matters most of the three: a dropped line
+   * is obvious at a glance because the basket is shorter, and a repriced one
+   * looks exactly like the basket the customer left.
+   *
+   * Saved against a R 155 base, so R 215 for the medium; the catalogue bases it
+   * at R 165 today, so the line is kept at R 225 and the notice says so. The
+   * old price lives
+   * here rather than being derived from the menu, which is the point — a
+   * persisted basket is a snapshot of yesterday's prices, and that is the whole
+   * reason this function exists.
+   */
+  {
+    id: 'honey-garlic__honey-garlic-size:honey-garlic-size-medium',
+    productId: 'honey-garlic',
+    name: 'Honey Garlic Chicken',
+    assetKey: 'honeyGarlic',
+    unitBasePrice: 155,
+    quantity: 1,
+    selectedOptions: [
+      {
+        groupId: 'honey-garlic-size',
+        groupName: 'Choose your size',
+        optionId: 'honey-garlic-size-medium',
+        optionName: 'Medium · 9 pieces',
+        priceDelta: 60,
+      },
+    ],
+    unitPrice: 215,
+    lineTotal: 215,
+  },
+  /**
+   * A line reconciliation brings up to date without saying so.
+   *
+   * The fourth outcome, and the quietest: `quietlyUpdated` is set when a line
+   * changes in a way not worth interrupting anybody over — a renamed dish, a
+   * re-shot photograph — and it had never been true either. Both dropped lines
+   * short-circuit before the comparison, and the repriced line above takes the
+   * branch above it.
+   *
+   * So this saves the bowl under the name it used to carry, at exactly the
+   * price the catalogue charges today. `changed` comes back true, the store is
+   * written back with the current name, and `describeReconciliation` returns
+   * null — a basket silently corrected, which is the intended behaviour and had
+   * no example.
+   */
+  {
+    id: 'korean-rice-bowl__bowl-glaze:bowl-glaze-soy',
+    productId: 'korean-rice-bowl',
+    name: 'Korean Chicken Rice Bowl',
+    assetKey: 'koreanRiceBowl',
+    unitBasePrice: 129,
+    quantity: 1,
+    selectedOptions: [
+      {
+        groupId: 'bowl-glaze',
+        groupName: 'Glaze',
+        optionId: 'bowl-glaze-soy',
+        optionName: 'Soy Garlic',
+        priceDelta: 0,
+      },
+    ],
+    unitPrice: 129,
+    lineTotal: 129,
+  },
 ];
 
 export const useCartStore = create<CartState>()(

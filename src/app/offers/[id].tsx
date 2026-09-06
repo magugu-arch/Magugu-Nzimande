@@ -16,7 +16,8 @@ import {
   Text,
 } from '@/components/ui';
 import { isOfflinePending } from '@/features/system/queryPhase';
-import { usePromotion } from '@/features/rewards/hooks';
+import { usePromotion, useVouchers } from '@/features/rewards/hooks';
+import { promoCodeWarning } from '@/features/rewards/voucherStanding';
 import { useMenu } from '@/features/menu/hooks';
 import {
   isSoldOut,
@@ -49,6 +50,18 @@ export default function OfferDetailScreen() {
     if (!productId) return null;
     return menu.data?.products.find((product) => product.id === productId) ?? null;
   })();
+
+  /**
+   * The wallet's view of the code this campaign advertises.
+   *
+   * Null while the vouchers are loading and null for a code the wallet has
+   * never seen, both of which leave the ordinary copy in place — see
+   * `promoCodeWarning`. A promotion is not held up by a list it does not need.
+   */
+  const vouchers = useVouchers();
+  const codeWarning = promotion.data?.promoCode
+    ? promoCodeWarning(vouchers.data?.find((voucher) => voucher.code === promotion.data?.promoCode))
+    : null;
 
   const [copied, setCopied] = useState(false);
   const resetLabel = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -214,8 +227,19 @@ export default function OfferDetailScreen() {
         {/* Promo code */}
         {data.promoCode ? (
           <Card style={styles.card}>
-            <Text variant="caption" color={colors.textSecondary}>
-              Use this code at checkout
+            <Text
+              variant="caption"
+              color={codeWarning ? colors.status.error : colors.textSecondary}
+            >
+              {/*
+                What the wallet says about this code, rather than an invitation
+                that ignores it. The screen used to print "Use this code at
+                checkout" over every promotion, so an offer could advertise a
+                code the customer had already spent and hand them a Copy button
+                for it — the refusal came at the cart, after they had built a
+                basket. See `promoCodeWarning`.
+              */}
+              {codeWarning ?? 'Use this code at checkout'}
             </Text>
 
             <View style={styles.codeRow}>

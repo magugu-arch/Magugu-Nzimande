@@ -233,7 +233,18 @@ export default function CartScreen() {
           right={
             <Pressable
               onPress={handleClear}
-              hitSlop={10}
+              /*
+                A 34x19 word needs 13 of slop on the long side and 13 up and
+                down to clear §22.9's 44x44, and it had 10 — invisible to the
+                sweep for as long as it was, because the header only draws this
+                when the basket has something in it and the seeded basket used
+                to empty itself on load. Two saved lines that survive
+                reconciliation are what put it on screen for the first time.
+              */
+              hitSlop={13}
+              // Declared where the sweep can read it; `hitSlop` alone is
+              // invisible to a browser. Same trick as Chip and Button.
+              dataSet={{ slopX: 13, slopY: 13 }}
               accessibilityRole="button"
               accessibilityLabel="Empty cart"
             >

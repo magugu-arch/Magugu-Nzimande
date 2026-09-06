@@ -22,7 +22,12 @@ import {
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { isNotFound } from '@/services/apiClient';
 import { NutritionPanel } from '@/features/menu/components/NutritionPanel';
-import { isSoldOut, SOLD_OUT_LABEL, soldOutReason } from '@/features/menu/availability';
+import {
+  isSoldOut,
+  orderableFirst,
+  SOLD_OUT_LABEL,
+  soldOutReason,
+} from '@/features/menu/availability';
 import { OptionGroupPicker } from '@/features/menu/components/OptionGroupPicker';
 import { ProductCard } from '@/features/menu/components/ProductCard';
 import { useProduct, useProductsByIds } from '@/features/menu/hooks';
@@ -67,6 +72,12 @@ export default function ProductDetailScreen() {
   }, [selection, product.data]);
 
   const recommended = useProductsByIds(product.data?.recommendedProductIds ?? []);
+
+  /**
+   * The catalogue's ranking, with today's stock applied over it. See
+   * `orderableFirst` — the row used to lead with what nobody could buy.
+   */
+  const suggestions = useMemo(() => orderableFirst(recommended.data ?? []), [recommended.data]);
 
   /**
    * §15 `view_item` — the numerator of "top items" and the step add_to_cart is
@@ -421,14 +432,14 @@ export default function ProductDetailScreen() {
           )}
 
           {/* Recommended add-ons */}
-          {(recommended.data?.length ?? 0) > 0 ? (
+          {suggestions.length > 0 ? (
             <Section title="Goes well with" bleed style={styles.recommended}>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.carousel}
               >
-                {(recommended.data ?? []).map((suggestion) => (
+                {suggestions.map((suggestion) => (
                   <ProductCard
                     key={suggestion.id}
                     product={suggestion}

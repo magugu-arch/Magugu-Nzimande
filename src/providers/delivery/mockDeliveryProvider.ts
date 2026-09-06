@@ -49,6 +49,16 @@ interface MockJob {
   failed: boolean;
   /** The provider is authorised to report a position. See `seedTrackedDeliveryJob`. */
   tracked?: boolean;
+  /**
+   * What the customer told the driver, as this provider was given it.
+   *
+   * A real network puts this in front of the courier; a mock has no courier to
+   * put it in front of. Kept anyway, and readable through `mockDropoffBriefing`,
+   * because the thing worth proving is that the provider was *told* — and for
+   * most of this app's life it was not. Storing it is the only way a test can
+   * tell "the customer left no note" from "the note was dropped on the way".
+   */
+  dropoffInstructions?: string;
 }
 
 /** Keyed by job id, and by idempotency key so a retry returns the same job. */
@@ -62,6 +72,65 @@ export function resetMockDeliveryJobs(): void {
   jobs.clear();
   byIdempotencyKey.clear();
   sequence = 0;
+}
+
+/**
+ * What this provider was told about reaching the door, for the job named.
+ *
+ * Mock-only, and the only reason it exists is that "nothing arrived" and
+ * "nothing was sent" look identical from outside a courier network. Undefined
+ * means the request carried no instructions.
+ */
+export function mockDropoffBriefing(externalJobId: string): string | undefined {
+  return jobs.get(externalJobId)?.dropoffInstructions;
+}
+
+/**
+ * A courier leg the network called off, with its own reason.
+ *
+ * `CANCELLED` is a member of `DeliveryStatus` and `PROGRESSION` walks straight
+ * past it, so — like `FAILED` before it — the mock had never once produced one.
+ * It is a different event from a customer cancelling their order: the food was
+ * made, the job was accepted, and the network handed it back. `attachDelivery`
+ * is explicit that this must not cancel the customer's order, and until now
+ * nothing had ever put that rule to the test.
+ */
+export function seedCancelledDeliveryJob(externalJobId: string, createdAt: number): DeliveryJob {
+  const job: DeliveryJob = {
+    externalJobId,
+    provider: 'mock',
+    status: 'CANCELLED',
+    trackingAvailable: false,
+    reason: 'No driver was available in the area, so the trip was handed back to the store.',
+    updatedAt: new Date(createdAt).toISOString(),
+  };
+
+  jobs.set(externalJobId, { job, createdAt, cancelled: true, failed: false });
+  return { ...job };
+}
+
+/**
+ * A courier network authorised to report a position that has not reported one.
+ *
+ * The ordinary first minute of any tracked delivery: the grant is in place, the
+ * driver is assigned, and no fix has come in yet. `seedTrackedDeliveryJob`
+ * always arrives with a position, so `trackingAvailable: true` and
+ * `courierPosition: undefined` — a pair the type has always allowed — had never
+ * been rendered together.
+ */
+export function seedAwaitingPositionJob(externalJobId: string, createdAt: number): DeliveryJob {
+  const job: DeliveryJob = {
+    externalJobId,
+    provider: 'mock',
+    status: 'COURIER_ASSIGNED',
+    etaMinutes: 21,
+    courierName: 'Naledi',
+    trackingAvailable: true,
+    updatedAt: new Date(createdAt).toISOString(),
+  };
+
+  jobs.set(externalJobId, { job, createdAt, cancelled: false, failed: false, tracked: true });
+  return { ...job };
 }
 
 /**
@@ -229,7 +298,13 @@ export const mockDeliveryProvider: DeliveryProvider = {
       updatedAt: new Date(requestedAt).toISOString(),
     };
 
-    jobs.set(externalJobId, { job, createdAt: now, cancelled: false, failed: false });
+    jobs.set(externalJobId, {
+      job,
+      createdAt: now,
+      cancelled: false,
+      failed: false,
+      ...(input.dropoffInstructions ? { dropoffInstructions: input.dropoffInstructions } : {}),
+    });
     byIdempotencyKey.set(input.idempotencyKey, externalJobId);
     return Promise.resolve({ ...job });
   },

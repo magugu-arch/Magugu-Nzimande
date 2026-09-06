@@ -1,5 +1,5 @@
 import { businessRules } from '@/constants/config';
-import { promotions } from '@/services/data/rewardsData';
+import { promotions, vouchers } from '@/services/data/rewardsData';
 import { supportTopics } from '@/services/data/accountData';
 
 /**
@@ -29,13 +29,45 @@ const quoted = (text: string): number[] =>
     Number((match[1] ?? '').replace(/\s/g, '')),
   );
 
+/**
+ * What a sentence is allowed to say besides the business rules, because the
+ * number is its own.
+ *
+ * A promotion built around a code is going to quote that code's worth — "Soy
+ * Garlic, R30 off" is the whole offer — and R30 sits inside the near-miss band
+ * around the R32 delivery fee. Without this the guard reads a promotion
+ * correctly describing its own voucher as a stale copy of a rule it has nothing
+ * to do with, which is the shape of false alarm that gets a guard deleted.
+ *
+ * Read off the voucher rather than listed here, so a repriced voucher does not
+ * need this file edited. The docstring below has always promised this — "nor a
+ * price of its own — a voucher's own minimum spend, say" — and the code did not
+ * do it, because no seeded promotion had ever quoted one.
+ */
+const ownFigures = (promoCode: string | undefined): number[] => {
+  const voucher = vouchers.find((candidate) => candidate.code === promoCode);
+  return voucher ? [voucher.discountValue, voucher.minimumSpend] : [];
+};
+
 /** Every seeded sentence a customer could read, with where it came from. */
-const sentences: { where: string; text: string }[] = [
+const sentences: { where: string; text: string; own: number[] }[] = [
   ...promotions.flatMap((promotion) => [
-    { where: `promotion ${promotion.id} headline`, text: promotion.headline },
-    { where: `promotion ${promotion.id} description`, text: promotion.description },
+    {
+      where: `promotion ${promotion.id} headline`,
+      text: promotion.headline,
+      own: ownFigures(promotion.promoCode),
+    },
+    {
+      where: `promotion ${promotion.id} description`,
+      text: promotion.description,
+      own: ownFigures(promotion.promoCode),
+    },
   ]),
-  ...supportTopics.map((topic) => ({ where: `support ${topic.id}`, text: topic.answer })),
+  ...supportTopics.map((topic) => ({
+    where: `support ${topic.id}`,
+    text: topic.answer,
+    own: [] as number[],
+  })),
 ];
 
 describe('the numbers written into seeded copy', () => {
@@ -91,9 +123,11 @@ describe('the numbers written into seeded copy', () => {
     ];
 
     const suspicious: string[] = [];
-    for (const { where, text } of sentences) {
+    for (const { where, text, own } of sentences) {
       for (const value of quoted(text)) {
         if (rules.includes(value)) continue;
+        // A promotion quoting the worth of its own code is not a stale rule.
+        if (own.includes(value)) continue;
         const near = rules.find((rule) => Math.abs(rule - value) <= Math.max(2, rule * 0.05));
         if (near !== undefined) suspicious.push(`${where}: R${value}, where the app uses R${near}`);
       }

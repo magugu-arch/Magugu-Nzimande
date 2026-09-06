@@ -73,7 +73,16 @@ export const CartLineRow = memo(function CartLineRow({
 
           <Pressable
             onPress={onEdit}
-            hitSlop={10}
+            /*
+              45x19 with an icon beside the word, so the shortfall is vertical:
+              13 of slop takes it to 45x45 and clears §22.9. It sat at 10 for as
+              long as this row has existed, unseen by the sweep because the
+              seeded basket emptied itself on load and the sweep therefore only
+              ever rendered the empty-cart branch.
+            */
+            hitSlop={13}
+            // Declared where a browser can read it. `hitSlop` is not.
+            dataSet={{ slopX: 13, slopY: 13 }}
             accessibilityRole="button"
             accessibilityLabel={`Edit ${line.name}`}
             style={styles.editButton}

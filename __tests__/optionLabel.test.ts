@@ -3,6 +3,8 @@ import path from 'node:path';
 import type { ProductOption } from '@/types';
 import { menuSnapshot } from '@/services/data/menuData';
 import { optionLabel } from '@/features/menu/optionLabel';
+import { priceFloor, productListLabel } from '@/features/menu/availability';
+import { formatPrice } from '@/utils/money';
 
 /**
  * What a screen reader is told on the screen where every order is configured.
@@ -128,28 +130,61 @@ describe('the picker asks the helper', () => {
  * required group whose cheapest option costs something and every card in the
  * app quietly understates its own floor.
  *
- * Checked rather than assumed. `priceDelta` is documented as "may be negative"
- * and nothing in the seed is — a discount would break the claim the other way,
- * making the card *overstate* the minimum. No negative delta has been invented
- * here to demonstrate that: what an option is worth in rand is a franchise
- * decision, and `audit:launch` already carries all 28 prices. This is the guard
- * that would catch either direction the day somebody sets one.
+ * This used to assert that `basePrice` *was* the floor, which held while every
+ * required group had an option at zero, and predicted its own end: "a discount
+ * would break the claim the other way, making the card overstate the minimum."
+ * That is what happened. `KIDS_DRINK_GROUP` is required and now carries "No
+ * drink, thanks" at −R12, so the Little Crunch box bases at R69 and can be had
+ * for R57 — and the card, reading `basePrice`, quoted the higher number of the
+ * two to somebody scanning a row for the cheapest thing on it.
+ *
+ * So the assertion moved rather than being relaxed: the screens now read
+ * `priceFloor`, and this checks that the floor is what they read. The two
+ * numbers are allowed to differ; what is not allowed is the word "from" over
+ * the wrong one.
  */
 describe('the "from" price on a menu card', () => {
-  const floorFor = (product: (typeof menuSnapshot.products)[number]) =>
-    product.optionGroups.reduce((total, group) => {
-      if (group.minSelect < 1) return total;
-      const available = group.options.filter((entry) => entry.available);
-      if (available.length === 0) return total;
-      return total + Math.min(...available.map((entry) => entry.priceDelta)) * group.minSelect;
-    }, product.basePrice);
-
   it('is the cheapest configuration a customer can actually reach', () => {
     for (const product of menuSnapshot.products) {
-      expect({ id: product.id, floor: floorFor(product) }).toEqual({
+      const cheapest = product.optionGroups.reduce((total, group) => {
+        if (group.minSelect < 1) return total;
+        const available = group.options.filter((entry) => entry.available);
+        if (available.length === 0) return total;
+        return total + Math.min(...available.map((entry) => entry.priceDelta)) * group.minSelect;
+      }, product.basePrice);
+
+      expect({ id: product.id, floor: priceFloor(product) }).toEqual({
         id: product.id,
-        floor: product.basePrice,
+        floor: cheapest,
       });
     }
+  });
+
+  /**
+   * The reason this file exists at all: a card whose price is a claim about the
+   * floor has to be told the floor. Both list components and the accessible
+   * name go through `priceFloor`; none of them may reach for `basePrice`.
+   */
+  it('is what the list components actually print', () => {
+    for (const file of [
+      'src/features/menu/components/ProductCard.tsx',
+      'src/features/menu/components/ProductRow.tsx',
+    ]) {
+      const source = readFileSync(path.join(__dirname, '..', file), 'utf8');
+      expect(source).toMatch(/formatPrice\(priceFloor\(product\)\)/);
+      expect(source).not.toMatch(/formatPrice\(product\.basePrice\)/);
+    }
+  });
+
+  it('is what a screen reader is told, too', () => {
+    const kids = menuSnapshot.products.find(
+      (product) => product.id === 'little-crunch-chicken-meal',
+    );
+    if (!kids) throw new Error('the kids meal is not seeded');
+
+    // The one product in the catalogue whose floor is below its base.
+    expect(priceFloor(kids)).toBe(kids.basePrice - 12);
+    expect(productListLabel(kids)).toContain(`from ${formatPrice(priceFloor(kids))}`);
+    expect(productListLabel(kids)).not.toContain(formatPrice(kids.basePrice));
   });
 });

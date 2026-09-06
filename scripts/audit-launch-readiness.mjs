@@ -589,6 +589,29 @@ if (rewardsService.includes('recordPoints')) {
   );
 }
 
+// What happens to the part of a reward the basket was too small to spend.
+// Reachable now that a seeded order has hit the cap: BBQ-4878 redeems "R50 off"
+// against R45 of fries.
+if (read('src/utils/cart.ts').includes('Math.min(rewardsDiscount, Math.max(0, subtotal - discount))')) {
+  note(
+    'Unspent reward value',
+    'A fixed-value reward is capped at the food it is spent on — "Discounts can never ' +
+      'exceed what the customer is actually paying" — and the remainder is dropped ' +
+      'silently. BBQ-4878 in the seeded history is the case: R50 off redeemed against ' +
+      'R45 of fries, R5 gone, the customer told nothing and the points spent in full. ' +
+      'Three answers are all defensible and they are different programmes: the ' +
+      'remainder carries over to the next order, it is forfeited and the app should ' +
+      'say so before the points are spent, or the redemption is refused until the ' +
+      'basket is worth at least the reward. Decide which, and the cart can warn or ' +
+      'block accordingly. The same order is worth looking at for a second reason: ' +
+      'with the food fully covered it earns zero points, because points accrue on ' +
+      'food value after discounts. That is the rule working as written, and it is ' +
+      'still a customer who spent 1 000 points and got nothing back towards the next ' +
+      'thousand.',
+    'you',
+  );
+}
+
 // The app now asks for erasure instead of quietly signing somebody out, but
 // the asking only means something once there is something to ask.
 const authService = read('src/services/authService.ts');

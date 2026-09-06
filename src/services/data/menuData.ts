@@ -92,6 +92,24 @@ const KIDS_DRINK_GROUP = (base: string): OptionGroup => ({
     { id: `${base}-drink-coke-zero`, name: 'Coke Zero 330ml', priceDelta: 0, available: true },
     { id: `${base}-drink-sprite`, name: 'Sprite 330ml', priceDelta: 0, available: true },
     { id: `${base}-drink-water`, name: 'Still water 500ml', priceDelta: 0, available: true },
+    /**
+     * The first option in the catalogue that takes money off.
+     *
+     * `ProductOption.priceDelta` has said "May be negative" since the type was
+     * written and all seventy-nine seeded options were zero or positive, so
+     * every part of the app that handles a delta had only ever handled one
+     * direction. `formatPriceDelta` has a minus branch that had never run;
+     * `unitPriceFor` sums deltas onto a base price and had never been asked to
+     * subtract; the option row prints the delta whenever it is non-zero and had
+     * never printed a discount.
+     *
+     * This is where a real menu has one. The four kids meals are priced as a
+     * box — food, side, dip and a drink — so a parent who does not want the
+     * drink is paying for something they are not taking, and the till gives it
+     * back. R12 is a placeholder like every other price in this catalogue and
+     * goes to `audit:launch` with the rest.
+     */
+    { id: `${base}-drink-none`, name: 'No drink, thanks', priceDelta: -12, available: true },
   ],
 });
 

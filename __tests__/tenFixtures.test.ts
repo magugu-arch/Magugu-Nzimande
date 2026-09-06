@@ -61,12 +61,19 @@ describe('an email that can actually be verified', () => {
  * the map and prints when the position was last reported.
  */
 describe('a courier reporting a live position', () => {
-  it('is seeded, and is the only tracked job', async () => {
+  /**
+   * Two jobs are authorised now, and only this one has reported. The other —
+   * BBQ-4874 — is the same grant a moment earlier, before the first fix comes
+   * in, and it is the state that showed this card claiming tracking was
+   * unavailable next to the icon it draws when tracking is available.
+   */
+  it('is the only authorised job that has actually reported a position', async () => {
     const orders = await fetchOrders();
-    const tracked = orders.filter((order) => order.delivery?.trackingAvailable);
+    const authorised = orders.filter((order) => order.delivery?.trackingAvailable);
+    const reporting = authorised.filter((order) => order.delivery?.courierPosition);
 
-    expect(tracked.map((order) => order.reference)).toEqual(['BBQ-4854']);
-    expect(tracked[0]?.delivery?.courierPosition).toBeDefined();
+    expect(authorised.map((order) => order.reference).sort()).toEqual(['BBQ-4854', 'BBQ-4874']);
+    expect(reporting.map((order) => order.reference)).toEqual(['BBQ-4854']);
   });
 
   it('reports a position on the road, not a coordinate at nought', async () => {

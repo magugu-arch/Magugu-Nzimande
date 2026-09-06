@@ -7,7 +7,12 @@ import { Badge, Text } from '@/components/ui';
 import { colors, elevation, radius, spacing } from '@/theme';
 import { formatPrice } from '@/utils/money';
 import { showsHeatBadge } from '@/features/menu/heat';
-import { isSoldOut, productListLabel, SOLD_OUT_LABEL } from '@/features/menu/availability';
+import {
+  isSoldOut,
+  priceFloor,
+  productListLabel,
+  SOLD_OUT_LABEL,
+} from '@/features/menu/availability';
 import { useHeatPreference } from '@/features/menu/useHeatPreference';
 
 export interface ProductCardProps {
@@ -78,7 +83,8 @@ export const ProductCard = memo(function ProductCard({
 
         <View style={styles.footer}>
           <Text variant="price" color={colors.primary}>
-            {formatPrice(product.basePrice)}
+            {/* The floor a customer can reach, not the base. See `priceFloor`. */}
+            {formatPrice(priceFloor(product))}
           </Text>
           {/* No "+" on something that cannot be added. The glyph is a promise
               the card cannot keep once the product is withdrawn. */}

@@ -341,6 +341,31 @@ export default function OrderTrackingScreen() {
             </View>
           </View>
         ) : null}
+
+        {/*
+          What the customer told the driver, shown back to them.
+
+          The note was collected on the address screen, echoed under the address
+          at checkout, and then went nowhere — not onto the order, not to the
+          courier. Now that it travels, it belongs here too: this is the screen
+          somebody opens when the doorbell has not rung, and "did I tell them
+          about the gate?" is exactly the question it should be able to answer.
+        */}
+        {data.deliveryInstructions ? (
+          <View style={styles.driverRow} testID="order-delivery-instructions">
+            <View style={styles.driverAvatar}>
+              <Ionicons name="chatbubble-ellipses-outline" size={15} color={colors.onPrimary} />
+            </View>
+            <View style={styles.driverBody}>
+              <Text variant="bodyMedium" color={colors.textOnDark}>
+                {data.deliveryInstructions}
+              </Text>
+              <Text variant="caption" color={colors.textOnDarkMuted}>
+                What we told your driver
+              </Text>
+            </View>
+          </View>
+        ) : null}
       </Card>
 
       {/* Live courier map (brief §2), when a provider is authorised to expose one */}

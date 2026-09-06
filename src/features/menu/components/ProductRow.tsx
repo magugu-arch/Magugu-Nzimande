@@ -7,7 +7,12 @@ import { Badge, FavouriteButton, Text } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 import { formatPrice } from '@/utils/money';
 import { showsHeatBadge } from '@/features/menu/heat';
-import { isSoldOut, productListLabel, SOLD_OUT_LABEL } from '@/features/menu/availability';
+import {
+  isSoldOut,
+  priceFloor,
+  productListLabel,
+  SOLD_OUT_LABEL,
+} from '@/features/menu/availability';
 import { useHeatPreference } from '@/features/menu/useHeatPreference';
 
 export interface ProductRowProps {
@@ -86,7 +91,8 @@ export const ProductRow = memo(function ProductRow({ product, onPress, testID }:
 
           <View style={styles.footer}>
             <Text variant="price" color={colors.primary}>
-              {formatPrice(product.basePrice)}
+              {/* The floor a customer can reach, not the base. See `priceFloor`. */}
+              {formatPrice(priceFloor(product))}
             </Text>
             {soldOut ? (
               <Badge label={SOLD_OUT_LABEL} tone="warning" />
