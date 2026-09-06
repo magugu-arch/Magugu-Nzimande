@@ -276,6 +276,39 @@ is worse than one that nags.
 correctly, because it counts rewards without a date rather than restating that
 there are none.
 
+## 2h. Storage this app did not write
+
+Four stores persist through `zustand/persist` and none declared a `version` or
+a `migrate`. The default rehydration is a shallow merge — whatever sits under
+that key wins over the initial state, field by field, unexamined. Safe while
+the only writer is this build; not safe for an app that ships twice, and
+`updates.url` is configured.
+
+Seeded into storage and driven in Chromium, three shapes crashed the app before
+the first paint:
+
+| Stored | Reached | Died on |
+| ------ | ------- | ------- |
+| `lines: null` | `priceBasket` | `null.map` |
+| a line with no `selectedOptions` | `describeOptions` | `undefined.map` |
+| a branch with no `openingHours` | `closureReason` | `undefined.length` |
+
+The `ErrorBoundary` caught all three, which was the trap rather than the
+rescue: it said *"Your cart is saved, so nothing is lost"* — the cart was the
+cause — and offered a **Try again** that re-read the same value and crashed
+again. There was no way out from inside the app. A customer would have had to
+delete it.
+
+A fourth shape crashed nothing and was worse for it: a stored `fulfilmentType`
+of `'curbside'` falls through every branch in the app, so checkout drew with no
+fulfilment selected and delivery's wording underneath — a screen nobody
+designed and nobody would report as a crash.
+
+All four now rehydrate cleanly, driven both ways in Chromium. The recovery
+screen promises only what it can keep ("Nothing has been ordered") and, after a
+retry has already failed, offers **Start fresh** — the escape hatch for the
+shape nobody anticipated, which is the only kind that ever gets through.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -329,7 +362,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **94 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **95 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

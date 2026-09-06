@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 94 suites; `npm test` prints the count                                                                  |
+| Tests            | 95 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -92,6 +92,17 @@ exactly — four variants, three sizes at the published heights, all four states
 Colour pairs are asserted against §32.3's 4.5:1, and type roles against §11's
 face assignments and §14.3's line-height band. None of it is eyeballed. If a
 change breaks any of it, `npm run verify` says so.
+
+**Saved state is checked on the way in, never trusted.** The four persisted
+stores (`bbq.auth`, `bbq.cart`, `bbq.favourites`, `bbq.fulfilment`) each declare
+a `PERSIST_VERSION` and a `merge` that validates every field it reads, in
+`store/persistence.ts`. This matters because a shipped app updates: a customer
+can be carrying a basket written by last month's binary when this month's code
+reads it. Three shapes crashed the app outright before this existed —
+`lines: null`, a line written without `selectedOptions`, and a saved branch
+predating `openingHours` — and the recovery screen's "Try again" re-read the
+same value and crashed again, with no way out short of reinstalling. When you
+change a persisted shape, add its check here or bump the version.
 
 **Money never touches raw floats.** All arithmetic rounds through cents, so
 `0.1 + 0.2` is `0.3` and totals never drift. Use the helpers in `utils/money.ts`.

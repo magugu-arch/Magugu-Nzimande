@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { SUPPORT } from '@/constants/config';
 import { colors, radius, spacing } from '@/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PERSISTED_KEYS } from '@/store/persistence';
 import { reportError } from '@/ux/errorReporting';
 
 interface Props {
@@ -16,6 +18,18 @@ interface Props {
 
 interface State {
   error: Error | null;
+  /**
+   * How many times "Try again" has been pressed on this crash.
+   *
+   * A crash caused by something transient clears on the first press. A crash
+   * caused by a stored value does not: the retry re-renders the same tree,
+   * which re-reads the same value, and lands back here. Counting the presses
+   * is how the screen tells one from the other without knowing anything about
+   * either.
+   */
+  retries: number;
+  /** True while the saved-data reset is running, so the button cannot double-fire. */
+  clearing: boolean;
 }
 
 /**
@@ -31,9 +45,9 @@ interface State {
  * those into customer-readable messages.
  */
 export class ErrorBoundary extends Component<Props, State> {
-  override state: State = { error: null };
+  override state: State = { error: null, retries: 0, clearing: false };
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Pick<State, 'error'> {
     return { error };
   }
 
@@ -55,12 +69,54 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private readonly handleReset = (): void => {
-    this.setState({ error: null });
+    this.setState((previous) => ({ error: null, retries: previous.retries + 1 }));
+  };
+
+  /**
+   * The way out of a crash that retrying cannot fix.
+   *
+   * Driven in Chromium: seed `bbq.cart` with `lines: null`, or a line written
+   * without `selectedOptions`, or `bbq.fulfilment` with a branch record that
+   * predates `openingHours`, and the app crashes on the first render. This
+   * screen caught all three — and then said "Your cart is saved, so nothing is
+   * lost" and offered a Try again that re-read the same value and crashed
+   * again. There was no way out of that from inside the app. A customer would
+   * have had to delete it and start over.
+   *
+   * `store/persistence` now validates every persisted slice on the way in, so
+   * those three cannot happen again. This is for the fourth one — the shape
+   * nobody anticipated, which is the only kind that ever gets through.
+   *
+   * Offered rather than done automatically, and only after a retry has already
+   * failed: wiping somebody's basket is not a thing to do behind their back on
+   * the strength of one thrown error.
+   */
+  private readonly handleClearSavedData = (): void => {
+    if (this.state.clearing) return;
+    this.setState({ clearing: true });
+
+    void AsyncStorage.multiRemove([...PERSISTED_KEYS])
+      .catch((cause: unknown) => {
+        // Nothing else to try, and the customer is already on the failure
+        // screen — but it must be reported rather than swallowed, because a
+        // storage layer refusing to delete is the shape of a much worse
+        // problem than the crash that led here.
+        reportError(cause instanceof Error ? cause : new Error(String(cause)), {
+          scope: 'render',
+        });
+      })
+      .finally(() => {
+        this.setState({ error: null, retries: 0, clearing: false });
+      });
   };
 
   override render(): ReactNode {
     const { error } = this.state;
     if (!error) return this.props.children;
+
+    // One failed retry is the signal. A transient crash clears on the first
+    // press; one caused by a stored value comes straight back.
+    const retriedAlready = this.state.retries > 0;
 
     return (
       <View style={styles.root} testID="error-boundary">
@@ -75,11 +131,28 @@ export class ErrorBoundary extends Component<Props, State> {
             Something broke
           </Text>
           <Text variant="body" color={colors.textSecondary} align="center">
-            Sorry — the app hit a problem it could not recover from on its own. Your cart is saved,
-            so nothing is lost.
+            {retriedAlready
+              ? 'That did not clear it, which usually means something saved on this phone is the problem. Starting fresh clears your basket and saved choices — your account and your order history are not touched.'
+              : 'Sorry — the app hit a problem it could not recover from on its own. Nothing has been ordered.'}
           </Text>
 
           <Button label="Try again" onPress={this.handleReset} size="lg" testID="error-retry" />
+
+          {/*
+            Only after a retry has failed. The first press is free and usually
+            works; offering to wipe somebody's basket before they have even
+            tried is a worse first impression than the crash.
+          */}
+          {retriedAlready ? (
+            <Button
+              label={this.state.clearing ? 'Starting fresh…' : 'Start fresh'}
+              onPress={this.handleClearSavedData}
+              variant="text"
+              size="lg"
+              disabled={this.state.clearing}
+              testID="error-clear-storage"
+            />
+          ) : null}
 
           <View style={styles.support}>
             <Text variant="caption" color={colors.textMuted} align="center">

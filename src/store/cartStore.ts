@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { arrayOfShaped, keepValid, oneOf, PERSIST_VERSION } from '@/store/persistence';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CartLine, CartTotals, FulfilmentType, Product, SelectedOption } from '@/types';
 import {
@@ -12,6 +13,26 @@ import {
 } from '@/utils/cart';
 import { track } from '@/ux/analytics';
 import { config } from '@/constants/config';
+
+/**
+ * The fields a `CartLine` must carry to be priced and drawn.
+ *
+ * `specialInstructions` is left out on purpose — it is optional on the type,
+ * and a line without one is an ordinary line rather than a broken one.
+ */
+const CART_LINE_FIELDS = [
+  'id',
+  'productId',
+  'name',
+  'assetKey',
+  'unitBasePrice',
+  'quantity',
+  'selectedOptions',
+  'unitPrice',
+  'lineTotal',
+] as const;
+
+const FULFILMENT_TYPES = ['delivery', 'collection', 'dinein'] as const;
 
 /**
  * Cart state.
@@ -379,10 +400,32 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'bbq.cart',
+      version: PERSIST_VERSION,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         lines: state.lines,
         fulfilmentType: state.fulfilmentType,
+      }),
+      /*
+        The saved basket, checked rather than trusted.
+
+        Two shapes crashed the app outright when seeded into storage and
+        rehydrated: `lines: null` reached `priceBasket` and died on `.map`,
+        and a line written without `selectedOptions` reached `describeOptions`
+        and died the same way. The `ErrorBoundary` caught both, said "Your
+        cart is saved, so nothing is lost", and offered a Try again that
+        re-read the same value and crashed again.
+
+        A line is dropped rather than repaired. The options are what the
+        kitchen cooks; a line missing them cannot be reconstructed, and
+        guessing would put food in front of somebody that they did not order.
+      */
+      merge: (persisted, current) => ({
+        ...current,
+        ...keepValid<{ lines: CartLine[]; fulfilmentType: FulfilmentType }>(persisted, {
+          lines: arrayOfShaped(CART_LINE_FIELDS),
+          fulfilmentType: oneOf(FULFILMENT_TYPES),
+        }),
       }),
     },
   ),

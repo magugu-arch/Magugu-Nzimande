@@ -1,12 +1,41 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isBoolean, keepValid, nullOrShaped, PERSIST_VERSION } from '@/store/persistence';
+
 import type { AppPreferences, AuthSession, NotificationPreferences, UserProfile } from '@/types';
 import { config } from '@/constants/config';
 import { createGuestUser, signOut as signOutService } from '@/services/authService';
 import { pullFavourites } from '@/features/favourites/sync';
 import { identify } from '@/ux/analytics';
 import { useFavouritesStore } from './favouritesStore';
+
+/**
+ * What a stored customer must carry to be one.
+ *
+ * `id` and `email` are what every request built from this record uses;
+ * `firstName` is what the greeting on Home reads. The verification flags and
+ * `createdAt` are here because the profile screen draws all three.
+ */
+interface PersistedAuth {
+  user: UserProfile | null;
+  isAuthenticated: boolean;
+  isGuest: boolean;
+  hasCompletedOnboarding: boolean;
+  notificationPreferences: NotificationPreferences;
+  preferences: AppPreferences;
+}
+
+const USER_FIELDS = [
+  'id',
+  'firstName',
+  'lastName',
+  'email',
+  'isGuest',
+  'emailVerified',
+  'phoneVerified',
+  'createdAt',
+] as const;
 
 /**
  * Session and preference state.
@@ -172,6 +201,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'bbq.auth',
+      version: PERSIST_VERSION,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         user: state.user,
@@ -180,6 +210,26 @@ export const useAuthStore = create<AuthState>()(
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         notificationPreferences: state.notificationPreferences,
         preferences: state.preferences,
+      }),
+      /*
+        A malformed `bbq.auth` did not crash — the screens read the user
+        defensively and it came up signed out, which is the right failure. It
+        is checked for the same reason favourites is: `user` is read for a
+        greeting, initials and a profile form, and a record missing `id` is one
+        every request built from it would carry an `undefined` into.
+
+        Signed out is a recoverable state. A session that half exists is not.
+      */
+      merge: (persisted, current) => ({
+        ...current,
+        ...keepValid<PersistedAuth>(persisted, {
+          user: nullOrShaped(USER_FIELDS),
+          isAuthenticated: isBoolean,
+          isGuest: isBoolean,
+          hasCompletedOnboarding: isBoolean,
+          notificationPreferences: (value: unknown) => value !== null && typeof value === 'object',
+          preferences: (value: unknown) => value !== null && typeof value === 'object',
+        }),
       }),
     },
   ),

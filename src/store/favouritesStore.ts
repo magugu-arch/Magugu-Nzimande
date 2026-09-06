@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isStringArray, keepValid, PERSIST_VERSION } from '@/store/persistence';
 import { config } from '@/constants/config';
 
 /**
@@ -109,10 +110,25 @@ export const useFavouritesStore = create<FavouritesState>()(
     }),
     {
       name: 'bbq.favourites',
+      version: PERSIST_VERSION,
       storage: createJSONStorage(() => AsyncStorage),
       // The owner is persisted too, or the check cannot survive the restart it
       // most needs to survive: a phone handed over and opened fresh.
       partialize: (state) => ({ productIds: state.productIds, ownerId: state.ownerId }),
+      /*
+        This one never crashed, and is guarded anyway. `productIds` is read
+        with `.map` and `.filter` on Home and behind a menu filter, so a value
+        that is not an array is the same class of failure the cart had; it has
+        simply never been written as one. A guard that only covers the shapes
+        that have already broken is a guard against the past.
+      */
+      merge: (persisted, current) => ({
+        ...current,
+        ...keepValid<{ productIds: string[]; ownerId: string | null }>(persisted, {
+          productIds: isStringArray,
+          ownerId: (value: unknown) => value === null || typeof value === 'string',
+        }),
+      }),
     },
   ),
 );

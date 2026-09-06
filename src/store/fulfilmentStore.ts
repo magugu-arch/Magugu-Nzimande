@@ -1,12 +1,71 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  isBoolean,
+  isString,
+  keepValid,
+  nullOrShaped,
+  oneOf,
+  PERSIST_VERSION,
+} from '@/store/persistence';
+
 import type { Address, FulfilmentType, Store } from '@/types';
 import { supportsFulfilment } from '@/utils/fulfilment';
 import { distanceKm, type Coordinates } from '@/utils/geo';
 import { formatShortDate, formatTime } from '@/utils/datetime';
 import { closureReason, isStoreOpenAt, isTradingNow } from '@/utils/tradingHours';
 import { track } from '@/ux/analytics';
+
+const FULFILMENT_TYPES = ['delivery', 'collection', 'dinein'] as const;
+
+/**
+ * The fields the app reads off a saved branch before anything renders.
+ *
+ * `openingHours` is the one that crashed — `closureReason` reaches for its
+ * length on the first render of checkout — and the rest are here because a
+ * record missing any of them is not a branch this code can reason about.
+ * `distanceKm` and `opensOn` are optional on the type and left out.
+ */
+const STORE_FIELDS = [
+  'id',
+  'name',
+  'addressLine',
+  'suburb',
+  'city',
+  'province',
+  'phone',
+  'latitude',
+  'longitude',
+  'openingHours',
+  'supportsDelivery',
+  'supportsCollection',
+  'supportsDineIn',
+  'deliveryRadiusKm',
+  'preparationMinutes',
+  'isOpenNow',
+] as const;
+
+/** `line2` and `coordinates` are optional on the type; the rest are not. */
+const ADDRESS_FIELDS = [
+  'id',
+  'label',
+  'line1',
+  'suburb',
+  'city',
+  'province',
+  'postalCode',
+] as const;
+
+/** Exactly what `partialize` writes, so the checks below cover all of it. */
+interface PersistedFulfilment {
+  fulfilmentType: FulfilmentType;
+  store: Store | null;
+  address: Address | null;
+  deliveryInstructions: string;
+  coordinates: Coordinates | null;
+  locationPermissionAsked: boolean;
+}
 
 /**
  * Where and how this order is being fulfilled: type, store, address, table and
@@ -332,6 +391,7 @@ export const useFulfilmentStore = create<FulfilmentState>()(
     }),
     {
       name: 'bbq.fulfilment',
+      version: PERSIST_VERSION,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         fulfilmentType: state.fulfilmentType,
@@ -340,6 +400,32 @@ export const useFulfilmentStore = create<FulfilmentState>()(
         deliveryInstructions: state.deliveryInstructions,
         coordinates: state.coordinates,
         locationPermissionAsked: state.locationPermissionAsked,
+      }),
+      /*
+        The branch and the door, checked rather than trusted.
+
+        A saved `store` written before `openingHours` existed on the type
+        crashed the app on rehydration: `closureReason` reads that array and
+        died on `.length` before anything rendered. The customer met the error
+        boundary, was told their cart was safe, and pressing Try again read the
+        same value and crashed again.
+
+        `fulfilmentType` is checked as an enum member for a quieter reason. A
+        value that is no longer one of the three — 'curbside', say, from a
+        build that offered it — falls through every branch in the app rather
+        than throwing: checkout rendered with no fulfilment selected and
+        delivery's wording, which is a screen nobody designed.
+      */
+      merge: (persisted, current) => ({
+        ...current,
+        ...keepValid<PersistedFulfilment>(persisted, {
+          fulfilmentType: oneOf(FULFILMENT_TYPES),
+          store: nullOrShaped(STORE_FIELDS),
+          address: nullOrShaped(ADDRESS_FIELDS),
+          deliveryInstructions: isString,
+          coordinates: nullOrShaped(['latitude', 'longitude']),
+          locationPermissionAsked: isBoolean,
+        }),
       }),
     },
   ),
