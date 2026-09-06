@@ -50,3 +50,28 @@ export interface PhasedQuery {
 export function isOfflinePending(query: PhasedQuery): boolean {
   return !query.isSuccess && !query.isError && query.fetchStatus === 'paused';
 }
+
+/**
+ * The same question asked by a screen that has no room to stop and answer it.
+ *
+ * `isOfflinePending` is for a screen that can hand the whole viewport over to a
+ * message: it catches only the paused case, so adding it cannot change what an
+ * existing loading or error branch already does.
+ *
+ * Checkout has no such branch and cannot grow one. It renders from the cart,
+ * and the three queries behind it — saved cards, saved addresses, branches —
+ * are supporting cast. Losing any one of them must not blank the screen a
+ * customer is trying to pay from, so each one is read where it is used and the
+ * question there is simply: **did this arrive?**
+ *
+ * Not "is it paused", because a 500 from the account endpoint leaves the
+ * customer just as cardless and `isOfflinePending` false. Not "is it errored",
+ * because offline is the commonest case and never errors. What both have in
+ * common, and what a first load does not, is that nothing is on its way.
+ *
+ * Quiet while `fetching`, so the first paint says "loading" by saying nothing
+ * rather than accusing a server that has had no chance to answer.
+ */
+export function didNotArrive(query: PhasedQuery): boolean {
+  return !query.isSuccess && query.fetchStatus !== 'fetching';
+}

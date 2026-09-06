@@ -51,7 +51,51 @@ const ROUTES = [
   // app that had not reached the promotions calendar. Somebody who taps a push
   // notification on a train is the person who meets it.
   '/offers/promo-free-delivery',
+  /**
+   * The screen where the money is, and the one this sweep could not see.
+   *
+   * Checkout renders from the basket, so it needs one seeded before it is
+   * anything but an empty state — and the route that takes setting up is the
+   * route that goes unswept. Driven with a basket for the first time, against
+   * this same dead host, it drew a completely ordinary checkout: "Choose a
+   * store", "Add a delivery address", and a Payment section listing SnapScan,
+   * Instant EFT and Cash on delivery. A customer with three saved cards was
+   * shown the brand-new-customer screen with no hint that anything had failed.
+   */
+  '/checkout',
 ];
+
+/**
+ * Routes that are nothing without a basket.
+ *
+ * Seeded through the same door as the session — straight into storage, because
+ * there is no server here to add an item against. The line is a real one off
+ * the menu, priced as the menu prices it.
+ */
+const NEEDS_BASKET = new Set(['/checkout']);
+
+const BASKET = JSON.stringify({
+  state: {
+    lines: [
+      {
+        id: 'golden-original__offline',
+        productId: 'golden-original',
+        name: 'Golden Original Chicken',
+        assetKey: 'goldenOriginal',
+        // Golden Original's own base price. Restated here because a plain
+        // .mjs script cannot import the menu, and bound to `menuData` by
+        // `checkoutSupport.test.ts` so it cannot drift away from it.
+        unitBasePrice: 149,
+        quantity: 1,
+        selectedOptions: [],
+        unitPrice: 149,
+        lineTotal: 149,
+      },
+    ],
+    fulfilmentType: 'delivery',
+  },
+  version: 0,
+});
 
 /** Copy that admits the app could not reach the server. */
 const HONEST = /Something went wrong|couldn't load|can't reach|You're offline|Try again/i;
@@ -75,6 +119,14 @@ const NAMES_THE_CAUSE = /You're offline|No connection|no internet/i;
 /**
  * Copy that asserts a fact about the customer or the business. Harmless when
  * the data really did arrive and really was empty; a lie when it did not.
+ *
+ * A third element scopes a rule to one route. Most of these are safe to apply
+ * everywhere — no screen has any business saying "No vouchers yet" here — but
+ * checkout's two are ordinary summary-row prompts, and the same words are a
+ * page's own name one screen over. `/checkout/store` is titled "Choose a
+ * store" and shows an honest offline state underneath it; failing that is
+ * nagging about a heading, and an audit that cries wolf is one people learn to
+ * run with their eyes shut.
  */
 const CLAIMS = [
   [/No offers right now|Nothing running/i, 'claims the business is running no offers'],
@@ -83,7 +135,38 @@ const CLAIMS = [
   [/No payment methods saved/i, 'claims the customer has no saved cards'],
   [/came off the menu|can't find that item/i, 'blames the menu for a failed fetch'],
   [/offer has ended|no longer running/i, 'blames the promotions calendar for a failed fetch'],
+  /*
+    Checkout's two rows. Each is a perfectly good prompt when the data arrived
+    and the customer simply has not chosen yet, and a lie here, where nothing
+    arrived at all.
+
+    "Choose a store" is the sharper of them: it is an instruction, and the
+    picker it points at cannot load a list either, so the customer taps
+    through, meets an error, comes back and reads the same instruction again.
+  */
+  [/Choose a store/i, 'tells the customer to pick a branch it cannot list', '/checkout'],
+  [/Add a delivery address/i, 'claims the customer has no saved address', '/checkout'],
 ];
+
+/**
+ * Checkout's payment section, which cannot be caught by a phrase.
+ *
+ * The lie there was not something the screen said — it was something it drew.
+ * `offeredPaymentMethods` falls back to the standing rails when the saved list
+ * is empty, so a failed fetch rendered SnapScan, Instant EFT and Cash on
+ * delivery under a plain "Payment" heading: the brand-new-customer screen,
+ * shown to a customer with cards, with nothing on the page admitting it.
+ *
+ * So the rule is about the pairing rather than the words. Rails may be offered
+ * — they are what a customer on a bad connection can still pay with — but not
+ * silently.
+ */
+const RAILS_WITHOUT_A_WORD = {
+  route: '/checkout',
+  rails: /SnapScan|Instant EFT|Cash on delivery/i,
+  admission: /couldn't load your saved cards/i,
+  why: 'offers the standing rails as if they were the customer’s saved cards',
+};
 
 
 /**
@@ -181,13 +264,17 @@ const rows = [];
 try {
   for (const route of ROUTES) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-    await context.addInitScript((session) => {
-      try {
-        window.localStorage.setItem('bbq.auth', session);
-      } catch {
-        // A context that refuses storage is a browser problem, not an app one.
-      }
-    }, SIGNED_IN);
+    await context.addInitScript(
+      ({ session, basket }) => {
+        try {
+          window.localStorage.setItem('bbq.auth', session);
+          if (basket !== null) window.localStorage.setItem('bbq.cart', basket);
+        } catch {
+          // A context that refuses storage is a browser problem, not an app one.
+        }
+      },
+      { session: SIGNED_IN, basket: NEEDS_BASKET.has(route) ? BASKET : null },
+    );
     const page = await context.newPage();
 
     await page.goto(`http://localhost:${PORT}${route}`, {
@@ -218,7 +305,16 @@ try {
     ).replace(/\n+/g, ' | ');
     const honest = HONEST.test(text);
     const named = NAMES_THE_CAUSE.test(text);
-    const lies = CLAIMS.filter(([pattern]) => pattern.test(text)).map(([, why]) => why);
+    const lies = CLAIMS.filter(
+      ([pattern, , only]) => (only === undefined || only === route) && pattern.test(text),
+    ).map(([, why]) => why);
+    if (
+      route === RAILS_WITHOUT_A_WORD.route &&
+      RAILS_WITHOUT_A_WORD.rails.test(text) &&
+      !RAILS_WITHOUT_A_WORD.admission.test(text)
+    ) {
+      lies.push(RAILS_WITHOUT_A_WORD.why);
+    }
 
     rows.push({ route, honest, named, lies });
     if (!honest && lies.length === 0) {

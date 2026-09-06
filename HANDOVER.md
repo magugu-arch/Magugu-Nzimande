@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 92 suites; `npm test` prints the count                                                                  |
+| Tests            | 93 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -442,6 +442,17 @@ These fail loudly rather than rotting quietly — leave them on.
     must name the reason rather than blaming itself. Then a second pass with the
     mock on, cutting the network and restoring it, because losing a connection
     and regaining one are different questions and only the first was ever asked.
+
+    `/checkout` was not one of its routes for a long time, because checkout
+    renders from the basket and needs one seeded first — and the route that
+    takes setting up is the route that goes unswept. It is also the route where
+    the money is. Swept with a basket for the first time, it drew a completely
+    ordinary checkout against a dead host: "Choose a store", "Add a delivery
+    address", and a Payment section offering SnapScan, Instant EFT and Cash on
+    delivery. That last one is the brand-new-customer screen, shown to a
+    customer with three saved cards, with nothing on the page admitting
+    anything had failed. All four now say what actually happened, and the sweep
+    fails if any of them goes back to claiming otherwise.
   - `audit:coldstart` — ordering as somebody who installed the app that
     morning: nothing saved, nothing ordered. The account the seed could never
     represent.

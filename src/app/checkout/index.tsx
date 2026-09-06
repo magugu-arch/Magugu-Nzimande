@@ -27,6 +27,13 @@ import { safeToRetry, submitOrder, type SubmitFailure } from '@/features/checkou
 import { offeredPaymentMethods, paymentCaption } from '@/features/checkout/paymentOptions';
 import { checkoutDefaults } from '@/features/checkout/checkoutDefaults';
 import { checkoutStillHonest } from '@/features/checkout/checkoutDrift';
+import {
+  addressRowValue,
+  savedCardsNotice,
+  savedCardsUnavailable,
+  storeRowValue,
+  unreachableBlocker,
+} from '@/features/checkout/supportingData';
 import { useCartReconciliation } from '@/features/cart/useCartReconciliation';
 import { useNetworkStatus } from '@/features/system/useNetworkStatus';
 import { useNow } from '@/features/system/useNow';
@@ -228,7 +235,26 @@ export default function CheckoutScreen() {
       scheduledFor,
       now,
     });
-    if (fulfilmentBlocker) return fulfilmentBlocker;
+    if (fulfilmentBlocker) {
+      /*
+        Said as the app's problem when it is the app's problem.
+
+        `missingFulfilmentRequirement` answers "has the customer chosen a
+        branch / an address", and against a dead API host the honest answer to
+        that is still "no" — so it returned "Choose a store", which is an
+        instruction the customer cannot follow, because the picker behind that
+        row cannot load a list either. They tap through, meet an error, come
+        back, and read the same instruction again.
+      */
+      return (
+        unreachableBlocker({
+          needsStore: store === null,
+          needsAddress: fulfilmentType === 'delivery' && address === null,
+          stores: availableStores,
+          addresses,
+        }) ?? fulfilmentBlocker
+      );
+    }
     // After the app's own rules, because those are cheaper and more certain:
     // an empty cart or a closed store is a better message than a courier's.
     if (courier.refusal) return courier.refusal;
@@ -246,6 +272,8 @@ export default function CheckoutScreen() {
     scheduledFor,
     selectedPayment,
     now,
+    availableStores,
+    addresses,
   ]);
 
   /**
@@ -558,7 +586,7 @@ export default function CheckoutScreen() {
           <SummaryRow
             icon="storefront-outline"
             label={fulfilmentType === 'delivery' ? 'Cooked at' : 'Store'}
-            value={store?.name ?? 'Choose a store'}
+            value={storeRowValue(availableStores, store?.name)}
             detail={store ? `${store.suburb}, ${store.city}` : undefined}
             complete={Boolean(store)}
           />
@@ -570,7 +598,10 @@ export default function CheckoutScreen() {
             <SummaryRow
               icon="location-outline"
               label="Delivering to"
-              value={address ? `${address.label} · ${address.line1}` : 'Add a delivery address'}
+              value={addressRowValue(
+                addresses,
+                address ? `${address.label} · ${address.line1}` : undefined,
+              )}
               detail={
                 address
                   ? [address.suburb, deliveryInstructions].filter(Boolean).join(' · ')
@@ -615,6 +646,43 @@ export default function CheckoutScreen() {
         {/* Payment */}
         <Card style={styles.card}>
           <Text variant="h3">Payment</Text>
+
+          {/*
+            A missing list is not an empty one.
+
+            `offeredPaymentMethods` falls back to the standing rails when the
+            saved list comes back empty, which is right and is there so a
+            customer who installed the app this morning can pay at all. It
+            cannot tell that apart from a list that never arrived — so against
+            a dead API host a customer with three saved cards was shown the
+            brand-new-customer screen: cards gone, no explanation, SnapScan
+            sitting where their Visa was.
+
+            Told, not blocked. The rails still work and a customer on a bad
+            connection can still pay by one; what they must not do is conclude
+            their cards were deleted. `refetch` because the retry has to be
+            theirs to press — the query is paused, not failing, and nothing
+            else on this screen will wake it.
+          */}
+          {savedCardsUnavailable(paymentMethods) ? (
+            <View
+              style={styles.errorBox}
+              accessibilityRole="alert"
+              testID="checkout-cards-unavailable"
+            >
+              <Ionicons name="cloud-offline-outline" size={17} color={colors.status.info} />
+              <Text variant="caption" color={colors.textSecondary} style={styles.errorText}>
+                {savedCardsNotice(paymentMethods)}
+              </Text>
+              <Button
+                label="Try again"
+                variant="text"
+                size="sm"
+                onPress={() => void paymentMethods.refetch()}
+                testID="checkout-cards-retry"
+              />
+            </View>
+          ) : null}
 
           {offered.map((method) => {
             const selected = method.id === selectedPaymentId;
