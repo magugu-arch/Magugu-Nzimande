@@ -12,7 +12,13 @@ import {
   Text,
   TextField,
 } from '@/components/ui';
-import { deleteAccount, requestEmailVerification, updateProfile } from '@/services/authService';
+import {
+  deleteAccount,
+  isEmailVerified,
+  requestEmailVerification,
+  updateProfile,
+} from '@/services/authService';
+import { config } from '@/constants/config';
 import { useAuthStore } from '@/store/authStore';
 import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing } from '@/theme';
@@ -94,6 +100,19 @@ export default function ProfileScreen() {
     try {
       await requestEmailVerification(user.email);
       setEmailSent(true);
+      /*
+        And the state on the far side of it, on a demo build.
+
+        The button sent a link and stopped there, so `emailVerified` could
+        never become true in the app: the success badge and the profile screen
+        without its warning were unreachable by construction, and no sweep had
+        ever rendered them. Against a real backend the customer clicks the link
+        in their inbox and the next profile fetch says so; the mock stands in
+        for the inbox, and this is what reads the answer back.
+      */
+      if (config.useMockApi && isEmailVerified(user.email)) {
+        setUser({ ...user, emailVerified: true });
+      }
     } catch (error) {
       void tell(
         'Could not send that',

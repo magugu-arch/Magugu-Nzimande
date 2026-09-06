@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppPreferences, AuthSession, NotificationPreferences, UserProfile } from '@/types';
+import { config } from '@/constants/config';
 import { createGuestUser, signOut as signOutService } from '@/services/authService';
 import { pullFavourites } from '@/features/favourites/sync';
 import { identify } from '@/ux/analytics';
@@ -28,6 +29,35 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   defaultFulfilment: 'delivery',
   marketingConsent: false,
   preferMildFirst: false,
+};
+
+/**
+ * A customer who has actually changed something, on a demo build only.
+ *
+ * Every seeded and freshly registered account carried the defaults, so four
+ * settings had only ever been rendered in one position and the behaviour
+ * behind them had never run against the app's own state:
+ *
+ *   - `preferMildFirst` reorders the whole menu and hides the spice badges
+ *     (`orderedForHeat`, `showsHeatBadge`). Tested in isolation, never seen.
+ *   - `defaultFulfilment` decides what the app opens on, and only 'delivery'
+ *     had ever been that.
+ *   - `channelSms` and `marketingConsent` are the two switches whose "on"
+ *     position is a consent record rather than a convenience.
+ *
+ * Preferences are device state, which is why they are seeded here rather than
+ * into an account: `claimFor` on the favourites store is the precedent.
+ */
+const SEEDED_NOTIFICATIONS: NotificationPreferences = {
+  ...DEFAULT_NOTIFICATIONS,
+  newProducts: true,
+  channelSms: true,
+};
+
+const SEEDED_PREFERENCES: AppPreferences = {
+  defaultFulfilment: 'collection',
+  marketingConsent: true,
+  preferMildFirst: true,
 };
 
 interface AuthState {
@@ -84,8 +114,8 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isGuest: false,
       hasCompletedOnboarding: false,
-      notificationPreferences: DEFAULT_NOTIFICATIONS,
-      preferences: DEFAULT_PREFERENCES,
+      notificationPreferences: config.useMockApi ? SEEDED_NOTIFICATIONS : DEFAULT_NOTIFICATIONS,
+      preferences: config.useMockApi ? SEEDED_PREFERENCES : DEFAULT_PREFERENCES,
 
       setSession: (session) => {
         // Here rather than in the two screens that call this, for the reason

@@ -198,7 +198,32 @@ export async function requestEmailVerification(email: string): Promise<{ sentTo:
       body: { email: email.trim().toLowerCase() },
     });
   }
-  return delay({ sentTo: email.trim().toLowerCase() }, 500);
+  /**
+   * The mock follows the link, which is the only way this state is reachable.
+   *
+   * `register` creates every customer unverified and the seeded one is
+   * unverified too — deliberately, because that is what almost every real
+   * account looks like and the warning branches had rendered for nobody. But
+   * the mock only ever returned `{ sentTo }`, so there was no path in a demo
+   * build from unverified to verified at all: the success badge, and the
+   * profile screen without its warning, were unreachable by construction.
+   *
+   * A mock kinder than the world hides defects; a mock with no exit from a
+   * state hides the whole far side of it. Against a real backend the customer
+   * clicks a link in their inbox and the next profile fetch says so — this is
+   * that, minus the inbox.
+   */
+  const address = email.trim().toLowerCase();
+  verifiedEmails.add(address);
+  return delay({ sentTo: address }, 500);
+}
+
+/** Addresses the mock has "seen the link clicked" for. Mock-only. */
+const verifiedEmails = new Set<string>();
+
+/** Whether this address has been verified in this session. Mock-only. */
+export function isEmailVerified(email: string): boolean {
+  return verifiedEmails.has(email.trim().toLowerCase());
 }
 
 export async function requestPasswordReset(email: string): Promise<{ sentTo: string }> {

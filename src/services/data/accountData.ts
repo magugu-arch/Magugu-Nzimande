@@ -158,6 +158,33 @@ export const savedAddresses: Address[] = [
    * Both are written to treat absent coordinates as "nobody knows". This is
    * the fixture that proves they do.
    */
+  /**
+   * A located address no branch can reach, which the seed had no example of.
+   *
+   * `deliveryRange` refuses an address outside every branch's radius, and the
+   * only address that had ever exercised anything near it was Mum's place —
+   * which has *no* coordinates, so the rule lets it through rather than
+   * refusing on a measurement nobody took. The refusal itself, the one that
+   * fires when the app does know where somebody is and knows it is too far,
+   * had never run against seeded data.
+   *
+   * Bloemfontein is chosen because bb.q has no branch in the Free State and is
+   * unlikely to open one first: the nearest seeded kitchen is nearly 400km
+   * away, so this is not a near miss that a radius tweak would silently turn
+   * into a hit.
+   */
+  {
+    id: 'address-gran',
+    label: "Gran's",
+    line1: '18 Kellner Street',
+    suburb: 'Westdene',
+    city: 'Bloemfontein',
+    province: 'Free State',
+    postalCode: '9301',
+    latitude: -29.1075,
+    longitude: 26.2044,
+    isDefault: false,
+  },
   {
     id: 'address-mum',
     label: "Mum's place",
@@ -313,6 +340,26 @@ export const notifications: AppNotification[] = [
     receivedAt: new Date(Date.now() - 5 * 3_600_000).toISOString(),
     read: false,
     category: 'system',
+  },
+  /**
+   * A push about an order that is no longer there.
+   *
+   * Every seeded notification pointed at something the app can show. A push
+   * lives on a lock screen for weeks and an order ledger does not keep
+   * everything for ever, so a row whose `href` resolves to nothing is the
+   * ordinary end state of an old notification — and the app had never been
+   * asked to follow one. `+not-found` and the order screen's own not-found
+   * branch are what catch it; this is what makes them reachable from a real
+   * row rather than only by typing a URL.
+   */
+  {
+    id: 'notif-7',
+    title: 'Your order is on its way',
+    body: 'BBQ-3980 has left bb.q Chicken Sandton City.',
+    receivedAt: new Date(Date.now() - 71 * 86_400_000).toISOString(),
+    read: true,
+    category: 'order',
+    href: '/order/order-3980',
   },
   {
     id: 'notif-2',

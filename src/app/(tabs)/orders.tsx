@@ -227,7 +227,9 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
               a status sentence the courier leg has overruled.
             */}
             {order.scheduledFor
-              ? `Scheduled · ${formatDateTime(order.scheduledFor)}`
+              ? runningLate(order, now)
+                ? `Scheduled · ${formatDateTime(order.scheduledFor)} · ${RUNNING_LATE_LABEL.toLowerCase()}`
+                : `Scheduled · ${formatDateTime(order.scheduledFor)}`
               : dueInMinutes > 0 && countdownStillApplies(order)
                 ? `${readyLabelFor(order.fulfilmentType)} in ${formatEtaWindow(dueInMinutes)}`
                 : runningLate(order, now)

@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   Divider,
+  EmptyState,
   ErrorState,
   ListRow,
   LoadingState,
@@ -35,6 +36,7 @@ import {
   timelineFor,
 } from '@/features/orders/liveStatus';
 import { isOfflinePending } from '@/features/system/queryPhase';
+import { errorCode, isNotFound } from '@/services/apiClient';
 import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
 import { useNow } from '@/features/system/useNow';
 import { colors, radius, spacing } from '@/theme';
@@ -140,6 +142,35 @@ export default function OrderTrackingScreen() {
     return <OfflineState onRetry={() => void order.refetch()} />;
   }
 
+  /**
+   * An order that is not there is not a failed request.
+   *
+   * An empty state is a claim about the world; an error state is a claim about
+   * the app. A push notification outlives the order it is about — a lock
+   * screen keeps one for weeks and a ledger does not keep everything for ever
+   * — so following an old one is the ordinary way somebody arrives here. They
+   * met "Something went wrong · Check your connection and try again", over a
+   * "Try again" button that can never work, because nothing had ever asked
+   * this screen for an order that does not exist.
+   *
+   * The same fix `offers/[id]` already carries for a promotion that has
+   * closed, and it needed the mock to fail the way the server fails first.
+   */
+  if (isNotFound(order.error) || errorCode(order.error) === 'order_not_found') {
+    return (
+      <Screen edges={['top', 'bottom']} testID="order-not-found">
+        <ScreenHeader title="Your order" />
+        <EmptyState
+          icon="receipt-outline"
+          title="We can't find that order"
+          message="It may be too old to show, or it belonged to another account. Your recent orders are in the Orders tab."
+          actionLabel="See your orders"
+          onActionPress={() => router.replace('/(tabs)/orders')}
+        />
+      </Screen>
+    );
+  }
+
   if (order.isError || !order.data) {
     return (
       <Screen edges={['top', 'bottom']}>
@@ -212,8 +243,21 @@ export default function OrderTrackingScreen() {
               time at all.
             */}
             {data.scheduledFor ? (
+              /*
+                The slot, and — when it has been and gone — the fact that it
+                has.
+
+                This branch won outright, so a booking whose slot passed forty
+                minutes ago printed "Scheduled for Sun, 6 Sep · 18:30" and
+                stopped there: the one shape where "overdue" and "nothing has
+                happened yet" are both true at once, and the screen said only
+                the second. `runningLate` was never reached because the
+                scheduled branch is tested first.
+              */
               <Text variant="captionMedium" color={colors.textOnDark} testID="tracking-eta">
-                {`Scheduled for ${formatDateTime(data.scheduledFor)}`}
+                {runningLate(data, now)
+                  ? `Scheduled for ${formatDateTime(data.scheduledFor)} · ${RUNNING_LATE_LABEL.toLowerCase()}`
+                  : `Scheduled for ${formatDateTime(data.scheduledFor)}`}
               </Text>
             ) : dueInMinutes > 0 && countdownStillApplies(data) ? (
               <Text variant="captionMedium" color={colors.textOnDark} testID="tracking-eta">

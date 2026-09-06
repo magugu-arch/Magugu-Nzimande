@@ -251,7 +251,16 @@ export const rewards: Reward[] = [
     description: 'Straight R50 off anything on the menu.',
     pointsCost: 1000,
     category: 'discount',
-    expiresAt: new Date(Date.now() + 10 * 86_400_000).toISOString(),
+    /**
+     * Tomorrow, not next week.
+     *
+     * The three rewards that carry an expiry sat 10, 30 and 6 days either side
+     * of today, so "expires today or tomorrow" — the state that decides
+     * whether somebody uses a reward at all — had never been rendered. The
+     * screen prints a date rather than a countdown, which is right and is also
+     * why the near case had nothing to prove it reads sensibly.
+     */
+    expiresAt: new Date(Date.now() + 20 * 3_600_000).toISOString(),
     redeemable: true,
     termsAndConditions: [
       'Minimum spend R200.',
@@ -358,6 +367,28 @@ export const vouchers: Voucher[] = [
     used: false,
     expired: false,
     assetKey: 'frenchFries',
+  },
+  /**
+   * A code with nothing to qualify for, which every seeded voucher had.
+   *
+   * All five carried a `minimumSpend` between R120 and R200, so the zero case
+   * had never run: the wallet's `minimumSpend > 0` guard, and the cart's
+   * "Spend R… to use this code" sentence, were both written for a voucher that
+   * did not exist. A goodwill code sent after a bad order is exactly this —
+   * asking somebody who has already been let down to spend a minimum is the
+   * opposite of an apology.
+   */
+  {
+    id: 'voucher-sorry',
+    code: 'SORRY20',
+    title: 'R20, with our apologies',
+    description: 'For the order that took too long. No minimum, no conditions.',
+    discountType: 'fixed',
+    discountValue: 20,
+    minimumSpend: 0,
+    expiresAt: new Date(Date.now() + 60 * 86_400_000).toISOString(),
+    used: false,
+    expired: false,
   },
   {
     id: 'voucher-spicy15',

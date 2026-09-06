@@ -78,4 +78,5 @@ export {
   mockDeliveryProvider,
   resetMockDeliveryJobs,
   seedFailedDeliveryJob,
+  seedTrackedDeliveryJob,
 } from './mockDeliveryProvider';

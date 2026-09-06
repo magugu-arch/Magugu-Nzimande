@@ -47,6 +47,8 @@ interface MockJob {
   cancelled: boolean;
   /** The courier gave up. See `seedFailedDeliveryJob`. */
   failed: boolean;
+  /** The provider is authorised to report a position. See `seedTrackedDeliveryJob`. */
+  tracked?: boolean;
 }
 
 /** Keyed by job id, and by idempotency key so a retry returns the same job. */
@@ -81,10 +83,53 @@ export function seedFailedDeliveryJob(externalJobId: string, createdAt: number):
     provider: 'mock',
     status: 'FAILED',
     trackingAvailable: false,
+    /**
+     * Why it ended, which no job had ever carried.
+     *
+     * `reason` is on `DeliveryJob` and only `quote` ever filled it in — for a
+     * dropoff it could not route. A job that *ended* had no way to say why, so
+     * the tracking card could only give the customer the generic sentence and
+     * the one fact they actually want was on the type, unused.
+     */
+    reason: 'Nobody answered at the gate, and the driver could not leave it unattended.',
     updatedAt: new Date(createdAt).toISOString(),
   };
 
   jobs.set(externalJobId, { job, createdAt, cancelled: false, failed: true });
+  return { ...job };
+}
+
+/**
+ * A courier network that is authorised to say where its driver is.
+ *
+ * `trackingAvailable` is `false` on every job the mock creates, deliberately —
+ * no real network grants a live position without authorisation, and developing
+ * only against the permissive case is how a screen ends up assuming one. The
+ * cost was that the authorised branch never ran either: `CourierTracking` draws
+ * a slot for the map and prints when the position was last reported, and that
+ * slot had never been rendered.
+ *
+ * Still no map. Drawing a fake one would be worse than none — §12 puts mapping
+ * behind its own contract and credentials. What this exercises is the surface
+ * that receives one, and the sentence beside it.
+ */
+export function seedTrackedDeliveryJob(
+  externalJobId: string,
+  createdAt: number,
+  position: { latitude: number; longitude: number },
+): DeliveryJob {
+  const job: DeliveryJob = {
+    externalJobId,
+    provider: 'mock',
+    status: 'ON_THE_WAY',
+    etaMinutes: 9,
+    courierName: 'Sipho',
+    trackingAvailable: true,
+    courierPosition: { ...position, reportedAt: new Date(createdAt).toISOString() },
+    updatedAt: new Date(createdAt).toISOString(),
+  };
+
+  jobs.set(externalJobId, { job, createdAt, cancelled: false, failed: false, tracked: true });
   return { ...job };
 }
 
@@ -196,11 +241,15 @@ export const mockDeliveryProvider: DeliveryProvider = {
     const now = Date.now();
     // A failed leg is terminal: the courier is not going to try again on a
     // timer, so the wall clock must not walk it on to DELIVERED.
-    const status = record.failed
-      ? 'FAILED'
-      : record.cancelled
-        ? 'CANCELLED'
-        : statusAt(record.createdAt, now);
+    // A tracked job is a seeded fixture rather than a leg on a timer, so the
+    // wall clock must not walk it past where it was put.
+    const status = record.tracked
+      ? record.job.status
+      : record.failed
+        ? 'FAILED'
+        : record.cancelled
+          ? 'CANCELLED'
+          : statusAt(record.createdAt, now);
     const updated: DeliveryJob = {
       ...record.job,
       status,

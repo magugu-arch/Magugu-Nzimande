@@ -1,7 +1,7 @@
 import { businessRules, config } from '@/constants/config';
 import type { CartLine, Order, OrderStatus, OrderStatusEvent, PlaceOrderInput } from '@/types';
 import { addMinutes } from '@/utils/datetime';
-import { delay, request } from './apiClient';
+import { delay, notFound, request } from './apiClient';
 import { stores } from './data/storeData';
 import { currentAddresses, currentPaymentMethods } from './accountService';
 import { describePaymentMethod } from './paymentService';
@@ -17,6 +17,7 @@ import {
   deliveryProvider,
   deliveryStatusToOrderStatus,
   seedFailedDeliveryJob,
+  seedTrackedDeliveryJob,
 } from '@/providers/delivery';
 import { checkedOrder, checkedOrders } from './wireChecks';
 
@@ -1513,6 +1514,129 @@ function seedHistory(): void {
   });
 
   /**
+   * A booking the kitchen has missed, which is not the same as a late order.
+   *
+   * BBQ-4848 is running late against an ASAP estimate. This one was scheduled:
+   * paid for yesterday, due forty minutes ago, and still sitting at
+   * `received`. `workStartsAt` reads the slot rather than the moment of
+   * payment, so a scheduled order is the one shape where "overdue" and
+   * "nothing has happened yet" can be true at once — and no seeded order had
+   * ever been in it. The tracking hero has two branches that both want the
+   * screen here: `scheduledFor` prints the slot, and `runningLate` says the
+   * estimate is spent.
+   *
+   * Held by `RUNNING_LATE`, or the clock would walk it to Completed.
+   */
+  const missedSlot = new Date(Date.now() - 40 * 60_000);
+  const bookedYesterday = new Date(Date.now() - 26 * 60 * 60_000);
+  ledger.push({
+    id: 'order-4856',
+    reference: 'BBQ-4856',
+    placedAt: bookedYesterday.toISOString(),
+    fulfilmentType: 'collection',
+    status: 'received',
+    scheduledFor: missedSlot.toISOString(),
+    timeline: buildTimeline('collection', 'received', bookedYesterday, 25, missedSlot),
+    lines: [
+      {
+        id: 'boneless__boneless-size:boneless-size-large',
+        productId: 'boneless',
+        name: 'Boneless Chicken',
+        assetKey: 'boneless',
+        unitBasePrice: 169,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'boneless-size',
+            groupName: 'Choose your size',
+            optionId: 'boneless-size-large',
+            optionName: 'Large · 12 pieces',
+            priceDelta: 105,
+          },
+        ],
+        unitPrice: 274,
+        lineTotal: 274,
+      },
+    ],
+    totals: {
+      subtotal: 274,
+      deliveryFee: 0,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 279,
+      pointsEarned: 274,
+    },
+    ...storeSnapshot('store-fourways'),
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 25,
+  });
+
+  /**
+   * A courier the network is authorised to track, which nothing had produced.
+   *
+   * `trackingAvailable` is `false` on every job the mock creates, deliberately
+   * — no real network grants a live position without authorisation. The cost
+   * was that the authorised branch never ran either: `CourierTracking` draws a
+   * slot for the map and prints when the position was last reported, and that
+   * slot had never once been rendered.
+   *
+   * Still no map drawn. What this exercises is the surface that receives one.
+   * The position is the Rosebank branch's own coordinates nudged toward
+   * Melrose Arch, so it is a point on the road between the two rather than a
+   * number invented to look plausible.
+   */
+  const trackedPlacedAt = new Date(Date.now() - 38 * 60_000);
+  ledger.push({
+    id: 'order-4854',
+    reference: 'BBQ-4854',
+    placedAt: trackedPlacedAt.toISOString(),
+    fulfilmentType: 'delivery',
+    status: 'out_for_delivery',
+    timeline: buildTimeline('delivery', 'out_for_delivery', trackedPlacedAt, 42),
+    lines: [
+      {
+        id: 'honey-garlic-wings__honey-garlic-wings-size:honey-garlic-wings-size-10',
+        productId: 'honey-garlic-wings',
+        name: 'Honey Garlic Wings',
+        assetKey: 'honeyGarlicWings',
+        unitBasePrice: 165,
+        quantity: 1,
+        selectedOptions: [
+          {
+            groupId: 'honey-garlic-wings-size',
+            groupName: 'How many wings?',
+            optionId: 'honey-garlic-wings-size-10',
+            optionName: '10 wings',
+            priceDelta: 65,
+          },
+        ],
+        unitPrice: 230,
+        lineTotal: 230,
+      },
+    ],
+    totals: {
+      subtotal: 230,
+      deliveryFee: 32,
+      serviceFee: 5,
+      discount: 0,
+      rewardsDiscount: 0,
+      total: 267,
+      pointsEarned: 230,
+    },
+    ...storeSnapshot('store-rosebank'),
+    addressId: 'address-home',
+    addressSummary: '14 Acacia Road, Melrose Arch',
+    paymentMethodLabel: 'Visa ending 4821',
+    etaMinutes: 42,
+    driverName: 'Sipho',
+    delivery: seedTrackedDeliveryJob('mock-job-tracked-4854', Date.now() - 4 * 60_000, {
+      latitude: -26.1435,
+      longitude: 28.0555,
+    }),
+  });
+
+  /**
    * And the points ledger's account of those orders, written from the orders.
    *
    * `rewardsData` used to carry these two rows typed out by hand, and the
@@ -1638,7 +1762,7 @@ function readyAt(order: Order): Date {
  * by a field on `Order`, because being behind is a fact about the kitchen
  * rather than a property of the order the wire would carry.
  */
-const RUNNING_LATE = new Set(['order-4848']);
+const RUNNING_LATE = new Set(['order-4848', 'order-4856']);
 
 function advance(order: Order): Order {
   if (order.status === 'completed' || order.status === 'cancelled') return order;
@@ -1908,7 +2032,17 @@ export async function fetchOrder(orderId: string): Promise<Order> {
   seedHistory();
   const index = ledger.findIndex((order) => order.id === orderId || order.reference === orderId);
   const existing = ledger[index];
-  if (!existing) throw new Error('Order not found');
+  /*
+    A 404, not a bare Error.
+
+    An order that is not there is not a failed request, and the screen can only
+    tell the two apart if the mock fails the way the server does. A generic
+    Error reached the tracking screen as `isError`, which draws "Something went
+    wrong · Check your connection and try again" over a "Try again" button that
+    can never work. `notFound` is what `fetchPromotion` already throws for the
+    same reason.
+  */
+  if (!existing) throw notFound('That order is not in your history.', 'order_not_found');
 
   const advanced = await attachDelivery(advance(existing));
   ledger[index] = advanced;

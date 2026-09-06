@@ -72,11 +72,20 @@ export function CourierTracking({ job }: CourierTrackingProps) {
         </View>
       ) : settled ? (
         <Text variant="caption" color={colors.textSecondary}>
-          {job.status === 'DELIVERED'
-            ? 'Delivered by your driver.'
-            : job.status === 'FAILED'
-              ? 'Your driver could not complete this delivery.'
-              : 'This delivery was cancelled.'}
+          {/*
+            The provider's own words when it gave them, which no job had ever
+            carried: `reason` lived on the quote and nowhere on the job, so a
+            leg that failed could only be described in the generic. Shown as
+            given and never parsed — it is the courier network's sentence, not
+            ours.
+          */}
+          {job.reason
+            ? job.reason
+            : job.status === 'DELIVERED'
+              ? 'Delivered by your driver.'
+              : job.status === 'FAILED'
+                ? 'Your driver could not complete this delivery.'
+                : 'This delivery was cancelled.'}
         </Text>
       ) : (
         <Text variant="caption" color={colors.textSecondary}>

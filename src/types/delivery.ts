@@ -115,6 +115,18 @@ export interface DeliveryJob {
   courierName?: string;
   trackingAvailable: boolean;
   courierPosition?: CourierPosition;
+  /**
+   * Why the leg ended as it did, when the provider says.
+   *
+   * `reason` was on `DeliveryQuote` — for a dropoff that cannot be routed —
+   * and nowhere on the job, so a delivery that came back `FAILED` or
+   * `CANCELLED` had no way to carry the one fact the customer actually wants:
+   * nobody at the gate, wrong address, driver could not wait. The tracking
+   * card could only give them the generic sentence.
+   *
+   * Provider text, so it is shown as given and never parsed.
+   */
+  reason?: string;
   updatedAt: string;
 }
 

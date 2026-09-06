@@ -121,6 +121,10 @@ const ROUTES = [
   // anything in that list, so the route existed and the screen it opened was
   // empty by construction.
   '/menu?category=favourites',
+  // A courier the network is authorised to track, a delivery that says why it
+  // failed, a booking whose slot has been and gone, and a push pointing at an
+  // order that is no longer there.
+  '/order/order-4854', '/order/order-4856', '/order/order-3980',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -259,6 +263,16 @@ const MUST_SHOW = {
   '/order/order-4610': /You rated this order[\s\S]*Crispy as always/,
   // The Favourites list, which had nothing in it until favourites were seeded.
   '/menu?category=favourites': /Honey Garlic Chicken[\s\S]*Korean Rice Bowl/,
+  // The slot that receives a map, which no job had ever authorised. Still no
+  // map drawn — §12 puts mapping behind its own contract.
+  '/order/order-4854': /Live position reported/,
+  // Overdue and not yet started at once, which only a scheduled order can be.
+  // The hero tested `scheduledFor` first and stopped there.
+  '/order/order-4856': /Scheduled for[\s\S]*taking longer than expected/,
+  // An order that is not there is not a failed request. This used to draw
+  // "Something went wrong · Check your connection" over a Try again button
+  // that could never work.
+  '/order/order-3980': /We can't find that order/,
   // A campaign whose dish lost the last option in its required group. The
   // promotion stands; the button stops promising it.
   '/offers/promo-cheesling-fries': /Every choice under "Size" is sold out[\s\S]*Sold out/,
