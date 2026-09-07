@@ -229,6 +229,8 @@ describe('the access request', () => {
       fulfilment: 'handoff records keyed by order id',
       passwordResets: 'an account id and a token hash, cleared on erasure',
       audit: 'operational history, redacted on erasure',
+      leases:
+        'a claim on an operation in progress, keyed by order or payment id and expiring in minutes',
     };
 
     const groups = Object.keys(readState()).sort();

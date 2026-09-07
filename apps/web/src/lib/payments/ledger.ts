@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import type { OrderPayment, PaymentEvent, PaymentIntent } from '@bbq/types';
 import { isSettled } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
+import { releaseLease, takeLease } from '../leases';
 import { readOrder } from '../order-store';
 import { activeProvider, isPaymentConfigured } from './registry';
 
@@ -224,22 +225,24 @@ export async function refundPayment(orderId: string, reason: string): Promise<Se
    * button on a busy Saturday is the ordinary case, not an exotic one, and the
    * cost of getting it wrong is a customer refunded twice with our money.
    *
-   * `mutateState` holds a lock and is synchronous, so this claim either wins or
-   * finds the key already there. It is the same idempotency ledger the settle
-   * path uses, which is the point: one mechanism for "this has already been
-   * done", not a second one invented here.
+   * It used to be written into the same idempotency ledger the settle path
+   * uses, on the reasoning that one mechanism for "this has already been done"
+   * beats two. That conflated two different questions. "Has this been done" is
+   * permanent and is answered above, by the intent being `refunded`. "Is
+   * somebody doing it right now" is temporary, and writing it into a permanent
+   * ledger meant a process that died mid-refund left a claim that never
+   * cleared: the payment stayed captured, and every attempt afterwards
+   * answered "already refunded" while the customer's money sat where it was.
+   *
+   * A lease expires, so an abandoned claim recovers itself. The permanence is
+   * where it belongs, on the intent.
    */
   const claim = `refund:${intent.id}`;
-  const won = mutateState((state) => {
-    if (state.payments.appliedEvents.includes(claim)) return false;
-    state.payments.appliedEvents.push(claim);
-    if (state.payments.appliedEvents.length > 1_000) state.payments.appliedEvents.shift();
-    return true;
-  });
 
-  if (!won) {
-    // Somebody else is refunding this, or already has. Either way this caller
-    // must not ask the gateway again.
+  if (!takeLease(claim)) {
+    // Somebody else is refunding this right now. Not "already refunded" —
+    // that is the check above — so this caller waits rather than asking the
+    // gateway a second time.
     return { ok: true, intent: intentForOrder(orderId) ?? intent, replayed: true };
   }
 
@@ -253,11 +256,7 @@ export async function refundPayment(orderId: string, reason: string): Promise<Se
      * been done. A refund that cannot be retried is a refund that has to be
      * finished by hand in somebody's dashboard.
      */
-    mutateState((state) => {
-      state.payments.appliedEvents = state.payments.appliedEvents.filter(
-        (applied) => applied !== claim,
-      );
-    });
+    releaseLease(claim);
     return { ok: false, status: 502, error: `The gateway refused the refund: ${result.error}` };
   }
 
@@ -272,6 +271,18 @@ export async function refundPayment(orderId: string, reason: string): Promise<Se
     pushAudit(state, 'payments', `${held.orderNumber} refunded: ${reason}`);
     return { ...held };
   });
+
+  /**
+   * Released after the intent is written, not before.
+   *
+   * The order matters on the failure path more than this one: a crash between
+   * the gateway agreeing and the intent being written leaves the claim held,
+   * and holding it is right — the money moved and the ledger does not know it,
+   * which is a case for a person rather than for a retry. The lease expires
+   * either way, and the operator finds a captured payment the gateway has
+   * refunded, which is the honest thing to be looking at.
+   */
+  releaseLease(claim);
 
   if (!updated) return { ok: false, status: 404, error: 'No such payment' };
   return { ok: true, intent: updated, replayed: false };

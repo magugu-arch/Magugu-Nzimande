@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CourierAdapter, Handoff, PosAdapter } from '@/lib/fulfilment/adapters';
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { PosAdapter } from '@/lib/fulfilment/adapters';
 import {
   handoffFor,
   pushToPos,
@@ -11,10 +11,13 @@ import { isSoldOut, setSoldOut } from '@/lib/catalogue-state';
 import { readAudit } from '@/lib/catalogue-state';
 import {
   aProduct,
+  acceptingCourier,
+  acceptingPos,
   blankState,
   concurrently,
   placeDeliveryOrder,
   placeOrder,
+  refusingPos,
 } from './fixtures';
 
 /**
@@ -28,23 +31,11 @@ import {
  * missing integration into a closed shop is worse than the thing it prevents.
  */
 
-const acceptingPos = (): PosAdapter => ({
-  name: 'test-pos',
-  pushOrder: vi.fn(async () => ({ ok: true, reference: 'pos_1' }) as Handoff),
-  fetchSoldOut: vi.fn(async () => [] as string[]),
-});
-
-const refusingPos = (retryable = true): PosAdapter => ({
-  name: 'test-pos',
-  pushOrder: vi.fn(async () => ({ ok: false, error: 'till offline', retryable }) as Handoff),
-  fetchSoldOut: vi.fn(async () => null),
-});
-
-const acceptingCourier = (): CourierAdapter => ({
-  name: 'test-courier',
-  requestPickup: vi.fn(async () => ({ ok: true, reference: 'trip_1' }) as Handoff),
-  track: vi.fn(async () => ({ status: 'assigned', etaMinutes: 20 })),
-});
+/*
+ * The three adapters used to be built here. The lease suite needs the same
+ * ones, and two hand-rolled stand-ins for a POS are two sets of assumptions
+ * about what a till returns.
+ */
 
 beforeEach(blankState);
 

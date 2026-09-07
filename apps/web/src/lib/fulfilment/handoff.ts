@@ -1,5 +1,6 @@
 import type { Order } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
+import { releaseLease, takeLease } from '../leases';
 import type { CourierAdapter, Handoff, PosAdapter } from './adapters';
 
 /**
@@ -60,33 +61,29 @@ async function attempt(
   adapter: { name: string },
   run: () => Promise<Handoff>,
 ): Promise<HandoffRecord> {
-  const claim = `${order.id}:${kind}`;
+  const claim = `handoff:${order.id}:${kind}`;
 
   /**
-   * The two guards, taken together in one atomic write.
-   *
    * A success is final — retrying it would put the same order through the till
    * twice, which a kitchen reads as two of everything — and that check used to
-   * sit outside the mutation with an awaited adapter call after it. Two callers
-   * arriving together both found no success and both pushed the order. The
-   * comment was right about the consequence and the code did not hold under
-   * the one condition that produces it.
-   *
-   * `mutateState` is synchronous and holds a lock, so the read and the claim
-   * cannot be separated.
+   * sit outside a mutation with an awaited adapter call after it. Two callers
+   * arriving together both found no success and both pushed the order.
    */
-  const claimed = mutateState((state) => {
-    const held = state.fulfilment.handoffs.find(
-      (record) => record.orderId === order.id && record.kind === kind,
-    );
-    if (held?.ok) return { proceed: false as const, record: held };
-    if (state.fulfilment.inFlight.includes(claim)) {
-      return { proceed: false as const, record: held ?? null };
-    }
+  const held = recordOf(order.id, kind);
+  if (held?.ok) return held;
 
-    state.fulfilment.inFlight.push(claim);
-    return { proceed: true as const, record: held ?? null };
-  });
+  /**
+   * And the claim, which stops the same two callers racing on an order that
+   * has no successful record yet.
+   *
+   * It expires. The claim used to be a bare string removed after the call, so a
+   * process that died in between blocked that order for ever — never sent, every
+   * retry refused, and missing from the shortfall report because nothing had
+   * failed. See lib/leases.ts.
+   */
+  const claimed = takeLease(claim)
+    ? { proceed: true as const, record: held ?? null }
+    : { proceed: false as const, record: held ?? null };
 
   if (!claimed.proceed) {
     // Somebody else has it. Their record if there is one, and otherwise a
@@ -133,13 +130,11 @@ async function attempt(
     at: new Date().toISOString(),
   };
 
+  // The record is written before the claim is released, so a crash between the
+  // two leaves a recorded outcome and a claim that expires — rather than a
+  // claim that outlives the attempt with nothing written down.
   write(record);
-  // Released in a separate write from the record on purpose: the record must
-  // land even if this does, and a claim left behind is recovered by the next
-  // deployment rather than blocking one for ever.
-  mutateState((state) => {
-    state.fulfilment.inFlight = state.fulfilment.inFlight.filter((held) => held !== claim);
-  });
+  releaseLease(claim);
   return record;
 }
 

@@ -80,17 +80,26 @@ export type DemoState = {
    */
   fulfilment: {
     handoffs: HandoffRecord[];
-    /**
-     * Handoffs being attempted right now, as `orderId:kind`.
-     *
-     * A claim taken before an adapter is called and released after, so two
-     * callers cannot both find no successful record and both push the same
-     * order at the till. Held here rather than in memory because the server
-     * runs several workers, and a claim one of them holds is a claim the
-     * others cannot see.
-     */
-    inFlight: string[];
   };
+  /**
+   * Operations in progress, each with the moment it was claimed.
+   *
+   * A claim is taken before an outside system is called and released after, so
+   * two callers cannot both find nothing recorded and both act — two pushes of
+   * one order at the till, or two refunds of one payment. Held in the state
+   * file rather than in memory because the server runs several workers, and a
+   * claim one of them holds is a claim the others cannot see.
+   *
+   * The timestamp is the whole reason this list was rewritten. It used to hold
+   * bare strings, and the comment beside it said a claim left behind would be
+   * "recovered by the next deployment" — which was simply untrue, because this
+   * is a file and a restart reads it back. A process that died between taking a
+   * claim and releasing it blocked that operation for ever: the till was never
+   * called again, every retry answered "already being attempted", and the
+   * shortfall report did not list it, because nothing had failed. A claim now
+   * expires, so an abandoned one recovers itself.
+   */
+  leases: { key: string; at: number }[];
   /**
    * Live password resets. Only a hash of each token is here: a leaked copy of
    * this file is then a list of useless strings rather than a way into every
@@ -127,7 +136,8 @@ function seed(): DemoState {
     payments: { intents: [], appliedEvents: [] },
     accounts: [],
     notifications: { sent: [], webhookTokens: [] },
-    fulfilment: { handoffs: [], inFlight: [] },
+    fulfilment: { handoffs: [] },
+    leases: [],
     passwordResets: [],
     suppressed: [],
     audit: [

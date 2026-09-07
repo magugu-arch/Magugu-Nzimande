@@ -155,7 +155,7 @@ describe('a state file written by something else', () => {
     ['a top-level list that is a string', { orders: 'nope' }, (state: DemoState) => state.orders],
     [
       'a nested list that is null',
-      { fulfilment: { handoffs: null, inFlight: [] } },
+      { fulfilment: { handoffs: null } },
       (state: DemoState) => state.fulfilment.handoffs,
     ],
     [
@@ -178,7 +178,7 @@ describe('a state file written by something else', () => {
 
   /** And the code that reads them keeps working, which is the point. */
   it('leaves the shortfall report readable after a corrupt handoff list', () => {
-    writeRawState(JSON.stringify({ fulfilment: { handoffs: null, inFlight: null } }));
+    writeRawState(JSON.stringify({ fulfilment: { handoffs: null }, leases: null }));
 
     expect(() => unacknowledged()).not.toThrow();
     expect(unacknowledged()).toEqual([]);

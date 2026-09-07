@@ -21,6 +21,8 @@ import { POST as signInRoute } from '@/app/api/admin/session/route';
 import { CUSTOMER_COOKIE } from '@/lib/accounts/session';
 import { SESSION_COOKIE } from '@/lib/admin-auth';
 import { mutateState, readState } from '@/lib/demo-state';
+import type { CourierAdapter, Handoff, PosAdapter } from '@/lib/fulfilment/adapters';
+import { LEASE_MS } from '@/lib/leases';
 import { setSink } from '@/lib/observability/log';
 import { advanceOrder, setOrderStatus } from '@/lib/order-store';
 import { repriceLines } from '@/lib/order-integrity';
@@ -937,7 +939,8 @@ export function blankState(): void {
     state.accounts = [];
     state.notifications = { sent: [], webhookTokens: [] };
     state.suppressed = [];
-    state.fulfilment = { handoffs: [], inFlight: [] };
+    state.fulfilment = { handoffs: [] };
+    state.leases = [];
     state.passwordResets = [];
   });
 }
@@ -1688,4 +1691,54 @@ export async function loggedLines(run: () => unknown | Promise<unknown>): Promis
     restore();
   }
   return lines;
+}
+
+// ---------------------------------------------------------------------------
+// Claims, and the adapters that get claimed
+
+/**
+ * A till that takes whatever it is given.
+ *
+ * Written in `fulfilment.test.ts` first; the lease suite needs the same thing,
+ * and a second hand-rolled adapter is a second set of assumptions about what a
+ * POS returns.
+ */
+export function acceptingPos(): PosAdapter {
+  return {
+    name: 'test-pos',
+    pushOrder: vi.fn(async () => ({ ok: true, reference: 'pos_1' }) as Handoff),
+    fetchSoldOut: vi.fn(async () => [] as string[]),
+  };
+}
+
+/** A till that refuses, retryably unless told otherwise. */
+export function refusingPos(retryable = true): PosAdapter {
+  return {
+    name: 'test-pos',
+    pushOrder: vi.fn(async () => ({ ok: false, error: 'till offline', retryable }) as Handoff),
+    fetchSoldOut: vi.fn(async () => null),
+  };
+}
+
+/** A courier that accepts every pickup. */
+export function acceptingCourier(): CourierAdapter {
+  return {
+    name: 'test-courier',
+    requestPickup: vi.fn(async () => ({ ok: true, reference: 'trip_1' }) as Handoff),
+    track: vi.fn(async () => ({ status: 'assigned', etaMinutes: 20 })),
+  };
+}
+
+/**
+ * A claim whose owner never came back.
+ *
+ * Exactly what a process that died between claiming an operation and releasing
+ * it leaves in the state file — the case that had no test and blocked an order
+ * for ever. Written with a timestamp far enough in the past to be abandoned by
+ * any lease length, so this keeps meaning the same thing if LEASE_MS changes.
+ */
+export function abandonedClaim(key: string): void {
+  mutateState((state) => {
+    state.leases.push({ key, at: Date.now() - LEASE_MS * 10 });
+  });
 }

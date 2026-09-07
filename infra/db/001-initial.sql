@@ -225,3 +225,31 @@ CREATE TABLE audit_log (
 );
 
 CREATE INDEX audit_log_newest ON audit_log (at DESC);
+
+-- ---------------------------------------------------------------------------
+-- Leases
+-- ---------------------------------------------------------------------------
+
+-- Claims on operations that call an outside system — pushing an order to the
+-- till, refunding a payment — so two workers cannot both find nothing done and
+-- both act.
+--
+-- The expiry is the whole point. These were bare keys with no timestamp, and a
+-- process that died between claiming and releasing blocked that operation for
+-- ever: the till was never called again, every retry answered "already being
+-- attempted", and nothing reported it because nothing had failed. A claim older
+-- than the lease is treated as abandoned, so an interrupted worker recovers
+-- itself without anybody running a sweep.
+--
+-- On Postgres this is what SELECT ... FOR UPDATE SKIP LOCKED would normally do
+-- inside one transaction. It is a table because the JSON store it replaces has
+-- no transactions, and keeping the shape identical is what lets the migration
+-- be a move rather than a rewrite.
+CREATE TABLE leases (
+  key           TEXT PRIMARY KEY,
+  at            TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Expired claims are dropped whenever one is taken, so this stays small; the
+-- index is for that sweep rather than for lookups by key.
+CREATE INDEX leases_expiry ON leases (at);
