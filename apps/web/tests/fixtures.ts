@@ -528,6 +528,22 @@ export async function aDineInOrder(over: Record<string, unknown> = {}): Promise<
 }
 
 /**
+ * Runs the same operation several times at once.
+ *
+ * `mutateState` holds a lock and is synchronous, so any single mutation is
+ * atomic and the suites had reasonably assumed that settled the matter. It does
+ * not: an operation that reads the state, awaits something, and then writes has
+ * a window between the two where a second caller sees the world as it was.
+ *
+ * Two operators pressing the same button at the same moment is the ordinary
+ * case, not an exotic one — a queue on a busy Saturday is worked by whoever is
+ * free.
+ */
+export function concurrently<T>(count: number, run: () => Promise<T>): Promise<T[]> {
+  return Promise.all(Array.from({ length: count }, () => run()));
+}
+
+/**
  * A string of an exact length, for the bounds the schemas enforce.
  *
  * Named rather than written as `'x'.repeat(281)` at each site, because the
@@ -919,7 +935,7 @@ export function blankState(): void {
     state.accounts = [];
     state.notifications = { sent: [], webhookTokens: [] };
     state.suppressed = [];
-    state.fulfilment = { handoffs: [] };
+    state.fulfilment = { handoffs: [], inFlight: [] };
     state.passwordResets = [];
   });
 }
@@ -1184,6 +1200,25 @@ export async function withPayfast<T>(
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
     }
+  }
+}
+
+/**
+ * The sandbox, told to refuse refunds for the duration of a block.
+ *
+ * The failure paths are the ones worth rehearsing and the ones a happy-path
+ * sandbox never reaches — a gateway that declines is not an exotic case, it is
+ * a Tuesday. Every real gateway's sandbox offers this; ours does too, and this
+ * is the switch.
+ */
+export async function withRefusedRefunds<T>(run: () => T | Promise<T>): Promise<T> {
+  const before = process.env.BBQ_SANDBOX_REFUSE_REFUND;
+  process.env.BBQ_SANDBOX_REFUSE_REFUND = 'true';
+  try {
+    return await run();
+  } finally {
+    if (before === undefined) delete process.env.BBQ_SANDBOX_REFUSE_REFUND;
+    else process.env.BBQ_SANDBOX_REFUSE_REFUND = before;
   }
 }
 

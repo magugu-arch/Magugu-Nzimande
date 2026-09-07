@@ -6,12 +6,14 @@ import { intentForOrder, refundPayment } from '@/lib/payments/ledger';
 import { setOrderStatus } from '@/lib/order-store';
 import { orderMoved, paymentRefunded } from '@/lib/notifications/messages';
 import { readState } from '@/lib/demo-state';
+import { readAudit } from '@/lib/catalogue-state';
 import {
   aPaidOrder,
   aRefundedOrder,
   asOperator,
   blankState,
   bodyOf,
+  concurrently,
   errorOf,
   openIntentFor,
   params,
@@ -23,6 +25,7 @@ import {
   withoutPaymentProvider,
   withPayfast,
   withPaymentProvider,
+  withRefusedRefunds,
 } from './fixtures';
 
 /**
@@ -330,5 +333,87 @@ describe('the message a refunded customer gets', () => {
 
     const intent = intentForOrder(order.id);
     expect(readState().notifications.sent).toContain(`${intent?.id}:refunded:sms`);
+  });
+});
+
+/**
+ * Two operators, one payment, the same moment.
+ *
+ * `mutateState` holds a lock and is synchronous, so every single write here is
+ * atomic — and that is not the same as the operation being atomic. Refunding
+ * reads the intent, asks the gateway, and then writes, and a second caller
+ * arriving during the ask sees a payment that is still captured.
+ *
+ * A queue on a busy Saturday is worked by whoever is free. Two people pressing
+ * Refund on the same order is the ordinary case.
+ */
+describe('two refunds at once', () => {
+  it('asks the gateway once, whatever the console does', async () => {
+    const order = await aPaidOrder();
+
+    const results = await withPaymentProvider(() =>
+      concurrently(2, () => refundPayment(order.id, 'Load shedding')),
+    );
+
+    expect(results.every((result) => result.ok)).toBe(true);
+    // One of them did the work and the other found it done.
+    expect(results.filter((result) => result.ok && !result.replayed)).toHaveLength(1);
+  });
+
+  /** The audit log is the record of money moving. It must show one movement. */
+  it('records the refund once', async () => {
+    const order = await aPaidOrder();
+
+    await withPaymentProvider(() => concurrently(3, () => refundPayment(order.id, 'Load shedding')));
+
+    const refunds = readAudit().filter((entry) => entry.what.includes('refunded'));
+    expect(refunds).toHaveLength(1);
+  });
+});
+
+/**
+ * When the gateway says no.
+ *
+ * The branch that releases the claim, and the one most easily got wrong. A
+ * refund that fails must leave the payment exactly as it was and must leave the
+ * operator able to try again — holding the claim after a failure would make one
+ * transient network error permanent, with the payment still captured and every
+ * retry told the refund had already been done.
+ */
+describe('a refund the gateway refuses', () => {
+  it('leaves the payment captured and says what happened', async () => {
+    const order = await aPaidOrder();
+
+    const result = await withPaymentProvider(() =>
+      withRefusedRefunds(() => refundPayment(order.id, 'Load shedding')),
+    );
+
+    expect(result).toMatchObject({ ok: false, status: 502 });
+    if (!result.ok) expect(result.error).toMatch(/gateway refused/i);
+    expect(intentForOrder(order.id)?.status).toBe('captured');
+  });
+
+  it('records nothing in the audit log, because nothing moved', async () => {
+    const order = await aPaidOrder();
+
+    await withPaymentProvider(() =>
+      withRefusedRefunds(() => refundPayment(order.id, 'Load shedding')),
+    );
+
+    expect(readAudit().filter((entry) => entry.what.includes('refunded'))).toHaveLength(0);
+  });
+
+  /** The one that matters: a failure must not lock the payment out of retrying. */
+  it('can be tried again once the gateway is working', async () => {
+    const order = await aPaidOrder();
+
+    const outcome = await withPaymentProvider(async () => {
+      const refused = await withRefusedRefunds(() => refundPayment(order.id, 'Load shedding'));
+      expect(refused.ok, 'the first attempt must fail for this test to mean anything').toBe(false);
+      return refundPayment(order.id, 'Load shedding');
+    });
+
+    expect(outcome).toMatchObject({ ok: true, replayed: false });
+    expect(intentForOrder(order.id)?.status).toBe('refunded');
   });
 });

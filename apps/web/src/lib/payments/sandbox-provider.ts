@@ -50,6 +50,22 @@ export function sandboxProvider(secret: string): PaymentProvider {
     },
 
     async refund(providerRef) {
+      /**
+       * Refuses when the environment says to.
+       *
+       * Every real gateway's sandbox has a way to make a call fail on purpose —
+       * a card number that always declines, an amount that always errors —
+       * because the failure paths are the ones worth rehearsing and the ones a
+       * happy-path sandbox never reaches. Ours has this.
+       *
+       * Namespaced to the sandbox, so it cannot affect a deployment talking to
+       * a real gateway: the only provider that reads it is the one that moves
+       * no money in the first place.
+       */
+      if (process.env.BBQ_SANDBOX_REFUSE_REFUND === 'true') {
+        return { ok: false, error: 'the sandbox was told to refuse this refund' };
+      }
+
       // A real adapter posts a refund instruction here and returns the
       // provider's reference for it. This one moves no money, like the rest of
       // it, so the whole refund path can be driven before a merchant account

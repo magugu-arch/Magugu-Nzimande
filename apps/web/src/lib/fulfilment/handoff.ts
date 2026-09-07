@@ -60,10 +60,52 @@ async function attempt(
   adapter: { name: string },
   run: () => Promise<Handoff>,
 ): Promise<HandoffRecord> {
-  const existing = recordOf(order.id, kind);
-  // A success is final. Retrying it would put the same order through the till
-  // twice, which a kitchen reads as two of everything.
-  if (existing?.ok) return existing;
+  const claim = `${order.id}:${kind}`;
+
+  /**
+   * The two guards, taken together in one atomic write.
+   *
+   * A success is final — retrying it would put the same order through the till
+   * twice, which a kitchen reads as two of everything — and that check used to
+   * sit outside the mutation with an awaited adapter call after it. Two callers
+   * arriving together both found no success and both pushed the order. The
+   * comment was right about the consequence and the code did not hold under
+   * the one condition that produces it.
+   *
+   * `mutateState` is synchronous and holds a lock, so the read and the claim
+   * cannot be separated.
+   */
+  const claimed = mutateState((state) => {
+    const held = state.fulfilment.handoffs.find(
+      (record) => record.orderId === order.id && record.kind === kind,
+    );
+    if (held?.ok) return { proceed: false as const, record: held };
+    if (state.fulfilment.inFlight.includes(claim)) {
+      return { proceed: false as const, record: held ?? null };
+    }
+
+    state.fulfilment.inFlight.push(claim);
+    return { proceed: true as const, record: held ?? null };
+  });
+
+  if (!claimed.proceed) {
+    // Somebody else has it. Their record if there is one, and otherwise a
+    // retryable refusal that is returned rather than written — an attempt in
+    // progress is not a shortfall to report.
+    return (
+      claimed.record ?? {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        kind,
+        adapter: adapter.name,
+        ok: false,
+        reference: null,
+        error: 'That handoff is already being attempted',
+        retryable: true,
+        at: new Date().toISOString(),
+      }
+    );
+  }
 
   let result: Handoff;
   try {
@@ -92,6 +134,12 @@ async function attempt(
   };
 
   write(record);
+  // Released in a separate write from the record on purpose: the record must
+  // land even if this does, and a claim left behind is recovered by the next
+  // deployment rather than blocking one for ever.
+  mutateState((state) => {
+    state.fulfilment.inFlight = state.fulfilment.inFlight.filter((held) => held !== claim);
+  });
   return record;
 }
 

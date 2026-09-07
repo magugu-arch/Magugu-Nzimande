@@ -78,7 +78,19 @@ export type DemoState = {
    * its outcome. Kept so the end-of-service question — which orders did the
    * kitchen never see — has an answer that is not "ask the customers".
    */
-  fulfilment: { handoffs: HandoffRecord[] };
+  fulfilment: {
+    handoffs: HandoffRecord[];
+    /**
+     * Handoffs being attempted right now, as `orderId:kind`.
+     *
+     * A claim taken before an adapter is called and released after, so two
+     * callers cannot both find no successful record and both push the same
+     * order at the till. Held here rather than in memory because the server
+     * runs several workers, and a claim one of them holds is a claim the
+     * others cannot see.
+     */
+    inFlight: string[];
+  };
   /**
    * Live password resets. Only a hash of each token is here: a leaked copy of
    * this file is then a list of useless strings rather than a way into every
@@ -115,7 +127,7 @@ function seed(): DemoState {
     payments: { intents: [], appliedEvents: [] },
     accounts: [],
     notifications: { sent: [], webhookTokens: [] },
-    fulfilment: { handoffs: [] },
+    fulfilment: { handoffs: [], inFlight: [] },
     passwordResets: [],
     suppressed: [],
     audit: [

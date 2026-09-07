@@ -215,8 +215,49 @@ export async function refundPayment(orderId: string, reason: string): Promise<Se
     };
   }
 
+  /**
+   * The claim, taken before the gateway is asked and in one atomic write.
+   *
+   * Everything above reads the intent, and the call below is awaited — so a
+   * second operator arriving in that window saw a payment that was still
+   * captured and asked the gateway to refund it again. Two people pressing the
+   * button on a busy Saturday is the ordinary case, not an exotic one, and the
+   * cost of getting it wrong is a customer refunded twice with our money.
+   *
+   * `mutateState` holds a lock and is synchronous, so this claim either wins or
+   * finds the key already there. It is the same idempotency ledger the settle
+   * path uses, which is the point: one mechanism for "this has already been
+   * done", not a second one invented here.
+   */
+  const claim = `refund:${intent.id}`;
+  const won = mutateState((state) => {
+    if (state.payments.appliedEvents.includes(claim)) return false;
+    state.payments.appliedEvents.push(claim);
+    if (state.payments.appliedEvents.length > 1_000) state.payments.appliedEvents.shift();
+    return true;
+  });
+
+  if (!won) {
+    // Somebody else is refunding this, or already has. Either way this caller
+    // must not ask the gateway again.
+    return { ok: true, intent: intentForOrder(orderId) ?? intent, replayed: true };
+  }
+
   const result = await provider.refund(intent.providerRef, intent.amountCents);
   if (!result.ok) {
+    /**
+     * The claim is released, because the money did not move.
+     *
+     * Holding it would make one transient gateway failure permanent: the
+     * payment stays captured, and every retry is told the refund has already
+     * been done. A refund that cannot be retried is a refund that has to be
+     * finished by hand in somebody's dashboard.
+     */
+    mutateState((state) => {
+      state.payments.appliedEvents = state.payments.appliedEvents.filter(
+        (applied) => applied !== claim,
+      );
+    });
     return { ok: false, status: 502, error: `The gateway refused the refund: ${result.error}` };
   }
 

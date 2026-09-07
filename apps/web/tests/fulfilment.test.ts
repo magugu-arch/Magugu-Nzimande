@@ -9,7 +9,13 @@ import {
 } from '@/lib/fulfilment/handoff';
 import { isSoldOut, setSoldOut } from '@/lib/catalogue-state';
 import { readAudit } from '@/lib/catalogue-state';
-import { aProduct, blankState, placeDeliveryOrder, placeOrder } from './fixtures';
+import {
+  aProduct,
+  blankState,
+  concurrently,
+  placeDeliveryOrder,
+  placeOrder,
+} from './fixtures';
 
 /**
  * Handing an order to the kitchen system and to a courier.
@@ -231,5 +237,52 @@ describe('availability from the till', () => {
     const applied: string[][] = [];
     expect(await syncSoldOut(null, (slugs) => applied.push(slugs))).toBe(false);
     expect(applied).toEqual([]);
+  });
+});
+
+/**
+ * Two attempts at once.
+ *
+ * "A success is final. Retrying it would put the same order through the till
+ * twice, which a kitchen reads as two of everything" — the comment above the
+ * guard was right about the consequence, and the guard read the record, awaited
+ * the adapter, and then wrote. Two callers arriving together both found no
+ * success and both pushed.
+ *
+ * It is reachable: the console has a retry button and the advance route asks
+ * for a courier when an order reaches ready, so a cook and a route can arrive
+ * on the same order in the same moment.
+ */
+describe('the same handoff attempted twice at once', () => {
+  it('reaches the till once', async () => {
+    const order = await placeOrder();
+    const pos = acceptingPos();
+
+    await concurrently(3, () => pushToPos(order, pos));
+
+    expect(pos.pushOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks for one driver, not three', async () => {
+    const order = await placeDeliveryOrder();
+    const courier = acceptingCourier();
+
+    await concurrently(3, () => requestCourier(order, courier));
+
+    expect(courier.requestPickup).toHaveBeenCalledTimes(1);
+  });
+
+  /** And a refused handoff is still retryable afterwards, one at a time. */
+  it('leaves a refused handoff open to another attempt', async () => {
+    const order = await placeOrder();
+
+    await concurrently(2, () => pushToPos(order, refusingPos()));
+    expect(unacknowledged('pos')).toHaveLength(1);
+
+    const accepted = acceptingPos();
+    await pushToPos(order, accepted);
+
+    expect(accepted.pushOrder).toHaveBeenCalledTimes(1);
+    expect(unacknowledged('pos')).toEqual([]);
   });
 });
