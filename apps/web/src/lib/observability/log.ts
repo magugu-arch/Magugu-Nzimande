@@ -33,8 +33,35 @@ const SECRET = /pass(word|phrase)?|secret|token|cookie|authorization|signature|h
  * person: an email becomes its domain, a mobile its last two digits. Enough to
  * tell two customers apart in a trace, not enough to be a copy of the customer
  * list sitting in a log aggregator that POPIA has never been told about.
+ *
+ * `recipient` is on this list because it was not, and the bounce webhook logs
+ * exactly that field: two lines went to stdout reading
+ * `{"event":"email.suppressed","recipient":"thandi@example.com"}` — an address
+ * and the fact that its owner complained, which is a sensitive thing to say
+ * about somebody. That is worse than the same leak into the audit log, because
+ * erasure can rewrite a file this process owns and can never reach a log
+ * aggregator. Whatever is written here is written for good.
  */
-const PERSONAL = /^(email|mobile|phone|name|address)$/i;
+const PERSONAL = /^(email|mobile|phone|name|address|recipient|emailaddress)$/i;
+
+/**
+ * An email address, whatever the field is called.
+ *
+ * The list above is a list of names somebody remembered, and `recipient` is
+ * proof of how that ends: the next field to carry an address will be called
+ * something else again, and the leak is silent because a log line nobody reads
+ * looks the same either way.
+ *
+ * Only email, and deliberately not the same trick for mobile numbers. The
+ * comment above `SECRET` is right that deciding by shape is a guess — but it is
+ * a guess about *opaque* strings, and an address is not opaque: nothing else in
+ * these fields is `something@something.tld`. A ten-digit number is a different
+ * matter, since a courier reference or a till code can be exactly that, and a
+ * redactor that ate one would cost an afternoon in production for no gain.
+ * Mobile stays name-based, and that asymmetry is the point rather than an
+ * oversight.
+ */
+const EMAIL_SHAPED = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export function redact(fields: Fields): Fields {
   const clean: Fields = {};
@@ -47,6 +74,11 @@ export function redact(fields: Fields): Fields {
 
     if (PERSONAL.test(key) && typeof value === 'string') {
       clean[key] = reduce(key, value);
+      continue;
+    }
+
+    if (typeof value === 'string' && EMAIL_SHAPED.test(value)) {
+      clean[key] = reduce('email', value);
       continue;
     }
 
@@ -63,10 +95,24 @@ export function redact(fields: Fields): Fields {
   return clean;
 }
 
+/**
+ * What is kept of a personal value.
+ *
+ * The shape is asked before the name. A field called `recipient` holds an
+ * address as surely as one called `email` does, and keying only off the name
+ * meant it collapsed to `[redacted]` — losing the domain, which is the part
+ * worth having: "the bounces are all @gmail.com" is a diagnosis, and
+ * "[redacted] bounced" is not.
+ */
 function reduce(key: string, value: string): string {
+  if (EMAIL_SHAPED.test(value)) {
+    return `…@${value.slice(value.lastIndexOf('@') + 1)}`;
+  }
   if (/^email$/i.test(key)) {
-    const at = value.lastIndexOf('@');
-    return at === -1 ? '[redacted]' : `…@${value.slice(at + 1)}`;
+    // Named as an address but not shaped like one — malformed input, or a
+    // field that has quietly started holding something else. Either way it is
+    // not safe to print and not useful to reduce.
+    return '[redacted]';
   }
   if (/^(mobile|phone)$/i.test(key)) {
     return value.length <= 2 ? '[redacted]' : `…${value.slice(-2)}`;

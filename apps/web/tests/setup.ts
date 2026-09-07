@@ -3,6 +3,7 @@ import { rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, vi } from 'vitest';
+import { setSink } from '@/lib/observability/log';
 
 /**
  * One state file per test file.
@@ -39,3 +40,35 @@ afterAll(() => {
  */
 export const FIXED_NOW = new Date('2026-09-02T10:00:00Z');
 vi.setSystemTime(FIXED_NOW);
+
+/**
+ * Nothing anywhere in the suite may log a customer's details.
+ *
+ * A standing guard rather than a test, because the question is not "does this
+ * one call site redact" but "did any of the nine hundred tests, driving every
+ * route in the application, put a person's address into a log line". The
+ * redactor works on the names it knows, and the defect it was carrying was a
+ * field called `recipient` that nobody had thought of — the bounce webhook
+ * wrote `{"event":"email.suppressed","recipient":"thandi@example.com"}` to
+ * stdout, once per bounce.
+ *
+ * Worth catching here rather than in a suite of its own because a log line is
+ * the one leak that cannot be taken back. Erasure can rewrite the state file;
+ * it can never reach a log aggregator, so whatever goes out goes out for good.
+ *
+ * The fixture customer's own details are what it looks for, since those are the
+ * values the suite actually drives through the application. Kept as literals
+ * rather than imported from the fixtures, because this file is loaded before
+ * them and importing it here would pull the whole seed catalogue into setup.
+ */
+const NEVER_LOGGED = ['thandi@example.com', '0821234567', 'Thandi Mokoena'];
+
+setSink((line) => {
+  for (const detail of NEVER_LOGGED) {
+    if (line.includes(detail)) {
+      throw new Error(
+        `a log line carried ${detail}, which must never leave the process:\n  ${line}`,
+      );
+    }
+  }
+});

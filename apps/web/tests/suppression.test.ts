@@ -1,4 +1,3 @@
-import { createHmac } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { POST as bounceWebhook } from '@/app/api/notifications/webhook/route';
 import { routedTransport } from '@/lib/notifications/registry';
@@ -23,6 +22,8 @@ import {
   operatorCookie,
   placeOrder,
   request,
+  signedBounce,
+  withMailgunKey,
 } from './fixtures';
 
 /**
@@ -38,37 +39,11 @@ import {
  * about: a mailbox that was full this morning works this afternoon.
  */
 
-const KEY = 'webhook-key';
-
-function signed(eventData: Record<string, unknown>, over: Record<string, unknown> = {}) {
-  const timestamp = String(Math.floor(Date.now() / 1_000));
-  const token = `tok-${Math.random().toString(36).slice(2)}`;
-
-  return new Request('http://localhost/api/notifications/webhook', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      signature: {
-        timestamp,
-        token,
-        signature: createHmac('sha256', KEY).update(`${timestamp}${token}`).digest('hex'),
-        ...over,
-      },
-      'event-data': eventData,
-    }),
-  });
-}
-
-async function withKey<T>(run: () => Promise<T>): Promise<T> {
-  const before = process.env.BBQ_MAILGUN_WEBHOOK_KEY;
-  process.env.BBQ_MAILGUN_WEBHOOK_KEY = KEY;
-  try {
-    return await run();
-  } finally {
-    if (before === undefined) delete process.env.BBQ_MAILGUN_WEBHOOK_KEY;
-    else process.env.BBQ_MAILGUN_WEBHOOK_KEY = before;
-  }
-}
+/*
+ * `signedBounce` and `withMailgunKey` used to live here. The logging suite
+ * needed the same signed envelope to check what the webhook writes to stdout,
+ * and two copies of a Mailgun signature is two places to get it wrong.
+ */
 
 beforeEach(blankState);
 
@@ -215,14 +190,14 @@ describe('sending to a suppressed address', () => {
 
 describe('the bounce webhook', () => {
   it('refuses everything with no signing key configured', async () => {
-    const response = await bounceWebhook(signed({ event: 'complained', recipient: 'a@b.com' }));
+    const response = await bounceWebhook(signedBounce({ event: 'complained', recipient: 'a@b.com' }));
     expect(response.status).toBe(501);
   });
 
   it('suppresses on a complaint', async () => {
-    await withKey(async () => {
+    await withMailgunKey(async () => {
       const response = await bounceWebhook(
-        signed({ event: 'complained', recipient: customer.email }),
+        signedBounce({ event: 'complained', recipient: customer.email }),
       );
 
       expect(response.status).toBe(200);
@@ -231,9 +206,9 @@ describe('the bounce webhook', () => {
   });
 
   it('suppresses on a permanent failure', async () => {
-    await withKey(async () => {
+    await withMailgunKey(async () => {
       await bounceWebhook(
-        signed({ event: 'failed', severity: 'permanent', recipient: customer.email }),
+        signedBounce({ event: 'failed', severity: 'permanent', recipient: customer.email }),
       );
       expect(suppressionFor(customer.email)?.reason).toBe('hard-bounce');
     });
@@ -245,30 +220,30 @@ describe('the bounce webhook', () => {
    * briefly full, which is the mistake this test exists for.
    */
   it('does not suppress on a temporary failure, however it is spelled', async () => {
-    await withKey(async () => {
+    await withMailgunKey(async () => {
       await bounceWebhook(
-        signed({ event: 'failed', severity: 'temporary', recipient: customer.email }),
+        signedBounce({ event: 'failed', severity: 'temporary', recipient: customer.email }),
       );
       expect(isSuppressed(customer.email)).toBe(false);
 
-      await bounceWebhook(signed({ event: 'temporary_fail', recipient: customer.email }));
+      await bounceWebhook(signedBounce({ event: 'temporary_fail', recipient: customer.email }));
       expect(isSuppressed(customer.email)).toBe(false);
     });
   });
 
   it('does nothing on a delivery or an open', async () => {
-    await withKey(async () => {
+    await withMailgunKey(async () => {
       for (const event of ['delivered', 'opened']) {
-        await bounceWebhook(signed({ event, recipient: customer.email }));
+        await bounceWebhook(signedBounce({ event, recipient: customer.email }));
       }
       expect(isSuppressed(customer.email)).toBe(false);
     });
   });
 
   it('refuses a forged signature and suppresses nobody', async () => {
-    await withKey(async () => {
+    await withMailgunKey(async () => {
       const response = await bounceWebhook(
-        signed({ event: 'complained', recipient: customer.email }, { signature: 'f'.repeat(64) }),
+        signedBounce({ event: 'complained', recipient: customer.email }, { signature: 'f'.repeat(64) }),
       );
 
       expect(response.status).toBe(401);
@@ -277,7 +252,7 @@ describe('the bounce webhook', () => {
   });
 
   it('refuses a body with no signature block', async () => {
-    await withKey(async () => {
+    await withMailgunKey(async () => {
       const response = await bounceWebhook(
         new Request('http://localhost/api/notifications/webhook', {
           method: 'POST',
@@ -294,8 +269,8 @@ describe('the bounce webhook', () => {
    * to agree, or the guard is per worker and a replay simply picks another one.
    */
   it('acts on a token once', async () => {
-    await withKey(async () => {
-      const request = signed({ event: 'failed', severity: 'permanent', recipient: customer.email });
+    await withMailgunKey(async () => {
+      const request = signedBounce({ event: 'failed', severity: 'permanent', recipient: customer.email });
       const body = await request.clone().text();
       const again = new Request(request.url, { method: 'POST', body });
 
@@ -312,14 +287,14 @@ describe('the bounce webhook', () => {
   });
 
   it('remembers the token in the shared state', async () => {
-    await withKey(async () => {
-      await bounceWebhook(signed({ event: 'delivered', recipient: customer.email }));
+    await withMailgunKey(async () => {
+      await bounceWebhook(signedBounce({ event: 'delivered', recipient: customer.email }));
       expect(readState().notifications.webhookTokens).toHaveLength(1);
     });
   });
 
   it('answers 400 for a body that is not JSON', async () => {
-    await withKey(async () => {
+    await withMailgunKey(async () => {
       const response = await bounceWebhook(
         new Request('http://localhost/api/notifications/webhook', {
           method: 'POST',

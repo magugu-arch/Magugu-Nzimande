@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { errorFields, log, logger, redact, setSink } from '@/lib/observability/log';
 import {
   customer,
+  loggedLines,
   PASSWORD,
+  signedBounce,
+  withMailgunKey,
 } from './fixtures';
 
 /**
@@ -188,3 +191,91 @@ describe('the sink', () => {
 // The suite-level sink stays installed for the whole file; nothing outside it
 // should be writing to the console during a test run.
 void restore;
+
+/**
+ * The field nobody thought to name.
+ *
+ * `PERSONAL` is a list of names somebody remembered, and the bounce webhook is
+ * what happens next: it logs `recipient`, which was not on it, so two lines a
+ * bounce went to stdout carrying a customer's address in full — along with the
+ * fact that its owner had complained, which is a sensitive thing to record
+ * about a person.
+ *
+ * That is worse than the same leak into the audit log, and the difference is
+ * the reason these tests exist. Erasure can rewrite a file this process owns.
+ * It can never reach a log aggregator, so a line written there is written for
+ * good.
+ */
+describe('an address in a field the redactor was never told about', () => {
+  it('is reduced anyway, whatever the field is called', () => {
+    logger.info('somewhere.new', { correspondent: customer.email });
+
+    expect(lastLine().correspondent).toBe('…@example.com');
+  });
+
+  it('is reduced inside a nested object too', () => {
+    logger.info('somewhere.nested', { payload: { deep: { who: customer.email } } });
+
+    expect(JSON.stringify(lastLine())).not.toContain(customer.email);
+  });
+
+  /** And the domain survives, because that is the part worth having. */
+  it('keeps the domain, so a wave of bounces is still diagnosable', () => {
+    logger.warn('email.suppressed', { recipient: 'someone@gmail.com' });
+
+    expect(lastLine().recipient).toBe('…@gmail.com');
+  });
+
+  /**
+   * The asymmetry, asserted so it reads as a decision.
+   *
+   * A ten-digit number is not unmistakable the way an address is: a courier
+   * reference or a till code can be exactly that, and a redactor that ate one
+   * would cost an afternoon in production for nothing. Mobiles are matched by
+   * name; a number in a field named something else goes through.
+   */
+  it('does not guess at numbers, which is deliberate', () => {
+    logger.info('courier.assigned', { deliveryId: '0821234567' });
+
+    expect(lastLine().deliveryId, 'a reference is not a mobile number').toBe('0821234567');
+  });
+
+  it('still reduces a mobile in a field that says so', () => {
+    logger.info('sms.sent', { mobile: customer.mobile });
+
+    expect(lastLine().mobile).toBe('…67');
+  });
+});
+
+/**
+ * And the same thing asked of the endpoint that actually had the defect,
+ * driven through the real route rather than by calling the logger directly.
+ */
+describe('the bounce webhook', () => {
+  it('writes no address to the log when it suppresses one', async () => {
+    const lines = await withMailgunKey(async () =>
+      loggedLines(async () => {
+        const { POST } = await import('@/app/api/notifications/webhook/route');
+        const response = await POST(
+          signedBounce({ event: 'complained', recipient: customer.email }),
+        );
+        expect(response.status).toBe(200);
+      }),
+    );
+
+    expect(lines.length, 'it should have logged something').toBeGreaterThan(0);
+    expect(lines.join('\n')).not.toContain(customer.email);
+    expect(lines.join('\n'), 'but still says which domain').toContain('@example.com');
+  });
+
+  it('writes no address on a soft bounce either', async () => {
+    const lines = await withMailgunKey(async () =>
+      loggedLines(async () => {
+        const { POST } = await import('@/app/api/notifications/webhook/route');
+        await POST(signedBounce({ event: 'failed', severity: 'temporary', recipient: customer.email }));
+      }),
+    );
+
+    expect(lines.join('\n')).not.toContain(customer.email);
+  });
+});

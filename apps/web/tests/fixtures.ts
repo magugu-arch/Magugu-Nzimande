@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -21,6 +21,7 @@ import { POST as signInRoute } from '@/app/api/admin/session/route';
 import { CUSTOMER_COOKIE } from '@/lib/accounts/session';
 import { SESSION_COOKIE } from '@/lib/admin-auth';
 import { mutateState, readState } from '@/lib/demo-state';
+import { setSink } from '@/lib/observability/log';
 import { advanceOrder, setOrderStatus } from '@/lib/order-store';
 import { repriceLines } from '@/lib/order-integrity';
 import { promotionFor } from '@/lib/promotions';
@@ -1618,4 +1619,73 @@ export function demoFunction(name: string): string {
     }
   }
   throw new Error(`the body of ${name} is not brace-balanced`);
+}
+
+// ---------------------------------------------------------------------------
+// The bounce webhook, and what the process writes down
+
+/** The shared secret the bounce-webhook fixtures sign with. */
+export const MAILGUN_WEBHOOK_KEY = 'webhook-key';
+
+/**
+ * A Mailgun bounce or complaint, signed the way Mailgun signs one.
+ *
+ * The signature covers three fields carried *inside* the body rather than the
+ * bytes, which is why this builds a whole envelope rather than adding a header.
+ * Written out once here because two suites now drive this endpoint — the
+ * suppression list it feeds, and the log lines it emits on the way.
+ */
+export function signedBounce(
+  eventData: Record<string, unknown>,
+  over: Record<string, unknown> = {},
+): Request {
+  const timestamp = String(Math.floor(Date.now() / 1_000));
+  const token = `tok-${randomBytes(8).toString('hex')}`;
+
+  return new Request('http://localhost/api/notifications/webhook', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      signature: {
+        timestamp,
+        token,
+        signature: createHmac('sha256', MAILGUN_WEBHOOK_KEY)
+          .update(`${timestamp}${token}`)
+          .digest('hex'),
+        ...over,
+      },
+      'event-data': eventData,
+    }),
+  });
+}
+
+/** Runs `run` with the Mailgun webhook key configured, and puts it back. */
+export async function withMailgunKey<T>(run: () => Promise<T>): Promise<T> {
+  const before = process.env.BBQ_MAILGUN_WEBHOOK_KEY;
+  process.env.BBQ_MAILGUN_WEBHOOK_KEY = MAILGUN_WEBHOOK_KEY;
+  try {
+    return await run();
+  } finally {
+    if (before === undefined) delete process.env.BBQ_MAILGUN_WEBHOOK_KEY;
+    else process.env.BBQ_MAILGUN_WEBHOOK_KEY = before;
+  }
+}
+
+/**
+ * Every log line written while `run` ran.
+ *
+ * The sink is global and the setup file installs a guard on it, so this puts
+ * that guard back afterwards rather than leaving the suite unwatched — a
+ * capture helper that quietly disabled the thing watching for leaked addresses
+ * would be a poor trade for reading a few lines.
+ */
+export async function loggedLines(run: () => unknown | Promise<unknown>): Promise<string[]> {
+  const lines: string[] = [];
+  const restore = setSink((line) => lines.push(line));
+  try {
+    await run();
+  } finally {
+    restore();
+  }
+  return lines;
 }
