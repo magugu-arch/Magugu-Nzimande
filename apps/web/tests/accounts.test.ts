@@ -31,6 +31,7 @@ import {
   customer,
   orderLine,
   orderRequest,
+  placeOrderAs,
   registerCustomer,
   registration,
   request,
@@ -476,16 +477,12 @@ describe('the order itself', () => {
   it('posts them onto the account when the order completes', async () => {
     await withAccounts(async () => {
       const { cookie } = await registerCustomer();
-      const placed = await bodyOf<{ order: Order }>(
-        await createOrderRoute(
-          request('/api/orders', { cookie, body: orderRequest([orderLine(aProduct())]) }),
-        ),
-      );
+      const order = await placeOrderAs(cookie);
 
-      setOrderStatus(placed.order.id, 'completed');
+      setOrderStatus(order.id, 'completed');
 
-      expect(findByEmail(customer.email)?.points).toBe(placed.order.pointsEarned);
-      expect(readOrder(placed.order.id)?.pointsPostedAt).not.toBeNull();
+      expect(findByEmail(customer.email)?.points).toBe(order.pointsEarned);
+      expect(readOrder(order.id)?.pointsPostedAt).not.toBeNull();
     });
   });
 
@@ -493,13 +490,9 @@ describe('the order itself', () => {
   it('posts nothing for an order that was cancelled', async () => {
     await withAccounts(async () => {
       const { cookie } = await registerCustomer();
-      const placed = await bodyOf<{ order: Order }>(
-        await createOrderRoute(
-          request('/api/orders', { cookie, body: orderRequest([orderLine(aProduct())]) }),
-        ),
-      );
+      const order = await placeOrderAs(cookie);
 
-      setOrderStatus(placed.order.id, 'cancelled', 'The customer changed their mind');
+      setOrderStatus(order.id, 'cancelled', 'The customer changed their mind');
 
       expect(findByEmail(customer.email)?.points).toBe(0);
     });
@@ -509,16 +502,12 @@ describe('the order itself', () => {
   it('does not post the same order twice', async () => {
     await withAccounts(async () => {
       const { cookie } = await registerCustomer();
-      const placed = await bodyOf<{ order: Order }>(
-        await createOrderRoute(
-          request('/api/orders', { cookie, body: orderRequest([orderLine(aProduct())]) }),
-        ),
-      );
+      const order = await placeOrderAs(cookie);
 
-      setOrderStatus(placed.order.id, 'completed');
-      setOrderStatus(placed.order.id, 'completed');
+      setOrderStatus(order.id, 'completed');
+      setOrderStatus(order.id, 'completed');
 
-      expect(findByEmail(customer.email)?.points).toBe(placed.order.pointsEarned);
+      expect(findByEmail(customer.email)?.points).toBe(order.pointsEarned);
     });
   });
 

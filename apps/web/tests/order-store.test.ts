@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { advanceOrder, labelFor, listOrders, readOrder } from '@/lib/order-store';
-import { placeOrder, resetState } from './fixtures';
+import { orderAt, placeOrder, resetState } from './fixtures';
 import { mutateState } from '@/lib/demo-state';
 
 /**
@@ -127,6 +127,24 @@ describe('advancing an order', () => {
 
   it('has nothing to advance for an order that does not exist', () => {
     expect(advanceOrder('O-nonexistent')).toBeNull();
+  });
+
+  /**
+   * The two paths differ by one state, and only delivery has it.
+   *
+   * Worth holding here rather than only at the route: a collection order that
+   * reached out_for_delivery would tell the customer their food is with a
+   * driver while it sits on the counter they are standing at.
+   */
+  it('takes a delivery order through out_for_delivery and a collection order past it', async () => {
+    expect((await orderAt('out_for_delivery', { mode: 'Delivery' })).status).toBe(
+      'out_for_delivery',
+    );
+    expect((await orderAt('completed')).status).toBe('completed');
+
+    // Not a state a collection order is slow to reach — it is not on its path
+    // at all, so asking for it is a mistake rather than something to wait for.
+    await expect(orderAt('out_for_delivery')).rejects.toThrow(/never reaches/);
   });
 
   it('persists the move rather than only returning it', async () => {

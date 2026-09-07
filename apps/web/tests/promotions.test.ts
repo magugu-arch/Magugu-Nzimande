@@ -5,6 +5,10 @@ import { findPromotion, isRunningNow, promotionFor } from '@/lib/promotions';
 import { sastNow } from '@/lib/trading';
 import { discountOf } from '@/lib/pricing';
 import {
+  SUNDAY,
+  THURSDAY,
+  TUESDAY,
+  WEDNESDAY,
   aDeliveryStore,
   aProduct,
   aSuburbOf,
@@ -14,6 +18,7 @@ import {
   orderRequest,
   registerCustomer,
   request,
+  sast,
   withAccounts,
 } from './fixtures';
 
@@ -31,16 +36,6 @@ import {
  */
 
 beforeEach(blankState);
-
-/** A moment in SAST, given as the UTC instant two hours behind it. */
-const sast = (day: string, hour: number, minute = 0) =>
-  new Date(`${day}T${String(hour - 2).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`);
-
-// 2026-09-02 is a Wednesday; the days either side follow.
-const TUESDAY = '2026-09-01';
-const WEDNESDAY = '2026-09-02';
-const THURSDAY = '2026-09-03';
-const SUNDAY = '2026-09-06';
 
 describe('the clock the offers run on', () => {
   it('reads South African time whatever the visitor’s own clock says', () => {

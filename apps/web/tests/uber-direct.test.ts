@@ -14,7 +14,7 @@ import {
 import { activeCourier, courierWebhookSecret } from '@/lib/fulfilment/registry';
 import { requestCourier } from '@/lib/fulfilment/handoff';
 import { readOrder, setOrderStatus } from '@/lib/order-store';
-import { aDeliveryStore, aSuburbOf, blankState, placeOrder } from './fixtures';
+import { UBER_ENV, aDeliveryStore, blankState, placeDeliveryOrder, withUberDirect } from './fixtures';
 
 /**
  * The Uber Direct courier adapter.
@@ -32,23 +32,8 @@ import { aDeliveryStore, aSuburbOf, blankState, placeOrder } from './fixtures';
 
 const SIGNING_KEY = 'a-test-signing-key';
 
-const ENV = {
-  BBQ_COURIER_PROVIDER: 'uber-direct',
-  BBQ_UBER_CLIENT_ID: 'client-id',
-  BBQ_UBER_CLIENT_SECRET: 'client-secret',
-  BBQ_UBER_CUSTOMER_ID: 'cus_test',
-  BBQ_UBER_WEBHOOK_SECRET: SIGNING_KEY,
-};
-
-const aDeliveryOrder = async () => {
-  const store = aDeliveryStore();
-  return placeOrder({
-    storeId: store.id,
-    mode: 'Delivery',
-    address: '12 Oak Avenue',
-    suburb: aSuburbOf(store),
-  });
-};
+/** The shared four, plus the secret only this suite's callbacks need. */
+const ENV = { ...UBER_ENV, BBQ_UBER_WEBHOOK_SECRET: SIGNING_KEY };
 
 /** A fetch that answers the token call and then whatever is queued. */
 function stubUber(replies: Response[]) {
@@ -71,7 +56,7 @@ beforeEach(() => {
 
 describe('the address, which is the gap this exposed', () => {
   it('builds a dropoff from the street and suburb', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const address = dropoffAddress(order);
 
     expect(address?.street_address).toEqual(['12 Oak Avenue']);
@@ -85,14 +70,14 @@ describe('the address, which is the gap this exposed', () => {
    * find it.
    */
   it('refuses to build one without a suburb', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     expect(dropoffAddress({ ...order, suburb: null })).toBeNull();
     expect(dropoffAddress({ ...order, address: null })).toBeNull();
     expect(dropoffAddress({ ...order, address: '   ' })).toBeNull();
   });
 
   it('is sent as a JSON string, which is what Uber takes', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const encoded = encodeAddress(dropoffAddress(order) as never);
 
     expect(typeof encoded).toBe('string');
@@ -224,7 +209,7 @@ describe('asking for a driver', () => {
     });
 
   it('creates a delivery and keeps Uber’s id', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const { fetcher } = stubUber([new Response(JSON.stringify({ id: 'del_123' }))]);
 
     const result = await adapter(fetcher).requestPickup(order);
@@ -236,7 +221,7 @@ describe('asking for a driver', () => {
    * that actually succeeded — sends a second driver for the same food.
    */
   it('sends an idempotency key that is the order', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const { fetcher, calls } = stubUber([new Response(JSON.stringify({ id: 'del_123' }))]);
 
     await adapter(fetcher).requestPickup(order);
@@ -246,7 +231,7 @@ describe('asking for a driver', () => {
   });
 
   it('sends our order id so the webhook can find it again', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const { fetcher, calls } = stubUber([new Response(JSON.stringify({ id: 'del_123' }))]);
 
     await adapter(fetcher).requestPickup(order);
@@ -258,7 +243,7 @@ describe('asking for a driver', () => {
   });
 
   it('refuses an order with no address rather than sending half of one', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const { fetcher, calls } = stubUber([]);
 
     const result = await adapter(fetcher).requestPickup({ ...order, suburb: null });
@@ -270,7 +255,7 @@ describe('asking for a driver', () => {
 
   /** A 4xx will be wrong again; a 5xx or a 429 is worth another go. */
   it('marks a refusal retryable only when retrying could help', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
 
     for (const [status, retryable] of [
       [400, false],
@@ -289,7 +274,7 @@ describe('asking for a driver', () => {
   });
 
   it('treats a network that never answered as retryable', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const broken = (async (url: string) => {
       if (String(url).includes('auth.uber.com')) {
         return new Response(JSON.stringify({ access_token: 'tok', expires_in: 3_600 }));
@@ -307,7 +292,7 @@ describe('asking for a driver', () => {
    * nothing here can track.
    */
   it('refuses without retrying when Uber returns no id', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const { fetcher } = stubUber([new Response(JSON.stringify({ status: 'pending' }))]);
 
     const result = await adapter(fetcher).requestPickup(order);
@@ -316,7 +301,7 @@ describe('asking for a driver', () => {
   });
 
   it('only ever asks for one driver per order', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const { fetcher, calls } = stubUber([
       new Response(JSON.stringify({ id: 'del_123' })),
       new Response(JSON.stringify({ id: 'del_456' })),
@@ -407,20 +392,17 @@ describe('reading the event', () => {
 
 describe('the courier webhook route', () => {
   async function post(body: string, key = SIGNING_KEY) {
-    const before = { ...process.env };
-    Object.assign(process.env, ENV);
-    try {
-      return await courierWebhook(
-        new Request('http://localhost/api/couriers/webhook', {
-          method: 'POST',
-          headers: { [UBER_SIGNATURE_HEADER]: signPayload(body, key) },
-          body,
-        }),
-      );
-    } finally {
-      for (const name of Object.keys(ENV)) delete process.env[name];
-      Object.assign(process.env, before);
-    }
+    return withUberDirect(
+      () =>
+        courierWebhook(
+          new Request('http://localhost/api/couriers/webhook', {
+            method: 'POST',
+            headers: { [UBER_SIGNATURE_HEADER]: signPayload(body, key) },
+            body,
+          }),
+        ),
+      SIGNING_KEY,
+    );
   }
 
   it('refuses everything with no courier configured', async () => {
@@ -431,7 +413,7 @@ describe('the courier webhook route', () => {
   });
 
   it('refuses a forged signature', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const body = JSON.stringify({ delivery_id: 'd', status: 'delivered', external_id: order.id });
 
     const response = await post(body, 'not-the-key');
@@ -440,7 +422,7 @@ describe('the courier webhook route', () => {
   });
 
   it('moves the order out for delivery', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const body = JSON.stringify({
       delivery_id: 'del_1',
       status: 'EN_ROUTE_TO_DROPOFF',
@@ -452,7 +434,7 @@ describe('the courier webhook route', () => {
   });
 
   it('completes it on delivery', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const body = JSON.stringify({
       delivery_id: 'del_1',
       status: 'delivered',
@@ -464,7 +446,7 @@ describe('the courier webhook route', () => {
   });
 
   it('leaves the order alone on a status it does not know', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const body = JSON.stringify({
       delivery_id: 'del_1',
       status: 'TELEPORTED',
@@ -513,20 +495,17 @@ vi.spyOn(console, 'log').mockImplementation(() => {});
 
 describe('the driver’s estimate', () => {
   async function post(body: string) {
-    const before = { ...process.env };
-    Object.assign(process.env, ENV);
-    try {
-      return await courierWebhook(
-        new Request('http://localhost/api/couriers/webhook', {
-          method: 'POST',
-          headers: { [UBER_SIGNATURE_HEADER]: signPayload(body, SIGNING_KEY) },
-          body,
-        }),
-      );
-    } finally {
-      for (const name of Object.keys(ENV)) delete process.env[name];
-      Object.assign(process.env, before);
-    }
+    return withUberDirect(
+      () =>
+        courierWebhook(
+          new Request('http://localhost/api/couriers/webhook', {
+            method: 'POST',
+            headers: { [UBER_SIGNATURE_HEADER]: signPayload(body, SIGNING_KEY) },
+            body,
+          }),
+        ),
+      SIGNING_KEY,
+    );
   }
 
   const update = (orderId: string, over: Record<string, unknown>) =>
@@ -539,7 +518,7 @@ describe('the driver’s estimate', () => {
    * waited.
    */
   it('is recorded from a courier update that moves no state', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
 
     await post(update(order.id, { status: 'courier_update', pickup_eta: 70 }));
 
@@ -547,7 +526,7 @@ describe('the driver’s estimate', () => {
   });
 
   it('replaces the previous one rather than keeping the first', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
 
     await post(update(order.id, { status: 'courier_update', pickup_eta: 70 }));
     await post(update(order.id, { status: 'courier_update', pickup_eta: 35 }));
@@ -556,7 +535,7 @@ describe('the driver’s estimate', () => {
   });
 
   it('leaves it alone when an event carries none', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
 
     await post(update(order.id, { status: 'courier_update', pickup_eta: 70 }));
     await post(update(order.id, { status: 'pickup' }));
@@ -569,7 +548,7 @@ describe('the driver’s estimate', () => {
    * order is how a finished order starts counting down again.
    */
   it('is not put back onto a completed order', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     setOrderStatus(order.id, 'completed');
 
     await post(update(order.id, { status: 'courier_update', pickup_eta: 70 }));
@@ -578,7 +557,7 @@ describe('the driver’s estimate', () => {
   });
 
   it('is null on an order no courier has touched', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     expect(readOrder(order.id)?.courierEtaMinutes).toBeNull();
   });
 });

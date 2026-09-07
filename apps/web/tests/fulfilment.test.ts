@@ -9,7 +9,7 @@ import {
 } from '@/lib/fulfilment/handoff';
 import { isSoldOut, setSoldOut } from '@/lib/catalogue-state';
 import { readAudit } from '@/lib/catalogue-state';
-import { aDeliveryStore, aProduct, aSuburbOf, blankState, placeOrder } from './fixtures';
+import { aProduct, blankState, placeDeliveryOrder, placeOrder } from './fixtures';
 
 /**
  * Handing an order to the kitchen system and to a courier.
@@ -40,16 +40,6 @@ const acceptingCourier = (): CourierAdapter => ({
   track: vi.fn(async () => ({ status: 'assigned', etaMinutes: 20 })),
 });
 
-const deliveryOrder = async () => {
-  const store = aDeliveryStore();
-  return placeOrder({
-    storeId: store.id,
-    mode: 'Delivery',
-    address: '12 Oak Avenue',
-    suburb: aSuburbOf(store),
-  });
-};
-
 beforeEach(blankState);
 
 describe('with no kitchen system attached', () => {
@@ -73,7 +63,7 @@ describe('with no kitchen system attached', () => {
   });
 
   it('does not ask a courier that is not there', async () => {
-    expect(await requestCourier(await deliveryOrder(), null)).toBeNull();
+    expect(await requestCourier(await placeDeliveryOrder(), null)).toBeNull();
   });
 });
 
@@ -159,7 +149,7 @@ describe('pushing an order to the till', () => {
 
 describe('asking for a driver', () => {
   it('asks for one for a delivery order', async () => {
-    const record = await requestCourier(await deliveryOrder(), acceptingCourier());
+    const record = await requestCourier(await placeDeliveryOrder(), acceptingCourier());
     expect(record?.reference).toBe('trip_1');
   });
 
@@ -171,7 +161,7 @@ describe('asking for a driver', () => {
   });
 
   it('does not ask twice for one order', async () => {
-    const order = await deliveryOrder();
+    const order = await placeDeliveryOrder();
     const courier = acceptingCourier();
 
     await requestCourier(order, courier);
@@ -181,7 +171,7 @@ describe('asking for a driver', () => {
   });
 
   it('keeps the two handoffs apart', async () => {
-    const order = await deliveryOrder();
+    const order = await placeDeliveryOrder();
     await pushToPos(order, acceptingPos());
     await requestCourier(order, acceptingCourier());
 

@@ -3,15 +3,28 @@ import { rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PRODUCTS, STORES, optionGroupsFor } from '@bbq/seed';
-import type { OptionGroup, Order, OrderLine, Product, ServiceMode, Store } from '@bbq/types';
-import { expect } from 'vitest';
+import type {
+  OptionGroup,
+  Order,
+  OrderLine,
+  OrderStatus,
+  PaymentIntent,
+  Product,
+  ServiceMode,
+  Store,
+} from '@bbq/types';
+import { statesForMode } from '@bbq/types';
+import { expect, vi } from 'vitest';
 import { POST as createOrderRoute } from '@/app/api/orders/route';
 import { POST as signInRoute } from '@/app/api/admin/session/route';
 import { CUSTOMER_COOKIE } from '@/lib/accounts/session';
 import { SESSION_COOKIE } from '@/lib/admin-auth';
 import { mutateState } from '@/lib/demo-state';
+import { advanceOrder, setOrderStatus } from '@/lib/order-store';
+import { intentForOrder, settle } from '@/lib/payments/ledger';
 import { signBody } from '@/lib/payments/provider';
 import { SANDBOX_SIGNATURE_HEADER } from '@/lib/payments/sandbox-provider';
+import { FIXED_NOW } from './setup';
 
 /**
  * Shared fixtures for the route-level suites.
@@ -151,12 +164,96 @@ export function aSuburbNotServedBy(store: Store): string {
 /** Minutes since midnight, for readable trading-hour fixtures. */
 export const at = (hour: number, minute = 0): number => hour * 60 + minute;
 
-/** A UTC instant for a given SAST wall-clock time. SAST is UTC+2, no DST. */
+/**
+ * A UTC instant for a given SAST wall-clock time. SAST is UTC+2, no DST.
+ *
+ * Built by shifting minutes off midnight rather than by formatting `hour - 2`
+ * into a string. The string form looks equivalent and is not: any SAST hour
+ * before 02:00 makes it negative, and `2026-09-02T-1:00:00Z` is an invalid date
+ * rather than the previous evening. The promotions suite had grown exactly that
+ * copy, and it would have failed the day somebody tested a midnight offer.
+ */
 export function sast(isoDate: string, hour: number, minute = 0): Date {
   const utcHour = hour - 2;
   const day = new Date(`${isoDate}T00:00:00Z`);
   day.setUTCMinutes(utcHour * 60 + minute);
   return day;
+}
+
+/**
+ * Named days, so a test about a Wednesday offer says Wednesday.
+ *
+ * Real dates in the week the suite was written, kept together because the
+ * relationships between them are the point: a test that moves TUESDAY without
+ * moving the others silently stops testing "the day before".
+ */
+export const MONDAY = '2026-08-31';
+export const TUESDAY = '2026-09-01';
+export const WEDNESDAY = '2026-09-02';
+export const THURSDAY = '2026-09-03';
+export const SATURDAY = '2026-09-05';
+export const SUNDAY = '2026-09-06';
+
+/**
+ * Runs a block with the clock stopped at one instant, then puts it back.
+ *
+ * `tests/setup.ts` already freezes time so the suite does not depend on the
+ * hour it runs at; this is for the tests that need a *particular* moment — a
+ * Wednesday at 11:00, a store's last minute before closing. The restore goes
+ * through `finally` so a failing expectation inside the block cannot leave the
+ * clock stopped for every test after it, which is the failure mode that makes a
+ * suite look randomly broken.
+ *
+ * It moves the clock and does not switch the fake timers on: setup.ts has
+ * already done that, and calling `useFakeTimers` again resets their
+ * configuration. That is not theoretical — `state-lock` spins until `Date.now()`
+ * passes a deadline, and re-installing the timers under it hangs the run rather
+ * than failing it.
+ */
+export async function frozenAt<T>(instant: Date, run: () => T | Promise<T>): Promise<T> {
+  vi.setSystemTime(instant);
+  try {
+    return await run();
+  } finally {
+    vi.setSystemTime(FIXED_NOW);
+  }
+}
+
+/**
+ * The courier provider, configured the way a deployment would be.
+ *
+ * Two suites had each written the same four variables out. The webhook secret
+ * is separate because only the suite that verifies callbacks needs it, and a
+ * fixture that always set it would hide a provider that works without one.
+ */
+export const UBER_ENV = {
+  BBQ_COURIER_PROVIDER: 'uber-direct',
+  BBQ_UBER_CLIENT_ID: 'client-id',
+  BBQ_UBER_CLIENT_SECRET: 'client-secret',
+  BBQ_UBER_CUSTOMER_ID: 'cus_test',
+} as const;
+
+export async function withUberDirect<T>(
+  run: () => T | Promise<T>,
+  webhookSecret?: string,
+): Promise<T> {
+  const wanted: Record<string, string> = { ...UBER_ENV };
+  if (webhookSecret !== undefined) wanted.BBQ_UBER_WEBHOOK_SECRET = webhookSecret;
+
+  const before = Object.fromEntries(
+    Object.keys(wanted).map((key) => [key, process.env[key]]),
+  ) as Record<string, string | undefined>;
+
+  for (const [key, value] of Object.entries(wanted)) process.env[key] = value;
+
+  try {
+    return await run();
+  } finally {
+    for (const [key, value] of Object.entries(before)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -252,6 +349,91 @@ export async function placeOrder(over: Record<string, unknown> = {}): Promise<Or
   return order;
 }
 
+/**
+ * A delivery order, placed through the real route.
+ *
+ * The default fixture store is a collection store, so passing only
+ * `mode: 'Delivery'` gets a 400 for a suburb that store does not serve — which
+ * is the route being right, not the fixture being awkward. Three suites had
+ * each worked that out and written the same four lines; a fourth and fifth
+ * wrote them again with a different street name.
+ *
+ * The address is arbitrary and the suburb is not: it comes off the store's own
+ * zone list, so this keeps working when the seed's delivery areas change.
+ */
+export async function placeDeliveryOrder(over: Record<string, unknown> = {}): Promise<Order> {
+  const store = aDeliveryStore();
+  return placeOrder({
+    storeId: store.id,
+    mode: 'Delivery',
+    address: '12 Oak Avenue',
+    suburb: aSuburbOf(store),
+    ...over,
+  });
+}
+
+/**
+ * An order placed by a signed-in customer, rather than a guest.
+ *
+ * The difference matters to everything about loyalty: points post to an
+ * account, and an order with no account behind it has nowhere to put them. The
+ * accounts suite had this same six-line block four times over, once per test,
+ * because `placeOrder` takes no cookie.
+ */
+export async function placeOrderAs(
+  cookie: string,
+  over: Record<string, unknown> = {},
+): Promise<Order> {
+  const response = await createOrderRoute(
+    request('/api/orders', { cookie, body: orderRequest([orderLine(aProduct())], over) }),
+  );
+  expect(response.status, await response.clone().text()).toBe(201);
+  const { order } = await bodyOf<{ order: Order }>(response);
+  return order;
+}
+
+/**
+ * An order standing at a given state, walked there through the real machine.
+ *
+ * `advanceOrder` rather than `setOrderStatus` on purpose: stepping through the
+ * transitions is what a kitchen actually does, so a test whose precondition is
+ * "ready" is set up by a route of steps the state machine allows rather than by
+ * writing the word into the store. An unreachable state throws here instead of
+ * failing three assertions later.
+ *
+ * `cancelled` is not on any path, so it is set — with the reason the store
+ * requires, since a cancellation without one is refused.
+ */
+export async function orderAt(
+  state: OrderStatus,
+  over: Record<string, unknown> = {},
+): Promise<Order> {
+  const order = over.mode === 'Delivery' ? await placeDeliveryOrder(over) : await placeOrder(over);
+
+  if (state === 'cancelled') {
+    const cancelled = setOrderStatus(order.id, state, 'Cancelled by a fixture');
+    if (!cancelled) throw new Error(`could not cancel ${order.orderNumber}`);
+    return cancelled;
+  }
+
+  const wanted = statesForMode(order.mode);
+  if (!wanted.includes(state)) {
+    throw new Error(`a ${order.mode} order never reaches ${state}`);
+  }
+
+  let current = order;
+  // Bounded by the state list rather than while(true): a machine that stops
+  // advancing should fail as "never reached ready", not hang the suite.
+  for (let step = 0; step < wanted.length && current.status !== state; step += 1) {
+    const moved = advanceOrder(current.id);
+    if (!moved) throw new Error(`${current.orderNumber} stopped at ${current.status}`);
+    current = moved;
+  }
+
+  if (current.status !== state) throw new Error(`${current.orderNumber} never reached ${state}`);
+  return current;
+}
+
 // ---------------------------------------------------------------------------
 // The console
 // ---------------------------------------------------------------------------
@@ -264,6 +446,18 @@ export async function operatorCookie(): Promise<string> {
   expect(response.status).toBe(200);
   const value = response.headers.get('set-cookie')?.split(';')[0]?.split('=').slice(1).join('=');
   return `${SESSION_COOKIE}=${value ?? ''}`;
+}
+
+/**
+ * Builds console requests that carry an operator's cookie.
+ *
+ * Curried on the cookie because the cookie is obtained in `beforeEach` and the
+ * requests are built inside the tests — two suites had each closed over a
+ * mutable `let cookie` to bridge that gap, which works until a test forgets to
+ * await the sign-in and reads an empty string.
+ */
+export function asOperator(cookie: string) {
+  return (url: string, body?: unknown): Request => request(url, { body, cookie });
 }
 
 // ---------------------------------------------------------------------------
@@ -513,6 +707,69 @@ export function signedWebhook(event: Record<string, unknown>, secret = PAYMENT_S
     method: 'POST',
     headers: { [SANDBOX_SIGNATURE_HEADER]: signBody(rawBody, secret) },
     body: rawBody,
+  });
+}
+
+/**
+ * Opens a payment for an order the way the checkout screen does.
+ *
+ * Through the route rather than the ledger, so a test that needs an open intent
+ * as a precondition gets one the API actually created — including the refusal
+ * when no gateway is configured, which is the thing several of these suites are
+ * really about.
+ */
+export async function openIntentFor(orderId: string): Promise<Response> {
+  const { POST } = await import('@/app/api/payments/intent/route');
+  return POST(request('/api/payments/intent', { body: { orderId } }));
+}
+
+/**
+ * Opens a payment and settles it, as a gateway callback would.
+ *
+ * Throws by name when there is no intent. The alternative is a non-null
+ * assertion, which turns "the intent was never opened" — usually because the
+ * caller forgot `withPaymentProvider` — into an unrelated failure two lines
+ * later, in a test that looks like it is about something else.
+ *
+ * The amount is read off the intent rather than passed in: the ledger refuses
+ * an event whose amount disagrees with what was asked for, so a fixture that
+ * invented one would be testing that refusal by accident.
+ */
+export async function settlePayment(
+  orderId: string,
+  status: 'captured' | 'failed' = 'captured',
+): Promise<PaymentIntent> {
+  await openIntentFor(orderId);
+  const intent = intentForOrder(orderId);
+  if (!intent) throw new Error(`No intent was opened for ${orderId}`);
+
+  const result = settle({
+    id: `evt_${status}_${intent.id}`,
+    intentId: intent.id,
+    status,
+    providerRef: 'pf_1',
+    amountCents: intent.amountCents,
+    failureReason: status === 'failed' ? 'The gateway reported FAILED' : null,
+  });
+
+  if (!result.ok) throw new Error(`settling ${intent.id} failed: ${result.error}`);
+  return result.intent;
+}
+
+/**
+ * An order that has been paid for, with the gateway switched on around it.
+ *
+ * The precondition for everything downstream of money: the kitchen may start,
+ * the console shows it as paid, the journey screen stops asking for payment.
+ * Written as one call because the three steps have to happen inside the same
+ * provider block — an intent opened with a gateway configured and settled
+ * without one is a state no deployment can reach.
+ */
+export async function aPaidOrder(over: Record<string, unknown> = {}): Promise<Order> {
+  return withPaymentProvider(async () => {
+    const order = await placeOrder(over);
+    await settlePayment(order.id, 'captured');
+    return order;
   });
 }
 

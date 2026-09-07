@@ -6,13 +6,16 @@ import { GET as orderRoute } from '@/app/api/orders/[id]/route';
 import { POST as advanceRoute } from '@/app/api/orders/[id]/advance/route';
 import { POST as intentRoute } from '@/app/api/payments/intent/route';
 import { payfastProvider } from '@/lib/payments/payfast/provider';
-import { intentForOrder, settle } from '@/lib/payments/ledger';
+import { setOrderStatus } from '@/lib/order-store';
 import {
+  aPaidOrder,
   blankState,
   bodyOf,
+  openIntentFor,
   params,
   placeOrder,
   request,
+  settlePayment,
   withPayfast,
   withPaymentProvider,
   withoutPaymentProvider,
@@ -35,34 +38,6 @@ type StatusBody = { order: { status: string }; payment: { required: boolean; sta
 
 const orderStatus = async (id: string): Promise<StatusBody> =>
   bodyOf<StatusBody>(await orderRoute(request(`http://localhost/api/orders/${id}`), params({ id })));
-
-/** Opens a payment for an order, the way the checkout screen does. */
-const openIntentFor = (orderId: string) =>
-  intentRoute(
-    request('http://localhost/api/payments/intent', { method: 'POST', body: { orderId } }),
-  );
-
-/**
- * Opens a payment and settles it, as a gateway callback would.
- *
- * A helper rather than the same nine lines three times, and it throws by name
- * when there is no intent: the alternative is a non-null assertion, which turns
- * "the intent was never opened" into an unrelated failure two lines later.
- */
-async function settleFor(orderId: string, status: 'captured' | 'failed'): Promise<void> {
-  await openIntentFor(orderId);
-  const intent = intentForOrder(orderId);
-  if (!intent) throw new Error(`No intent was opened for ${orderId}`);
-
-  settle({
-    id: `evt_${status}`,
-    intentId: intent.id,
-    status,
-    providerRef: 'pf_1',
-    amountCents: intent.amountCents,
-    failureReason: status === 'failed' ? 'PayFast reported FAILED' : null,
-  });
-}
 
 describe('what the order endpoint says about money', () => {
   it('reports payment as not required when no gateway is configured', async () => {
@@ -103,7 +78,7 @@ describe('what the order endpoint says about money', () => {
     const order = await placeOrder();
 
     const body = await withPaymentProvider(async () => {
-      await settleFor(order.id, 'captured');
+      await settlePayment(order.id, 'captured');
       return orderStatus(order.id);
     });
 
@@ -128,7 +103,7 @@ describe('the kitchen and the money', () => {
     const order = await placeOrder();
 
     const response = await withPaymentProvider(async () => {
-      await settleFor(order.id, 'captured');
+      await settlePayment(order.id, 'captured');
       return advanceRoute(
         request(`http://localhost/api/orders/${order.id}/advance`, { method: 'POST' }),
         params({ id: order.id }),
@@ -150,16 +125,91 @@ describe('the kitchen and the money', () => {
     expect(response.status).toBe(200);
   });
 
+  /**
+   * The guard holds at every step, not only the first.
+   *
+   * Only the first advance after capture had been covered, which would have
+   * passed just as well if the check lived in the route's "received" branch
+   * rather than on the transition itself. This walks a paid order the whole way
+   * to completed.
+   */
+  it('keeps letting a paid order through, all the way to completed', async () => {
+    const order = await aPaidOrder();
+
+    const step = () =>
+      advanceRoute(
+        request(`http://localhost/api/orders/${order.id}/advance`, { method: 'POST' }),
+        params({ id: order.id }),
+      );
+
+    const { statuses, past } = await withPaymentProvider(async () => {
+      const seen: string[] = [];
+      for (let taken = 0; taken < 3; taken += 1) {
+        const response = await step();
+        expect(response.status, `step ${taken}`).toBe(200);
+        seen.push((await bodyOf<StatusBody>(response)).order.status);
+      }
+      // A collection order has nowhere left to go from completed.
+      return { statuses: seen, past: await step() };
+    });
+
+    expect(statuses).toEqual(['preparing', 'ready', 'completed']);
+    expect(past.status).toBe(409);
+  });
+
   it('does not cook an order whose payment failed', async () => {
     const order = await placeOrder();
 
     const response = await withPaymentProvider(async () => {
-      await settleFor(order.id, 'failed');
+      await settlePayment(order.id, 'failed');
       return advanceRoute(
         request(`http://localhost/api/orders/${order.id}/advance`, { method: 'POST' }),
         params({ id: order.id }),
       );
     });
+
+    expect(response.status).toBe(409);
+  });
+});
+
+/**
+ * What happens to money when an order is called off.
+ *
+ * A store cancels an order the customer has already paid for — load shedding,
+ * a delivery nobody can reach, an item that ran out. This is not covered
+ * anywhere, and the answer today is that nothing happens: the capture stands
+ * and there is no refund path, because a refund is a call to a gateway this
+ * deployment has no merchant account for.
+ *
+ * Written down as a test rather than left as a comment, so the gap is visible
+ * in a run rather than only to somebody reading the ledger. If a refund is ever
+ * wired in, this fails and names what changed.
+ */
+describe('cancelling an order that was already paid for', () => {
+  it('leaves the payment captured, with nothing that refunds it', async () => {
+    const order = await aPaidOrder();
+
+    const cancelled = setOrderStatus(order.id, 'cancelled', 'Load shedding');
+    expect(cancelled?.status).toBe('cancelled');
+
+    const after = await withPaymentProvider(() => orderStatus(order.id));
+    expect(after.order.status).toBe('cancelled');
+    // The money is still taken. Refunding it is a merchant-account operation,
+    // and brief §12 does not grant one.
+    expect(after.payment).toEqual({ required: true, status: 'captured' });
+  });
+
+  /** A cancelled order is not cooked, whatever its payment says. */
+  it('still refuses to advance it', async () => {
+    const order = await aPaidOrder();
+    setOrderStatus(order.id, 'cancelled', 'Load shedding');
+
+    const response = await withPaymentProvider(() =>
+      advanceRoute(
+        request(`http://localhost/api/orders/${order.id}/advance`, { method: 'POST' }),
+        params({ id: order.id }),
+      ),
+    );
 
     expect(response.status).toBe(409);
   });

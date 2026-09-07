@@ -10,11 +10,12 @@ import { readState } from '@/lib/demo-state';
 import { suppress } from '@/lib/notifications/suppression';
 import {
   CONSOLE_PASSPHRASE,
-  aDeliveryStore,
-  aSuburbOf,
+  UBER_ENV,
+  asOperator,
   blankState,
   bodyOf,
   operatorCookie,
+  placeDeliveryOrder,
   placeOrder,
   request,
   stubFetch,
@@ -37,13 +38,6 @@ import {
 let cookie: string;
 let restoreFetch: (() => void) | null = null;
 
-const UBER_ENV = {
-  BBQ_COURIER_PROVIDER: 'uber-direct',
-  BBQ_UBER_CLIENT_ID: 'client-id',
-  BBQ_UBER_CLIENT_SECRET: 'client-secret',
-  BBQ_UBER_CUSTOMER_ID: 'cus_test',
-} as const;
-
 beforeEach(async () => {
   process.env.BBQ_ADMIN_PASSWORD = CONSOLE_PASSPHRASE;
   blankState();
@@ -63,28 +57,11 @@ const withUber = () => {
 };
 
 const act = (body: unknown) =>
-  problemsRoute(request('/api/admin/problems', { body, cookie }));
+  problemsRoute(asOperator(cookie)('/api/admin/problems', body));
 
 /** Deliberately without the operator cookie. */
 const actSignedOut = (body: unknown) =>
   problemsRoute(request('/api/admin/problems', { body }));
-
-/**
- * A delivery order, which is the only kind a courier is asked for.
- *
- * The default store in the fixtures is a collection store, so passing only
- * `mode: 'Delivery'` gets a 400 from the route for a suburb that store does not
- * serve — which is the route being right, not the fixture being awkward.
- */
-const aDeliveryOrder = async () => {
-  const store = aDeliveryStore();
-  return placeOrder({
-    storeId: store.id,
-    mode: 'Delivery',
-    address: '12 Oak Avenue',
-    suburb: aSuburbOf(store),
-  });
-};
 
 describe('who may act', () => {
   it('refuses somebody who is not signed in', async () => {
@@ -142,7 +119,7 @@ describe('restoring an address', () => {
 
 describe('retrying a handoff', () => {
   it('says so when the order was never handed off', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     const response = await act({
       action: 'retry-handoff',
       orderId: order.id,
@@ -162,7 +139,7 @@ describe('retrying a handoff', () => {
    * till twice, which a kitchen reads as two of everything.
    */
   it('refuses to send a handoff that already succeeded', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     withUber();
     restoreFetch = stubFetch((path) =>
       path.includes('oauth')
@@ -182,7 +159,7 @@ describe('retrying a handoff', () => {
   });
 
   it('sends a failed handoff again, and reports that it was accepted', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     withUber();
 
     // First attempt: Uber is having a bad afternoon.
@@ -215,7 +192,7 @@ describe('retrying a handoff', () => {
   });
 
   it('says which system is missing when none is attached', async () => {
-    const order = await aDeliveryOrder();
+    const order = await placeDeliveryOrder();
     withUber();
     restoreFetch = stubFetch((path) =>
       path.includes('oauth')

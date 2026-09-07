@@ -11,6 +11,7 @@ import {
   CONSOLE_PASSPHRASE,
   aChickenProduct,
   aDeliveryStore,
+  asOperator as operatorRequest,
   bodyOf,
   operatorCookie,
   orderLine,
@@ -42,7 +43,7 @@ afterEach(() => {
   delete process.env.BBQ_ADMIN_PASSWORD;
 });
 
-const asOperator = (url: string, body: unknown) => request(url, { body, cookie });
+const asOperator = (url: string, body: unknown) => operatorRequest(cookie)(url, body);
 
 describe('marking an item sold out', () => {
   it('is reflected in the catalogue the storefront reads', async () => {
