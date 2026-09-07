@@ -20,7 +20,7 @@ import { POST as createOrderRoute } from '@/app/api/orders/route';
 import { POST as signInRoute } from '@/app/api/admin/session/route';
 import { CUSTOMER_COOKIE } from '@/lib/accounts/session';
 import { SESSION_COOKIE } from '@/lib/admin-auth';
-import { mutateState } from '@/lib/demo-state';
+import { mutateState, readState } from '@/lib/demo-state';
 import { advanceOrder, setOrderStatus } from '@/lib/order-store';
 import { promotionFor } from '@/lib/promotions';
 import { intentForOrder, settle } from '@/lib/payments/ledger';
@@ -1430,6 +1430,13 @@ export async function advancePublicly(id: string): Promise<Response> {
  * on its own stores page, so finding it in a response says nothing about a
  * customer. Including it would fail every delivery test for a value the
  * business prints on the website.
+ *
+ * So is the postal code, for a different reason. Four digits are too short to
+ * search for in a body of text: `2196` is a real postal code and also the
+ * middle of `R219.60`, so a test looking for it would one day fail on an
+ * amount and send somebody hunting for a leak that was a price. It is checked
+ * by name instead, in both suites that care, where there is no ambiguity about
+ * which field is being read.
  */
 export function personalDetailsOf(order: Order): string[] {
   return [
@@ -1437,7 +1444,6 @@ export function personalDetailsOf(order: Order): string[] {
     order.customer.email,
     order.customer.mobile,
     order.address,
-    order.postalCode,
     order.accountId,
   ].filter((value): value is string => typeof value === 'string' && value.length > 0);
 }
@@ -1450,4 +1456,46 @@ export function personalDetailsOf(order: Order): string[] {
  */
 export function fieldsOf(schema: { shape: Record<string, unknown> }): string[] {
   return Object.keys(schema.shape).sort();
+}
+
+// ---------------------------------------------------------------------------
+// Erasure, and proving it reached everywhere
+
+/**
+ * A delivery order placed by a signed-in customer, through the real route.
+ *
+ * The combination that matters and that nothing built: `placeOrderAs` gives an
+ * order with an account behind it but no address, and `placeDeliveryOrder`
+ * gives an address with no account. Erasure only has something to erase where
+ * both are true, and the existing suite's erasure test used a collection order
+ * — so the address it should have been clearing was never on the record it
+ * looked at.
+ */
+export async function placeDeliveryOrderAs(
+  cookie: string,
+  over: Record<string, unknown> = {},
+): Promise<Order> {
+  const response = await createOrderRoute(
+    request('/api/orders', { cookie, body: deliveryRequest(over) }),
+  );
+  expect(response.status, await response.clone().text()).toBe(201);
+  return (await bodyOf<{ order: Order }>(response)).order;
+}
+
+/** Erases the signed-in customer through the real route. */
+export async function eraseAccountVia(cookie: string): Promise<Response> {
+  const { DELETE } = await import('@/app/api/account/privacy/route');
+  return DELETE(request('/api/account/privacy', { cookie, method: 'DELETE' }));
+}
+
+/**
+ * Everything the server has written down, as one string to search.
+ *
+ * The point is to ask "is this person's mobile number anywhere at all" rather
+ * than "is it in the field I remembered to check". The erasure test that
+ * shipped asserted one field on one order and passed while the street address
+ * sat two properties away.
+ */
+export function persistedState(): string {
+  return JSON.stringify(readState());
 }

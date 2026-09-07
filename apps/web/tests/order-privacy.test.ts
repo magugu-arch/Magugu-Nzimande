@@ -47,6 +47,12 @@ describe('the public order endpoint', () => {
     for (const detail of personalDetailsOf(order)) {
       expect(text, `the response contains ${detail}`).not.toContain(detail);
     }
+    // By name, because four digits are too short to search a body for — see
+    // the note on `personalDetailsOf`.
+    expect(order.postalCode, 'the fixture should have placed one').toBeTruthy();
+    expect(await bodyOf<{ order: Record<string, unknown> }>(
+      await fetchOrderPublicly(order.id),
+    ).then((body) => body.order)).not.toHaveProperty('postalCode');
   });
 
   it('still tells them everything the journey screen shows', async () => {
