@@ -2,19 +2,19 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { POST as createOrderRoute } from '@/app/api/orders/route';
 import { formatMinute, isOpenNow, minutesNowInSast } from '@/lib/trading';
 import {
-  THURSDAY,
-  WEDNESDAY,
   aCollectionStore,
   aProduct,
   at,
   blankState,
-  bodyOf,
+  errorOf,
   frozenAt,
   orderLine,
   orderRequest,
   request,
   sast,
   storeWithHours,
+  THURSDAY,
+  WEDNESDAY,
 } from './fixtures';
 
 beforeEach(blankState);
@@ -142,7 +142,7 @@ describe('placing an order outside trading hours', () => {
       const response = await anOrder();
       expect(response.status).toBe(409);
       // Read once: a Response body is a stream and cannot be consumed twice.
-      const { error } = await bodyOf<{ error: string }>(response);
+      const error = await errorOf(response);
       expect(error).toMatch(/closed/i);
       expect(error).toContain(aCollectionStore().hours.label);
     });

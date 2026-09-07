@@ -15,10 +15,11 @@ import { readState } from '@/lib/demo-state';
 import type { Message } from '@/lib/notifications/transport';
 import { pushToPos } from '@/lib/fulfilment/handoff';
 import {
-  CONSOLE_PASSPHRASE,
   blankState,
   bodyOf,
   customer,
+  disableConsole,
+  enableConsole,
   operatorCookie,
   placeOrder,
   request,
@@ -334,11 +335,11 @@ describe('what the console can now see', () => {
   // The console fails closed with no passphrase configured, so these three
   // need one — the same way tests/admin-operations.test.ts does it.
   beforeAll(() => {
-    process.env.BBQ_ADMIN_PASSWORD = CONSOLE_PASSPHRASE;
+    enableConsole();
   });
 
   afterAll(() => {
-    delete process.env.BBQ_ADMIN_PASSWORD;
+    disableConsole();
   });
 
   /**

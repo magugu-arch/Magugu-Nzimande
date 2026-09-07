@@ -1,12 +1,10 @@
 import { OrderStatusSchema, z } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import { refuseUnlessOperator } from '@/lib/admin-auth';
-import { readAudit } from '@/lib/catalogue-state';
-import { labelFor, listOrders, setOrderStatus } from '@/lib/order-store';
+import { setOrderStatus } from '@/lib/order-store';
 import { notifyMoved } from '@/lib/notifications/send';
-import { requestCourier, unacknowledged } from '@/lib/fulfilment/handoff';
-import { listSuppressed } from '@/lib/notifications/suppression';
-import { listIntents } from '@/lib/payments/ledger';
+import { requestCourier } from '@/lib/fulfilment/handoff';
+import { consoleView } from '@/lib/console-view';
 import { activeCourier } from '@/lib/fulfilment/registry';
 
 /**
@@ -32,11 +30,7 @@ export function GET(request: Request) {
   if (refusal) return refusal;
 
   return NextResponse.json({
-    orders: listOrders().map((order) => ({ ...order, statusLabel: labelFor(order) })),
-    audit: readAudit(),
-    unacknowledged: unacknowledged(),
-    suppressed: listSuppressed(),
-    payments: listIntents(),
+    ...consoleView(),
   });
 }
 
@@ -77,10 +71,6 @@ export async function POST(request: Request) {
   if (order.status === 'ready') await requestCourier(order, activeCourier());
 
   return NextResponse.json({
-    orders: listOrders().map((candidate) => ({ ...candidate, statusLabel: labelFor(candidate) })),
-    audit: readAudit(),
-    unacknowledged: unacknowledged(),
-    suppressed: listSuppressed(),
-    payments: listIntents(),
+    ...consoleView(),
   });
 }

@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PRODUCTS, STORES, optionGroupsFor } from '@bbq/seed';
@@ -307,6 +307,29 @@ export function orderRequest(
   return { ...base, postalCode: '2196' };
 }
 
+/**
+ * A create-order body for a delivery, complete enough for the route to take it.
+ *
+ * Six suites had built this by hand, between them inventing four street names
+ * and forgetting the postal code twice — which the route requires for a
+ * delivery, so the ones that forgot were testing the 400 rather than the thing
+ * they meant to.
+ *
+ * The suburb comes off the store's own zone list rather than being written
+ * down, so this keeps working when the seed's delivery areas change.
+ */
+export function deliveryRequest(over: Record<string, unknown> = {}): Record<string, unknown> {
+  const store = aDeliveryStore();
+  return orderRequest([orderLine(aProduct())], {
+    storeId: store.id,
+    mode: 'Delivery',
+    address: '12 Oak Avenue',
+    suburb: aSuburbOf(store),
+    postalCode: '2196',
+    ...over,
+  });
+}
+
 type RequestOptions = { body?: unknown; cookie?: string; method?: string };
 
 /** A Request for a route handler. GET unless a body is given. */
@@ -326,6 +349,17 @@ export function params<T extends Record<string, string>>(values: T): { params: P
 
 export async function bodyOf<T = Record<string, unknown>>(response: Response): Promise<T> {
   return (await response.json()) as T;
+}
+
+/**
+ * The message a refused response carries.
+ *
+ * Every refusal in this application answers `{ error }`, and four suites had
+ * each written the type parameter out to read it. Named so a test asserting on
+ * the wording says so.
+ */
+export async function errorOf(response: Response): Promise<string> {
+  return (await bodyOf<{ error?: string }>(response)).error ?? '';
 }
 
 // ---------------------------------------------------------------------------
@@ -449,6 +483,43 @@ export async function operatorCookie(): Promise<string> {
 }
 
 /**
+ * Switches the console on and signs an operator in, for the duration of a block.
+ *
+ * The console fails closed without `BBQ_ADMIN_PASSWORD` — it answers 503 rather
+ * than 401, because an unconfigured console is a deployment problem and not a
+ * wrong password. Three suites had each worked that out and set the variable in
+ * their own `beforeEach`, and a fourth spent a test run discovering it again.
+ *
+ * The cookie is handed to the block rather than stored, so nothing outside the
+ * block can use a session the environment no longer supports.
+ */
+/**
+ * The same switch for suites that sign in once in `beforeEach`.
+ *
+ * `withConsole` wraps a block; these two are for the suites built the other way
+ * round, where the cookie is obtained once and every test uses it. Four suites
+ * had written both lines out.
+ */
+export function enableConsole(): void {
+  process.env.BBQ_ADMIN_PASSWORD = CONSOLE_PASSPHRASE;
+}
+
+export function disableConsole(): void {
+  delete process.env.BBQ_ADMIN_PASSWORD;
+}
+
+export async function withConsole<T>(run: (cookie: string) => T | Promise<T>): Promise<T> {
+  const before = process.env.BBQ_ADMIN_PASSWORD;
+  process.env.BBQ_ADMIN_PASSWORD = CONSOLE_PASSPHRASE;
+  try {
+    return await run(await operatorCookie());
+  } finally {
+    if (before === undefined) delete process.env.BBQ_ADMIN_PASSWORD;
+    else process.env.BBQ_ADMIN_PASSWORD = before;
+  }
+}
+
+/**
  * Builds console requests that carry an operator's cookie.
  *
  * Curried on the cookie because the cookie is obtained in `beforeEach` and the
@@ -528,6 +599,11 @@ export function anApiOrderStatus(
     payment: { required: false, status: null },
     ...over,
   };
+}
+
+/** A saved address as the API answers it. */
+export function anApiAddress(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return { id: 'adr_1', label: 'Home', address: '12 Oak Avenue', suburb: 'Sandton', note: '', ...over };
 }
 
 /** An account as the API answers it. */
@@ -649,9 +725,19 @@ export function blankState(): void {
 /** Long enough for the session module to accept it as a secret. */
 export const SESSION_SECRET = 'a-test-session-secret-long-enough';
 
+/**
+ * The password every account fixture uses.
+ *
+ * A constant because four suites had the literal written out sixteen times
+ * between them — registering with it, signing in with it, and asserting that a
+ * response never contains it. A test that changes one of those and not the
+ * others fails in a way that looks like a bug in the password rules.
+ */
+export const PASSWORD = 'a-long-enough-password';
+
 /** A registration body that passes every rule, with anything overridden. */
 export function registration(over: Record<string, unknown> = {}): Record<string, unknown> {
-  return { ...customer, password: 'a-long-enough-password', ...over };
+  return { ...customer, password: PASSWORD, ...over };
 }
 
 /**
@@ -764,6 +850,32 @@ export function apiRoutesOnDisk(): string[] {
 /** The single-file review build's template, read by two suites. */
 export function demoTemplate(): string {
   return readFileSync(path.join(WEB, 'static-demo/index.template.html'), 'utf8');
+}
+
+/**
+ * A file under the app, by its path from the app root.
+ *
+ * Eleven suites read source files to check something the type system cannot —
+ * that a component asks for a postal code, that the Dockerfile copies what it
+ * builds — and each resolved `../` from `__dirname` itself. Nineteen of those,
+ * all one directory hop from being wrong the day a suite moves into a
+ * subfolder.
+ */
+export function webFile(relativePath: string): string {
+  return readFileSync(path.join(WEB, relativePath), 'utf8');
+}
+
+/**
+ * The generated review build, or null when it has not been built.
+ *
+ * Null rather than a throw, and null rather than an empty string: the file is
+ * generated and not committed, so a suite that checks it has to be able to say
+ * "not built here" and skip. Two tests had each written that `existsSync` guard
+ * and the comment explaining it.
+ */
+export function builtDemoPage(): string | null {
+  const built = path.join(WEB, 'static-demo/bbq-chicken-website.html');
+  return existsSync(built) ? readFileSync(built, 'utf8') : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -941,6 +1053,25 @@ export async function aPaidOrder(over: Record<string, unknown> = {}): Promise<Or
   return withPaymentProvider(async () => {
     const order = await placeOrder(over);
     await settlePayment(order.id, 'captured');
+    return order;
+  });
+}
+
+/**
+ * An order paid for and then sent back — the state a cancelled paid order ends
+ * in, and the one nothing could reach until the refund path was built.
+ *
+ * The whole sequence happens inside one provider block, like `aPaidOrder`: an
+ * intent opened with a gateway configured and refunded without one is a state
+ * no deployment can be in.
+ */
+export async function aRefundedOrder(over: Record<string, unknown> = {}): Promise<Order> {
+  const { refundPayment } = await import('@/lib/payments/ledger');
+  return withPaymentProvider(async () => {
+    const order = await placeOrder(over);
+    await settlePayment(order.id, 'captured');
+    const result = await refundPayment(order.id, 'Refunded by a fixture');
+    if (!result.ok) throw new Error(`refunding ${order.orderNumber} failed: ${result.error}`);
     return order;
   });
 }

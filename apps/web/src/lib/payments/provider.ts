@@ -80,7 +80,25 @@ export interface PaymentProvider {
 
   /** The event this callback carries, or null if it is not one we act on. */
   parse(rawBody: string): PaymentEvent | null;
+
+  /**
+   * Sends money back for a payment this gateway captured.
+   *
+   * Optional, and the only optional method here, because refunding is the one
+   * operation a gateway may genuinely not offer through its API — several
+   * South African providers require it to be done in their dashboard by a
+   * person with the merchant login. An adapter that cannot refund leaves this
+   * undefined rather than throwing or quietly succeeding, and the caller
+   * refuses visibly.
+   *
+   * Takes the provider's own reference rather than our intent id: a refund is
+   * an instruction about a transaction on their side, and they have never heard
+   * of ours.
+   */
+  refund?(providerRef: string, amountCents: number): Promise<RefundResult>;
 }
+
+export type RefundResult = { ok: true; providerRef: string } | { ok: false; error: string };
 
 /**
  * HMAC-SHA256 over the raw body, compared without leaking where it differs.

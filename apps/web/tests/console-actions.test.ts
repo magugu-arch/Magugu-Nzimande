@@ -9,16 +9,18 @@ import { isSoldOut, replaceSoldOut, setSoldOut } from '@/lib/catalogue-state';
 import { readState } from '@/lib/demo-state';
 import { suppress } from '@/lib/notifications/suppression';
 import {
-  CONSOLE_PASSPHRASE,
-  UBER_ENV,
   asOperator,
   blankState,
   bodyOf,
+  disableConsole,
+  enableConsole,
+  errorOf,
   operatorCookie,
   placeDeliveryOrder,
   placeOrder,
   request,
   stubFetch,
+  UBER_ENV,
 } from './fixtures';
 
 /**
@@ -39,7 +41,7 @@ let cookie: string;
 let restoreFetch: (() => void) | null = null;
 
 beforeEach(async () => {
-  process.env.BBQ_ADMIN_PASSWORD = CONSOLE_PASSPHRASE;
+  enableConsole();
   blankState();
   cookie = await operatorCookie();
 });
@@ -47,7 +49,7 @@ beforeEach(async () => {
 afterEach(() => {
   restoreFetch?.();
   restoreFetch = null;
-  delete process.env.BBQ_ADMIN_PASSWORD;
+  disableConsole();
   for (const key of Object.keys(UBER_ENV)) delete process.env[key];
   forgetTokens();
 });
@@ -96,7 +98,7 @@ describe('restoring an address', () => {
     const response = await act({ action: 'unsuppress', address: 'thandi@example.com' });
 
     expect(response.status).toBe(409);
-    expect((await bodyOf<{ error: string }>(response)).error).toMatch(/only they can restore/i);
+    expect((await errorOf(response))).toMatch(/only they can restore/i);
   });
 
   it('refuses to undo an unsubscribe', async () => {
@@ -155,7 +157,7 @@ describe('retrying a handoff', () => {
     });
 
     expect(response.status).toBe(409);
-    expect((await bodyOf<{ error: string }>(response)).error).toMatch(/already succeeded/i);
+    expect((await errorOf(response))).toMatch(/already succeeded/i);
   });
 
   it('sends a failed handoff again, and reports that it was accepted', async () => {
@@ -213,7 +215,7 @@ describe('retrying a handoff', () => {
     });
 
     expect(response.status).toBe(503);
-    expect((await bodyOf<{ error: string }>(response)).error).toMatch(/no courier system/i);
+    expect((await errorOf(response))).toMatch(/no courier system/i);
   });
 });
 
@@ -284,7 +286,7 @@ describe('asking the till what has run out', () => {
     const response = await act({ action: 'sync-availability' });
 
     expect(response.status).toBe(503);
-    expect((await bodyOf<{ error: string }>(response)).error).toMatch(/no kitchen system/i);
+    expect((await errorOf(response))).toMatch(/no kitchen system/i);
   });
 
   it('is refused to somebody who is not signed in', async () => {

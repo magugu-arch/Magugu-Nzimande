@@ -3,7 +3,11 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { AA, contrastRatio, luminance, meetsAA, parseHex, ratioOf } from '@/lib/a11y/contrast';
 import tokens from '../../../packages/ui/src/tokens.json';
-import { demoTemplate, filesUnder } from './fixtures';
+import {
+  demoTemplate,
+  filesUnder,
+  webFile,
+} from './fixtures';
 
 /**
  * Accessibility, checked rather than asserted.
@@ -226,7 +230,7 @@ describe('the review build', () => {
    * markup. The Next.js site is where the real document is written.
    */
   it('declares a language on the document it actually owns', () => {
-    const layout = readFileSync(path.resolve(__dirname, '../src/app/layout.tsx'), 'utf8');
+    const layout = webFile('src/app/layout.tsx');
     expect(layout).toMatch(/<html[^>]*lang=["']en-ZA["']/);
   });
 

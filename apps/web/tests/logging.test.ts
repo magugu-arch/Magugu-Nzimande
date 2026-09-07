@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { errorFields, log, logger, redact, setSink } from '@/lib/observability/log';
-import { customer } from './fixtures';
+import {
+  customer,
+  PASSWORD,
+} from './fixtures';
 
 /**
  * Structured logging, and the redaction that is the actual point of it.
@@ -58,7 +61,7 @@ describe('redaction', () => {
    */
   it('never prints anything named like a secret', () => {
     logger.info('sign-in', {
-      password: 'a-long-enough-password',
+      password: PASSWORD,
       passphrase: 'twice-fried-in-olive-oil',
       secret: 'sk_live_abc123',
       token: 'reset-token',
@@ -70,7 +73,7 @@ describe('redaction', () => {
 
     const line = written[0] as string;
     for (const leaked of [
-      'a-long-enough-password',
+      PASSWORD,
       'twice-fried-in-olive-oil',
       'sk_live_abc123',
       'reset-token',
@@ -90,12 +93,12 @@ describe('redaction', () => {
   it('walks into a nested object, because that is how a secret gets logged', () => {
     logger.info('request', {
       route: '/api/account/session',
-      body: { email: customer.email, password: 'a-long-enough-password' },
+      body: { email: customer.email, password: PASSWORD },
       headers: { cookie: 'bbq_customer=abc', 'content-type': 'application/json' },
     });
 
     const line = written[0] as string;
-    expect(line).not.toContain('a-long-enough-password');
+    expect(line).not.toContain(PASSWORD);
     expect(line).not.toContain('bbq_customer=abc');
     expect(line, 'and keeps what is safe').toContain('application/json');
   });

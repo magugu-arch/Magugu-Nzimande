@@ -3,7 +3,7 @@ import type { OrderPayment, PaymentEvent, PaymentIntent } from '@bbq/types';
 import { isSettled } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
 import { readOrder } from '../order-store';
-import { isPaymentConfigured } from './registry';
+import { activeProvider, isPaymentConfigured } from './registry';
 
 /**
  * The record of what has been asked for and what has been settled.
@@ -152,6 +152,83 @@ export function settle(event: PaymentEvent): SettleResult {
     if (state.payments.appliedEvents.length > 1_000) state.payments.appliedEvents.shift();
 
     pushAudit(state, 'payments', `${held.orderNumber} payment ${event.status}`);
+    return { ...held };
+  });
+
+  if (!updated) return { ok: false, status: 404, error: 'No such payment' };
+  return { ok: true, intent: updated, replayed: false };
+}
+
+/**
+ * Sends a captured payment back.
+ *
+ * A store cancels an order somebody has already paid for — load shedding, a
+ * delivery nobody can reach, an item that ran out — and until now the capture
+ * simply stood. There was no refund anywhere: the status existed in the type
+ * system and nothing could ever produce it.
+ *
+ * The order of operations is the whole point, and it is the opposite of the
+ * tempting one. The gateway is asked first and the ledger is written only if it
+ * agrees. Writing "refunded" and then calling out means a failed call leaves a
+ * customer looking at a refund that never happened, which is a worse lie than
+ * an error message.
+ *
+ * Four refusals, each of which was a way to send money nobody meant to:
+ *
+ *  - No gateway configured. 501, like opening a payment: a build that cannot
+ *    take money must not claim to have returned any.
+ *  - A gateway with no refund API. Refused by name rather than silently
+ *    recorded, because several South African providers genuinely require a
+ *    person in their dashboard, and an operator needs to be told to go there.
+ *  - A payment that was not captured. Nothing to send back.
+ *  - A payment already refunded. Handed back as it stands rather than sent
+ *    twice, which is the same idempotency the settle path has.
+ */
+export async function refundPayment(orderId: string, reason: string): Promise<SettleResult> {
+  const provider = activeProvider();
+  if (!provider) {
+    return { ok: false, status: 501, error: 'No payment gateway is configured' };
+  }
+
+  const intent = intentForOrder(orderId);
+  if (!intent) return { ok: false, status: 404, error: 'That order has no payment' };
+
+  if (intent.status === 'refunded') {
+    return { ok: true, intent, replayed: true };
+  }
+  if (intent.status !== 'captured') {
+    return {
+      ok: false,
+      status: 409,
+      error: `That payment is ${intent.status}; only a captured payment can be refunded`,
+    };
+  }
+  if (!intent.providerRef) {
+    return { ok: false, status: 409, error: 'That payment has no provider reference to refund' };
+  }
+
+  if (!provider.refund) {
+    return {
+      ok: false,
+      status: 501,
+      error: `${provider.name} does not refund through its API; refund it in their dashboard`,
+    };
+  }
+
+  const result = await provider.refund(intent.providerRef, intent.amountCents);
+  if (!result.ok) {
+    return { ok: false, status: 502, error: `The gateway refused the refund: ${result.error}` };
+  }
+
+  const updated = mutateState((state) => {
+    const held = state.payments.intents.find((candidate) => candidate.id === intent.id);
+    if (!held) return null;
+
+    held.status = 'refunded';
+    held.failureReason = reason;
+    held.updatedAt = now();
+
+    pushAudit(state, 'payments', `${held.orderNumber} refunded: ${reason}`);
     return { ...held };
   });
 

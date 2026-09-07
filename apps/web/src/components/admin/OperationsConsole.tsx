@@ -37,6 +37,8 @@ type SuppressedRow = { address: string; reason: string; at: string };
 
 type PaymentRow = {
   id: string;
+  /** The order this paid for, which is what a refund is asked for by. */
+  orderId: string;
   orderNumber: string;
   amountCents: number;
   status: string;
@@ -216,6 +218,53 @@ export function OperationsConsole({
         setStores(data.stores);
         await refreshQueue();
       }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * Sends a captured payment back.
+   *
+   * A reason first, and no refund without one — it goes in the audit log and it
+   * is what somebody reads six weeks later when the customer asks. The same
+   * rule as a cancellation, for the same reason.
+   *
+   * Confirmed as well as reasoned, because this is the one control on this
+   * screen that moves real money and it sits in a list an operator is scanning
+   * for something else.
+   */
+  async function refundPayment(orderId: string, orderNumber: string) {
+    const reason = window.prompt(`Why is ${orderNumber} being refunded?`)?.trim();
+    if (!reason) return;
+
+    setBusy(true);
+    setProblemNote(null);
+    try {
+      const response = await fetch('/api/admin/payments', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'refund', orderId, reason }),
+      });
+      if (endedSession(response)) return;
+
+      const data = (await response.json()) as QueueResponse & {
+        error?: string;
+        replayed?: boolean;
+      };
+
+      if (!response.ok) {
+        // The gateway's own words, or the ledger's. Both are things the
+        // operator has to act on: go to the dashboard, or stop trying.
+        setProblemNote(data.error ?? 'That refund did not go through.');
+        return;
+      }
+
+      setPayments(data.payments ?? []);
+      setAudit(data.audit);
+      setProblemNote(data.replayed ? 'That payment was already refunded.' : 'Refunded.');
+    } catch {
+      setProblemNote('We could not reach the server.');
     } finally {
       setBusy(false);
     }
@@ -525,6 +574,18 @@ export function OperationsConsole({
               without going through support.
             </p>
 
+            {/*
+              The outcome of a refund, shown here rather than only on the tabs
+              that had it. Without this the refusals the ledger is careful to
+              word — no gateway, wrong status, a provider that refunds only in
+              its dashboard — would have gone to a variable nothing rendered.
+            */}
+            {problemNote && (
+              <p role="status" className="mt-3 text-sm font-semibold">
+                {problemNote}
+              </p>
+            )}
+
             {payments.length === 0 ? (
               <p className="mt-4 text-sm text-muted">
                 Nothing yet. On a deployment with no gateway configured there is nothing to
@@ -558,6 +619,21 @@ export function OperationsConsole({
                     </p>
                     {entry.failureReason && (
                       <p className="mt-1 text-xs text-red">{entry.failureReason}</p>
+                    )}
+                    {/*
+                      Offered only on a captured payment. The ledger refuses the
+                      rest anyway, but a button that is always there and usually
+                      refuses teaches an operator to ignore what it says.
+                    */}
+                    {entry.status === 'captured' && (
+                      <button
+                        type="button"
+                        className="mt-2 rounded-pill border border-red px-3 py-1 text-xs font-bold text-red disabled:opacity-50"
+                        disabled={busy}
+                        onClick={() => refundPayment(entry.orderId, entry.orderNumber)}
+                      >
+                        Refund
+                      </button>
                     )}
                   </li>
                 ))}

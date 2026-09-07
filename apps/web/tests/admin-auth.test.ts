@@ -8,7 +8,15 @@ import {
   POST as signInRoute,
 } from '@/app/api/admin/session/route';
 import { SESSION_COOKIE, isValidToken, signIn } from '@/lib/admin-auth';
-import { CONSOLE_PASSPHRASE, cookieValue, operatorCookie, request, resetState } from './fixtures';
+import {
+  CONSOLE_PASSPHRASE,
+  cookieValue,
+  disableConsole,
+  enableConsole,
+  operatorCookie,
+  request,
+  resetState,
+} from './fixtures';
 
 /**
  * The console's auth boundary, driven through the route handlers.
@@ -23,12 +31,12 @@ const asOperator = (cookie: string, url: string, body?: unknown) =>
   request(url, { body, cookie });
 
 beforeEach(() => {
-  process.env.BBQ_ADMIN_PASSWORD = CONSOLE_PASSPHRASE;
+  enableConsole();
   resetState();
 });
 
 afterEach(() => {
-  delete process.env.BBQ_ADMIN_PASSWORD;
+  disableConsole();
 });
 
 describe('a caller who has not signed in', () => {
@@ -220,7 +228,7 @@ describe('the session token itself', () => {
 
 describe('a deployment with no passphrase set', () => {
   beforeEach(() => {
-    delete process.env.BBQ_ADMIN_PASSWORD;
+    disableConsole();
   });
 
   /** Fails closed. The console locks rather than opening. */

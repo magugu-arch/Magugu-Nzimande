@@ -1,19 +1,17 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { CreateOrderRequestSchema } from '@bbq/types';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { POST as createOrderRoute } from '@/app/api/orders/route';
 import { dropoffAddress } from '@/lib/fulfilment/uber/address';
 import { readOrder } from '@/lib/order-store';
 import {
-  aDeliveryStore,
   aProduct,
-  aSuburbOf,
   blankState,
   bodyOf,
+  deliveryRequest,
   orderLine,
   orderRequest,
   request,
+  webFile,
 } from './fixtures';
 
 /**
@@ -25,17 +23,7 @@ import {
  * geocoder had to guess at. Checkout collects it now.
  */
 
-const delivery = (over: Record<string, unknown> = {}) => {
-  const store = aDeliveryStore();
-  return orderRequest([orderLine(aProduct())], {
-    storeId: store.id,
-    mode: 'Delivery',
-    address: '12 Oak Avenue',
-    suburb: aSuburbOf(store),
-    postalCode: '2196',
-    ...over,
-  });
-};
+const delivery = deliveryRequest;
 
 beforeEach(blankState);
 
@@ -122,10 +110,7 @@ describe('the address a courier is given', () => {
 });
 
 describe('the checkout form', () => {
-  const FLOW = readFileSync(
-    path.resolve(__dirname, '../src/components/checkout/CheckoutFlow.tsx'),
-    'utf8',
-  );
+  const FLOW = webFile('src/components/checkout/CheckoutFlow.tsx');
 
   it('asks for it', () => {
     expect(FLOW).toContain('Postal code');
@@ -148,8 +133,8 @@ describe('the checkout form', () => {
 });
 
 describe('the container', () => {
-  const DOCKERFILE = readFileSync(path.resolve(__dirname, '../Dockerfile'), 'utf8');
-  const CONFIG = readFileSync(path.resolve(__dirname, '../next.config.ts'), 'utf8');
+  const DOCKERFILE = webFile('Dockerfile');
+  const CONFIG = webFile('next.config.ts');
 
   /**
    * The Dockerfile copies `.next/standalone`, which only exists when the build

@@ -16,9 +16,11 @@ import {
 } from '@/lib/account-api';
 import {
   anApiAccount,
+  anApiAddress,
   anApiOrder,
   customer,
   fetchStub,
+  PASSWORD,
 } from './fixtures';
 
 /**
@@ -37,13 +39,7 @@ afterEach(stub.restore);
 
 const anAccount = () => anApiAccount();
 
-const anAddress = () => ({
-  id: 'adr_1',
-  label: 'Home',
-  address: '12 Oak Avenue',
-  suburb: 'Sandton',
-  note: '',
-});
+const anAddress = () => anApiAddress();
 
 /** A completed order on an account, which is what a history endpoint returns. */
 const anOrder = () =>
@@ -53,7 +49,7 @@ describe('signing in and up', () => {
   it('registers and comes back with the account', async () => {
     serve(() => ({ status: 201, body: { account: anAccount() } }));
 
-    const account = await register({ ...customer, password: 'a-long-enough-password' });
+    const account = await register({ ...customer, password: PASSWORD });
     expect(account.email).toBe(customer.email);
   });
 
@@ -278,13 +274,13 @@ describe('the password reset', () => {
     });
 
     await requestPasswordReset('thandi@example.com');
-    await completePasswordReset('a-token', 'a-long-enough-password');
+    await completePasswordReset('a-token', PASSWORD);
     expect(seen.map((call) => call.method)).toEqual(['POST', 'PUT']);
   });
 
   it('carries the refusal through when the code is spent or expired', async () => {
     serve(() => ({ status: 400, body: { error: 'That reset link is no longer valid' } }));
-    await expect(completePasswordReset('old', 'a-long-enough-password')).rejects.toThrow(
+    await expect(completePasswordReset('old', PASSWORD)).rejects.toThrow(
       /no longer valid/,
     );
   });

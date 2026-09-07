@@ -5,20 +5,20 @@ import { findPromotion, isRunningNow, promotionFor } from '@/lib/promotions';
 import { sastNow } from '@/lib/trading';
 import { discountOf } from '@/lib/pricing';
 import {
-  SUNDAY,
-  THURSDAY,
-  TUESDAY,
-  WEDNESDAY,
   aDeliveryStore,
   aProduct,
   aSuburbOf,
   blankState,
-  bodyOf,
+  errorOf,
   orderLine,
   orderRequest,
   registerCustomer,
   request,
   sast,
+  SUNDAY,
+  THURSDAY,
+  TUESDAY,
+  WEDNESDAY,
   withAccounts,
 } from './fixtures';
 
@@ -176,7 +176,7 @@ describe('the order route', () => {
   it('refuses a first-order offer to a guest', async () => {
     const response = await orderWith('FIRSTCRUNCH', delivery());
     expect(response.status).toBe(409);
-    expect((await bodyOf<{ error: string }>(response)).error).toMatch(/first order/i);
+    expect((await errorOf(response))).toMatch(/first order/i);
   });
 
   it('refuses a first-order offer to somebody who has already ordered', async () => {

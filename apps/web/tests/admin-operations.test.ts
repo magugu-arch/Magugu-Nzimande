@@ -8,11 +8,12 @@ import type { AuditEntry } from '@/lib/catalogue-state';
 import { readOrder, setOrderStatus } from '@/lib/order-store';
 import type { Product, Store } from '@bbq/types';
 import {
-  CONSOLE_PASSPHRASE,
   aChickenProduct,
   aDeliveryStore,
   asOperator as operatorRequest,
   bodyOf,
+  disableConsole,
+  enableConsole,
   operatorCookie,
   orderLine,
   orderRequest,
@@ -34,13 +35,13 @@ const product = aChickenProduct();
 let cookie: string;
 
 beforeEach(async () => {
-  process.env.BBQ_ADMIN_PASSWORD = CONSOLE_PASSPHRASE;
+  enableConsole();
   resetState();
   cookie = await operatorCookie();
 });
 
 afterEach(() => {
-  delete process.env.BBQ_ADMIN_PASSWORD;
+  disableConsole();
 });
 
 const asOperator = (url: string, body: unknown) => operatorRequest(cookie)(url, body);

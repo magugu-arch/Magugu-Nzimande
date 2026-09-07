@@ -48,6 +48,14 @@ export function sandboxProvider(secret: string): PaymentProvider {
         return null;
       }
     },
+
+    async refund(providerRef) {
+      // A real adapter posts a refund instruction here and returns the
+      // provider's reference for it. This one moves no money, like the rest of
+      // it, so the whole refund path can be driven before a merchant account
+      // exists — which is the only reason this provider is here at all.
+      return { ok: true, providerRef: `refund_${providerRef}` };
+    },
   };
 }
 

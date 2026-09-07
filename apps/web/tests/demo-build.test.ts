@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import {
   CATEGORIES,
@@ -11,7 +11,10 @@ import {
   optionGroupsFor,
 } from '@bbq/seed';
 import { describe, expect, it } from 'vitest';
-import { demoTemplate } from './fixtures';
+import {
+  builtDemoPage,
+  demoTemplate,
+} from './fixtures';
 
 /**
  * The single-file review build, against the seed it is generated from.
@@ -116,10 +119,10 @@ describe('what the build will inject', () => {
    * read the data the page will build it from.
    */
   it('injects a resolvable image for every category', () => {
-    const built = path.resolve(__dirname, '../static-demo/bbq-chicken-website.html');
-    if (!existsSync(built)) return; // generated, not committed; skipped when absent
+    const page = builtDemoPage();
+    if (!page) return; // generated, not committed; skipped when absent
 
-    const declared = readFileSync(built, 'utf8').match(/const CATEGORIES = (\[.*?\]);/s);
+    const declared = page.match(/const CATEGORIES = (\[.*?\]);/s);
     expect(declared, 'the built page declares no CATEGORIES').not.toBeNull();
 
     const injected = JSON.parse(declared?.[1] ?? '[]') as { key: string; img?: string }[];
@@ -147,10 +150,10 @@ describe('what the build will inject', () => {
    * offered one all along.
    */
   it('injects the seed’s own option groups, not a second copy', () => {
-    const built = path.resolve(__dirname, '../static-demo/bbq-chicken-website.html');
-    if (!existsSync(built)) return; // generated, not committed; skipped when absent
+    const page = builtDemoPage();
+    if (!page) return; // generated, not committed; skipped when absent
 
-    const declared = readFileSync(built, 'utf8').match(/const OPTION_GROUPS = (\{.*?\});\n/s);
+    const declared = page.match(/const OPTION_GROUPS = (\{.*?\});\n/s);
     expect(declared, 'the built page declares no OPTION_GROUPS').not.toBeNull();
 
     const injected = JSON.parse(declared?.[1] ?? '{}') as Record<

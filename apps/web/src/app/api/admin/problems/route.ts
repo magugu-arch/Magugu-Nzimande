@@ -1,16 +1,11 @@
 import { z } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import { refuseUnlessOperator } from '@/lib/admin-auth';
-import { hiddenSlugs, readAudit, replaceSoldOut, visibleProducts } from '@/lib/catalogue-state';
-import {
-  handoffFor,
-  pushToPos,
-  requestCourier,
-  syncSoldOut,
-  unacknowledged,
-} from '@/lib/fulfilment/handoff';
+import { consoleView } from '@/lib/console-view';
+import { hiddenSlugs, replaceSoldOut, visibleProducts } from '@/lib/catalogue-state';
+import { handoffFor, pushToPos, requestCourier, syncSoldOut } from '@/lib/fulfilment/handoff';
 import { activeCourier, activePos } from '@/lib/fulfilment/registry';
-import { listSuppressed, suppressionFor, unsuppress } from '@/lib/notifications/suppression';
+import { suppressionFor, unsuppress } from '@/lib/notifications/suppression';
 import { readOrder } from '@/lib/order-store';
 
 /**
@@ -36,12 +31,15 @@ const BodySchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('sync-availability') }),
 ]);
 
-/** What every reply carries, so the console re-renders from one shape. */
-const problems = () => ({
-  audit: readAudit(),
-  unacknowledged: unacknowledged(),
-  suppressed: listSuppressed(),
-});
+/**
+ * What every reply carries, so the console re-renders from one shape.
+ *
+ * The whole console view, not the three fields this route happens to change.
+ * It used to return those three, which meant a reply from here silently reset
+ * nothing else — harmless while this was the only such route, and wrong the
+ * moment a second one existed.
+ */
+const problems = consoleView;
 
 export async function POST(request: Request) {
   const refusal = refuseUnlessOperator(request);

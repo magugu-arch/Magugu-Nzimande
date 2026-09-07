@@ -31,6 +31,7 @@ import {
   customer,
   orderLine,
   orderRequest,
+  PASSWORD,
   placeOrderAs,
   registerCustomer,
   registration,
@@ -84,7 +85,7 @@ describe('registering', () => {
       const response = await registerRoute(request('/api/account', { body: registration() }));
       const body = await response.text();
 
-      expect(body).not.toContain('a-long-enough-password');
+      expect(body).not.toContain(PASSWORD);
       expect(body).not.toMatch(/passwordHash|scrypt/);
     });
   });
@@ -134,14 +135,14 @@ describe('registering', () => {
 
 describe('the stored password', () => {
   it('is not the password', () => {
-    const hash = hashPassword('a-long-enough-password');
-    expect(hash).not.toContain('a-long-enough-password');
+    const hash = hashPassword(PASSWORD);
+    expect(hash).not.toContain(PASSWORD);
     expect(hash.startsWith('scrypt$')).toBe(true);
   });
 
   it('verifies the right one and refuses the wrong one', () => {
-    const hash = hashPassword('a-long-enough-password');
-    expect(verifyPassword('a-long-enough-password', hash)).toBe(true);
+    const hash = hashPassword(PASSWORD);
+    expect(verifyPassword(PASSWORD, hash)).toBe(true);
     expect(verifyPassword('a-long-enough-passwore', hash)).toBe(false);
   });
 
@@ -173,7 +174,7 @@ describe('signing in', () => {
       await registerCustomer();
       const response = await signInRoute(
         request('/api/account/session', {
-          body: { email: customer.email, password: 'a-long-enough-password' },
+          body: { email: customer.email, password: PASSWORD },
         }),
       );
 
@@ -198,7 +199,7 @@ describe('signing in', () => {
       );
       const unknownAddress = await signInRoute(
         request('/api/account/session', {
-          body: { email: 'nobody@example.com', password: 'a-long-enough-password' },
+          body: { email: 'nobody@example.com', password: PASSWORD },
         }),
       );
 
@@ -243,7 +244,7 @@ describe('signing in', () => {
   /** The dummy hash has to be real work, or the defence above is decorative. */
   it('verifies the absent-account hash at the same cost as a real one', () => {
     const [format, cost, blockSize, parallelism] = ABSENT_ACCOUNT_HASH.split('$');
-    const real = hashPassword('a-long-enough-password').split('$');
+    const real = hashPassword(PASSWORD).split('$');
 
     expect([format, cost, blockSize, parallelism]).toEqual(real.slice(0, 4));
   });

@@ -11,6 +11,7 @@ import {
   blankState,
   bodyOf,
   customer,
+  PASSWORD,
   registerCustomer,
   request,
   withAccounts,
@@ -164,7 +165,7 @@ describe('spending a reset', () => {
 
       const withOld = await signInRoute(
         request('/api/account/session', {
-          body: { email: customer.email, password: 'a-long-enough-password' },
+          body: { email: customer.email, password: PASSWORD },
         }),
       );
       expect(withOld.status).toBe(401);
