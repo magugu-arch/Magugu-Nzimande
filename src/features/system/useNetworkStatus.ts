@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 import { onlineManager } from '@tanstack/react-query';
 import { config } from '@/constants/config';
+import { noteServerTime } from '@/utils/appClock';
 
 export interface NetworkStatus {
   /** The device reports a connection. */
@@ -148,16 +149,61 @@ export function startNetworkMonitoring(): void {
   // Any HTTP response counts, including a 404: we are testing whether packets
   // reach the host, not whether that path exists. Only a transport-level
   // failure, where fetch rejects and this never runs, means offline.
+  /*
+    Stamped immediately before each probe, so the clock reading below has an
+    honest round trip rather than a fabricated one.
+
+    NetInfo owns the fetch, so there is no other hook ahead of it.
+    `reachabilityShouldRun` is consulted right before each attempt, which makes
+    it the one place that can see the "before". A reading whose round trip
+    cannot be bounded is skipped rather than guessed at — an offset measured
+    against an unknown delay is worse than no offset at all.
+  */
+  let probeSentAt = 0;
+  const PROBE_BOUND_MS = 30_000;
+
   NetInfo.configure({
     reachabilityUrl: `${config.apiBaseUrl}/health`,
-    reachabilityTest: () => Promise.resolve(true),
+    /**
+     * The most frequent server contact this app has, and it was throwing the
+     * server's clock away on every one.
+     *
+     * `audit:skew` found it. On `/checkout/store` the correction worked,
+     * because the store list arrives through `apiClient` and that is where the
+     * `Date` header is read. On `/checkout/schedule` — which fetches nothing —
+     * three requests went out per page load and every one of them was this
+     * probe, so a phone thirteen hours out built its whole slot grid from the
+     * device clock and never learned better.
+     *
+     * This probe runs on every screen, on a timer, whether or not anything
+     * else is loading. It is the earliest and most reliable sight of the
+     * server's clock the app gets, and reading it here is free: the response
+     * was already coming back and already being ignored.
+     */
+    reachabilityTest: (response: Response) => {
+      const receivedAt = Date.now();
+      const roundTrip = receivedAt - probeSentAt;
+      if (probeSentAt > 0 && roundTrip >= 0 && roundTrip < PROBE_BOUND_MS) {
+        try {
+          noteServerTime(response.headers?.get('date') ?? null, probeSentAt, receivedAt);
+        } catch {
+          // Same rule as in the API client: reading the clock is the least
+          // important thing happening here and does not get to break the
+          // connectivity check that the offline banner depends on.
+        }
+      }
+      return Promise.resolve(true);
+    },
     reachabilityLongTimeout: 60 * 1000,
     reachabilityShortTimeout: 5 * 1000,
     reachabilityRequestTimeout: 10 * 1000,
     // Nothing to probe when nothing is fetched. Beyond the false banner, this
     // stops a mock build firing a request every minute at a domain that is
     // not answering and may not even be ours yet.
-    reachabilityShouldRun: () => !config.useMockApi,
+    reachabilityShouldRun: () => {
+      probeSentAt = Date.now();
+      return !config.useMockApi;
+    },
   });
 
   onlineManager.setEventListener((setOnline) => {

@@ -1,6 +1,7 @@
 import type { Address, Store } from '@/types';
 import { deliveryRange, isOpeningLater } from '@/store/fulfilmentStore';
 import { isTradingNow } from '@/utils/tradingHours';
+import { appNow } from '@/utils/appClock';
 
 /**
  * Whether the business is trading at all yet, across every branch.
@@ -49,7 +50,7 @@ export interface OpeningStatus {
  */
 export function preferredStore(
   stores: Store[],
-  now: Date = new Date(),
+  now: Date = appNow(),
   address: Address | null = null,
 ): Store | undefined {
   /**
@@ -95,7 +96,7 @@ export function preferredStore(
   return stores.find(canTakeIt) ?? stores.find((store) => !isOpeningLater(store, now)) ?? stores[0];
 }
 
-export function openingStatus(stores: Store[], now: Date = new Date()): OpeningStatus {
+export function openingStatus(stores: Store[], now: Date = appNow()): OpeningStatus {
   // No stores at all is a loading or failed fetch, not a closed business.
   // Claiming "we open soon" on a network blip would be worse than saying
   // nothing, so this reports trading and lets the screen's own error state

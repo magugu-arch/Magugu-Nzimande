@@ -2,6 +2,7 @@ import type { CartLine, CartTotals } from '@/types';
 import { voucherBlocker, type VoucherTerms } from '@/utils/cart';
 import { formatPrice } from '@/utils/money';
 import { formatShortDate } from '@/utils/datetime';
+import { appNow } from '@/utils/appClock';
 
 /**
  * The sentence under an applied promo code.
@@ -31,7 +32,7 @@ export function voucherStatus(
   totals: Pick<CartTotals, 'subtotal' | 'discount'>,
   lines: CartLine[],
   freeItemName: string | null,
-  now: Date = new Date(),
+  now: Date = appNow(),
 ): string {
   switch (voucherBlocker(voucher, totals.subtotal, now, lines)) {
     case 'expired':

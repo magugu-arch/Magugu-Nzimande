@@ -1,6 +1,7 @@
 import { describePaymentMethod } from '@/services/paymentService';
 import type { FulfilmentType, PaymentMethod } from '@/types';
 import { expiryLabel, methodHasExpired } from './cardExpiry';
+import { appNow } from '@/utils/appClock';
 
 /**
  * How a customer can pay, which is not the same thing as what they have saved.
@@ -39,7 +40,7 @@ export const STANDING_RAILS: PaymentMethod[] = [
 export function offeredPaymentMethods(
   saved: PaymentMethod[],
   fulfilmentType: FulfilmentType,
-  now: Date = new Date(),
+  now: Date = appNow(),
 ): PaymentMethod[] {
   /**
    * A card that has run out cannot pay for this order, so it is not offered
@@ -87,7 +88,7 @@ export function offeredPaymentMethods(
  * with no expiry on it, and how a rail renamed in one place but not the other
  * starts explaining itself again rather than staying silent.
  */
-export function paymentCaption(method: PaymentMethod, now: Date = new Date()): string | null {
+export function paymentCaption(method: PaymentMethod, now: Date = appNow()): string | null {
   if (method.expiry) return expiryLabel(method, now);
 
   const description = describePaymentMethod(method.type);

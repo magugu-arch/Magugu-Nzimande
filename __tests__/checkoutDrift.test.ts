@@ -259,7 +259,17 @@ describe('the checkout screen’s use of it', () => {
 
     expect(call).toMatch(/shownTotal: totals\.total/);
     expect(call).toMatch(/chargedTotal: totalsNow\.total/);
-    expect(call).toMatch(/now: new Date\(\)/);
+
+    /*
+      Read fresh at the tap, not carried in from the render — which is what
+      this line has always been checking. It used to spell that as
+      `new Date()`; the clock every decision in this app starts from is now
+      `appNow()`, which is the same read plus a correction for a device whose
+      clock is wrong. Asserting the old spelling would pin the app to the
+      device's word, which is the thing `utils/appClock` exists to stop.
+    */
+    expect(call).toMatch(/now: appNow\(\)/);
+    expect(call).not.toMatch(/now: (nowRef|memo|renderedAt)/);
   });
 
   it('lowers the in-flight guard before returning, so the next tap works', () => {

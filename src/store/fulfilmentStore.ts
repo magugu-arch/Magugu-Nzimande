@@ -16,6 +16,7 @@ import { distanceKm, type Coordinates } from '@/utils/geo';
 import { formatShortDate, formatTime } from '@/utils/datetime';
 import { closureReason, isStoreOpenAt, isTradingNow } from '@/utils/tradingHours';
 import { track } from '@/ux/analytics';
+import { appNow } from '@/utils/appClock';
 
 const FULFILMENT_TYPES = ['delivery', 'collection', 'dinein'] as const;
 
@@ -86,7 +87,7 @@ export interface FulfilmentRequirements {
 }
 
 /** Whether this branch is listed but not yet trading. */
-export function isOpeningLater(store: Store, now: Date = new Date()): boolean {
+export function isOpeningLater(store: Store, now: Date = appNow()): boolean {
   if (!store.opensOn) return false;
   const opens = new Date(store.opensOn);
   if (Number.isNaN(opens.getTime())) return false;
@@ -141,7 +142,7 @@ export function missingFulfilmentRequirement({
   address,
   tableNumber,
   scheduledFor = null,
-  now = new Date(),
+  now = appNow(),
 }: FulfilmentRequirements): string | null {
   if (!store) return 'Choose a store';
 
@@ -337,7 +338,7 @@ export const useFulfilmentStore = create<FulfilmentState>()(
           track('select_store', {
             storeId: store.id,
             fulfilment: get().fulfilmentType,
-            isOpen: isTradingNow(store, new Date()),
+            isOpen: isTradingNow(store, appNow()),
           });
         }
         set({ store });

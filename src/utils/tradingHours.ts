@@ -1,5 +1,6 @@
 import type { OpeningHours, Store } from '@/types';
 import { storeClockAt } from '@/utils/storeClock';
+import { appNow } from '@/utils/appClock';
 
 /**
  * Whether a branch is trading, worked out from its hours rather than read off
@@ -85,7 +86,7 @@ export function tradingWindow(hours: { opensAt: string; closesAt: string }): {
   return { open, close: close <= open ? close + MINUTES_IN_A_DAY : close };
 }
 
-export function isStoreOpenAt(store: Store, when: Date = new Date()): boolean {
+export function isStoreOpenAt(store: Store, when: Date = appNow()): boolean {
   const { minutesIntoDay: minutesNow, day } = storeClockAt(when);
 
   const today = hoursForDay(store, day);
@@ -128,7 +129,7 @@ export function isStoreOpenAt(store: Store, when: Date = new Date()): boolean {
  */
 export function windowInForce(
   store: Store,
-  now: Date = new Date(),
+  now: Date = appNow(),
 ): { opensAt: string; closesAt: string } | null {
   const { minutesIntoDay: minutesNow, day } = storeClockAt(now);
 
@@ -157,7 +158,7 @@ export function windowInForce(
  * backend that stops sending `openingHours` would silently stop the business
  * from taking orders, and a data gap should not read as a shut door.
  */
-export function isTradingNow(store: Store, now: Date = new Date()): boolean {
+export function isTradingNow(store: Store, now: Date = appNow()): boolean {
   if (!store.isOpenNow) return false;
   if (store.openingHours.length === 0) return true;
   return isStoreOpenAt(store, now);
@@ -180,7 +181,7 @@ export function isTradingNow(store: Store, now: Date = new Date()): boolean {
  */
 export type ClosureReason = 'hours' | 'unavailable';
 
-export function closureReason(store: Store, now: Date = new Date()): ClosureReason | null {
+export function closureReason(store: Store, now: Date = appNow()): ClosureReason | null {
   if (isTradingNow(store, now)) return null;
 
   // Its published hours would have it open, and it is shut anyway.

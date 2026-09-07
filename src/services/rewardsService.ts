@@ -27,6 +27,7 @@ import {
   checkedVoucherValidation,
   checkedVouchers,
 } from './wireChecks';
+import { appNow } from '@/utils/appClock';
 
 /**
  * The mock's loyalty ledger, which until now did not move.
@@ -103,7 +104,7 @@ export function recordPoints(entry: {
         id: `points-${Date.now().toString(36)}-${Math.abs(entry.points)}`,
         description: entry.description,
         points: entry.points,
-        occurredAt: new Date().toISOString(),
+        occurredAt: appNow().toISOString(),
         ...(entry.orderReference ? { orderReference: entry.orderReference } : {}),
       },
       ...account.history,
@@ -128,7 +129,7 @@ export async function fetchLoyaltyAccount(): Promise<LoyaltyAccount> {
  * reward anyway. Birthday rewards are the obvious case, and the seeded list
  * has one.
  */
-export function rewardExpired(reward: Reward, now: Date = new Date()): boolean {
+export function rewardExpired(reward: Reward, now: Date = appNow()): boolean {
   return hasPassed(reward.expiresAt, now);
 }
 
@@ -249,7 +250,7 @@ export async function fetchActiveVouchers(): Promise<Voucher[]> {
 }
 
 /** Whether a promotion is inside its window right now. */
-export function promotionIsRunning(promotion: Promotion, now: Date = new Date()): boolean {
+export function promotionIsRunning(promotion: Promotion, now: Date = appNow()): boolean {
   const at = now.getTime();
   return (
     new Date(promotion.validFrom).getTime() <= at && new Date(promotion.validUntil).getTime() >= at
@@ -263,7 +264,7 @@ async function promotionCalendar(): Promise<Promotion[]> {
 }
 
 export async function fetchPromotions(): Promise<Promotion[]> {
-  const now = new Date();
+  const now = appNow();
   // The window is a veto the client can apply from data it already holds —
   // same shape as `rewardExpired` above and `isTradingNow`. A campaign that
   // ended an hour ago can still be sitting in a cached list or a slow CDN.
@@ -287,7 +288,7 @@ export async function fetchPromotions(): Promise<Promotion[]> {
  * are waiting for is finished. The list still shows neither.
  */
 export async function fetchPromotion(promotionId: string): Promise<Promotion> {
-  const now = new Date();
+  const now = appNow();
   const promotion = (await promotionCalendar()).find((candidate) => candidate.id === promotionId);
 
   // An id the calendar has never heard of gets the ended message: the app

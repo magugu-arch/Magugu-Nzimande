@@ -1,4 +1,5 @@
 import type { PaymentMethod } from '@/types';
+import { appNow } from '@/utils/appClock';
 
 /**
  * Whether a saved card has run out.
@@ -27,7 +28,7 @@ import type { PaymentMethod } from '@/types';
  * letting the gateway decide. Absent is the same: rails like SnapScan and cash
  * carry no expiry and must never be filtered out by this.
  */
-export function cardHasExpired(expiry: string | undefined, now: Date = new Date()): boolean {
+export function cardHasExpired(expiry: string | undefined, now: Date = appNow()): boolean {
   if (!expiry) return false;
 
   const match = /^\s*(\d{1,2})\s*\/\s*(\d{2}|\d{4})\s*$/.exec(expiry);
@@ -47,7 +48,7 @@ export function cardHasExpired(expiry: string | undefined, now: Date = new Date(
 }
 
 /** Whether this is a card that has run out. Rails are never "expired". */
-export function methodHasExpired(method: PaymentMethod, now: Date = new Date()): boolean {
+export function methodHasExpired(method: PaymentMethod, now: Date = appNow()): boolean {
   return method.type === 'card' && cardHasExpired(method.expiry, now);
 }
 
@@ -58,7 +59,7 @@ export function methodHasExpired(method: PaymentMethod, now: Date = new Date()):
  * much as useless — it is the same sentence as the one under a working card,
  * and a customer scanning the list has no way to tell which is which.
  */
-export function expiryLabel(method: PaymentMethod, now: Date = new Date()): string | null {
+export function expiryLabel(method: PaymentMethod, now: Date = appNow()): string | null {
   if (!method.expiry) return null;
   return methodHasExpired(method, now) ? `Expired ${method.expiry}` : `Expires ${method.expiry}`;
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
+import { appNow, onClockCorrected } from '@/utils/appClock';
 
 /**
  * A clock the render tree can depend on.
@@ -22,10 +23,10 @@ import { AppState, type AppStateStatus } from 'react-native';
  * it is made, and does not rely on a render having happened.
  */
 export function useNow(intervalMs = 60_000): Date {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState(() => appNow());
 
   useEffect(() => {
-    const tick = () => setNow(new Date());
+    const tick = () => setNow(appNow());
     const timer = setInterval(tick, intervalMs);
 
     // A phone that was asleep comes back minutes or hours later and the
@@ -35,9 +36,27 @@ export function useNow(intervalMs = 60_000): Date {
       if (status === 'active') tick();
     });
 
+    /**
+     * And when the clock itself is corrected, which is neither a tick nor a
+     * foregrounding.
+     *
+     * `audit:skew` found this. On a phone thirteen hours out the schedule
+     * screen mounted, built its slot grid from the device clock, and then the
+     * first response arrived carrying the server's time — and nothing
+     * re-rendered, so the customer sat looking at a grid for the wrong day
+     * with the corrected clock already in memory. The store screen passed at
+     * the same moment, because its list arrives *after* that response.
+     *
+     * Which is the defect this hook exists to prevent, one level up: an answer
+     * derived from something the render never declared. The clock was declared
+     * and the clock's own correction was not.
+     */
+    const unsubscribe = onClockCorrected(tick);
+
     return () => {
       clearInterval(timer);
       subscription.remove();
+      unsubscribe();
     };
   }, [intervalMs]);
 

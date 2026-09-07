@@ -1,5 +1,6 @@
 import { config } from '@/constants/config';
 import type { ApiError } from '@/types';
+import { noteServerTime } from '@/utils/appClock';
 import { reportError, scrub } from '@/ux/errorReporting';
 import { clearTokens, getAccessToken, getRefreshToken, storeTokens } from './secureStorage';
 import { MalformedResponse } from './wireChecks';
@@ -340,12 +341,39 @@ async function execute<T>(
   }
 
   try {
+    /*
+      Either side of the request, so the server's `Date` header can be compared
+      against the midpoint rather than against the moment the response landed.
+      See `utils/appClock` — this is the only place in the app that observes
+      the server's clock, and it is one header the response was carrying
+      anyway.
+    */
+    const sentAt = Date.now();
     const response = await fetch(`${config.apiBaseUrl}${path}`, {
       method,
       headers: requestHeaders,
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       signal: controller.signal,
     });
+    /*
+      Guarded, because this is a side-benefit and side-benefits do not get to
+      break the request.
+
+      The first version called `response.headers.get('date')` directly and
+      nineteen tests went red with "We can't reach bb.q right now" — their
+      doubles return a response object with no `headers`, the read threw, and
+      the throw landed in this function's own catch, which reads any
+      non-`ApiRequestError` as a network failure. A real `fetch` always has
+      headers, so this could not have happened in the app; that is exactly why
+      it is worth guarding. Reading the clock is the least important thing this
+      function does, and it had been given the power to fail every request in
+      the app.
+    */
+    try {
+      noteServerTime(response.headers?.get('date') ?? null, sentAt, Date.now());
+    } catch {
+      // A response whose headers cannot be read still has a body worth having.
+    }
 
     if (response.status === 401 && !anonymous) {
       clearTimeout(timeout);

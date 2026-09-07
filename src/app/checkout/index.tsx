@@ -48,6 +48,7 @@ import { track } from '@/ux/analytics';
 import { newIdempotencyKey } from '@/utils/idempotency';
 import { a11yState } from '@/utils/a11yState';
 import { callNumber, isDiallable } from '@/utils/linking';
+import { appNow } from '@/utils/appClock';
 
 /**
  * Checkout (brief §11): fulfilment, location, payment, review and confirm — as
@@ -330,7 +331,7 @@ export default function CheckoutScreen() {
       address,
       tableNumber,
       scheduledFor,
-      now: new Date(),
+      now: appNow(),
     });
     if (stillBlocked) {
       /*
@@ -394,7 +395,7 @@ export default function CheckoutScreen() {
       shownTotal: totals.total,
       chargedTotal: totalsNow.total,
       method: selectedPayment,
-      now: new Date(),
+      now: appNow(),
     });
     if (dishonest) {
       // Released before returning, exactly as the fulfilment re-check above

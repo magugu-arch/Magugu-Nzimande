@@ -1,6 +1,7 @@
 import type { Address, FulfilmentType, Store } from '@/types';
 import { preferredAddress } from './preferredAddress';
 import { preferredStore } from '@/features/stores/opening';
+import { appNow } from '@/utils/appClock';
 
 /**
  * What checkout fills in for somebody who has chosen nothing, and in what order.
@@ -68,7 +69,7 @@ export function checkoutDefaults({
   savedAddresses,
   addressesLoading,
   availableStores,
-  now = new Date(),
+  now = appNow(),
 }: CheckoutDefaultsInput): CheckoutDefaults {
   const defaults: CheckoutDefaults = {};
 

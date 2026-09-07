@@ -9,6 +9,7 @@ import type {
 } from '@/types';
 import { hasPassed } from './datetime';
 import { multiplyRand, randToPoints, sumRand } from './money';
+import { appNow } from '@/utils/appClock';
 
 /**
  * Cart mathematics. Pure functions only — the Zustand store calls into here so
@@ -179,7 +180,7 @@ export function voucherTerms(voucher: {
 }
 
 /** Whether the voucher is past its date. No date means it never is. */
-export function voucherExpired(voucher: VoucherTerms, now: Date = new Date()): boolean {
+export function voucherExpired(voucher: VoucherTerms, now: Date = appNow()): boolean {
   return hasPassed(voucher.expiresAt, now);
 }
 
@@ -192,7 +193,7 @@ export function voucherExpired(voucher: VoucherTerms, now: Date = new Date()): b
 export function voucherQualifies(
   voucher: VoucherTerms,
   subtotal: number,
-  now: Date = new Date(),
+  now: Date = appNow(),
   lines: CartLine[] = [],
 ): boolean {
   return voucherBlocker(voucher, subtotal, now, lines) === null;
@@ -216,7 +217,7 @@ export function voucherQualifies(
 export function voucherBlocker(
   voucher: VoucherTerms,
   subtotal: number,
-  now: Date = new Date(),
+  now: Date = appNow(),
   lines: CartLine[] = [],
 ): 'expired' | 'minimum' | 'missingItem' | null {
   if (voucherExpired(voucher, now)) return 'expired';
@@ -239,7 +240,7 @@ export function voucherBlocker(
 export function voucherDiscount(
   voucher: VoucherTerms,
   subtotal: number,
-  now: Date = new Date(),
+  now: Date = appNow(),
   /**
    * The basket, for the one mechanic whose worth is a thing in it rather than
    * a number on the voucher. Optional so the four call sites that only have a
@@ -287,7 +288,7 @@ export function voucherDiscount(
 export function voucherFreesDelivery(
   voucher: VoucherTerms,
   subtotal: number,
-  now: Date = new Date(),
+  now: Date = appNow(),
 ): boolean {
   return voucher.discountType === 'freeDelivery' && voucherQualifies(voucher, subtotal, now);
 }
@@ -365,7 +366,7 @@ export function priceBasket({
   voucher = null,
   reward = null,
   pointsPerRand,
-  now = new Date(),
+  now = appNow(),
 }: BasketInput): { totals: CartTotals; rewardWorth: number } {
   const subtotal = sumRand(lines.map((line) => line.lineTotal));
 

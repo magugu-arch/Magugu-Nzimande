@@ -1,6 +1,7 @@
 import { businessRules } from '@/constants/config';
 import { instantAtStoreTime, storeClockAt } from '@/utils/storeClock';
 import { tradingWindow } from '@/utils/tradingHours';
+import { appNow } from '@/utils/appClock';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -73,7 +74,7 @@ export function formatDateTime(value: string | Date): string {
  * because neither of these zones has daylight saving, which is a property of
  * the deployment rather than of the code.
  */
-export function formatRelativeDay(value: string | Date, now: Date = new Date()): string {
+export function formatRelativeDay(value: string | Date, now: Date = appNow()): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
   const diffDays = storeClockAt(now).dayNumber - storeClockAt(date).dayNumber;
@@ -103,7 +104,7 @@ export function dayName(day: number): string {
  * *not* passed — that is somebody's data fault, and taking a benefit away from
  * a customer over a malformed string is the wrong way to fail.
  */
-export function hasPassed(value: string | undefined, now: Date = new Date()): boolean {
+export function hasPassed(value: string | undefined, now: Date = appNow()): boolean {
   if (!value) return false;
   const at = new Date(value);
   if (Number.isNaN(at.getTime())) return false;
@@ -196,7 +197,7 @@ export interface SchedulableStore {
 }
 
 export function buildScheduleDays(
-  now: Date = new Date(),
+  now: Date = appNow(),
   store?: SchedulableStore | null,
 ): ScheduleDay[] {
   const days: ScheduleDay[] = [];

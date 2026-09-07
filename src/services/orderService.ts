@@ -22,6 +22,7 @@ import {
   seedTrackedDeliveryJob,
 } from '@/providers/delivery';
 import { checkedOrder, checkedOrders } from './wireChecks';
+import { appNow } from '@/utils/appClock';
 
 /**
  * Order service.
@@ -2119,7 +2120,7 @@ export function workStartsAt(order: Order): Date {
  * Counted from `workStartsAt` rather than `placedAt`, so an order booked for
  * tomorrow evening is not reported as forty minutes overdue all night.
  */
-export function minutesUntilDue(order: Order, now: Date = new Date()): number {
+export function minutesUntilDue(order: Order, now: Date = appNow()): number {
   const due = addMinutes(workStartsAt(order), order.etaMinutes);
   return Math.round((due.getTime() - now.getTime()) / 60_000);
 }
@@ -2350,7 +2351,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
       ? preparation + businessRules.deliveryBufferMinutes
       : preparation;
 
-  const placedAt = new Date();
+  const placedAt = appNow();
   referenceCounter += 1;
 
   /**
@@ -2527,7 +2528,7 @@ export async function cancelOrder(orderId: string): Promise<Order> {
     throw new Error(cannotCancelBecause(current.status));
   }
 
-  const cancelledAt = new Date();
+  const cancelledAt = appNow();
   const cancelled: Order = {
     ...current,
     status: 'cancelled',

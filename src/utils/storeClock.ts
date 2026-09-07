@@ -1,3 +1,5 @@
+import { appNow } from '@/utils/appClock';
+
 /**
  * The kitchen's clock, which is the only one this app has any business
  * reading.
@@ -57,6 +59,17 @@
  * and returns a real instant. A `Date` in this app always means an instant.
  */
 
+/*
+  The two functions below keep `new Date()` on purpose, and they are the only
+  ones left in the app that do.
+
+  `deviceIsOnStoreTime` and `clockNotice` are questions *about the device* —
+  is this phone's zone the kitchen's? — so the device is the right and only
+  source. Everything else that asks what time it is now goes through
+  `appNow()`, which corrects for a device whose clock is simply wrong; see
+  `utils/appClock`.
+*/
+
 /** SAST. Fixed: no daylight saving, and none since 1944. */
 export const STORE_UTC_OFFSET_MINUTES = 2 * 60;
 
@@ -91,7 +104,7 @@ const MS_PER_DAY = 86_400_000;
  * a version of this that used `getHours` would pass its tests in UTC and be
  * wrong on a phone in Johannesburg.
  */
-export function storeClockAt(now: Date = new Date()): StoreClock {
+export function storeClockAt(now: Date = appNow()): StoreClock {
   const shifted = new Date(now.getTime() + STORE_UTC_OFFSET_MINUTES * MS_PER_MINUTE);
   const hour = shifted.getUTCHours();
   const minute = shifted.getUTCMinutes();

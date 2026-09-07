@@ -9,6 +9,7 @@ import { createGuestUser, signOut as signOutService } from '@/services/authServi
 import { pullFavourites } from '@/features/favourites/sync';
 import { identify } from '@/ux/analytics';
 import { useFavouritesStore } from './favouritesStore';
+import { appNow } from '@/utils/appClock';
 
 /**
  * What a stored customer must carry to be one.
@@ -236,7 +237,7 @@ export const useAuthStore = create<AuthState>()(
 );
 
 /** Greeting used on Home. Time-aware and name-aware (brief §11). */
-export function greetingFor(user: UserProfile | null, now: Date = new Date()): string {
+export function greetingFor(user: UserProfile | null, now: Date = appNow()): string {
   const hour = now.getHours();
   const period = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   if (!user || user.isGuest || user.firstName.length === 0) return period;

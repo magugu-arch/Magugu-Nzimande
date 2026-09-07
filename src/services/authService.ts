@@ -5,6 +5,7 @@ import { delay, request } from './apiClient';
 import { checkedSession } from './wireChecks';
 import { demoUser } from './data/accountData';
 import { clearTokens, storeTokens } from './secureStorage';
+import { appNow } from '@/utils/appClock';
 
 /**
  * Authentication service.
@@ -131,7 +132,7 @@ export async function register(input: RegisterInput): Promise<AuthSession> {
     emailVerified: false,
     // Verified in the OTP step that follows registration.
     phoneVerified: false,
-    createdAt: new Date().toISOString(),
+    createdAt: appNow().toISOString(),
   };
 
   await delay(null, 700);
@@ -178,7 +179,7 @@ export function createGuestUser(): UserProfile {
     isGuest: true,
     emailVerified: false,
     phoneVerified: false,
-    createdAt: new Date().toISOString(),
+    createdAt: appNow().toISOString(),
   };
 }
 

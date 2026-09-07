@@ -6,6 +6,7 @@ import { isTradingNow } from '@/utils/tradingHours';
 import { delay, request } from './apiClient';
 import { stores } from './data/storeData';
 import { checkedStore, checkedStores } from './wireChecks';
+import { appNow } from '@/utils/appClock';
 
 /**
  * Store locator service. Distances are recomputed against the customer's real
@@ -54,14 +55,14 @@ function resolveAgainstCustomer(list: Store[], origin: Coordinates | null, now: 
 }
 
 export async function fetchStores(origin: Coordinates | null = null): Promise<Store[]> {
-  if (config.useMockApi) return delay(resolveAgainstCustomer(stores, origin, new Date()));
+  if (config.useMockApi) return delay(resolveAgainstCustomer(stores, origin, appNow()));
 
   // Without coordinates the backend gets no coordinates, rather than the CBD's.
   // A store list ordered by somebody else's position is worse than an unordered
   // one, and only the caller knows whether the customer said yes.
   const query = origin ? `?lat=${origin.latitude}&lng=${origin.longitude}` : '';
   const remote = await request<Store[]>(`/v1/stores${query}`, { parse: checkedStores });
-  return resolveAgainstCustomer(remote, origin, new Date());
+  return resolveAgainstCustomer(remote, origin, appNow());
 }
 
 export async function fetchStoresForFulfilment(

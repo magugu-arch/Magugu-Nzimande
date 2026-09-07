@@ -1,3 +1,4 @@
+import { appNow } from '@/utils/appClock';
 /**
  * Whether today falls in the customer's birthday month.
  *
@@ -21,7 +22,7 @@
  * to do about that — "Add your date of birth to your profile to qualify" —
  * so the honest answer here is no, and the screen can explain it.
  */
-export function inBirthdayMonth(dateOfBirth: string | undefined, now: Date = new Date()): boolean {
+export function inBirthdayMonth(dateOfBirth: string | undefined, now: Date = appNow()): boolean {
   const month = birthMonth(dateOfBirth);
   return month !== null && month === now.getMonth();
 }

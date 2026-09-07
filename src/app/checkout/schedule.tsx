@@ -8,6 +8,7 @@ import { useNow } from '@/features/system/useNow';
 import { isOpeningLater, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
 import { buildScheduleDays, formatDateTime, formatShortDate } from '@/utils/datetime';
+import { skewNotice } from '@/utils/appClock';
 import { clockNotice } from '@/utils/storeClock';
 
 /** Order Scheduling (brief §4). */
@@ -42,6 +43,15 @@ export default function ScheduleScreen() {
   // daylight-saving boundary while this screen sits open stops claiming a
   // difference that is no longer there.
   const notice = useMemo(() => clockNotice(now), [now]);
+
+  /*
+    A second, separate fact. The zone notice says the times are the kitchen's
+    rather than the phone's; this one says the phone's clock is wrong and the
+    app is not using it. A customer can be in both situations at once — abroad
+    *and* on a phone that reset itself — and they are two different things to
+    know, so they are two sentences rather than one that tries to cover both.
+  */
+  const skew = useMemo(() => skewNotice(), [now]);
 
   /**
    * No slots is two different situations, and they need different words.
@@ -118,6 +128,12 @@ export default function ScheduleScreen() {
         {notice ? (
           <Text variant="caption" color={colors.textMuted} testID="schedule-clock-notice">
             {notice}
+          </Text>
+        ) : null}
+
+        {skew ? (
+          <Text variant="caption" color={colors.textMuted} testID="schedule-skew-notice">
+            {skew}
           </Text>
         ) : null}
 

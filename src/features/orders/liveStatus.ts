@@ -1,5 +1,6 @@
 import type { Order, OrderStatusEvent } from '@/types';
 import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
+import { appNow } from '@/utils/appClock';
 
 /**
  * What the tracking screen's hero is entitled to say about an order that is
@@ -135,7 +136,7 @@ export function timelineFor(order: Pick<Order, 'timeline' | 'delivery'>): OrderS
  * does about a late order is an operations decision, and `audit:launch` asks
  * for it.
  */
-export function runningLate(order: Order, now: Date = new Date()): boolean {
+export function runningLate(order: Order, now: Date = appNow()): boolean {
   if (order.status === 'completed' || order.status === 'cancelled') return false;
   if (deliveryFailed(order)) return false;
   if (!countdownStillApplies(order)) return false;

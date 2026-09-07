@@ -505,6 +505,99 @@ identical prefix and the shorter simply stopped. It now compares the day chips
 and branch cards exactly and the slot grid as a prefix — a slot that differed
 breaks it, a slot not yet mounted cannot.
 
+## 2m. A phone whose clock is simply wrong
+
+Last round settled which *zone* the app reads. It did nothing about the
+*instant*: every rule still started from `new Date()`, which is the device's
+answer, and a phone's clock is a setting rather than a fact. It resets when the
+battery dies, it can be set by hand, and a device that has lost its network
+time source drifts.
+
+And every sweep in this repository pins the clock to a chosen instant — which,
+to the app, is indistinguishable from a correct one. So a wrong clock had never
+been driven, in any test or any browser, once.
+
+What it costs on a phone that is out:
+
+| Rule | On a broken clock |
+| ---- | ----------------- |
+| `cardHasExpired` | refuses a good card, or accepts a dead one |
+| `voucherExpired`, `rewardExpired` | takes a benefit from somebody entitled to it, silently |
+| `isTradingNow` | puts an order into a shut kitchen — order BBQ-4823 for the third time |
+| `hasPassed` | "that time has passed" about a slot that has not |
+
+**The signal was already on the wire.** Every HTTP response carries a `Date`
+header: the server's own clock, no credential, no contract, no third-party
+service, and this app discarded it on every request for the life of the
+project. `utils/appClock` reads it, keeps the offset from the fastest exchange
+seen — half the round trip is the error bar on a measurement — and hands every
+decision `appNow()` instead of `new Date()`. Thirty-seven `new Date()` calls
+across sixteen files moved; the only two left are `deviceIsOnStoreTime` and
+`clockNotice`, which really are questions about the device.
+
+It corrects only from something observed. With no response seen, the offset is
+zero and `appNow()` is exactly `new Date()` — the app falls back to the device
+rather than guessing, which is also what keeps every offline path working.
+
+`npm run audit:skew` drives the same build against the same stub at one true
+instant from four phones: correct, nine hours behind, thirteen hours ahead, and
+forty minutes fast. The forty-minute phone is there because a defect that only
+shows at nine hours is one nobody meets — it does not change whether a branch is
+open, but it moves which slots the scheduler offers.
+
+### The one thing that cannot be fixed from the client
+
+**`Date` is not a CORS-safelisted response header.** The safelist is
+`Cache-Control`, `Content-Language`, `Content-Length`, `Content-Type`,
+`Expires`, `Last-Modified` and `Pragma`. Everything else is invisible to
+`headers.get()` on a cross-origin response unless the server names it in
+`Access-Control-Expose-Headers`.
+
+- **Native iOS and Android** are not subject to CORS, so the correction works
+  with no server change at all.
+- **The web build** needs the API to send `Access-Control-Expose-Headers: Date`
+  on every response, `/health` included, whenever the API is on a different
+  origin from the app.
+
+Recorded here rather than worked around. There is no client-side substitute,
+and inventing one — an endpoint returning the time in its body — would be
+designing somebody else's API, which §8 and §12 both rule out.
+
+### Three findings, two of them in the app
+
+The sweep's first run reported twelve differences, and every one was real.
+
+**1.** The stub was not exposing `Date`, so the correction was doing nothing —
+the finding above, found by the sweep rather than reasoned about.
+
+**2.** With that fixed, `/checkout/store` passed and `/checkout/schedule` did
+not. The difference is that the store list arrives *after* the response
+carrying the correction. The schedule screen builds its slot grid in a `useMemo`
+over `useNow`'s clock, and `useNow` ticked on an interval and on foregrounding
+— neither of which is "the clock was corrected". A phone thirteen hours out
+rendered a grid for the wrong day with the right time already in memory. That
+is precisely the defect `useNow` was written to prevent, one level up: an
+answer derived from something the render never declared. `onClockCorrected`
+now tells it.
+
+**3.** Still uncorrected, because that screen fetches nothing. Its three
+requests per page load were all `HEAD /health` — the connectivity probe, which
+does not go through `apiClient` and so never reached the clock. That probe runs
+on every screen on a timer whether or not anything else is loading, which makes
+it the earliest and most reliable sight of the server's clock the app gets, and
+it was the single request being thrown away. It is read now, and skips any
+reading whose round trip it cannot bound rather than guessing at one.
+
+**And one correction in the opposite direction.** The first version of the API
+client hook read `response.headers.get('date')` directly, and nineteen tests
+went red with "We can't reach bb.q right now" — their doubles return a response
+with no `headers`, the read threw, and the throw landed in the client's own
+catch, which reads anything that is not an `ApiRequestError` as a network
+failure. A real `fetch` always has headers, so it could not have happened in
+the app; that is exactly why it needed guarding. Reading the clock is the least
+important thing that function does and it had been handed the power to fail
+every request in the app.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -558,7 +651,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **99 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **100 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

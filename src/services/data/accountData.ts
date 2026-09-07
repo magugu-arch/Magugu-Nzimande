@@ -9,6 +9,7 @@ import {
   programmeEarnRateLine,
   tierNamed,
 } from './rewardsData';
+import { appNow } from '@/utils/appClock';
 
 /**
  * The "you are almost at the next tier" nudge, written from where the member
@@ -62,7 +63,7 @@ function tierNudge(): { title: string; body: string } {
  * and quietly undo the point of the fixture.
  */
 function birthdayThisMonth(year: number, day: number): string {
-  const now = new Date();
+  const now = appNow();
   const month = now.getMonth() + 1;
   const lastDay = new Date(now.getFullYear(), month, 0).getDate();
   const safeDay = Math.min(day, lastDay);
@@ -282,7 +283,7 @@ export const savedPaymentMethods: PaymentMethod[] = [
  * `cardHasExpired` treats a card as valid through the end of the month it
  * names, so this is a card that works today and does not work on the 1st.
  */
-function expiryOfCurrentMonth(now: Date = new Date()): string {
+function expiryOfCurrentMonth(now: Date = appNow()): string {
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const year = String(now.getFullYear() % 100).padStart(2, '0');
   return `${month}/${year}`;

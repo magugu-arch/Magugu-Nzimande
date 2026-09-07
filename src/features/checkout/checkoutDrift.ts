@@ -1,6 +1,7 @@
 import type { PaymentMethod } from '@/types';
 import { formatPrice } from '@/utils/money';
 import { methodHasExpired } from './cardExpiry';
+import { appNow } from '@/utils/appClock';
 
 /**
  * What changed between the screen the customer read and the tap they made.
@@ -78,7 +79,7 @@ export function priceDrift(shown: number, charged: number): string | null {
  * Both of those live in `cardHasExpired`, which is why this defers to it
  * rather than reading the field itself.
  */
-export function paymentNoLongerValid(method: PaymentMethod, now: Date = new Date()): string | null {
+export function paymentNoLongerValid(method: PaymentMethod, now: Date = appNow()): string | null {
   if (!methodHasExpired(method, now)) return null;
 
   // Named, because the customer has two or three saved cards and "your card
@@ -102,6 +103,6 @@ export function checkoutStillHonest(args: {
   method: PaymentMethod;
   now?: Date;
 }): string | null {
-  const { shownTotal, chargedTotal, method, now = new Date() } = args;
+  const { shownTotal, chargedTotal, method, now = appNow() } = args;
   return paymentNoLongerValid(method, now) ?? priceDrift(shownTotal, chargedTotal);
 }

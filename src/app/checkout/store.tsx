@@ -20,6 +20,7 @@ import { useDeviceLocation, useStoresForFulfilment } from '@/features/stores/hoo
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, spacing } from '@/theme';
+import { skewNotice } from '@/utils/appClock';
 import { clockNotice } from '@/utils/storeClock';
 
 /** Store Selection + Store Locator (brief §4 / §11). */
@@ -62,6 +63,7 @@ export default function StoreSelectionScreen() {
     while somebody is looking at a list of branches.
   */
   const notice = clockNotice();
+  const skew = skewNotice();
 
   const handleSelect = useCallback(
     (store: Store) => {
@@ -176,6 +178,19 @@ export default function StoreSelectionScreen() {
             {notice ? (
               <Text variant="caption" color={colors.textMuted} testID="store-clock-notice">
                 {notice}
+              </Text>
+            ) : null}
+
+            {/*
+              And separately: the badge above says "Open now" or "Closed", and
+              that answer is only as good as the clock behind it. On a phone
+              whose clock is out the app is now using the server's — this says
+              so, because a customer told a branch is shut when their own phone
+              says half past six deserves the reason.
+            */}
+            {skew ? (
+              <Text variant="caption" color={colors.textMuted} testID="store-skew-notice">
+                {skew}
               </Text>
             ) : null}
           </View>
