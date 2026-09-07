@@ -14,7 +14,12 @@ import {
   signOut,
   whoAmI,
 } from '@/lib/account-api';
-import { aProduct, customer, orderLine, stubFetch, type StubbedResponse } from './fixtures';
+import {
+  anApiAccount,
+  anApiOrder,
+  customer,
+  fetchStub,
+} from './fixtures';
 
 /**
  * The browser's view of the account endpoints.
@@ -25,25 +30,12 @@ import { aProduct, customer, orderLine, stubFetch, type StubbedResponse } from '
  * is where a response the API did not promise has to fail.
  */
 
-let restore: (() => void) | null = null;
+const stub = fetchStub();
+const serve = stub.serve;
 
-afterEach(() => {
-  restore?.();
-  restore = null;
-});
+afterEach(stub.restore);
 
-const serve = (reply: (path: string, init?: RequestInit) => StubbedResponse) => {
-  restore = stubFetch(reply);
-};
-
-const anAccount = () => ({
-  id: 'acc_1',
-  name: customer.name,
-  email: customer.email,
-  mobile: customer.mobile,
-  createdAt: new Date().toISOString(),
-  points: 40,
-});
+const anAccount = () => anApiAccount();
 
 const anAddress = () => ({
   id: 'adr_1',
@@ -53,26 +45,9 @@ const anAddress = () => ({
   note: '',
 });
 
-const anOrder = () => ({
-  id: 'O-1',
-  orderNumber: 'BBQ-260903-0001',
-  storeId: 'ST-CRE',
-  mode: 'Collection',
-  status: 'completed',
-  customer,
-  accountId: 'acc_1',
-  cancelledReason: null,
-  placedAt: new Date().toISOString(),
-  etaMinutes: 25,
-  lines: [orderLine(aProduct())],
-  totals: { subtotalCents: 100, discountCents: 0, deliveryCents: 0, totalCents: 100 },
-  promoCode: null,
-  address: null,
-  suburb: null,
-  postalCode: null,
-  kitchenNote: '',
-  pointsEarned: 1,
-});
+/** A completed order on an account, which is what a history endpoint returns. */
+const anOrder = () =>
+  anApiOrder({ orderNumber: 'BBQ-260903-0001', status: 'completed', accountId: 'acc_1' });
 
 describe('signing in and up', () => {
   it('registers and comes back with the account', async () => {
@@ -95,7 +70,7 @@ describe('signing in and up', () => {
 
   it('sends JSON when it posts', async () => {
     const seen: (RequestInit | undefined)[] = [];
-    restore = stubFetch((_path, init) => {
+    serve((_path, init) => {
       seen.push(init);
       return { body: { account: anAccount() } };
     });
@@ -182,7 +157,7 @@ describe('the address book', () => {
   /** An id containing a slash must not be able to reach a different route. */
   it('escapes the id it removes rather than pasting it in', async () => {
     const paths: string[] = [];
-    restore = stubFetch((path) => {
+    serve((path) => {
       paths.push(path);
       return { body: { removed: true } };
     });
@@ -195,7 +170,7 @@ describe('the address book', () => {
 describe('order history', () => {
   it('comes from the server rather than the browser', async () => {
     const paths: string[] = [];
-    restore = stubFetch((path) => {
+    serve((path) => {
       paths.push(path);
       return { body: { orders: [anOrder()] } };
     });
@@ -214,7 +189,7 @@ describe('order history', () => {
 describe('the privacy requests', () => {
   it('erases through the right method, since a GET would be an export', async () => {
     const seen: (RequestInit | undefined)[] = [];
-    restore = stubFetch((_path, init) => {
+    serve((_path, init) => {
       seen.push(init);
       return { body: { erased: true } };
     });
@@ -248,7 +223,7 @@ describe('signing out', () => {
    */
   it('deletes the session rather than posting to it', async () => {
     const seen: { path: string; init?: RequestInit }[] = [];
-    restore = stubFetch((path, init) => {
+    serve((path, init) => {
       seen.push({ path, init });
       return { body: {} };
     });
@@ -260,7 +235,7 @@ describe('signing out', () => {
 
   /** Sign-out is what you do when something is already wrong; it cannot throw. */
   it('says it failed rather than throwing when the network is down', async () => {
-    restore = stubFetch(() => {
+    serve(() => {
       throw new Error('offline');
     });
 
@@ -297,7 +272,7 @@ describe('the password reset', () => {
 
   it('asks through POST and spends through PUT', async () => {
     const seen: { method?: string }[] = [];
-    restore = stubFetch((_path, init) => {
+    serve((_path, init) => {
       seen.push({ method: init?.method });
       return { body: { sent: true } };
     });

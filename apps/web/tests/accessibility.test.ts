@@ -1,8 +1,9 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { AA, contrastRatio, luminance, meetsAA, parseHex, ratioOf } from '@/lib/a11y/contrast';
 import tokens from '../../../packages/ui/src/tokens.json';
+import { demoTemplate, filesUnder } from './fixtures';
 
 /**
  * Accessibility, checked rather than asserted.
@@ -19,10 +20,7 @@ import tokens from '../../../packages/ui/src/tokens.json';
  * an image with no alt, a control with no name, headings that skip a level.
  */
 
-const TEMPLATE = readFileSync(
-  path.resolve(__dirname, '../static-demo/index.template.html'),
-  'utf8',
-);
+const TEMPLATE = demoTemplate();
 
 const COMPONENTS = path.resolve(__dirname, '../src/components');
 /**
@@ -258,7 +256,7 @@ describe('the review build', () => {
 });
 
 describe('the React components and the pages', () => {
-  const files = [...readdirDeep(COMPONENTS), ...readdirDeep(PAGES)].filter((file) =>
+  const files = [...filesUnder(COMPONENTS), ...filesUnder(PAGES)].filter((file) =>
     file.endsWith('.tsx'),
   );
 
@@ -268,8 +266,8 @@ describe('the React components and the pages', () => {
    * empty set forever.
    */
   it('has components and pages to check', () => {
-    expect(readdirDeep(COMPONENTS).length).toBeGreaterThan(10);
-    expect(readdirDeep(PAGES).length).toBeGreaterThan(10);
+    expect(filesUnder(COMPONENTS).length).toBeGreaterThan(10);
+    expect(filesUnder(PAGES).length).toBeGreaterThan(10);
   });
 
   it('gives every image an alt', () => {
@@ -300,14 +298,6 @@ describe('the React components and the pages', () => {
     }
   });
 });
-
-/** Every file under a directory, recursively. */
-function readdirDeep(directory: string): string[] {
-  return readdirSync(directory).flatMap((entry) => {
-    const full = path.join(directory, entry);
-    return statSync(full).isDirectory() ? readdirDeep(full) : [full];
-  });
-}
 
 /**
  * The screens a customer sees when something has gone wrong.

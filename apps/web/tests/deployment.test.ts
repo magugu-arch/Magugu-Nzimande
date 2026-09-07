@@ -1,6 +1,7 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { REPO, WEB, sourceFiles } from './fixtures';
 
 /**
  * What a deployment has to be told, and what it must never be told.
@@ -12,22 +13,7 @@ import { describe, expect, it } from 'vitest';
  * silently fall behind the code, and that no secret is ever committed.
  */
 
-const WEB = path.resolve(__dirname, '..');
-const REPO = path.resolve(WEB, '../..');
 const EXAMPLE = readFileSync(path.join(WEB, '.env.example'), 'utf8');
-
-/** Every source file that could read an environment variable. */
-function sourceFiles(): string[] {
-  const roots = [path.join(WEB, 'src'), path.join(REPO, 'infra'), path.join(REPO, 'packages')];
-  const walk = (directory: string): string[] => {
-    if (!statSync(directory).isDirectory()) return [directory];
-    return readdirSync(directory).flatMap((entry) => {
-      if (entry === 'node_modules' || entry === '.next') return [];
-      return walk(path.join(directory, entry));
-    });
-  };
-  return roots.flatMap(walk).filter((file) => /\.(ts|tsx|mjs)$/.test(file));
-}
 
 const SOURCE = sourceFiles();
 

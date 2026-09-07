@@ -2,12 +2,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ApiError, advanceOrder, fetchOrder, placeOrder, quoteDelivery } from '@/lib/client-api';
 import type { CreateOrderRequest } from '@bbq/types';
 import {
+  anApiOrder,
+  anApiOrderStatus,
   aProduct,
   customer,
+  fetchStub,
   orderLine,
   orderRequest,
-  stubFetch,
-  type StubbedResponse,
 } from './fixtures';
 
 /**
@@ -19,55 +20,16 @@ import {
  * reaches the real API; `stubFetch` stands in for the network.
  */
 
-let restore: (() => void) | null = null;
+const stub = fetchStub();
+const serve = stub.serve;
 
-afterEach(() => {
-  restore?.();
-  restore = null;
-});
-
-const serve = (reply: (path: string) => StubbedResponse) => {
-  restore = stubFetch(reply);
-};
+afterEach(stub.restore);
 
 const product = aProduct();
 
-/**
- * The journey response, whole. The payment half is not optional in the schema,
- * so a fixture that leaves it out is a fixture that no longer describes the API
- * — which is what two of these were until the schema said so.
- */
-const anOrderStatus = (payment = { required: false, status: null }) => ({
-  order: anOrder(),
-  statusLabel: 'Order received',
-  payment,
-});
+const anOrderStatus = (payment = { required: false, status: null }) => anApiOrderStatus({ payment });
 
-/** A well-formed order, as the API would really answer. */
-const anOrder = () => ({
-  id: 'O-1',
-  orderNumber: 'BBQ-260902-0001',
-  storeId: 'ST-CRE',
-  mode: 'Collection',
-  status: 'received',
-  customer,
-  accountId: null,
-  cancelledReason: null,
-  placedAt: new Date().toISOString(),
-  etaMinutes: 25,
-  lines: [orderLine(product)],
-  totals: {
-    subtotalCents: product.priceCents,
-    discountCents: 0,
-    deliveryCents: 0,
-    totalCents: product.priceCents,
-  },
-  promoCode: null,
-  address: null,
-  suburb: null,
-  kitchenNote: '',
-  pointsEarned: 1,
-});
+const anOrder = () => anApiOrder();
 
 describe('a response the API promised', () => {
   it('comes back parsed', async () => {
@@ -175,7 +137,7 @@ describe('an error from the API', () => {
 describe('the requests it sends', () => {
   it('escapes an order id rather than pasting it into the path', async () => {
     const paths: string[] = [];
-    restore = stubFetch((path) => {
+    serve((path) => {
       paths.push(path);
       return { body: anOrderStatus() };
     });
@@ -186,7 +148,7 @@ describe('the requests it sends', () => {
 
   it('sends JSON when it posts', async () => {
     const seen: (RequestInit | undefined)[] = [];
-    restore = stubFetch((_path, init) => {
+    serve((_path, init) => {
       seen.push(init);
       return { body: { order: anOrder() } };
     });

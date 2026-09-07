@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PRODUCTS, STORES, optionGroupsFor } from '@bbq/seed';
@@ -467,6 +467,83 @@ export function asOperator(cookie: string) {
 export type StubbedResponse = { status?: number; body: unknown };
 
 /**
+ * An order shaped the way the API really answers, for the suites that stand in
+ * for the network.
+ *
+ * There were two of these, one per suite, and they had already drifted: one
+ * described a received collection order and the other a completed one on an
+ * account, and neither could be used by the other test. Worse, both had at one
+ * point been missing the payment half of the response — which the schema now
+ * refuses, but only after the schema was written. One shape, overridable.
+ *
+ * Built off the real seed product so the totals are a price the catalogue
+ * actually charges rather than a round number that no order could have.
+ */
+export function anApiOrder(over: Record<string, unknown> = {}): Record<string, unknown> {
+  const product = aProduct();
+  return {
+    id: 'O-1',
+    orderNumber: 'BBQ-260902-0001',
+    storeId: aCollectionStore().id,
+    mode: 'Collection',
+    status: 'received',
+    customer,
+    accountId: null,
+    cancelledReason: null,
+    placedAt: new Date().toISOString(),
+    etaMinutes: 25,
+    lines: [orderLine(product)],
+    totals: {
+      subtotalCents: product.priceCents,
+      discountCents: 0,
+      deliveryCents: 0,
+      totalCents: product.priceCents,
+    },
+    promoCode: null,
+    address: null,
+    suburb: null,
+    // On the real Order and missing from one of the two copies this replaces.
+    // A stub narrower than the response it stands in for is a test that passes
+    // against a shape the API does not send.
+    postalCode: null,
+    kitchenNote: '',
+    pointsEarned: Math.floor(product.priceCents / 100),
+    ...over,
+  };
+}
+
+/**
+ * The journey response, whole.
+ *
+ * The payment half is not optional in the schema, so a fixture that leaves it
+ * out is a fixture that no longer describes the API — which is what two of
+ * these were until the schema said so.
+ */
+export function anApiOrderStatus(
+  over: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    order: anApiOrder(),
+    statusLabel: 'Order received',
+    payment: { required: false, status: null },
+    ...over,
+  };
+}
+
+/** An account as the API answers it. */
+export function anApiAccount(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: 'acc_1',
+    name: customer.name,
+    email: customer.email,
+    mobile: customer.mobile,
+    createdAt: new Date().toISOString(),
+    points: 40,
+    ...over,
+  };
+}
+
+/**
  * Replaces `fetch` for the browser-side service layer.
  *
  * `client-api` is the layer that parses every response through its schema so a
@@ -493,6 +570,31 @@ export function stubFetch(
 
   return () => {
     globalThis.fetch = original;
+  };
+}
+
+/**
+ * `stubFetch` for a suite that keeps its restore function in a variable.
+ *
+ * Two suites had written the same three-line wrapper because `stubFetch`
+ * returns the restore rather than registering it. This holds the restore itself
+ * and hands back one to call in `afterEach`, so a suite has one thing to
+ * remember instead of two.
+ */
+export function fetchStub(): {
+  serve: (reply: (path: string, init?: RequestInit) => StubbedResponse) => void;
+  restore: () => void;
+} {
+  let undo: (() => void) | null = null;
+  return {
+    serve: (reply) => {
+      undo?.();
+      undo = stubFetch(reply);
+    },
+    restore: () => {
+      undo?.();
+      undo = null;
+    },
   };
 }
 
@@ -587,11 +689,81 @@ export async function registerCustomer(
   return { id: account.id, cookie: cookieFrom(response, CUSTOMER_COOKIE) };
 }
 
-/** Pulls one cookie's value out of a response's Set-Cookie header. */
+/**
+ * The value out of a Set-Cookie header, without the attributes after it.
+ *
+ * Split on `=` and rejoined past the first, because a signed cookie's value
+ * contains `=` of its own — base64 padding — and taking `[1]` truncates it to
+ * something that looks like a cookie and verifies as nothing.
+ */
+export function cookieValue(setCookie: string | null): string {
+  return setCookie?.split(';')[0]?.split('=').slice(1).join('=') ?? '';
+}
+
+/** Pulls one cookie out of a response, as a Cookie header for the next call. */
 export function cookieFrom(response: Response, name: string): string {
-  const header = response.headers.get('set-cookie') ?? '';
-  const value = header.split(';')[0]?.split('=').slice(1).join('=') ?? '';
-  return `${name}=${value}`;
+  return `${name}=${cookieValue(response.headers.get('set-cookie'))}`;
+}
+
+// ---------------------------------------------------------------------------
+// Where things are on disk
+// ---------------------------------------------------------------------------
+
+/** The app. Several suites had each worked this path out from `__dirname`. */
+export const WEB = path.resolve(__dirname, '..');
+
+/** The monorepo root, for the suites that read seeds, assets or infra. */
+export const REPO = path.resolve(WEB, '../..');
+
+/**
+ * Every file under a directory, recursively.
+ *
+ * There were three of these — one per suite that needed to walk a tree — and
+ * they did not agree: two skipped `node_modules` and `.next`, one did not, and
+ * that one only worked because it was pointed at a directory with neither. A
+ * walk that is correct by where you aim it is a walk that breaks when somebody
+ * aims it somewhere else.
+ */
+export function filesUnder(directory: string, match?: RegExp): string[] {
+  const walk = (at: string): string[] => {
+    if (!statSync(at).isDirectory()) return [at];
+    return readdirSync(at).flatMap((entry) => {
+      if (entry === 'node_modules' || entry === '.next' || entry === '.git') return [];
+      return walk(path.join(at, entry));
+    });
+  };
+  const found = walk(directory);
+  return match ? found.filter((file) => match.test(file)) : found;
+}
+
+/** Every source file that could read an environment variable or a token. */
+export function sourceFiles(): string[] {
+  return [path.join(WEB, 'src'), path.join(REPO, 'infra'), path.join(REPO, 'packages')].flatMap(
+    (root) => filesUnder(root, /\.(ts|tsx|mjs)$/),
+  );
+}
+
+/**
+ * Every route handler in the app, as the path a caller would use.
+ *
+ * Derived from the files rather than listed, so a route added without a line in
+ * the README fails the documentation test rather than passing unnoticed.
+ */
+export function apiRoutesOnDisk(): string[] {
+  const base = path.join(WEB, 'src/app/api');
+  return filesUnder(base, /(^|[/\\])route\.ts$/).map((file) => {
+    // The directory holding route.ts, relative to api/, as URL segments. A
+    // handler sitting directly in api/ has none, so `.` becomes nothing rather
+    // than a literal dot in the path.
+    const within = path.dirname(path.relative(base, file));
+    const segments = within === '.' ? [] : within.split(path.sep);
+    return ['/api', ...segments].join('/');
+  });
+}
+
+/** The single-file review build's template, read by two suites. */
+export function demoTemplate(): string {
+  return readFileSync(path.join(WEB, 'static-demo/index.template.html'), 'utf8');
 }
 
 // ---------------------------------------------------------------------------

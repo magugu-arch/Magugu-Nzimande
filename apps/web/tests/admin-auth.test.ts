@@ -8,7 +8,7 @@ import {
   POST as signInRoute,
 } from '@/app/api/admin/session/route';
 import { SESSION_COOKIE, isValidToken, signIn } from '@/lib/admin-auth';
-import { CONSOLE_PASSPHRASE, operatorCookie, request, resetState } from './fixtures';
+import { CONSOLE_PASSPHRASE, cookieValue, operatorCookie, request, resetState } from './fixtures';
 
 /**
  * The console's auth boundary, driven through the route handlers.
@@ -16,9 +16,6 @@ import { CONSOLE_PASSPHRASE, operatorCookie, request, resetState } from './fixtu
  * The point of these is what happens to a caller who never signs in: the write
  * endpoints used to answer anyone who found the path.
  */
-
-const cookieValue = (setCookie: string | null) =>
-  setCookie?.split(';')[0]?.split('=').slice(1).join('=') ?? '';
 
 const anonymous = (url: string, body?: unknown) => request(url, { body });
 

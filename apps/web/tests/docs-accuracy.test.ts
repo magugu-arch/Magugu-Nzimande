@@ -1,5 +1,6 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { WEB, apiRoutesOnDisk, filesUnder } from './fixtures';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -19,29 +20,28 @@ import { describe, expect, it } from 'vitest';
  * the part a new developer works from, and the part that goes stale first.
  */
 
-const WEB = path.resolve(__dirname, '..');
 const README = readFileSync(path.join(WEB, 'README.md'), 'utf8');
+
+/**
+ * The endpoints nothing in this app is expected to call.
+ *
+ * Each is entered from outside: two gateways posting callbacks, and a health
+ * check a load balancer polls. Listed by hand rather than pattern-matched on
+ * the word "webhook", so adding one is a decision somebody writes down.
+ */
+const ENTERED_FROM_OUTSIDE: Record<string, string> = {
+  '/api/couriers/webhook': 'the courier posts delivery updates here',
+  '/api/notifications/webhook': 'the email provider posts bounces and complaints here',
+  '/api/health': 'polled by whatever is watching the deployment',
+};
 
 /** Every route handler in the app, as the path a caller would use. */
 function routesOnDisk(): string[] {
-  const base = path.join(WEB, 'src/app/api');
-  const found: string[] = [];
-
-  const walk = (dir: string, prefix: string) => {
-    for (const entry of readdirSync(dir)) {
-      const full = path.join(dir, entry);
-      if (statSync(full).isDirectory()) {
-        walk(full, `${prefix}/${entry}`);
-      } else if (entry === 'route.ts') {
-        found.push(`/api${prefix}`);
-      }
-    }
-  };
-
-  walk(base, '');
   // `[id]` on disk is `:id` in the document, which is how the README writes it
   // and how anybody talking about the endpoint says it out loud.
-  return found.map((route) => route.replace(/\[(\w+)\]/g, ':$1')).sort();
+  return apiRoutesOnDisk()
+    .map((route) => route.replace(/\[(\w+)\]/g, ':$1'))
+    .sort();
 }
 
 /**
@@ -157,5 +157,63 @@ describe('the demo data flag', () => {
   it('is still set, because no approved prices have arrived', async () => {
     const { DEMO_DATA } = (await import('@bbq/seed')) as { DEMO_DATA: boolean };
     expect(DEMO_DATA).toBe(true);
+  });
+});
+
+/**
+ * An endpoint nobody calls.
+ *
+ * This repository had several: the payment stack, the account system and the
+ * courier adapter were each built, tested and left with no reachable surface —
+ * ten days of work that a stakeholder clicking through the site could not find.
+ * Each was caught by hand, by sweeping the routes against the client code, and
+ * a sweep done by hand is a sweep that stops being done.
+ *
+ * So it is a test. A route handler that nothing in the app calls either wants
+ * wiring in, or is entered from outside and belongs in the list above with a
+ * reason beside it.
+ */
+describe('every endpoint has a caller', () => {
+  /** Everything that could call an endpoint: the app, minus the endpoints. */
+  const callers = filesUnder(path.join(WEB, 'src'), /\.(ts|tsx)$/)
+    .filter((file) => !file.includes(path.join('app', 'api')))
+    .map((file) => readFileSync(file, 'utf8'));
+
+  /**
+   * A route is called if some file holds the literal parts of its path.
+   *
+   * Split around the parameters rather than matched whole, because a caller
+   * builds `/api/orders/${id}/advance` and the route is `/api/orders/[id]/
+   * advance` — the same endpoint, sharing no single substring. The first naive
+   * version of this check reported that route as dead when it is polled by the
+   * journey screen on a timer.
+   */
+  const isCalled = (route: string): boolean => {
+    const opens = route.indexOf('[');
+    const closes = route.lastIndexOf(']');
+    const before = opens === -1 ? route : route.slice(0, opens);
+    const after = closes === -1 ? '' : route.slice(closes + 1);
+    return callers.some((text) => text.includes(before) && (after === '' || text.includes(after)));
+  };
+
+  it('is called from the app, or is listed as entered from outside', () => {
+    const unreachable = apiRoutesOnDisk().filter(
+      (route) => !isCalled(route) && !(route in ENTERED_FROM_OUTSIDE),
+    );
+
+    expect(unreachable, 'these endpoints exist and nothing calls them').toEqual([]);
+  });
+
+  /** The list is a record of decisions, not a place to park a mistake. */
+  it('does not list an endpoint that is called after all', () => {
+    const listedButCalled = Object.keys(ENTERED_FROM_OUTSIDE).filter(isCalled);
+    expect(listedButCalled, 'these are called; drop them from the list').toEqual([]);
+  });
+
+  /** A path in the list that no longer exists is a stale exemption. */
+  it('does not list an endpoint that no longer exists', () => {
+    const onDisk = new Set(apiRoutesOnDisk());
+    const gone = Object.keys(ENTERED_FROM_OUTSIDE).filter((route) => !onDisk.has(route));
+    expect(gone, 'these are exempted and no longer exist').toEqual([]);
   });
 });

@@ -11,6 +11,7 @@ import {
   optionGroupsFor,
 } from '@bbq/seed';
 import { describe, expect, it } from 'vitest';
+import { demoTemplate } from './fixtures';
 
 /**
  * The single-file review build, against the seed it is generated from.
@@ -24,10 +25,7 @@ import { describe, expect, it } from 'vitest';
  * the placeholder is still there, and nobody has pasted the data back in.
  */
 
-const TEMPLATE = readFileSync(
-  path.resolve(__dirname, '../static-demo/index.template.html'),
-  'utf8',
-);
+const TEMPLATE = demoTemplate();
 
 describe('the demo template', () => {
   it('still has the placeholders the build fills', () => {
