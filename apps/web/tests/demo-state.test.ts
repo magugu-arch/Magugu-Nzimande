@@ -3,7 +3,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { PRODUCTS } from '@bbq/seed';
 import { beforeEach, describe, expect, it } from 'vitest';
+import type { DemoState } from '@/lib/demo-state';
 import { mutateState, pushAudit, readState, writeState } from '@/lib/demo-state';
+import { unacknowledged } from '@/lib/fulfilment/handoff';
 import { blankState, stateFile, withStateFile, writeRawState } from './fixtures';
 
 /**
@@ -135,6 +137,51 @@ describe('a state file written by something else', () => {
     const { payments } = readState();
     expect(payments.intents).toEqual([]);
     expect(payments.appliedEvents, 'the half that was missing').toEqual([]);
+  });
+
+  /**
+   * A field the file has, and got wrong.
+   *
+   * The spreads above handle a key that is missing. They do nothing about one
+   * that is present and is not what it should be — `"handoffs": null` from a
+   * truncated write, or from somebody debugging by hand — and the next read of
+   * the shortfall report threw on `.filter`. The module's contract is that it
+   * survives a file it did not write, and that includes this.
+   *
+   * Losing a corrupt list is recoverable. Refusing to start is not.
+   */
+  it.each([
+    ['a top-level list that is null', { soldOut: null }, (state: DemoState) => state.soldOut],
+    ['a top-level list that is a string', { orders: 'nope' }, (state: DemoState) => state.orders],
+    [
+      'a nested list that is null',
+      { fulfilment: { handoffs: null, inFlight: [] } },
+      (state: DemoState) => state.fulfilment.handoffs,
+    ],
+    [
+      'a nested list that is an object',
+      { payments: { intents: [], appliedEvents: {} } },
+      (state: DemoState) => state.payments.appliedEvents,
+    ],
+    [
+      'a notifications list that is a number',
+      { notifications: { sent: 7, webhookTokens: [] } },
+      (state: DemoState) => state.notifications.sent,
+    ],
+  ])('replaces %s with the empty one it started as', (_name, bad, read) => {
+    writeRawState(JSON.stringify(bad));
+
+    const state = readState();
+    expect(Array.isArray(read(state))).toBe(true);
+    expect(read(state)).toEqual([]);
+  });
+
+  /** And the code that reads them keeps working, which is the point. */
+  it('leaves the shortfall report readable after a corrupt handoff list', () => {
+    writeRawState(JSON.stringify({ fulfilment: { handoffs: null, inFlight: null } }));
+
+    expect(() => unacknowledged()).not.toThrow();
+    expect(unacknowledged()).toEqual([]);
   });
 
   it('does the same for a half-written console lock', () => {

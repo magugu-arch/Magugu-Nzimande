@@ -144,13 +144,34 @@ function seed(): DemoState {
   };
 }
 
+/**
+ * Every list the seed declares, still a list.
+ *
+ * The spreads below fill in a key the file has never heard of, which is what
+ * makes an older deployment's file readable by a newer one. They do nothing
+ * about a key the file *has* and got wrong — `"handoffs": null` from a
+ * truncated write or somebody debugging by hand replaces an array with null,
+ * and the next read of the shortfall report throws on `.filter`.
+ *
+ * The seed is the shape. Anything that should be a list and is not becomes the
+ * empty one it started as: losing a corrupt list is recoverable, and refusing
+ * to start is not.
+ */
+function listsIntact<T extends object>(merged: T, base: T): T {
+  const fixed = { ...merged };
+  for (const key of Object.keys(base) as (keyof T)[]) {
+    if (Array.isArray(base[key]) && !Array.isArray(fixed[key])) fixed[key] = base[key];
+  }
+  return fixed;
+}
+
 export function readState(): DemoState {
   try {
     const raw = readFileSync(stateFile(), 'utf8');
     const parsed = JSON.parse(raw) as Partial<DemoState>;
     const base = seed();
 
-    return {
+    return listsIntact({
       ...base,
       ...parsed,
       // The nested groups are merged a level deeper rather than replaced.
@@ -162,10 +183,13 @@ export function readState(): DemoState {
       // appliedEvents with it, and the list that stops a redelivered callback
       // settling an order twice would come back undefined.
       consoleLock: { ...base.consoleLock, ...parsed.consoleLock },
-      payments: { ...base.payments, ...parsed.payments },
-      notifications: { ...base.notifications, ...parsed.notifications },
-      fulfilment: { ...base.fulfilment, ...parsed.fulfilment },
-    };
+      payments: listsIntact({ ...base.payments, ...parsed.payments }, base.payments),
+      notifications: listsIntact(
+        { ...base.notifications, ...parsed.notifications },
+        base.notifications,
+      ),
+      fulfilment: listsIntact({ ...base.fulfilment, ...parsed.fulfilment }, base.fulfilment),
+    }, base);
   } catch {
     // Missing or unreadable on the first request of a fresh deployment.
     return seed();
