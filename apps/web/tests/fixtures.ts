@@ -22,6 +22,7 @@ import { CUSTOMER_COOKIE } from '@/lib/accounts/session';
 import { SESSION_COOKIE } from '@/lib/admin-auth';
 import { mutateState, readState } from '@/lib/demo-state';
 import { advanceOrder, setOrderStatus } from '@/lib/order-store';
+import { repriceLines } from '@/lib/order-integrity';
 import { promotionFor } from '@/lib/promotions';
 import { intentForOrder, settle } from '@/lib/payments/ledger';
 import { signBody } from '@/lib/payments/provider';
@@ -1498,4 +1499,92 @@ export async function eraseAccountVia(cookie: string): Promise<Response> {
  */
 export function persistedState(): string {
   return JSON.stringify(readState());
+}
+
+// ---------------------------------------------------------------------------
+// The edges of the arithmetic
+
+/**
+ * Places an order through the real route and hands back the raw response.
+ *
+ * `placeOrder` asserts a 201 before returning, which is right for the eighty
+ * suites that need an order to look at and useless for the ones asking whether
+ * the route refuses. Those had each built the request-and-response pair by hand
+ * to get at a 400.
+ */
+export async function attemptOrder(
+  lines: OrderLine[],
+  over: Record<string, unknown> = {},
+): Promise<Response> {
+  return createOrderRoute(request('/api/orders', { body: orderRequest(lines, over) }));
+}
+
+/**
+ * `count` distinct basket lines that the route will actually accept.
+ *
+ * Distinct because a line is keyed by its product and its options, so `count`
+ * copies of one line is one line with a quantity — which is the other limit,
+ * and not the one a caller asking for fifty lines is testing.
+ *
+ * Every candidate is put through the real repricer and only kept if it comes
+ * back clean, which is the point. The first version of this invented an option
+ * group, and the repricer rightly refused every line: the test read as "a
+ * fifty-line basket is rejected" when what was rejected was the fixture. A
+ * fixture used to prove a limit must not be capable of failing for any other
+ * reason, so this one cannot hand back a line the route would turn down.
+ *
+ * Throws rather than returning a short list, for the same reason — a caller
+ * asking for fifty and quietly getting nine tests the wrong number.
+ */
+export function distinctLines(count: number): OrderLine[] {
+  const candidates: OrderLine[] = [];
+
+  for (const product of PRODUCTS) {
+    candidates.push(orderLine(product));
+
+    // Varied by a real choice from a real group, so the same product can
+    // supply several lines once the catalogue runs out of products.
+    for (const group of optionGroupsFor(product)) {
+      for (const choice of group.choices) {
+        candidates.push(
+          orderLine(product, {
+            key: `${product.slug}::${group.key}:${choice.label}`,
+            unitCents: product.priceCents + choice.deltaCents,
+            options: [{ groupKey: group.key, groupLabel: group.label, choices: [choice.label] }],
+          }),
+        );
+      }
+    }
+  }
+
+  const usable: OrderLine[] = [];
+  const seen = new Set<string>();
+  for (const line of candidates) {
+    if (usable.length === count) break;
+    if (seen.has(line.key)) continue;
+    if (!repriceLines([line]).ok) continue;
+    seen.add(line.key);
+    usable.push(line);
+  }
+
+  if (usable.length < count) {
+    throw new Error(
+      `the seed catalogue yields only ${usable.length} valid distinct lines, not ${count}`,
+    );
+  }
+  return usable;
+}
+
+/**
+ * The dearest single line the catalogue can produce, at a given quantity.
+ *
+ * For the tests that ask whether the totals stay exact at the top of the range.
+ * Reading the most expensive product rather than naming one keeps the bound
+ * honest when the menu changes.
+ */
+export function dearestLine(quantity: number): OrderLine {
+  const dearest = PRODUCTS.reduce((most, candidate) =>
+    candidate.priceCents > most.priceCents ? candidate : most,
+  );
+  return { ...orderLine(dearest), quantity };
 }

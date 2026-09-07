@@ -298,7 +298,7 @@
       <div><dt>Prepared by</dt><dd>Magugu Nzimande</dd></div>
 <div><dt>Date</dt><dd>7 September 2026</dd></div>
 <div><dt>Branch</dt><dd>claude/bbq-chicken-website-4qzv8i</dd></div>
-<div><dt>Commit audited</dt><dd>ba1d368</dd></div>
+<div><dt>Commit audited</dt><dd>78f44f3</dd></div>
 <div><dt>Basis</dt><dd>One experienced full-stack developer, eight-hour days</dd></div>
     </dl>
   </div>
@@ -332,10 +332,10 @@
 <tr><td class="what">API endpoints</td><td class="num-col">27</td></tr>
 <tr><td class="what">React components</td><td class="num-col">31</td></tr>
 <tr><td class="what">Business-logic modules</td><td class="num-col">47</td></tr>
-<tr><td class="what">Automated tests</td><td class="num-col">922</td></tr>
-<tr><td class="what">Test files</td><td class="num-col">45</td></tr>
-<tr><td class="what">Hand-written lines</td><td class="num-col">33,641</td></tr>
-<tr><td class="what">Commits</td><td class="num-col">135</td></tr>
+<tr><td class="what">Automated tests</td><td class="num-col">934</td></tr>
+<tr><td class="what">Test files</td><td class="num-col">46</td></tr>
+<tr><td class="what">Hand-written lines</td><td class="num-col">34,013</td></tr>
+<tr><td class="what">Commits</td><td class="num-col">136</td></tr>
         </tbody>
       </table>
     </div>
@@ -345,13 +345,13 @@
         <caption>Hand-written lines, by category. Generated files are excluded by construction.</caption>
         <thead><tr><th>Category</th><th class="num-col">Lines</th></tr></thead>
         <tbody>
-          <tr><td class="what">Application</td><td class="num-col">13,596</td></tr>
-<tr><td class="what">Tests</td><td class="num-col">13,548</td></tr>
+          <tr><td class="what">Application</td><td class="num-col">13,654</td></tr>
+<tr><td class="what">Tests</td><td class="num-col">13,827</td></tr>
 <tr><td class="what">Review build</td><td class="num-col">2,747</td></tr>
-<tr><td class="what">Data, schema and tooling</td><td class="num-col">2,879</td></tr>
-<tr><td class="what">Shared packages</td><td class="num-col">871</td></tr>
+<tr><td class="what">Data, schema and tooling</td><td class="num-col">2,880</td></tr>
+<tr><td class="what">Shared packages</td><td class="num-col">905</td></tr>
         </tbody>
-        <tfoot><tr><td>Total</td><td class="num-col">33,641</td></tr></tfoot>
+        <tfoot><tr><td>Total</td><td class="num-col">34,013</td></tr></tfoot>
       </table>
     </div>
   </section>
@@ -377,7 +377,7 @@
 <tr><td class="id-col">5</td><td class="what">API layer and order state machine</td><td class="detail">16 endpoints; five order states with collection, delivery and dine-in variants; cancellation terminal from any state and refused without a reason</td><td class="num-col">8</td></tr>
 <tr><td class="id-col">6</td><td class="what">Basket, configurator, checkout and order journey</td><td class="detail">Live pricing, option selection, line identity, free-delivery meter, trading-hours and delivery-zone gating, idempotent placement</td><td class="num-col">8</td></tr>
 <tr><td class="id-col">7</td><td class="what">Operations console and authentication</td><td class="detail">3 components, 4 admin endpoints, HMAC-signed sessions, constant-time comparison, lockout after repeated failures, fail-closed guards</td><td class="num-col">5</td></tr>
-<tr><td class="id-col">8</td><td class="what">Automated test suite</td><td class="detail">The suite as it stood at this workstream: the 922 tests now in 45 files grew with the workstreams below. Driven through route handlers rather than helpers</td><td class="num-col">7</td></tr>
+<tr><td class="id-col">8</td><td class="what">Automated test suite</td><td class="detail">The suite as it stood at this workstream: the 934 tests now in 46 files grew with the workstreams below. Driven through route handlers rather than helpers</td><td class="num-col">7</td></tr>
 <tr><td class="id-col">9</td><td class="what">Image pipeline and food imagery</td><td class="detail">sharp pipeline producing 336 derivatives from 28 masters at three widths in two formats, plus the written photography brief</td><td class="num-col">6</td></tr>
 <tr><td class="id-col">10</td><td class="what">Single-file review build</td><td class="detail">2,241-line template and generator that inlines every asset, so the site opens from one link with no server</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">11</td><td class="what">Documentation and handover</td><td class="detail">279-line website README plus contributions to the handover, audit and readiness documents</td><td class="num-col">3</td></tr>
@@ -409,25 +409,26 @@
 <tr><td class="id-col">38</td><td class="what">Review-build parity</td><td class="detail">The single-file review build showed a five-tab console after the product grew to seven, so a reviewer counting tabs would conclude two features did not exist. The two panels added, saying honestly that this build has no gateway and no till rather than showing invented rows, and a test holding the two tab lists equal in both directions while leaving the panels free to differ</td><td class="num-col">1</td></tr>
 <tr><td class="id-col">30</td><td class="what">An operations console that can act</td><td class="detail">The Problems tab named an action — “worth retrying” — and did not provide it, and the suppression list offered nothing at all. A retry that refuses to send a handoff twice and refuses one the adapter called final, a restore that undoes a bounce but never a complaint, both reporting what happened rather than refreshing a list that looks unchanged. Plus the payment ledger, which was settled and reconciled by tests and shown to nobody, with the provider reference an operator needs to find a payment in the gateway’s dashboard</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">39</td><td class="what">Review-build drift</td><td class="detail">The single-file build is a second implementation of the same rules, and five of them had drifted: it took an offer’s discount at any hour on any day, took it off the whole basket rather than the product the offer names, accepted an order from a closed store, and worked out a rewards tier its own way. Each rule now comes from the same source the site uses, and the generator carries the conditions through rather than dropping them</td><td class="num-col">2</td></tr>
-<tr><td class="id-col">40</td><td class="what">The shared fixtures, and what writing them exposed</td><td class="detail">A suite that builds its own preconditions inline drifts: five files had each written a delivery order by hand, between them inventing four street names and forgetting the postal code twice — so two tests were checking a 400 rather than the thing they meant to. 45 files now build orders, accounts, payments and offers through one set of fixtures. The value was less in the tidying than in what it turned up: a fixture that could not be written honestly was, every time, a seam that did not work</td><td class="num-col">3</td></tr>
+<tr><td class="id-col">40</td><td class="what">The shared fixtures, and what writing them exposed</td><td class="detail">A suite that builds its own preconditions inline drifts: five files had each written a delivery order by hand, between them inventing four street names and forgetting the postal code twice — so two tests were checking a 400 rather than the thing they meant to. 46 files now build orders, accounts, payments and offers through one set of fixtures. The value was less in the tidying than in what it turned up: a fixture that could not be written honestly was, every time, a seam that did not work</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">41</td><td class="what">The refund path</td><td class="detail">Enumerating the payment states nothing could produce found one: the ledger had a refunded state, the type allowed it, and no code path anywhere could reach it. An operator-only endpoint that asks the gateway first and writes the ledger only if it agrees, four refusals that each say which of them applies, a message to the customer, and the customer’s own screen — which had been offering to take payment a second time on an order that had already been refunded</td><td class="num-col">4</td></tr>
 <tr><td class="id-col">42</td><td class="what">The states the suites could not reach</td><td class="detail">Eight reachable states no test had ever put the application into, found by walking the state machine rather than by reading the tests. One of them was a defect: the advance endpoint answered 200 to an order it had not moved, so a console button reported success on a cancelled order and two side effects fired on a non-move. They were idempotent, which is why it was invisible rather than expensive — luck holding a mistake up</td><td class="num-col">2</td></tr>
 <tr><td class="id-col">43</td><td class="what">Two handoffs that were not safe against a second caller</td><td class="detail">The guard against pushing an order to the till twice read the record, awaited the adapter, and then wrote — so two callers arriving together both found no success and both pushed, which a kitchen reads as two of everything. Reachable: the console has a retry button and the advance route asks for a courier when an order reaches ready. The claim is now taken atomically before the call and released if it fails, for both the till handoff and the refund</td><td class="num-col">2</td></tr>
 <tr><td class="id-col">44</td><td class="what">Surviving a state file that is not the shape it should be</td><td class="detail">The store merged whatever it read from disk over its defaults, so a file where a list had become a string or an object crashed on the first read rather than falling back — a half-written file after a power cut, or a hand-edit, taking the site down instead of the record. Lists that arrive as something other than lists are now replaced by the default, at the top level and in each group</td><td class="num-col">1</td></tr>
 <tr><td class="id-col">45</td><td class="what">Authorisation held against the routes rather than against memory</td><td class="detail">Every console write was guarded and every account endpoint scoped to its session, and that was true because somebody had remembered each time. The failure mode is a route added in a hurry with the guard left off, which works perfectly in testing — it is the absence of a refusal that is the bug. Now a test, checked per handler rather than per file, with the endpoints that are open by design listed by name with the reason beside each</td><td class="num-col">2</td></tr>
+<tr><td class="id-col">48</td><td class="what">The edges of the money</td><td class="detail">An order for a trillion pieces of chicken was accepted with a 201. The quantity on a line had no upper bound, so the total came back as 18,900,000,000,000,000 cents — a number on which Number.isSafeInteger returns false, meaning the arithmetic had left the range where a JavaScript integer is exact — and the loyalty ledger stood ready to credit 189 trillion points on completion. A five-thousand-line basket was accepted too. Nothing was wrong with the sums; nothing had been asked to refuse the inputs. Bounds on both, shared by the schema and the basket so a customer meets a stepper that stops rather than a 400 three screens later, with tests that check not only that the limits hold but that at the very top of what they allow every total is still exact and the margin is a thousandfold — so raising one is a decision somebody makes with the consequence in front of them. Includes the refusal message: every rule in the order schema carries wording written for the person who broke it, and the route was replacing all of them with the words &quot;Invalid order&quot; while attaching the real reasons under a key no client ever read. The registration route had worked this out already and said so in its own comment</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">47</td><td class="what">Erasure that reaches the whole file</td><td class="detail">A customer who asked to be forgotten was still on record at the house they live in. Erasure replaced the name, the email and the mobile on each past order and walked straight past the street and the postal code beside them; the kitchen note — free text, where somebody types “ring the bell for flat 4B and ask for Thandi” — was left as well, and the audit log had been writing the email address and mobile number into a line per message all along. The existing test passed throughout, because it checked one field on a collection order, which is the one kind of order with no address on it. Now asked as “is any of this person anywhere in the state”, which is the question erasure has to answer. The suppression record is the one thing kept, deliberately and with a test saying why: it is what stops the next campaign emailing somebody who asked not to be. The access request reports it too, having previously named four tables and held five</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">46</td><td class="what">What the order endpoints tell a stranger</td><td class="detail">The journey screen is reachable with an order id and no session, which it has to be — a guest has no account to sign into. It was answering with the whole record: the customer’s name, their email address, their mobile number and, on a delivery, the street and postal code where they live, to anyone holding a number of the form O-clock-sequence. The screens between them read eleven fields and were being sent twenty. Narrowed by an allowlist, so a field added later stays behind the counter until somebody decides otherwise, and held there by a test that searches the response for the customer’s own details rather than for the name of a field</td><td class="num-col">2</td></tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Delivered scope</td><td class="num-col">208</td></tr>
+          <tr><td colspan="3">Delivered scope</td><td class="num-col">211</td></tr>
         </tfoot>
       </table>
     </div>
 
     <dl class="totals">
-      <div><dt>Delivered</dt><dd>208 <span class="unit">days</span></dd></div>
-      <div><dt>At eight hours</dt><dd>1,664 <span class="unit">hours</span></dd></div>
-      <div><dt>At R 950/hour</dt><dd>R 1,580,800</dd></div>
+      <div><dt>Delivered</dt><dd>211 <span class="unit">days</span></dd></div>
+      <div><dt>At eight hours</dt><dd>1,688 <span class="unit">hours</span></dd></div>
+      <div><dt>At R 950/hour</dt><dd>R 1,603,600</dd></div>
     </dl>
   </section>
 
@@ -471,11 +472,11 @@
           <tr><th>Scope</th><th class="num-col">Days</th><th class="num-col">Hours</th><th class="num-col">At R 950/hour</th></tr>
         </thead>
         <tbody>
-          <tr><td class="what">Delivered to date</td><td class="num-col">208</td><td class="num-col">1,664</td><td class="num-col">R 1,580,800</td></tr>
+          <tr><td class="what">Delivered to date</td><td class="num-col">211</td><td class="num-col">1,688</td><td class="num-col">R 1,603,600</td></tr>
           <tr><td class="what">Remaining to go live</td><td class="num-col">25</td><td class="num-col">200</td><td class="num-col">R 190,000</td></tr>
         </tbody>
         <tfoot>
-          <tr><td>Total engineering</td><td class="num-col">233</td><td class="num-col">1,864</td><td class="num-col">R 1,770,800</td></tr>
+          <tr><td>Total engineering</td><td class="num-col">236</td><td class="num-col">1,888</td><td class="num-col">R 1,793,600</td></tr>
         </tfoot>
       </table>
     </div>
@@ -485,8 +486,8 @@
     quickly accounts, credentials and contracts arrive rather than on how fast anyone
     writes code.</p>
 
-    <p class="measure">33,641 hand-written lines over 208 days is
-    about 162 a day. For tested, typed, reviewed
+    <p class="measure">34,013 hand-written lines over 211 days is
+    about 161 a day. For tested, typed, reviewed
     production code that sits inside the normal 100–300 band — integration work carries
     more test and less code than storefront work does.</p>
   </section>
@@ -500,15 +501,15 @@
     <div class="scroll">
       <table>
         <thead>
-          <tr><th class="num-col">Rate</th><th class="num-col">Delivered (1,664 h)</th><th class="num-col">Remaining (200 h)</th><th class="num-col">End to end</th></tr>
+          <tr><th class="num-col">Rate</th><th class="num-col">Delivered (1,688 h)</th><th class="num-col">Remaining (200 h)</th><th class="num-col">End to end</th></tr>
         </thead>
         <tbody>
-          <tr><td class="num-col">R 400</td><td class="num-col">R 665,600</td><td class="num-col">R 80,000</td><td class="num-col">R 745,600</td></tr>
-<tr><td class="num-col">R 650</td><td class="num-col">R 1,081,600</td><td class="num-col">R 130,000</td><td class="num-col">R 1,211,600</td></tr>
-<tr><td class="num-col">R 850</td><td class="num-col">R 1,414,400</td><td class="num-col">R 170,000</td><td class="num-col">R 1,584,400</td></tr>
-<tr class="here"><td class="num-col">R 950</td><td class="num-col">R 1,580,800</td><td class="num-col">R 190,000</td><td class="num-col">R 1,770,800</td></tr>
-<tr><td class="num-col">R 1,150</td><td class="num-col">R 1,913,600</td><td class="num-col">R 230,000</td><td class="num-col">R 2,143,600</td></tr>
-<tr><td class="num-col">R 1,450</td><td class="num-col">R 2,412,800</td><td class="num-col">R 290,000</td><td class="num-col">R 2,702,800</td></tr>
+          <tr><td class="num-col">R 400</td><td class="num-col">R 675,200</td><td class="num-col">R 80,000</td><td class="num-col">R 755,200</td></tr>
+<tr><td class="num-col">R 650</td><td class="num-col">R 1,097,200</td><td class="num-col">R 130,000</td><td class="num-col">R 1,227,200</td></tr>
+<tr><td class="num-col">R 850</td><td class="num-col">R 1,434,800</td><td class="num-col">R 170,000</td><td class="num-col">R 1,604,800</td></tr>
+<tr class="here"><td class="num-col">R 950</td><td class="num-col">R 1,603,600</td><td class="num-col">R 190,000</td><td class="num-col">R 1,793,600</td></tr>
+<tr><td class="num-col">R 1,150</td><td class="num-col">R 1,941,200</td><td class="num-col">R 230,000</td><td class="num-col">R 2,171,200</td></tr>
+<tr><td class="num-col">R 1,450</td><td class="num-col">R 2,447,600</td><td class="num-col">R 290,000</td><td class="num-col">R 2,737,600</td></tr>
         </tbody>
       </table>
     </div>
@@ -538,7 +539,7 @@
   </section>
 
   <footer>
-    <p>Audited at commit <strong>ba1d368</strong> on <strong>claude/bbq-chicken-website-4qzv8i</strong>,
+    <p>Audited at commit <strong>78f44f3</strong> on <strong>claude/bbq-chicken-website-4qzv8i</strong>,
     7 September 2026. Prepared by Magugu Nzimande.</p>
     <p>Every count on this page is read from the repository when the page is generated,
     and the Word version is rendered from the same module. No project management, account

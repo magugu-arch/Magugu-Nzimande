@@ -1,5 +1,6 @@
 'use client';
 
+import { MAX_BASKET_LINES, MAX_LINE_QUANTITY } from '@bbq/types';
 import type { OrderTotals, PublicOrder, ServiceMode, Store } from '@bbq/types';
 import {
   createContext,
@@ -160,23 +161,60 @@ export function OrderingProvider({
     [store, announce],
   );
 
+  /**
+   * The same bounds the server enforces, met here first.
+   *
+   * Not a second opinion: the schema refuses an order past either limit and is
+   * the authority. This is so a customer holding the plus button meets a
+   * stepper that stops rather than a 400 at checkout, three screens after the
+   * thing they did wrong.
+   */
   const addLine = useCallback(
     (line: Omit<CartLine, 'key'>) => {
       const key = lineKey(line.slug, line.options);
+
+      /**
+       * The message is worked out here, from `lines`, rather than inside the
+       * updater below.
+       *
+       * It has to say what actually happened — "added" is wrong when the basket
+       * was already at the limit — and only the basket knows. The updater knows
+       * too, but it does not run at this line: React defers it, so a variable
+       * set inside it still holds its old value by the time `announce` is
+       * reached. Reading the rendered basket is a frame behind under very fast
+       * repeated clicks, which can misword one announcement; the state itself
+       * is still updated functionally below and stays exact.
+       */
+      const existing = lines.find((candidate) => candidate.key === key);
+      const atLineLimit = existing !== undefined && existing.quantity >= MAX_LINE_QUANTITY;
+      const atBasketLimit = existing === undefined && lines.length >= MAX_BASKET_LINES;
+
       setLines((current) => {
-        const existing = current.find((candidate) => candidate.key === key);
-        if (existing) {
+        const held = current.find((candidate) => candidate.key === key);
+        if (held) {
+          const capped = Math.min(held.quantity + line.quantity, MAX_LINE_QUANTITY);
           return current.map((candidate) =>
-            candidate.key === key
-              ? { ...candidate, quantity: candidate.quantity + line.quantity }
-              : candidate,
+            candidate.key === key ? { ...candidate, quantity: capped } : candidate,
           );
         }
-        return [...current, { ...line, key }];
+        if (current.length >= MAX_BASKET_LINES) return current;
+        return [
+          ...current,
+          { ...line, quantity: Math.min(line.quantity, MAX_LINE_QUANTITY), key },
+        ];
       });
-      announce(`${line.quantity} ${line.name} added to your basket.`);
+
+      if (atLineLimit) {
+        announce(`Your basket already holds the most we can take of ${line.name} in one order.`);
+      } else if (atBasketLimit) {
+        announce(
+          `A basket holds ${MAX_BASKET_LINES} different items. Ring the store for a larger order.`,
+        );
+      } else {
+        announce(`${line.quantity} ${line.name} added to your basket.`);
+      }
     },
-    [announce],
+    [announce, lines],
   );
 
   const setQuantity = useCallback(
@@ -187,7 +225,8 @@ export function OrderingProvider({
           if (removed) announce(`${removed.name} removed from your basket.`);
           return current.filter((line) => line.key !== key);
         }
-        return current.map((line) => (line.key === key ? { ...line, quantity } : line));
+        const capped = Math.min(quantity, MAX_LINE_QUANTITY);
+        return current.map((line) => (line.key === key ? { ...line, quantity: capped } : line));
       });
     },
     [announce],

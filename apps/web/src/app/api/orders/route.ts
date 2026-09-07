@@ -20,8 +20,27 @@ import { isOpenNow } from '@/lib/trading';
 export async function POST(request: Request) {
   const parsed = CreateOrderRequestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
+    /**
+     * The schema's own wording, rather than "Invalid order".
+     *
+     * Every rule in `CreateOrderRequestSchema` carries a message written for
+     * the person who broke it — "Your basket is empty", "Enter a South African
+     * mobile number", "A single item is limited to 99. Ring the store for a
+     * larger order." All of them were being replaced here with two words that
+     * tell a customer nothing they can act on, and the raw Zod issues were
+     * attached under a key no client ever read.
+     *
+     * The registration route worked this out already and says so in its own
+     * comment: "'check the details' on its own is a form the customer cannot
+     * fix". This is the same fix on the endpoint that takes the money.
+     */
+    const fields = parsed.error.issues.map((issue) => ({
+      field: issue.path.join('.'),
+      message: issue.message,
+    }));
+
     return NextResponse.json(
-      { error: 'Invalid order', issues: parsed.error.issues },
+      { error: fields[0]?.message ?? 'Check your order', fields },
       { status: 400 },
     );
   }
