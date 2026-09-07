@@ -4,6 +4,8 @@ import { GET as orderRoute } from '@/app/api/orders/[id]/route';
 import { POST as advanceRoute } from '@/app/api/orders/[id]/advance/route';
 import { intentForOrder, refundPayment } from '@/lib/payments/ledger';
 import { setOrderStatus } from '@/lib/order-store';
+import { orderMoved, paymentRefunded } from '@/lib/notifications/messages';
+import { readState } from '@/lib/demo-state';
 import {
   aPaidOrder,
   aRefundedOrder,
@@ -16,6 +18,7 @@ import {
   placeOrder,
   request,
   settlePayment,
+  webFile,
   withConsole,
   withoutPaymentProvider,
   withPayfast,
@@ -241,5 +244,91 @@ describe('through the console route', () => {
     );
 
     expect(response.status).toBe(501);
+  });
+});
+
+/**
+ * What the customer is told.
+ *
+ * The half that is easiest to leave out, and the half they actually see. The
+ * operator's console said "Refunded" from the first commit of this path; the
+ * customer's own screen said the opposite of the truth.
+ */
+describe('the customer’s side of a refund', () => {
+  const JOURNEY = webFile('src/components/journey/OrderJourney.tsx');
+
+  /**
+   * The defect this covers. A refunded payment matched none of the branches —
+   * captured, pending, failed — and fell through to the last one, which reads
+   * "nothing has been charged" and offers a button to pay. Money taken and
+   * returned, described as never taken, with an invitation to pay again.
+   */
+  it('has a branch of its own, before the one that offers to take payment', () => {
+    expect(JOURNEY).toContain("payment.status === 'refunded'");
+
+    const refunded = JOURNEY.indexOf("payment.status === 'refunded'");
+    const payAgain = JOURNEY.indexOf('Pay for this order');
+    expect(refunded).toBeGreaterThan(-1);
+    expect(refunded, 'the refunded branch must return before the pay button').toBeLessThan(
+      payAgain,
+    );
+  });
+
+  it('does not tell a refunded customer that nothing was charged', () => {
+    const refunded = JOURNEY.indexOf("payment.status === 'refunded'");
+    const branch = JOURNEY.slice(refunded, JOURNEY.indexOf('}', refunded + 400));
+
+    expect(branch).toMatch(/refunded/i);
+    expect(branch).not.toMatch(/nothing has been charged/i);
+  });
+});
+
+describe('the message a refunded customer gets', () => {
+  it('names the order and says the money is coming back', async () => {
+    const order = await placeOrder();
+    const [message] = paymentRefunded(order, 'pi_test');
+
+    expect(message?.channel).toBe('sms');
+    expect(message?.to).toBe(order.customer.mobile);
+    expect(message?.body).toContain(order.orderNumber);
+    expect(message?.body).toMatch(/refunded/i);
+  });
+
+  /**
+   * Separate from the cancellation, because they are not the same news. A
+   * cancellation that says nothing about money reads as the money being kept.
+   */
+  it('is not the same message as the cancellation', async () => {
+    const order = await placeOrder();
+    const cancelled = orderMoved({
+      ...order,
+      status: 'cancelled',
+      cancelledReason: 'Load shedding',
+    });
+
+    expect(cancelled[0]?.body).not.toMatch(/refund/i);
+    expect(paymentRefunded(order, 'pi_test')[0]?.id).not.toBe(cancelled[0]?.id);
+  });
+
+  /** Keyed on the payment, so one payment can only produce one of these. */
+  it('carries an id derived from the intent rather than the order', async () => {
+    const order = await placeOrder();
+    expect(paymentRefunded(order, 'pi_one')[0]?.id).toContain('pi_one');
+    expect(paymentRefunded(order, 'pi_one')[0]?.id).not.toBe(
+      paymentRefunded(order, 'pi_two')[0]?.id,
+    );
+  });
+
+  it('is sent when the console refunds, and recorded so it cannot repeat', async () => {
+    const order = await aPaidOrder();
+
+    await withConsole((cookie) =>
+      withPaymentProvider(() =>
+        refund(cookie, { action: 'refund', orderId: order.id, reason: 'Load shedding' }),
+      ),
+    );
+
+    const intent = intentForOrder(order.id);
+    expect(readState().notifications.sent).toContain(`${intent?.id}:refunded:sms`);
   });
 });

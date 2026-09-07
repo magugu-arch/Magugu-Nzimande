@@ -1,6 +1,6 @@
 import type { Order } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
-import { describe, orderMoved, orderPlaced, passwordReset } from './messages';
+import { describe, orderMoved, orderPlaced, passwordReset, paymentRefunded } from './messages';
 import { publicBaseUrl } from '../deployment';
 import { routedTransport } from './registry';
 import type { Message, NotificationTransport } from './transport';
@@ -73,6 +73,10 @@ export async function notifyPlaced(order: Order): Promise<number> {
 
 export async function notifyMoved(order: Order): Promise<number> {
   return send(orderMoved(order));
+}
+
+export async function notifyRefunded(order: Order, intentId: string): Promise<number> {
+  return send(paymentRefunded(order, intentId));
 }
 
 export async function notifyPasswordReset(email: string, token: string): Promise<number> {

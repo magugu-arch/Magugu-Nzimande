@@ -2,7 +2,12 @@ import { PRODUCTS, PROMOTIONS, REWARDS, SAUCES, STORES } from '@bbq/seed';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { api } from '@/lib/api';
 import { setHidden, setService, setSoldOut } from '@/lib/catalogue-state';
-import { aChickenProduct, aDeliveryStore, resetState } from './fixtures';
+import {
+  aChickenProduct,
+  aDeliveryStore,
+  resetState,
+  seededStore,
+} from './fixtures';
 
 /**
  * The server-side service layer.
@@ -69,8 +74,8 @@ describe('the stores', () => {
     setService(store.id, 'Delivery', false);
 
     // The console's state is layered over the seed, not written into it.
-    const seeded = STORES.find((candidate) => candidate.id === store.id);
-    expect(seeded?.services.Delivery).toBe(true);
+    const seeded = seededStore(store.id);
+    expect(seeded.services.Delivery).toBe(true);
   });
 });
 

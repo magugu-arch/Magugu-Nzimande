@@ -1,28 +1,17 @@
-import { PRODUCTS, SAUCES, optionGroupsFor } from '@bbq/seed';
-import type { OptionGroup, Product } from '@bbq/types';
+import { SAUCES, optionGroupsFor } from '@bbq/seed';
+import type { OptionGroup } from '@bbq/types';
 import { describe, expect, it } from 'vitest';
+import { productBySlug, required } from './fixtures';
 import { chooseOption, defaultSelection, lineKey, unitPriceFor } from '@/lib/cart';
 
-function product(slug: string): Product {
-  const found = PRODUCTS.find((candidate) => candidate.slug === slug);
-  if (!found) throw new Error(`No seeded product ${slug}`);
-  return found;
-}
-
-/** Fails the test with a readable reason rather than asserting non-null. */
-function must<T>(value: T | undefined | null, what: string): T {
-  if (value === undefined || value === null) throw new Error(`Expected ${what}`);
-  return value;
-}
-
 function extrasOf(groups: readonly OptionGroup[]): OptionGroup {
-  return must(
+  return required(
     groups.find((candidate) => candidate.key === 'extras'),
     'an extras group',
   );
 }
 
-const halfHalf = product('half-half');
+const halfHalf = productBySlug('half-half');
 const halfHalfGroups = optionGroupsFor(halfHalf);
 const group = (key: string) => {
   const found = halfHalfGroups.find((candidate) => candidate.key === key);
@@ -38,7 +27,7 @@ describe('Half and Half', () => {
 
   it('moves the second sauce aside when the first takes it', () => {
     let selection = defaultSelection(halfHalfGroups);
-    const wanted = must(selection.sauceB?.[0], 'a second sauce in the default selection');
+    const wanted = required(selection.sauceB?.[0], 'a second sauce in the default selection');
 
     selection = chooseOption(halfHalfGroups, selection, group('sauceA'), wanted);
 
@@ -48,7 +37,7 @@ describe('Half and Half', () => {
 
   it('moves the first sauce aside when the second takes it', () => {
     let selection = defaultSelection(halfHalfGroups);
-    const wanted = must(selection.sauceA?.[0], 'a first sauce in the default selection');
+    const wanted = required(selection.sauceA?.[0], 'a first sauce in the default selection');
 
     selection = chooseOption(halfHalfGroups, selection, group('sauceB'), wanted);
 
@@ -76,7 +65,7 @@ describe('option selection', () => {
   });
 
   it('toggles choices in a multi group', () => {
-    const groups = optionGroupsFor(product('french-fries'));
+    const groups = optionGroupsFor(productBySlug('french-fries'));
     const extras = extrasOf(groups);
     let selection = defaultSelection(groups);
 

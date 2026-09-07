@@ -405,6 +405,28 @@ function PaymentNotice({
     );
   }
 
+  /**
+   * The money has gone back.
+   *
+   * Its own branch, and not an afterthought: without one a refunded payment
+   * fell through to the last case, which told the customer "nothing has been
+   * charged" — while their money had been charged and returned — and offered
+   * them a button to pay for an order that had been called off. The button
+   * would then have failed, because the ledger refuses to reopen a settled
+   * payment, so the customer would have been misinformed twice.
+   *
+   * No amount here. What was returned is the amount on the order above, and a
+   * second figure on the same screen is a second thing that can be wrong.
+   */
+  if (payment.status === 'refunded') {
+    return (
+      <p className="mt-4 rounded-sm border border-gold bg-paper px-4 py-3 text-xs">
+        <span className="font-semibold">Refunded.</span> The money for this order has been sent
+        back to the card you paid with. Banks usually take a few working days to show it.
+      </p>
+    );
+  }
+
   // Pending after a redirect means the gateway has the customer's money and has
   // not told us yet. Nothing for them to do but wait, so nothing is offered.
   if (payment.status === 'pending' && !cancelled) {

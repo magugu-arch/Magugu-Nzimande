@@ -45,10 +45,74 @@ export const CONSOLE_PASSPHRASE = 'twice-fried-in-olive-oil';
 // Picking things out of the seed catalogue
 // ---------------------------------------------------------------------------
 
-/** Throws rather than returning undefined: a missing fixture is a broken test. */
-function required<T>(value: T | undefined, what: string): T {
-  if (value === undefined) throw new Error(`the seed catalogue has no ${what} to test with`);
+/**
+ * Throws rather than returning undefined: a missing fixture is a broken test.
+ *
+ * Exported because a suite had written its own — `must<T>`, same signature,
+ * same body — to avoid the non-null assertions that turn "the seed has no
+ * chicken" into a type error three lines from the cause.
+ */
+export function required<T>(value: T | undefined | null, what: string): T {
+  if (value === undefined || value === null) {
+    throw new Error(`the seed catalogue has no ${what} to test with`);
+  }
   return value;
+}
+
+/**
+ * A seeded product by its slug.
+ *
+ * Two suites had this, with two different throw messages, because the tests
+ * that care about option shapes need a *named* product rather than whichever
+ * one happens to be first.
+ */
+export function productBySlug(slug: string): Product {
+  return required(
+    PRODUCTS.find((candidate) => candidate.slug === slug),
+    `product ${slug}`,
+  );
+}
+
+/**
+ * Any product or store that is not this one.
+ *
+ * For the tests that check a console change touched only what it named. The
+ * interesting assertion is about the *other* one, and reaching for it by index
+ * breaks the day the seed is reordered.
+ */
+export function aProductOtherThan(product: Product): Product {
+  return required(
+    PRODUCTS.find((candidate) => candidate.slug !== product.slug),
+    'a second product',
+  );
+}
+
+export function aStoreOtherThan(store: Store): Store {
+  return required(
+    STORES.find((candidate) => candidate.id !== store.id),
+    'a second store',
+  );
+}
+
+/**
+ * The seed as it was shipped, for the tests that check the console did not
+ * write into it.
+ *
+ * The console layers its changes over the catalogue rather than mutating it,
+ * and if that ever stopped being true one sold-out product would survive
+ * `resetState` and every later suite would inherit it. These read the untouched
+ * article so the assertion says what it means: not "the catalogue says X" but
+ * "the seed still says X".
+ */
+export function seededProduct(slug: string): Product {
+  return productBySlug(slug);
+}
+
+export function seededStore(id: string): Store {
+  return required(
+    STORES.find((candidate) => candidate.id === id),
+    `store ${id}`,
+  );
 }
 
 export function aChickenProduct(): Product {

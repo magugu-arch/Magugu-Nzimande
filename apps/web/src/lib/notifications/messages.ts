@@ -83,6 +83,37 @@ export function orderMoved(order: Order): Message[] {
   ];
 }
 
+/**
+ * Telling a customer their money has gone back.
+ *
+ * Separate from the cancellation message rather than folded into it, and that
+ * is the point. The cancellation says "order BBQ-… has been cancelled. Load
+ * shedding." and says nothing about the money — which is the first thing
+ * somebody who paid wants to know, and the reason they telephone the store.
+ *
+ * Two messages for one event is normally the thing this module avoids. This
+ * pair is the exception because they are not the same news: an order being
+ * called off and a payment being returned are separately actionable, and a
+ * cancellation with no word about money reads as the money being kept.
+ *
+ * The id carries the intent rather than the order, so a second refund attempt
+ * on the same payment — which the ledger already refuses — could not produce a
+ * second message even if it got this far.
+ */
+export function paymentRefunded(order: Order, intentId: string): Message[] {
+  return [
+    {
+      id: `${intentId}:refunded:sms`,
+      channel: 'sms',
+      to: order.customer.mobile,
+      subject: '',
+      body:
+        `bb.q Chicken: the payment for order ${order.orderNumber} has been refunded. ` +
+        'Your bank may take a few working days to show it.',
+    },
+  ];
+}
+
 /** What the console shows an operator about a message that was not sent. */
 export function describe(message: Message): string {
   return `${message.channel} to ${message.to}: ${labelOf(message)}`;

@@ -2,7 +2,11 @@ import { PRODUCTS, SAUCES, optionGroupsFor } from '@bbq/seed';
 import { OptionGroupSchema } from '@bbq/types';
 import { describe, expect, it } from 'vitest';
 import { defaultSelection, unitPriceFor } from '@/lib/cart';
-import { aProductIn, halfAndHalf } from './fixtures';
+import {
+  aProductIn,
+  halfAndHalf,
+  productBySlug,
+} from './fixtures';
 
 /**
  * What a customer is asked to choose, per category.
@@ -12,11 +16,8 @@ import { aProductIn, halfAndHalf } from './fixtures';
  * it at once. None of that branching was tested.
  */
 
-const keysFor = (slug: string) => {
-  const product = PRODUCTS.find((candidate) => candidate.slug === slug);
-  if (!product) throw new Error(`no product ${slug}`);
-  return optionGroupsFor(product).map((group) => group.key);
-};
+const keysFor = (slug: string) =>
+  optionGroupsFor(productBySlug(slug)).map((group) => group.key);
 
 describe('every product', () => {
   it('gets groups that parse as option groups', () => {

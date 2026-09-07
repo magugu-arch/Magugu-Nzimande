@@ -19,9 +19,13 @@ import {
 import {
   aChickenProduct,
   aDeliveryStore,
+  aProductOtherThan,
+  aStoreOtherThan,
   aSuburbNotServedBy,
   aSuburbOf,
   blankState,
+  seededProduct,
+  seededStore,
   storeWithout,
 } from './fixtures';
 
@@ -63,7 +67,7 @@ describe('what the customer is shown', () => {
 
     // The flag is layered on a copy. Written into the seed it would survive the
     // reset, and every later suite would inherit one sold-out product.
-    const seeded = PRODUCTS.find((candidate) => candidate.slug === product.slug);
+    const seeded = seededProduct(product.slug);
     expect(seeded).not.toHaveProperty('soldOut', true);
   });
 
@@ -127,10 +131,10 @@ describe('switching a product back on', () => {
   });
 
   it('leaves the other products alone', () => {
-    const other = PRODUCTS.find((candidate) => candidate.slug !== product.slug);
+    const other = aProductOtherThan(product);
     setSoldOut(product.slug, true);
 
-    expect(isSoldOut(other?.slug ?? '')).toBe(false);
+    expect(isSoldOut(other.slug)).toBe(false);
   });
 });
 
@@ -140,7 +144,7 @@ describe('the stores the console can change', () => {
     setService(store.id, 'Delivery', false);
 
     expect(findStore(store.id)?.services.Delivery).toBe(false);
-    expect(STORES.find((candidate) => candidate.id === store.id)?.services.Delivery).toBe(true);
+    expect(seededStore(store.id).services.Delivery).toBe(true);
   });
 
   it('changes only the service it was given', () => {
@@ -152,10 +156,10 @@ describe('the stores the console can change', () => {
 
   it('changes only the store it was given', () => {
     const store = aDeliveryStore();
-    const other = STORES.find((candidate) => candidate.id !== store.id);
+    const other = aStoreOtherThan(store);
     setService(store.id, 'Delivery', false);
 
-    expect(findStore(other?.id ?? '')?.services.Delivery).toBe(other?.services.Delivery);
+    expect(findStore(other.id)?.services.Delivery).toBe(other.services.Delivery);
   });
 
   it('has nothing for a store id that does not exist', () => {

@@ -2,6 +2,8 @@ import { z } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import { refuseUnlessOperator } from '@/lib/admin-auth';
 import { consoleView } from '@/lib/console-view';
+import { notifyRefunded } from '@/lib/notifications/send';
+import { readOrder } from '@/lib/order-store';
 import { refundPayment } from '@/lib/payments/ledger';
 
 /**
@@ -43,6 +45,19 @@ export async function POST(request: Request) {
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
+
+  /**
+   * Told, not just recorded. A cancellation message says nothing about money,
+   * so without this a customer who paid learns their order is off and is left
+   * to wonder about the rest — which is the telephone call this whole path
+   * exists to prevent.
+   *
+   * Not on a replay: the ledger has already handed back an intent that was
+   * refunded earlier, and the customer was messaged then. `send` would dedupe
+   * it anyway; not asking is clearer than relying on that.
+   */
+  const order = readOrder(orderId);
+  if (order && !result.replayed) await notifyRefunded(order, result.intent.id);
 
   return NextResponse.json({ ...consoleView(), refunded: result.intent, replayed: result.replayed });
 }
