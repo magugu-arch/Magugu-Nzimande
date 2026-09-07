@@ -10,9 +10,11 @@ import {
   STORES,
   optionGroupsFor,
 } from '@bbq/seed';
+import { MAX_BASKET_LINES, MAX_LINE_QUANTITY } from '@bbq/types';
 import { describe, expect, it } from 'vitest';
 import {
   builtDemoPage,
+  demoFunction,
   demoTemplate,
 } from './fixtures';
 
@@ -229,5 +231,48 @@ describe('the console the review build shows', () => {
     for (const tab of [...demoTabs.matchAll(/'([^']+)'/g)].map((match) => match[1])) {
       expect(TEMPLATE, `no panel for the ${tab} tab`).toContain(`S.adminTab === '${tab}'`);
     }
+  });
+});
+
+/**
+ * The basket limits, which the review build has to receive rather than guess.
+ *
+ * This build is a second implementation of the same rules, and the rule it does
+ * not receive is the rule it does not keep: its basket added without a ceiling
+ * while the site refused anything past 99, so a reviewer could put five hundred
+ * birds in it and never meet the limit a customer would. The same shape of
+ * drift as the offer conditions before it, and the reason both are injected.
+ */
+describe('the basket limits the review build enforces', () => {
+  it('receives them from the site rather than carrying its own numbers', () => {
+    const page = builtDemoPage();
+
+    expect(page).toContain(`"maxLineQuantity":${MAX_LINE_QUANTITY}`);
+    expect(page).toContain(`"maxBasketLines":${MAX_BASKET_LINES}`);
+  });
+
+  /**
+   * And uses them. Receiving a limit and ignoring it is the same drift with an
+   * extra step, and the injection test above would pass through it.
+   */
+  it('caps a line and a basket against them, in each function that can grow one', () => {
+    // Per function, not per file. Checking the whole template for the string
+    // stayed true with the cap removed from the add path and left in the two
+    // others — a mutation that let the basket run away again passed.
+    expect(demoFunction('addLine'), 'adding to a line already there').toContain(
+      'LIMITS.maxLineQuantity',
+    );
+    expect(demoFunction('addLine'), 'adding a new line').toContain('LIMITS.maxBasketLines');
+    expect(demoFunction('setQty'), 'typing a quantity straight in').toContain(
+      'LIMITS.maxLineQuantity',
+    );
+  });
+
+  /**
+   * Written as an absence, because this is the defect being prevented. The
+   * unbounded `found.qty += qty` is what let the basket run away.
+   */
+  it('no longer adds without a ceiling', () => {
+    expect(TEMPLATE).not.toContain('found.qty += qty');
   });
 });

@@ -1588,3 +1588,34 @@ export function dearestLine(quantity: number): OrderLine {
   );
   return { ...orderLine(dearest), quantity };
 }
+
+/**
+ * One named function's body out of the review build's template.
+ *
+ * Because a structural check against the whole file answers the wrong
+ * question. "Does the template mention `LIMITS.maxLineQuantity`" stayed true
+ * when the cap was removed from the add path and left in the two others, so a
+ * mutation that let the basket run away again passed every test. The same
+ * lesson as checking a route file for a guard rather than each of its
+ * handlers: the unit that has to be right is the function, so that is the unit
+ * to read.
+ *
+ * Brace-matched rather than regexed to the next `function`, so a nested
+ * closure does not end the body early.
+ */
+export function demoFunction(name: string): string {
+  const source = demoTemplate();
+  const start = source.indexOf(`function ${name}(`);
+  if (start === -1) throw new Error(`the review build has no function ${name}`);
+
+  const open = source.indexOf('{', start);
+  let depth = 0;
+  for (let at = open; at < source.length; at += 1) {
+    if (source[at] === '{') depth += 1;
+    else if (source[at] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, at + 1);
+    }
+  }
+  throw new Error(`the body of ${name} is not brace-balanced`);
+}

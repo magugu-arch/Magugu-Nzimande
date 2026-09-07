@@ -24,6 +24,7 @@ import tokens from '../../packages/ui/src/tokens.json' with { type: 'json' };
  * needed, while index.ts re-exports with extensionless specifiers that ESM
  * cannot resolve.
  */
+import { MAX_BASKET_LINES, MAX_LINE_QUANTITY } from '../../packages/types/src/limits.ts';
 import { CATEGORIES, FAQS, SAUCES, optionGroupsFor } from '../seed/catalogue.ts';
 import { FEES, REWARDS_RULES } from '../seed/demo-values.ts';
 import { PRODUCTS } from '../seed/products.ts';
@@ -245,6 +246,17 @@ function catalogueScript() {
     collectEta: FEES.collectionEtaMinutes,
   };
 
+  /**
+   * The basket bounds, carried through rather than written again.
+   *
+   * The same reason `window` and `firstOrderOnly` are carried above: this build
+   * is a second implementation of the same rules, and a rule it does not
+   * receive is a rule it does not keep. Its basket added without a ceiling
+   * while the site refused anything past 99, so a reviewer could put five
+   * hundred birds in it and never see the limit the real checkout enforces.
+   */
+  const limits = { maxLineQuantity: MAX_LINE_QUANTITY, maxBasketLines: MAX_BASKET_LINES };
+
   const declare = (name, value) => `const ${name} = ${JSON.stringify(value)};`;
 
   return [
@@ -258,6 +270,7 @@ function catalogueScript() {
     declare('FAQS', faqs),
     declare('OPTION_GROUPS', optionGroups),
     declare('FEES', fees),
+    declare('LIMITS', limits),
   ].join('\n');
 }
 

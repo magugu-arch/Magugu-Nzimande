@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MAX_BASKET_LINES, MAX_LINE_QUANTITY } from './limits';
 import { ServiceModeSchema } from './store';
 
 /**
@@ -30,29 +31,6 @@ export const SelectedOptionSchema = z.object({
 });
 export type SelectedOption = z.infer<typeof SelectedOptionSchema>;
 
-/**
- * How many of one thing, and how many things, an order may carry.
- *
- * These are arithmetic bounds before they are commercial ones. Every total in
- * this application is an integer number of cents, and JavaScript numbers are
- * only exact integers below 2^53. `quantity` had no upper bound at all, so an
- * order for a trillion pieces of chicken was accepted with a 201: the total
- * came back as 18,900,000,000,000,000 cents, `Number.isSafeInteger` said false,
- * and the loyalty ledger credited 189 trillion points on completion. Nothing
- * refused it because nothing had been asked to.
- *
- * At these bounds the dearest possible basket is a few million cents, which is
- * eighteen million times inside the exact range — so the sums the customer sees
- * are the sums that were computed, with room that no menu change will consume.
- *
- * They are also deliberately conservative rather than researched: 99 of one
- * item and 50 distinct items are far past any real order from a menu of 28
- * products, and both are numbers the franchisor can raise. The test beside them
- * checks the arithmetic still holds wherever they are set, so raising one is a
- * decision somebody makes rather than a limit somebody removes.
- */
-export const MAX_LINE_QUANTITY = 99;
-export const MAX_BASKET_LINES = 50;
 
 export const OrderLineSchema = z.object({
   /** Stable identity for a product plus a specific option selection. */

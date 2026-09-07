@@ -853,13 +853,34 @@ function announce(message){
 
 /* ---------- 7. Cart ----------------------------------------- */
 
+/* The site's own basket bounds, carried in through LIMITS rather than written
+   again here. This build added without a ceiling while the real checkout
+   refused anything past 99, so a reviewer could put five hundred birds in the
+   basket and never meet the limit a customer would. */
 function addLine(p, options, qty, unitCents){
   const key = lineKey(p.slug, options);
   const found = S.lines.find((l) => l.key === key);
-  if(found) found.qty += qty;
-  else S.lines.push({key, slug:p.slug, name:p.name, img:p.img, qty, unitCents, options});
+
+  if(!found && S.lines.length >= LIMITS.maxBasketLines){
+    toast('A basket holds ' + LIMITS.maxBasketLines + ' different items');
+    return;
+  }
+
+  /* One cap, on one line, covering both the new line and the one already
+     here. It was written twice — once per branch — and a test that read the
+     function for the limit stayed green when only one of them was deleted.
+     Two copies of a rule need two things to go right; this needs one. */
+  const held = found ? found.qty : 0;
+  const capped = Math.min(held + qty, LIMITS.maxLineQuantity);
+  if(capped === held){
+    toast('That is the most we can take of ' + p.name + ' in one order');
+    return;
+  }
+
+  if(found) found.qty = capped;
+  else S.lines.push({key, slug:p.slug, name:p.name, img:p.img, qty:capped, unitCents, options});
   save();
-  toast(qty + ' × ' + p.name + ' added to your basket');
+  toast((capped - held) + ' × ' + p.name + ' added to your basket');
 }
 
 function setQty(key, qty){
@@ -869,7 +890,7 @@ function setQty(key, qty){
     S.lines = S.lines.filter((l) => l.key !== key);
     announce(line.name + ' removed from your basket.');
   } else {
-    line.qty = qty;
+    line.qty = Math.min(qty, LIMITS.maxLineQuantity);
   }
   save();
   render();
