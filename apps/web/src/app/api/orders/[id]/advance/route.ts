@@ -1,4 +1,4 @@
-import { kitchenMayStart } from '@bbq/types';
+import { kitchenMayStart, publicOrder } from '@bbq/types';
 import { NextResponse } from 'next/server';
 import { advanceOrder, labelFor, readOrder } from '@/lib/order-store';
 import { notifyMoved } from '@/lib/notifications/send';
@@ -59,7 +59,7 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
           order.status === 'cancelled'
             ? 'That order was cancelled'
             : `That order is already ${labelFor(order).toLowerCase()}`,
-        order,
+        order: publicOrder(order),
         statusLabel: labelFor(order),
       },
       { status: 409 },
@@ -72,5 +72,9 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
   await notifyMoved(order);
   if (order.status === 'ready') await requestCourier(order, activeCourier());
 
-  return NextResponse.json({ order, statusLabel: labelFor(order), payment: paymentFor(order.id) });
+  return NextResponse.json({
+    order: publicOrder(order),
+    statusLabel: labelFor(order),
+    payment: paymentFor(order.id),
+  });
 }

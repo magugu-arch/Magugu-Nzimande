@@ -3,11 +3,13 @@ import {
   OrderPaymentSchema,
   OrderSchema,
   PaymentIntentSchema,
+  PublicOrderSchema,
   z,
   type CreateOrderRequest,
   type DeliveryQuote,
   type Order,
   type OrderPayment,
+  type PublicOrder,
 } from '@bbq/types';
 
 /**
@@ -72,13 +74,22 @@ export async function placeOrder(payload: CreateOrderRequest): Promise<Order> {
   return order;
 }
 
+/**
+ * Both order endpoints answer with the narrowed view, so this parses it.
+ *
+ * Parsing against `PublicOrderSchema` rather than `OrderSchema` is not
+ * cosmetic: the full schema requires a customer, an address and the rest, so
+ * had it stayed here it would have rejected the very responses the fix
+ * produces — the browser would have thrown on every poll. The schema the client
+ * expects and the shape the server sends are one decision.
+ */
 const OrderStatusResponse = z.object({
-  order: OrderSchema,
+  order: PublicOrderSchema,
   statusLabel: z.string(),
   payment: OrderPaymentSchema,
 });
 
-export type OrderStatus = { order: Order; statusLabel: string; payment: OrderPayment };
+export type OrderStatus = { order: PublicOrder; statusLabel: string; payment: OrderPayment };
 
 /** GET /api/orders/:id */
 export async function fetchOrder(id: string): Promise<OrderStatus> {

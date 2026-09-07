@@ -38,16 +38,47 @@ function filesUnder(dir, match) {
 const count = (dir, match) => filesUnder(dir, match).length;
 
 /**
- * `it(` and `test(` calls in the website's suite.
+ * Tests in the website's suite, asked of the runner rather than of the source.
  *
  * The website only: the Expo app in the repository root has its own suite and
  * is not what this document costs.
+ *
+ * This counted `it(` and `test(` at the start of a line, which is the number of
+ * places a test is *written* — and that is not the number of tests. One
+ * `it.each` with five rows is one line and five tests, so the document said 908
+ * where the suite ran 912. A small error, and precisely the kind this file
+ * exists to prevent: the figures here were literals once and they drifted, and
+ * a derived number that is quietly four low is a literal that took longer to
+ * go wrong.
+ *
+ * `vitest list` enumerates the cases without running them, expanding `.each`
+ * the same way the run does. It is the runner's own answer to "what tests are
+ * there", which is the question the document is asking.
  */
 function countTests() {
-  return filesUnder('apps/web/tests', /\.test\.tsx?$/).reduce((total, file) => {
-    const source = fs.readFileSync(file, 'utf8');
-    return total + (source.match(/^\s*(?:it|test)(?:\.\w+)?\s*\(/gm)?.length ?? 0);
-  }, 0);
+  const listed = execFileSync('npx', ['vitest', 'list'], {
+    cwd: path.join(REPO, 'apps/web'),
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
+
+  // One line per case, as "file > describe > name". Blank lines and any
+  // banner the runner prints are not cases.
+  const cases = listed.split('\n').filter((line) => line.includes(' > ')).length;
+
+  /**
+   * Loudly, rather than falling back to a guess.
+   *
+   * A document whose first section is headed "Scale, measured" must not quietly
+   * substitute an estimate when the measurement fails. Better to not build.
+   */
+  if (cases === 0) {
+    throw new Error(
+      'costings: `vitest list` named no tests. Refusing to write a measured document from a guess.',
+    );
+  }
+  return cases;
 }
 
 /** Lines in every file under `dir` matching `match`. */
@@ -179,6 +210,14 @@ const workstreams = [
   ['37', 'The rewards ladder', 'Three tiers were listed on the page and nothing worked out which one a customer had reached. The standing, the gap to the next rung, the boundary at the threshold rather than one point past it, and a note in the code for whoever wires in-store redemption \u2014 the tiers are lifetime points and the figure is a balance, which are the same number only while nothing spends them', 1],
   ['38', 'Review-build parity', 'The single-file review build showed a five-tab console after the product grew to seven, so a reviewer counting tabs would conclude two features did not exist. The two panels added, saying honestly that this build has no gateway and no till rather than showing invented rows, and a test holding the two tab lists equal in both directions while leaving the panels free to differ', 1],
   ['30', 'An operations console that can act', 'The Problems tab named an action — “worth retrying” — and did not provide it, and the suppression list offered nothing at all. A retry that refuses to send a handoff twice and refuses one the adapter called final, a restore that undoes a bounce but never a complaint, both reporting what happened rather than refreshing a list that looks unchanged. Plus the payment ledger, which was settled and reconciled by tests and shown to nobody, with the provider reference an operator needs to find a payment in the gateway’s dashboard', 3],
+  ['39', 'Review-build drift', 'The single-file build is a second implementation of the same rules, and five of them had drifted: it took an offer’s discount at any hour on any day, took it off the whole basket rather than the product the offer names, accepted an order from a closed store, and worked out a rewards tier its own way. Each rule now comes from the same source the site uses, and the generator carries the conditions through rather than dropping them', 2],
+  ['40', 'The shared fixtures, and what writing them exposed', `A suite that builds its own preconditions inline drifts: five files had each written a delivery order by hand, between them inventing four street names and forgetting the postal code twice — so two tests were checking a 400 rather than the thing they meant to. ${MEASURED.testFiles} files now build orders, accounts, payments and offers through one set of fixtures. The value was less in the tidying than in what it turned up: a fixture that could not be written honestly was, every time, a seam that did not work`, 3],
+  ['41', 'The refund path', 'Enumerating the payment states nothing could produce found one: the ledger had a refunded state, the type allowed it, and no code path anywhere could reach it. An operator-only endpoint that asks the gateway first and writes the ledger only if it agrees, four refusals that each say which of them applies, a message to the customer, and the customer’s own screen — which had been offering to take payment a second time on an order that had already been refunded', 4],
+  ['42', 'The states the suites could not reach', 'Eight reachable states no test had ever put the application into, found by walking the state machine rather than by reading the tests. One of them was a defect: the advance endpoint answered 200 to an order it had not moved, so a console button reported success on a cancelled order and two side effects fired on a non-move. They were idempotent, which is why it was invisible rather than expensive — luck holding a mistake up', 2],
+  ['43', 'Two handoffs that were not safe against a second caller', 'The guard against pushing an order to the till twice read the record, awaited the adapter, and then wrote — so two callers arriving together both found no success and both pushed, which a kitchen reads as two of everything. Reachable: the console has a retry button and the advance route asks for a courier when an order reaches ready. The claim is now taken atomically before the call and released if it fails, for both the till handoff and the refund', 2],
+  ['44', 'Surviving a state file that is not the shape it should be', 'The store merged whatever it read from disk over its defaults, so a file where a list had become a string or an object crashed on the first read rather than falling back — a half-written file after a power cut, or a hand-edit, taking the site down instead of the record. Lists that arrive as something other than lists are now replaced by the default, at the top level and in each group', 1],
+  ['45', 'Authorisation held against the routes rather than against memory', 'Every console write was guarded and every account endpoint scoped to its session, and that was true because somebody had remembered each time. The failure mode is a route added in a hurry with the guard left off, which works perfectly in testing — it is the absence of a refusal that is the bug. Now a test, checked per handler rather than per file, with the endpoints that are open by design listed by name with the reason beside each', 2],
+  ['46', 'What the order endpoints tell a stranger', 'The journey screen is reachable with an order id and no session, which it has to be — a guest has no account to sign into. It was answering with the whole record: the customer’s name, their email address, their mobile number and, on a delivery, the street and postal code where they live, to anyone holding a number of the form O-clock-sequence. The screens between them read eleven fields and were being sent twenty. Narrowed by an allowlist, so a field added later stays behind the counter until somebody decides otherwise, and held there by a test that searches the response for the customer’s own details rather than for the name of a field', 2],
 ];
 
 const remaining = [

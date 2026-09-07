@@ -4,7 +4,7 @@ import {
   completedLabel,
   kitchenMayStart,
   statesForMode,
-  type Order,
+  type PublicOrder,
   type OrderPayment,
   type OrderState,
 } from '@bbq/types';
@@ -44,7 +44,7 @@ export function OrderJourney() {
   const cancelled = params.get('payment') === 'cancelled';
   const { orders, recordOrder, addLine, announce } = useOrdering();
 
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<PublicOrder | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [stepping, setStepping] = useState(false);
   /**

@@ -1,6 +1,6 @@
 'use client';
 
-import type { Order, OrderTotals, ServiceMode, Store } from '@bbq/types';
+import type { OrderTotals, PublicOrder, ServiceMode, Store } from '@bbq/types';
 import {
   createContext,
   useCallback,
@@ -21,7 +21,7 @@ type Persisted = {
   storeId: string;
   lines: CartLine[];
   promoCode: string | null;
-  orders: Order[];
+  orders: PublicOrder[];
 };
 
 type OrderingValue = {
@@ -35,7 +35,7 @@ type OrderingValue = {
   itemCount: number;
   /** Set once the provider has read localStorage, so nothing renders twice. */
   hydrated: boolean;
-  orders: Order[];
+  orders: PublicOrder[];
   setMode: (mode: ServiceMode) => void;
   setStore: (storeId: string) => void;
   addLine: (line: Omit<CartLine, 'key'>) => void;
@@ -44,7 +44,7 @@ type OrderingValue = {
   clearCart: () => void;
   applyPromo: (code: string) => { ok: boolean; message: string };
   clearPromo: () => void;
-  recordOrder: (order: Order) => void;
+  recordOrder: (order: PublicOrder) => void;
   announce: (message: string) => void;
   announcement: string;
 };
@@ -84,7 +84,7 @@ export function OrderingProvider({
   const [storeId, setStoreId] = useState<string>(fallbackStore.id);
   const [lines, setLines] = useState<CartLine[]>([]);
   const [promoCode, setPromoCode] = useState<string | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<PublicOrder[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [announcement, setAnnouncement] = useState('');
 
@@ -216,7 +216,7 @@ export function OrderingProvider({
 
   const clearPromo = useCallback(() => setPromoCode(null), []);
 
-  const recordOrder = useCallback((order: Order) => {
+  const recordOrder = useCallback((order: PublicOrder) => {
     setOrders((current) => [order, ...current.filter((candidate) => candidate.id !== order.id)]);
   }, []);
 

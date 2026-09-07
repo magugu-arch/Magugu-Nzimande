@@ -1394,3 +1394,60 @@ export async function withStateFile<T>(run: (file: string) => T | Promise<T>): P
     rmSync(file, { force: true });
   }
 }
+
+// ---------------------------------------------------------------------------
+// The two order endpoints a stranger can reach
+
+/**
+ * GET /api/orders/:id through the real handler.
+ *
+ * The privacy suite asks the same question of both order endpoints, and the
+ * question is about what comes back rather than about how it was asked. Driving
+ * the route rather than calling `readOrder` is the whole point: the narrowing
+ * happens in the handler, so a helper that skipped it would test nothing.
+ */
+export async function fetchOrderPublicly(id: string): Promise<Response> {
+  const { GET } = await import('@/app/api/orders/[id]/route');
+  return GET(request(`/api/orders/${id}`), params({ id }));
+}
+
+/** POST /api/orders/:id/advance through the real handler. */
+export async function advancePublicly(id: string): Promise<Response> {
+  const { POST } = await import('@/app/api/orders/[id]/advance/route');
+  return POST(request(`/api/orders/${id}/advance`, { method: 'POST' }), params({ id }));
+}
+
+/**
+ * Everything about an order that identifies the person who placed it.
+ *
+ * Written as the values rather than the field names on purpose. A test that
+ * checks field names asks "is `customer` absent", and passes the moment
+ * somebody spreads the customer's details into the top level or folds an email
+ * address into a label. This asks whether the string `thandi@example.com`
+ * appears anywhere in the response at all, which has no such gap.
+ *
+ * The suburb is deliberately absent: it is a delivery area the site publishes
+ * on its own stores page, so finding it in a response says nothing about a
+ * customer. Including it would fail every delivery test for a value the
+ * business prints on the website.
+ */
+export function personalDetailsOf(order: Order): string[] {
+  return [
+    order.customer.name,
+    order.customer.email,
+    order.customer.mobile,
+    order.address,
+    order.postalCode,
+    order.accountId,
+  ].filter((value): value is string => typeof value === 'string' && value.length > 0);
+}
+
+/**
+ * The field names a Zod object schema carries.
+ *
+ * Used to hold the public view and the full order against each other, so a
+ * field added to one is a decision about the other rather than an oversight.
+ */
+export function fieldsOf(schema: { shape: Record<string, unknown> }): string[] {
+  return Object.keys(schema.shape).sort();
+}

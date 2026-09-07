@@ -166,6 +166,55 @@ export const OrderSchema = z.object({
 });
 export type Order = z.infer<typeof OrderSchema>;
 
+/**
+ * The order as somebody holding nothing but its id may see it.
+ *
+ * The journey screen is reachable with an order id and no session, and that is
+ * deliberate: a guest has no account to sign into, and a "track your order"
+ * link that first demanded a password would be a link nobody could follow. It
+ * makes the id the only thing standing between a stranger and whatever this
+ * returns — and what it returned was the whole record. The customer's name,
+ * their email address, their mobile number, and on a delivery the street they
+ * live in, handed to anyone who asked with a number.
+ *
+ * The ids are `O-<clock>-<sequence>`, which is not a secret so much as a number
+ * that is tedious to guess: the sequence is a small integer and the clock is
+ * bounded by when the shop was open. But a better id would not have fixed this,
+ * because the screens never wanted any of those fields. Between them they read
+ * eleven, and they were being sent twenty.
+ *
+ * An allowlist and not a strip-list, because the two fail in opposite
+ * directions. A field added to `OrderSchema` next year is missing from this
+ * list and stays behind the counter until somebody adds it on purpose; a field
+ * added to a list of things to remove is public from the moment it exists.
+ */
+export const PublicOrderSchema = OrderSchema.pick({
+  id: true,
+  orderNumber: true,
+  mode: true,
+  status: true,
+  lines: true,
+  totals: true,
+  placedAt: true,
+  etaMinutes: true,
+  courierEtaMinutes: true,
+  kitchenNote: true,
+  pointsEarned: true,
+});
+export type PublicOrder = z.infer<typeof PublicOrderSchema>;
+
+/**
+ * Narrow an order to that view.
+ *
+ * `parse` rather than picking the fields by hand: an object literal listing ten
+ * properties is a place to mistype one, and Zod drops what the schema does not
+ * name. The stripping is the point, so it is done by the thing that cannot
+ * forget.
+ */
+export function publicOrder(order: Order): PublicOrder {
+  return PublicOrderSchema.parse(order);
+}
+
 /** The states an order of this mode actually passes through. */
 export function statesForMode(mode: z.infer<typeof ServiceModeSchema>): OrderState[] {
   return mode === 'Delivery'
