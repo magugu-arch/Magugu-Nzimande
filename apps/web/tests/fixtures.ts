@@ -2,9 +2,10 @@ import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { PRODUCTS, STORES, optionGroupsFor } from '@bbq/seed';
+import { PRODUCTS, PROMOTIONS, STORES, optionGroupsFor } from '@bbq/seed';
 import type {
   OptionGroup,
+  Promotion,
   Order,
   OrderLine,
   OrderStatus,
@@ -21,6 +22,7 @@ import { CUSTOMER_COOKIE } from '@/lib/accounts/session';
 import { SESSION_COOKIE } from '@/lib/admin-auth';
 import { mutateState } from '@/lib/demo-state';
 import { advanceOrder, setOrderStatus } from '@/lib/order-store';
+import { promotionFor } from '@/lib/promotions';
 import { intentForOrder, settle } from '@/lib/payments/ledger';
 import { signBody } from '@/lib/payments/provider';
 import { SANDBOX_SIGNATURE_HEADER } from '@/lib/payments/sandbox-provider';
@@ -196,6 +198,17 @@ export function storeWithHours(opensMinute: number, closesMinute: number): Store
     zones: ['Testville'],
     halaal: 'Not certified',
   } as Store;
+}
+
+/**
+ * A delivery store that covers nowhere.
+ *
+ * Both seeded stores have suburbs, so the branch that has stopped delivering —
+ * a real thing when a store loses its driver — has no store that reaches it.
+ * Built rather than seeded, for the same reason as the late-closing one.
+ */
+export function storeWithoutZones(): Store {
+  return { ...storeWithHours(at(11), at(22)), zones: [] };
 }
 
 /** A store fixture with one service switched off, for the refusal paths. */
@@ -393,6 +406,135 @@ export function deliveryRequest(over: Record<string, unknown> = {}): Record<stri
     ...over,
   });
 }
+
+/**
+ * An offer that is actually running at a given moment.
+ *
+ * Found by asking each offer rather than by naming one, so this keeps working
+ * when the seed's campaigns change — which they will, since none of them is
+ * approved. A test that hard-codes a code is a test that starts failing for a
+ * reason that has nothing to do with what it checks.
+ *
+ * Every refusal path through `promotionFor` is well covered and the success
+ * path through the order route was not, because applying an offer needs the
+ * clock to be inside its window, and no fixture put it there.
+ */
+export function aRunningOffer(
+  now: Date,
+  at: { mode: ServiceMode; isFirstOrder: boolean } = { mode: 'Collection', isFirstOrder: false },
+): Promotion {
+  /**
+   * Asked under the conditions the order will actually be placed in, not just
+   * against the clock.
+   *
+   * The first version of this asked `isRunningNow`, which answers a question
+   * about the calendar — it assumes a first order on whichever mode the offer
+   * names, because the offers page needs to say "running today" to everybody.
+   * It duly returned a delivery-only, new-accounts-only offer, and the fixture
+   * then placed a guest collection order and was refused by the route. Correct
+   * refusal, useless fixture.
+   */
+  return required(
+    PROMOTIONS.find((promotion) => promotionFor(promotion.code, { ...at, now }).ok),
+    `an offer running at ${now.toISOString()} for a ${at.mode.toLowerCase()} order`,
+  );
+}
+
+/**
+ * A moment when at least one offer is running and the stores are open.
+ *
+ * Both conditions, because an order placed inside an offer's window but outside
+ * trading hours is refused by the store guard before the discount is reached —
+ * which is correct, and would make the discount test pass for the wrong reason
+ * if it were not accounted for here.
+ */
+export const WHEN_AN_OFFER_RUNS = sast(WEDNESDAY, 20, 30);
+
+/**
+ * An order the API placed with an offer actually applied.
+ *
+ * The discount was covered as arithmetic in `pricing`, and never on an order
+ * the route created — so nothing checked that a discount survives the journey
+ * from a promo code in a request to the totals stored against the order, nor
+ * what it does to the points that order earns.
+ */
+export async function aDiscountedOrder(over: Record<string, unknown> = {}): Promise<Order> {
+  const offer = aRunningOffer(WHEN_AN_OFFER_RUNS);
+  const product = productBySlug(offer.productSlug);
+
+  return frozenAt(WHEN_AN_OFFER_RUNS, async () => {
+    const response = await createOrderRoute(
+      request('/api/orders', {
+        body: orderRequest([orderLine(product)], { promoCode: offer.code, ...over }),
+      }),
+    );
+    expect(response.status, await response.clone().text()).toBe(201);
+    return (await bodyOf<{ order: Order }>(response)).order;
+  });
+}
+
+/**
+ * An account holding a given number of points.
+ *
+ * `tierFor` is covered as arithmetic, and the rung a real account stands on was
+ * not: the balance is posted by completing orders, so reaching a tier boundary
+ * through the front door would mean placing several. This writes the balance,
+ * which is the one thing here that reaches past the API on purpose — the tier
+ * boundaries are the point, not the route that arrives at them.
+ */
+export async function anAccountWithPoints(
+  points: number,
+): Promise<{ id: string; cookie: string }> {
+  const account = await registerCustomer();
+  mutateState((state) => {
+    const held = state.accounts.find((candidate) => candidate.id === account.id);
+    if (held) held.points = points;
+  });
+  return account;
+}
+
+/**
+ * A basket of several different products.
+ *
+ * Every order the route-level suites place has exactly one line, so nothing
+ * checked that the totals sum across a basket rather than reading the first
+ * line — which is the shape of every real order and none of the tested ones.
+ *
+ * Distinct products rather than a quantity, because a quantity multiplies one
+ * line and a basket adds several, and it is the addition that was untested.
+ */
+export function aBasketOf(count: number): OrderLine[] {
+  const products = PRODUCTS.slice(0, count);
+  if (products.length < count) {
+    throw new Error(`the seed catalogue has only ${products.length} products, not ${count}`);
+  }
+  return products.map((product) => orderLine(product));
+}
+
+/**
+ * A dine-in order, placed through the route.
+ *
+ * The third mode, and the one nothing ordered in. `Dine-in` was accepted by the
+ * schema and rendered by `labelFor`, and no test had ever asked the API for
+ * one — so the parts that differ from a collection (no address, no delivery
+ * fee, and a journey that skips out_for_delivery) had never run together.
+ */
+export async function aDineInOrder(over: Record<string, unknown> = {}): Promise<Order> {
+  const store = required(
+    STORES.find((candidate) => candidate.services['Dine-in']),
+    'store offering dine-in',
+  );
+  return placeOrder({ storeId: store.id, mode: 'Dine-in', ...over });
+}
+
+/**
+ * A string of an exact length, for the bounds the schemas enforce.
+ *
+ * Named rather than written as `'x'.repeat(281)` at each site, because the
+ * interesting number is the limit and `281` on its own does not say which limit
+ * it is one past.
+ */
+export const ofLength = (length: number, fill = 'x'): string => fill.repeat(length);
 
 type RequestOptions = { body?: unknown; cookie?: string; method?: string };
 

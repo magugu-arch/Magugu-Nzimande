@@ -3,10 +3,15 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { POST } from '@/app/api/orders/route';
 import { setHidden, setSoldOut } from '@/lib/catalogue-state';
 import { repriceLines } from '@/lib/order-integrity';
-import type { OrderLine } from '@bbq/types';
+import type { Order, OrderLine } from '@bbq/types';
+import { statesForMode } from '@bbq/types';
 import {
+  aBasketOf,
   aChickenProduct,
+  aDineInOrder,
   aDiscountingChoice,
+  bodyOf,
+  orderAt,
   orderLine,
   orderRequest,
   request,
@@ -243,5 +248,46 @@ describe('the stored order carries the server’s numbers', () => {
   it('posts points against the price the server computed', async () => {
     const { body } = await place([line()]);
     expect(body.order.pointsEarned).toBe(Math.floor(chicken.priceCents / 100));
+  });
+});
+
+/**
+ * The two shapes of order no route-level test had ever placed.
+ *
+ * Every order in these suites has one line and is a collection. A basket adds
+ * lines together and dine-in is a third mode with its own journey, and neither
+ * had been asked of the API — the schema accepted both and nothing ordered one.
+ */
+describe('a basket of several things', () => {
+  it('sums the lines rather than pricing the first one', async () => {
+    const lines = aBasketOf(3);
+    const expected = lines.reduce((total, line) => total + line.unitCents * line.quantity, 0);
+
+    const response = await POST(request('/api/orders', { body: orderRequest(lines) }));
+    expect(response.status).toBe(201);
+
+    const { order } = await bodyOf<{ order: Order }>(response);
+    expect(order.lines).toHaveLength(3);
+    expect(order.totals.subtotalCents).toBe(expected);
+  });
+
+});
+
+describe('a dine-in order', () => {
+  it('is taken, with no address and no delivery fee', async () => {
+    const order = await aDineInOrder();
+
+    expect(order.mode).toBe('Dine-in');
+    expect(order.address).toBeNull();
+    expect(order.totals.deliveryCents).toBe(0);
+  });
+
+  /** Its journey has no driver in it. */
+  it('never reaches out_for_delivery', async () => {
+    const order = await aDineInOrder();
+    expect(statesForMode(order.mode)).not.toContain('out_for_delivery');
+
+    const served = await orderAt('completed', { storeId: order.storeId, mode: 'Dine-in' });
+    expect(served.status).toBe('completed');
   });
 });

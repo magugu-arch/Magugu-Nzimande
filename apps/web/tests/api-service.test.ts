@@ -1,12 +1,13 @@
 import { PRODUCTS, PROMOTIONS, REWARDS, SAUCES, STORES } from '@bbq/seed';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { api } from '@/lib/api';
+import { api, deliversSomewhere } from '@/lib/api';
 import { setHidden, setService, setSoldOut } from '@/lib/catalogue-state';
 import {
   aChickenProduct,
   aDeliveryStore,
   resetState,
   seededStore,
+  storeWithoutZones,
 } from './fixtures';
 
 /**
@@ -126,5 +127,28 @@ describe('the reference content', () => {
   it('orders the reward tiers so a customer climbs rather than jumps about', () => {
     const thresholds = api.getRewards().rules.tiers.map((tier) => tier.from);
     expect([...thresholds].sort((a, b) => a - b)).toEqual(thresholds);
+  });
+});
+
+/**
+ * A store that delivers nowhere.
+ *
+ * Both seeded branches have suburbs, so this could not be reached through the
+ * catalogue and had never been checked. It is what a store looks like the week
+ * before its zone list arrives — and the filter used to let it through, so it
+ * would have been offered as a delivery option and then refused every address
+ * given to it.
+ */
+describe('whether a store can take a delivery at all', () => {
+  it('needs somewhere to deliver to, not just the service switched on', () => {
+    expect(deliversSomewhere(aDeliveryStore())).toBe(true);
+    expect(deliversSomewhere(storeWithoutZones())).toBe(false);
+  });
+
+  it('is what the zone list is built from, so a zoneless store is not offered', () => {
+    // Every store the endpoint offers can actually be delivered to.
+    for (const zone of api.getDeliveryZones()) {
+      expect(zone.suburbs.length, `${zone.storeName} is offered with no suburbs`).toBeGreaterThan(0);
+    }
   });
 });

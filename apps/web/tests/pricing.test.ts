@@ -1,6 +1,6 @@
 import { FEES } from '@bbq/seed';
 import { formatMoney, formatMoneyCompact } from '@bbq/types';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   deliveryFeeOf,
   discountOf,
@@ -10,6 +10,13 @@ import {
   totalsFor,
 } from '@/lib/pricing';
 import { findPromotion } from '@/lib/promotions';
+import {
+  WHEN_AN_OFFER_RUNS,
+  aDiscountedOrder,
+  aRunningOffer,
+  blankState,
+  productBySlug,
+} from './fixtures';
 
 /**
  * A basket line. The slug matters now: a discount comes off the lines of the
@@ -165,5 +172,53 @@ describe('points', () => {
     expect(pointsFor(18_900)).toBe(189);
     expect(pointsFor(18_999)).toBe(189);
     expect(pointsFor(99)).toBe(0);
+  });
+});
+
+/**
+ * A discount on an order the API actually placed.
+ *
+ * Everything above is covered thoroughly and had only ever been checked as
+ * arithmetic. Nothing followed a promo code from a request through to the
+ * totals stored against the order, so a discount calculated correctly and then
+ * dropped on the way into the order would have passed every test here.
+ */
+describe('a discount, on a real order', () => {
+  beforeEach(blankState);
+
+  it('reaches the totals stored against the order', async () => {
+    const order = await aDiscountedOrder();
+
+    expect(order.promoCode).toBeTruthy();
+    expect(order.totals.discountCents).toBeGreaterThan(0);
+  });
+
+  it('is the offer’s own rate on the product the offer names', async () => {
+    const offer = aRunningOffer(WHEN_AN_OFFER_RUNS);
+    const order = await aDiscountedOrder();
+    const named = productBySlug(offer.productSlug);
+
+    expect(order.totals.discountCents).toBe(Math.round(named.priceCents * offer.discountRate));
+  });
+
+  it('leaves the total as subtotal less discount, plus any delivery', async () => {
+    const { subtotalCents, discountCents, deliveryCents, totalCents } = (await aDiscountedOrder())
+      .totals;
+
+    expect(totalCents).toBe(subtotalCents - discountCents + deliveryCents);
+  });
+
+  /**
+   * The one with money in it. A point is a rand of value given away per rand
+   * spent, so crediting them on the subtotal rather than on what was actually
+   * paid hands back part of every discount a second time. Nothing checked it,
+   * because no test had ever placed a discounted order.
+   */
+  it('earns points on what was paid, not on what it would have cost', async () => {
+    const order = await aDiscountedOrder();
+
+    expect(order.totals.discountCents, 'the fixture must actually discount').toBeGreaterThan(0);
+    expect(order.pointsEarned).toBe(Math.floor(order.totals.totalCents / 100));
+    expect(order.pointsEarned).toBeLessThan(Math.floor(order.totals.subtotalCents / 100));
   });
 });

@@ -32,6 +32,7 @@ import {
   orderLine,
   orderRequest,
   PASSWORD,
+  anAccountWithPoints,
   placeOrderAs,
   registerCustomer,
   registration,
@@ -509,6 +510,25 @@ describe('the order itself', () => {
       setOrderStatus(order.id, 'completed');
 
       expect(findByEmail(customer.email)?.points).toBe(order.pointsEarned);
+    });
+  });
+
+  /**
+   * A returning customer.
+   *
+   * Points are added to the balance, and every test of that had started from
+   * zero — where adding and replacing look identical. An account that already
+   * holds points is the case that tells them apart, and it is the case every
+   * customer after their first order is in.
+   */
+  it('adds to a balance that is already there rather than replacing it', async () => {
+    await withAccounts(async () => {
+      const { cookie } = await anAccountWithPoints(500);
+      const order = await placeOrderAs(cookie);
+
+      setOrderStatus(order.id, 'completed');
+
+      expect(findByEmail(customer.email)?.points).toBe(500 + order.pointsEarned);
     });
   });
 

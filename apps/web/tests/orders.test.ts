@@ -1,5 +1,12 @@
 import { STORES } from '@bbq/seed';
 import {
+  aCollectionStore,
+  aProduct,
+  customer,
+  ofLength,
+  orderLine,
+} from './fixtures';
+import {
   CreateOrderRequestSchema,
   CustomerSchema,
   ORDER_STATES,
@@ -145,5 +152,36 @@ describe('trading hours', () => {
     // 11:00 SAST is 09:00 UTC; 22:00 SAST is 20:00 UTC.
     expect(isOpenNow(cresta, new Date('2026-08-29T09:00:00Z'))).toBe(true);
     expect(isOpenNow(cresta, new Date('2026-08-29T20:00:00Z'))).toBe(false);
+  });
+});
+
+/**
+ * The kitchen note's limit, from both sides.
+ *
+ * Only the over-limit case was covered, and a bound is not pinned by one side:
+ * a schema whose maximum had been mistyped downwards would still reject 281 and
+ * pass that test while rejecting notes people legitimately write.
+ */
+describe('the kitchen note bound', () => {
+  const withNote = (note: string) =>
+    CreateOrderRequestSchema.safeParse({
+      storeId: aCollectionStore().id,
+      mode: 'Collection',
+      customer,
+      lines: [orderLine(aProduct())],
+      promoCode: null,
+      kitchenNote: note,
+    });
+
+  it('accepts a note at exactly the limit', () => {
+    expect(withNote(ofLength(280)).success).toBe(true);
+  });
+
+  it('refuses the first character past it', () => {
+    expect(withNote(ofLength(281)).success).toBe(false);
+  });
+
+  it('accepts no note at all', () => {
+    expect(withNote('').success).toBe(true);
   });
 });
