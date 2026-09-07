@@ -1069,6 +1069,33 @@ export function apiRoutesOnDisk(): string[] {
   });
 }
 
+/**
+ * Every exported handler in a route file, with its body.
+ *
+ * Split per handler rather than per file, because a file is the wrong unit for
+ * asking whether something is guarded: a route exporting GET, POST and DELETE
+ * that calls the guard once contains the string and protects one verb.
+ *
+ * The split is on the export keyword, which is exact here because these files
+ * are written one handler after another with nothing between them — and if that
+ * ever stops being true, the count of handlers changes and the test that reads
+ * this fails rather than quietly checking fewer things.
+ */
+export function routeHandlers(relativePath: string): { verb: string; body: string }[] {
+  const source = webFile(relativePath);
+  const pattern = /export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)\b/g;
+
+  const starts = [...source.matchAll(pattern)].map((match) => ({
+    verb: match[1] as string,
+    at: match.index ?? 0,
+  }));
+
+  return starts.map((start, index) => ({
+    verb: start.verb,
+    body: source.slice(start.at, starts[index + 1]?.at ?? source.length),
+  }));
+}
+
 /** The single-file review build's template, read by two suites. */
 export function demoTemplate(): string {
   return readFileSync(path.join(WEB, 'static-demo/index.template.html'), 'utf8');
