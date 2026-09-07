@@ -474,9 +474,9 @@ note(
     'renders 24 of the densest routes at 1.3× and 2× at 320pt and fails on clipped text, ' +
     'overlapping text or sideways scroll. It found the category tiles on Home clipping every ' +
     'tagline at 2×, which is fixed. Two things still need a real device. The scales are the ' +
-    'browser\'s, and iOS reaches about 3.1× at the largest accessibility size — past 2× is ' +
+    "browser's, and iOS reaches about 3.1× at the largest accessibility size — past 2× is " +
     'untested, and 2× is where WCAG stops rather than where iOS does. And the font metrics ' +
-    'are the browser\'s Montserrat, not the handset\'s, so line breaks in a button label can ' +
+    "are the browser's Montserrat, not the handset's, so line breaks in a button label can " +
     'fall differently by a word. On a device, turn the text size to the largest ' +
     'accessibility setting and walk the ordering journey: the checkout footer and the ' +
     'tracking card are still the two worth watching.',
@@ -508,6 +508,36 @@ note(
     'reading cannot stop someone paying.',
   'you',
 );
+
+/*
+  The app corrects a wrong device clock from the server's `Date` header, and on
+  the web that header is invisible unless the server says otherwise.
+
+  Guarded on the code actually being there, like every other item here, so this
+  disappears by itself if `appClock` is ever removed. It was found by
+  `audit:skew` rather than reasoned about: the sweep reported twelve real
+  differences between phones with the correction doing nothing, because the
+  stub was not exposing the header either.
+*/
+const appClock = read('src/utils/appClock.ts');
+if (appClock.includes('noteServerTime')) {
+  note(
+    'Server clock exposure (web only)',
+    'The app corrects a device whose clock is wrong — a phone that reset when its ' +
+      'battery died, or was set by hand — from the `Date` header every response ' +
+      'already carries. Without it, `cardHasExpired` can refuse a good card, ' +
+      '`voucherExpired` can take a benefit from somebody entitled to it, and ' +
+      '`isTradingNow` can put an order into a shut kitchen. **`Date` is not a ' +
+      'CORS-safelisted response header.** Native iOS and Android are not subject to ' +
+      'CORS and need nothing. The web build sees `null` unless the API sends ' +
+      '`Access-Control-Expose-Headers: Date` on every response, `/health` included — ' +
+      'that probe is where most screens get the reading. There is no client-side ' +
+      'substitute, and an endpoint returning the time in its body would be designing ' +
+      'your API rather than using it, so this is a one-line change on your server or ' +
+      'the correction quietly does nothing on web.',
+    'you',
+  );
+}
 
 // The app now calls DELETE /v1/account/push-tokens/:token when someone signs
 // out. If the backend does not implement it, the unbinding silently fails and
@@ -611,7 +641,9 @@ if (rewardsService.includes('recordPoints')) {
 // What happens to the part of a reward the basket was too small to spend.
 // Reachable now that a seeded order has hit the cap: BBQ-4878 redeems "R50 off"
 // against R45 of fries.
-if (read('src/utils/cart.ts').includes('Math.min(rewardsDiscount, Math.max(0, subtotal - discount))')) {
+if (
+  read('src/utils/cart.ts').includes('Math.min(rewardsDiscount, Math.max(0, subtotal - discount))')
+) {
   note(
     'Unspent reward value',
     'A fixed-value reward is capped at the food it is spent on — "Discounts can never ' +
