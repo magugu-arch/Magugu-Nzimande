@@ -3,6 +3,7 @@ import { unacknowledged } from './fulfilment/handoff';
 import { listSuppressed } from './notifications/suppression';
 import { labelFor, listOrders } from './order-store';
 import { listIntents } from './payments/ledger';
+import { owedRefunds } from './payments/owed';
 
 /**
  * Everything the operations console renders, in one shape.
@@ -24,5 +25,13 @@ export function consoleView() {
     unacknowledged: unacknowledged(),
     suppressed: listSuppressed(),
     payments: listIntents(),
+    /**
+     * Money taken for orders that were cancelled.
+     *
+     * Beside the other two shortfall reports rather than in a corner of the
+     * payments list, because it is the same kind of thing: something the
+     * business owes that nothing else was going to mention.
+     */
+    owed: owedRefunds(),
   };
 }

@@ -6,6 +6,7 @@ import { POST as signInRoute } from '@/app/api/account/session/route';
 import { completeReset, liveResetCount, requestReset } from '@/lib/accounts/reset';
 import { readAudit } from '@/lib/catalogue-state';
 import { readState } from '@/lib/demo-state';
+import { notifyPasswordReset } from '@/lib/notifications/send';
 import { passwordReset } from '@/lib/notifications/messages';
 import {
   blankState,
@@ -308,5 +309,57 @@ describe('the reset is reachable', () => {
 
   it('opens straight into the form when arriving from the emailed link', () => {
     expect(source('app/account/page.tsx')).toContain('resetToken');
+  });
+});
+
+/**
+ * What the reset leaves behind in the state file.
+ *
+ * `passwordResets` stores only a hash of each token, and says why: "a leaked
+ * copy of this file is then a list of useless strings rather than a way into
+ * every account on it." The message ledger sitting beside it was keying the
+ * reset email on `token.slice(0, 12)` — twelve characters of that same live
+ * credential, in plain text, in the same file.
+ *
+ * Not a break by itself; 31 of the 43 characters were still unknown. But it
+ * undid a little of a decision made deliberately next door, for nothing: a hash
+ * varies with the token exactly as well, which is all the id needed to do.
+ */
+describe('what the reset writes down', () => {
+  it('puts no part of the token in the message ledger', async () => {
+    await withAccounts(async () => {
+      await registerCustomer();
+      const token = requestReset(customer.email)?.token;
+      expect(token, 'a reset to look at').toBeTruthy();
+
+      await notifyPasswordReset(customer.email, token as string);
+
+      const ledger = JSON.stringify(readState().notifications.sent);
+      // Every prefix from eight characters up, since a short one could occur by
+      // chance in a hash and a long one is what the defect actually stored.
+      for (let length = 8; length <= (token as string).length; length += 1) {
+        expect(ledger, `it carries ${length} characters of the token`).not.toContain(
+          (token as string).slice(0, length),
+        );
+      }
+    });
+  });
+
+  /**
+   * And still differs per token, which is why it was keyed on the token at all:
+   * two resets a minute apart are two emails, and collapsing them would strand
+   * the customer on a link the second request has already invalidated.
+   */
+  it('still sends a second reset rather than deduplicating it away', async () => {
+    await withAccounts(async () => {
+      await registerCustomer();
+      const first = requestReset(customer.email)?.token as string;
+      await notifyPasswordReset(customer.email, first);
+      const second = requestReset(customer.email)?.token as string;
+      await notifyPasswordReset(customer.email, second);
+
+      expect(first).not.toBe(second);
+      expect(readState().notifications.sent, 'two messages, not one').toHaveLength(2);
+    });
   });
 });

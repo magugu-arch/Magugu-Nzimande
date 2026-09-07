@@ -48,12 +48,21 @@ type PaymentRow = {
   updatedAt: string;
 };
 
+/** A cancelled order whose payment was never given back. */
+type OwedRow = {
+  orderId: string;
+  orderNumber: string;
+  amountCents: number;
+  reason: string | null;
+};
+
 type QueueResponse = {
   orders: QueueOrder[];
   audit: AuditEntry[];
   unacknowledged?: HandoffRow[];
   suppressed?: SuppressedRow[];
   payments?: PaymentRow[];
+  owed?: OwedRow[];
 };
 
 const TABS = ['Orders', 'Menu', 'Stores', 'Promotions', 'Payments', 'Problems', 'Audit'] as const;
@@ -104,6 +113,7 @@ export function OperationsConsole({
    */
   const [unacknowledged, setUnacknowledged] = useState<readonly HandoffRow[]>([]);
   const [suppressed, setSuppressed] = useState<readonly SuppressedRow[]>([]);
+  const [owed, setOwed] = useState<readonly OwedRow[]>([]);
   /**
    * The ledger, which was settled and reconciled by tests and shown to nobody.
    * An operator taking an "I paid, where is my food" call had the order in
@@ -123,6 +133,7 @@ export function OperationsConsole({
       setAudit(data.audit);
       setUnacknowledged(data.unacknowledged ?? []);
       setSuppressed(data.suppressed ?? []);
+      setOwed(data.owed ?? []);
       setPayments(data.payments ?? []);
     } catch {
       // A failed refresh leaves the last good queue on screen.
@@ -169,6 +180,7 @@ export function OperationsConsole({
       setAudit(data.audit);
       setUnacknowledged(data.unacknowledged ?? []);
       setSuppressed(data.suppressed ?? []);
+      setOwed(data.owed ?? []);
       // Only the availability sync sends these back, and it sends both.
       if (data.products) setProducts(data.products);
       if (data.hidden) setHiddenSlugs(data.hidden);
@@ -302,7 +314,7 @@ export function OperationsConsole({
     ...initialProducts.filter((product) => hiddenSlugs.includes(product.slug)),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
-  const problemCount = unacknowledged.length + suppressed.length;
+  const problemCount = unacknowledged.length + suppressed.length + owed.length;
 
   return (
     <div>
@@ -646,14 +658,47 @@ export function OperationsConsole({
           <section>
             <h2 className="display text-2xl">Needs attention</h2>
             <p className="mt-1 max-w-[60ch] text-sm text-muted">
-              Orders a kitchen system would not take, and customers we can no longer email.
-              Both are recorded as they happen; neither raises an alarm on its own.
+              Money taken for orders that were cancelled, orders a kitchen system would not
+              take, and customers we can no longer email. All three are recorded as they
+              happen; none raises an alarm on its own.
             </p>
 
             {problemNote && (
               <p role="status" className="mt-4 rounded-sm bg-paper px-4 py-3 text-sm font-semibold">
                 {problemNote}
               </p>
+            )}
+
+            <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.08em] text-muted">
+              Cancelled orders still holding the customer&rsquo;s money
+            </h3>
+            {owed.length === 0 ? (
+              <p className="mt-2 text-sm text-muted">
+                None. Nothing has been cancelled that was paid for.
+              </p>
+            ) : (
+              <ul className="mt-2 grid gap-2">
+                {owed.map((entry) => (
+                  <li
+                    key={entry.orderId}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-line bg-white px-4 py-3 text-sm"
+                  >
+                    <span>
+                      <span className="font-bold">{entry.orderNumber}</span>{' '}
+                      <Price cents={entry.amountCents} /> taken
+                      {entry.reason ? ` — cancelled: ${entry.reason}` : ' — cancelled'}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => refundPayment(entry.orderId, entry.orderNumber)}
+                      className="rounded-sm border border-red px-2.5 py-1 text-xs font-bold text-red disabled:opacity-50"
+                    >
+                      Refund it
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
 
             <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.08em] text-muted">

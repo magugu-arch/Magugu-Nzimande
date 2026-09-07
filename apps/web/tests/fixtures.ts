@@ -23,6 +23,7 @@ import { SESSION_COOKIE } from '@/lib/admin-auth';
 import { mutateState, readState } from '@/lib/demo-state';
 import type { CourierAdapter, Handoff, PosAdapter } from '@/lib/fulfilment/adapters';
 import { LEASE_MS } from '@/lib/leases';
+import { consoleView } from '@/lib/console-view';
 import { setSink } from '@/lib/observability/log';
 import { advanceOrder, setOrderStatus } from '@/lib/order-store';
 import { repriceLines } from '@/lib/order-integrity';
@@ -1741,4 +1742,36 @@ export function abandonedClaim(key: string): void {
   mutateState((state) => {
     state.leases.push({ key, at: Date.now() - LEASE_MS * 10 });
   });
+}
+
+// ---------------------------------------------------------------------------
+// Money the business still owes
+
+/**
+ * A paid order that was then cancelled — the state where money is owed back.
+ *
+ * The combination nothing built. `aPaidOrder` stops at paid, and cancelling
+ * happens in the console suites on orders nobody paid for, so the one case
+ * where a customer is out of pocket had never been assembled. Which is why
+ * nothing reported it.
+ *
+ * The whole sequence runs inside one provider block, like `aPaidOrder`: an
+ * intent captured with a gateway configured and then read without one is a
+ * state no deployment can reach.
+ */
+export async function aCancelledPaidOrder(
+  reason = 'the kitchen lost power',
+  over: Record<string, unknown> = {},
+): Promise<Order> {
+  return withPaymentProvider(async () => {
+    const order = await placeOrder(over);
+    await settlePayment(order.id, 'captured');
+    const cancelled = setOrderStatus(order.id, 'cancelled', reason);
+    return required(cancelled, 'a cancelled order');
+  });
+}
+
+/** The console's own view of what is owed, by order number. */
+export function owedOrderNumbers(): string[] {
+  return consoleView().owed.map((entry) => entry.orderNumber);
 }

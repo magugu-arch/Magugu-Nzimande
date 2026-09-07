@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type { Order } from '@bbq/types';
 import type { Message } from './transport';
 
@@ -135,10 +136,23 @@ export function passwordReset(email: string, token: string, baseUrl?: string | n
 
   return [
     {
-      // Not keyed on the token: two resets requested a minute apart are two
-      // messages, and deduplicating them would strand the customer on a link
-      // the second request has already invalidated.
-      id: `reset:${token.slice(0, 12)}`,
+      /**
+       * Keyed on a hash of the token rather than on the token.
+       *
+       * Two resets requested a minute apart must be two messages — deduplicating
+       * them would strand the customer on a link the second request has already
+       * invalidated — so the id has to vary with the token. It did that by
+       * taking the token's first twelve characters, which put twelve characters
+       * of a live credential into `notifications.sent` in plain text.
+       *
+       * Not a break on its own: 31 of the 43 characters are still unknown. But
+       * the list beside it stores only a hash and says why — "a leaked copy of
+       * this file is then a list of useless strings rather than a way into every
+       * account on it" — and this was quietly undoing a little of that, for no
+       * gain. A hash varies with the token exactly as well and carries none of
+       * it.
+       */
+      id: `reset:${createHash('sha256').update(token).digest('hex').slice(0, 16)}`,
       channel: 'email',
       to: email,
       subject: 'Reset your bb.q Chicken password',
