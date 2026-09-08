@@ -418,6 +418,36 @@ ${vars(dark, '    ')}
   footer p { margin: 0; max-width: 70ch; }
   footer p + p { margin-top: 0.7rem; }
 
+  /*
+    Saving a copy.
+    Hidden until the viewer's runtime says it can save a file, because a button
+    that does nothing is worse than no button: the page renders identically
+    without it. The hidden attribute is toggled through el.hidden, never through
+    a display style.
+  */
+  .save {
+    margin-top: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.6rem 1.1rem;
+    background: var(--red);
+    color: var(--on-red);
+    border: 0;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .save:hover:not(:disabled) { background: var(--red-on-band); }
+  .save:disabled { opacity: 0.6; cursor: default; }
+  .save-note {
+    margin: 0.6rem 0 0;
+    font-size: 0.78rem;
+    color: var(--band-muted);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
   }
@@ -431,6 +461,9 @@ ${vars(dark, '    ')}
       What was built, measured from the repository rather than remembered, and what
       is left before it can take a real order.
     </p>
+
+    <button class="save" id="save" type="button" hidden>Save a copy</button>
+    <p class="save-note" id="save-note" role="status"></p>
 
     <dl class="facts">
       ${rows(facts, ([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)}
@@ -618,6 +651,61 @@ ${vars(dark, '    ')}
   </footer>
 
 </main>
+
+<script>
+/*
+  Handing the reader the file.
+
+  A published page cannot start a download itself — an <a download>, a blob URL
+  and a script-driven save are all inert inside the viewer's sandbox — so this
+  asks the runtime, which puts the request to the viewer and saves only if they
+  accept. There is no way to save silently, which is the right shape for it.
+
+  The page is written so this is additive: nothing below depends on the button,
+  and a viewer whose runtime cannot save sees the document exactly as before.
+*/
+(async () => {
+  const button = document.getElementById('save');
+  const note = document.getElementById('save-note');
+  if (!button || !note) return;
+
+  /* Resolves late, and null when this view cannot save — not served, not
+     granted, or failed to load, which are deliberately indistinguishable. */
+  const downloads = await window.claude?.use?.('downloads');
+  if (!downloads) return;
+
+  button.hidden = false;
+
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    note.textContent = '';
+    try {
+      /* The rendered document, which is the whole audit: every rule is in one
+         inline stylesheet, so the saved file opens without this page. */
+      /* No newline between the two: an escape here would have to survive this
+         file's template literal, and the one that did not left an unterminated
+         string in the generated page. HTML does not need it. */
+      const file = '<!doctype html>' + document.documentElement.outerHTML;
+      await downloads.save({ filename: 'bbq-chicken-build-audit.html', data: file });
+      note.textContent = 'Saved.';
+    } catch (error) {
+      const code = error && error.code;
+      if (code === 'declined') note.textContent = '';
+      else if (code === 'rate_limited') note.textContent = 'One at a time — try again in a moment.';
+      else if (code === 'bad_request' || code === 'transform_error') {
+        note.textContent = 'That did not save. The link at the top of this page still works.';
+      } else {
+        /* unavailable and the lifecycle codes: the affordance is gone rather
+           than broken, so take it away instead of leaving a dead button. */
+        button.hidden = true;
+        note.textContent = '';
+      }
+    } finally {
+      button.disabled = false;
+    }
+  });
+})();
+</script>
 `;
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));

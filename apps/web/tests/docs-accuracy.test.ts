@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { WEB, apiRoutesOnDisk, filesUnder } from './fixtures';
+import { REPO, WEB, apiRoutesOnDisk, filesUnder } from './fixtures';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -215,5 +215,60 @@ describe('every endpoint has a caller', () => {
     const onDisk = new Set(apiRoutesOnDisk());
     const gone = Object.keys(ENTERED_FROM_OUTSIDE).filter((route) => !onDisk.has(route));
     expect(gone, 'these are exempted and no longer exist').toEqual([]);
+  });
+});
+
+/**
+ * The audit page's own script, which the build writes into it.
+ *
+ * The page offers the reader a copy of itself to save, and a published page
+ * cannot start a download on its own — an anchor with `download`, a blob URL
+ * and a script-driven save are all inert in the viewer's sandbox — so the
+ * button asks the runtime and appears only when the runtime answers.
+ *
+ * That "only when it answers" is exactly what makes a broken script invisible.
+ * The generator writes this JavaScript out through a template literal, and the
+ * first version of it emitted `'<!doctype html>` followed by a real newline:
+ * an unterminated string, a script that never parsed, and a button that never
+ * appeared — which looks identical, from the outside, to a viewer whose
+ * runtime cannot save. Nobody would have reported it.
+ *
+ * So the page is parsed rather than eyeballed.
+ */
+describe('the build audit page', () => {
+  const page = readFileSync(path.join(REPO, 'WEBSITE_COSTINGS.html'), 'utf8');
+
+  it('carries a script', () => {
+    expect(page, 'the save affordance is gone').toMatch(/<script>[\s\S]*<\/script>/);
+  });
+
+  it('has a script that parses', () => {
+    const script = /<script>([\s\S]*?)<\/script>/.exec(page)?.[1] ?? '';
+
+    // `new Function` compiles without running: a syntax error throws here, and
+    // nothing in the body executes, so this cannot touch the page or the DOM.
+    expect(() => new Function(script), 'the generated script is not valid JavaScript').not.toThrow();
+  });
+
+  /**
+   * And asks the runtime rather than reaching for an anchor, which would be
+   * silently inert. Written as an absence because that is the mistake.
+   */
+  it('offers the file through the runtime, not through a link', () => {
+    expect(page).toContain("use?.('downloads')");
+
+    /*
+     * The markup, with the script cut out first.
+     *
+     * The script's own comment explains why an anchor would not work, and
+     * says so by naming one — so a search of the whole page for an anchor
+     * finds the sentence warning against it and fails on correct code. The
+     * thing being checked is the document, not the commentary about it.
+     */
+    const markup = page.replace(/<script>[\s\S]*?<\/script>/g, '');
+
+    expect(markup, 'a download link would do nothing in the viewer').not.toMatch(
+      /<a\b[^>]*\sdownload[\s=>]/,
+    );
   });
 });
