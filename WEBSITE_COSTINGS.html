@@ -296,9 +296,9 @@
 
     <dl class="facts">
       <div><dt>Prepared by</dt><dd>Magugu Nzimande</dd></div>
-<div><dt>Date</dt><dd>7 September 2026</dd></div>
+<div><dt>Date</dt><dd>8 September 2026</dd></div>
 <div><dt>Branch</dt><dd>claude/bbq-chicken-website-4qzv8i</dd></div>
-<div><dt>Commit audited</dt><dd>c21b770</dd></div>
+<div><dt>Commit audited</dt><dd>410838b</dd></div>
 <div><dt>Basis</dt><dd>One experienced full-stack developer, eight-hour days</dd></div>
     </dl>
   </div>
@@ -332,10 +332,10 @@
 <tr><td class="what">API endpoints</td><td class="num-col">27</td></tr>
 <tr><td class="what">React components</td><td class="num-col">31</td></tr>
 <tr><td class="what">Business-logic modules</td><td class="num-col">49</td></tr>
-<tr><td class="what">Automated tests</td><td class="num-col">971</td></tr>
+<tr><td class="what">Automated tests</td><td class="num-col">973</td></tr>
 <tr><td class="what">Test files</td><td class="num-col">48</td></tr>
-<tr><td class="what">Hand-written lines</td><td class="num-col">35,042</td></tr>
-<tr><td class="what">Commits</td><td class="num-col">145</td></tr>
+<tr><td class="what">Hand-written lines</td><td class="num-col">35,095</td></tr>
+<tr><td class="what">Commits</td><td class="num-col">146</td></tr>
         </tbody>
       </table>
     </div>
@@ -346,12 +346,12 @@
         <thead><tr><th>Category</th><th class="num-col">Lines</th></tr></thead>
         <tbody>
           <tr><td class="what">Application</td><td class="num-col">13,922</td></tr>
-<tr><td class="what">Tests</td><td class="num-col">14,536</td></tr>
-<tr><td class="what">Review build</td><td class="num-col">2,781</td></tr>
+<tr><td class="what">Tests</td><td class="num-col">14,585</td></tr>
+<tr><td class="what">Review build</td><td class="num-col">2,785</td></tr>
 <tr><td class="what">Data, schema and tooling</td><td class="num-col">2,883</td></tr>
 <tr><td class="what">Shared packages</td><td class="num-col">920</td></tr>
         </tbody>
-        <tfoot><tr><td>Total</td><td class="num-col">35,042</td></tr></tfoot>
+        <tfoot><tr><td>Total</td><td class="num-col">35,095</td></tr></tfoot>
       </table>
     </div>
   </section>
@@ -377,7 +377,7 @@
 <tr><td class="id-col">5</td><td class="what">API layer and order state machine</td><td class="detail">16 endpoints; five order states with collection, delivery and dine-in variants; cancellation terminal from any state and refused without a reason</td><td class="num-col">8</td></tr>
 <tr><td class="id-col">6</td><td class="what">Basket, configurator, checkout and order journey</td><td class="detail">Live pricing, option selection, line identity, free-delivery meter, trading-hours and delivery-zone gating, idempotent placement</td><td class="num-col">8</td></tr>
 <tr><td class="id-col">7</td><td class="what">Operations console and authentication</td><td class="detail">3 components, 4 admin endpoints, HMAC-signed sessions, constant-time comparison, lockout after repeated failures, fail-closed guards</td><td class="num-col">5</td></tr>
-<tr><td class="id-col">8</td><td class="what">Automated test suite</td><td class="detail">The suite as it stood at this workstream: the 971 tests now in 48 files grew with the workstreams below. Driven through route handlers rather than helpers</td><td class="num-col">7</td></tr>
+<tr><td class="id-col">8</td><td class="what">Automated test suite</td><td class="detail">The suite as it stood at this workstream: the 973 tests now in 48 files grew with the workstreams below. Driven through route handlers rather than helpers</td><td class="num-col">7</td></tr>
 <tr><td class="id-col">9</td><td class="what">Image pipeline and food imagery</td><td class="detail">sharp pipeline producing 336 derivatives from 28 masters at three widths in two formats, plus the written photography brief</td><td class="num-col">6</td></tr>
 <tr><td class="id-col">10</td><td class="what">Single-file review build</td><td class="detail">2,241-line template and generator that inlines every asset, so the site opens from one link with no server</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">11</td><td class="what">Documentation and handover</td><td class="detail">279-line website README plus contributions to the handover, audit and readiness documents</td><td class="num-col">3</td></tr>
@@ -415,7 +415,7 @@
 <tr><td class="id-col">43</td><td class="what">Two handoffs that were not safe against a second caller</td><td class="detail">The guard against pushing an order to the till twice read the record, awaited the adapter, and then wrote — so two callers arriving together both found no success and both pushed, which a kitchen reads as two of everything. Reachable: the console has a retry button and the advance route asks for a courier when an order reaches ready. The claim is now taken atomically before the call and released if it fails, for both the till handoff and the refund</td><td class="num-col">2</td></tr>
 <tr><td class="id-col">44</td><td class="what">Surviving a state file that is not the shape it should be</td><td class="detail">The store merged whatever it read from disk over its defaults, so a file where a list had become a string or an object crashed on the first read rather than falling back — a half-written file after a power cut, or a hand-edit, taking the site down instead of the record. Lists that arrive as something other than lists are now replaced by the default, at the top level and in each group</td><td class="num-col">1</td></tr>
 <tr><td class="id-col">45</td><td class="what">Authorisation held against the routes rather than against memory</td><td class="detail">Every console write was guarded and every account endpoint scoped to its session, and that was true because somebody had remembered each time. The failure mode is a route added in a hurry with the guard left off, which works perfectly in testing — it is the absence of a refusal that is the bug. Now a test, checked per handler rather than per file, with the endpoints that are open by design listed by name with the reason beside each</td><td class="num-col">2</td></tr>
-<tr><td class="id-col">51</td><td class="what">Money taken for orders that were called off</td><td class="detail">Cancelling an order writes a status and a reason and does nothing about the payment. That much is right — whether to refund, and how quickly, is the franchisor’s decision, and a cancellation for suspected fraud is not the same as one for a kitchen that lost power, so nothing here refunds anything on its own. What was wrong is that nobody was told: the order said cancelled, the payment said captured, and the Problems tab — which reports handoffs the kitchen never acknowledged and addresses we have stopped emailing — had no row for a customer who had paid for food that will never arrive. The refund endpoint had been built two workstreams earlier and nothing pointed at the orders that needed it. Now a third report beside the other two, counted in the tab’s badge, with the amount, the reason the order was called off, the gateway reference an operator needs to find the payment, and the refund button that already existed. It lists only captured payments, because a report that also named the ones already refunded is the report nobody reads. Includes a smaller find alongside it: the password-reset email was keyed on the first twelve characters of the live reset token, putting them in the state file in plain text — beside a list that deliberately stores only a hash and says why. Keyed on a hash of the token instead, which varies with it exactly as well and carries none of it</td><td class="num-col">3</td></tr>
+<tr><td class="id-col">51</td><td class="what">Money taken for orders that were called off</td><td class="detail">Cancelling an order writes a status and a reason and does nothing about the payment. That much is right — whether to refund, and how quickly, is the franchisor’s decision, and a cancellation for suspected fraud is not the same as one for a kitchen that lost power, so nothing here refunds anything on its own. What was wrong is that nobody was told: the order said cancelled, the payment said captured, and the Problems tab — which reports handoffs the kitchen never acknowledged and addresses we have stopped emailing — had no row for a customer who had paid for food that will never arrive. The refund endpoint had been built two workstreams earlier and nothing pointed at the orders that needed it. Now a third report beside the other two, counted in the tab’s badge, with the amount, the reason the order was called off, the gateway reference an operator needs to find the payment, and the refund button that already existed. The review build carries the third panel too, saying it has no gateway rather than showing an invented row or leaving the heading out — a reviewer reading two headings where the site has three concludes the feature does not exist. It lists only captured payments, because a report that also named the ones already refunded is the report nobody reads. Includes a smaller find alongside it: the password-reset email was keyed on the first twelve characters of the live reset token, putting them in the state file in plain text — beside a list that deliberately stores only a hash and says why. Keyed on a hash of the token instead, which varies with it exactly as well and carries none of it</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">50</td><td class="what">Claims that outlive the process holding them</td><td class="detail">Two operations call somebody else’s server in the middle of a read-modify-write — pushing an order to the till, refunding a payment — and both took a claim first so two callers could not both act. Both claims were bare keys in the state file, removed by a line that only runs if the process reaches it. The comment on one said an abandoned claim would be “recovered by the next deployment”, which sounded like a plan and was simply untrue: the claims are in a file, and a restart reads them straight back. A process that died mid-call left the order permanently stuck — never sent to the till, every retry answered “already being attempted”, and absent from the shortfall report because nothing had failed, so the one screen whose job is to list orders the kitchen never saw showed nothing. The refund was worse: it answered success while the payment sat there captured, for ever. Claims now carry the moment they were taken and expire, so an abandoned one recovers itself without anybody running a sweep; permanence moved to where it belongs, on the payment intent. Includes the Postgres table, and the migration is also the recovery — a claim written before claims had a time on them is treated as expired, which is exactly what the stuck ones are</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">49</td><td class="what">What the logs carry out of the building</td><td class="detail">The redactor reduces an email to its domain and a mobile to its last two digits, matched on the field name — and the bounce webhook logs a field called “recipient”, which was not on the list. Two lines a bounce went to stdout reading {&quot;event&quot;:&quot;email.suppressed&quot;,&quot;recipient&quot;:&quot;thandi@example.com&quot;}: an address, plus the fact that its owner had complained. Worse than the same leak into the audit log, and the reason it was worth a round of its own: erasure can rewrite a file this process owns and can never reach a log aggregator, so a line written there is written for good. The name list is fixed, and an address is now reduced whatever the field is called, since the next field to hold one will be named something else again. Numbers are deliberately not guessed at by shape — a courier reference can be ten digits — and that asymmetry is asserted rather than left to be discovered. Held by a standing guard rather than a test: every one of the suite’s test files now runs with a sink that fails if any log line anywhere carries the fixture customer’s address, name or number, so the question asked is not “does this call site redact” but “did nine hundred tests driving every route put a person into a log”</td><td class="num-col">3</td></tr>
 <tr><td class="id-col">48</td><td class="what">The edges of the money</td><td class="detail">An order for a trillion pieces of chicken was accepted with a 201. The quantity on a line had no upper bound, so the total came back as 18,900,000,000,000,000 cents — a number on which Number.isSafeInteger returns false, meaning the arithmetic had left the range where a JavaScript integer is exact — and the loyalty ledger stood ready to credit 189 trillion points on completion. A five-thousand-line basket was accepted too. Nothing was wrong with the sums; nothing had been asked to refuse the inputs. Bounds on both, shared by the schema and the basket so a customer meets a stepper that stops rather than a 400 three screens later, with tests that check not only that the limits hold but that at the very top of what they allow every total is still exact and the margin is a thousandfold — so raising one is a decision somebody makes with the consequence in front of them. Includes the refusal message: every rule in the order schema carries wording written for the person who broke it, and the route was replacing all of them with the words &quot;Invalid order&quot; while attaching the real reasons under a key no client ever read. The registration route had worked this out already and said so in its own comment. The review build had drifted the same way and was fixed with it: its basket added without a ceiling, so a reviewer could put five hundred birds in one and never meet the limit a customer would. The bounds are now carried into it from the site rather than written a second time, which needed them moved to a module that imports nothing — the generator reads these sources as raw TypeScript, and a file reaching for zod through an extensionless import is a file it cannot read, which is exactly how a second implementation ends up with its own copy of a number</td><td class="num-col">4</td></tr>
@@ -489,7 +489,7 @@
     quickly accounts, credentials and contracts arrive rather than on how fast anyone
     writes code.</p>
 
-    <p class="measure">35,042 hand-written lines over 221 days is
+    <p class="measure">35,095 hand-written lines over 221 days is
     about 159 a day. For tested, typed, reviewed
     production code that sits inside the normal 100–300 band — integration work carries
     more test and less code than storefront work does.</p>
@@ -542,8 +542,8 @@
   </section>
 
   <footer>
-    <p>Audited at commit <strong>c21b770</strong> on <strong>claude/bbq-chicken-website-4qzv8i</strong>,
-    7 September 2026. Prepared by Magugu Nzimande.</p>
+    <p>Audited at commit <strong>410838b</strong> on <strong>claude/bbq-chicken-website-4qzv8i</strong>,
+    8 September 2026. Prepared by Magugu Nzimande.</p>
     <p>Every count on this page is read from the repository when the page is generated,
     and the Word version is rendered from the same module. No project management, account
     management, agency overhead or margin is included — those are commercial layers that

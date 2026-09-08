@@ -1957,12 +1957,16 @@ function viewAdmin(){
   }
 
   if(S.adminTab === 'Problems'){
-    /* Same: a kitchen system that refused an order and an address that bounced
-       both have the same symptom, a telephone call, and the same cure, which is
-       somebody seeing them. Neither can happen here — there is no till and no
-       mail transport — so both lists are empty and say so. */
+    /* Three reports, and none of them can have a row here. Money taken for an
+       order that was then cancelled needs a gateway; an order a kitchen system
+       refused needs a till; an address we have stopped emailing needs a mail
+       transport. This build has none of the three, so each says which one it is
+       missing rather than showing an invented row — and rather than being left
+       out, which would tell a reviewer the feature does not exist. */
     panel = '<h2 class="display h-md">Needs attention</h2>'
-      + '<p class="sm muted mt-1 max-62">Orders a kitchen system would not take, and customers we can no longer email. Both are recorded as they happen; neither raises an alarm on its own.</p>'
+      + '<p class="sm muted mt-1 max-62">Money taken for orders that were cancelled, orders a kitchen system would not take, and customers we can no longer email. All three are recorded as they happen; none raises an alarm on its own.</p>'
+      + '<h3 class="xxs b muted mt-6" style="letter-spacing:.08em;text-transform:uppercase">Cancelled orders still holding the customer&rsquo;s money</h3>'
+      + '<p class="sm muted mt-2">None. No gateway is configured on this review build, so nothing has been paid for and nothing can be owed back.</p>'
       + '<h3 class="xxs b muted mt-6" style="letter-spacing:.08em;text-transform:uppercase">Orders the kitchen system refused</h3>'
       + '<p class="sm muted mt-2">None. No kitchen system is attached to this review build.</p>'
       + '<h3 class="xxs b muted mt-6" style="letter-spacing:.08em;text-transform:uppercase">Addresses we have stopped emailing</h3>'

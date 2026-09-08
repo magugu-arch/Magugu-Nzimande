@@ -16,6 +16,7 @@ import {
   builtDemoPage,
   demoFunction,
   demoTemplate,
+  webFile,
 } from './fixtures';
 
 /**
@@ -274,5 +275,53 @@ describe('the basket limits the review build enforces', () => {
    */
   it('no longer adds without a ceiling', () => {
     expect(TEMPLATE).not.toContain('found.qty += qty');
+  });
+});
+
+/**
+ * The three shortfall reports, in both consoles.
+ *
+ * The review build is a second implementation, and its Problems tab had two
+ * headings after the site grew a third — money taken for orders that were then
+ * cancelled. A reviewer reading the demo would conclude the feature does not
+ * exist, which is the same mistake as the five-tab console after the product
+ * grew to seven.
+ *
+ * None of the three can have a row in this build: each needs a gateway, a till
+ * or a mail transport, and it has none of them. So the panels are there and say
+ * which one is missing, rather than being left out or showing invented rows.
+ */
+describe('the shortfall reports the review build lists', () => {
+  const HEADINGS = [
+    'Cancelled orders still holding',
+    'Orders the kitchen system refused',
+    'Addresses we have stopped emailing',
+  ];
+
+  it('names the same three the site does', () => {
+    const site = webFile('src/components/admin/OperationsConsole.tsx');
+
+    for (const heading of HEADINGS) {
+      expect(TEMPLATE, `the review build is missing: ${heading}`).toContain(heading);
+      expect(site, `the site is missing: ${heading}`).toContain(heading);
+    }
+  });
+
+  /**
+   * And says why each is empty rather than leaving a bare "None".
+   *
+   * "None" on its own reads as "we checked and there is nothing wrong", which
+   * is a different claim from "this build cannot check". The panels above it
+   * already make that distinction; these have to as well.
+   */
+  it('says which integration each empty report is waiting on', () => {
+    const problems = TEMPLATE.slice(
+      TEMPLATE.indexOf("S.adminTab === 'Problems'"),
+      TEMPLATE.indexOf("S.adminTab === 'Audit'"),
+    );
+
+    expect(problems, 'the gateway').toContain('No gateway is configured');
+    expect(problems, 'the till').toContain('No kitchen system is attached');
+    expect(problems, 'the mail transport').toContain('Nothing is sent from this review build');
   });
 });
