@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { arrayOfShaped, keepValid, oneOf, PERSIST_VERSION } from '@/store/persistence';
+import {
+  arrayOfShaped,
+  keepValid,
+  migrateByRevalidating,
+  oneOf,
+  PERSIST_VERSION,
+} from '@/store/persistence';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CartLine, CartTotals, FulfilmentType, Product, SelectedOption } from '@/types';
 import {
@@ -401,6 +407,7 @@ export const useCartStore = create<CartState>()(
     {
       name: 'bbq.cart',
       version: PERSIST_VERSION,
+      migrate: migrateByRevalidating,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         lines: state.lines,

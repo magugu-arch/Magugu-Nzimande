@@ -41,6 +41,45 @@
  * per release, not four.
  */
 
+/**
+ * What a version bump means: look again, not forget.
+ *
+ * This file opens by saying the four stores declared "no `version` or a
+ * `migrate`". The version arrived and the migrate did not, and zustand only
+ * calls `merge` when the stored version matches the current one. On a
+ * mismatch it calls `migrate`, finds nothing, and **discards the slice
+ * entirely** — routing around the one piece of validation this file exists to
+ * perform, on the single occasion it was written for.
+ *
+ * So the next bump of the constant below — the ordinary consequence of
+ * shipping a shape change, which is exactly what it is for — signs every
+ * customer in the field out, empties their basket, forgets their favourites
+ * and drops the branch they had chosen. Silently, on first launch after an
+ * update.
+ *
+ * Demonstrated rather than reasoned about: `audit:offline` seeded storage at
+ * `version: 0` for six rounds without anyone noticing, and five signed-in
+ * routes rendered "Sign in to see your orders" for the whole of that time.
+ * That is the mechanism, already observed, pointed at a customer's phone
+ * instead of a sweep's.
+ *
+ * Returning the persisted state unchanged hands it to `merge`, which is where
+ * `keepValid` lives — so a bump re-validates every field against the checks
+ * *of the build doing the reading*. That is the right default because the
+ * checks travel with the shapes: a commit that changes a persisted field
+ * changes its check in the same breath, and the old value then fails it and is
+ * dropped, field by field, rather than slice by slice.
+ *
+ * **The constraint that comes with it.** The version exists for changes
+ * `keepValid` cannot express. If you make one, dropping the old value is your
+ * commit's job — return `{}` from that store's `migrate`, or narrow it — and
+ * it is a deliberate line in a diff rather than something that happens to
+ * everybody on every release.
+ */
+export function migrateByRevalidating(persisted: unknown): unknown {
+  return persisted;
+}
+
 /** Bump when a persisted shape changes incompatibly. See the note above. */
 export const PERSIST_VERSION = 1;
 

@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { isStringArray, keepValid, PERSIST_VERSION } from '@/store/persistence';
+import {
+  isStringArray,
+  keepValid,
+  migrateByRevalidating,
+  PERSIST_VERSION,
+} from '@/store/persistence';
 import { config } from '@/constants/config';
 
 /**
@@ -111,6 +116,7 @@ export const useFavouritesStore = create<FavouritesState>()(
     {
       name: 'bbq.favourites',
       version: PERSIST_VERSION,
+      migrate: migrateByRevalidating,
       storage: createJSONStorage(() => AsyncStorage),
       // The owner is persisted too, or the check cannot survive the restart it
       // most needs to survive: a phone handed over and opened fresh.

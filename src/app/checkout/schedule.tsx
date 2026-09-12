@@ -51,7 +51,18 @@ export default function ScheduleScreen() {
     *and* on a phone that reset itself — and they are two different things to
     know, so they are two sentences rather than one that tries to cover both.
   */
-  const skew = useMemo(() => skewNotice(), [now]);
+  /*
+    Called straight, not memoised.
+
+    It was `useMemo(() => skewNotice(), [now])`, and `now` was a proxy: the
+    sentence is derived from module state in `appClock`, not from the clock
+    value, so the dependency list was describing a relationship that is not
+    there. It happened to recompute at the right moments — `useNow` re-renders
+    on a tick and on `onClockCorrected` — which is exactly what makes a proxy
+    dependency hard to notice. Building a string is free; the memo was buying
+    nothing and asserting something false.
+  */
+  const skew = skewNotice();
 
   /**
    * No slots is two different situations, and they need different words.

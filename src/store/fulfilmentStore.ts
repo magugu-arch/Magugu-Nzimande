@@ -5,6 +5,7 @@ import {
   isBoolean,
   isString,
   keepValid,
+  migrateByRevalidating,
   nullOrShaped,
   oneOf,
   PERSIST_VERSION,
@@ -393,6 +394,7 @@ export const useFulfilmentStore = create<FulfilmentState>()(
     {
       name: 'bbq.fulfilment',
       version: PERSIST_VERSION,
+      migrate: migrateByRevalidating,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         fulfilmentType: state.fulfilmentType,

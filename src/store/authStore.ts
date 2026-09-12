@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { isBoolean, keepValid, nullOrShaped, PERSIST_VERSION } from '@/store/persistence';
+import {
+  isBoolean,
+  keepValid,
+  migrateByRevalidating,
+  nullOrShaped,
+  PERSIST_VERSION,
+} from '@/store/persistence';
 
 import type { AppPreferences, AuthSession, NotificationPreferences, UserProfile } from '@/types';
 import { config } from '@/constants/config';
@@ -203,6 +209,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'bbq.auth',
       version: PERSIST_VERSION,
+      migrate: migrateByRevalidating,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         user: state.user,

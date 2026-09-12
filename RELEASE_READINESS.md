@@ -802,6 +802,71 @@ retry button says "Try again", which clears the honesty test, so the finding
 reads "blames itself when it knows the device is offline". The screen had the
 one fact that would have explained everything and did not use it.
 
+## 2q. The customer who updates the app
+
+`src/store/persistence.ts` opens by saying the four stores declared "no
+`version` or a `migrate`". **The version arrived and the migrate did not.**
+
+Zustand only calls `merge` when the stored version matches the current one. On
+a mismatch it calls `migrate`, finds none, and discards the slice — routing
+around the one piece of validation that file exists to perform, on the single
+occasion it was written for. So the next bump of `PERSIST_VERSION`, which is
+the ordinary consequence of shipping a shape change and exactly what the
+constant is for, signed every customer in the field out, emptied their basket,
+forgot their favourites and dropped the branch they had chosen. Silently, on
+first launch after an update.
+
+Not reasoned about. `audit:offline` seeded storage at `version: 0` for six
+rounds and five signed-in routes rendered "Sign in to see your orders" the
+whole time — the same mechanism, already observed, pointed at a sweep instead
+of a phone.
+
+`npm run audit:upgrade` loads storage written by the previous build into this
+one. With the migrate stashed:
+
+| storage written by | still signed in | their favourites |
+| ------------------ | --------------- | ---------------- |
+| this build | yes | 4 of 4 |
+| an older build | **NO** | **0 of 4** |
+
+…and the app's own demo favourites — Honey Garlic Chicken, Cheesling Fries,
+Korean Rice Bowl — on screen in place of the customer's.
+
+### What the fix is
+
+`migrate` hands the persisted state to `merge`, which is where `keepValid`
+lives. A bump then re-validates every field against the checks *of the build
+doing the reading*, which is the right default because the checks travel with
+the shapes: a commit that changes a persisted field changes its check in the
+same breath, and the old value fails it and is dropped **field by field rather
+than slice by slice**.
+
+The constraint that comes with it is written beside the function: the version
+exists for changes `keepValid` cannot express, and if you make one, dropping
+the old value is your commit's job — a deliberate line in a diff rather than
+something that happens to everybody on every release.
+
+### A measurement that could not fail, three times
+
+Worth recording because each version looked reasonable.
+
+1. It read `bbq.favourites` back out of `localStorage` — but a store that
+   discards its persisted slice does not necessarily write over it, so the old
+   value sits there and the count is the one that went in.
+2. It counted filled hearts — but `favouritesStore` seeds three of its own as
+   *initial* state in a mock build, so a discarded slice still renders hearts.
+3. It asked whether a demo *id* contained a rendered *name*, backwards, so the
+   check never fired even on the run where everything had been dropped.
+
+A fourth, on the other side: the session was first measured by looking for the
+customer's first name in `innerText`, and the profile screen puts it in an
+input *value*, so both runs reported "signed out" while the screen said "Member
+since Sun, 18 Jan" a line above.
+
+Each one is the same lesson — a check that cannot report the outcome it exists
+for is worse than no check — and each was found by running the counterfactual
+rather than by reading the code.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -855,7 +920,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **102 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **103 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on
