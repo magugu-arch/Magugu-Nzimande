@@ -464,3 +464,49 @@ describe('10 — the least important thing cannot break the most important', () 
     expect(clockSkewMinutes()).toBeNull();
   });
 });
+
+/**
+ * The request that was skipping it.
+ *
+ * `execute` reads the `Date` header off every reply, and `performRefresh` uses
+ * a bare `fetch` — deliberately, so a rejected refresh cannot try to refresh
+ * itself — which made it the single request in the app that never observed the
+ * clock.
+ *
+ * It is the worst one to miss. A refresh happens when the app wakes on a token
+ * that aged out, which is exactly the launch after a phone has been off for a
+ * week; it is often the *first* request of the session, so skipping it delayed
+ * the correction by a whole round trip on the occasion the clock is most likely
+ * to be wrong.
+ *
+ * Asserted as an invariant rather than as that one call: every `fetch` in the
+ * API client is followed by a reading, so a future path that adds another
+ * cannot quietly skip it.
+ */
+describe('11 — every fetch in the client reads the clock', () => {
+  const client = code('src/services/apiClient.ts');
+
+  it('has a reading for each fetch it makes', () => {
+    const fetches = (client.match(/await fetch\(/g) ?? []).length;
+    const readings = (client.match(/noteServerTime\(/g) ?? []).length;
+
+    expect(fetches).toBeGreaterThanOrEqual(2);
+    // One reading per fetch. The import carries no parenthesis, so it does not
+    // count itself — which the first version of this assertion assumed it did.
+    expect(readings).toBe(fetches);
+  });
+
+  it('measures the refresh either side, like the rest', () => {
+    const refresh = client.slice(client.indexOf('async function performRefresh'));
+
+    expect(refresh.slice(0, 900)).toMatch(
+      /const sentAt = Date\.now\(\);\s*const response = await fetch/,
+    );
+    expect(refresh.slice(0, 900)).toMatch(/noteServerTime\(.*sentAt, Date\.now\(\)\)/);
+  });
+
+  it('guards it there too, so a refresh cannot fail over a header', () => {
+    const refresh = client.slice(client.indexOf('async function performRefresh'));
+    expect(refresh.slice(0, 900)).toMatch(/try \{\s*noteServerTime\(/);
+  });
+});

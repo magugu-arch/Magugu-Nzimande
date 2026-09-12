@@ -78,6 +78,7 @@ export default function ForgotPasswordScreen() {
           placeholder="you@example.co.za"
           iconLeft="mail-outline"
           required
+          testID="forgot-password-email"
         />
 
         <Button
@@ -85,6 +86,7 @@ export default function ForgotPasswordScreen() {
           onPress={() => void handleSubmit()}
           loading={submitting}
           size="lg"
+          testID="forgot-password-submit"
         />
       </View>
     </Screen>

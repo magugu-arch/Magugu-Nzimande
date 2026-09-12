@@ -867,6 +867,51 @@ Each one is the same lesson — a check that cannot report the outcome it exists
 for is worse than no check — and each was found by running the counterfactual
 rather than by reading the code.
 
+## 2r. The journey nobody had driven
+
+Every route is *rendered* by `audit:screens`; about twenty-five are actually
+*used* by a sweep — signed into, typed into, submitted. Comparing the two lists
+leaves four that had only ever been looked at, and two of them were the whole
+of password recovery: `/forgot-password` and `/reset-password`.
+
+That is the worst journey to be missing. Everything else in this app has an
+alternative — somebody who cannot place an order can ring the store, somebody
+who cannot see their points can order anyway. Somebody who cannot reset their
+password has no way back into their account, and no way to tell anyone, because
+the support form sits behind the account they cannot reach.
+
+`npm run audit:recovery` drives six cases, three of them failures: asking for a
+link, a server that refuses to send one, a link with no token, setting a new
+password, two passwords that do not match, and a token the server rejects —
+which is what an expired link is.
+
+**It found nothing, and that is the result.** All six were already honest: the
+refused send shows the server's words and no confirmation, the expired token
+does not report a password change that did not happen, and a mismatch is caught
+before anything is sent — which matters because a reset link is usually
+single-use, so a round trip for a typo the app could see itself would cost the
+customer their one way back in.
+
+Verified by negative control rather than assumed. With the expectation changed
+to a sentence the screen never shows and the forbidden phrase changed to one it
+does, the run reported both — so the clean result is a measurement rather than
+a silence. A sweep that finds nothing is still the difference between "this
+works" and "nobody has looked".
+
+### And one request that was skipping the clock
+
+`execute` reads the `Date` header off every reply. `performRefresh` uses a bare
+`fetch` — deliberately, so a rejected refresh cannot try to refresh itself —
+which made it the one request in the app that never observed the server's
+clock.
+
+It is the worst one to miss. A refresh happens when the app wakes on a token
+that aged out, which is exactly the launch after a phone has been off for a
+week, and it is often the *first* request of the session — so skipping it
+delayed the correction by a whole round trip on the occasion the clock is most
+likely to be wrong. Asserted now as an invariant: every `fetch` in the API
+client is followed by a reading, so a future path cannot quietly skip it.
+
 ## 3. Release gates (§11)
 
 | Gate | State |

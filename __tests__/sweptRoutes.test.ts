@@ -374,3 +374,74 @@ describe('the confirmation screen, arrived at cold', () => {
     expect(code('src/app/order/[id]/confirmation.tsx')).toMatch(/OfflineState/);
   });
 });
+
+/**
+ * The journey that had never been driven.
+ *
+ * Every route is *rendered* by `audit:screens`; about twenty-five are actually
+ * *used* by a sweep — signed into, typed into, submitted. Comparing the two
+ * lists left four that had only ever been looked at, and two of them were the
+ * whole of password recovery.
+ *
+ * It is the worst journey to be missing. Everything else in this app has an
+ * alternative: somebody who cannot place an order can ring the store, somebody
+ * who cannot see their points can order anyway. Somebody who cannot reset their
+ * password has no way back into their account, and no way to tell anyone,
+ * because the support form is behind the account they cannot reach.
+ *
+ * Driven, it was honest — six cases, no findings. Worth recording that plainly:
+ * a sweep that finds nothing is still the difference between "this works" and
+ * "nobody has looked".
+ */
+describe('password recovery is driven, not just rendered', () => {
+  const recovery = () => code('scripts/audit-recovery.mjs');
+
+  it('drives both screens of it', () => {
+    expect(recovery()).toMatch(/'\/forgot-password'/);
+    expect(recovery()).toMatch(/\/reset-password\?token=/);
+  });
+
+  /**
+   * The two cases worth the build. A recovery screen that shows a tick after a
+   * failed request has told somebody to go and wait for an email that is not
+   * coming — and a password screen that reports success on a rejected token has
+   * locked them out while telling them they are in.
+   */
+  it('refuses to let a failure look like a success', () => {
+    const source = recovery();
+
+    expect(source).toMatch(/forbid: \/check your inbox\/i/);
+    expect(source).toMatch(/forbid: \/you can sign in with it now\|password changed\/i/);
+  });
+
+  /**
+   * And catches a mismatch without spending the token: a reset link is usually
+   * single-use, so a round trip for a typo the app could see itself would cost
+   * the customer their one way back in.
+   */
+  it('checks that a mismatch is caught before anything is sent', () => {
+    expect(recovery()).toMatch(/sendsNothing: true/);
+  });
+
+  it('fails a case that could not work its own screen', () => {
+    expect(recovery()).toMatch(/could not work its own screen, so this case proved nothing/);
+  });
+
+  /**
+   * Verified by negative control rather than assumed: with the expectation
+   * changed to a sentence the screen never shows and the forbidden phrase
+   * changed to one it does, the run reported both — so the clean result is a
+   * measurement rather than a silence.
+   */
+  it('has the testIDs it needs, which the screens did not carry', () => {
+    const forgot = code('src/app/(auth)/forgot-password.tsx');
+
+    expect(forgot).toMatch(/testID="forgot-password-email"/);
+    expect(forgot).toMatch(/testID="forgot-password-submit"/);
+  });
+
+  it('is registered so it runs', () => {
+    const scripts = JSON.parse(read('package.json')).scripts as Record<string, string>;
+    expect(scripts['audit:recovery']).toBe('node scripts/audit-recovery.mjs');
+  });
+});

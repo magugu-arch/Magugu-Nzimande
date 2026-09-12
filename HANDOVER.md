@@ -55,6 +55,7 @@ npm run audit:clock   # the same second seen from six device timezones — they 
 npm run audit:skew    # four device clocks, three of them wrong, against a server that is right
 npm run audit:writes  # every write refused two ways — the customer must be told
 npm run audit:upgrade # storage from last month's build, loaded by this one
+npm run audit:recovery # the way back into an account, including the ways it fails
 npm run smoke:order   # signs in, adds an item and places an order, for real
 npm run preview:single # builds the web export and folds it into one HTML file
 ```

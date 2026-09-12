@@ -276,11 +276,33 @@ async function performRefresh(): Promise<string | null> {
     // A bare fetch, not `request`: the refresh call must never be subject to
     // the 401 handling below, or a rejected refresh would try to refresh
     // itself.
+    const sentAt = Date.now();
     const response = await fetch(`${config.apiBaseUrl}/v1/auth/refresh`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     });
+
+    /*
+      The clock, from the one response that was skipping it.
+
+      `execute` reads the `Date` header off every reply; this path does not go
+      through `execute`, so it was the single request in the app that did not.
+      That matters more than the count suggests: a refresh happens when the app
+      wakes on a token that aged out, which is exactly the moment a phone that
+      has been off for a week opens — and it is often the *first* request of
+      the session, so skipping it delays the correction by a whole round trip
+      on the launch where the clock is most likely to be wrong.
+
+      Guarded for the same reason as in `execute`: reading the clock is the
+      least important thing happening here, and a refresh that fails because a
+      header could not be read would sign the customer out.
+    */
+    try {
+      noteServerTime(response.headers?.get('date') ?? null, sentAt, Date.now());
+    } catch {
+      // A response whose headers cannot be read can still carry new tokens.
+    }
 
     if (!response.ok) return null;
 
