@@ -220,7 +220,6 @@ try {
           .replace(/ from favourites$/, ''),
       ),
     );
-    const kept = hearted.length;
 
     const label = written === PERSIST_VERSION ? 'this build' : `an older build (v${written})`;
 

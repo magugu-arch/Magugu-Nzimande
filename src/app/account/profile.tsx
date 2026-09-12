@@ -121,7 +121,11 @@ export default function ProfileScreen() {
     } finally {
       setSendingVerification(false);
     }
-  }, [user]);
+    // `setUser` is a zustand action, so it is stable and costs nothing to
+    // declare — and the save handler above already declares it. One callback
+    // in this file listing it and the other not was an inconsistency rather
+    // than a judgement, and it was the last standing lint warning here.
+  }, [user, setUser]);
 
   const handleDelete = useCallback(async () => {
     const confirmed = await ask({

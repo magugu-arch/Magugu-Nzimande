@@ -1,9 +1,8 @@
-import { fetchRewards } from '@/services/rewardsService';
+import { fetchRewards, rewardExpired } from '@/services/rewardsService';
 import { fetchStoresForFulfilment } from '@/services/storeService';
 import { rewards } from '@/services/data/rewardsData';
 import { stores } from '@/services/data/storeData';
 import { demoUser } from '@/services/data/accountData';
-import { rewardExpired } from '@/services/rewardsService';
 import { supportsFulfilment } from '@/utils/fulfilment';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { act } from '@testing-library/react-native';
