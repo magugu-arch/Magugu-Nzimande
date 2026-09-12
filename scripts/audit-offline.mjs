@@ -27,6 +27,7 @@ import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { PERSIST_VERSION } from './lib/persist-version.mjs';
+import { assertSeeds, preconditionFailures } from './lib/preconditions.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -144,6 +145,16 @@ const BASKET = JSON.stringify({
   },
   version: PERSIST_VERSION,
 });
+
+/*
+  The envelopes, checked before a browser is built rather than after.
+
+  This sweep is the one that wrote `version: 0` for six rounds, and the check
+  that would have caught it has to run here: a wrong stamp is invisible from
+  inside the page, because `migrateByRevalidating` re-validates the slice and
+  the store writes it back under the current number.
+*/
+assertSeeds({ 'bbq.cart': BASKET });
 
 /** Copy that admits the app could not reach the server. */
 const HONEST = /Something went wrong|couldn't load|can't reach|You're offline|Try again/i;
@@ -290,6 +301,8 @@ const SIGNED_IN = JSON.stringify({
   version: PERSIST_VERSION,
 });
 
+assertSeeds({ 'bbq.auth': SIGNED_IN });
+
 const TYPES = {
   '.html': 'text/html',
   '.js': 'application/javascript',
@@ -362,6 +375,18 @@ try {
     // Long enough for the client timeout and its retries to run out.
     await page.waitForTimeout(14000);
 
+    /*
+      This sweep is the reason `lib/preconditions.mjs` exists: it drove six
+      signed-in routes as a signed-out stranger for six rounds and kept
+      reporting. The check now runs before anything is measured, and a failure
+      here is a finding rather than a footnote.
+    */
+    const wrongState = await preconditionFailures(page, {
+      where: route,
+      signedIn: true,
+      seeded: NEEDS_BASKET.has(route) ? ['bbq.cart'] : [],
+    });
+
     /**
      * The screen's own words, with the global offline banner cut out.
      *
@@ -396,7 +421,8 @@ try {
 
     if (process.env.OFFLINE_TEXT) console.log(`\n— ${route}\n  ${text.slice(0, 220)}`);
 
-    rows.push({ route, honest, named, lies });
+    rows.push({ route, honest, named, lies, wrongState: wrongState.length > 0 });
+    for (const failure of wrongState) findings.push(failure);
     if (!honest && lies.length === 0) {
       findings.push(
         `${route}: says nothing about the server at all — is this still the screen it was?`,
@@ -531,8 +557,13 @@ findings.push(...recoveryFindings);
 
 console.log('\nroute                          says it could not reach the server');
 for (const row of rows) {
-  const mark = row.honest ? '✓' : '✗';
-  const note = row.lies.length > 0 ? `  — ${row.lies.join('; ')}` : '';
+  // A route whose preconditions failed has no reading to report, honest or not.
+  const mark = row.wrongState ? '?' : row.honest ? '✓' : '✗';
+  const note = row.wrongState
+    ? '  — not in the state this sweep claims; nothing measured'
+    : row.lies.length > 0
+      ? `  — ${row.lies.join('; ')}`
+      : '';
   console.log(`  ${mark} ${row.route.padEnd(28)}${note}`);
 }
 

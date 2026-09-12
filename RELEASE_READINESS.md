@@ -912,6 +912,62 @@ delayed the correction by a whole round trip on the occasion the clock is most
 likely to be wrong. Asserted now as an invariant: every `fetch` in the API
 client is followed by a reading, so a future path cannot quietly skip it.
 
+## 2s. Every sweep, proving it is where it says it is
+
+Four sweeps seed a customer into `localStorage` and then drive an app they
+believe is signed in. None of them ever checked. `audit:offline` was wrong
+about that for six rounds — §2p — and kept reporting the whole time.
+
+`lib/persist-version.mjs` closed the version hole. It did not close the class.
+A seed can also fail to arrive because a key was renamed, because `keepValid`
+rejected a field, because a store's `merge` changed, or because the route gated
+for a reason nothing to do with storage. In every one of those the sweep keeps
+printing ticks over an app nobody chose — no crash, no empty output, no red.
+It is the only failure mode in this repository that is invisible by
+construction, and it was found once, by accident.
+
+`scripts/lib/preconditions.mjs` closes it, from two directions that fail
+independently:
+
+- **the seed, read back out of storage** — did the envelope land, and did any
+  store take it;
+- **the screen** — is the app showing `account-required` or a
+  `*-signed-out` wall, matched as an element rather than as a sentence so that
+  rewriting the copy cannot switch the check off.
+
+Neither alone would do. Storage cannot see a rehydration that was refused,
+because Zustand does not write over a slice it discarded — the seeded value
+sits there afterwards looking perfect. The screen cannot see a seed that never
+landed on a route with no account gate. Either firing is a finding, and the
+case is marked failed: a sweep that has failed its own preconditions has not
+produced a weaker result, it has produced none.
+
+Driven as a counterfactual rather than assumed. With `audit:writes` seeding
+`isAuthenticated: false`, the run went from six green cases to 32 findings,
+every one naming the wall it met — including "sending a support message", which
+is on an ungated screen and would otherwise have gone on passing against a
+signed-out app.
+
+### The check that was run and could not fail
+
+The first counterfactual was the original bug itself: `audit:writes` re-run
+with its envelope stamped `version: 0`. It came back **green** — six cases,
+twelve runs, not one complaint.
+
+The in-page reading was right to say nothing. `migrateByRevalidating` landed in
+the same round as the version (§2q), so a mismatch no longer discards the
+slice: Zustand calls the migrate, `merge` re-validates every field, and the
+store writes it straight back under this build's number. By the time a page can
+be read, a wrong stamp has been silently corrected.
+
+Good news about the app, bad news about the check. So the stamp is now read
+where it is still the sweep's own — `seedProblems`, over the string, before the
+browser is built — and that half catches a literal typed in place of the shared
+constant, a missing `version`, an envelope with no `state`, and an object
+handed over where storage holds strings. A malformed seed exits 2, not 1: it is
+a bug in the script, and reporting it under a findings heading would read like
+a defect in the app.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -965,7 +1021,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **103 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **104 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

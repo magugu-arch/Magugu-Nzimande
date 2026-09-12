@@ -36,6 +36,7 @@ import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { PERSIST_VERSION } from './lib/persist-version.mjs';
+import { assertSeeds, preconditionFailures } from './lib/preconditions.mjs';
 import { chromium } from 'playwright';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -540,6 +541,15 @@ const BASKET = JSON.stringify({
   version: PERSIST_VERSION,
 });
 
+/*
+  Both envelopes, before the first context is opened.
+
+  Checked here rather than in the page because a wrong version stamp cannot be
+  seen from inside the page any more: a store that takes the slice writes it
+  back under this build's number, migrate and all.
+*/
+assertSeeds({ 'bbq.auth': SIGNED_IN, 'bbq.cart': BASKET });
+
 const findings = [];
 const rows = [];
 
@@ -596,6 +606,21 @@ try {
     await page.waitForTimeout(6000);
 
     /*
+      Read before the button, not after.
+
+      One of these cases kills the session on purpose, and a customer who has
+      just been signed out is *meant* to meet the wall. Asserting the state the
+      case starts in — rather than the state it ends in — is the difference
+      between a precondition and a duplicate of the case's own expectation.
+    */
+    const wrongState = await preconditionFailures(page, {
+      where: testCase.name,
+      signedIn: true,
+      seeded: testCase.basket ? ['bbq.cart'] : [],
+    });
+    for (const failure of wrongState) findings.push(failure);
+
+    /*
       A case about the money path has to press the button, or the endpoint it
       bends is never called at all — and a sweep that never reaches the code it
       is aiming at passes for the emptiest possible reason.
@@ -645,6 +670,7 @@ try {
       showedNonsense: showedNonsense || navigatedAway,
       missingExpected,
       neverAsked,
+      wrongState: wrongState.length > 0,
       text,
     });
 
@@ -704,12 +730,14 @@ if (process.env.WIRE_TEXT) {
   for (const row of rows) console.log(`\n— ${row.name}\n  ${row.text}`);
 }
 
-console.log('\ncase                                    crashed  nonsense  missing  unreached');
+console.log(
+  '\ncase                                    crashed  nonsense  missing  unreached  state',
+);
 for (const row of rows) {
   const mark = (value) => (value ? '   ✗   ' : '   ✓   ');
   console.log(
     `  ${row.name.padEnd(38)}${mark(row.crashed)}${mark(row.showedNonsense)}` +
-      `${mark(row.missingExpected)}${mark(row.neverAsked)}`,
+      `${mark(row.missingExpected)}${mark(row.neverAsked)}  ${row.wrongState ? '  ✗' : '  ✓'}`,
   );
 }
 

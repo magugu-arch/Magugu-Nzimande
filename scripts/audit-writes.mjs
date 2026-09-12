@@ -57,6 +57,7 @@ import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { PERSIST_VERSION } from './lib/persist-version.mjs';
+import { assertSeeds, preconditionFailures } from './lib/preconditions.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(root, '.audit-writes');
@@ -107,6 +108,17 @@ const SIGNED_IN = JSON.stringify({
   },
   version: PERSIST_VERSION,
 });
+
+/*
+  Checked before the build, because it cannot be checked after the load.
+
+  This sweep was re-run with the stamp deliberately set to 0 — the original
+  bug — and came back green twelve times over. Correctly: `migrateByRevalidating`
+  re-validates the slice and the store writes it back under the current number,
+  so by the time a page can be read the stamp has been corrected. The only
+  place a wrong one is still visible is here.
+*/
+assertSeeds({ 'bbq.auth': SIGNED_IN });
 
 /**
  * The reads the screens need before there is anything to press.
@@ -409,6 +421,18 @@ try {
       });
       await page.waitForTimeout(3000);
 
+      /*
+        Every one of these writes is a signed-in customer changing something.
+        A seed that did not arrive turns all six into a tour of sign-in walls
+        where no control is pressable — which this sweep would have reported as
+        "could not press its own control", six times, without ever saying why.
+      */
+      const wrongState = await preconditionFailures(page, {
+        where: `${testCase.name} (${refusal})`,
+        signedIn: true,
+      });
+      for (const failure of wrongState) findings.push(failure);
+
       let pressed = true;
       await testCase.press(page).catch(() => {
         pressed = false;
@@ -457,7 +481,13 @@ try {
       }
 
       result[refusal] =
-        pressed && reached && told && !overclaims && crashes.length === 0 && !caught;
+        wrongState.length === 0 &&
+        pressed &&
+        reached &&
+        told &&
+        !overclaims &&
+        crashes.length === 0 &&
+        !caught;
       await context.close();
     }
 

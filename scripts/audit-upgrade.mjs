@@ -31,6 +31,7 @@ import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { PERSIST_VERSION } from './lib/persist-version.mjs';
+import { assertSeeds, preconditionFailures } from './lib/preconditions.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(root, '.audit-upgrade');
@@ -150,12 +151,42 @@ try {
       { auth: envelope(CUSTOMER, written), favourites: envelope(FAVOURITES, written) },
     );
 
+    /*
+      Stamped with this arm's version, which for the older arm is deliberately
+      not the current one — so the assertion is that each arm seeded what it
+      meant to, not that both seeded the same thing.
+    */
+    assertSeeds(
+      { 'bbq.auth': envelope(CUSTOMER, written), 'bbq.favourites': envelope(FAVOURITES, written) },
+      { atVersion: written },
+    );
+
     const page = await context.newPage();
     await page.goto(`http://localhost:${PORT}/account/profile`, {
       waitUntil: 'networkidle',
       timeout: 45000,
     });
     await page.waitForTimeout(3000);
+
+    /*
+      Not `signedIn` — that is this sweep's whole question, and a precondition
+      that asserted the answer would turn the LAST_MONTH arm green by fiat.
+
+      What it does assert is narrower and still worth having: the envelopes are
+      there and readable. `addInitScript` failing silently, or a renamed key,
+      would leave both arms measuring a browser nobody seeded, and both would
+      agree — which is the shape this sweep reads as "an update changed
+      nothing". Two versions are legitimate here and no third is: a slice the
+      store accepts is written straight back stamped with this build's number,
+      so the LAST_MONTH arm ends at PERSIST_VERSION when the migrate works and
+      at LAST_MONTH when it does not.
+    */
+    const wrongState = await preconditionFailures(page, {
+      where: `written by version ${written}`,
+      seeded: ['bbq.auth', 'bbq.favourites'],
+      atVersion: [written, PERSIST_VERSION],
+    });
+    for (const failure of wrongState) findings.push(failure);
 
     const profile = (await page.evaluate(() => document.body.innerText)).replace(/\n+/g, ' | ');
 
