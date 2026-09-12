@@ -24,10 +24,36 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+/**
+ * The persisted-state version, read from the app rather than written down.
+ *
+ * This sweep said `version: 0` in two places, and had done since before
+ * `PERSIST_VERSION` existed. Round 11 introduced versioned persistence with a
+ * `merge`, and Zustand drops stored state whose version does not match — so
+ * from that moment the seeded customer was discarded on every route and five
+ * screens rendered "Sign in to see your orders" instead of the signed-in
+ * screen they were meant to test. Checkout rendered "Nothing to check out" for
+ * the same reason: its basket seed carried the same stale version.
+ *
+ * The sweep kept producing output the whole time. It reported six routes as
+ * "says nothing about the server at all", which was true and was about itself.
+ *
+ * So the number is derived. A future bump changes one constant and this
+ * follows it; if the constant is ever renamed, this throws rather than
+ * quietly seeding a version nobody uses.
+ */
+const PERSIST_VERSION = (() => {
+  const source = readFileSync(path.join(root, 'src/store/persistence.ts'), 'utf8');
+  const found = /export const PERSIST_VERSION = (\d+);/.exec(source);
+  if (!found) throw new Error('PERSIST_VERSION not found in src/store/persistence.ts');
+  return Number(found[1]);
+})();
+
 const OUT = path.join(root, '.audit-nobackend');
 const PORT = 8161;
 
@@ -46,6 +72,22 @@ const ROUTES = [
   '/checkout/store',
   '/product/golden-original',
   '/order/order-4821',
+  /*
+    The confirmation screen, arrived at cold — which is the only way this
+    sweep can reach it and the only way the defect shows.
+
+    `usePlaceOrder` seeds the cache, so a customer coming straight from
+    checkout has the order in hand and this screen is never in doubt. Opened
+    fresh — a push notification deep-linking to it, or a relaunch after the
+    cache has gone — the query pauses, and `isError || !order.data` caught the
+    pause and said "We can't find that order. If you were charged, it will
+    appear in your order history shortly." A claim about the world from an app
+    that had not looked, with a second one inside it about whether the payment
+    happened.
+
+    The last screen in the app without the rule its neighbour already had.
+  */
+  '/order/order-4821/confirmation',
   // The detail screen, not just the list. It answered a failed fetch with
   // "That offer has ended" — a claim about the promotions calendar made by an
   // app that had not reached the promotions calendar. Somebody who taps a push
@@ -124,7 +166,7 @@ const BASKET = JSON.stringify({
     ],
     fulfilmentType: 'delivery',
   },
-  version: 0,
+  version: PERSIST_VERSION,
 });
 
 /** Copy that admits the app could not reach the server. */
@@ -269,7 +311,7 @@ const SIGNED_IN = JSON.stringify({
       preferMildFirst: false,
     },
   },
-  version: 0,
+  version: PERSIST_VERSION,
 });
 
 const TYPES = {
@@ -375,6 +417,8 @@ try {
     ) {
       lies.push(RAILS_WITHOUT_A_WORD.why);
     }
+
+    if (process.env.OFFLINE_TEXT) console.log(`\n— ${route}\n  ${text.slice(0, 220)}`);
 
     rows.push({ route, honest, named, lies });
     if (!honest && lies.length === 0) {

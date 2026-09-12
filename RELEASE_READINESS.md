@@ -744,6 +744,55 @@ authorisation was not actually released.** A gateway that returns 200 for
 "request received" would have the app promise a customer their card was not
 charged while a hold sits on it.
 
+## 2p. A sweep that stopped testing and kept reporting
+
+`audit:offline` has been failing six of its routes, and the failure was its
+own. It seeded its signed-in customer and its basket with `version: 0`, and had
+done since before `PERSIST_VERSION` existed. **Round 11 introduced versioned
+persistence with a `merge`, and Zustand drops stored state whose version does
+not match** — so from that moment every signed-in route was driven as a
+signed-out one:
+
+> Orders | **Sign in to see your orders** | Sign in to follow an order while it
+> cooks…
+
+Five screens rendered that, checkout rendered "Nothing to check out", and the
+sweep reported all six as *"says nothing about the server at all — is this
+still the screen it was?"* The question was the right one and it was about the
+sweep.
+
+Attributed before it was fixed: the same six fail identically with this
+round's changes stashed, so this is a standing failure rather than a
+regression. It is the failure this repository keeps finding in the app,
+committed by a harness — an answer derived from something that changed
+underneath it, with nothing declaring the dependency.
+
+The version is now read out of `src/store/persistence.ts` rather than written
+down, and throws if the constant is ever renamed. All seventeen routes pass.
+
+### The last screen without the rule
+
+Adding the confirmation screen to that sweep found the one place still missing
+`isOfflinePending`. `isError` is false and `data` is undefined while a query is
+paused, so `isError || !order.data` caught the pause and rendered:
+
+> **We can't find that order**
+> If you were charged, it will appear in your order history shortly.
+
+A claim about the world from an app that had not looked, carrying a second one
+— *"if you were charged"* — inviting doubt about whether the payment happened.
+
+Not the just-paid path: `usePlaceOrder` seeds the cache, so a customer coming
+straight from checkout has the order in hand. It is the cold arrival that lands
+here — a push notification deep-linking to this screen, or a relaunch after the
+cache has gone — which is exactly how somebody checks an order they already
+placed.
+
+Driven with the fix stashed, the sweep scores it *honest but unnamed*: the
+retry button says "Try again", which clears the honesty test, so the finding
+reads "blames itself when it knows the device is offline". The screen had the
+one fact that would have explained everything and did not use it.
+
 ## 3. Release gates (§11)
 
 | Gate | State |

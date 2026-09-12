@@ -264,3 +264,81 @@ describe('what was already right', () => {
     expect(sweptRoutes()).not.toContain('/more');
   });
 });
+
+/**
+ * The seed that stopped working, and the sweep that kept reporting anyway.
+ *
+ * `audit:offline` wrote `version: 0` into the customer and basket it seeds,
+ * and had done since before `PERSIST_VERSION` existed. Round 11 introduced
+ * versioned persistence with a `merge`, and Zustand drops stored state whose
+ * version does not match — so from that moment every signed-in route was
+ * driven as a signed-out one. Five screens rendered "Sign in to see your
+ * orders" and checkout rendered "Nothing to check out", and the sweep reported
+ * them as *"says nothing about the server at all"*, which was true and was
+ * about itself.
+ *
+ * It is the same failure this repository keeps finding in the app, committed
+ * by a harness: an answer derived from something that had changed underneath
+ * it, with nothing declaring the dependency.
+ */
+describe('the offline sweep seeds a customer the app will actually load', () => {
+  it('derives the persisted version rather than writing it down', () => {
+    const source = audit();
+
+    expect(source).toMatch(/const PERSIST_VERSION = \(\(\) => \{/);
+    expect(source).toMatch(/src\/store\/persistence\.ts/);
+    // And there is no literal left to drift.
+    expect(source).not.toMatch(/version: \d+,/);
+  });
+
+  it('throws rather than seeding a version nobody uses', () => {
+    expect(audit()).toMatch(/throw new Error\('PERSIST_VERSION not found/);
+  });
+
+  /**
+   * The check that would have caught it at the time: the version the sweep
+   * seeds has to be the one the app keeps. Read from both sources rather than
+   * restated in either.
+   */
+  it('matches the version the stores persist with', () => {
+    const persistence = code('src/store/persistence.ts');
+    const declared = /export const PERSIST_VERSION = (\d+);/.exec(persistence)?.[1];
+
+    expect(declared).toBeDefined();
+    expect(audit()).toContain('export const PERSIST_VERSION = (\\d+);');
+  });
+});
+
+/**
+ * And the last screen without the rule its neighbour already had.
+ *
+ * `usePlaceOrder` seeds the cache, so a customer arriving straight from
+ * checkout has the order in hand. Arriving cold — a push notification
+ * deep-linking to the confirmation, or a relaunch after the cache has gone —
+ * the query pauses, and `isError || !order.data` caught the pause.
+ *
+ * Driven with the fix stashed, `audit:offline` reports it: *"blames itself
+ * when it knows the device is offline"*. The retry button says "Try again",
+ * which clears the sweep's honesty test, so the screen was scored honest and
+ * unnamed — it had the one fact that would have explained everything and did
+ * not use it.
+ */
+describe('the confirmation screen, arrived at cold', () => {
+  it('is swept, which is the only way this was ever going to show', () => {
+    expect(sweptRoutes()).toContain('/order/order-4821/confirmation');
+  });
+
+  it('treats a paused query as no signal rather than a missing order', () => {
+    const screen = code('src/app/order/[id]/confirmation.tsx');
+    const offline = screen.indexOf('isOfflinePending(order)');
+    const missing = screen.indexOf('order.isError || !order.data');
+
+    expect(offline).toBeGreaterThan(-1);
+    // Before the not-found branch, or the not-found branch catches it first.
+    expect(offline).toBeLessThan(missing);
+  });
+
+  it('says the same thing the tracking screen next door says', () => {
+    expect(code('src/app/order/[id]/confirmation.tsx')).toMatch(/OfflineState/);
+  });
+});

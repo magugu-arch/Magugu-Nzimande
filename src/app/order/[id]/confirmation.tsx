@@ -1,12 +1,21 @@
 import { StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button, Card, ErrorState, LoadingState, Screen, Text } from '@/components/ui';
+import {
+  Button,
+  Card,
+  ErrorState,
+  LoadingState,
+  OfflineState,
+  Screen,
+  Text,
+} from '@/components/ui';
 import { OrderTotals } from '@/features/cart/components/OrderTotals';
 import { useOrder } from '@/features/orders/hooks';
 import { readyLabelFor } from '@/services/orderService';
 import { colors, radius, spacing } from '@/theme';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
+import { isOfflinePending } from '@/features/system/queryPhase';
 
 /** Order Confirmation (brief §4). */
 export default function OrderConfirmationScreen() {
@@ -18,6 +27,39 @@ export default function OrderConfirmationScreen() {
     return (
       <Screen edges={['top', 'bottom']}>
         <LoadingState message="Confirming your order…" />
+      </Screen>
+    );
+  }
+
+  /*
+    A paused query is somebody with no signal, not a missing order — the same
+    rule as the tracking screen next door, and this was the last screen in the
+    app without it.
+
+    `isError` is false and `data` is undefined while a query is paused, so the
+    branch below caught it and rendered "We can't find that order. If you were
+    charged, it will appear in your order history shortly." That is a claim
+    about the world from an app that has not looked, and it carries a second
+    one — "if you were charged" — inviting doubt about whether the payment
+    happened.
+
+    `audit:offline` scored it as *honest but unnamed*: the retry button says
+    "Try again", which is enough to clear the sweep's honesty test, so the
+    finding read "blames itself when it knows the device is offline". The
+    screen had the one fact that would have explained everything and did not
+    use it.
+
+    Not the just-paid path: `usePlaceOrder` seeds the cache with the order, so
+    a customer coming straight from checkout has it in hand. It is the cold
+    arrival that lands here — a push notification deep-linking to this screen
+    on a fresh launch, or a relaunch after the cache has gone — which is
+    exactly the route somebody takes when they want to check an order they
+    already placed.
+  */
+  if (isOfflinePending(order)) {
+    return (
+      <Screen edges={['top', 'bottom']} testID="confirmation-offline">
+        <OfflineState onRetry={() => void order.refetch()} />
       </Screen>
     );
   }
