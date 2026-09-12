@@ -1,6 +1,6 @@
 import type { Order, PlaceOrderInput } from '@/types';
 import type { AuthorisePaymentInput, PaymentResult } from '@/services/paymentService';
-import { didNotHearBack, holdSessionExpiryWhile } from '@/services/apiClient';
+import { didNotHearBack, holdSessionExpiryWhile, isConflict } from '@/services/apiClient';
 
 /**
  * Authorise, then create the order, and give the money back if the order does
@@ -155,6 +155,36 @@ async function attemptOrder(
   try {
     return { status: 'placed', order: await place(order) };
   } catch (error) {
+    /**
+     * A conflict is the one failure here the app must not undo.
+     *
+     * Checkout sends an attempt key with the order, so a backend that has seen
+     * this create before has an obvious way to say so: 409. Every other branch
+     * below treats a failure as "the order does not exist" and releases the
+     * authorisation — and on a 409 that is the worst available guess. If the
+     * order *does* exist, the app has just taken the payment off an order the
+     * kitchen is already cooking, and told the customer "your card was not
+     * charged" while a branch makes their food.
+     *
+     * So: no release, and no claim about what happened. `uncertain` exists for
+     * exactly this shape — nobody knows, and the safe next step is to look
+     * rather than to pay again.
+     *
+     * What a 409 *means* on that endpoint is a backend decision and is not
+     * mine to invent; `audit:launch` carries it. This is the safe reading
+     * until somebody specifies one, and it is safe in the direction that
+     * matters: it never voids a payment for an order that might be real.
+     */
+    if (isConflict(error)) {
+      return {
+        status: 'uncertain',
+        message:
+          'We could not confirm whether this order went through. Check your orders ' +
+          'before trying again — if it is there, it is on its way, and placing it ' +
+          'again would pay for it twice.',
+      };
+    }
+
     const reason = reasonFor(error);
     const released = await release(authorisation.intentId).catch(() => false);
 

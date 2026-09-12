@@ -30,7 +30,7 @@ import {
   useNotificationRouting,
   usePushRegistration,
 } from '@/features/notifications/hooks';
-import { isNotFound } from '@/services/apiClient';
+import { worthRetrying } from '@/services/apiClient';
 import { useAuthStore } from '@/store/authStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { configureNotificationHandler } from '@/services/notificationService';
@@ -55,12 +55,16 @@ startNetworkMonitoring();
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Two retries for a transient failure, none for a 404. A not-found is
-      // an answer, not a hiccup: asking three times cannot make a delisted
-      // item or a closed campaign exist, and it costs the customer the
-      // backoff — seconds of spinner before a screen that was ready to tell
-      // them straight away.
-      retry: (failureCount, error) => !isNotFound(error) && failureCount < 2,
+      /*
+        Two retries for a transient failure, none for an answer.
+
+        The reasoning that used to sit here — a not-found is an answer, not a
+        hiccup, and asking three times cannot make a delisted item exist —
+        applies to more statuses than the one it was written for, so it now
+        lives with them in `worthRetrying`. A 403 was being asked three times,
+        and so was a 429, which is the server asking the app to stop.
+      */
+      retry: (failureCount, error) => worthRetrying(error) && failureCount < 2,
       staleTime: 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,

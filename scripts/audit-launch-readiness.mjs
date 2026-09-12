@@ -538,6 +538,34 @@ if (paymentService.includes('/void')) {
 }
 
 /*
+  What a 409 means on order creation, which decides whether a customer can be
+  charged for food they are told they never ordered.
+
+  Guarded on the conflict branch actually being there, like every item here.
+*/
+const orderSubmission = read('src/features/checkout/submitOrder.ts');
+if (orderSubmission.includes('isConflict')) {
+  note(
+    'What a conflict means when an order is created',
+    'Checkout authorises the card, then creates the order, sending an attempt key ' +
+      'with it so a retry cannot become two orders. A backend that has seen that key ' +
+      'before has an obvious way to say so — **409** — and nobody has said what it ' +
+      'would mean. It has two plausible readings and they are opposites: *"you already ' +
+      'placed this, here it is"*, or *"this clashes with something and was not ' +
+      'created"*. The app cannot tell them apart from a status alone, and inventing a ' +
+      'response shape for an endpoint nobody has specified would be designing your ' +
+      'API. So it now takes the safe reading: on a 409 it **does not release the ' +
+      'authorisation** and tells the customer it could not confirm, rather than ' +
+      'voiding the payment and saying "your card was not charged" — which, if the ' +
+      'order does exist, takes the money off an order the kitchen is already cooking. ' +
+      'Two things are yours. Decide what 409 means on `POST /v1/orders`, and if it ' +
+      'means "already placed", have it return the existing order so the app can show ' +
+      'the customer their confirmation instead of asking them to go and look.',
+    'you',
+  );
+}
+
+/*
   The app corrects a wrong device clock from the server's `Date` header, and on
   the web that header is invisible unless the server says otherwise.
 

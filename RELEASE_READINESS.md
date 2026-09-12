@@ -1217,6 +1217,64 @@ the sweep fails if any of it reaches the DOM.
 Verified by counterfactual: with one screen narrowed back to `isNotFound`, the
 sweep reports three findings and fails.
 
+## 2x. How many times the app asks after it has been told
+
+`_layout.tsx` reasoned about this correctly, for one status, and wrote it down:
+
+> a not-found is an answer, not a hiccup: asking three times cannot make a
+> delisted item or a closed campaign exist, and it costs the customer the
+> backoff — seconds of spinner before a screen that was ready to tell them
+> straight away.
+
+Every word of that is true of a **403** — which the screens learned to read last
+round while the retry policy did not. And a **429** is worse than pointless: a
+rate limit is the server asking the app to stop, and answering it with two more
+requests is the one response guaranteed to make the situation worse, at exactly
+the moment the backend is least able to absorb it.
+
+`npm run audit:answers` refuses one path with one status and counts what the
+stub is asked for:
+
+| answer | asked | should be |
+| --- | --- | --- |
+| 404 | 1 | 1 — the case the policy was written for |
+| **403** | **3** | 1 |
+| **429** | **3** | 1 |
+| 500 | 3 | 3 — the control |
+
+The 500 is what keeps the rest honest. This is not "stop retrying"; it is **stop
+retrying an answer**. The reasoning moved out of a boolean in a config object
+and into `worthRetrying`, beside the statuses it is about.
+
+Three attempts and one attempt look identical to a customer, so the only place
+the difference exists is in what the backend was asked — which is why the sweep
+counts at the server rather than reading a screen.
+
+### The most expensive status in the app
+
+Checkout authorises the card, then creates the order, sending an attempt key so
+a retry cannot become two orders. A backend that has seen that key before has an
+obvious way to say so — **409** — and every branch below the create treated a
+failure as "the order does not exist" and **released the authorisation**.
+
+On a 409 that is the worst available guess. If the order does exist, the app has
+taken the payment off an order the kitchen is already cooking and told the
+customer *"your card was not charged"* while a branch makes their food.
+
+So a conflict now releases nothing and claims nothing: *"We could not confirm
+whether this order went through. Check your orders before trying again — if it
+is there, it is on its way, and placing it again would pay for it twice."* The
+500 path is unchanged and is the fixture's control: release the hold, say the
+card was not charged.
+
+**What a 409 actually means on that endpoint is not mine to decide**, and
+`audit:launch` now carries it as the 31st blocker. It has two plausible readings
+and they are opposites — *"you already placed this, here it is"* or *"this
+clashes with something and was not created"* — and inventing a response shape
+for an endpoint nobody has specified would be designing your API. The app takes
+the safe reading in the meantime, and it is safe in the direction that matters:
+it never voids a payment for an order that might be real.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1233,7 +1291,7 @@ sweep reports three findings and fails.
 ## 4. Blockers, and why each is a blocker rather than a task
 
 Per §8's rule — document architectural and commercial dependencies rather than
-inventing APIs or credentials. `npm run audit:launch` lists **30** such items and
+inventing APIs or credentials. `npm run audit:launch` lists **31** such items and
 fails a production build while they stand. The ones that bear on this round:
 
 1. **No authorised delivery provider.** §12 requires contracts, credentials and
@@ -1270,7 +1328,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **108 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **109 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

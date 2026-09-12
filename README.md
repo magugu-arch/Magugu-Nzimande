@@ -55,6 +55,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run audit:double-tap` | Press each control that spends something twice — in one tick and 70ms apart — and fail if the server is asked twice |
 | `npm run audit:sparse` | Render every screen against a backend that sends exactly what `wireChecks` demands and nothing more, and fail on a crash screen |
 | `npm run audit:notyours` | Open deep links the server refuses — a thing that is gone, and a thing that is somebody else's — and fail if the app blames itself or invites a futile retry |
+| `npm run audit:answers` | Count how many times the app asks again after a 403, a 429, a 404 and a 500, and fail if it argues with an answer |
 | `npm run smoke:order` | Place an order end to end against the mock layer, and refuse four that must not go through |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |

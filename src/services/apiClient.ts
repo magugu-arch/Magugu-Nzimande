@@ -55,6 +55,58 @@ export function isRefused(error: unknown): boolean {
 }
 
 /**
+ * The server asking the app to stop.
+ *
+ * Separate from `isRefused` because it is a different kind of no: a refusal is
+ * about this thing and this customer, a rate limit is about how hard the app is
+ * pushing. They happen to lead to the same decision here and they would not
+ * lead to the same sentence on a screen, so they stay two questions.
+ */
+export function isRateLimited(error: unknown): boolean {
+  return error instanceof ApiRequestError && error.status === 429;
+}
+
+/**
+ * The server saying "that clashes with something that already exists".
+ *
+ * The status a backend returns for an idempotent create it has seen before —
+ * which is exactly what `POST /v1/orders` is, because checkout sends an
+ * attempt key with it. See `submitOrder`, where getting this wrong is the most
+ * expensive mistake in the app.
+ */
+export function isConflict(error: unknown): boolean {
+  return error instanceof ApiRequestError && error.status === 409;
+}
+
+/**
+ * Whether asking again could possibly help.
+ *
+ * The query client reasoned about this correctly for one status, and said so:
+ * "a not-found is an answer, not a hiccup: asking three times cannot make a
+ * delisted item or a closed campaign exist, and it costs the customer the
+ * backoff — seconds of spinner before a screen that was ready to tell them
+ * straight away."
+ *
+ * Every word of that is true of a **403**, and the policy had never seen one —
+ * so somebody opening a friend's order link waited through two pointless round
+ * trips and their backoff before being told.
+ *
+ * A **429** is worse than pointless. A rate limit is the server asking the app
+ * to stop, and answering it with two more requests is the one response
+ * guaranteed to make the situation worse, at exactly the moment the backend is
+ * least able to absorb it. Measured rather than argued: `audit:answers` counts
+ * what the stub is asked for, and it was three every time.
+ *
+ * Everything else stays retryable, which is the point. This is not "stop
+ * retrying" — it is "stop retrying an *answer*". A 500, a timeout and a dead
+ * socket are all the app not knowing yet, and the next attempt genuinely might
+ * work; the sweep carries a 500 as a control so that distinction cannot rot.
+ */
+export function worthRetrying(error: unknown): boolean {
+  return !isRefused(error) && !isRateLimited(error);
+}
+
+/**
  * The "that thing is not there" failure, in the shape `isNotFound` reads.
  *
  * This exists because the mock was failing differently from the world. The
