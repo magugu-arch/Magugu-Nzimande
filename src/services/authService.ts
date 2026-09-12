@@ -2,7 +2,12 @@ import { config } from '@/constants/config';
 import type { AuthSession, UserProfile } from '@/types';
 import { toE164 } from '@/utils/validation';
 import { delay, request } from './apiClient';
-import { checkedSession } from './wireChecks';
+import {
+  checkedDispatch,
+  checkedOtpVerification,
+  checkedProfile,
+  checkedSession,
+} from './wireChecks';
 import { demoUser } from './data/accountData';
 import { clearTokens, storeTokens } from './secureStorage';
 import { appNow } from '@/utils/appClock';
@@ -144,6 +149,7 @@ export async function requestOtp(phone: string): Promise<{ sentTo: string }> {
   if (!config.useMockApi) {
     return request<{ sentTo: string }>('/v1/auth/otp/request', {
       method: 'POST',
+      parse: checkedDispatch<{ sentTo: string }>,
       body: { phone: toE164(phone) },
       anonymous: true,
     });
@@ -151,13 +157,37 @@ export async function requestOtp(phone: string): Promise<{ sentTo: string }> {
   return delay({ sentTo: toE164(phone) }, 500);
 }
 
+/**
+ * Confirm a phone number against the code that was texted to it.
+ *
+ * The return type used to be `{ verified: true }` — a literal `true`, which is
+ * a promise the code never checked. `verify.tsx` does `await verifyOtp(…)` and
+ * moves on, so a backend answering `200 { "verified": false }` would have let
+ * an unverified number straight through: the app would mark the phone
+ * confirmed on the strength of the status line alone.
+ *
+ * The mock throws on a wrong code, which is why nothing ever noticed. Against
+ * a real backend the two are not the same thing at all — a wrong code is
+ * exactly the case a verification endpoint is entitled to answer 200 to, with
+ * the answer in the body.
+ *
+ * So the flag is read, and read strictly: `flag` refuses a string, because
+ * `"false"` is truthy and this is the one field standing between somebody and
+ * a number that is not theirs.
+ */
 export async function verifyOtp(phone: string, code: string): Promise<{ verified: true }> {
   if (!config.useMockApi) {
-    return request<{ verified: true }>('/v1/auth/otp/verify', {
+    const answer = await request<{ verified: boolean }>('/v1/auth/otp/verify', {
       method: 'POST',
       body: { phone: toE164(phone), code },
       anonymous: true,
+      parse: checkedOtpVerification<{ verified: boolean }>,
     });
+
+    if (!answer.verified) {
+      throw new Error('That code is not right. Check the SMS and try again.');
+    }
+    return { verified: true };
   }
 
   await delay(null, 500);
@@ -199,6 +229,7 @@ export async function requestEmailVerification(email: string): Promise<{ sentTo:
   if (!config.useMockApi) {
     return request<{ sentTo: string }>('/v1/auth/email/verify', {
       method: 'POST',
+      parse: checkedDispatch<{ sentTo: string }>,
       body: { email: email.trim().toLowerCase() },
     });
   }
@@ -234,6 +265,7 @@ export async function requestPasswordReset(email: string): Promise<{ sentTo: str
   if (!config.useMockApi) {
     return request<{ sentTo: string }>('/v1/auth/password/reset', {
       method: 'POST',
+      parse: checkedDispatch<{ sentTo: string }>,
       body: { email },
       anonymous: true,
     });
@@ -351,7 +383,11 @@ export async function updateProfile(
   };
 
   if (!config.useMockApi) {
-    return request<UserProfile>('/v1/account/profile', { method: 'PATCH', body: normalised });
+    return request<UserProfile>('/v1/account/profile', {
+      method: 'PATCH',
+      body: normalised,
+      parse: checkedProfile<UserProfile>,
+    });
   }
 
   /**

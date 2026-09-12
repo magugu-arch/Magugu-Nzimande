@@ -510,6 +510,34 @@ note(
 );
 
 /*
+  The one place the app tells a customer their money is safe on the strength of
+  a status line alone.
+
+  Guarded on the code being there, like the rest. Found while closing the wire
+  checks: `voidPayment` is the only `request<void>` whose *absence* of a body
+  is load-bearing.
+*/
+const paymentService = read('src/services/paymentService.ts');
+if (paymentService.includes('/void')) {
+  note(
+    'Payment void must mean voided',
+    'When an order fails after the card was authorised, checkout calls ' +
+      '`POST /v1/payments/:id/void` and tells the customer one of two things on the ' +
+      'strength of it: **"Your card was not charged"** if the call succeeds, or ' +
+      '"your card was authorised, the hold should clear shortly — call the store" if ' +
+      'it does not. The app reads a 2xx as "released" and nothing else — there is no ' +
+      'body to read, and inventing a response shape for an endpoint nobody has ' +
+      'specified would be designing your API. So the contract has to hold on your ' +
+      'side: **that endpoint must answer non-2xx if the authorisation was not ' +
+      'actually released.** A gateway that returns 200 for "request received" would ' +
+      'have the app promise a customer their card was not charged while a hold sits ' +
+      'on it. Confirm it with your provider, and confirm the endpoint surfaces a ' +
+      'failed void rather than swallowing it.',
+    'you',
+  );
+}
+
+/*
   The app corrects a wrong device clock from the server's `Date` header, and on
   the web that header is invisible unless the server says otherwise.
 

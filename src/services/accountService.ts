@@ -7,7 +7,14 @@ import type {
   SupportTopic,
 } from '@/types';
 import { delay, request } from './apiClient';
-import { checkedAddresses, checkedPaymentMethods, checkedNotifications } from './wireChecks';
+import {
+  checkedAddresses,
+  checkedFavourites,
+  checkedNotifications,
+  checkedPaymentMethods,
+  checkedSupportTopics,
+  checkedTicket,
+} from './wireChecks';
 import {
   notifications,
   savedAddresses,
@@ -82,7 +89,14 @@ export type AddressInput = Omit<Address, 'id'>;
 
 export async function createAddress(input: AddressInput): Promise<Address> {
   if (!config.useMockApi) {
-    return request<Address>('/v1/account/addresses', { method: 'POST', body: input });
+    return request<Address>('/v1/account/addresses', {
+      method: 'POST',
+      body: input,
+      // The same check as the list, over a list of one: `checkedAddresses`
+      // walks whatever it is handed, so a single address goes through it
+      // wrapped rather than through a second copy of the rule.
+      parse: (value) => checkedAddresses<Address[]>([value])[0] as Address,
+    });
   }
 
   const address: Address = { ...input, id: `address-${Date.now()}` };
@@ -114,6 +128,7 @@ export async function setDefaultAddress(addressId: string): Promise<Address[]> {
   if (!config.useMockApi) {
     return request<Address[]>(`/v1/account/addresses/${encodeURIComponent(addressId)}/default`, {
       method: 'POST',
+      parse: checkedAddresses<Address[]>,
     });
   }
 
@@ -147,7 +162,7 @@ export async function setDefaultPaymentMethod(methodId: string): Promise<Payment
   if (!config.useMockApi) {
     return request<PaymentMethod[]>(
       `/v1/account/payment-methods/${encodeURIComponent(methodId)}/default`,
-      { method: 'POST' },
+      { method: 'POST', parse: checkedPaymentMethods<PaymentMethod[]> },
     );
   }
 
@@ -174,13 +189,14 @@ export async function setDefaultPaymentMethod(methodId: string): Promise<Payment
  */
 export async function fetchFavourites(customerId: string): Promise<string[]> {
   if (config.useMockApi) return delay([...(favouriteLedgers.get(customerId) ?? [])]);
-  return request<string[]>('/v1/account/favourites');
+  return request<string[]>('/v1/account/favourites', { parse: checkedFavourites<string[]> });
 }
 
 export async function saveFavourites(customerId: string, productIds: string[]): Promise<string[]> {
   if (!config.useMockApi) {
     return request<string[]>('/v1/account/favourites', {
       method: 'PUT',
+      parse: checkedFavourites<string[]>,
       body: { productIds },
     });
   }
@@ -254,7 +270,9 @@ export async function updateRemotePreferences(input: RemotePreferences): Promise
 
 export async function fetchSupportTopics(): Promise<SupportTopic[]> {
   if (config.useMockApi) return delay(supportTopics, 150);
-  return request<SupportTopic[]>('/v1/support/topics');
+  return request<SupportTopic[]>('/v1/support/topics', {
+    parse: checkedSupportTopics<SupportTopic[]>,
+  });
 }
 
 export interface ContactMessage {
@@ -265,7 +283,11 @@ export interface ContactMessage {
 
 export async function sendContactMessage(input: ContactMessage): Promise<{ ticketId: string }> {
   if (!config.useMockApi) {
-    return request<{ ticketId: string }>('/v1/support/messages', { method: 'POST', body: input });
+    return request<{ ticketId: string }>('/v1/support/messages', {
+      method: 'POST',
+      body: input,
+      parse: checkedTicket<{ ticketId: string }>,
+    });
   }
   return delay({ ticketId: `TKT-${Date.now().toString().slice(-6)}` }, 700);
 }

@@ -679,6 +679,71 @@ name wrong takes the screen down instead of failing honestly at the fetch.
 three calls that return the list — `read` because a string `"false"` is truthy,
 which would mark every unread notification read and clear the badge by itself.
 
+## 2o. The responses nobody checked
+
+`wireChecks` turns a response the app cannot believe into one honest failure at
+the fetch rather than a strange number three components away. Its rule is
+deliberately narrow — check what the app does arithmetic on or looks things up
+by, never become a schema — and it was being applied to whichever endpoints a
+round happened to touch.
+
+Counted: **23 of 46** `request` calls carried a `parse`. The other 23 were not
+a considered list. They were the ones nobody had needed yet.
+
+It is now **37 of 46, and every unchecked call returns `void`** — there is no
+body, so there is nothing a check could look at. That is an invariant rather
+than a tally, and the first fixture asserts it as one: the set of unchecked
+return types must be exactly `['void']`, so adding an endpoint that returns
+data without a check fails by name.
+
+### What the gap was hiding
+
+| Endpoint | What an unreadable response did |
+| -------- | ------------------------------- |
+| `/v1/promotions` | a bad date is `NaN`, every comparison against it is false — so the offer vanishes from the list *and* `fetchPromotion` says "That offer has ended" to somebody who followed a live link |
+| `/v1/account/favourites` | ids are looked up by `includes`; a number matches nothing, so favourites empty themselves silently and go to disk that way |
+| `/v1/support/messages` | "Reference undefined", under a tick, to somebody who has just reported a problem |
+| `/v1/account/profile` | written into the auth store and persisted, so a malformed profile survives a restart; `"false"` is truthy and gates screens |
+| `/v1/auth/otp/request`, `/email/verify`, `/password/reset` | "If an account exists for undefined, we have sent a link" |
+| `/v1/support/topics` | a topic in an undefined category is in the list, absent from every filter, and silent about both |
+
+**Three of the gaps needed no new rule at all.** `checkedAddresses`,
+`checkedPaymentMethods` and `checkedOrder` were written, tested and wired into
+one call each while a second call returning the same shape sat unguarded beside
+it — the setter that returns the list, the creator that returns the row, the
+rating that returns the order. The same shape as `isStoreOpenAt` having a
+passing test and not one caller: nothing wrong with the answer, nothing asking
+for it.
+
+### The one nobody read
+
+`verifyOtp` was typed `Promise<{ verified: true }>` — a literal — and
+`verify.tsx` does `await verifyOtp(…)` and moves on. A backend answering
+`200 { "verified": false }` would have confirmed a phone number on the strength
+of the status line alone.
+
+Nothing noticed because the mock throws on a wrong code. Against a real backend
+those are not the same thing: a wrong code is exactly the case a verification
+endpoint is entitled to answer 200 to, with the answer in the body. The flag is
+now read, and read strictly — `flag` refuses a string, because `"false"` is
+truthy and this is the one field standing between somebody and a number that is
+not theirs.
+
+### The one that cannot be checked from here
+
+`voidPayment` is the only `request<void>` whose *absence* of a body is
+load-bearing. When an order fails after the card was authorised, checkout tells
+the customer **"Your card was not charged"** if that call succeeds, and "your
+card was authorised — the hold should clear shortly, call the store" if it does
+not. The app reads a 2xx as released and nothing else.
+
+There is no body to check, and inventing a response shape for an endpoint
+nobody has specified would be designing your API. So it is now blocker #30
+instead: **`POST /v1/payments/:id/void` must answer non-2xx if the
+authorisation was not actually released.** A gateway that returns 200 for
+"request received" would have the app promise a customer their card was not
+charged while a hold sits on it.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -695,7 +760,7 @@ which would mark every unread notification read and clear the badge by itself.
 ## 4. Blockers, and why each is a blocker rather than a task
 
 Per §8's rule — document architectural and commercial dependencies rather than
-inventing APIs or credentials. `npm run audit:launch` lists **29** such items and
+inventing APIs or credentials. `npm run audit:launch` lists **30** such items and
 fails a production build while they stand. The ones that bear on this round:
 
 1. **No authorised delivery provider.** §12 requires contracts, credentials and
@@ -732,7 +797,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **101 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **102 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

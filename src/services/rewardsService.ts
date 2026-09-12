@@ -21,6 +21,7 @@ import {
 } from './data/rewardsData';
 import {
   checkedLoyaltyAccount,
+  checkedPromotions,
   checkedRedemption,
   checkedRewards,
   checkedTiers,
@@ -260,7 +261,7 @@ export function promotionIsRunning(promotion: Promotion, now: Date = appNow()): 
 /** Every promotion on the calendar, running or not. Not for rendering. */
 async function promotionCalendar(): Promise<Promotion[]> {
   if (config.useMockApi) return delay(promotions);
-  return request<Promotion[]>('/v1/promotions');
+  return request<Promotion[]>('/v1/promotions', { parse: checkedPromotions<Promotion[]> });
 }
 
 export async function fetchPromotions(): Promise<Promotion[]> {

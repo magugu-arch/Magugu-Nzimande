@@ -2656,6 +2656,7 @@ export async function rateOrder(orderId: string, rating: number, comment?: strin
   if (!config.useMockApi) {
     return request<Order>(`/v1/orders/${encodeURIComponent(orderId)}/rating`, {
       method: 'POST',
+      parse: checkedOrder,
       body: { rating, comment },
     });
   }

@@ -433,6 +433,142 @@ export function checkedNotifications<T>(value: unknown): T {
   return value as T;
 }
 
+/**
+ * Promotions, whose whole life is two dates.
+ *
+ * `promotionIsRunning` compares `validFrom` and `validUntil` against the clock
+ * with `new Date(…).getTime()`, and an unparseable date gives `NaN`. Every
+ * comparison against `NaN` is false, so a promotion with a bad date is
+ * filtered out of the list *and* reported by `fetchPromotion` as
+ * "That offer has ended." — which is the wrong half of the one distinction
+ * that function was written to draw, and it is stated to a customer who
+ * followed a live link.
+ *
+ * Dates are checked as text rather than parsed here: this file's job is to
+ * refuse a response the app cannot believe, not to reimplement the rule. A
+ * string that is not a date still reaches `promotionIsRunning`, which is
+ * where the arithmetic belongs — but an absent one, or a number, is caught
+ * at the fetch where it can be reported honestly.
+ */
+export function checkedPromotions<T>(value: unknown): T {
+  for (const [index, raw] of items(value, 'promotions').entries()) {
+    const promotion = record(raw, `promotions[${index}]`);
+    text(promotion.id, `promotions[${index}].id`);
+    text(promotion.validFrom, `promotions[${index}].validFrom`);
+    text(promotion.validUntil, `promotions[${index}].validUntil`);
+  }
+  return value as T;
+}
+
+/**
+ * The customer's saved favourites, which are product ids and nothing else.
+ *
+ * Looked up by — `favourites.includes(product.id)` decides whether a heart is
+ * filled, and the list is written straight into persisted storage. A number
+ * where a string was promised never matches any product, so the customer's
+ * favourites quietly empty themselves and the app has no way to know it has
+ * done that rather than been told the truth.
+ */
+export function checkedFavourites<T>(value: unknown): T {
+  for (const [index, raw] of items(value, 'favourites').entries()) {
+    text(raw, `favourites[${index}]`);
+  }
+  return value as T;
+}
+
+/**
+ * A support ticket reference, which is the only thing the customer is given
+ * to quote back.
+ *
+ * The confirmation reads "Reference {ticketId}. We usually reply within one
+ * business day." With the field absent that becomes "Reference undefined" —
+ * printed under a tick, above a promise about a reply, to somebody who has
+ * just reported a problem. A response the app cannot read should not become a
+ * confirmation at all.
+ */
+export function checkedTicket<T>(value: unknown): T {
+  const ticket = record(value, 'ticket');
+  text(ticket.ticketId, 'ticket.ticketId');
+  return value as T;
+}
+
+/**
+ * The customer's own profile, which is persisted.
+ *
+ * Worse than a bad render: `updateProfile` writes this into the auth store,
+ * which `persist` puts on disk, so a malformed profile survives the app being
+ * closed and reopened. `emailVerified` and `phoneVerified` are booleans that
+ * gate screens — a string `"false"` is truthy — and `id` is what every
+ * subsequent request is about.
+ */
+export function checkedProfile<T>(value: unknown): T {
+  const profile = record(value, 'profile');
+  text(profile.id, 'profile.id');
+  text(profile.email, 'profile.email');
+  flag(profile.emailVerified, 'profile.emailVerified');
+  flag(profile.phoneVerified, 'profile.phoneVerified');
+  return value as T;
+}
+
+/**
+ * The one field standing between somebody and a phone number that is not
+ * theirs.
+ *
+ * `verifyOtp` promised `{ verified: true }` — a literal — and nothing read it.
+ * A backend answering `200 { "verified": false }` would have been taken as a
+ * confirmation. `flag` refuses a string as well as an absence, because
+ * `"false"` is truthy and this is not a field to be generous about.
+ */
+export function checkedOtpVerification<T>(value: unknown): T {
+  const answer = record(value, 'verification');
+  flag(answer.verified, 'verification.verified');
+  return value as T;
+}
+
+/**
+ * The address a code or a link was sent to, which is quoted straight back.
+ *
+ * "If an account exists for {sentTo}, we have sent a link to reset your
+ * password." With the field absent that reads "…exists for undefined", under a
+ * tick, to somebody locked out of their account and looking for reassurance
+ * that they typed it right.
+ *
+ * Shared by the three endpoints that send something: the OTP request, the
+ * email verification and the password reset. One rule rather than three,
+ * because they make the same promise in the same words.
+ */
+export function checkedDispatch<T>(value: unknown): T {
+  const sent = record(value, 'dispatch');
+  text(sent.sentTo, 'dispatch.sentTo');
+  return value as T;
+}
+
+const SUPPORT_CATEGORIES = ['orders', 'delivery', 'payments', 'rewards', 'account'];
+
+/**
+ * Help topics, which are filtered by category.
+ *
+ * Text alone would not be checked — this file's rule is what the app computes
+ * on or looks things up by, not a schema. `category` is the exception: the
+ * help screen builds its filter chips from it and matches on it, so a topic
+ * carrying a category nobody defined is a topic that can never be found. It
+ * would be present in the list, absent from every filter, and silent about
+ * both.
+ */
+export function checkedSupportTopics<T>(value: unknown): T {
+  for (const [index, raw] of items(value, 'supportTopics').entries()) {
+    const topic = record(raw, `supportTopics[${index}]`);
+    text(topic.id, `supportTopics[${index}].id`);
+    if (typeof topic.category !== 'string' || !SUPPORT_CATEGORIES.includes(topic.category)) {
+      throw new MalformedResponse(
+        `supportTopics[${index}].category should be one of ${SUPPORT_CATEGORIES.join(', ')}, got ` +
+          JSON.stringify(topic.category),
+      );
+    }
+  }
+  return value as T;
+}
+
 export function checkedVouchers(value: unknown): Voucher[] {
   for (const [index, raw] of items(value, 'vouchers').entries()) {
     checkVoucher(raw, `vouchers[${index}]`);
