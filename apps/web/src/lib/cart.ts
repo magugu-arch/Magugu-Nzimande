@@ -1,4 +1,5 @@
 import { EXCLUSIVE_SAUCE_GROUPS } from '@bbq/seed';
+import { formatMoney } from '@bbq/types';
 import type { OptionGroup, OrderLine, SelectedOption } from '@bbq/types';
 
 /** A selection is group key to chosen labels. Single groups hold exactly one. */
@@ -103,3 +104,30 @@ export function describeOptions(options: readonly SelectedOption[]): string {
 }
 
 export type CartLine = OrderLine;
+
+/**
+ * What changed between a past order and the basket it just became.
+ *
+ * Both reorder buttons say this, so it is written once. Null when nothing moved
+ * — the ordinary case, and one that should produce no message at all rather
+ * than a reassuring one nobody needs to read.
+ *
+ * Prices first and dropped items after, because a price is news about something
+ * the customer still has and an absence is news about something they do not.
+ * Each item is named: the whole failure this replaces was a refusal at the till
+ * that listed slugs.
+ */
+export function describeReprice(result: {
+  repriced: readonly { name: string; wasCents: number; nowCents: number }[];
+  dropped: readonly { name: string; problem: string }[];
+}): string | null {
+  const said = [
+    ...result.repriced.map(
+      (changed) =>
+        `${changed.name} is now ${formatMoney(changed.nowCents)}, not ${formatMoney(changed.wasCents)}.`,
+    ),
+    ...result.dropped.map((gone) => `${gone.name}: ${gone.problem.toLowerCase()}.`),
+  ];
+
+  return said.length > 0 ? said.join(' ') : null;
+}

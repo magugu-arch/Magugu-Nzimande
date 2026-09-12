@@ -1,5 +1,6 @@
 import {
   DeliveryQuoteSchema,
+  OrderLineSchema,
   OrderPaymentSchema,
   OrderSchema,
   PaymentIntentSchema,
@@ -8,6 +9,7 @@ import {
   type CreateOrderRequest,
   type DeliveryQuote,
   type Order,
+  type OrderLine,
   type OrderPayment,
   type PublicOrder,
 } from '@bbq/types';
@@ -100,6 +102,36 @@ export async function fetchOrder(id: string): Promise<OrderStatus> {
 export async function advanceOrder(id: string): Promise<OrderStatus> {
   return request(`/api/orders/${encodeURIComponent(id)}/advance`, OrderStatusResponse, {
     method: 'POST',
+  });
+}
+
+/**
+ * POST /api/basket/reprice — what a basket built earlier is worth now.
+ *
+ * Used by the two reorder buttons before anything reaches the basket. The
+ * server owns the pricing rule; this parses what it says and nothing more,
+ * because a browser that works out its own option deltas is a browser that will
+ * one day work out a different number from the till.
+ */
+const RepricedResponse = z.object({
+  lines: z.array(OrderLineSchema),
+  repriced: z.array(
+    z.object({
+      slug: z.string(),
+      name: z.string(),
+      wasCents: z.number().int(),
+      nowCents: z.number().int(),
+    }),
+  ),
+  dropped: z.array(z.object({ slug: z.string(), name: z.string(), problem: z.string() })),
+});
+
+export type RepricedBasket = z.infer<typeof RepricedResponse>;
+
+export async function repriceBasket(lines: OrderLine[]): Promise<RepricedBasket> {
+  return request('/api/basket/reprice', RepricedResponse, {
+    method: 'POST',
+    body: JSON.stringify({ lines }),
   });
 }
 

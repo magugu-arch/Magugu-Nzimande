@@ -2,22 +2,54 @@
 
 import { completedLabel } from '@bbq/types';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useOrdering } from '@/components/ordering/OrderingProvider';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Price } from '@/components/ui/Price';
+import { describeReprice } from '@/lib/cart';
+import { repriceBasket } from '@/lib/client-api';
 import { pointsFor } from '@/lib/pricing';
 
 export function AccountPanel() {
   const { orders, hydrated, addLine, store, mode } = useOrdering();
+  const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
+  const [note, setNote] = useState<{ orderId: string; text: string } | null>(null);
 
   const earned = orders
     .filter((order) => order.status === 'completed')
     .reduce((total, order) => total + pointsFor(order.totals.totalCents), 0);
 
-  function reorder(orderId: string) {
+  /**
+   * The same food, at what it costs today.
+   *
+   * The journey screen's button had the same defect and the same fix: this
+   * copied each line out of the past order — its name, its options and the
+   * price it cost then — and asked nobody whether any of it still held. The
+   * order route prices everything again and refuses a basket whose numbers
+   * disagree, so pressing this after a price moved or an item sold out bought
+   * the customer four screens of checkout and then a refusal naming slugs.
+   *
+   * The note is keyed to the order it is about, because this list has one of
+   * these buttons per order and a message floating above all of them would be
+   * about whichever one was pressed last.
+   */
+  async function reorder(orderId: string) {
     const order = orders.find((candidate) => candidate.id === orderId);
     if (!order) return;
-    for (const line of order.lines) {
+
+    setBusyOrderId(orderId);
+    setNote(null);
+
+    let basket;
+    try {
+      basket = await repriceBasket([...order.lines]);
+    } catch {
+      setNote({ orderId, text: 'We could not check that order against today\u2019s menu. Try again.' });
+      setBusyOrderId(null);
+      return;
+    }
+
+    for (const line of basket.lines) {
       addLine({
         slug: line.slug,
         name: line.name,
@@ -27,6 +59,15 @@ export function AccountPanel() {
         options: line.options,
       });
     }
+
+    const changes = describeReprice(basket);
+    const text =
+      basket.lines.length === 0
+        ? `Nothing from that order is available today. ${changes ?? ''}`.trim()
+        : changes;
+
+    setNote(text ? { orderId, text } : null);
+    setBusyOrderId(null);
   }
 
   return (
@@ -88,8 +129,13 @@ export function AccountPanel() {
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
                   <Price cents={order.totals.totalCents} className="text-base font-extrabold" />
                   <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => reorder(order.id)}>
-                      Order again
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => reorder(order.id)}
+                      disabled={busyOrderId === order.id}
+                    >
+                      {busyOrderId === order.id ? 'Checking\u2026' : 'Order again'}
                     </Button>
                     <Link
                       href={`/journey?order=${order.id}`}
@@ -99,6 +145,18 @@ export function AccountPanel() {
                     </Link>
                   </div>
                 </div>
+
+                {/*
+                  What moved since that order, under the order it is about.
+                  Announced as well as shown: the basket fills without the page
+                  changing, so a customer who cannot see the drawer has no other
+                  way to learn that a line was left out.
+                */}
+                {note?.orderId === order.id && (
+                  <p className="mt-3 rounded-xs bg-paper px-4 py-3 text-xs text-muted" role="status">
+                    {note.text}
+                  </p>
+                )}
               </li>
             ))}
           </ul>

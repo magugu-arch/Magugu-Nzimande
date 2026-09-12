@@ -15,8 +15,8 @@ import { useOrdering } from '@/components/ordering/OrderingProvider';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { DemoFlag } from '@/components/ui/DemoValue';
 import { Price } from '@/components/ui/Price';
-import { describeOptions } from '@/lib/cart';
-import { ApiError, advanceOrder, fetchOrder, openPayment } from '@/lib/client-api';
+import { describeOptions, describeReprice } from '@/lib/cart';
+import { ApiError, advanceOrder, fetchOrder, openPayment, repriceBasket } from '@/lib/client-api';
 
 const MESSAGES: Record<OrderState, string> = {
   received: 'We have your order and the kitchen has it on the rail.',
@@ -58,6 +58,8 @@ export function OrderJourney() {
   const [payment, setPayment] = useState<OrderPayment | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
+  const [reordering, setReordering] = useState(false);
+  const [reorderNote, setReorderNote] = useState<string | null>(null);
 
   const tracked = useMemo(
     () => order ?? orders.find((candidate) => candidate.id === orderId) ?? orders[0] ?? null,
@@ -186,9 +188,33 @@ export function OrderJourney() {
     }
   }
 
-  function reorder() {
+  /**
+   * The same food, at what it costs today.
+   *
+   * This used to copy each line out of the past order — its name, its options
+   * and its price — straight into the basket, and ask nobody whether any of it
+   * was still true. The order route prices everything again and refuses a
+   * basket whose numbers disagree, so a customer who pressed this after a price
+   * moved or an item sold out went through four screens of checkout to be told
+   * no, in a message naming slugs.
+   *
+   * The server answers that question here instead, before anything is added.
+   */
+  async function reorder() {
     if (!tracked) return;
-    for (const line of tracked.lines) {
+    setReordering(true);
+    setReorderNote(null);
+
+    let basket;
+    try {
+      basket = await repriceBasket([...tracked.lines]);
+    } catch {
+      setReorderNote('We could not check that order against today’s menu. Try again.');
+      setReordering(false);
+      return;
+    }
+
+    for (const line of basket.lines) {
       addLine({
         slug: line.slug,
         name: line.name,
@@ -198,6 +224,13 @@ export function OrderJourney() {
         options: line.options,
       });
     }
+
+    setReorderNote(
+      basket.lines.length === 0
+        ? `Nothing from that order is available today. ${describeReprice(basket) ?? ''}`.trim()
+        : describeReprice(basket),
+    );
+    setReordering(false);
   }
 
   return (
@@ -320,7 +353,9 @@ export function OrderJourney() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button onClick={reorder}>Order this again</Button>
+          <Button onClick={reorder} disabled={reordering}>
+            {reordering ? 'Checking the menu…' : 'Order this again'}
+          </Button>
           <ButtonLink href="/menu" variant="ghost">
             Add something else
           </ButtonLink>
@@ -333,6 +368,17 @@ export function OrderJourney() {
             </Button>
           )}
         </div>
+
+        {/*
+          What moved since that order. Announced rather than only shown: the
+          basket fills silently on a reorder, and a customer who cannot see the
+          drawer has no other way to learn that something was left out.
+        */}
+        {reorderNote && (
+          <p className="mt-3 rounded-xs bg-paper px-4 py-3 text-sm text-muted" role="status">
+            {reorderNote}
+          </p>
+        )}
       </div>
 
       <aside className="rounded-md border border-line bg-white p-5 lg:sticky lg:top-24 lg:self-start">

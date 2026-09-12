@@ -75,6 +75,47 @@ function optionDeltas(
 }
 
 /**
+ * One line, as the catalogue has it today.
+ *
+ * The line comes back rebuilt — today's name, today's image, today's price —
+ * and whether that price is the one the caller sent is deliberately not decided
+ * here. Two callers need opposite things from a difference: the order route
+ * must refuse, because a total is already on the customer's screen, and the
+ * reorder endpoint must carry the line at the new price and say so, because
+ * nothing has been shown yet and there is still time to tell them.
+ *
+ * Split out when the second caller arrived rather than copied, so there is one
+ * answer to "what does this line cost" and the disagreement is only about what
+ * to do with it.
+ */
+type PricedLine = { ok: true; line: OrderLine } | { ok: false; problem: string };
+
+function priceLine(line: OrderLine): PricedLine {
+  // `findProduct` reads the catalogue as the API serves it, so a hidden
+  // product and a slug that was never on the menu both land here. The old
+  // sold-out and hidden checks let a wholly invented slug through, because
+  // an unknown slug is not on either list.
+  const product = findProduct(line.slug);
+  if (!product) return { ok: false, problem: 'That item is not on the menu' };
+  if (product.soldOut) return { ok: false, problem: `${product.name} is sold out` };
+
+  const deltas = optionDeltas(product.optionGroups, line.options);
+  if ('problem' in deltas) return { ok: false, problem: deltas.problem };
+
+  // Rebuilt rather than passed through, so the stored order carries the
+  // server's numbers and the server's product name.
+  return {
+    ok: true,
+    line: {
+      ...line,
+      name: product.name,
+      imageKey: product.imageKey,
+      unitCents: product.priceCents + deltas.deltaCents,
+    },
+  };
+}
+
+/**
  * Re-prices a whole basket, and reports every line that fails rather than the
  * first — a customer fixing a basket should see all of it at once.
  */
@@ -83,45 +124,90 @@ export function repriceLines(lines: readonly OrderLine[]): RepricedBasket {
   const priced: OrderLine[] = [];
 
   for (const line of lines) {
-    // `findProduct` reads the catalogue as the API serves it, so a hidden
-    // product and a slug that was never on the menu both land here. The old
-    // sold-out and hidden checks let a wholly invented slug through, because
-    // an unknown slug is not on either list.
-    const product = findProduct(line.slug);
-    if (!product) {
-      problems.push({ slug: line.slug, problem: 'That item is not on the menu' });
+    const result = priceLine(line);
+    if (!result.ok) {
+      problems.push({ slug: line.slug, problem: result.problem });
       continue;
     }
 
-    if (product.soldOut) {
-      problems.push({ slug: line.slug, problem: `${product.name} is sold out` });
-      continue;
-    }
-
-    const deltas = optionDeltas(product.optionGroups, line.options);
-    if ('problem' in deltas) {
-      problems.push({ slug: line.slug, problem: deltas.problem });
-      continue;
-    }
-
-    const unitCents = product.priceCents + deltas.deltaCents;
-    if (unitCents !== line.unitCents) {
+    if (result.line.unitCents !== line.unitCents) {
       problems.push({
         slug: line.slug,
-        problem: `${product.name} is priced at ${unitCents} cents, not ${line.unitCents}`,
+        problem: `${result.line.name} is priced at ${result.line.unitCents} cents, not ${line.unitCents}`,
       });
       continue;
     }
 
-    // Rebuilt rather than passed through, so the stored order carries the
-    // server's numbers and the server's product name.
-    priced.push({
-      ...line,
-      name: product.name,
-      imageKey: product.imageKey,
-      unitCents,
-    });
+    priced.push(result.line);
   }
 
   return problems.length > 0 ? { ok: false, problems } : { ok: true, lines: priced };
+}
+
+export type RepricedLine = {
+  slug: string;
+  name: string;
+  wasCents: number;
+  nowCents: number;
+};
+
+/**
+ * A line that cannot come back, and what the customer called it.
+ *
+ * `LineProblem` carries the slug, which is right for the order route: its
+ * problems go to a basket screen that already has the line on it. Here there is
+ * no line to point at — it is being left out — so the name comes along, taken
+ * off the past order rather than the catalogue. The catalogue is frequently the
+ * reason it is being dropped, and "that item is not on the menu" is a sentence
+ * about nothing in particular.
+ */
+export type DroppedLine = { slug: string; name: string; problem: string };
+
+/**
+ * What a basket assembled from a past order is worth now.
+ *
+ * Per line rather than all or nothing, which is the whole difference from
+ * `repriceLines`. That function answers a customer standing at the till with a
+ * total in front of them, and the only honest answer there is to refuse the lot
+ * and say why. This one answers the moment they press "order this again", when
+ * nothing has been shown yet and every line can be dealt with on its own.
+ *
+ * So a line whose price has moved is kept, at today's price, and named. The
+ * customer still wants the food; what they must not do is meet the new number
+ * for the first time at the end of checkout. A line that has sold out or left
+ * the menu is dropped and named, because there is nothing to keep.
+ *
+ * This is not a way around the order route's check. That route still prices
+ * everything again and still refuses a basket whose numbers disagree; this is
+ * how a customer finds out before they get there instead of after.
+ */
+export function repriceForReorder(lines: readonly OrderLine[]): {
+  lines: OrderLine[];
+  repriced: RepricedLine[];
+  dropped: DroppedLine[];
+} {
+  const kept: OrderLine[] = [];
+  const repriced: RepricedLine[] = [];
+  const dropped: DroppedLine[] = [];
+
+  for (const line of lines) {
+    const result = priceLine(line);
+    if (!result.ok) {
+      dropped.push({ slug: line.slug, name: line.name, problem: result.problem });
+      continue;
+    }
+
+    if (result.line.unitCents !== line.unitCents) {
+      repriced.push({
+        slug: line.slug,
+        name: result.line.name,
+        wasCents: line.unitCents,
+        nowCents: result.line.unitCents,
+      });
+    }
+
+    kept.push(result.line);
+  }
+
+  return { lines: kept, repriced, dropped };
 }

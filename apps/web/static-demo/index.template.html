@@ -1017,12 +1017,36 @@ function setOrderStatus(id, status){
   render();
 }
 
+/* Ordering a past order again, at what it costs today.
+   This walked the lines and put each one in at the price it cost then,
+   looking the product up in the whole list rather than the menu — so a hidden
+   item came back, a sold-out one came back, and a price that had moved stayed
+   at the old number all the way to the total. The site had the same defect and
+   answers it at POST /api/basket/reprice; this is the same rule, and like the
+   rest of this file it says what it left out rather than quietly dropping it. */
 function reorder(order){
+  const dropped = [];
+  let repriced = 0;
+
   for(const line of order.lines){
-    const p = product(line.slug);
-    if(p) addLine(p, line.options, line.qty, line.unitCents);
+    const p = catalogue().find((c) => c.slug === line.slug);
+    if(!p){ dropped.push(line.name + ' is not on the menu'); continue; }
+    if(isSoldOut(p.slug)){ dropped.push(p.name + ' is sold out'); continue; }
+
+    /* A stored line holds its options as a list; unitPrice wants them keyed,
+       which is the shape the configurator works in. */
+    const sel = {};
+    for(const option of line.options) sel[option.key] = option.choices;
+    const now = unitPrice(p.priceCents, optionGroups(p), sel);
+    if(now !== line.unitCents) repriced += 1;
+
+    addLine(p, line.options, line.qty, now);
   }
+
   render();
+
+  if(dropped.length > 0) toast(dropped.join('. ') + '.');
+  else if(repriced > 0) toast(repriced === 1 ? 'One item has changed price since that order' : repriced + ' items have changed price since that order');
 }
 
 /* ---------- 9. Menu filtering ------------------------------- */

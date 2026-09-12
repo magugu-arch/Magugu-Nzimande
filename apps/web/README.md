@@ -89,6 +89,7 @@ GET  /api/promotions               active campaigns
 GET  /api/rewards/catalog          redemption tiers
 GET  /api/delivery/zones           serviceable suburbs by store
 POST /api/delivery/quote           { suburb, subtotalCents } -> serviceable, fee, eta
+POST /api/basket/reprice           what a basket built earlier is worth now
 POST /api/orders                   create, returns orderNumber and status
 GET  /api/orders/:id               status for the journey screen
 POST /api/orders/:id/advance       stands in for a kitchen display system
