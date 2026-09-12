@@ -183,7 +183,9 @@ export default function OrderTrackingScreen() {
   const data = order.data;
   const isActive = data.status !== 'completed' && data.status !== 'cancelled';
   const completedSteps = data.timeline.filter((event) => event.occurredAt !== null).length;
-  const progress = completedSteps / Math.max(1, data.timeline.length);
+  // `?? []` because the wire does not promise a timeline, and the screen a
+  // hungry person is staring at must not be the one that crashes over it.
+  const progress = completedSteps / Math.max(1, (data.timeline ?? []).length);
   const dueInMinutes = minutesUntilDue(data, now);
 
   const canCall = isDiallable(data.storePhone);
@@ -381,7 +383,11 @@ export default function OrderTrackingScreen() {
       <Card style={styles.card}>
         <Text variant="h3">What you ordered</Text>
 
-        {data.lines.map((line) => (
+        {/* The same guard as the timeline above: the totals are wire-checked
+            because they are arithmetic; the line list is not, and an order that
+            arrives without one should render an order with no items rather than
+            a crash screen. */}
+        {(data.lines ?? []).map((line) => (
           <View
             key={line.id}
             style={styles.line}

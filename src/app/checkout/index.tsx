@@ -49,6 +49,7 @@ import { newIdempotencyKey } from '@/utils/idempotency';
 import { a11yState } from '@/utils/a11yState';
 import { callNumber, isDiallable } from '@/utils/linking';
 import { appNow } from '@/utils/appClock';
+import { useOnce } from '@/features/system/useOnce';
 
 /**
  * Checkout (brief §11): fulfilment, location, payment, review and confirm — as
@@ -112,8 +113,6 @@ export default function CheckoutScreen() {
    */
   const [failure, setFailure] = useState<SubmitFailure | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  /** Guards the submit against a double tap; see `handlePlaceOrder`. */
-  const inFlight = useRef(false);
   /**
    * The idempotency key for the attempt in progress, or null between attempts.
    * Survives a failed submit on purpose — see where it is minted below.
@@ -303,22 +302,8 @@ export default function CheckoutScreen() {
 
   const etaMinutes = (store?.preparationMinutes ?? 18) + (fulfilmentType === 'delivery' ? 20 : 0);
 
-  const handlePlaceOrder = useCallback(async () => {
+  const attemptOrder = useCallback(async () => {
     if (blocker || !store || !selectedPayment) return;
-
-    /**
-     * A ref, not the `submitting` state beside it, because this has to be true
-     * the instant the first tap lands.
-     *
-     * The button already refuses a press while `loading`, but that flag is
-     * React state: between the first tap calling this and `setSubmitting(true)`
-     * being committed and rendered, there is a window. It is a frame or two and
-     * it is on the one path where losing the race costs money — `submitOrder`
-     * authorises before it places, so two runs mean two holds on the card and
-     * possibly two orders in the kitchen.
-     */
-    if (inFlight.current) return;
-    inFlight.current = true;
 
     // Re-checked against a fresh clock rather than trusting `blocker`, which
     // was computed on some earlier render. The tick above keeps the screen
@@ -334,23 +319,6 @@ export default function CheckoutScreen() {
       now: appNow(),
     });
     if (stillBlocked) {
-      /*
-        Released before returning, and that was missing.
-
-        `inFlight` is raised above and lowered in the `finally` of the try
-        below — but this return happens before the try, so nothing lowered it.
-        One blocked tap left the ref true for the life of the screen, and every
-        later tap hit `if (inFlight.current) return` at the top and did
-        nothing at all.
-
-        The blocked tap is exactly the one a customer follows with another.
-        They tap Place order as the branch closes, are told so, pick a later
-        slot or a different store — and the button is dead, silently, with no
-        failure on screen and no way back short of leaving checkout. Found by
-        a security review of this branch, as a functional note rather than a
-        vulnerability, which is what it is.
-      */
-      inFlight.current = false;
       // Nothing was sent anywhere, so this is as retryable as a decline.
       setFailure({ status: 'declined', message: stillBlocked });
       return;
@@ -398,10 +366,6 @@ export default function CheckoutScreen() {
       now: appNow(),
     });
     if (dishonest) {
-      // Released before returning, exactly as the fulfilment re-check above
-      // must — a blocked tap is the one a customer follows with another, and
-      // leaving the ref raised kills the button for the life of the screen.
-      inFlight.current = false;
       // Nothing was sent anywhere, so this is as retryable as a decline. The
       // screen re-renders on the next tick with the figure the message quotes.
       setFailure({ status: 'declined', message: dishonest });
@@ -501,7 +465,6 @@ export default function CheckoutScreen() {
       resetFulfilment();
       router.replace(`/order/${outcome.order.id}/confirmation`);
     } finally {
-      inFlight.current = false;
       setSubmitting(false);
     }
   }, [
@@ -536,6 +499,23 @@ export default function CheckoutScreen() {
     resetFulfilment,
     router,
   ]);
+
+  /*
+    One mechanism for the second tap, shared with every other write in the app.
+
+    This was a `useRef` raised at the top of the handler and lowered by hand:
+    once in the `finally`, and once on each early return that happens before
+    the `try`. One of those releases was missing, and a tap blocked by a closing
+    branch left the ref raised for the life of the screen — the button dead,
+    silently, for a customer who had just been told to pick a later slot. Found
+    by a security review as a functional note.
+
+    `useOnce` cannot make that mistake: the release is a `finally` around the
+    whole handler, so there is no path out of the function that skips it. The
+    reasoning that ref carried is now in the hook, where the other four
+    controls can read it too.
+  */
+  const handlePlaceOrder = useOnce(attemptOrder);
 
   /*
     An empty basket is an ordinary state and "add something first" is the right

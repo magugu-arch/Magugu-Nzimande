@@ -26,6 +26,7 @@ import { colors, spacing } from '@/theme';
 import { required, validateFields, validatePostalCode } from '@/utils/validation';
 import { ask, tell } from '@/ux/dialog';
 import { writeFailureMessage } from '@/features/system/writeFailure';
+import { useOnce } from '@/features/system/useOnce';
 
 type Field = 'label' | 'line1' | 'line2' | 'suburb' | 'city' | 'province' | 'postalCode';
 
@@ -134,7 +135,7 @@ export default function AddressScreen() {
     [deleteAddress, selectedAddress, setAddress],
   );
 
-  const handleSave = useCallback(async () => {
+  const save = useCallback(async () => {
     const validationErrors = validateFields(form, {
       label: required('Label'),
       line1: required('Street address'),
@@ -218,6 +219,13 @@ export default function AddressScreen() {
     setMakeDefault(false);
     setAdding(false);
   }, [form, makeDefault, createAddress, setAddress]);
+
+  /*
+    Wrapped so a second tap landing before the first has finished does nothing.
+    `loading={…isPending}` refuses it only once React has painted the first tap;
+    `audit:double-tap` sent two in one tick and counted two requests.
+  */
+  const handleSave = useOnce(save);
 
   // The app offers "Continue as guest" and then brought them here, to a screen
   // made entirely of account data. Only Profile ever checked.

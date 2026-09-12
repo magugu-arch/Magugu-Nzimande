@@ -17,6 +17,7 @@ import { useOrder, useRateOrder } from '@/features/orders/hooks';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { colors, radius, spacing, typography } from '@/theme';
 import { tell } from '@/ux/dialog';
+import { useOnce } from '@/features/system/useOnce';
 
 const POSITIVE_TAGS = ['Crispy as always', 'Right on time', 'Well packed', 'Friendly driver'];
 const NEGATIVE_TAGS = ['Arrived cold', 'Late', 'Item missing', 'Wrong order'];
@@ -70,7 +71,7 @@ export default function RateOrderScreen() {
     setSelectedTags([]);
   }, []);
 
-  const handleSubmit = useCallback(async () => {
+  const submit = useCallback(async () => {
     if (!order.data || rating === 0) return;
 
     const fullComment = [selectedTags.join(', '), comment.trim()]
@@ -100,6 +101,13 @@ export default function RateOrderScreen() {
 
     router.replace(`/order/${order.data.id}`);
   }, [order.data, rating, selectedTags, comment, rateOrder, router]);
+
+  /*
+    Wrapped so a second tap landing before the first has finished does nothing.
+    `loading={…isPending}` refuses it only once React has painted the first tap;
+    `audit:double-tap` sent two in one tick and counted two requests.
+  */
+  const handleSubmit = useOnce(submit);
 
   if (order.isLoading) {
     return (

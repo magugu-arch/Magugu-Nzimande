@@ -5,8 +5,10 @@ import { fetchMenu } from '@/services/menuService';
 import { describeReorder, planReorder } from '@/features/orders/reorder';
 import { isSoldOut, orderableFirst } from '@/features/menu/availability';
 
+const read = (file: string) => readFileSync(path.join(__dirname, '..', file), 'utf8');
+
 const code = (file: string) =>
-  readFileSync(path.join(__dirname, '..', file), 'utf8')
+  read(file)
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
     .replace(/(^|[^:])\/\/.*$/gm, '$1');
@@ -134,38 +136,41 @@ describe('the Home rows', () => {
  * rather than a vulnerability, which is what it is — and it is the worse of the
  * two things that review turned up for a customer.
  *
- * `inFlight` is raised at the top of the handler and lowered in the `finally`
- * of the submit block. The fulfilment re-check returns *before* that block, so
- * nothing lowered it: one blocked tap left the ref true for the life of the
+ * The guard was a `useRef` raised at the top of the handler and lowered by
+ * hand: in the `finally` of the submit block, and on each early return that
+ * happens before it. The fulfilment re-check returns before that block, so
+ * nothing lowered it — one blocked tap left the ref true for the life of the
  * screen and every later tap returned at the guard, silently.
+ *
+ * The release is no longer written by hand anywhere. `useOnce` wraps the whole
+ * handler in a `try/finally`, so there is no path out of the function that
+ * skips it — the mistake is gone by construction rather than by being fixed
+ * in the two places it had been made. These fixtures moved with it: the
+ * behaviour they protected is asserted by running the hook, in
+ * `secondTap.test.tsx` ("releases after a handler that returns early"), and
+ * what is left here is that this screen still has a guard at all and that it
+ * is the shared one.
  */
 describe('a blocked tap on Place order', () => {
-  it('releases the in-flight guard before returning', () => {
-    const screen = code('src/app/checkout/index.tsx');
-    const guarded = screen.slice(screen.indexOf('if (stillBlocked) {'));
+  it('still leaves the button usable, and says so where it can be run', () => {
+    // Not a grep for a release statement — there is nothing to grep for, which
+    // is the point. The property is behavioural and is tested as behaviour.
+    const fixtures = read('__tests__/secondTap.test.tsx');
 
-    expect(guarded.slice(0, 200)).toMatch(/inFlight\.current = false;/);
+    expect(fixtures).toMatch(/releases after a handler that returns early/);
+    expect(fixtures).toMatch(/The blocked tap: nothing awaited, nothing sent/);
   });
 
-  /**
-   * The ordering matters: released, then the failure is set. Setting the
-   * failure first would work today and would be one refactor away from not.
-   */
-  it('does so before reporting the failure', () => {
+  it('keeps a guard on this screen, which is the thing protecting the money', () => {
     const screen = code('src/app/checkout/index.tsx');
-    const block = screen.slice(screen.indexOf('if (stillBlocked) {'));
-    const release = block.indexOf('inFlight.current = false');
-    const report = block.indexOf('setFailure(');
 
-    expect(release).toBeGreaterThan(-1);
-    expect(release).toBeLessThan(report);
+    expect(screen).toMatch(/const handlePlaceOrder = useOnce\(attemptOrder\);/);
+    expect(screen).toMatch(/onPress=\{\(\) => void handlePlaceOrder\(\)\}/);
   });
 
-  it('leaves the guard itself in place, which is the thing protecting the money', () => {
-    const screen = code('src/app/checkout/index.tsx');
-
-    expect(screen).toMatch(/if \(inFlight\.current\) return;/);
-    expect(screen).toMatch(/inFlight\.current = true;/);
+  it('has no second mechanism left to disagree with the first', () => {
+    // `inFlight` was this file's own; two guards for one rule is how they drift.
+    expect(code('src/app/checkout/index.tsx')).not.toMatch(/inFlight/);
   });
 });
 

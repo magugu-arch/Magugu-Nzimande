@@ -168,7 +168,9 @@ describe('5 — a send that did not send', () => {
 
   it('does not report a ticket it never got', () => {
     const submit = screen.slice(
-      screen.indexOf('const handleSubmit'),
+      // Renamed when `useOnce` took over the re-entry guard: the handler is
+      // `submit` and `handleSubmit` is the wrapped one passed to the button.
+      screen.indexOf('const submit = useCallback'),
       screen.indexOf('if (ticketId)'),
     );
     // The early return inside the catch is what keeps the confirmation screen

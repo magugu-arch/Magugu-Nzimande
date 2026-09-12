@@ -272,11 +272,22 @@ describe('the checkout screen’s use of it', () => {
     expect(call).not.toMatch(/now: (nowRef|memo|renderedAt)/);
   });
 
-  it('lowers the in-flight guard before returning, so the next tap works', () => {
+  it('leaves the dishonest-total path with nothing to release by hand', () => {
+    /*
+      This used to assert `inFlight.current = false` inside the block, because
+      the guard was a ref lowered by hand on every early return — and the one
+      that was missed killed the button for the life of the screen.
+
+      `useOnce` wraps the whole handler in a `try/finally`, so an early return
+      here releases it with no statement to write and none to forget. What is
+      left to check is that the refusal still reports and still returns: the
+      customer must be told the two figures and the money must not move.
+    */
     const block = screen.slice(screen.indexOf('if (dishonest)'), screen.indexOf('try {'));
 
-    expect(block).toMatch(/inFlight\.current = false/);
+    expect(block).not.toMatch(/inFlight/);
     expect(block).toMatch(/setFailure\(\{ status: 'declined'/);
+    expect(block).toMatch(/return;/);
   });
 
   /**

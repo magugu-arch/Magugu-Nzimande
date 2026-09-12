@@ -19,6 +19,7 @@ import { callNumber, openExternal } from '@/utils/linking';
 import { required, validateFields } from '@/utils/validation';
 import { track } from '@/ux/analytics';
 import { writeFailureMessage } from '@/features/system/writeFailure';
+import { useOnce } from '@/features/system/useOnce';
 
 const SUBJECTS = [
   'Something was missing',
@@ -49,7 +50,7 @@ export default function ContactScreen() {
   */
   const [sendFailure, setSendFailure] = useState<string | null>(null);
 
-  const handleSubmit = useCallback(async () => {
+  const submit = useCallback(async () => {
     const validationErrors = validateFields(
       { subject, message },
       { subject: required('Subject'), message: required('Message') },
@@ -103,6 +104,13 @@ export default function ContactScreen() {
     track('support_contact', { topicId: subject });
     setTicketId(result.ticketId);
   }, [subject, message, orderReference, sendMessage]);
+
+  /*
+    Wrapped so a second tap landing before the first has finished does nothing.
+    `loading={…isPending}` refuses it only once React has painted the first tap;
+    `audit:double-tap` sent two in one tick and counted two requests.
+  */
+  const handleSubmit = useOnce(submit);
 
   if (ticketId) {
     return (

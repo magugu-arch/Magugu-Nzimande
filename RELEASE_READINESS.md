@@ -1026,6 +1026,64 @@ files that navigate backwards and requires, for each, that the count of
 has a branch to `router.replace` beside it. A seventh instance cannot be
 written without it failing.
 
+## 2u. The second tap
+
+A phone that is thinking looks exactly like a phone that missed the tap, so
+people tap again. It is the commonest thing a customer does that nobody draws,
+and until this round one control in the app was protected against it: checkout,
+with a `useRef` and a comment explaining why the button's own disabled state was
+not enough.
+
+It is not enough because `loading={mutation.isPending}` is a *rendered* guard —
+it refuses the second tap only once React has committed and painted the first.
+`npm run audit:double-tap` presses each control twice against a stub that counts
+what it is asked for, and answers slowly enough that a second tap has somewhere
+to land:
+
+| control | two taps in one tick | two taps 70ms apart |
+| --- | --- | --- |
+| redeeming a reward | **2 × POST /v1/loyalty/redeem** | 1 |
+| saving a new address | **2 × POST /v1/account/addresses** | 1 |
+| sending a support message | **2 × POST /v1/support/messages** | 1 |
+| rating an order | **2 × POST /v1/orders/:id/rating** | 1 |
+| placing an order (control) | 1 | 1 |
+
+So the rendered guard does catch a human double-tap, on this hardware, on this
+build, on a good day. That is not a property to rely on for a control that
+spends a thousand points — and the reward case is the one that costs: two
+redemptions, the points taken twice, and one discount applied, so the customer
+pays double and sees single.
+
+### One mechanism, and why it is a hook rather than five refs
+
+`useOnce` wraps a handler so a call arriving while the first is still running
+does nothing. Checkout's ref is gone and it uses the same hook, which is the
+part worth stating: that ref had to be lowered by hand on every early return,
+one release was missed, and a tap blocked by a branch that had just closed left
+the button dead for the life of the screen — for a customer who had been told
+to pick a later slot and was doing exactly that. Found by a security review as a
+functional note.
+
+A `finally` around the whole handler cannot make that mistake, because there is
+no path out of the function that skips it. The two fixtures that used to grep
+for the release statement now run the hook instead: an early return releases it,
+a throw releases it and still throws.
+
+It guards re-entry, not repetition — somebody who redeems, watches it land and
+deliberately does it again is entitled to — and it does not replace the button's
+`loading` state, which is what tells the customer anything is happening at all.
+
+### And a crash the stub found on the way past
+
+The reward screen rendered "Something broke" against a backend that simply did
+not send `termsAndConditions`. `wireChecks` is right not to check it — that file
+covers "the numbers it does arithmetic on, the ids it looks things up by", and a
+terms list is neither — so the fix belongs where the value is read. A grep for
+the shape found three more, including both of order tracking's: `data.timeline`
+and `data.lines`, on the screen a hungry person is staring at.
+
+An absent list is a gap in the data. A crash screen is a claim about the app.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1079,7 +1137,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **105 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **106 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

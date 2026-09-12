@@ -28,6 +28,7 @@ import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import { formatPrice, groupDigits } from '@/utils/money';
 import { track } from '@/ux/analytics';
+import { useOnce } from '@/features/system/useOnce';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -48,7 +49,7 @@ export default function RewardDetailScreen() {
   const user = useAuthStore((state) => state.user);
   const [error, setError] = useState<string | null>(null);
 
-  const handleRedeem = useCallback(async () => {
+  const redeem = useCallback(async () => {
     if (!reward.data) return;
     setError(null);
 
@@ -81,6 +82,13 @@ export default function RewardDetailScreen() {
       );
     }
   }, [reward.data, redeemReward, applyReward, router, cartLines.length]);
+
+  /*
+    Wrapped so a second tap that lands before the first has finished does
+    nothing. `loading={…isPending}` refuses it only once React has painted the
+    first tap; `audit:double-tap` sent two in one tick and counted two requests.
+  */
+  const handleRedeem = useOnce(redeem);
 
   if (reward.isLoading || loyalty.isLoading) {
     return (
@@ -237,7 +245,20 @@ export default function RewardDetailScreen() {
         {/* Terms */}
         <Card style={styles.card}>
           <Text variant="h3">The fine print</Text>
-          {data.termsAndConditions.map((term) => (
+          {/*
+            Defaulted, because the wire does not promise this list.
+
+            `wireChecks` covers "the numbers it does arithmetic on, the ids it
+            looks things up by" — by design — and a terms list is neither. So a
+            backend that omits it passes every check and then `.map` throws
+            three components down, into the error boundary: "Something broke"
+            over a reward somebody was about to spend a thousand points on.
+
+            Found by `audit:double-tap`, whose stub simply did not invent the
+            field. An absent list is a gap in the data, not a fault in the app,
+            and the app must not claim otherwise.
+          */}
+          {(data.termsAndConditions ?? []).map((term) => (
             <View key={term} style={styles.termRow}>
               <Ionicons name="ellipse" size={5} color={colors.textMuted} style={styles.bullet} />
               <Text variant="caption" color={colors.textSecondary} style={styles.termText}>

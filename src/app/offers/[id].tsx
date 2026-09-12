@@ -272,7 +272,10 @@ export default function OfferDetailScreen() {
         {/* Terms */}
         <Card style={styles.card}>
           <Text variant="h3">Terms and conditions</Text>
-          {data.terms.map((term) => (
+          {/* Defaulted for the same reason as the reward screen's: the wire
+              does not promise a terms list, and an absent one is a gap in the
+              data rather than a reason to show a crash screen. */}
+          {(data.terms ?? []).map((term) => (
             <View key={term} style={styles.termRow}>
               <Ionicons name="ellipse" size={5} color={colors.textMuted} style={styles.bullet} />
               <Text variant="caption" color={colors.textSecondary} style={styles.termText}>
