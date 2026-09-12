@@ -36,7 +36,7 @@ import {
   timelineFor,
 } from '@/features/orders/liveStatus';
 import { isOfflinePending } from '@/features/system/queryPhase';
-import { errorCode, isNotFound } from '@/services/apiClient';
+import { errorCode, isRefused } from '@/services/apiClient';
 import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
 import { useNow } from '@/features/system/useNow';
 import { colors, radius, spacing } from '@/theme';
@@ -157,7 +157,7 @@ export default function OrderTrackingScreen() {
    * The same fix `offers/[id]` already carries for a promotion that has
    * closed, and it needed the mock to fail the way the server fails first.
    */
-  if (isNotFound(order.error) || errorCode(order.error) === 'order_not_found') {
+  if (isRefused(order.error) || errorCode(order.error) === 'order_not_found') {
     return (
       <Screen edges={['top', 'bottom']} testID="order-not-found">
         <ScreenHeader title="Your order" />

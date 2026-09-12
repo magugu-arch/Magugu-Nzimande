@@ -25,7 +25,7 @@ import {
   SOLD_OUT_LABEL,
   soldOutReason,
 } from '@/features/menu/availability';
-import { errorCode, isNotFound } from '@/services/apiClient';
+import { errorCode, isRefused } from '@/services/apiClient';
 import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
@@ -166,7 +166,7 @@ export default function OfferDetailScreen() {
     // Only a not-found licenses a claim about the promotions calendar. A
     // timeout, a dead host or a 500 is the app's problem, and explaining it
     // with a fact about the calendar invents one.
-    const offCalendar = isNotFound(promotion.error) || (!promotion.isError && !promotion.data);
+    const offCalendar = isRefused(promotion.error) || (!promotion.isError && !promotion.data);
     // And "not yet" is not "no longer". Both were reaching the same sentence,
     // which told somebody following a teaser that the thing they are waiting
     // for is over.

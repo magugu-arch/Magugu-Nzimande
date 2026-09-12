@@ -1149,6 +1149,74 @@ chose the claim about the app over the claim about the world:
 Verified by counterfactual: with one guard removed, the sweep reports that
 screen and fails. A row of ticks is a measurement.
 
+## 2w. The link that is not yours
+
+Order links get shared. Push notifications go stale. Ids are short enough to
+mistype and, in a URL bar, short enough to change on purpose. Every deep link in
+this app has three endings, and only one of them had ever been driven: the id
+exists and is yours.
+
+The other two come from the server and they are different facts — **404**, there
+is no such thing, and **403**, there is and it is somebody else's. `isNotFound`
+reads 404 and every detail screen branched on it. **Nothing in this app read 403
+at all.**
+
+So a customer opening a friend's order link met *"Something went wrong. Check
+your connection and try again"*, with a button the server would refuse every
+single time it was pressed. That is this repository's oldest rule arriving from
+a new direction, and for the first time inside the *error* state: an error state
+is a claim about the app, and that one was false. The server had behaved
+perfectly.
+
+`npm run audit:notyours` drives eight refused links. Four findings:
+
+| case | what the app did |
+| --- | --- |
+| an order that is not yours | generic error, and a retry that cannot succeed |
+| a reward that is not yours | a retry that cannot succeed |
+| access withdrawn mid-session | a retry that cannot succeed |
+| a reward that simply failed to load | *"It may have expired"* — for a timeout |
+
+### One condition, not two branches, and the reason is privacy
+
+`isRefused` answers the same for 403 and 404 on purpose. Telling somebody "that
+order exists but is not yours" confirms the existence of a stranger's order to
+anybody who can type an id — and the copy already written for the 404 covers
+both without it: *"It may be too old to show, or it belonged to another
+account."* The wording existed; the status routed around it.
+
+401 is deliberately **not** a refusal: `execute` refreshes and retries it, and a
+customer who really has been signed out needs the sign-in door rather than a
+shrug.
+
+### The retry is not cosmetic
+
+A button that re-asks an answered question is there to be pressed until the
+customer gives up. It is gone from the refused branches, and the way onwards —
+"Back to the menu", "Browse the menu", "See your orders" — is the one that
+works. It stays where a retry genuinely might succeed, which is what the sweep's
+eighth case is: a 500 is the app not knowing, and "something went wrong" is
+exactly right for it.
+
+### And one the sweep found on its way past
+
+The reward screen said *"We can't find that reward. It may have expired"* for
+**every** error — a timeout, a dead host, a 500. Expiry is a claim about the
+rewards catalogue, and an app that could not reach the catalogue has no business
+making one. It is the same defect the product screen and the offers screen were
+fixed for rounds ago, and it survived because no sweep had ever refused this
+screen.
+
+**No data leaked.** The withdrawn-access case is the one with a customer's
+details in it — TanStack Query keeps the data it already has beside a new error,
+so a screen rendering `data` whenever it is present would have gone on showing a
+stranger's address and card. It does not, and that is now measured rather than
+assumed: the stub serves a full order with a name, an address and a card, and
+the sweep fails if any of it reaches the DOM.
+
+Verified by counterfactual: with one screen narrowed back to `isNotFound`, the
+sweep reports three findings and fails.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1202,7 +1270,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **107 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **108 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

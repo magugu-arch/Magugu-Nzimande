@@ -132,6 +132,7 @@ describe('1 — a sweep that seeds state proves it arrived', () => {
   it('finds the sweeps by what they do, not by name', () => {
     expect(SEEDING_SWEEPS.sort()).toEqual([
       'audit-double-tap.mjs',
+      'audit-notyours.mjs',
       'audit-offline.mjs',
       'audit-sparse.mjs',
       'audit-upgrade.mjs',

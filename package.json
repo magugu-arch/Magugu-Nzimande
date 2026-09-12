@@ -60,7 +60,8 @@
     "audit:wire": "node scripts/audit-wire.mjs",
     "audit:back": "node scripts/audit-back.mjs",
     "audit:double-tap": "node scripts/audit-double-tap.mjs",
-    "audit:sparse": "node scripts/audit-sparse.mjs"
+    "audit:sparse": "node scripts/audit-sparse.mjs",
+    "audit:notyours": "node scripts/audit-notyours.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",

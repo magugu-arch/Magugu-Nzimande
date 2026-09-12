@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 107 suites; `npm test` prints the count                                                                  |
+| Tests            | 108 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -59,6 +59,7 @@ npm run audit:recovery # the way back into an account, including the ways it fai
 npm run audit:back     # deep links, shared links and Back — every screen opened cold
 npm run audit:double-tap # every control pressed twice, counting what the server is asked for
 npm run audit:sparse   # every screen against a backend that sends only what wireChecks demands
+npm run audit:notyours # deep links the server refuses — gone, and somebody else's
 npm run smoke:order   # signs in, adds an item and places an order, for real
 npm run preview:single # builds the web export and folds it into one HTML file
 ```

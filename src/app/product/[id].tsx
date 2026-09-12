@@ -20,7 +20,7 @@ import {
   Text,
 } from '@/components/ui';
 import { isOfflinePending } from '@/features/system/queryPhase';
-import { isNotFound } from '@/services/apiClient';
+import { isRefused } from '@/services/apiClient';
 import { NutritionPanel } from '@/features/menu/components/NutritionPanel';
 import {
   isSoldOut,
@@ -200,19 +200,29 @@ export default function ProductDetailScreen() {
   }
 
   if (product.isError || !product.data) {
-    // Only a 404 licenses the claim that the item was delisted. Every other
-    // failure — a timeout, a dead host, a 500 — is the app's problem, and
-    // saying "it may have come off the menu" invents a fact to explain it.
-    const delisted = isNotFound(product.error) || (!product.isError && !product.data);
+    /*
+      Only a refusal licenses the claim that the item was delisted. Every other
+      failure — a timeout, a dead host, a 500 — is the app's problem, and
+      saying "it may have come off the menu" invents a fact to explain it.
+
+      `isRefused` rather than `isNotFound`: a 403 is the server answering just
+      as definitely, and nothing in this app used to read one. See its note.
+    */
+    const delisted = isRefused(product.error) || (!product.isError && !product.data);
 
     return (
       <View style={styles.stateRoot}>
         <StatusBar style="dark" />
         {delisted ? (
+          /*
+            No retry on this branch. The server has answered, and a button that
+            re-asks a question already answered is an invitation to press it
+            until the customer gives up. "Back to the menu" below is the way
+            onwards, and it is the one that works.
+          */
           <ErrorState
             title="We can't find that item"
             message="It may have come off the menu. Browse what we have instead."
-            onRetry={() => void product.refetch()}
           />
         ) : (
           <ErrorState onRetry={() => void product.refetch()} />

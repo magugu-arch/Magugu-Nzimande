@@ -26,6 +26,35 @@ export function isNotFound(error: unknown): boolean {
 }
 
 /**
+ * A refusal that trying again cannot change.
+ *
+ * 404 and 403 are different facts and, on these screens, they have the same
+ * answer: the thing is not there for *you*, and no amount of tapping Try again
+ * will make it appear. Nothing in this app read 403 at all — every detail
+ * screen branched on `isNotFound` alone — so a customer opening a friend's
+ * order link met "Something went wrong. Check your connection and try again",
+ * with a button the server would refuse every time it was pressed.
+ *
+ * Which is the rule this repository keeps meeting from a new direction, and
+ * the first time it has been the *error* state telling the lie: an error state
+ * is a claim about the app, and that one was false. The server had behaved
+ * perfectly. Found by `audit:notyours`.
+ *
+ * Deliberately one condition rather than two branches. Telling a customer
+ * "that order exists but is not yours" confirms the existence of somebody
+ * else's order to anybody who can type an id, and the copy already written for
+ * the 404 covers both without it: *"It may be too old to show, or it belonged
+ * to another account."*
+ *
+ * 401 is **not** here. That one is a session the app can do something about —
+ * `execute` refreshes and retries, and a customer who really has been signed
+ * out needs the sign-in door, not a shrug.
+ */
+export function isRefused(error: unknown): boolean {
+  return error instanceof ApiRequestError && (error.status === 404 || error.status === 403);
+}
+
+/**
  * The "that thing is not there" failure, in the shape `isNotFound` reads.
  *
  * This exists because the mock was failing differently from the world. The

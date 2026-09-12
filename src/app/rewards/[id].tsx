@@ -29,6 +29,7 @@ import { formatShortDate } from '@/utils/datetime';
 import { formatPrice, groupDigits } from '@/utils/money';
 import { track } from '@/ux/analytics';
 import { useOnce } from '@/features/system/useOnce';
+import { isRefused } from '@/services/apiClient';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -120,13 +121,37 @@ export default function RewardDetailScreen() {
   }
 
   if (reward.isError || !reward.data || !loyalty.data) {
+    /*
+      Two failures, one sentence, and only one of them earns it.
+
+      This screen said "We can't find that reward. It may have expired" for
+      *every* error — a timeout, a dead host, a 500, a refusal. Expiry is a
+      claim about the rewards catalogue, and an app that failed to reach the
+      catalogue has no business making one. The product screen and the offers
+      screen were both fixed for exactly this; this one was missed because no
+      sweep had ever refused it. `audit:notyours` refuses it now.
+
+      No retry on the refused branch: the server has answered, and a button
+      that re-asks an answered question is there to be pressed until somebody
+      gives up. "Browse the menu" below is the way onwards.
+    */
+    const gone = isRefused(reward.error) || (!reward.isError && !reward.data);
+
     return (
       <Screen edges={['top', 'bottom']}>
         <ScreenHeader title="Reward" />
-        <ErrorState
-          title="We can't find that reward"
-          message="It may have expired. Have a look at what else is available."
-          onRetry={() => void reward.refetch()}
+        {gone ? (
+          <ErrorState
+            title="We can't find that reward"
+            message="It may have expired. Have a look at what else is available."
+          />
+        ) : (
+          <ErrorState onRetry={() => void reward.refetch()} />
+        )}
+        <Button
+          label="Browse the menu"
+          onPress={() => router.push('/(tabs)/menu')}
+          variant="text"
         />
       </Screen>
     );
