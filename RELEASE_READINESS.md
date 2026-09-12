@@ -1275,6 +1275,63 @@ for an endpoint nobody has specified would be designing your API. The app takes
 the safe reading in the meantime, and it is safe in the direction that matters:
 it never voids a payment for an order that might be real.
 
+## 2y. A connection that is not gone, only slow
+
+Every network sweep in this repository cuts the connection dead. `audit:offline`
+kills the host, `audit:writes` drops the socket, `audit:wire` answers wrongly but
+instantly. None of them is the ordinary congested cell, where every request
+arrives — eventually — which on a South African network is most of the bad days.
+
+The client gave a request fifteen seconds and aborted it, and the query client
+retried that timeout twice on a fresh budget each time. So a connection that
+would have delivered in eighteen seconds produced **three full requests, three
+payloads, about forty-five seconds of spinner, and then an error — for a
+connection that works.** On a prepaid bundle those two extra payloads are money.
+
+`npm run audit:slow` answers *correctly* at four speeds and counts:
+
+| connection | asked | order arrived |
+| --- | --- | --- |
+| fast (0.2s) | 1 | 0.6s — control |
+| slow, inside the budget (8s) | 1 | 8.7s — control |
+| **slow, just outside (18s)** | **3** | **never** |
+| never answers | 3 | never |
+
+### Two changes, and they are one decision
+
+1. **A timeout is not retried.** Re-asking on the same budget is asking the same
+   question the same way and expecting a different answer. It is distinct from
+   `code: 'network'` — a socket that died mid-flight is a different event and is
+   still worth another go.
+2. **The budget is thirty seconds, not fifteen.** With no retry, one attempt has
+   to cover the band the three attempts were burning. Thirty is chosen so nobody
+   waits longer than they used to — the old policy spent roughly that before its
+   second attempt finished. What changes is who succeeds: every connection
+   between fifteen and thirty seconds now gets its data instead of an error.
+
+Either alone would have been worse than both. Dropping the retry without
+widening the budget would have made a bad connection fail *sooner*; widening the
+budget without dropping the retry would have made the worst case ninety seconds.
+
+### The counterfactual said something about the sweep
+
+Putting the timeout back into the retry set and re-running, the 18s case **still
+passes** — the wider budget carries it alone. Only the never-answers case
+isolates the retry half.
+
+That is worth recording rather than smoothing over: a sweep whose cases all
+respond to one half of a two-part change cannot tell you which half is load
+bearing. This one can, because of the case that looks least interesting.
+
+### And a correction to my own first reading
+
+The never-answers case first reported **two** requests as a finding. The second
+was the tracking screen's own fifteen-second poll, firing again once the aborted
+attempt was out of the way — and a live-tracking screen that stopped asking
+would be the defect, not this. The window now ends before that poll is due, and
+what is measured is the one thing the sweep is about: how many requests a single
+attempt becomes.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1328,7 +1385,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **109 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **110 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

@@ -33,7 +33,21 @@ export const config = {
     process.env.EXPO_PUBLIC_API_BASE_URL,
     extra.apiBaseUrl ?? 'https://api.bbqchicken.co.za',
   ),
-  apiTimeoutMs: num(process.env.EXPO_PUBLIC_API_TIMEOUT_MS, 15_000),
+  /*
+    Thirty seconds, and one attempt.
+
+    It was fifteen, and a timeout was retried twice — so a congested cell that
+    would have delivered in eighteen seconds produced three requests, three
+    payloads and about forty-five seconds of spinner before an error, for a
+    connection that works. Measured by `audit:slow`, which answers correctly at
+    four speeds and counts what the stub is asked for.
+
+    Thirty is chosen so nobody waits longer than they used to: the old policy
+    spent roughly that before its second attempt even finished. What changes is
+    who succeeds — every connection between fifteen and thirty seconds now gets
+    its data instead of an error, and nobody pays for three copies of it.
+  */
+  apiTimeoutMs: num(process.env.EXPO_PUBLIC_API_TIMEOUT_MS, 30_000),
   /**
    * Which customer the mock layer pretends to be.
    *

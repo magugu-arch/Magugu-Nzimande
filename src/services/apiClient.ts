@@ -79,6 +79,21 @@ export function isConflict(error: unknown): boolean {
 }
 
 /**
+ * The app's own deadline, not the server's answer.
+ *
+ * `execute` gives every request `apiTimeoutMs` and aborts it. That abort is a
+ * decision this app made, and re-making it on a fresh budget is asking the
+ * same question the same way and expecting a different answer.
+ *
+ * Distinct from `code: 'network'`, which is a socket that died — a different
+ * event, genuinely worth another go, and one the client already labels
+ * separately.
+ */
+export function timedOut(error: unknown): boolean {
+  return error instanceof ApiRequestError && error.code === 'timeout';
+}
+
+/**
  * Whether asking again could possibly help.
  *
  * The query client reasoned about this correctly for one status, and said so:
@@ -97,13 +112,23 @@ export function isConflict(error: unknown): boolean {
  * least able to absorb it. Measured rather than argued: `audit:answers` counts
  * what the stub is asked for, and it was three every time.
  *
+ * A **timeout** joins them, and that one is about the app rather than the
+ * server. `audit:slow` answers a request correctly after eighteen seconds —
+ * an ordinary congested cell — and the old policy produced three full
+ * requests, three payloads and forty-five seconds of spinner before an error,
+ * for a connection that works. Three attempts on the same fifteen-second
+ * budget cannot succeed where one did not; they only cost the customer their
+ * data three times, which on a prepaid bundle is money. The budget moved
+ * instead: see `apiTimeoutMs`.
+ *
  * Everything else stays retryable, which is the point. This is not "stop
- * retrying" — it is "stop retrying an *answer*". A 500, a timeout and a dead
- * socket are all the app not knowing yet, and the next attempt genuinely might
- * work; the sweep carries a 500 as a control so that distinction cannot rot.
+ * retrying" — it is "stop retrying an *answer*, and stop re-asking a question
+ * you already timed yourself out of". A 500 and a dead socket are both the app
+ * not knowing yet, and the next attempt genuinely might work; the sweeps carry
+ * a 500 and a fast connection as controls so that distinction cannot rot.
  */
 export function worthRetrying(error: unknown): boolean {
-  return !isRefused(error) && !isRateLimited(error);
+  return !isRefused(error) && !isRateLimited(error) && !timedOut(error);
 }
 
 /**

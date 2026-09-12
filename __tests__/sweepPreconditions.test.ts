@@ -135,6 +135,7 @@ describe('1 — a sweep that seeds state proves it arrived', () => {
       'audit-double-tap.mjs',
       'audit-notyours.mjs',
       'audit-offline.mjs',
+      'audit-slow.mjs',
       'audit-sparse.mjs',
       'audit-upgrade.mjs',
       'audit-wire.mjs',
