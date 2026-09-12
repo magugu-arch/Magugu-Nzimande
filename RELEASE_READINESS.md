@@ -1332,6 +1332,75 @@ would be the defect, not this. The window now ends before that poll is due, and
 what is measured is the one thing the sweep is about: how many requests a single
 attempt becomes.
 
+## 2z. A screen wider than a phone
+
+`app.json` says `"orientation": "portrait"`. It also says `"supportsTablet":
+true`, and those two lines together are this whole round. A portrait iPad is 834
+points across and a landscape one is 1194 — two to three times every width this
+repository had ever swept. `audit:screens` uses 390 and 320. `audit:text-scale`
+uses 320. **Nothing had ever been wider than a large phone.**
+
+`npm run audit:wide` renders twelve busy screens at both iPad shapes. One
+defect, and it is the one visible in the source before a browser opens:
+`product/[id]` sized its hero as `Dimensions.get('window').width * 1.05`, read
+once at module scope.
+
+| device | hero | share of screen |
+| --- | --- | --- |
+| iPhone 14 (390×844) | 410pt | 49% — the design, working |
+| **iPad landscape (1194×834)** | **1254pt** | **150%** |
+
+A customer opens a product on an iPad and sees a picture. Nothing else fits.
+
+### Two mistakes in one line, needing two different fixes
+
+The number was **captured once**, so it is also stale on any resize — a browser
+drag on the web build, a Split View or Stage Manager resize on a tablet. And it
+had **no ceiling**, so a wider screen made it taller without limit.
+
+The ceiling is *derived* rather than chosen: on the 390×844 phone this was drawn
+for, `width * 1.05` is 410 of 844 points, a little under half. Half the viewport
+height says the same thing in a way that survives a wider screen. A ratio rather
+than a fixed number of points, because a fixed number needs a device list and
+that list is what goes stale when a new iPad ships.
+
+### One phone does change, and that is worth saying
+
+An iPhone SE is 320×568, where the old sum gave 336 points — 59% of the screen,
+and the one device where the existing design was already past the ratio it holds
+everywhere else. It becomes 284.
+
+That is a change to a reviewed layout rather than a pure fix, so it is stated
+rather than glossed. It is kept because the alternative — carving the SE out —
+needs a width threshold, and that would be a number nobody chose. `audit:screens`
+sweeps 320pt and is green with it.
+
+**Found by the fixture, not by me.** The test was first written to assert "the
+cap never bites on a phone"; it failed, on the SE, and the claim was the thing
+that was wrong.
+
+### The case the other twelve could not see
+
+A browser context opened at the size it measures can never catch a number
+captured once and kept — every fixed-size case would pass over a stale reading.
+So the sweep also loads at phone width and *then* resizes to a landscape iPad,
+which is the only shape of test that can tell the difference.
+
+Six other screens still read the window once at module scope. None of them
+overflows at either iPad shape, so they are not defects today — they are a
+latent version of the same mistake, and a fixture counts them by name so the
+number cannot grow quietly.
+
+### And a correction to the sweep itself
+
+Its first run reported Home's "Popular right now" row as running 890px past the
+right edge. That is what horizontal scrolling *is*. `audit:screens` has carried
+an `inScroller` filter since it was written; this sweep did not, and reported a
+finding about itself. Line length is measured too — 133 characters at the widest
+— but **printed rather than failed on**: past about 80 characters is a
+legibility standard, while what to do about it is a layout decision and design
+is not mine to invent.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1385,7 +1454,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **110 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **111 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

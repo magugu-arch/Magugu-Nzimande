@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,8 +49,38 @@ import {
 } from '@/utils/cart';
 import { formatPrice } from '@/utils/money';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HERO_HEIGHT = SCREEN_WIDTH * 1.05;
+/**
+ * How tall the hero is, for the screen it is actually on.
+ *
+ * It was `Dimensions.get('window').width * 1.05`, read once at module scope.
+ * On a phone that is right and never changes. `app.json` also says
+ * `"supportsTablet": true`, and on a landscape iPad the same sum gives a
+ * **1254-point image in an 834-point viewport** — a customer opens a product
+ * and can see the picture and nothing else. Measured by `audit:wide`.
+ *
+ * The cap is derived from the design that already exists rather than chosen:
+ * on the 390×844 phone this was drawn for, `width * 1.05` is 410 points of an
+ * 844-point screen, a little under half. Half the viewport height is therefore
+ * the same intent expressed in a way that survives a wider screen: the 390 and
+ * 430-point phones render byte-identically, and every tablet gets a hero it can
+ * see past.
+ *
+ * One phone does change, and it is worth saying rather than glossing. An iPhone
+ * SE is 320×568, where the old sum gave 336 points — 59% of the screen, the one
+ * device where the existing design was already past the ratio it holds
+ * everywhere else. It becomes 284. Kept rather than carved out, because a
+ * carve-out needs a width threshold and that would be a number nobody chose;
+ * this is the design's own ratio applied evenly, and `audit:screens` sweeps
+ * 320pt and is green with it.
+ *
+ * A hook rather than a constant, because the number has to change when the
+ * window does. On the web build it can be dragged; on a tablet the OS can hand
+ * the app a Split View half without relaunching it.
+ */
+function useHero(): { width: number; height: number } {
+  const { width, height } = useWindowDimensions();
+  return { width, height: Math.min(width * 1.05, height * 0.5) };
+}
 
 /**
  * Product Detail + Customisation + Add-ons (brief §11).
@@ -55,6 +92,7 @@ const HERO_HEIGHT = SCREEN_WIDTH * 1.05;
 export default function ProductDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hero = useHero();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const product = useProduct(id);
@@ -266,9 +304,9 @@ export default function ProductDetailScreen() {
           <FoodImage
             assetKey={item.assetKey}
             variant="detail"
-            aspectRatio={SCREEN_WIDTH / HERO_HEIGHT}
+            aspectRatio={hero.width / hero.height}
             rounded="none"
-            style={styles.hero}
+            style={{ width: hero.width }}
           />
 
           <Pressable
@@ -500,7 +538,7 @@ const styles = StyleSheet.create({
   stateRoot: { flex: 1, backgroundColor: colors.background },
   stateAction: { padding: spacing.lg },
   content: { paddingBottom: spacing.giant },
-  hero: { width: SCREEN_WIDTH },
+
   servingSuggestion: {
     position: 'absolute',
     right: spacing.lg,
