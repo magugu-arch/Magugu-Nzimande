@@ -45,9 +45,15 @@ const pinClock = (iso) => `
 `;
 
 const TYPES = {
-  '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf',
-  '.ico': 'image/x-icon', '.json': 'application/json', '.svg': 'image/svg+xml',
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ttf': 'font/ttf',
+  '.ico': 'image/x-icon',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
 };
 
 function serve() {
@@ -65,7 +71,9 @@ let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch {
-  console.error('Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium');
+  console.error(
+    'Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium',
+  );
   process.exit(2);
 }
 
@@ -127,7 +135,10 @@ try {
   step('an empty order history reads as empty, not broken');
 
   await go('/menu');
-  await page.getByText('Golden Original Chicken', { exact: false }).first().click({ timeout: 10000 });
+  await page
+    .getByText('Golden Original Chicken', { exact: false })
+    .first()
+    .click({ timeout: 10000 });
   await page.waitForURL(/product\//, { timeout: 15000 });
   await tap('product-add-to-cart');
   step('found food and put it in the basket');
@@ -314,7 +325,9 @@ if (failed) {
   process.exit(1);
 }
 if (errors.length > 0) {
-  console.log(`Journey completed, but the console was not clean:\n  ${errors.slice(0, 5).join('\n  ')}`);
+  console.log(
+    `Journey completed, but the console was not clean:\n  ${errors.slice(0, 5).join('\n  ')}`,
+  );
   process.exit(1);
 }
 console.log(`Someone who installed the app this morning can order, in ${steps.length} steps.`);

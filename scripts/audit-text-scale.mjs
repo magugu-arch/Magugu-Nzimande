@@ -139,7 +139,9 @@ function serve() {
       if (!path.extname(file) || !existsSync(file) || statSync(file).isDirectory()) {
         file = path.join(OUT, 'index.html');
       }
-      res.writeHead(200, { 'content-type': types[path.extname(file)] ?? 'application/octet-stream' });
+      res.writeHead(200, {
+        'content-type': types[path.extname(file)] ?? 'application/octet-stream',
+      });
       createReadStream(file).pipe(res);
     });
     // Loopback only. These servers exist for the length of one sweep and have
@@ -223,7 +225,11 @@ const probe = () => {
       if (!sameColumn) continue;
       const overlap = Math.min(a.rect.bottom, b.rect.bottom) - Math.max(a.rect.top, b.rect.top);
       if (overlap > 3) {
-        overlapping.push({ a: a.text.slice(0, 30), b: b.text.slice(0, 30), by: Math.round(overlap) });
+        overlapping.push({
+          a: a.text.slice(0, 30),
+          b: b.text.slice(0, 30),
+          by: Math.round(overlap),
+        });
       }
     }
   }
@@ -301,7 +307,11 @@ async function sweepAt(rootPx) {
   await page.locator('[data-testid="sign-in-submit"]').first().click({ timeout: 15000 });
   await page.waitForURL((url) => !url.pathname.endsWith('/sign-in'), { timeout: 20000 });
   await page.waitForTimeout(1200);
-  await page.getByText('Not now', { exact: false }).first().click({ timeout: 5000 }).catch(() => {});
+  await page
+    .getByText('Not now', { exact: false })
+    .first()
+    .click({ timeout: 5000 })
+    .catch(() => {});
 
   return { ctx, page };
 }

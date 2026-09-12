@@ -40,25 +40,50 @@ const OUT = path.join(root, '.audit-web');
 const PORT = 8123;
 
 const ROUTES = [
-  '/welcome', '/location', '/sign-in', '/register', '/verify', '/forgot-password',
+  '/welcome',
+  '/location',
+  '/sign-in',
+  '/register',
+  '/verify',
+  '/forgot-password',
   // Both states of the reset-link landing: the form, and what somebody sees
   // when the link arrived truncated. Only reachable from an email, so nothing
   // else in the app renders it.
-  '/reset-password?token=probe-token', '/reset-password',
-  '/home', '/menu', '/rewards', '/orders', '/more',
-  '/product/golden-original', '/cart', '/checkout', '/checkout/store',
-  '/checkout/address', '/checkout/schedule', '/offers', '/rewards/vouchers',
-  '/account/profile', '/account/preferences', '/account/notifications',
-  '/account/payment-methods', '/account/contact', '/account/help', '/account/legal',
+  '/reset-password?token=probe-token',
+  '/reset-password',
+  '/home',
+  '/menu',
+  '/rewards',
+  '/orders',
+  '/more',
+  '/product/golden-original',
+  '/cart',
+  '/checkout',
+  '/checkout/store',
+  '/checkout/address',
+  '/checkout/schedule',
+  '/offers',
+  '/rewards/vouchers',
+  '/account/profile',
+  '/account/preferences',
+  '/account/notifications',
+  '/account/payment-methods',
+  '/account/contact',
+  '/account/help',
+  '/account/legal',
   // Tracking needs an order to track, so these were missing from the sweep
   // until the seeded ledger was noticed: `fetchOrder` seeds on first call, so
   // both are reachable cold. 4821 is a delivery and 4610 a collection, which
   // is the branch that decides whether the store rows render.
-  '/order/order-4821', '/order/order-4610', '/order/order-4610/rate',
+  '/order/order-4821',
+  '/order/order-4610',
+  '/order/order-4610/rate',
   // The states the seed never produced until now, and so the sweep never saw:
   // a cancelled order (grey card, warning badge), a dine-in order carrying a
   // table number, and a scheduled order where "ordered at" and "due at" differ.
-  '/order/order-4788', '/order/order-4802', '/order/order-4655',
+  '/order/order-4788',
+  '/order/order-4802',
+  '/order/order-4655',
   // A kids meal, which is a product shape the sweep had no example of: every
   // one of its option groups is required and priced at zero, because the drink
   // and the dip are part of the meal rather than additions to it. The picker
@@ -68,7 +93,8 @@ const ROUTES = [
   // never swept: only the list was, and the list cannot render either of
   // these. `promo-heritage-braai` is a campaign that closed, which is the one
   // somebody reaches from an old push notification or a forwarded link.
-  '/offers/promo-free-delivery', '/offers/promo-heritage-braai',
+  '/offers/promo-free-delivery',
+  '/offers/promo-heritage-braai',
   '/offers/promo-sweet-potato-launch',
   // An order that is actually happening. The seed had four completed and one
   // cancelled, so the Orders tab's Active list was empty by construction and
@@ -93,7 +119,8 @@ const ROUTES = [
   // delivery reported FAILED, and a nine-line collection order sitting on the
   // counter at `ready`. The second is also the widest basket the sweep has,
   // which is what makes 320pt worth checking on it.
-  '/order/order-4840', '/order/order-4842',
+  '/order/order-4840',
+  '/order/order-4842',
   // A product the kitchen has run out of. Every one of the 28 was available,
   // so the menu, the card grid and this screen had never drawn the other case.
   '/product/rose-ddeok-bokki',
@@ -114,7 +141,9 @@ const ROUTES = [
   '/order/order-4848',
   // A receipt whose delivery fee a voucher paid, one booked for tomorrow, and
   // one whose reward covered the food so nothing was earned.
-  '/order/order-4560', '/order/order-4850', '/order/order-4520',
+  '/order/order-4560',
+  '/order/order-4850',
+  '/order/order-4520',
   // A campaign still running for a dish that cannot be ordered today.
   '/offers/promo-cheesling-fries',
   // The Favourites deep link Home offers under "See all". Nothing had ever put
@@ -124,18 +153,26 @@ const ROUTES = [
   // A courier the network is authorised to track, a delivery that says why it
   // failed, a booking whose slot has been and gone, and a push pointing at an
   // order that is no longer there.
-  '/order/order-4854', '/order/order-4856', '/order/order-3980',
+  '/order/order-4854',
+  '/order/order-4856',
+  '/order/order-3980',
   // Cash on delivery with the first unhappy rating, Instant EFT with a line
   // nobody chose an option on, dine-in ordered at the counter with no table,
   // and an order whose branch has since closed.
-  '/order/order-4862', '/order/order-4864', '/order/order-4866', '/order/order-4870',
+  '/order/order-4862',
+  '/order/order-4864',
+  '/order/order-4866',
+  '/order/order-4870',
   // A courier authorised to report a position that has not reported one, a
   // courier job the network handed back, and an order whose food a reward
   // covered entirely.
-  '/order/order-4874', '/order/order-4876', '/order/order-4878',
+  '/order/order-4874',
+  '/order/order-4876',
+  '/order/order-4878',
   // A promotion advertising a code this customer has already spent, and the
   // kids box whose required drink group can take money off the price.
-  '/offers/promo-soy-fan', '/product/little-crunch-chicken-meal',
+  '/offers/promo-soy-fan',
+  '/product/little-crunch-chicken-meal',
   // The one category with a single product in it.
   '/menu?category=rice-bowls',
   // A reward reached from a notification rather than the rewards list.
@@ -225,7 +262,8 @@ const MUST_SHOW = {
   // there at all.
   // Two shapes in one list: an advisory with no artwork, and a promotion with
   // a photograph on it. The second is what the row had no room for at all.
-  '/account/notifications': /Load-shedding[\s\S]*Wings, four ways|Wings, four ways[\s\S]*Load-shedding/,
+  '/account/notifications':
+    /Load-shedding[\s\S]*Wings, four ways|Wings, four ways[\s\S]*Load-shedding/,
   // Both discount lines, attributed to the two different things that produced
   // them. A receipt that lumped them together would lose which was which.
   '/order/order-4795': /Promo · WELCOME50[\s\S]*Reward ·/,
@@ -320,7 +358,6 @@ const MUST_SHOW = {
   // A campaign whose dish lost the last option in its required group. The
   // promotion stands; the button stops promising it.
   '/offers/promo-cheesling-fries': /Every choice under "Size" is sold out[\s\S]*Sold out/,
-
 };
 
 /**
@@ -334,9 +371,15 @@ const FAILURE_COPY = /Something went wrong|Our kitchen is having a moment|We can
 const WIDTHS = [390, 320];
 
 const TYPES = {
-  '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf',
-  '.ico': 'image/x-icon', '.json': 'application/json', '.svg': 'image/svg+xml',
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ttf': 'font/ttf',
+  '.ico': 'image/x-icon',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
 };
 
 function serve() {
@@ -373,7 +416,10 @@ const probe = (viewportWidth) => {
   const seen = new Set();
   return {
     scrollsSideways: Math.max(0, document.documentElement.scrollWidth - viewportWidth),
-    past: past.filter((c) => !seen.has(c.txt) && seen.add(c.txt)).sort((a, b) => b.px - a.px).slice(0, 3),
+    past: past
+      .filter((c) => !seen.has(c.txt) && seen.add(c.txt))
+      .sort((a, b) => b.px - a.px)
+      .slice(0, 3),
     blank: (document.body.innerText ?? '').trim().length < 12,
     text: (document.body.innerText ?? '').trim(),
     // Measured, not read. The banner's copy sits in the DOM at all times and
@@ -412,21 +458,27 @@ const a11yProbe = (checkFocusRings) => {
   const unnamed = [];
   const hiddenButLive = [];
   const all = [
-    ...document.querySelectorAll('[role="button"],[role="tab"],[role="link"],[role="switch"],button,input,a'),
+    ...document.querySelectorAll(
+      '[role="button"],[role="tab"],[role="link"],[role="switch"],button,input,a',
+    ),
   ].filter(visibleOnly);
 
   for (const el of all) {
     if (el.closest('[aria-hidden="true"]') === null) continue;
     if (getComputedStyle(el).pointerEvents === 'none') continue;
     hiddenButLive.push(
-      (el.getAttribute('aria-label') ?? el.textContent ?? el.tagName.toLowerCase()).trim().slice(0, 32),
+      (el.getAttribute('aria-label') ?? el.textContent ?? el.tagName.toLowerCase())
+        .trim()
+        .slice(0, 32),
     );
   }
 
   const interactive = all.filter((el) => !decorative(el));
   for (const el of interactive) {
     const name =
-      el.getAttribute('aria-label') ?? el.getAttribute('placeholder') ?? (el.textContent ?? '').trim();
+      el.getAttribute('aria-label') ??
+      el.getAttribute('placeholder') ??
+      (el.textContent ?? '').trim();
     if (!name) unnamed.push(el.getAttribute('role') ?? el.tagName.toLowerCase());
   }
 
@@ -457,7 +509,9 @@ const a11yProbe = (checkFocusRings) => {
   for (const el of interactive) {
     const role = el.getAttribute('role');
     const needs = role ? REQUIRED_STATE[role] : undefined;
-    const label = (el.getAttribute('aria-label') ?? el.textContent ?? role ?? '').trim().slice(0, 32);
+    const label = (el.getAttribute('aria-label') ?? el.textContent ?? role ?? '')
+      .trim()
+      .slice(0, 32);
     if (needs && !el.hasAttribute(needs)) stateless.push(`${role} "${label}" has no ${needs}`);
     if (el.hasAttribute('aria-selected') && !SELECTABLE.includes(role ?? '')) {
       misstated.push(`${role ?? el.tagName.toLowerCase()} "${label}" carries aria-selected`);
@@ -482,7 +536,9 @@ const a11yProbe = (checkFocusRings) => {
   const nested = [];
   for (const el of interactive) {
     const inner = [
-      ...el.querySelectorAll('[role="button"],[role="tab"],[role="link"],[role="switch"],button,input,a[href]'),
+      ...el.querySelectorAll(
+        '[role="button"],[role="tab"],[role="link"],[role="switch"],button,input,a[href]',
+      ),
     ].filter((child) => visibleOnly(child) && !decorative(child));
     for (const child of inner) {
       nested.push(
@@ -506,7 +562,9 @@ const a11yProbe = (checkFocusRings) => {
     const ring =
       (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0) || cs.boxShadow !== 'none';
     if (!ring) {
-      noRing.push((active.getAttribute('aria-label') ?? active.textContent ?? '?').trim().slice(0, 28));
+      noRing.push(
+        (active.getAttribute('aria-label') ?? active.textContent ?? '?').trim().slice(0, 28),
+      );
     }
     active.blur?.();
   }
@@ -545,7 +603,16 @@ const a11yProbe = (checkFocusRings) => {
     small.push({ label, w: Math.round(width), h: Math.round(height) });
   }
 
-  return { unnamed, noRing, small, hiddenButLive, nested, stateless, misstated, focusableCount: focusable.length };
+  return {
+    unnamed,
+    noRing,
+    small,
+    hiddenButLive,
+    nested,
+    stateless,
+    misstated,
+    focusableCount: focusable.length,
+  };
 };
 
 let chromium;
@@ -553,8 +620,7 @@ try {
   ({ chromium } = await import('playwright'));
 } catch {
   console.error(
-    'Playwright is not installed.\n' +
-      '  npm i -D playwright && npx playwright install chromium',
+    'Playwright is not installed.\n' + '  npm i -D playwright && npx playwright install chromium',
   );
   process.exit(2);
 }
@@ -590,7 +656,8 @@ try {
     page.on('pageerror', (e) => errors.push('uncaught: ' + String(e).slice(0, 120)));
     page.on('console', (m) => {
       const t = m.text();
-      if (m.type() === 'error' && !t.includes('Failed to load resource')) errors.push(t.slice(0, 120));
+      if (m.type() === 'error' && !t.includes('Failed to load resource'))
+        errors.push(t.slice(0, 120));
     });
 
     /**
@@ -649,13 +716,16 @@ try {
       if (r.scrollsSideways) {
         findings.push(`${route} @${width} — page scrolls ${r.scrollsSideways}px sideways`);
       }
-      for (const c of r.past) findings.push(`${route} @${width} — "${c.txt}" sits ${c.px}px past the edge`);
+      for (const c of r.past)
+        findings.push(`${route} @${width} — "${c.txt}" sits ${c.px}px past the edge`);
 
       // Laid out is not the same as populated. A screen full of empty states
       // passes every check above.
       const expected = MUST_SHOW[route];
       if (expected && !expected.test(r.text)) {
-        findings.push(`${route} @${width} — rendered, but shows no ${expected.source.split('|')[0]}`);
+        findings.push(
+          `${route} @${width} — rendered, but shows no ${expected.source.split('|')[0]}`,
+        );
       }
       const failure = FAILURE_COPY.exec(r.text);
       if (failure) findings.push(`${route} @${width} — shows "${failure[0]}"`);
@@ -664,7 +734,8 @@ try {
       if (width === WIDTHS[0]) {
         const a = await page.evaluate(a11yProbe, FOCUS_RING_ROUTES.includes(route));
         for (const u of a.unnamed) findings.push(`${route} — ${u} has no accessible name (§32.6)`);
-        for (const n of a.noRing) findings.push(`${route} — "${n}" has no visible focus ring (§32.6)`);
+        for (const n of a.noRing)
+          findings.push(`${route} — "${n}" has no visible focus ring (§32.6)`);
         for (const h of a.hiddenButLive) {
           findings.push(
             `${route} — "${h}" is hidden from a screen reader but still takes taps (§32.6)`,
@@ -694,9 +765,9 @@ try {
 console.log(`\nSwept ${ROUTES.length} routes at ${WIDTHS.join('pt and ')}pt.`);
 if (findings.length === 0) {
   console.log(
-  'No overflow, no blank screens, no console errors, no accessibility gaps,\n' +
-    'and every tappable thing clears 44x44 once its declared slop is counted.',
-);
+    'No overflow, no blank screens, no console errors, no accessibility gaps,\n' +
+      'and every tappable thing clears 44x44 once its declared slop is counted.',
+  );
   process.exit(0);
 }
 console.log(`\n${findings.length} finding(s):\n`);

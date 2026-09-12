@@ -34,9 +34,15 @@ const PORT = 8124;
 const BASE = `http://localhost:${PORT}`;
 
 const TYPES = {
-  '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf',
-  '.ico': 'image/x-icon', '.json': 'application/json', '.svg': 'image/svg+xml',
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ttf': 'font/ttf',
+  '.ico': 'image/x-icon',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
 };
 
 function serve() {
@@ -54,7 +60,9 @@ let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch {
-  console.error('Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium');
+  console.error(
+    'Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium',
+  );
   process.exit(2);
 }
 
@@ -125,11 +133,13 @@ try {
   page.on('pageerror', (e) => errors.push('uncaught: ' + String(e).slice(0, 160)));
   page.on('console', (m) => {
     const t = m.text();
-    if (m.type() === 'error' && !t.includes('Failed to load resource')) errors.push(t.slice(0, 160));
+    if (m.type() === 'error' && !t.includes('Failed to load resource'))
+      errors.push(t.slice(0, 160));
   });
 
   const go = (route) => page.goto(BASE + route, { waitUntil: 'networkidle', timeout: 45000 });
-  const tap = (testId) => page.locator(`[data-testid="${testId}"]`).first().click({ timeout: 10000 });
+  const tap = (testId) =>
+    page.locator(`[data-testid="${testId}"]`).first().click({ timeout: 10000 });
   const step = (name) => {
     steps.push(name);
     console.log(`  ✓ ${name}`);
@@ -143,7 +153,10 @@ try {
   step('signed in');
 
   await go('/menu');
-  await page.getByText('Golden Original Chicken', { exact: false }).first().click({ timeout: 10000 });
+  await page
+    .getByText('Golden Original Chicken', { exact: false })
+    .first()
+    .click({ timeout: 10000 });
   await page.waitForURL(/product\//, { timeout: 15000 });
   step('opened a product');
 
@@ -171,7 +184,8 @@ try {
     const why = await page.evaluate(() => {
       const btn = document.querySelector('[data-testid="checkout-place-order"]');
       const footer = btn?.parentElement;
-      const caption = footer && [...footer.children].find((c) => c !== btn && c.textContent?.trim());
+      const caption =
+        footer && [...footer.children].find((c) => c !== btn && c.textContent?.trim());
       return caption?.textContent?.trim() ?? '(no reason shown)';
     });
     throw new Error(`place order is still blocked: "${why}"`);

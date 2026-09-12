@@ -45,7 +45,11 @@ if (!plistPath) {
 const plist = JSON.parse(
   execFileSync(
     'python3',
-    ['-c', 'import plistlib,sys,json; print(json.dumps(plistlib.load(open(sys.argv[1],"rb")),default=str))', plistPath],
+    [
+      '-c',
+      'import plistlib,sys,json; print(json.dumps(plistlib.load(open(sys.argv[1],"rb")),default=str))',
+      plistPath,
+    ],
     { encoding: 'utf8' },
   ),
 );
@@ -68,7 +72,9 @@ const UNEARNED = [
 
 for (const key of UNEARNED) {
   if (key in plist) {
-    findings.push(`Info.plist declares ${key} — the app does not use it. Suppress it in the plugin config.`);
+    findings.push(
+      `Info.plist declares ${key} — the app does not use it. Suppress it in the plugin config.`,
+    );
   }
 }
 
@@ -145,7 +151,9 @@ if (findings.length === 0) {
   const permissions = [...manifest.matchAll(/android:name="(android\.permission\.[^"]+)"/g)]
     .map((m) => m[1].replace('android.permission.', ''))
     .sort();
-  console.log(`\niOS purpose strings: ${Object.keys(plist).filter((k) => k.endsWith('UsageDescription')).length}`);
+  console.log(
+    `\niOS purpose strings: ${Object.keys(plist).filter((k) => k.endsWith('UsageDescription')).length}`,
+  );
   console.log(`Android permissions: ${permissions.join(', ')}`);
   console.log('\nThe native projects declare nothing the app does not use. Cleared.');
   process.exit(0);

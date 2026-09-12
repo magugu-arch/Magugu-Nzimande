@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 const read = (file: string) => readFileSync(path.join(__dirname, '..', file), 'utf8');
@@ -282,17 +282,46 @@ describe('what was already right', () => {
  * it, with nothing declaring the dependency.
  */
 describe('the offline sweep seeds a customer the app will actually load', () => {
-  it('derives the persisted version rather than writing it down', () => {
-    const source = audit();
+  /**
+   * All three of them, not just the one that broke.
+   *
+   * `audit:wire` and `audit:writes` wrote `version: 1`, which is correct today
+   * and is the same latent failure: the next bump breaks them in exactly the
+   * same silent way. Fixing only the sweep that had already failed would have
+   * left two more waiting for the same afternoon.
+   */
+  it.each(['scripts/audit-offline.mjs', 'scripts/audit-wire.mjs', 'scripts/audit-writes.mjs'])(
+    '%s derives the persisted version rather than writing it down',
+    (file) => {
+      const source = code(file);
 
-    expect(source).toMatch(/const PERSIST_VERSION = \(\(\) => \{/);
-    expect(source).toMatch(/src\/store\/persistence\.ts/);
-    // And there is no literal left to drift.
-    expect(source).not.toMatch(/version: \d+,/);
-  });
+      expect(source).toMatch(/import \{ PERSIST_VERSION \} from '\.\/lib\/persist-version\.mjs'/);
+      expect(source).toMatch(/version: PERSIST_VERSION,/);
+      // And there is no literal left to drift.
+      expect(source).not.toMatch(/version: \d+,/);
+    },
+  );
 
   it('throws rather than seeding a version nobody uses', () => {
-    expect(audit()).toMatch(/throw new Error\('PERSIST_VERSION not found/);
+    expect(code('scripts/lib/persist-version.mjs')).toMatch(
+      /throw new Error\('PERSIST_VERSION not found/,
+    );
+  });
+
+  /**
+   * And the rule holds for any sweep added later: if it stamps a persisted
+   * envelope, it reads the version rather than choosing one.
+   */
+  it('is the rule for every sweep that seeds persisted state', () => {
+    const scripts = readdirSync(path.join(__dirname, '..', 'scripts')).filter((name) =>
+      name.endsWith('.mjs'),
+    );
+
+    for (const name of scripts) {
+      const source = code(`scripts/${name}`);
+      if (!/setItem\('bbq\./.test(source)) continue;
+      expect(source).toMatch(/PERSIST_VERSION/);
+    }
   });
 
   /**
@@ -305,7 +334,10 @@ describe('the offline sweep seeds a customer the app will actually load', () => 
     const declared = /export const PERSIST_VERSION = (\d+);/.exec(persistence)?.[1];
 
     expect(declared).toBeDefined();
-    expect(audit()).toContain('export const PERSIST_VERSION = (\\d+);');
+    // The reader looks for exactly the declaration the store file makes.
+    expect(code('scripts/lib/persist-version.mjs')).toContain(
+      'export const PERSIST_VERSION = (\\d+);',
+    );
   });
 });
 

@@ -56,6 +56,7 @@ import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { PERSIST_VERSION } from './lib/persist-version.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(root, '.audit-writes');
@@ -104,7 +105,7 @@ const SIGNED_IN = JSON.stringify({
     },
     preferences: { defaultFulfilment: 'delivery', marketingConsent: false, preferMildFirst: false },
   },
-  version: 1,
+  version: PERSIST_VERSION,
 });
 
 /**

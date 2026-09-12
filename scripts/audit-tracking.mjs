@@ -38,9 +38,15 @@ const BASE = `http://localhost:${PORT}`;
 const LUNCHTIME = '2026-08-24T13:00:00+02:00';
 
 const TYPES = {
-  '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf',
-  '.ico': 'image/x-icon', '.json': 'application/json', '.svg': 'image/svg+xml',
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ttf': 'font/ttf',
+  '.ico': 'image/x-icon',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
 };
 
 function serve() {
@@ -58,7 +64,9 @@ let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch {
-  console.error('Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium');
+  console.error(
+    'Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium',
+  );
   process.exit(2);
 }
 
@@ -120,10 +128,17 @@ try {
   await tap('sign-in-submit');
   await page.waitForURL((url) => !url.pathname.endsWith('/sign-in'), { timeout: 25000 });
   await page.waitForTimeout(1200);
-  await page.getByText('Not now', { exact: false }).first().click({ timeout: 5000 }).catch(() => {});
+  await page
+    .getByText('Not now', { exact: false })
+    .first()
+    .click({ timeout: 5000 })
+    .catch(() => {});
 
   await page.goto(BASE + '/menu', { waitUntil: 'networkidle', timeout: 45000 });
-  await page.getByText('Golden Original Chicken', { exact: false }).first().click({ timeout: 15000 });
+  await page
+    .getByText('Golden Original Chicken', { exact: false })
+    .first()
+    .click({ timeout: 15000 });
   await page.waitForURL(/product\//, { timeout: 15000 });
   await tap('product-add-to-cart');
 
@@ -187,7 +202,9 @@ try {
 
   const done = await readCard();
   if (done.middle !== null) {
-    throw new Error(`an hour later the order is finished and tracking still promises "${done.eta}"`);
+    throw new Error(
+      `an hour later the order is finished and tracking still promises "${done.eta}"`,
+    );
   }
   if (!done.status) {
     throw new Error('the card says nothing at all about where the order got to');

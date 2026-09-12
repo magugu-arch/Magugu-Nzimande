@@ -48,9 +48,15 @@ const pinClock = (iso) => `
 `;
 
 const TYPES = {
-  '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf',
-  '.ico': 'image/x-icon', '.json': 'application/json', '.svg': 'image/svg+xml',
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ttf': 'font/ttf',
+  '.ico': 'image/x-icon',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
 };
 
 function serve() {
@@ -68,7 +74,9 @@ let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch {
-  console.error('Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium');
+  console.error(
+    'Playwright is not installed.\n  npm i -D playwright && npx playwright install chromium',
+  );
   process.exit(2);
 }
 
@@ -115,14 +123,18 @@ try {
       const button = document.querySelector('[data-testid="checkout-place-order"]');
       const footer = button?.parentElement;
       const caption =
-        footer && [...footer.children].find((child) => child !== button && child.textContent?.trim());
+        footer &&
+        [...footer.children].find((child) => child !== button && child.textContent?.trim());
       return caption?.textContent?.trim() ?? '(no reason shown)';
     });
   };
 
   const addFoodToCart = async () => {
     await go('/menu');
-    await page.getByText('Golden Original Chicken', { exact: false }).first().click({ timeout: 10000 });
+    await page
+      .getByText('Golden Original Chicken', { exact: false })
+      .first()
+      .click({ timeout: 10000 });
     await page.waitForURL(/product\//, { timeout: 15000 });
     await tap('product-add-to-cart');
   };
@@ -252,9 +264,7 @@ try {
   await page.evaluate(() => window.localStorage.clear());
   await go('/');
   await signIn('regular@example.co.za');
-  const leftover = await page.evaluate(() =>
-    window.localStorage.getItem('bbq.fulfilment'),
-  );
+  const leftover = await page.evaluate(() => window.localStorage.getItem('bbq.fulfilment'));
   if (leftover && /"address":\{/.test(leftover)) {
     throw new Error('the device was supposed to start with no address saved on it');
   }

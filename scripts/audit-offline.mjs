@@ -24,35 +24,11 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { PERSIST_VERSION } from './lib/persist-version.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-
-/**
- * The persisted-state version, read from the app rather than written down.
- *
- * This sweep said `version: 0` in two places, and had done since before
- * `PERSIST_VERSION` existed. Round 11 introduced versioned persistence with a
- * `merge`, and Zustand drops stored state whose version does not match — so
- * from that moment the seeded customer was discarded on every route and five
- * screens rendered "Sign in to see your orders" instead of the signed-in
- * screen they were meant to test. Checkout rendered "Nothing to check out" for
- * the same reason: its basket seed carried the same stale version.
- *
- * The sweep kept producing output the whole time. It reported six routes as
- * "says nothing about the server at all", which was true and was about itself.
- *
- * So the number is derived. A future bump changes one constant and this
- * follows it; if the constant is ever renamed, this throws rather than
- * quietly seeding a version nobody uses.
- */
-const PERSIST_VERSION = (() => {
-  const source = readFileSync(path.join(root, 'src/store/persistence.ts'), 'utf8');
-  const found = /export const PERSIST_VERSION = (\d+);/.exec(source);
-  if (!found) throw new Error('PERSIST_VERSION not found in src/store/persistence.ts');
-  return Number(found[1]);
-})();
 
 const OUT = path.join(root, '.audit-nobackend');
 const PORT = 8161;

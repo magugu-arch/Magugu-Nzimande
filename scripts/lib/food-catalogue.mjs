@@ -47,9 +47,8 @@ export function foodCatalogue() {
   const keys = [...keyBlock[1].matchAll(/'([A-Za-z0-9]+)'/g)].map((match) => match[1]);
   if (keys.length === 0) fail('FOOD_ASSET_KEYS parsed as empty.');
 
-  const labelBlock = /export const FOOD_ASSET_LABELS: Record<FoodAssetKey, string> = \{([\s\S]*?)\n\};/.exec(
-    source,
-  );
+  const labelBlock =
+    /export const FOOD_ASSET_LABELS: Record<FoodAssetKey, string> = \{([\s\S]*?)\n\};/.exec(source);
   if (!labelBlock) fail('Could not find FOOD_ASSET_LABELS.');
 
   const labels = new Map(

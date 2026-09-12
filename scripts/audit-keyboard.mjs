@@ -59,7 +59,9 @@ function serve() {
       if (!path.extname(file) || !existsSync(file) || statSync(file).isDirectory()) {
         file = path.join(OUT, 'index.html');
       }
-      res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
+      res.writeHead(200, {
+        'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream',
+      });
       createReadStream(file).pipe(res);
     });
     server.listen(PORT, '127.0.0.1', () => resolve(server));
@@ -256,7 +258,10 @@ try {
   }
 
   // ── Checkout, as far as the button that takes money ─────────────────────
-  await page.goto(`http://localhost:${PORT}/checkout`, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.goto(`http://localhost:${PORT}/checkout`, {
+    waitUntil: 'networkidle',
+    timeout: 45000,
+  });
   await page.waitForTimeout(3000);
 
   const placeOrder = await tabTo(/place order/i, 70);
@@ -290,7 +295,5 @@ if (findings.length === 0) {
 
 console.log(`\n${findings.length} finding(s):\n`);
 for (const finding of findings) console.log(`  ✗ ${finding}`);
-console.log(
-  '\nWCAG 2.1.1: everything the pointer can do, the keyboard must be able to do too.',
-);
+console.log('\nWCAG 2.1.1: everything the pointer can do, the keyboard must be able to do too.');
 process.exit(1);

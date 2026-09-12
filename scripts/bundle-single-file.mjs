@@ -53,7 +53,10 @@ function newestSourceTime(dir) {
   let newest = 0;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
-    newest = Math.max(newest, entry.isDirectory() ? newestSourceTime(full) : statSync(full).mtimeMs);
+    newest = Math.max(
+      newest,
+      entry.isDirectory() ? newestSourceTime(full) : statSync(full).mtimeMs,
+    );
   }
   return newest;
 }
@@ -247,7 +250,10 @@ const single = html
    * throws "Invalid or unexpected token" the moment it is inlined. A function
    * hands the text back untouched.
    */
-  .replace('</body>', () => `<script>\n${START_AT_ROOT}\n</script>\n<script>\n${bundle}\n</script>\n</body>`);
+  .replace(
+    '</body>',
+    () => `<script>\n${START_AT_ROOT}\n</script>\n<script>\n${bundle}\n</script>\n</body>`,
+  );
 
 writeFileSync(out, single);
 

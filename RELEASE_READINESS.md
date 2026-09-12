@@ -770,6 +770,15 @@ underneath it, with nothing declaring the dependency.
 The version is now read out of `src/store/persistence.ts` rather than written
 down, and throws if the constant is ever renamed. All seventeen routes pass.
 
+**And the class, not the instance.** Checked across every sweep: four others
+touch persisted keys but only *read* them, so they drive the app through the UI
+and are unaffected. Two — `audit:wire` and `audit:writes` — seed state with
+`version: 1`, which is correct today and is the same latent failure waiting for
+the next bump. All three now import one derived constant from
+`scripts/lib/persist-version.mjs`, and a fixture holds the rule for any sweep
+added later: if it stamps a persisted envelope, it reads the version rather
+than choosing one.
+
 ### The last screen without the rule
 
 Adding the confirmation screen to that sweep found the one place still missing
