@@ -29,12 +29,31 @@ export const ScreenHeader = memo(function ScreenHeader({
   const router = useRouter();
   const tint = onDark ? colors.textOnDark : colors.textPrimary;
 
+  /*
+    The back arrow on every stack screen in the app, and it was a dead button
+    on any screen opened cold.
+
+    `canGoBack()` is false whenever this screen is the first one — a deep link,
+    a push notification, a shared link, and on the web build every refresh. The
+    arrow was still drawn, still had its "Go back" label, still took the tap,
+    and did nothing. There is no way out of that screen except the OS back
+    gesture, which on web is the browser's own history and equally empty.
+
+    Found by grep after `audit:back` found the same line without a fallback on
+    two checkout screens. It is the widest instance by far: this component is
+    the header, so the hole was on every screen that uses one.
+
+    Home, because this component cannot know better. A screen with somewhere
+    more specific to go passes `onBack` and says so — which is what the
+    checkout pickers now do.
+  */
   const handleBack = () => {
     if (onBack) {
       onBack();
       return;
     }
     if (router.canGoBack()) router.back();
+    else router.replace('/(tabs)/home');
   };
 
   return (

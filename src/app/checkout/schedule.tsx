@@ -32,9 +32,14 @@ export default function ScheduleScreen() {
 
   const activeDay = days[activeDayIndex];
 
+  // Confirmed, and then somewhere to go — the same hole `checkout/address.tsx`
+  // had, for the same reason. Opened cold there is no history behind this
+  // screen, so `back()` did nothing and the customer was left on the picker
+  // with the time already saved. Driven by `audit:back`.
   const handleConfirm = useCallback(() => {
     setScheduledFor(draft);
     if (router.canGoBack()) router.back();
+    else router.replace('/checkout');
   }, [draft, setScheduledFor, router]);
 
   const verb = fulfilmentType === 'delivery' ? 'delivered' : 'ready';
@@ -88,7 +93,13 @@ export default function ScheduleScreen() {
               : "We're closed for scheduling right now. Place the order as soon as possible instead."
           }
           actionLabel={notOpenYet ? 'Choose another store' : 'Go back'}
-          onActionPress={() => (notOpenYet ? router.replace('/checkout/store') : router.back())}
+          onActionPress={() => {
+            if (notOpenYet) router.replace('/checkout/store');
+            else if (router.canGoBack()) router.back();
+            // A "Go back" that goes nowhere is worse than no button; opened
+            // cold, checkout is what this screen was answering for.
+            else router.replace('/checkout');
+          }}
         />
       </Screen>
     );

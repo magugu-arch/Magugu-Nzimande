@@ -968,6 +968,64 @@ handed over where storage holds strings. A malformed seed exits 2, not 1: it is
 a bug in the script, and reporting it under a findings heading would read like
 a defect in the app.
 
+## 2t. Every screen opened cold
+
+Every sweep in this repository drives the app forwards. A customer does not.
+They open a push notification onto a screen in the middle of a journey, they
+follow a link somebody shared in a group chat, they press Back on the
+confirmation to check the money really moved.
+
+`router.canGoBack()` is false whenever a screen is the first one — a deep link,
+a notification, a shared link, and on the web build every refresh. Six places
+called `router.back()` behind that guard with nothing after it, so on those
+screens the control was drawn, was labelled "Go back", took the tap and did
+nothing:
+
+| where | what did nothing |
+| --- | --- |
+| `ScreenHeader` | the back arrow at the top of every stack screen in the app |
+| `product/[id]` | "Add to cart" — the line went into the basket, the screen sat still |
+| `order/[id]/rate` | "Not now", on the screen a notification lands on |
+| `checkout/address` | choosing an address |
+| `checkout/schedule` | confirming a time, and the "Go back" in its empty state |
+
+`npm run audit:back` found the two checkout ones by driving them. A grep for
+the same line found the other four — **the fix follows the sweep, and wherever
+the sweep never went the hole stayed open**, which is this repository's oldest
+lesson about itself, arriving again.
+
+The header is the widest: it is the component, so the hole was on every screen
+that uses one. The product page is the worst for a customer, because the
+obvious response to a tap that does nothing is to tap again — which is how
+somebody ends up with three of the same thing in their basket and no idea why.
+
+Each fallback goes somewhere specific rather than all to one place: the header
+to home because it cannot know better, the two checkout pickers to `/checkout`
+because that is the question they were answering, the product page to `/cart`
+because that is where the item they just added now is, and "Not now" to the
+order it was asking about. `product/[id]` already had a correct one on its
+floating back button, written as a ternary, which is why the rule is now
+enforced on the branch rather than on one spelling of it.
+
+### The most expensive claim in the app, finally driven
+
+`checkout/index.tsx` says, beside the tap that takes the money, that the basket
+is cleared "before navigating so back navigation can never resubmit". That was
+a comment. `audit:back` now places a real order, presses Back on the
+confirmation, and reads the place-order button: it landed on `/menu` with
+nothing to press. **The claim is true, and now it is measured.**
+
+Two of the eight cases are controls rather than tests: `checkout/store.tsx` had
+the fallback all along, and Back out of the sign-in the app offers already
+returned to the gated screen. If either ever fails, the sweep is broken rather
+than the app — which is what makes the other six ticks a measurement.
+
+Not left to the sweep alone. `__tests__/wayBack.test.ts` derives the list of
+files that navigate backwards and requires, for each, that the count of
+`router.back()` matches the count of `router.canGoBack()` and that every guard
+has a branch to `router.replace` beside it. A seventh instance cannot be
+written without it failing.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1021,7 +1079,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **104 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **105 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

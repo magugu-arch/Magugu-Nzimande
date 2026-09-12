@@ -203,7 +203,24 @@ export default function RateOrderScreen() {
           size="lg"
           testID="rate-submit"
         />
-        <Button label="Not now" onPress={() => router.back()} variant="text" />
+        {/*
+          "Not now" on the screen a push notification lands on.
+
+          Rating is the one journey that is *usually* opened cold — the app
+          asks after the order arrives — so `canGoBack()` is normally false
+          here and this button normally did nothing at all. The order itself is
+          where the customer was headed, and it is where submitting a rating
+          sends them, so declining sends them to the same place.
+        */}
+        <Button
+          label="Not now"
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace(`/order/${order.data.id}`);
+          }}
+          variant="text"
+          testID="rate-not-now"
+        />
       </View>
     </Screen>
   );

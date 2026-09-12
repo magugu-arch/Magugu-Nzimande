@@ -69,10 +69,28 @@ export default function AddressScreen() {
     setErrors((current) => ({ ...current, [field]: undefined }));
   }, []);
 
+  /*
+    Chosen, and then somewhere to go.
+
+    `router.back()` alone assumes somebody arrived here from checkout. A deep
+    link, a push notification, and a browser refresh on the web build all open
+    this screen with nothing behind it, and `canGoBack()` is then false — so
+    the address was set, the tap did nothing visible, and the customer was left
+    looking at the list they had just answered. `audit:back` drove it: "the app
+    recorded the choice and left the customer on /checkout/address with no sign
+    it had."
+
+    `/checkout` rather than home, which is where `checkout/store.tsx` sends
+    them: that screen also serves somebody just browsing branches, and these
+    two only exist to answer a question checkout asked. A customer who arrives
+    here with no basket meets checkout's own empty state, which is a screen
+    that explains itself.
+  */
   const handleSelect = useCallback(
     (address: Address) => {
       setAddress(address);
       if (router.canGoBack()) router.back();
+      else router.replace('/checkout');
     },
     [setAddress, router],
   );

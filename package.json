@@ -57,7 +57,8 @@
     "audit:writes": "node scripts/audit-writes.mjs",
     "audit:skew": "node scripts/audit-skew.mjs",
     "audit:clock": "node scripts/audit-clock.mjs",
-    "audit:wire": "node scripts/audit-wire.mjs"
+    "audit:wire": "node scripts/audit-wire.mjs",
+    "audit:back": "node scripts/audit-back.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",

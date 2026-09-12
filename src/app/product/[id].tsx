@@ -160,7 +160,21 @@ export default function ProductDetailScreen() {
 
     addLine(product.data, selectedOptions, quantity, instructions);
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.back();
+    /*
+      Added, and then somewhere to go.
+
+      A product page is the most-shared screen in an app like this — a link in
+      a group chat, a push about a special — and every one of those opens it
+      cold, with no history. `back()` then did nothing: the line went into the
+      basket, the screen did not move, and the only feedback was a haptic. The
+      obvious response to that is to tap Add again, which is how somebody ends
+      up with three of the same thing and no idea why.
+
+      The cart, not home: they have just put something in it, and it is the one
+      screen that shows unambiguously that the tap worked.
+    */
+    if (router.canGoBack()) router.back();
+    else router.replace('/cart');
   }, [product.data, unmetGroups, addLine, selectedOptions, quantity, instructions, router]);
 
   if (product.isLoading) {

@@ -51,6 +51,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run audit:writes` | Refuse every write two ways — a 403 and a dropped connection — and fail if the customer is told nothing, or told nothing changed when nobody knows |
 | `npm run audit:upgrade` | Load storage written by the previous build and fail if an update signs the customer out or forgets what they saved |
 | `npm run audit:recovery` | Drive password recovery end to end, including a refused send and an expired link, and fail if a failure looks like a success |
+| `npm run audit:back` | Open screens cold, the way a deep link or a shared link does, and fail if a button that offers a way back does nothing |
 | `npm run smoke:order` | Place an order end to end against the mock layer, and refuse four that must not go through |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |
