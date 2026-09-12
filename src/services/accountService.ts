@@ -7,7 +7,7 @@ import type {
   SupportTopic,
 } from '@/types';
 import { delay, request } from './apiClient';
-import { checkedAddresses, checkedPaymentMethods } from './wireChecks';
+import { checkedAddresses, checkedPaymentMethods, checkedNotifications } from './wireChecks';
 import {
   notifications,
   savedAddresses,
@@ -190,14 +190,16 @@ export async function saveFavourites(customerId: string, productIds: string[]): 
 
 export async function fetchNotifications(): Promise<AppNotification[]> {
   if (config.useMockApi) return delay(notificationLedger);
-  return request<AppNotification[]>('/v1/account/notifications');
+  return request<AppNotification[]>('/v1/account/notifications', {
+    parse: checkedNotifications<AppNotification[]>,
+  });
 }
 
 export async function markNotificationRead(notificationId: string): Promise<AppNotification[]> {
   if (!config.useMockApi) {
     return request<AppNotification[]>(
       `/v1/account/notifications/${encodeURIComponent(notificationId)}/read`,
-      { method: 'POST' },
+      { method: 'POST', parse: checkedNotifications<AppNotification[]> },
     );
   }
 
@@ -209,7 +211,10 @@ export async function markNotificationRead(notificationId: string): Promise<AppN
 
 export async function markAllNotificationsRead(): Promise<AppNotification[]> {
   if (!config.useMockApi) {
-    return request<AppNotification[]>('/v1/account/notifications/read-all', { method: 'POST' });
+    return request<AppNotification[]>('/v1/account/notifications/read-all', {
+      method: 'POST',
+      parse: checkedNotifications<AppNotification[]>,
+    });
   }
 
   notificationLedger = notificationLedger.map((notification) => ({ ...notification, read: true }));

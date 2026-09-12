@@ -598,6 +598,87 @@ the app; that is exactly why it needed guarding. Reading the clock is the least
 important thing that function does and it had been handed the power to fail
 every request in the app.
 
+## 2n. A write the server refuses
+
+`queryPhase` exists because screens were written to a pattern with a hole in
+it: swept against a dead API host, eleven of fourteen claimed something false
+rather than admitting they could not reach the server. **Reads were fixed.
+Writes were never swept at all.**
+
+They are easy to miss for a reason worth naming. A failed read renders a wrong
+empty state, which is visible. A failed write renders nothing — which looks
+exactly like a screen nobody has tapped yet. `audit:wire` bends responses and
+reads what the customer is told, and every one of its eleven cases is a GET.
+
+Six writes said nothing whatsoever when the server refused:
+
+| Write | What the customer saw |
+| ----- | --------------------- |
+| Send a support message | the spinner stopped and the screen did not move |
+| Save a new address | a fully typed street address, no error, no confirmation |
+| Delete a saved card | the card still listed, after confirming a destructive dialogue |
+| Make a card the default | nothing changed, nothing said |
+| Remove a saved address | nothing said — **and the basket's delivery address cleared anyway** |
+| Mark a notification read | the badge stayed up |
+
+The two form ones were the worst: both `await`ed `mutateAsync` with no `catch`,
+so the rejection became an unhandled promise and the success path simply never
+ran. A customer reporting a wrong order taps Send, watches nothing happen, and
+taps again — and every attempt that later succeeds is another ticket for the
+same complaint.
+
+The address delete was the only one where silence was not the whole of the
+damage. It cleared the basket's delivery address unconditionally, before
+knowing whether anything had been deleted, so a refused delete left the address
+on file *and* the order with nowhere to go — a failure that cost the customer
+something rather than leaving things as they were.
+
+`cancelOrder` was the one already doing it properly — `onError` and a `tell` —
+and it is the shape the rest now follow.
+
+### The distinction that decides the wording
+
+Not "it failed", but **whether it might have happened anyway**. `writeFailure`
+splits the two: a status means the server answered, so it decided, so nothing
+changed and the app may say so. No status means the reply was lost and the
+write may well have been carried out — so the app says it could not tell, and
+to have a look before trying again.
+
+It is the same rule `safeToRetry` applies to a payment, where `declined` and
+`uncertain` are opposites. Getting it backwards is how an app talks somebody
+into deleting a card twice.
+
+`npm run audit:writes` refuses every write two ways for exactly this reason: a
+403, and a dropped socket. A case passes only if the customer is told something
+naming what they were doing, and the dropped-socket half additionally fails if
+the screen claims nothing changed.
+
+### What the counterfactual can and cannot show
+
+Against the previous code all twelve cells fail, and only one fails cleanly.
+`marking a notification read` reports the finding itself — *"the write failed
+and the customer was told nothing"* — because its control already carried a
+`testID`. The other four report *"could not press its own control"*, because
+the per-row testIDs the sweep needs went in alongside the fix. Those are real
+failures of the old build and they are not evidence of the defect.
+
+**And the sixth write was not found by the sweep at all.** Fixture 10 asserts
+that the writes already handled stay handled, and `checkout/address.tsx` turned
+out not to be one of them — no `catch` anywhere in the file while awaiting
+`createAddress`. A test looking for a regression found an original.
+
+### A crash on the way past
+
+The sweep's own stub sent a notification with `createdAt` where the type says
+`receivedAt`, and the notifications screen came down with "Something broke".
+The field name was this script's mistake — the same one `audit:wire` records at
+length. What it exposed was not: `/v1/account/notifications` was one of the
+twenty-nine `request` calls with no `parse`, so a backend that gets that field
+name wrong takes the screen down instead of failing honestly at the fetch.
+`checkedNotifications` now guards `id`, `receivedAt` and `read` across all
+three calls that return the list — `read` because a string `"false"` is truthy,
+which would mark every unread notification read and clear the badge by itself.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -651,7 +732,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **100 suites**, typecheck and lint clean (`npm test` prints the case count)
+- `npm run verify` — **101 suites**, typecheck and lint clean (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

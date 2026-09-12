@@ -18,6 +18,7 @@ import { colors, radius, spacing, typography } from '@/theme';
 import { callNumber, openExternal } from '@/utils/linking';
 import { required, validateFields } from '@/utils/validation';
 import { track } from '@/ux/analytics';
+import { writeFailureMessage } from '@/features/system/writeFailure';
 
 const SUBJECTS = [
   'Something was missing',
@@ -40,6 +41,13 @@ export default function ContactScreen() {
   const [orderReference, setOrderReference] = useState(order ?? '');
   const [errors, setErrors] = useState<Partial<Record<'subject' | 'message', string>>>({});
   const [ticketId, setTicketId] = useState<string | null>(null);
+  /*
+    A send that did not send. Its own state rather than a field error, because
+    it is not about anything they typed and clearing it on the next keystroke
+    would be wrong — it clears when they try again, which is the only thing
+    that changes whether it is still true.
+  */
+  const [sendFailure, setSendFailure] = useState<string | null>(null);
 
   const handleSubmit = useCallback(async () => {
     const validationErrors = validateFields(
@@ -52,11 +60,43 @@ export default function ContactScreen() {
       return;
     }
 
-    const result = await sendMessage.mutateAsync({
-      subject,
-      message,
-      ...(orderReference.trim().length > 0 ? { orderReference: orderReference.trim() } : {}),
-    });
+    /*
+      Caught, which it was not.
+
+      `mutateAsync` rejects when the send fails, and this function had no
+      `catch` at all: the rejection became an unhandled promise, `track` and
+      `setTicketId` never ran, the button's spinner stopped, and the screen did
+      not move. A customer reporting a wrong order or a missing refund taps
+      Send, watches nothing happen, and taps again — and every attempt that
+      later succeeds is another ticket for the same complaint.
+
+      Inline rather than a dialog, unlike the other writes this round: the
+      message they typed is still on screen and still theirs to send, so the
+      right place to say so is beside the button they will press again.
+    */
+    let result;
+    try {
+      result = await sendMessage.mutateAsync({
+        subject,
+        message,
+        ...(orderReference.trim().length > 0 ? { orderReference: orderReference.trim() } : {}),
+      });
+    } catch (error) {
+      /*
+        Title and sentence together, because this one is read on its own.
+
+        The dialogue cases get a title bar and a body; this is a line of text
+        beside a button, so it has to carry both halves or it says only "That
+        is not allowed right now" with nothing to say what "that" was. Caught
+        by `audit:writes`, which looked for the sentence naming the action and
+        found the server's words alone.
+      */
+      const said = writeFailureMessage(error, 'send your message');
+      setSendFailure(`${said.title}. ${said.message}`);
+      return;
+    }
+
+    setSendFailure(null);
     // §15 `support_contact`. The topic only — never the subject line or the
     // message, which is where a customer types an order number, a phone number
     // or a complaint about a named member of staff.
@@ -130,10 +170,11 @@ export default function ContactScreen() {
             What is this about?
           </Text>
           <View style={styles.subjectRow}>
-            {SUBJECTS.map((item) => (
+            {SUBJECTS.map((item, index) => (
               <Chip
                 key={item}
                 label={item}
+                testID={`contact-subject-${index}`}
                 selected={subject === item}
                 onPress={() => {
                   setSubject(item);
@@ -188,6 +229,15 @@ export default function ContactScreen() {
           )}
         </View>
 
+        {sendFailure ? (
+          <View style={styles.sendFailure} accessibilityRole="alert" testID="contact-send-failed">
+            <Ionicons name="alert-circle" size={17} color={colors.status.error} />
+            <Text variant="caption" color={colors.status.error} style={styles.sendFailureText}>
+              {sendFailure}
+            </Text>
+          </View>
+        ) : null}
+
         <Button
           label="Send message"
           onPress={() => void handleSubmit()}
@@ -201,6 +251,8 @@ export default function ContactScreen() {
 }
 
 const styles = StyleSheet.create({
+  sendFailure: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  sendFailureText: { flex: 1 },
   channels: { paddingHorizontal: spacing.lg, marginVertical: spacing.md },
   form: { gap: spacing.lg, paddingBottom: spacing.xxxl },
   subjectBlock: { gap: spacing.sm },

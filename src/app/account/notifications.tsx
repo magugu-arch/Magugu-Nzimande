@@ -24,6 +24,8 @@ import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequir
 import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
 import { formatDateTime } from '@/utils/datetime';
+import { writeFailureMessage } from '@/features/system/writeFailure';
+import { tell } from '@/ux/dialog';
 
 const CATEGORY_ICONS: Record<AppNotification['category'], keyof typeof Ionicons.glyphMap> = {
   order: 'receipt-outline',
@@ -51,7 +53,22 @@ export default function NotificationsScreen() {
 
   const handleOpen = useCallback(
     (notification: AppNotification) => {
-      if (!notification.read) markRead.mutate(notification.id);
+      if (!notification.read) {
+        /*
+          The quietest of the six, and still worth saying.
+
+          A read marker that does not stick leaves the badge up and the row
+          bold, which reads as the app not having registered the tap. Silence
+          here invites the customer to tap it again, which is harmless, and to
+          distrust the badge, which is not.
+        */
+        markRead.mutate(notification.id, {
+          onError: (error) => {
+            const said = writeFailureMessage(error, 'mark that as read');
+            void tell(said.title, said.message);
+          },
+        });
+      }
       // Server data, like the other two. This was the third call site pushing
       // a route somebody else chose, and the one my own sweep missed — I
       // grepped for the field names rather than for the sink.
@@ -112,7 +129,14 @@ export default function NotificationsScreen() {
         right={
           unreadCount > 0 ? (
             <Pressable
-              onPress={() => markAllRead.mutate()}
+              onPress={() =>
+                markAllRead.mutate(undefined, {
+                  onError: (error) => {
+                    const said = writeFailureMessage(error, 'mark everything as read');
+                    void tell(said.title, said.message);
+                  },
+                })
+              }
               accessibilityRole="button"
               accessibilityLabel="Mark all as read"
               // 75x19. `hitSlop` of 10 reached 39 tall, still short, and 19 on

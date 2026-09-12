@@ -48,6 +48,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run audit:wire` | Point a production build at a stub backend that answers *nearly* right, and check what the customer is told |
 | `npm run audit:clock` | Drive the app from six device timezones at one pinned instant, and fail if two phones are shown different times |
 | `npm run audit:skew` | Drive the app from four device clocks — one right, three wrong — against a stub whose clock is right, and fail if they are told different things |
+| `npm run audit:writes` | Refuse every write two ways — a 403 and a dropped connection — and fail if the customer is told nothing, or told nothing changed when nobody knows |
 | `npm run smoke:order` | Place an order end to end against the mock layer, and refuse four that must not go through |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |

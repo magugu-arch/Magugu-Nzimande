@@ -25,6 +25,7 @@ import { paymentCaption } from '@/features/checkout/paymentOptions';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing } from '@/theme';
 import { ask, tell } from '@/ux/dialog';
+import { writeFailureMessage } from '@/features/system/writeFailure';
 
 const ICONS: Record<PaymentMethod['type'], keyof typeof Ionicons.glyphMap> = {
   card: 'card-outline',
@@ -51,7 +52,24 @@ export default function PaymentMethodsScreen() {
         cancelLabel: 'Keep it',
         destructive: true,
       });
-      if (confirmed) deleteMethod.mutate(method.id);
+      if (!confirmed) return;
+
+      /*
+        A card that is still on file, said out loud.
+
+        This was `deleteMethod.mutate(method.id)` and nothing else. On a
+        refusal the mutation's `onSuccess` never ran, the list was never
+        invalidated, the card stayed exactly where it was and the customer —
+        who had just confirmed a destructive dialogue — was told nothing at
+        all. Believing you have removed a card from a food app and not having
+        is the kind of silence that costs trust rather than money.
+      */
+      deleteMethod.mutate(method.id, {
+        onError: (error) => {
+          const said = writeFailureMessage(error, 'delete that card');
+          void tell(said.title, said.message);
+        },
+      });
     },
     [deleteMethod],
   );
@@ -152,6 +170,7 @@ export default function PaymentMethodsScreen() {
                     // most: this is the smallest target in the app and one of
                     // the few that destroys something.
                     style={{ padding: 13, margin: -13 }}
+                    testID={`payment-delete-${method.id}`}
                   >
                     <Ionicons name="trash-outline" size={19} color={colors.textMuted} />
                   </Pressable>
@@ -160,8 +179,16 @@ export default function PaymentMethodsScreen() {
                 {!method.isDefault ? (
                   <Button
                     label="Make this my default"
-                    onPress={() => setDefault.mutate(method.id)}
+                    onPress={() =>
+                      setDefault.mutate(method.id, {
+                        onError: (error) => {
+                          const said = writeFailureMessage(error, 'change your default card');
+                          void tell(said.title, said.message);
+                        },
+                      })
+                    }
                     variant="text"
+                    testID={`payment-default-${method.id}`}
                     size="sm"
                     fullWidth={false}
                     style={styles.defaultButton}

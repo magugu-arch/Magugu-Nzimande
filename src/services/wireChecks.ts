@@ -406,6 +406,33 @@ export function checkedAddresses<T>(value: unknown): T {
   return value as T;
 }
 
+/**
+ * The notification list.
+ *
+ * Added because a crash found it rather than a review. `audit:writes` stubbed
+ * this endpoint with `createdAt` where the type says `receivedAt` — an
+ * ordinary thing for a backend to get wrong, and the exact kind of near-miss
+ * this file exists for — and the screen came down with "Something broke"
+ * instead of failing at the fetch and saying so.
+ *
+ * `receivedAt` is checked because the screen groups the list by day and sorts
+ * by it; `id` because marking one read looks it up by id. `read` is a boolean
+ * the row's whole appearance turns on, and a string `"false"` is truthy, which
+ * would mark every unread notification read. `title` and `body` are the text
+ * itself, so an absent one is a blank row rather than a wrong one, and they
+ * are left alone — the rule this file keeps is to check what the app does
+ * arithmetic on or looks things up by, not to become a schema.
+ */
+export function checkedNotifications<T>(value: unknown): T {
+  for (const [index, raw] of items(value, 'notifications').entries()) {
+    const notification = record(raw, `notifications[${index}]`);
+    text(notification.id, `notifications[${index}].id`);
+    text(notification.receivedAt, `notifications[${index}].receivedAt`);
+    flag(notification.read, `notifications[${index}].read`);
+  }
+  return value as T;
+}
+
 export function checkedVouchers(value: unknown): Voucher[] {
   for (const [index, raw] of items(value, 'vouchers').entries()) {
     checkVoucher(raw, `vouchers[${index}]`);

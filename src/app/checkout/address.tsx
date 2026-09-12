@@ -24,7 +24,8 @@ import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, spacing } from '@/theme';
 import { required, validateFields, validatePostalCode } from '@/utils/validation';
-import { ask } from '@/ux/dialog';
+import { ask, tell } from '@/ux/dialog';
+import { writeFailureMessage } from '@/features/system/writeFailure';
 
 type Field = 'label' | 'line1' | 'line2' | 'suburb' | 'city' | 'province' | 'postalCode';
 
@@ -55,6 +56,12 @@ export default function AddressScreen() {
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState<Record<Field, string>>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
+  /*
+    A save that did not save. Separate from `errors`, which are about what the
+    customer typed — this one is about the server, and clearing it on the next
+    keystroke would hide a failure they have not addressed.
+  */
+  const [saveFailure, setSaveFailure] = useState<string | null>(null);
   const [makeDefault, setMakeDefault] = useState(false);
 
   const update = useCallback((field: Field, value: string) => {
@@ -81,8 +88,30 @@ export default function AddressScreen() {
       });
       if (!confirmed) return;
 
-      deleteAddress.mutate(address.id);
-      if (selectedAddress?.id === address.id) setAddress(null);
+      /*
+        Two things were wrong here, and the second is the expensive one.
+
+        It said nothing when the delete was refused — the address stayed in the
+        list with no explanation. And it cleared the basket's delivery address
+        *unconditionally*, before knowing whether anything had been deleted. So
+        a refused delete left the customer with the address still on file and
+        their order no longer going anywhere: a failure that took something
+        away rather than leaving things as they were.
+
+        The local clear now happens on success only. On an unreachable write
+        the address is left selected, which is the safe side of a guess: the
+        delete may well have gone through, and the checkout screen re-checks
+        the address against the saved list anyway.
+      */
+      deleteAddress.mutate(address.id, {
+        onSuccess: () => {
+          if (selectedAddress?.id === address.id) setAddress(null);
+        },
+        onError: (error) => {
+          const said = writeFailureMessage(error, 'remove that address');
+          void tell(said.title, said.message);
+        },
+      });
     },
     [deleteAddress, selectedAddress, setAddress],
   );
@@ -132,18 +161,40 @@ export default function AddressScreen() {
       postalCode: form.postalCode.trim(),
     });
 
-    const created = await createAddress.mutateAsync({
-      label: form.label.trim(),
-      line1: form.line1.trim(),
-      ...(form.line2.trim().length > 0 ? { line2: form.line2.trim() } : {}),
-      suburb: form.suburb.trim(),
-      city: form.city.trim(),
-      province: form.province.trim(),
-      postalCode: form.postalCode.trim(),
-      ...(located ? { latitude: located.latitude, longitude: located.longitude } : {}),
-      isDefault: makeDefault,
-    });
+    /*
+      Caught, which it was not — the same defect as the contact form, on the
+      checkout path.
 
+      `mutateAsync` rejects when the save fails, and this file had no `catch`
+      in it at all. So the rejection went unhandled, `setAddress`, `setForm`
+      and `setAdding(false)` never ran, and the customer was left looking at a
+      form they had just filled in completely, with no error and no
+      confirmation — having typed a street address to get dinner delivered.
+
+      Found by this round's own fixture rather than by the sweep: fixture 10
+      asserts that the writes which were already handled stay handled, and
+      this file turned out not to be one of them.
+    */
+    let created;
+    try {
+      created = await createAddress.mutateAsync({
+        label: form.label.trim(),
+        line1: form.line1.trim(),
+        ...(form.line2.trim().length > 0 ? { line2: form.line2.trim() } : {}),
+        suburb: form.suburb.trim(),
+        city: form.city.trim(),
+        province: form.province.trim(),
+        postalCode: form.postalCode.trim(),
+        ...(located ? { latitude: located.latitude, longitude: located.longitude } : {}),
+        isDefault: makeDefault,
+      });
+    } catch (error) {
+      const said = writeFailureMessage(error, 'save that address');
+      setSaveFailure(`${said.title}. ${said.message}`);
+      return;
+    }
+
+    setSaveFailure(null);
     setAddress(created);
     setForm(EMPTY_FORM);
     setMakeDefault(false);
@@ -212,6 +263,7 @@ export default function AddressScreen() {
                 ) : (
                   <Pressable
                     onPress={() => handleDelete(address)}
+                    testID={`address-delete-${address.id}`}
                     accessibilityRole="button"
                     accessibilityLabel={`Remove ${address.label}`}
                     // A 19pt bin icon that deletes a saved address. `hitSlop` of
@@ -272,6 +324,7 @@ export default function AddressScreen() {
               label="Label"
               value={form.label}
               onChangeText={(text) => update('label', text)}
+              testID="address-field-label"
               error={errors.label ?? null}
               placeholder="Home, Work, Mom's place"
               required
@@ -280,6 +333,7 @@ export default function AddressScreen() {
               label="Street address"
               value={form.line1}
               onChangeText={(text) => update('line1', text)}
+              testID="address-field-line1"
               error={errors.line1 ?? null}
               placeholder="14 Acacia Road"
               autoComplete="street-address"
@@ -289,12 +343,14 @@ export default function AddressScreen() {
               label="Complex, unit or floor"
               value={form.line2}
               onChangeText={(text) => update('line2', text)}
+              testID="address-field-line2"
               placeholder="Unit 3 (optional)"
             />
             <TextField
               label="Suburb"
               value={form.suburb}
               onChangeText={(text) => update('suburb', text)}
+              testID="address-field-suburb"
               error={errors.suburb ?? null}
               placeholder="Melrose Arch"
               required
@@ -305,6 +361,7 @@ export default function AddressScreen() {
                 label="City"
                 value={form.city}
                 onChangeText={(text) => update('city', text)}
+                testID="address-field-city"
                 error={errors.city ?? null}
                 placeholder="Johannesburg"
                 containerStyle={styles.rowField}
@@ -314,6 +371,7 @@ export default function AddressScreen() {
                 label="Postal code"
                 value={form.postalCode}
                 onChangeText={(text) => update('postalCode', text)}
+                testID="address-field-postalCode"
                 error={errors.postalCode ?? null}
                 placeholder="2196"
                 keyboardType="number-pad"
@@ -327,6 +385,7 @@ export default function AddressScreen() {
               label="Province"
               value={form.province}
               onChangeText={(text) => update('province', text)}
+              testID="address-field-province"
               error={errors.province ?? null}
               placeholder="Gauteng"
               required
@@ -337,6 +396,19 @@ export default function AddressScreen() {
               value={makeDefault}
               onValueChange={setMakeDefault}
             />
+
+            {saveFailure ? (
+              <View
+                style={styles.saveFailure}
+                accessibilityRole="alert"
+                testID="address-save-failed"
+              >
+                <Ionicons name="alert-circle" size={17} color={colors.status.error} />
+                <Text variant="caption" color={colors.status.error} style={styles.saveFailureText}>
+                  {saveFailure}
+                </Text>
+              </View>
+            ) : null}
 
             <Button
               label="Save address"
@@ -362,6 +434,8 @@ export default function AddressScreen() {
 }
 
 const styles = StyleSheet.create({
+  saveFailure: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  saveFailureText: { flex: 1 },
   body: { gap: spacing.md, paddingBottom: spacing.xxxl },
   addressHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   addressTitles: { flex: 1, gap: spacing.xxs },
