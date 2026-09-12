@@ -263,8 +263,40 @@ describe('two processes at once', () => {
    * increments — which is exactly the bug this shipped with for the whole
    * project. If this ever stops losing them, the race has become too narrow to
    * reproduce and the test above has quietly stopped proving its claim.
+   *
+   * Raced several times rather than once, and that is the difference between a
+   * claim and a coin toss. The comment on the child's spin says the window was
+   * widened so an unlocked run loses increments "reliably rather than once in a
+   * hundred runs", and on an unloaded machine that holds. On a busy one the
+   * four spawns can stagger far enough that each child finishes its loop before
+   * the next reaches the file, and a perfect 40 comes back from a build with no
+   * lock at all.
+   *
+   * That happened here, on a change that touched nothing in this file, and it
+   * turned the whole verification gate red. A test that fails on unrelated work
+   * is a test people learn to re-run rather than read, which costs more than
+   * the bug it was written to catch.
+   *
+   * So the assertion is what it always meant: across a handful of independent
+   * races, an unlocked run loses an increment. One race that happens to
+   * serialise proves nothing either way; five that all come back whole mean the
+   * race really has stopped reproducing, and the test above really has stopped
+   * proving anything.
    */
+  const ATTEMPTS = 5;
+
   it('loses them without it, which is what was happening before', async () => {
-    expect(await race(childScript(false), aFile())).toBeLessThan(WORKERS * PER_WORKER);
-  }, 30_000);
+    const script = childScript(false);
+    const counts: number[] = [];
+
+    for (let attempt = 0; attempt < ATTEMPTS; attempt += 1) {
+      counts.push(await race(script, aFile()));
+      if ((counts.at(-1) ?? 0) < WORKERS * PER_WORKER) break;
+    }
+
+    expect(
+      Math.min(...counts),
+      `${ATTEMPTS} unlocked races and not one lost an increment — the race no longer reproduces, so the locked test above is proving nothing`,
+    ).toBeLessThan(WORKERS * PER_WORKER);
+  }, 60_000);
 });

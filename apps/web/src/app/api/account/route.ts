@@ -13,11 +13,24 @@ import { register } from '@/lib/accounts/store';
  */
 export async function POST(request: Request) {
   if (!areAccountsConfigured()) {
+    /**
+     * What is wrong, and not which variable is missing.
+     *
+     * This used to carry a `detail` naming the environment variable and its
+     * length rule. Nobody who can act on that is reading an HTTP response —
+     * the variable is in the README's table of what each one switches on and
+     * in `.env.example`, which is where somebody deploying this is already
+     * looking. What the reply did instead was tell any anonymous caller which
+     * variable gates authentication on this deployment and that it is
+     * currently not set.
+     *
+     * The health endpoint has the rule written above it: no secret, hostname
+     * or connection string, only whether each thing is present. It reports
+     * `accounts: false` and stops, and that is the right amount to say out
+     * loud.
+     */
     return NextResponse.json(
-      {
-        error: 'Accounts are not configured on this deployment',
-        detail: 'Set BBQ_SESSION_SECRET to at least 16 characters to enable customer accounts.',
-      },
+      { error: 'Accounts are not configured on this deployment' },
       { status: 503 },
     );
   }

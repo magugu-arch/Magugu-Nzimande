@@ -16,7 +16,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { DemoFlag } from '@/components/ui/DemoValue';
 import { Price } from '@/components/ui/Price';
 import { describeOptions } from '@/lib/cart';
-import { advanceOrder, fetchOrder, openPayment } from '@/lib/client-api';
+import { ApiError, advanceOrder, fetchOrder, openPayment } from '@/lib/client-api';
 
 const MESSAGES: Record<OrderState, string> = {
   received: 'We have your order and the kitchen has it on the rail.',
@@ -132,8 +132,22 @@ export function OrderJourney() {
       // pick the settlement up.
       setPaying(false);
     } catch (error) {
+      /**
+       * Only a refusal this application wrote.
+       *
+       * `instanceof Error` was every failure there is. A fetch that could not
+       * leave the machine throws `TypeError: Failed to fetch`, and a response
+       * that does not match its schema throws a `ZodError` whose message is a
+       * JSON dump of issue objects — and both were rendered straight into the
+       * payment panel, under a heading about somebody's dinner.
+       *
+       * `ApiError` carries the `error` string the route chose to say, which is
+       * the only message here anybody wrote for a customer. Everything else
+       * gets the sentence below, which is what checkout and the account screens
+       * already do.
+       */
       setPayError(
-        error instanceof Error ? error.message : 'We could not start the payment. Try again.',
+        error instanceof ApiError ? error.message : 'We could not start the payment. Try again.',
       );
       setPaying(false);
     }

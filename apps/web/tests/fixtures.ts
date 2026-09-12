@@ -1775,3 +1775,51 @@ export async function aCancelledPaidOrder(
 export function owedOrderNumbers(): string[] {
   return consoleView().owed.map((entry) => entry.orderNumber);
 }
+
+// ---------------------------------------------------------------------------
+// Reading source as code rather than as prose
+
+/**
+ * Source with its comments taken out.
+ *
+ * Two suites have already been caught by not having this. The schema suite's
+ * rule "no FLOAT anywhere near money" failed on the note explaining why FLOAT
+ * is never right for money, and the audit-page suite's "no download anchor"
+ * rule failed on the script comment saying an anchor would not work. Both
+ * fixed it locally and neither could share the fix.
+ *
+ * A rule that reads its own explanation is a rule that can only be satisfied by
+ * not explaining itself, and this codebase explains itself at length.
+ *
+ * Line comments are only stripped where the `//` is not preceded by a colon or
+ * a quote, so a `https://…` inside a string survives — that is the one way a
+ * `//` appears here that is not the start of a comment.
+ */
+export function withoutComments(source: string): string {
+  return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(?<![:'"`\\])\/\/[^\n]*/g, '');
+}
+
+/**
+ * Every source file under a directory of the app, as code.
+ *
+ * Returns the path relative to the app root, so a failure names the file the
+ * way an editor's Go To File does rather than as an absolute path that is
+ * different on every machine.
+ */
+export function codeUnder(relativeDirectory: string, match: RegExp): { file: string; code: string }[] {
+  const root = path.join(WEB, relativeDirectory);
+  return filesUnder(root, match).map((file) => ({
+    file: path.relative(WEB, file),
+    code: withoutComments(readFileSync(file, 'utf8')),
+  }));
+}
+
+/** Every API route handler file, as code. */
+export function apiRouteCode(): { file: string; code: string }[] {
+  return codeUnder('src/app/api', /(^|[/\\])route\.ts$/);
+}
+
+/** Every screen and component the browser runs, as code. */
+export function clientCode(): { file: string; code: string }[] {
+  return [...codeUnder('src/components', /\.tsx$/), ...codeUnder('src/app', /\.tsx$/)];
+}

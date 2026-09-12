@@ -90,7 +90,20 @@ export type Reward = z.infer<typeof RewardSchema>;
 
 export const DeliveryQuoteRequestSchema = z.object({
   suburb: z.string().min(1, 'Enter your suburb'),
-  subtotalCents: z.number().int().nonnegative(),
+  /**
+   * Carries a message like every other rule here, even though no customer
+   * types it.
+   *
+   * The basket computes this, so a bad one is our bug rather than theirs — but
+   * it still arrives on their screen, and the route that serves this schema
+   * answers with the message of whichever rule was broken. A rule with no
+   * message of its own falls back to the validator's, which says "expected
+   * number, received string" to somebody trying to order dinner.
+   */
+  subtotalCents: z
+    .number('We could not read your basket total')
+    .int('We could not read your basket total')
+    .nonnegative('We could not read your basket total'),
 });
 export type DeliveryQuoteRequest = z.infer<typeof DeliveryQuoteRequestSchema>;
 
