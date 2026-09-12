@@ -51,6 +51,7 @@ import {
 } from '@/theme';
 import { formatEtaWindow } from '@/utils/datetime';
 import { groupDigits } from '@/utils/money';
+import { orderProgress } from '@/features/orders/timelineProgress';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = Math.min(200, SCREEN_WIDTH * 0.52);
@@ -284,10 +285,7 @@ export default function HomeScreen() {
               {formatEtaWindow(order.etaMinutes)} · {order.storeName}
             </Text>
             <ProgressBar
-              progress={
-                order.timeline.filter((event) => event.occurredAt !== null).length /
-                Math.max(1, order.timeline.length)
-              }
+              progress={orderProgress(order).fraction}
               fillColor={colors.primary}
               trackColor="rgba(255,255,255,0.18)"
               style={styles.trackingProgress}

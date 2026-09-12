@@ -88,7 +88,11 @@ export function earnRateFor(tier: MembershipTier): number {
 }
 
 export function perksFor(tier: TierDefinition): string[] {
-  return [earnRateLine(tier.pointsPerRand), ...tier.perks];
+  // `checkedTiers` asks for name, threshold and pointsPerRand — it does not ask
+  // for `perks`, because a list of sentences is not arithmetic. So a tier
+  // without one is a backend keeping its side of the contract, and spreading
+  // `undefined` crashed the whole Rewards tab. Found by `audit:sparse`.
+  return [earnRateLine(tier.pointsPerRand), ...(tier.perks ?? [])];
 }
 
 /**

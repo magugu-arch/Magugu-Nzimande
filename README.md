@@ -53,6 +53,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run audit:recovery` | Drive password recovery end to end, including a refused send and an expired link, and fail if a failure looks like a success |
 | `npm run audit:back` | Open screens cold, the way a deep link or a shared link does, and fail if a button that offers a way back does nothing |
 | `npm run audit:double-tap` | Press each control that spends something twice — in one tick and 70ms apart — and fail if the server is asked twice |
+| `npm run audit:sparse` | Render every screen against a backend that sends exactly what `wireChecks` demands and nothing more, and fail on a crash screen |
 | `npm run smoke:order` | Place an order end to end against the mock layer, and refuse four that must not go through |
 | `npm run build:dev` | EAS development build (dev client) for both platforms |
 | `npm run build:preview` | EAS internal-distribution build for review |

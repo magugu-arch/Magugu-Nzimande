@@ -133,6 +133,7 @@ describe('1 — a sweep that seeds state proves it arrived', () => {
     expect(SEEDING_SWEEPS.sort()).toEqual([
       'audit-double-tap.mjs',
       'audit-offline.mjs',
+      'audit-sparse.mjs',
       'audit-upgrade.mjs',
       'audit-wire.mjs',
       'audit-writes.mjs',

@@ -34,6 +34,7 @@ import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequir
 import { colors, radius, spacing, CART_BAR_HEIGHT, TAB_BAR_HEIGHT } from '@/theme';
 import { formatDateTime, formatEtaWindow, formatRelativeDay } from '@/utils/datetime';
 import { formatPrice } from '@/utils/money';
+import { orderProgress } from '@/features/orders/timelineProgress';
 
 type Filter = 'active' | 'past';
 
@@ -182,8 +183,9 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
    * order is, and a time nobody believes is worse than no time.
    */
   const dueInMinutes = minutesUntilDue(order, now);
-  const completedSteps = order.timeline.filter((event) => event.occurredAt !== null).length;
-  const firstLine = order.lines[0];
+  const { fraction: progress } = orderProgress(order);
+  // `?? []` for the same reason: the wire promises the totals, not the lines.
+  const firstLine = (order.lines ?? [])[0];
 
   return (
     <Card
@@ -215,7 +217,7 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
       {isActive ? (
         <>
           <ProgressBar
-            progress={completedSteps / Math.max(1, order.timeline.length)}
+            progress={progress}
             style={styles.progress}
             accessibilityLabel="Order progress"
           />
@@ -252,7 +254,7 @@ function OrderCard({ order, onPress, onReorder, onRate }: OrderCardProps) {
 
         <View style={styles.cardSummary}>
           <Text variant="bodyMedium" numberOfLines={2}>
-            {order.lines.map((line) => `${line.quantity}× ${line.name}`).join(', ')}
+            {(order.lines ?? []).map((line) => `${line.quantity}× ${line.name}`).join(', ')}
           </Text>
           <Text variant="caption" color={colors.textSecondary}>
             {order.storeName}

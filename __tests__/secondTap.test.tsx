@@ -269,10 +269,19 @@ describe('4 — audit:double-tap', () => {
  * An absent list is a gap in the data. A crash screen is a claim about the app.
  */
 describe('5 — a missing list is not a broken app', () => {
+  /*
+    The timeline guard moved, and that is the point rather than an exception.
+
+    It was written here as `data.timeline ?? []` on one screen, because the
+    grep that found it looked for `.map(` and that screen read `.length`. Two
+    other screens read the same field as `.filter` and `.length` and were
+    missed. `audit:sparse` drove all three; the guard now lives once, in
+    `orderProgress`, and this list points at it there.
+  */
   const READS: [string, string][] = [
     ['src/app/rewards/[id].tsx', 'data.termsAndConditions ?? []'],
     ['src/app/offers/[id].tsx', 'data.terms ?? []'],
-    ['src/app/order/[id]/index.tsx', 'data.timeline ?? []'],
+    ['src/features/orders/timelineProgress.ts', 'order.timeline ?? []'],
     ['src/app/order/[id]/index.tsx', 'data.lines ?? []'],
   ];
 

@@ -106,13 +106,18 @@ export function liveStatusCopy(order: Pick<Order, 'status' | 'fulfilmentType' | 
  * cancelled order, which is shown the two steps that happened and no journey.
  */
 export function timelineFor(order: Pick<Order, 'timeline' | 'delivery'>): OrderStatusEvent[] {
-  if (!deliveryFailed(order)) return order.timeline;
+  // `checkOrder` does not promise a timeline — it is drawn, not calculated —
+  // so an order without one is a backend keeping its side of the contract.
+  // An empty list draws an order nobody has moved yet, which is the truth.
+  // Found by `audit:sparse`.
+  const timeline = order.timeline ?? [];
+  if (!deliveryFailed(order)) return timeline;
 
-  const lastReached = order.timeline.reduce(
+  const lastReached = timeline.reduce(
     (last, event, index) => (event.occurredAt !== null ? index : last),
     -1,
   );
-  return order.timeline.slice(0, lastReached + 1);
+  return timeline.slice(0, lastReached + 1);
 }
 
 /**

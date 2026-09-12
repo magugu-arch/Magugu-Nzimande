@@ -48,6 +48,7 @@ import { directionsTargetFor } from '@/features/orders/directions';
 import { formatPrice } from '@/utils/money';
 import { track } from '@/ux/analytics';
 import { ask, tell } from '@/ux/dialog';
+import { orderProgress } from '@/features/orders/timelineProgress';
 
 /** Live Order Tracking + Order Details + Re-order (brief §4). */
 export default function OrderTrackingScreen() {
@@ -182,10 +183,9 @@ export default function OrderTrackingScreen() {
 
   const data = order.data;
   const isActive = data.status !== 'completed' && data.status !== 'cancelled';
-  const completedSteps = data.timeline.filter((event) => event.occurredAt !== null).length;
-  // `?? []` because the wire does not promise a timeline, and the screen a
-  // hungry person is staring at must not be the one that crashes over it.
-  const progress = completedSteps / Math.max(1, (data.timeline ?? []).length);
+  // One function, shared with the Orders tab and the live card on Home — see
+  // `timelineProgress.ts` for why all three stopped computing it themselves.
+  const { fraction: progress } = orderProgress(data);
   const dueInMinutes = minutesUntilDue(data, now);
 
   const canCall = isDiallable(data.storePhone);
@@ -201,7 +201,16 @@ export default function OrderTrackingScreen() {
 
   return (
     <Screen scroll edges={['top', 'bottom']} testID="order-tracking-screen">
-      <ScreenHeader title={data.reference} subtitle={formatDateTime(data.placedAt)} />
+      {/*
+        The reference and the time only when the order carries them. Neither is
+        checked on the wire — they are printed, not calculated — and
+        `formatDateTime(undefined)` crashed this screen against a backend that
+        had kept its side of the contract. Found by `audit:sparse`.
+      */}
+      <ScreenHeader
+        title={data.reference ?? 'Your order'}
+        {...(data.placedAt ? { subtitle: formatDateTime(data.placedAt) } : {})}
+      />
 
       {/* Status hero */}
       <Card

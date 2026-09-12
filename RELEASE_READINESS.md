@@ -1084,6 +1084,71 @@ and `data.lines`, on the screen a hungry person is staring at.
 
 An absent list is a gap in the data. A crash screen is a claim about the app.
 
+## 2v. The backend that sends exactly what it promised
+
+`wireChecks.ts` says in its opening paragraph what it deliberately is not: a
+schema. It checks "the numbers it does arithmetic on, the ids it looks things up
+by" and nothing else, on the argument that a value the app only prints cannot do
+arithmetic wrong.
+
+The argument is sound and it has a gap. A value the app only prints can still be
+**absent**, and a screen that maps over an absent list does not print nothing —
+it throws, into the error boundary, and the customer reads "Something broke".
+
+`npm run audit:sparse` serves every endpoint the *minimum* body the contract
+accepts — every field it demands, not one more — and renders 22 screens against
+it. The rule it measures is this repository's own: **a missing field is a gap in
+the data; a crash screen is a claim about the app.** A thin screen passes. A
+crash screen does not.
+
+**Ten distinct crashes, over five rounds of the sweep**, each fix uncovering the
+next:
+
+| screen | what it assumed |
+| --- | --- |
+| `/menu` | `priceFloor` read `optionGroups` — which `checkProduct` itself writes as `?? []`. The contract said optional; the code did not. |
+| `/orders` | `timeline.filter`, `timeline.length`, `lines.map`, `lines[0]` |
+| `/order/:id` | `timeline.filter`, `timelineFor`, `formatDateTime(placedAt)` |
+| `/rewards` | `perksFor` spread `tier.perks`; `account.history.map` |
+| `/rewards/vouchers` | `formatShortDate(expiresAt)` |
+
+### The one that was widest
+
+All four date formatters in `utils/datetime` already answered `''` for a date
+they could not read — the right answer, and the guard had been there since they
+were written. It could not fire for an *absent* date: `typeof undefined` is not
+`'string'`, so the ternary handed `undefined` through as though it were already
+a `Date`, and `.getTime()` threw one line above a guard written for exactly
+that situation. Normalised now in one `instant()` helper, because there are
+dozens of call sites and one of it.
+
+### Two of these were misses from the round before
+
+Round 23 found this class by accident and fixed it with a grep for
+`data.<field>.map(`. That grep found four instances. The same fields were read
+as `.filter`, `.length` and `[0]` in five more places it never saw — including
+all three screens that draw the order-progress bar, of which one had been
+"fixed".
+
+So the progress bar is now one function, `orderProgress`, shared by tracking,
+the Orders tab and the live card on Home. A fourth screen cannot get it wrong
+privately.
+
+### What a missing field is allowed to look like
+
+Three of the fixes had to choose wording rather than just add `?? []`, and each
+chose the claim about the app over the claim about the world:
+
+- an order whose status the table has never heard of reads **"No update yet"**,
+  not "Received" — which would have invented a kitchen state nobody reported;
+- a voucher with no expiry reads **"Ready to use"** or **"Expired"**, without
+  inventing a day;
+- an order with no timeline draws a bar at zero — an order nobody has moved yet,
+  which is the truth.
+
+Verified by counterfactual: with one guard removed, the sweep reports that
+screen and fails. A row of ticks is a measurement.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1137,7 +1202,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **106 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **107 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

@@ -120,9 +120,23 @@ export function promotedProductId(ctaHref: string): string | null {
  * group asking for two picks charges for two.
  */
 export function priceFloor(product: Pick<Product, 'basePrice' | 'optionGroups'>): number {
-  return product.optionGroups.reduce((total, group) => {
-    if (group.minSelect < 1) return total;
-    const available = group.options.filter((option) => option.available);
+  /*
+    Defaulted, because the boundary already says these may be absent.
+
+    `checkProduct` writes `product.optionGroups ?? []` and `group.options ?? []`
+    — the contract this app enforces treats both as optional — and this
+    function, which is the one that reads them, did not. A backend sending a
+    product with no option groups passes every check the app makes and then
+    crashes the menu, which is the first screen after the front door.
+
+    Found by `audit:sparse`: a stub serving exactly what `wireChecks` demands
+    and nothing more. `minSelect` is defaulted for the same reason and it is
+    the subtler one — `undefined < 1` is false, so a group with no `minSelect`
+    slipped past the guard above and crashed on `group.options` instead.
+  */
+  return (product.optionGroups ?? []).reduce((total, group) => {
+    if ((group.minSelect ?? 0) < 1) return total;
+    const available = (group.options ?? []).filter((option) => option.available);
     if (available.length === 0) return total;
     return total + Math.min(...available.map((option) => option.priceDelta)) * group.minSelect;
   }, product.basePrice);

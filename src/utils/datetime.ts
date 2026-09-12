@@ -15,9 +15,33 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
  * `utils/storeClock` for why this is the app's single clock and why the
  * conversion is arithmetic rather than `Intl`.
  */
-export function formatTime(value: string | Date): string {
+/**
+ * The instant these four are given, or nothing at all.
+ *
+ * Each of them already answers `''` for a date it cannot read — that guard has
+ * been there since they were written, and it is the right answer: a formatter
+ * that cannot say when something happened should say nothing, not guess.
+ *
+ * It could not fire for an *absent* date. `typeof undefined` is not `'string'`,
+ * so the ternary took the second branch, handed `undefined` straight through
+ * as though it were already a `Date`, and `undefined.getTime()` threw — one
+ * line above a guard written for exactly this situation. The types say it
+ * cannot happen; `wireChecks` says otherwise, on purpose, because a date the
+ * app only prints is not a number it does arithmetic with.
+ *
+ * Found by `audit:sparse`, twice: `placedAt` took out the Orders tab and the
+ * tracking screen's own header. Normalised in one place rather than at each
+ * call site, because there are dozens of call sites and one of these.
+ */
+function instant(value: string | Date | null | undefined): Date | null {
+  if (value === null || value === undefined) return null;
   const date = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return '';
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function formatTime(value: string | Date | null | undefined): string {
+  const date = instant(value);
+  if (date === null) return '';
   const { hour, minute } = storeClockAt(date);
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
@@ -48,9 +72,9 @@ const SHORT_MONTHS = [
  * the number is not decoration; `21/8` and `8/21` are the same string with
  * opposite meanings, and an order dated wrongly is worse than one dated ugly.
  */
-export function formatShortDate(value: string | Date): string {
-  const date = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return '';
+export function formatShortDate(value: string | Date | null | undefined): string {
+  const date = instant(value);
+  if (date === null) return '';
   // Store time, for the same reason `formatTime` is: an order placed at 01:00
   // SAST on a Sunday was placed on the Sunday, whatever Saturday evening the
   // customer's phone was still showing.
@@ -59,9 +83,9 @@ export function formatShortDate(value: string | Date): string {
 }
 
 /** `Fri, 21 Aug · 14:35` */
-export function formatDateTime(value: string | Date): string {
-  const date = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return '';
+export function formatDateTime(value: string | Date | null | undefined): string {
+  const date = instant(value);
+  if (date === null) return '';
   return `${formatShortDate(date)} · ${formatTime(date)}`;
 }
 
@@ -74,9 +98,12 @@ export function formatDateTime(value: string | Date): string {
  * because neither of these zones has daylight saving, which is a property of
  * the deployment rather than of the code.
  */
-export function formatRelativeDay(value: string | Date, now: Date = appNow()): string {
-  const date = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return '';
+export function formatRelativeDay(
+  value: string | Date | null | undefined,
+  now: Date = appNow(),
+): string {
+  const date = instant(value);
+  if (date === null) return '';
   const diffDays = storeClockAt(now).dayNumber - storeClockAt(date).dayNumber;
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';

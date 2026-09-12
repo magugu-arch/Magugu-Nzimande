@@ -71,8 +71,26 @@ export function statusSequence(fulfilmentType: PlaceOrderInput['fulfilmentType']
   return ['received', 'preparing', 'ready', 'completed'];
 }
 
+/**
+ * An order's heading and sentence, for a status the app recognises.
+ *
+ * `checkOrder` does not check `status` — it checks the id and the money, by
+ * the rule `wireChecks` states for itself — so a backend is within its rights
+ * to send an order with a status this table has never heard of, or none at
+ * all. The lookup then returned `undefined` and `.label` threw, taking out the
+ * whole Orders tab. Found by `audit:sparse`.
+ *
+ * The fallback says what the app knows rather than guessing a state. "Received"
+ * would have been a claim about a kitchen nobody has heard from; this is a
+ * claim about the app, which is the only one it is entitled to make.
+ */
 export function statusCopy(status: OrderStatus): { label: string; description: string } {
-  return STATUS_COPY[status];
+  return (
+    STATUS_COPY[status] ?? {
+      label: 'No update yet',
+      description: 'We have not had an update on this order. Call the store if you need one now.',
+    }
+  );
 }
 
 /** Label shown for the terminal "collect/deliver" step. */

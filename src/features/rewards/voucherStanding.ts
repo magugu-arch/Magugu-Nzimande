@@ -35,10 +35,20 @@ export function voucherStandingCopy(
   switch (voucherStanding(voucher)) {
     case 'used':
       return 'Already used';
+    /*
+      The date only when there is one.
+
+      `checkVoucher` asks for code, discountValue and minimumSpend — not
+      `expiresAt`, which is display rather than arithmetic. A wallet entry
+      without one crashed the Vouchers screen on `formatShortDate(undefined)`,
+      and the honest answer is to say the standing without inventing a day for
+      it: the voucher is still expired, or still live, and the app simply does
+      not know when. Found by `audit:sparse`.
+    */
     case 'expired':
-      return `Expired ${formatShortDate(voucher.expiresAt)}`;
+      return voucher.expiresAt ? `Expired ${formatShortDate(voucher.expiresAt)}` : 'Expired';
     case 'live':
-      return `Expires ${formatShortDate(voucher.expiresAt)}`;
+      return voucher.expiresAt ? `Expires ${formatShortDate(voucher.expiresAt)}` : 'Ready to use';
   }
 }
 

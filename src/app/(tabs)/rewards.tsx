@@ -320,7 +320,11 @@ export default function RewardsScreen() {
           {/* Points history */}
           <Section title="Points history" subtitle="Everything you have earned and spent">
             <Card padded={false} style={styles.historyCard}>
-              {account.history.map((entry, index) => (
+              {/* `checkedLoyaltyAccount` checks the balance, which is the number
+                  the app does arithmetic with. The ledger below it is printed,
+                  so it is not promised — and mapping over an absent one took
+                  out the whole Rewards tab. Found by `audit:sparse`. */}
+              {(account.history ?? []).map((entry, index) => (
                 <View key={entry.id}>
                   {index > 0 ? <View style={styles.separator} /> : null}
                   <ListRow
