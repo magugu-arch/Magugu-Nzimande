@@ -132,6 +132,7 @@ describe('1 — a sweep that seeds state proves it arrived', () => {
   it('finds the sweeps by what they do, not by name', () => {
     expect(SEEDING_SWEEPS.sort()).toEqual([
       'audit-answers.mjs',
+      'audit-away.mjs',
       /*
         `audit-basket` earns its place here in an unusual way, and it is worth
         saying how. It does not compose a basket: it adds real products through

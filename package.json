@@ -68,7 +68,8 @@
     "audit:basket": "node scripts/audit-basket.mjs",
     "audit:long": "node scripts/audit-long.mjs",
     "audit:tabs": "node scripts/audit-tabs.mjs",
-    "audit:abroad": "node scripts/audit-abroad.mjs"
+    "audit:abroad": "node scripts/audit-abroad.mjs",
+    "audit:away": "node scripts/audit-away.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",

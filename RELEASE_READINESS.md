@@ -1750,6 +1750,58 @@ expected to show, bounded at four seconds. A red run that goes green when you
 look again teaches everybody to look again, and the next real finding is the one
 nobody believes.
 
+## 2ae. The app nobody is looking at
+
+Two queries poll: live order tracking every 15 seconds, the active-order banner
+every 30. On a phone that is battery and prepaid data, and `useAppFocus` exists
+because the app was once found refetching both *"while backgrounded, on the
+customer's mobile data, indefinitely"*.
+
+That fix wired React Native's `AppState` to TanStack's focus manager — and
+guarded it with a claim:
+
+> `// On web the focus manager already listens for visibilitychange itself,`
+> `// and AppState never reports anything but 'active'.`
+
+An assertion about a third-party library, on the one platform where nothing had
+ever tested it. The web build is every preview, every demo and every desktop
+customer; if that clause were wrong, the defect the hook exists to fix would
+still be live there, and the comment would be the reason nobody looked.
+
+`npm run audit:away` counts it against a stub backend over three phases on the
+live tracking screen:
+
+| phase | requests in 40s | expected |
+| --- | --- | --- |
+| watched | 2 | 2 or more |
+| **hidden** | **0** | none |
+| watched again | 3 | 2 or more |
+
+**No defect. That is the result**, and it is worth the same as a finding
+because the sweep could have produced one. Run with
+`refetchIntervalInBackground: true`, the same three phases report **3 requests
+while hidden** — so the zero is a measurement, not a blind spot. The claim holds
+and has stopped being only a claim.
+
+### Two attempts to hide a tab, and what the second one is worth
+
+The first version brought a second tab to the front. `visibilityState` did not
+move — headless, and again headed under a virtual display, because Playwright
+opens each page in its own window and nothing ever occludes anything. The
+sweep's own precondition caught that and refused to report, which is the only
+reason this section is accurate rather than hopeful.
+
+So the sweep supplies the signal the browser supplies: `visibilityState` and
+`document.hidden` overridden, a real `visibilitychange` dispatched on
+`document`. That is the entire interface the platform gives a page for this and
+the entire interface TanStack's focus manager consumes, so the app cannot tell
+the difference and the thing under test is measured for real.
+
+What is **stipulated rather than proven** is one step further out — that a
+browser fires that event when a tab goes to the back. Specified behaviour, not
+verified here, and the sweep says so in its own header rather than leaving a
+reader to assume otherwise.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1803,7 +1855,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **115 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **116 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

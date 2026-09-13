@@ -29,8 +29,28 @@ export function handleAppStateChange(status: AppStateStatus): void {
 
 export function useAppFocus(): void {
   useEffect(() => {
-    // On web the focus manager already listens for visibilitychange itself,
-    // and AppState never reports anything but 'active'.
+    /*
+      On web the focus manager already listens for `visibilitychange` itself,
+      and AppState never reports anything but 'active'.
+
+      That first clause was an assertion about a third-party library, on the
+      one platform where nothing tested it — and the web build is every
+      preview, every demo and every desktop customer. If it had been wrong,
+      the defect this hook exists to fix would still have been live there, and
+      this comment would have been the reason nobody looked.
+
+      `npm run audit:away` now counts it against a stub backend, over three
+      forty-second phases on the live tracking screen:
+
+          watched        2 requests
+          hidden         0
+          watched again  3
+
+      The zero is a measurement rather than an absence: the same sweep run with
+      `refetchIntervalInBackground: true` reports 3 while hidden, so it can see
+      a poll that keeps running. The claim holds, and it is no longer only a
+      claim.
+    */
     if (Platform.OS === 'web') return;
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
