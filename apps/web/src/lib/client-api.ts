@@ -58,11 +58,12 @@ export { ApiError };
 export async function quoteDelivery(
   suburb: string,
   subtotalCents: number,
+  storeId: string,
 ): Promise<DeliveryQuote> {
   const { quote } = await request(
     '/api/delivery/quote',
     z.object({ quote: DeliveryQuoteSchema }),
-    { method: 'POST', body: JSON.stringify({ suburb, subtotalCents }) },
+    { method: 'POST', body: JSON.stringify({ suburb, subtotalCents, storeId }) },
   );
   return quote;
 }

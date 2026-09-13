@@ -104,6 +104,17 @@ export const DeliveryQuoteRequestSchema = z.object({
     .number('We could not read your basket total')
     .int('We could not read your basket total')
     .nonnegative('We could not read your basket total'),
+  /**
+   * Which branch is being ordered from.
+   *
+   * Optional, and that is the whole shape of the fix. Without it the endpoint
+   * answers "does anybody deliver to this suburb", which is what the stores
+   * page wants to know. Checkout needs the narrower question — "will the branch
+   * in this basket deliver to it" — and was asking the wide one, so a customer
+   * with Cresta selected who typed a Fourways address was told yes and refused
+   * at placement by the order route, which had always asked the narrow one.
+   */
+  storeId: z.string().min(1, 'Name the branch to quote for').optional(),
 });
 export type DeliveryQuoteRequest = z.infer<typeof DeliveryQuoteRequestSchema>;
 
@@ -117,6 +128,17 @@ export const DeliveryQuoteSchema = z.discriminatedUnion('serviceable', [
   z.object({
     serviceable: z.literal(false),
     reason: z.string().min(1),
+    /**
+     * A branch that does deliver there, when the one asked about does not.
+     *
+     * The difference between losing the sale and moving it one branch across.
+     * "We do not deliver to this suburb yet" is simply false when another
+     * branch covers it, and a customer told that closes the tab.
+     *
+     * Absent rather than null when nobody covers it, so a screen offering the
+     * switch has one thing to check.
+     */
+    alternativeStoreId: z.string().min(1).optional(),
   }),
 ]);
 export type DeliveryQuote = z.infer<typeof DeliveryQuoteSchema>;

@@ -928,6 +928,11 @@ function setStore(id){
   const next = STORES.find((s) => s.id === id);
   if(!next) return;
   S.storeId = id;
+  /* A quote is about one branch, so it stops meaning anything the moment the
+     branch changes. Left standing, the refusal that offered the switch was
+     still on screen after taking it. */
+  S.checkout.quote = null;
+  S.checkout.errors = {};
   if(!serves(next, S.mode)){
     const was = S.mode;
     S.mode = 'Collection';
@@ -1086,14 +1091,30 @@ function validateDetails(){
   return Object.keys(errors).length === 0;
 }
 
-/** The delivery quote, run against the same zone lists the API uses. */
+/* The delivery quote, for the branch in this basket rather than for the
+   business. It used to search every branch and say yes if any of them covered
+   the suburb — and the branches cover different suburbs, so a customer with
+   Cresta selected who typed a Fourways address was told "we deliver there"
+   about a branch they were not ordering from. The site had the same defect and
+   answers it at POST /api/delivery/quote; when another branch does cover the
+   address this says which, because "we do not deliver there" is false and
+   loses the sale. */
 function quoteDelivery(suburb){
   const wanted = suburb.trim().toLowerCase();
-  const match = STORES.find((s) => serves(s, 'Delivery') && s.zones.some((z) => z.toLowerCase() === wanted));
-  if(!match){
-    return {serviceable:false, reason:'We do not deliver to this suburb yet. Collection is available at both stores.'};
+  const covers = (s) => serves(s, 'Delivery') && s.zones.some((z) => z.toLowerCase() === wanted);
+
+  const here = store();
+  if(covers(here)) return {serviceable:true, feeCents:deliveryFee(), eta:FEES.etaMax, storeId:here.id};
+
+  const elsewhere = STORES.find(covers);
+  if(elsewhere){
+    return {
+      serviceable:false,
+      reason: here.name + ' does not deliver to ' + suburb.trim() + ', but ' + elsewhere.name + ' does.',
+      alternativeStoreId: elsewhere.id,
+    };
   }
-  return {serviceable:true, feeCents:deliveryFee(), eta:FEES.etaMax, storeId:match.id};
+  return {serviceable:false, reason:'We do not deliver to this suburb yet. Collection is available at both stores.'};
 }
 
 function validateWhere(){
@@ -1733,6 +1754,15 @@ function viewCheckout(){
                   : '<p class="hint">' + esc(s.name) + ' delivers to ' + s.zones.slice(0, 3).join(', ') + ' and more.</p>') + '</label>'
             + (c.quote && c.quote.serviceable
                 ? '<p class="ok-note" style="align-self:end">We deliver there. About ' + c.quote.eta + ' minutes.</p>' : '')
+            /* The branch that does deliver there, offered rather than only
+               named. The store buttons are a step back behind a half-filled
+               form, so a customer told which branch covers them needs a way to
+               reach it from here. */
+            + (c.quote && !c.quote.serviceable && c.quote.alternativeStoreId
+                ? '<div style="grid-column:1/-1"><button type="button" class="btn btn-sm btn-ghost" data-action="pick-store" data-value="'
+                  + c.quote.alternativeStoreId + '">Order from '
+                  + esc((STORES.find((st) => st.id === c.quote.alternativeStoreId) || {}).name || 'the branch that delivers there')
+                  + ' instead</button></div>' : '')
           + '</div>'
           : '<p class="sm muted mt-3 max-56">' + (S.mode === 'Collection'
               ? 'Collect from ' + esc(s.name) + ', ' + esc(s.address) + '.'

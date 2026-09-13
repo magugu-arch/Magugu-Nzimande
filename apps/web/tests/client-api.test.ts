@@ -51,7 +51,7 @@ describe('a response the API promised', () => {
       body: { quote: { serviceable: true, feeCents: 3_500, etaMinutes: 45, storeId: 'ST-CRE' } },
     }));
 
-    const quote = await quoteDelivery('Sandton', 15_000);
+    const quote = await quoteDelivery('Sandton', 15_000, 'ST-CRE');
     expect(quote.serviceable).toBe(true);
   });
 
@@ -60,7 +60,7 @@ describe('a response the API promised', () => {
       body: { quote: { serviceable: false, reason: 'We do not deliver to this suburb yet.' } },
     }));
 
-    const quote = await quoteDelivery('Nowhere', 15_000);
+    const quote = await quoteDelivery('Nowhere', 15_000, 'ST-CRE');
     expect(quote.serviceable).toBe(false);
   });
 });

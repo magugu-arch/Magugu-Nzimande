@@ -123,7 +123,20 @@ export function CheckoutFlow({ paymentConfigured = false }: { paymentConfigured?
 
     setChecking(true);
     try {
-      const result = await quoteDelivery(suburb, totals.subtotalCents - totals.discountCents);
+      /**
+       * Asked about the branch in this basket, not about the business.
+       *
+       * The endpoint used to be asked the wide question — does anybody deliver
+       * to this suburb — and the three branches cover different suburbs, so a
+       * customer with Cresta selected who typed a Fourways address was told
+       * yes here and refused by the order route at the very end. The order
+       * route was right; this call was asking the wrong question.
+       */
+      const result = await quoteDelivery(
+        suburb,
+        totals.subtotalCents - totals.discountCents,
+        store.id,
+      );
       setQuote(result);
       if (!result.serviceable) {
         setErrors({ suburb: result.reason });
@@ -386,6 +399,39 @@ export function CheckoutFlow({ paymentConfigured = false }: { paymentConfigured?
                   <p className="self-end rounded-sm bg-red-10 px-3 py-2.5 text-xs font-semibold text-red">
                     We deliver there. About {quote.etaMinutes} minutes.
                   </p>
+                )}
+
+                {/*
+                  A branch that does deliver there, offered rather than
+                  described. The refusal beside the field already names it, and
+                  a customer reading "Fourways Crossing does" with no way to
+                  pick it has been told about a shop they cannot reach from
+                  here — the store buttons are a step back, behind a form they
+                  have half filled in.
+                */}
+                {quote && !quote.serviceable && quote.alternativeStoreId && (
+                  <div className="self-end sm:col-span-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        const next = quote.alternativeStoreId;
+                        if (!next) return;
+                        setStore(next);
+                        setQuote(null);
+                        setErrors({});
+                        announce(
+                          `Switched to ${stores.find((candidate) => candidate.id === next)?.name ?? 'another branch'}.`,
+                        );
+                      }}
+                    >
+                      Order from{' '}
+                      {stores.find((candidate) => candidate.id === quote.alternativeStoreId)?.name ??
+                        'the branch that delivers there'}{' '}
+                      instead
+                    </Button>
+                  </div>
                 )}
               </div>
             ) : (

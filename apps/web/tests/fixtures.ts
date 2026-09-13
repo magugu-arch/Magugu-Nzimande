@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { PRODUCTS, PROMOTIONS, STORES, optionGroupsFor } from '@bbq/seed';
 import type {
+  DeliveryQuote,
   OptionGroup,
   Promotion,
   Order,
@@ -1822,4 +1823,47 @@ export function apiRouteCode(): { file: string; code: string }[] {
 /** Every screen and component the browser runs, as code. */
 export function clientCode(): { file: string; code: string }[] {
   return [...codeUnder('src/components', /\.tsx$/), ...codeUnder('src/app', /\.tsx$/)];
+}
+
+// ---------------------------------------------------------------------------
+// Delivery quotes
+
+/**
+ * A quote from the real endpoint.
+ *
+ * Defaults the subtotal to nothing, because most of these tests are asking
+ * whether an address can be delivered to at all rather than what it costs, and
+ * a basket total written into every call is a number somebody has to read past
+ * to see what the test is about.
+ */
+export async function quoteFor(
+  suburb: string,
+  over: { storeId?: string; subtotalCents?: number } = {},
+): Promise<DeliveryQuote> {
+  const { POST } = await import('@/app/api/delivery/quote/route');
+  const response = await POST(
+    request('/api/delivery/quote', {
+      method: 'POST',
+      body: { suburb, subtotalCents: over.subtotalCents ?? 0, ...(over.storeId ? { storeId: over.storeId } : {}) },
+    }),
+  );
+  return (await bodyOf<{ quote: DeliveryQuote }>(response)).quote;
+}
+
+/**
+ * The branch whose delivery zones cover a suburb.
+ *
+ * Read off the seed rather than written down, so it keeps meaning the same
+ * thing when the zone lists change — which they will, since every one of them
+ * is a [CONFIRM] placeholder.
+ */
+export function storeServing(suburb: string): Store {
+  const wanted = suburb.trim().toLowerCase();
+  return required(
+    STORES.find(
+      (store) =>
+        store.services.Delivery && store.zones.some((zone) => zone.toLowerCase() === wanted),
+    ),
+    `a branch delivering to ${suburb}`,
+  );
 }
