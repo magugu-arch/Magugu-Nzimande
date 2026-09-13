@@ -25,10 +25,21 @@
  *   404   1 — the case the policy was written for
  *   403   1 — the same answer, and the policy has never seen it
  *   429   1 — asking again is the thing the server just asked you not to do
+ *   400   1 — the request itself was wrong, and it will be wrong next time
+ *   422   1 — the same, one layer up: read, understood, and refused
+ *   401   1 — the session is gone and the app is already leaving for sign-in
  *   500   3 — the control. Transient, and the next attempt might work.
  *
  * The 500 is what keeps the others honest: this is not "stop retrying", it is
  * "stop retrying an answer".
+ *
+ * The last three are this round, and they are here because the policy was
+ * written as a list of statuses rather than as the rule the list came from.
+ * `apiClient` states that rule in one place already — `didNotHearBack` says
+ * "a 400 or a 422 is an answer: the server received the request, considered
+ * it, and refused" — while `worthRetrying`, twenty lines above it in the same
+ * file, asks all three of them twice more. A list grows by whatever somebody
+ * remembers to add to it; this sweep exists to find out what nobody did.
  *
  * Run: npm run audit:answers
  */
@@ -118,8 +129,11 @@ let asked = 0;
 
 /** The server's own words, which a screen is entitled to pass on. */
 const MESSAGES = {
+  400: 'We could not read that request.',
+  401: 'Your session has expired.',
   403: 'That is not yours.',
   404: 'No such thing.',
+  422: 'That order id is not a valid one.',
   429: 'Too many requests. Wait a minute and try again.',
   500: 'Something broke on our side.',
 };
@@ -250,6 +264,38 @@ const CASES = [
     why: 'two more requests is the one response guaranteed to make it worse',
   },
   {
+    name: 'a 400 — the request itself was wrong',
+    status: 400,
+    attempts: 1,
+    why: 'the same bytes sent again are wrong in exactly the same way',
+  },
+  {
+    name: 'a 422 — read, understood, and refused',
+    status: 422,
+    attempts: 1,
+    why: 'the server already considered this request; it has not changed since',
+  },
+  {
+    /*
+      The one case that ends somewhere else.
+
+      A 401 whose refresh fails is not a screen showing an error — the client
+      clears the keychain, the app forgets the customer and routes to sign-in.
+      So this case asserts the opposite precondition to the others: it must end
+      signed *out*, because that is the app behaving correctly.
+
+      What it should not do is keep asking. The retry fires about a second
+      later, by which time there is no token to send, so the second and third
+      requests go out unauthenticated to an endpoint that has already said no —
+      against a screen that is being torn down as they leave.
+    */
+    name: 'a 401 — a session that is already over',
+    status: 401,
+    attempts: 1,
+    endsSignedOut: true,
+    why: 'the tokens are cleared and the app is leaving; the next two ask as nobody',
+  },
+  {
     name: 'a 500 — transient, and worth asking again',
     status: 500,
     attempts: 3,
@@ -324,11 +370,43 @@ try {
     */
     await page.waitForTimeout(10000);
 
+    const endsSignedOut = testCase.endsSignedOut === true;
+
     const wrongState = await preconditionFailures(page, {
       where: testCase.name,
-      signedIn: true,
+      signedIn: !endsSignedOut,
     });
     for (const failure of wrongState) findings.push(failure);
+
+    /*
+      The 401 case's own precondition, and it is the mirror of everybody
+      else's.
+
+      A case that seeds a session and ends signed out has either measured the
+      app doing the right thing or measured a seed that never landed, and those
+      two look identical from here unless the sweep says which it expected. So
+      this one asserts that the app really did give the session up: if it were
+      still signed in, the 401 never reached the handler and whatever the
+      counter says is about some other situation.
+    */
+    if (endsSignedOut) {
+      const stillSignedIn = await page.evaluate(() => {
+        let authenticated = null;
+        try {
+          const raw = window.localStorage.getItem('bbq.auth');
+          authenticated = raw === null ? null : (JSON.parse(raw)?.state?.isAuthenticated ?? null);
+        } catch {
+          authenticated = null;
+        }
+        return authenticated === true;
+      });
+      if (stillSignedIn) {
+        findings.push(
+          `${testCase.name}: the app is still signed in, so the expiry never ran and this ` +
+            `case counted something else.`,
+        );
+      }
+    }
 
     const text = (await page.evaluate(() => document.body.innerText)).replace(/\n+/g, ' | ');
     const caught = await page.evaluate(() =>

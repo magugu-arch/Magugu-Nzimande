@@ -1,5 +1,12 @@
 import { useCallback, useMemo } from 'react';
-import { Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -53,10 +60,6 @@ import { formatEtaWindow } from '@/utils/datetime';
 import { groupDigits } from '@/utils/money';
 import { orderProgress } from '@/features/orders/timelineProgress';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = Math.min(200, SCREEN_WIDTH * 0.52);
-const HERO_WIDTH = SCREEN_WIDTH - spacing.lg * 2;
-
 /**
  * Home (brief §11): personalised greeting, fulfilment choice, promotional hero,
  * popular menu, best sellers, rewards summary and offers.
@@ -65,6 +68,19 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+
+  /*
+    Derived from the window when it is read, not once at import.
+
+    A number captured at module scope is correct exactly until the window
+    changes size, and then it is wrong with no way of finding out: a browser
+    drag on the web build, a Split View or Slide Over on a tablet, a foldable
+    opening. `useWindowDimensions` re-renders with the new size, which is the
+    whole reason it exists.
+  */
+  const { width } = useWindowDimensions();
+  const cardWidth = Math.min(200, width * 0.52);
+  const heroWidth = width - spacing.lg * 2;
 
   const user = useAuthStore((state) => state.user);
   const fulfilmentType = useFulfilmentStore((state) => state.fulfilmentType);
@@ -298,7 +314,7 @@ export default function HomeScreen() {
         {heroPromotion ? (
           <PromotionBanner
             promotion={heroPromotion}
-            width={HERO_WIDTH}
+            width={heroWidth}
             onPress={() => router.push(`/offers/${heroPromotion.id}`)}
             testID="home-hero-promotion"
           />
@@ -371,7 +387,7 @@ export default function HomeScreen() {
                 <ProductCard
                   key={product.id}
                   product={product}
-                  width={CARD_WIDTH}
+                  width={cardWidth}
                   onPress={() => openProduct(product)}
                 />
               ))}
@@ -395,7 +411,7 @@ export default function HomeScreen() {
               <ProductCard
                 key={product.id}
                 product={product}
-                width={CARD_WIDTH}
+                width={cardWidth}
                 onPress={() => openProduct(product)}
               />
             ))}
@@ -450,7 +466,7 @@ export default function HomeScreen() {
               <ProductCard
                 key={product.id}
                 product={product}
-                width={CARD_WIDTH}
+                width={cardWidth}
                 onPress={() => openProduct(product)}
               />
             ))}
@@ -474,7 +490,7 @@ export default function HomeScreen() {
                   key={promotion.id}
                   promotion={promotion}
                   size="compact"
-                  width={CARD_WIDTH + 40}
+                  width={cardWidth + 40}
                   onPress={() => router.push(`/offers/${promotion.id}`)}
                 />
               ))}

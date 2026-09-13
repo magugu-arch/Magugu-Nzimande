@@ -1250,6 +1250,47 @@ Three attempts and one attempt look identical to a customer, so the only place
 the difference exists is in what the backend was asked — which is why the sweep
 counts at the server rather than reading a screen.
 
+#### And then the list ran out
+
+That fix was written as a list of statuses, and a list only ever contains what
+somebody remembered to put in it. `audit:answers` was given three more cases and
+two of them came back red:
+
+| answer | asked | should be |
+| --- | --- | --- |
+| **400** | **3** | 1 — the request itself was wrong, and will be next time |
+| **422** | **3** | 1 — read, understood, and refused |
+| 401 | 1 | 1 — already right, and not for the reason you would hope |
+
+A 400 is the request the server has already read and refused, sent again byte
+for byte, twice, with the customer paying the backoff for a verdict that cannot
+change. The proof that this was an *enumeration* problem rather than an
+oversight is thirty lines below the bug, in the same file: `didNotHearBack`
+says, in those words, *"a 400 or a 422 is an answer: the server received the
+request, considered it, and refused"* — under a function whose entire job was
+that question and which was asking a list instead.
+
+So it is a class now. `serverAnswered` is **any 4xx that is not about timing**,
+and the carve-outs are named rather than the members: **408** (the server gave
+up waiting for a request that never finished arriving — nothing was decided)
+and **425** (which says "not yet" in those words). A status nobody has thought
+about yet gets the right treatment by default, and the next one the backend
+invents does not need a round of its own.
+
+Two smaller things came out of it.
+
+**401 was already at one attempt, by accident.** The expiry handler clears the
+query cache, and clearing it cancels the retries — a correct outcome resting
+entirely on a mechanism that exists for another reason. It is in the class now
+too, so two things would have to break.
+
+**The retry policy had been built out of a copy predicate**, and that is why a
+400 was never going to be caught by reading. `isRefused` answers *which sentence
+does this screen show*, and nobody would ever add a 400 to it — "it may have
+come off the menu, or it belonged to another account" is the wrong thing to say
+about a malformed request — so nobody ever added it to the retry policy either.
+Policy and copy are two questions now, and they have two names.
+
 ### The most expensive status in the app
 
 Checkout authorises the card, then creates the order, sending an attempt key so
@@ -1391,6 +1432,47 @@ overflows at either iPad shape, so they are not defects today — they are a
 latent version of the same mistake, and a fixture counts them by name so the
 number cannot grow quietly.
 
+### Closing the class rather than the instance
+
+The round after, the count went to zero. Two of the six turned out not to need
+a width at all: `offers/[id]` and `rewards/[id]` used the window width to say
+*"as wide as the screen"* for a hero that is a direct child of the scroll view,
+which `'100%'` says without measuring anything — and so without being able to
+measure it at the wrong moment. A hook that re-reads is the fix for a number you
+genuinely need; no number at all is the better fix when you never did.
+
+The other four now ask `useWindowDimensions`, and one of them was more than a
+layout mark. **Onboarding** uses the page width three times — how wide a slide
+is drawn, the divisor that turns a scroll offset back into a slide number, and
+the offset *Next* scrolls to. Read once at import, all three go stale together:
+the slides stop filling the viewport, the dots and the headline stop agreeing
+with the picture, and *Next* lands between two slides. Nobody would see it in a
+simulator, which opens at one size and stays there; the published web preview is
+exactly where somebody drags a window edge.
+
+One small thing fell out of reading those files closely. Onboarding's hero was
+`aspectRatio={SCREEN_WIDTH / (SCREEN_WIDTH * 1.25)}` — which is `1 / 1.25` with
+the width cancelling itself out, and which read as though it depended on the
+screen. That is how it survived a round that was looking for precisely that.
+
+### What is left is a design decision, and it is yours
+
+The sweep is green — twelve screens, two iPad shapes, nothing overflowing and
+nothing clipped. What it is not is *designed*: every screen is a phone layout
+stretched to 834 or 1194 points, and the sweep prints the two measurements that
+show it. Banner images reach **85% of the screen height** on a landscape iPad
+where the same component takes 24% on the phone it was drawn for, and body text
+runs to **133 characters a line** where about 80 is the readability limit.
+
+Both are reported rather than failed on, and that boundary is now honoured in
+both directions. A hero that runs *off* the screen is a defect and was fixed. A
+hero that fills 85% of it is a phone design on a tablet, and choosing between a
+centred maximum width, a second column and larger type is drawing somebody's app
+for them. So it went where every question like it goes: `audit:launch`, under
+*only you can supply*, guarded on the `supportsTablet` flag that makes it a
+question at all. Setting that flag to `false` and shipping phone-only is a
+legitimate answer, and the only one that makes the question go away.
+
 ### And a correction to the sweep itself
 
 Its first run reported Home's "Popular right now" row as running 890px past the
@@ -1417,7 +1499,7 @@ is not mine to invent.
 ## 4. Blockers, and why each is a blocker rather than a task
 
 Per §8's rule — document architectural and commercial dependencies rather than
-inventing APIs or credentials. `npm run audit:launch` lists **31** such items and
+inventing APIs or credentials. `npm run audit:launch` lists **32** such items and
 fails a production build while they stand. The ones that bear on this round:
 
 1. **No authorised delivery provider.** §12 requires contracts, credentials and

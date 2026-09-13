@@ -4,8 +4,8 @@ import path from 'node:path';
 import {
   ApiRequestError,
   isConflict,
-  isRateLimited,
   isRefused,
+  serverAnswered,
   worthRetrying,
 } from '@/services/apiClient';
 import { submitOrder } from '@/features/checkout/submitOrder';
@@ -47,6 +47,29 @@ const code = (file: string) =>
 
   The 500 is what keeps the rest honest. This is not "stop retrying"; it is
   "stop retrying an answer".
+
+  ── and then, two rounds later ──
+
+  That fix was written as a list of statuses, and a list only contains what
+  somebody remembered to put in it. `audit:answers` was given three more cases
+  and found two of them red:
+
+      400   3   ← should be 1
+      422   3   ← should be 1
+      401   1   already right, and not for the reason you would hope
+
+  A 400 is the request the server has already read and refused, sent again
+  byte for byte, twice, with the customer paying the backoff for a verdict
+  that cannot change. The proof that this was an enumeration problem rather
+  than an oversight is in the same file as the bug: `didNotHearBack` says, in
+  those words, "a 400 or a 422 is an answer: the server received the request,
+  considered it, and refused" — thirty lines below a function whose entire job
+  was that question and which was asking a list instead.
+
+  So it is `serverAnswered` now: any 4xx that is not about timing. The
+  carve-outs are named (408, 425) rather than the members, which is shorter,
+  and means the next status the backend invents is handled before anybody has
+  to notice it.
   ───────────────────────────────────────────────────────────────────────────
 */
 
@@ -63,7 +86,26 @@ describe('1 — asking again, and when it could help', () => {
 
   it('does not argue with a rate limit', () => {
     expect(worthRetrying(answer(429))).toBe(false);
-    expect(isRateLimited(answer(429))).toBe(true);
+  });
+
+  it('does not re-send a request the server has already refused', () => {
+    // The two the list never reached. Found by measurement, not by reading.
+    expect(worthRetrying(answer(400))).toBe(false);
+    expect(worthRetrying(answer(422))).toBe(false);
+  });
+
+  it('does not keep asking as a session that is already gone', () => {
+    /*
+      `execute` handles a 401 itself — one refresh, one retry — so one thrown
+      from there has already exhausted that, and the token is cleared. The
+      query's next attempt would go out as nobody.
+
+      `audit:answers` measures this at one attempt without the policy's help,
+      because the expiry handler clears the query cache and that cancels the
+      retries. True, and resting on a mechanism that exists for another
+      reason. This makes it two things that would have to break.
+    */
+    expect(worthRetrying(answer(401))).toBe(false);
   });
 
   it('still retries everything that is the app not knowing yet', () => {
@@ -75,12 +117,55 @@ describe('1 — asking again, and when it could help', () => {
     expect(worthRetrying(undefined)).toBe(true);
   });
 
-  it('keeps a rate limit and a refusal as two questions', () => {
-    // They lead to the same decision here and would not lead to the same
-    // sentence on a screen: one is about this thing and this customer, the
-    // other is about how hard the app is pushing.
-    expect(isRefused(answer(429))).toBe(false);
-    expect(isRateLimited(answer(403))).toBe(false);
+  it('still asks again for the two 4xx that are about timing', () => {
+    /*
+      The carve-outs, and they are the reason this is a class rather than
+      "every 4xx". A 408 is the server giving up on a request that never
+      finished arriving — nothing was decided — and a 425 says "not yet" in
+      those words. Both are documented invitations to send it again.
+    */
+    expect(worthRetrying(answer(408))).toBe(true);
+    expect(worthRetrying(answer(425))).toBe(true);
+    expect(serverAnswered(answer(408))).toBe(false);
+    expect(serverAnswered(answer(425))).toBe(false);
+  });
+
+  it('answers for a status nobody has thought about yet', () => {
+    // The whole point of the change. None of these has ever been mentioned in
+    // this repository, and a list would have got every one of them wrong.
+    for (const status of [402, 405, 410, 415, 418, 451]) {
+      expect(serverAnswered(answer(status))).toBe(true);
+      expect(worthRetrying(answer(status))).toBe(false);
+    }
+  });
+
+  it('keeps policy and copy as two questions', () => {
+    /*
+      The distinction the old list kept losing, and the reason 400 slipped
+      through: `worthRetrying` was built out of `isRefused`, which is a
+      question about *which sentence a screen shows*. Nobody would ever add a
+      400 to `isRefused` — "it may have come off the menu, or it belonged to
+      another account" is the wrong thing to say about a malformed request —
+      so nobody ever added it to the retry policy either.
+    */
+    for (const status of [400, 401, 422, 429]) {
+      expect(serverAnswered(answer(status))).toBe(true);
+      expect(isRefused(answer(status))).toBe(false);
+    }
+    // And the two that are both: a refusal to say, and a refusal to re-ask.
+    for (const status of [403, 404]) {
+      expect(serverAnswered(answer(status))).toBe(true);
+      expect(isRefused(answer(status))).toBe(true);
+    }
+  });
+
+  it('says nothing about a failure that never reached a server', () => {
+    // A timeout and a dead socket carry no status. `serverAnswered` must not
+    // claim one answered; `timedOut` is the separate half of `worthRetrying`.
+    expect(serverAnswered(new ApiRequestError({ code: 'timeout', message: 'slow' }))).toBe(false);
+    expect(serverAnswered(new ApiRequestError({ code: 'network', message: 'gone' }))).toBe(false);
+    expect(serverAnswered(new Error('Network request failed'))).toBe(false);
+    expect(serverAnswered(undefined)).toBe(false);
   });
 
   it('is the one predicate the query client reads', () => {
@@ -247,5 +332,24 @@ describe('4 — audit:answers', () => {
     // call it a pass, which is the shape of every measurement bug this
     // repository has found in its own sweeps.
     expect(audit).toMatch(/await page\.waitForTimeout\(10000\);/);
+  });
+
+  it('carries the three statuses the enumeration never reached', () => {
+    for (const status of [400, 422, 401]) {
+      expect(audit).toMatch(new RegExp(`status: ${status},`));
+    }
+  });
+
+  it('checks the 401 case ends signed out, which is the opposite of the rest', () => {
+    /*
+      A case that seeds a session and ends signed out has either measured the
+      app doing the right thing or measured a seed that never landed, and from
+      inside the sweep those look identical. So this one asserts the mirror of
+      everybody else's precondition rather than skipping it — a sweep that
+      drops a precondition because it is inconvenient is the exact failure
+      `lib/preconditions.mjs` was written for.
+    */
+    expect(audit).toMatch(/signedIn: !endsSignedOut/);
+    expect(audit).toMatch(/the app is still signed in, so the expiry never ran/);
   });
 });

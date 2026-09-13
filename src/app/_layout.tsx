@@ -63,6 +63,11 @@ const queryClient = new QueryClient({
         applies to more statuses than the one it was written for, so it now
         lives with them in `worthRetrying`. A 403 was being asked three times,
         and so was a 429, which is the server asking the app to stop.
+
+        And so were a 400 and a 422, which is what finally moved that from a
+        list of statuses to `serverAnswered`: an answer is any 4xx that is not
+        about timing, and naming the exceptions is shorter and more honest than
+        naming the members one sweep at a time.
       */
       retry: (failureCount, error) => worthRetrying(error) && failureCount < 2,
       staleTime: 60 * 1000,

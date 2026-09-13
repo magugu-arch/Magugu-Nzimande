@@ -1,4 +1,4 @@
-import { Dimensions, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,9 +32,6 @@ import { formatRelativeDay } from '@/utils/datetime';
 import { groupDigits } from '@/utils/money';
 import { perksFor } from '@/services/data/rewardsData';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const REWARD_CARD_WIDTH = Math.min(210, SCREEN_WIDTH * 0.56);
-
 /**
  * Rewards Home (brief §11): points balance, membership tier, available rewards,
  * progress to next reward, offers, expiry and history.
@@ -43,6 +40,18 @@ export default function RewardsScreen() {
   const signedOut = useIsSignedOut();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  /*
+    Derived from the window when it is read, not once at import.
+
+    A number captured at module scope is correct exactly until the window
+    changes size, and then it is wrong with no way of finding out: a browser
+    drag on the web build, a Split View or Slide Over on a tablet, a foldable
+    opening. `useWindowDimensions` re-renders with the new size, which is the
+    whole reason it exists.
+  */
+  const { width } = useWindowDimensions();
+  const rewardCardWidth = Math.min(210, width * 0.56);
 
   const loyalty = useLoyaltyAccount();
   const rewards = useRewards();
@@ -219,7 +228,7 @@ export default function RewardsScreen() {
                     key={reward.id}
                     reward={reward}
                     pointsBalance={account.pointsBalance}
-                    width={REWARD_CARD_WIDTH}
+                    width={rewardCardWidth}
                     onPress={() => router.push(`/rewards/${reward.id}`)}
                     testID={`reward-${reward.id}`}
                   />
@@ -282,7 +291,7 @@ export default function RewardsScreen() {
                     key={reward.id}
                     reward={reward}
                     pointsBalance={account.pointsBalance}
-                    width={REWARD_CARD_WIDTH}
+                    width={rewardCardWidth}
                     onPress={() => router.push(`/rewards/${reward.id}`)}
                   />
                 ))}
@@ -309,7 +318,7 @@ export default function RewardsScreen() {
                     key={promotion.id}
                     promotion={promotion}
                     size="compact"
-                    width={REWARD_CARD_WIDTH + 30}
+                    width={rewardCardWidth + 30}
                     onPress={() => router.push(`/offers/${promotion.id}`)}
                   />
                 ))}

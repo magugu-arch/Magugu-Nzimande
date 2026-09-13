@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -30,8 +30,6 @@ import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
 import { tell } from '@/ux/dialog';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 /** Promotional Detail (brief §4). */
 export default function OfferDetailScreen() {
@@ -327,7 +325,17 @@ const styles = StyleSheet.create({
   soldOutNotice: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
   soldOutText: { flex: 1 },
   headerWrap: { paddingHorizontal: spacing.gutter },
-  hero: { width: SCREEN_WIDTH },
+  /*
+    Full bleed said as a proportion rather than as a number.
+
+    This was `Dimensions.get('window').width`, read once at import — a hero
+    that is exactly the width the window happened to be when the bundle
+    loaded, and a stripe of background down one side for the rest of the
+    session once it is not. `'100%'` is the same intent with nothing to go
+    stale: the parent is the scroll view, the scroll view is the screen, and
+    a proportion cannot be measured at the wrong moment.
+  */
+  hero: { width: '100%' },
   body: { gap: spacing.lg, padding: spacing.lg, paddingBottom: spacing.xxxl },
   titleBlock: { gap: spacing.sm },
   card: { gap: spacing.sm },

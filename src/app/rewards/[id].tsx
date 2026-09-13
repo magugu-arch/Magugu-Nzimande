@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FoodImage } from '@/components/food/FoodImage';
@@ -30,8 +30,6 @@ import { formatPrice, groupDigits } from '@/utils/money';
 import { track } from '@/ux/analytics';
 import { useOnce } from '@/features/system/useOnce';
 import { isRefused } from '@/services/apiClient';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 /** Reward Details + Rewards Redemption (brief §4). */
 export default function RewardDetailScreen() {
@@ -345,9 +343,19 @@ export default function RewardDetailScreen() {
 
 const styles = StyleSheet.create({
   headerWrap: { paddingHorizontal: spacing.gutter },
-  hero: { width: SCREEN_WIDTH },
+  /*
+    Full bleed said as a proportion rather than as a number.
+
+    This was `Dimensions.get('window').width`, read once at import — a hero
+    that is exactly the width the window happened to be when the bundle
+    loaded, and a stripe of background down one side for the rest of the
+    session once it is not. `'100%'` is the same intent with nothing to go
+    stale: the parent is the scroll view, the scroll view is the screen, and
+    a proportion cannot be measured at the wrong moment.
+  */
+  hero: { width: '100%' },
   iconHero: {
-    width: SCREEN_WIDTH,
+    width: '100%',
     aspectRatio: 16 / 9,
     alignItems: 'center',
     justifyContent: 'center',

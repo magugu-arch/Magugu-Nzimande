@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   EmptyState,
@@ -14,13 +14,21 @@ import { PromotionBanner } from '@/features/home/components/PromotionBanner';
 import { usePromotions } from '@/features/rewards/hooks';
 import { colors, spacing } from '@/theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const BANNER_WIDTH = SCREEN_WIDTH - spacing.lg * 2;
-
 /** Offers list (brief §4). Entirely data-driven from the promotions service. */
 export default function OffersScreen() {
   const router = useRouter();
   const promotions = usePromotions();
+
+  /*
+    Derived from the window when it is read, not once at import.
+
+    A number captured at module scope is correct exactly until the window
+    changes size, and then it is wrong with no way of finding out: a browser
+    drag on the web build, a Split View or Slide Over on a tablet, a foldable
+    opening. `useWindowDimensions` re-renders with the new size, which is the
+    whole reason it exists.
+  */
+  const bannerWidth = useWindowDimensions().width - spacing.lg * 2;
 
   if (promotions.isLoading) {
     return (
@@ -72,7 +80,7 @@ export default function OffersScreen() {
             <PromotionBanner
               key={promotion.id}
               promotion={promotion}
-              width={BANNER_WIDTH}
+              width={bannerWidth}
               onPress={() => router.push(`/offers/${promotion.id}`)}
               testID={`offer-${promotion.id}`}
             />

@@ -780,6 +780,41 @@ if (!/useMockApi:\s*bool\([^,]+,\s*__DEV__\s*\)/.test(config)) {
   note('Mock layer', 'The source default for useMockApi is not __DEV__.', 'build');
 }
 
+/*
+  What the app should look like on a tablet, which nobody has said.
+
+  Guarded on `supportsTablet`, because that flag is the only reason the
+  question exists: turn it off and the App Store never offers the app on an
+  iPad, and none of this matters.
+
+  Reported rather than decided, and that boundary is `audit:wide`'s own:
+  "what to do about it — a max width, a second column, larger type — is a
+  layout decision and belongs to whoever owns the design, not to this sweep."
+  A hero that runs *off* the screen is a defect and was fixed; a hero that
+  fills 85% of it is a design that was drawn for a phone, and picking its
+  replacement would be drawing yours.
+*/
+if (app.ios?.supportsTablet === true) {
+  note(
+    'Tablet layout',
+    '`app.json` sets `ios.supportsTablet: true`, so the App Store will offer this ' +
+      'on an iPad, and nobody has said what it should look like there. `npm run ' +
+      'audit:wide` renders twelve screens at both iPad shapes: **nothing overflows ' +
+      'and nothing is clipped**, so it is usable today. What it is not is *designed* ' +
+      '— every screen is a phone layout stretched to 834 or 1194 points. The sweep ' +
+      'prints the two measurements that show it, and both are reported rather than ' +
+      'failed on because the fix is a design decision: banner images reach **85% of ' +
+      'the screen height** on a landscape iPad where the same component takes 24% on ' +
+      'the phone it was drawn for, and body text runs to **133 characters a line** ' +
+      'where about 80 is the readability limit. Three answers are ordinary — a ' +
+      'centred maximum content width, a second column, or larger type — and they ' +
+      'look completely different from each other. Pick one, or set ' +
+      '`supportsTablet: false` and ship phone-only, which is a legitimate answer and ' +
+      'the only one that makes the question go away.',
+    'you',
+  );
+}
+
 // --- Report ---------------------------------------------------------------
 
 const mine = blockers.filter((b) => b.whose === 'build');

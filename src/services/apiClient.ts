@@ -55,15 +55,71 @@ export function isRefused(error: unknown): boolean {
 }
 
 /**
- * The server asking the app to stop.
+ * The 4xx statuses that are about *timing* rather than about the request.
  *
- * Separate from `isRefused` because it is a different kind of no: a refusal is
- * about this thing and this customer, a rate limit is about how hard the app is
- * pushing. They happen to lead to the same decision here and they would not
- * lead to the same sentence on a screen, so they stay two questions.
+ * A client error normally means the server read the request and decided; the
+ * decision will be the same next time, because neither the request nor the
+ * server has changed. These two are the exception, and they are the exception
+ * by definition rather than by guess:
+ *
+ *   408 Request Timeout — the server gave up waiting for a request that never
+ *       finished arriving. Nothing was decided. Sending it again is the
+ *       documented response.
+ *   425 Too Early — "not yet", in those words. Later is the whole point.
+ *
+ * A **429** is deliberately not here. It is also about timing, and it is the
+ * one status where asking again immediately is worse than pointless: the
+ * server has asked the app to stop, and two more requests arrive at the moment
+ * the backend is least able to absorb them. Honouring a `Retry-After` is a
+ * different mechanism from a retry policy that fires on a fixed backoff, and
+ * this app does not have one.
  */
-export function isRateLimited(error: unknown): boolean {
-  return error instanceof ApiRequestError && error.status === 429;
+const RE_ASKABLE = new Set([408, 425]);
+
+/**
+ * Whether the server answered, as opposed to failing to answer.
+ *
+ * This is the rule the retry policy was always reaching for, and for three
+ * rounds it was written down as a list of statuses instead: 404, then 403,
+ * then 429, each added when a sweep caught the app arguing with one. A list
+ * grows by whatever somebody remembers to add to it, and `audit:answers`
+ * found what nobody had — a **400** and a **422** were each being asked three
+ * times, which is the request the server has already read and refused, sent
+ * again byte for byte, twice, with the customer paying the backoff.
+ *
+ * The evidence that this was an enumeration problem rather than an oversight
+ * is thirty lines below, in `didNotHearBack`: *"A 400 or a 422 is an answer:
+ * the server received the request, considered it, and refused."* The rule was
+ * already stated correctly in this file, by a function that needed it for
+ * something else, while the function whose whole job it was asked a list.
+ *
+ * So it is a class now, and the carve-outs are named rather than the members.
+ * A status nobody has thought about yet gets the right treatment by default,
+ * and the next 4xx the backend invents does not need a round of its own.
+ *
+ * **401 is included**, which is a change of position and a small one in
+ * practice. `execute` handles a 401 itself — one refresh, one retry — and by
+ * the time one is thrown from here that has already failed, so the token is
+ * gone and the query's next attempt would go out as nobody. `audit:answers`
+ * measures that case at one attempt already, but not because of this policy:
+ * the expiry handler clears the query cache, and clearing it cancels the
+ * retries. That is a correct outcome resting on an unrelated mechanism, which
+ * is the kind of thing that stops being true when somebody changes the
+ * unrelated mechanism. Now two things have to break.
+ *
+ * Kept separate from `isRefused` on purpose, and this is the distinction the
+ * old list kept losing. `isRefused` is a **copy** question — which sentence
+ * does this screen show — and its answer must stay 404 and 403, because "it
+ * may have come off the menu, or it belonged to another account" is the wrong
+ * thing to say about a malformed request. This is a **policy** question: may
+ * the app ask again. They are different questions with different answers and
+ * the retry policy had been built out of the copy one.
+ */
+export function serverAnswered(error: unknown): boolean {
+  if (!(error instanceof ApiRequestError)) return false;
+  const { status } = error;
+  if (status === undefined) return false;
+  return status >= 400 && status < 500 && !RE_ASKABLE.has(status);
 }
 
 /**
@@ -121,6 +177,10 @@ export function timedOut(error: unknown): boolean {
  * data three times, which on a prepaid bundle is money. The budget moved
  * instead: see `apiTimeoutMs`.
  *
+ * A **400** and a **422** were the two the list never reached, and finding
+ * them is what turned it into a class: see `serverAnswered`, which asks the
+ * question the list was an approximation of.
+ *
  * Everything else stays retryable, which is the point. This is not "stop
  * retrying" — it is "stop retrying an *answer*, and stop re-asking a question
  * you already timed yourself out of". A 500 and a dead socket are both the app
@@ -128,7 +188,7 @@ export function timedOut(error: unknown): boolean {
  * a 500 and a fast connection as controls so that distinction cannot rot.
  */
 export function worthRetrying(error: unknown): boolean {
-  return !isRefused(error) && !isRateLimited(error) && !timedOut(error);
+  return !serverAnswered(error) && !timedOut(error);
 }
 
 /**

@@ -46,6 +46,24 @@ function sourceFiles(dir = 'src'): string[] {
   under half. Half the viewport height says the same thing in a way that
   survives a wider screen, and `audit:screens` confirms the phone renders
   exactly as it did.
+
+  ── and the round after ──
+
+  That fix left six other screens reading the window once at module scope, and
+  a fixture below counted them by name so the number could not grow quietly.
+  It is empty now. Two of the six did not need a width at all — `'100%'` says
+  "as wide as the screen" without measuring anything — and the other four ask
+  the hook.
+
+  One of the four was more than a layout mark. Onboarding uses the page width
+  three times: how wide a slide is drawn, the divisor that turns a scroll
+  offset back into a slide number, and the offset Next scrolls to. Stale, all
+  three disagree at once and the carousel desynchronises from its own dots.
+
+  What is left at both iPad shapes is not a defect — nothing overflows — it is
+  a phone design stretched to 1194 points, and that goes to `audit:launch`
+  rather than being decided here. Same boundary this sweep drew for itself,
+  applied to itself.
   ───────────────────────────────────────────────────────────────────────────
 */
 
@@ -137,27 +155,85 @@ describe('2 — a window that can change', () => {
   });
 
   /**
-   * The rest of the app, stated rather than hidden.
+   * The rest of the app, and then none of it.
    *
-   * Six other screens still read the window once at module scope. `audit:wide`
-   * renders all of them at both iPad shapes and none of them overflows, so
-   * they are not defects today — what they are is a latent version of the same
-   * mistake, and a fixture that pretended otherwise would be the lie. This one
-   * counts them, so the number cannot grow quietly.
+   * When this fixture was written it listed six other screens that still read
+   * the window once at module scope, so the number could not grow quietly. It
+   * is empty now: the round after named them one at a time and closed the
+   * class, and the list is the better kind of empty — a thing that was counted
+   * until it reached zero rather than a check nobody ever wrote.
+   *
+   * Kept as an assertion rather than deleted, because the next screen that
+   * needs a width will reach for the same expression, and the whole point of
+   * closing a class is that it stays closed.
    */
-  it('counts what still reads the window once, so it cannot grow unnoticed', () => {
+  it('no longer reads the window once anywhere, and says so by counting', () => {
     const captured = sourceFiles().filter((file) =>
       code(file).includes("Dimensions.get('window')"),
     );
 
-    expect(captured.sort()).toEqual([
+    expect(captured.sort()).toEqual([]);
+  });
+
+  it('reaches for the hook on every screen that needs a width', () => {
+    // The six that were on the list, by name, so an accidental revert is a
+    // failure here rather than a slow drift back.
+    const migrated = [
       'src/app/(onboarding)/welcome.tsx',
       'src/app/(tabs)/home.tsx',
       'src/app/(tabs)/rewards.tsx',
-      'src/app/offers/[id].tsx',
       'src/app/offers/index.tsx',
-      'src/app/rewards/[id].tsx',
-    ]);
+    ];
+    for (const file of migrated) {
+      expect(code(file)).toMatch(/useWindowDimensions\(\)/);
+    }
+  });
+
+  it('drops the number entirely where full bleed is the whole intent', () => {
+    /*
+      Two of the six did not need a width at all. `offers/[id]` and
+      `rewards/[id]` used the window width to say "as wide as the screen" for
+      a hero that is a direct child of the scroll view — which `'100%'` says
+      without measuring anything, and so without being able to measure it at
+      the wrong moment.
+
+      Worth separating from the other four: a hook that re-reads is the fix
+      for a number you genuinely need, and no number at all is the better fix
+      when you never did.
+    */
+    for (const file of ['src/app/offers/[id].tsx', 'src/app/rewards/[id].tsx']) {
+      expect(code(file)).toMatch(/hero: \{ width: '100%' \}/);
+      expect(code(file)).not.toMatch(/useWindowDimensions/);
+    }
+  });
+
+  it('fixes the carousel that would have desynchronised, not just its width', () => {
+    /*
+      Onboarding was the one where a stale width is more than a layout mark.
+      `welcome.tsx` uses the page width three times — how wide a slide is
+      drawn, the divisor that turns a scroll offset back into a slide number,
+      and the offset Next scrolls to — so on a resize the slides stop filling
+      the viewport, the dots and the headline stop agreeing with the picture,
+      and Next lands between two slides.
+
+      All three now come from the same hook, so they cannot disagree with each
+      other or with the window.
+    */
+    const screen = code('src/app/(onboarding)/welcome.tsx');
+
+    expect(screen).toMatch(/setIndex\(Math\.round\(offset \/ width\)\)/);
+    expect(screen).toMatch(/scrollToOffset\(\{ offset: \(index \+ 1\) \* width/);
+    expect(screen).toMatch(/<View style=\{\{ width \}\}>/);
+    // And the handlers have to be told, or they close over the first width.
+    expect(screen).toMatch(/\},\s*\[width\],\s*\);/);
+    expect(screen).toMatch(/\[isLastSlide, index, width, completeOnboarding, router\]/);
+  });
+
+  it('stops deriving a constant from a number it then cancels out', () => {
+    // `aspectRatio={SCREEN_WIDTH / (SCREEN_WIDTH * 1.25)}` is 1/1.25 with the
+    // width cancelling itself. It read as though it depended on the screen,
+    // which is how it survived a round that was looking for exactly that.
+    expect(code('src/app/(onboarding)/welcome.tsx')).toMatch(/aspectRatio=\{1 \/ 1\.25\}/);
   });
 });
 
@@ -193,6 +269,30 @@ describe('3 — audit:wide', () => {
     */
     expect(audit).toMatch(/const inScroller = \(node\) =>/);
     expect(audit).toMatch(/that is what[\s\S]{0,20}horizontal scrolling is/);
+  });
+
+  it('hands the design decision on rather than making one', () => {
+    /*
+      The boundary this sweep drew for itself, now honoured in the other
+      direction. A hero that runs *off* the screen is a defect and was fixed in
+      the same round the sweep was written. A hero that fills 85% of a landscape
+      iPad is not a defect — it is a phone design on a tablet — and choosing
+      between a centred max width, a second column and larger type is drawing
+      somebody's app for them.
+
+      So it goes where every other question like it goes: `audit:launch`, under
+      "only you can supply", guarded on the flag that makes it a question at
+      all.
+    */
+    const launch = read('scripts/audit-launch-readiness.mjs');
+
+    expect(launch).toContain('if (app.ios?.supportsTablet === true) {');
+    expect(launch).toContain("'Tablet layout'");
+    expect(launch).toContain('**nothing overflows ');
+    expect(launch).toContain('reach **85% of ');
+    expect(launch).toContain('`supportsTablet: false` and ship phone-only');
+    // It must not claim a defect. The sweep is green and the item says so.
+    expect(launch).toContain('so it is usable today');
   });
 
   it('reports line length rather than failing on it', () => {

@@ -1,10 +1,10 @@
 import { useCallback, useRef, useState } from 'react';
 import {
-  Dimensions,
   FlatList,
   Pressable,
   StyleSheet,
   View,
+  useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
@@ -17,8 +17,6 @@ import { BrandMark } from '@/components/brand/BrandMark';
 import { Button, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/authStore';
 import { colors, radius, spacing } from '@/theme';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Slide {
   key: string;
@@ -55,10 +53,30 @@ export default function WelcomeScreen() {
   const listRef = useRef<FlatList<Slide>>(null);
   const [index, setIndex] = useState(0);
 
-  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offset = event.nativeEvent.contentOffset.x;
-    setIndex(Math.round(offset / SCREEN_WIDTH));
-  }, []);
+  /*
+    The page width, asked for rather than remembered.
+
+    This is a paged carousel, and the width is three separate things at once:
+    how wide a slide is drawn, the divisor that turns a scroll offset back into
+    a slide number, and the offset Next scrolls to. Read once at import, all
+    three go stale together the moment the window changes size — a browser drag
+    on the web build, a Split View on a tablet, a phone unfolding. The slides
+    stop filling the viewport, the dots and the headline stop agreeing with the
+    picture, and Next lands between two slides.
+
+    Nobody would see it in a simulator, because a simulator opens at one size
+    and stays there. The published web preview is exactly where somebody drags
+    a window edge.
+  */
+  const { width } = useWindowDimensions();
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offset = event.nativeEvent.contentOffset.x;
+      setIndex(Math.round(offset / width));
+    },
+    [width],
+  );
 
   const isLastSlide = index === SLIDES.length - 1;
 
@@ -68,8 +86,8 @@ export default function WelcomeScreen() {
       router.replace('/(auth)/sign-in');
       return;
     }
-    listRef.current?.scrollToOffset({ offset: (index + 1) * SCREEN_WIDTH, animated: true });
-  }, [isLastSlide, index, completeOnboarding, router]);
+    listRef.current?.scrollToOffset({ offset: (index + 1) * width, animated: true });
+  }, [isLastSlide, index, width, completeOnboarding, router]);
 
   const handleSkip = useCallback(() => {
     completeOnboarding();
@@ -89,7 +107,7 @@ export default function WelcomeScreen() {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
         renderItem={({ item, index }) => (
-          <View style={styles.slide}>
+          <View style={{ width }}>
             <FoodImage
               assetKey={item.assetKey}
               variant="detail"
@@ -99,11 +117,15 @@ export default function WelcomeScreen() {
               // other when only one is on screen. The other two are a swipe
               // away and can wait for it.
               aboveTheFold={index === 0}
-              aspectRatio={SCREEN_WIDTH / (SCREEN_WIDTH * 1.25)}
+              // 1/1.25 — the slide is a quarter taller than it is wide. It was
+              // written as `width / (width * 1.25)`, which is the same number
+              // with the width cancelling itself out, and read as though it
+              // depended on the screen.
+              aspectRatio={1 / 1.25}
               rounded="none"
               withScrim
               scrimIntensity="strong"
-              style={styles.image}
+              style={[styles.image, { width }]}
             />
           </View>
         )}
@@ -158,8 +180,7 @@ export default function WelcomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.brand.black },
-  slide: { width: SCREEN_WIDTH },
-  image: { flex: 1, width: SCREEN_WIDTH },
+  image: { flex: 1 },
   topBar: {
     position: 'absolute',
     top: 0,
