@@ -23,12 +23,22 @@ import { locateAddress } from '@/providers/geocoding';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, spacing } from '@/theme';
-import { required, validateFields, validatePostalCode } from '@/utils/validation';
+import { all, maxLength, required, validateFields, validatePostalCode } from '@/utils/validation';
 import { ask, tell } from '@/ux/dialog';
 import { writeFailureMessage } from '@/features/system/writeFailure';
 import { useOnce } from '@/features/system/useOnce';
 
 type Field = 'label' | 'line1' | 'line2' | 'suburb' | 'city' | 'province' | 'postalCode';
+
+/**
+ * How long any one line of an address may be.
+ *
+ * A guardrail, not a business rule. Well above the 91 characters of the
+ * longest real address `audit:long` renders correctly, and well below the
+ * point where a value stops looking like an address. The real number is
+ * whatever your backend stores it in; see `audit:launch`.
+ */
+const FIELD_LIMIT = 120;
 
 const EMPTY_FORM: Record<Field, string> = {
   label: '',
@@ -136,12 +146,28 @@ export default function AddressScreen() {
   );
 
   const save = useCallback(async () => {
+    /*
+      Bounded as well as required, which it was not.
+
+      `audit:long` typed four hundred characters into every line of this form
+      and the app took all of it — saved, persisted, and on its way to the
+      kitchen and the driver. The layout no longer breaks on it (see
+      `ui/Text`), which is the real fix; this is the second guard, and it is a
+      guardrail rather than a rule.
+
+      `FIELD_LIMIT` is generous on purpose. The longest genuinely long address
+      the sweep renders — an estate name, a unit, a floor — is 91 characters on
+      its longest line, and a limit that rejected a real address would be a
+      worse bug than the one it fixed. What the backend actually accepts is its
+      contract, not mine, and it is carried in `audit:launch`.
+    */
     const validationErrors = validateFields(form, {
-      label: required('Label'),
-      line1: required('Street address'),
-      suburb: required('Suburb'),
-      city: required('City'),
-      province: required('Province'),
+      label: all(required('Label'), maxLength('Label', FIELD_LIMIT)),
+      line1: all(required('Street address'), maxLength('Street address', FIELD_LIMIT)),
+      line2: maxLength('Complex, unit or floor', FIELD_LIMIT),
+      suburb: all(required('Suburb'), maxLength('Suburb', FIELD_LIMIT)),
+      city: all(required('City'), maxLength('City', FIELD_LIMIT)),
+      province: all(required('Province'), maxLength('Province', FIELD_LIMIT)),
       postalCode: validatePostalCode,
     });
 
@@ -335,6 +361,18 @@ export default function AddressScreen() {
               helperText="Your driver sees this on their app."
               iconLeft="chatbubble-ellipses-outline"
               multiline
+              /*
+                Bounded, like everything else a customer types here, and for
+                the reason the helper text gives: the driver reads this on a
+                phone, between a gate and a parcel. `audit:long` put six
+                hundred characters in it and the app kept every one.
+
+                Twice a line's worth, because this is the one field where
+                somebody legitimately writes sentences — and still a guardrail
+                rather than a rule; the driver app's own limit is the real
+                number and nobody has given it to me.
+              */
+              maxLength={FIELD_LIMIT * 2}
               testID="delivery-instructions"
             />
           </View>
@@ -351,6 +389,7 @@ export default function AddressScreen() {
               value={form.label}
               onChangeText={(text) => update('label', text)}
               testID="address-field-label"
+              maxLength={FIELD_LIMIT}
               error={errors.label ?? null}
               placeholder="Home, Work, Mom's place"
               required
@@ -360,6 +399,7 @@ export default function AddressScreen() {
               value={form.line1}
               onChangeText={(text) => update('line1', text)}
               testID="address-field-line1"
+              maxLength={FIELD_LIMIT}
               error={errors.line1 ?? null}
               placeholder="14 Acacia Road"
               autoComplete="street-address"
@@ -370,6 +410,7 @@ export default function AddressScreen() {
               value={form.line2}
               onChangeText={(text) => update('line2', text)}
               testID="address-field-line2"
+              maxLength={FIELD_LIMIT}
               placeholder="Unit 3 (optional)"
             />
             <TextField
@@ -377,6 +418,7 @@ export default function AddressScreen() {
               value={form.suburb}
               onChangeText={(text) => update('suburb', text)}
               testID="address-field-suburb"
+              maxLength={FIELD_LIMIT}
               error={errors.suburb ?? null}
               placeholder="Melrose Arch"
               required
@@ -388,6 +430,7 @@ export default function AddressScreen() {
                 value={form.city}
                 onChangeText={(text) => update('city', text)}
                 testID="address-field-city"
+                maxLength={FIELD_LIMIT}
                 error={errors.city ?? null}
                 placeholder="Johannesburg"
                 containerStyle={styles.rowField}
@@ -412,6 +455,7 @@ export default function AddressScreen() {
               value={form.province}
               onChangeText={(text) => update('province', text)}
               testID="address-field-province"
+              maxLength={FIELD_LIMIT}
               error={errors.province ?? null}
               placeholder="Gauteng"
               required

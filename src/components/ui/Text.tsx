@@ -1,5 +1,11 @@
 import { memo } from 'react';
-import { Platform, Text as RNText, StyleSheet, type TextProps as RNTextProps } from 'react-native';
+import {
+  Platform,
+  Text as RNText,
+  StyleSheet,
+  type TextProps as RNTextProps,
+  type TextStyle,
+} from 'react-native';
 import { colors, fontScaleCapFor, typography, type TypographyVariant } from '@/theme';
 import { cappedFontScale, useFontScale } from '@/features/system/useFontScale';
 
@@ -69,6 +75,7 @@ export const Text = memo(function Text({
       style={StyleSheet.flatten([
         typography[variant],
         scaled,
+        BREAK_LONG_WORDS,
         { color },
         align ? { textAlign: align } : null,
         // After the scale, so a caller who sets an explicit size still wins.
@@ -77,3 +84,40 @@ export const Text = memo(function Text({
     />
   );
 });
+
+/**
+ * A word too long for its container breaks, rather than pushing the screen
+ * sideways.
+ *
+ * The same shape as the font-scale branch above, and found the same way. React
+ * Native lays a `Text` out itself and wraps an over-long word at a character
+ * boundary; React Native Web hands it to CSS, where the default
+ * `overflow-wrap: normal` refuses to break inside a word and lets it run past
+ * the edge instead. So a defect that cannot exist on iOS or Android exists on
+ * the web build, which is the build every preview and every review is done on.
+ *
+ * Measured rather than argued. `npm run audit:long` types three addresses and
+ * renders each one:
+ *
+ *     ordinary        14 chars a line   no overflow   (the control)
+ *     long but real   91 chars a line   no overflow
+ *     no ceiling     400 chars, unbroken   955px past a 390pt screen
+ *
+ * The middle case is the one that says this is about *unbroken runs* and not
+ * about length: a genuinely long address — an estate name, a unit, a floor —
+ * has spaces to wrap at and was always fine. What is not fine is one token
+ * with nowhere to break, and a customer produces those by accident: a complex
+ * name run together, a pasted link in a delivery note, an email address typed
+ * into the wrong box.
+ *
+ * Applied here rather than at the six screens that draw customer text, because
+ * the seventh screen is the one nobody will remember. `Text` is the only text
+ * primitive in the app, so this is the whole app.
+ *
+ * The cast is because this is a CSS property React Native's `TextStyle` does
+ * not model — it has no meaning on native, where the platform already does it.
+ * `break-word` rather than `break-all`: it breaks only a word that cannot fit
+ * on a line of its own, so ordinary prose wraps exactly as it did.
+ */
+const BREAK_LONG_WORDS =
+  Platform.OS === 'web' ? ({ wordBreak: 'break-word' } as unknown as TextStyle) : null;

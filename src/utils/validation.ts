@@ -31,6 +31,50 @@ export function minLength(label: string, length: number): Validator {
     value.trim().length < length ? `${label} must be at least ${length} characters` : null;
 }
 
+/**
+ * The other half of `minLength`, which was missing.
+ *
+ * This vocabulary had a floor and no ceiling, and the consequence was not
+ * theoretical: of every text field in the app only five capped what could be
+ * typed — the OTP box, a postal code, a product note, a support message and a
+ * rating comment. Every part of a delivery address was unbounded, so four
+ * hundred characters of "Suburb" saved, persisted, and went to the kitchen and
+ * the driver.
+ *
+ * `audit:long` found it. The layout half of that is fixed in `ui/Text` and is
+ * a real fix; this is the other half, and it is a **guardrail rather than a
+ * rule**. Nobody has told me what the backend accepts in a `suburb`, and a
+ * limit invented here could reject a real address — so the numbers applied are
+ * deliberately generous: comfortably above the longest genuine address the
+ * sweep renders correctly (91 characters on its longest line), and far below
+ * anything that reads as a mistake or an attack.
+ *
+ * What the real limits are is a backend contract and sits in `audit:launch`
+ * under "only you can supply". If your API says 60, this should say 60.
+ */
+export function maxLength(label: string, length: number): Validator {
+  return (value) =>
+    value.trim().length > length ? `${label} must be ${length} characters or fewer` : null;
+}
+
+/**
+ * Both ends of a field, in the order a customer meets them.
+ *
+ * `validateFields` takes one validator per field, so a field that needs to be
+ * present *and* bounded needs them composed rather than listed. Emptiness is
+ * reported first because "Suburb is required" is the more useful sentence to
+ * somebody who has typed nothing at all.
+ */
+export function all(...validators: Validator[]): Validator {
+  return (value) => {
+    for (const validate of validators) {
+      const message = validate(value);
+      if (message !== null) return message;
+    }
+    return null;
+  };
+}
+
 export const validateEmail: Validator = (value) => {
   const trimmed = value.trim();
   if (trimmed.length === 0) return 'Email address is required';

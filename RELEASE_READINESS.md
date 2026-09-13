@@ -1557,6 +1557,71 @@ That guard was then **run with the probe's regex deliberately broken** — it
 printed an empty table and the unproven line, which is the outcome it exists
 for. A check nobody has seen fail is a check nobody knows the state of.
 
+## 2ab. Text longer than anybody drew for
+
+`audit:sparse` drove data that was **missing**. `audit:basket` drove data there
+was a **lot of**. Nothing had driven data that is simply **long**, and the app
+had more room for it than anybody intended:
+
+- Of every text field in the app, five capped what could be typed — the OTP
+  box, a postal code, a product note, a support message and a rating comment.
+- Everything else did not, including **every part of a delivery address**:
+  street, complex, suburb, city, province, label, and the delivery instruction
+  the driver reads.
+- `utils/validation` had `required` and `minLength`. There was no `maxLength`.
+  A vocabulary with a floor and no ceiling.
+
+`npm run audit:long` types three addresses and renders each one:
+
+| case | longest line | result |
+| --- | --- | --- |
+| ordinary | 14 chars | no overflow — **the control** |
+| long but real | 91 chars | no overflow |
+| **no ceiling** | **400 chars, unbroken** | **955px past a 390pt screen** |
+
+The middle case is what makes this about **unbroken runs** rather than about
+length. A genuinely long address — an estate name, a unit, a floor — has spaces
+to wrap at and was always fine. One token with nowhere to break is not, and
+customers produce those by accident: a complex name run together, a pasted link
+in a delivery note, an email typed into the wrong box.
+
+### One fix, and one guardrail that is not a fix
+
+The **layout fix is real**, and it belongs to the web build alone. React Native
+lays out a `Text` itself and wraps an over-long word at a character boundary;
+React Native Web hands it to CSS, where the default `overflow-wrap: normal`
+refuses to break inside a word and lets it run past the edge. So this is a
+defect that cannot exist on iOS or Android, on the build every preview and every
+review is done from. It is applied in `ui/Text` — the only text primitive in the
+app, so it covers every screen including the one somebody adds next.
+
+The **cap is a guardrail**, and it says so in the code. An address line is now
+limited to 120 characters and a delivery note to 240, at the keyboard and again
+on save. Those numbers are generous on purpose — comfortably above the 91
+characters of the longest real address the sweep renders correctly — because a
+limit that rejected a real address would be a worse bug than the one it fixes.
+What a backend actually stores in a `suburb` is its contract, and that is now
+`audit:launch` item 33.
+
+**Stashing the fix proved which is which.** With the 120-character cap in place
+and the one line of layout removed, the sweep goes red on the same case at the
+same two widths: a capped field is still an unbroken run, and 120 characters of
+it do not fit on a phone either. A round that had shipped the cap alone would
+have looked like it solved something.
+
+### The run that was measuring nothing
+
+The first version of this sweep reported **zero overflows on a 400-character
+address**, with a longest drawn word of thirteen characters — the same number as
+the control. Zero overflow because there was nothing on the screen to overflow:
+the mock backend keeps its address list in memory, a page reload emptied it, and
+all three cases were measuring an empty address book while printing a pass.
+
+A real backend would have hidden that forever. The sweep now requires each
+screen to **prove it drew the text** before its measurement counts, measures the
+address book in place without reloading, and reaches checkout the way a customer
+does — through the selected address, which persists.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1573,7 +1638,7 @@ for. A check nobody has seen fail is a check nobody knows the state of.
 ## 4. Blockers, and why each is a blocker rather than a task
 
 Per §8's rule — document architectural and commercial dependencies rather than
-inventing APIs or credentials. `npm run audit:launch` lists **32** such items and
+inventing APIs or credentials. `npm run audit:launch` lists **33** such items and
 fails a production build while they stand. The ones that bear on this round:
 
 1. **No authorised delivery provider.** §12 requires contracts, credentials and
@@ -1610,7 +1675,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **112 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **113 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

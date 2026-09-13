@@ -815,6 +815,35 @@ if (app.ios?.supportsTablet === true) {
   );
 }
 
+/*
+  How long a field may actually be, which is a storage contract rather than a
+  layout question.
+
+  Guarded on the guardrail existing, like every other item here: take the cap
+  out and this disappears with it.
+*/
+const addressForm = read('src/app/checkout/address.tsx');
+if (addressForm.includes('FIELD_LIMIT')) {
+  note(
+    'Field length limits',
+    'Every part of a delivery address was unbounded — `npm run audit:long` typed **400 ' +
+      'characters into each line** and the app saved all of it, persisted it, and sent it ' +
+      'on to the kitchen and the driver. Two things were wrong and one of them is fixed: ' +
+      'the web build let a single unbroken 400-character token run **955px past a 390pt ' +
+      'screen**, which is now handled in the text primitive and is a real fix. The other ' +
+      'is yours. The app now caps an address line at **120 characters** and a delivery ' +
+      'instruction at **240**, and those are guardrails I chose, not limits anybody gave ' +
+      'me: generous enough not to reject the longest genuine address the sweep renders (91 ' +
+      'characters — an estate name, a unit and a floor), and tight enough that a value ' +
+      'stops looking like an address. Replace them with what your API actually stores, and ' +
+      'with whatever the courier and the kitchen printer accept — a field the backend ' +
+      'truncates at 60 is a delivery to the wrong gate, and the app would have no idea. ' +
+      'The same question applies to customer names, which are still uncapped because no ' +
+      'screen and no sweep has shown a reason to cap them.',
+    'you',
+  );
+}
+
 // --- Report ---------------------------------------------------------------
 
 const mine = blockers.filter((b) => b.whose === 'build');
