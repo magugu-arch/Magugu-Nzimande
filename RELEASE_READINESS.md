@@ -1622,6 +1622,65 @@ screen to **prove it drew the text** before its measurement counts, measures the
 address book in place without reloading, and reaches checkout the way a customer
 does — through the selected address, which persists.
 
+## 2ac. The same customer, in two tabs
+
+Every sweep in this repository had driven **one page**. That is the right model
+for a phone and the wrong one for the web build — which is what every preview,
+every demo and every desktop customer uses, and where opening a second tab costs
+one keystroke.
+
+Four stores persist into `localStorage`, and nothing read it twice. A tab
+rehydrated once, at load, and then believed what it had read for as long as it
+stayed open. There was no `storage` listener anywhere in `src`.
+
+`npm run audit:tabs` opens two pages of one browser profile and measures the
+second while the first acts on it. **Both cases failed.**
+
+| what tab A did | what tab B then showed |
+| --- | --- |
+| **placed and paid for the order** | six basket lines and a **live Pay button** |
+| **signed out** | the customer's **order history**, on a screen that requires an account |
+
+The first is the obvious way to buy dinner twice. The second matters more: a
+duplicate order is money and can be refunded, but a signed-out session still on
+screen is somebody else's name, address and order history — on a shared laptop,
+which is the situation the sign-out button exists for. No refund covers that.
+
+### The fix is the event the browser was already sending
+
+A `storage` event fires in every *other* tab of the same origin whenever one of
+them writes, carrying the key and the new value. Zustand's persist middleware
+can be told to re-read on demand, so the whole mechanism is: hear the event,
+rehydrate that store. `useCrossTabSync` does that for all four keys, and the key
+list is **derived in the fixture from the stores themselves**, so a fifth store
+to persist cannot be quietly missed.
+
+Web only, and not because native could not do it — because on native there is no
+second tab, and a listener that can never fire should not ship.
+
+Two details that are not obvious:
+
+- **The ping-pong.** Rehydrating sets state, setting state makes persist write it
+  back, and that write fires an event in the other tab, which rehydrates, which
+  writes back. The value is identical every lap, so remembering the last one and
+  ignoring a repeat ends the exchange after one. A flag would not have done it:
+  two tabs each holding "I am currently applying" still hand the ball back and
+  forth, because each one's write arrives after the other has finished.
+- **The cache.** Rehydrating makes the screens correct — every gated screen puts
+  up its wall — and does nothing about the query cache, which still holds the
+  orders and addresses fetched as the customer who just signed out. Cleared, but
+  only in that direction: somebody signing *in* on the other tab has nothing
+  cached worth dropping.
+
+### The case that could not fail
+
+The sign-out case first accepted `storedAuth !== true` and passed. Of course it
+did: that is tab A's own write, sitting in the storage both tabs read, and it
+says nothing about whether B noticed. It also had B sitting on `/cart`, which is
+not gated — a signed-out customer has a basket too — so a sign-in wall could
+never have appeared there. Both corrected: B moves to `/orders`, and the case is
+judged only on what B **draws**.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1675,7 +1734,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **113 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **114 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

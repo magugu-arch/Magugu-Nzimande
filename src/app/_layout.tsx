@@ -24,6 +24,7 @@ import { DialogHost } from '@/components/system/DialogHost';
 import { useAppFocus } from '@/features/system/useAppFocus';
 import { useReduceMotion } from '@/features/system/useReduceMotion';
 import { useSessionExpiry } from '@/features/system/useSessionExpiry';
+import { useCrossTabSync } from '@/features/system/useCrossTabSync';
 import { startNetworkMonitoring } from '@/features/system/useNetworkStatus';
 import {
   useInitialNotificationRoute,
@@ -158,6 +159,9 @@ function AppShell() {
   const transition = reduceMotion ? 'fade' : 'slide_from_right';
 
   useSessionExpiry();
+  // Two tabs of one browser share one localStorage, and until this nothing
+  // read it twice. See `useCrossTabSync` and `audit:tabs`.
+  useCrossTabSync();
   usePushRegistration();
   useNotificationRouting();
   useInitialNotificationRoute();
