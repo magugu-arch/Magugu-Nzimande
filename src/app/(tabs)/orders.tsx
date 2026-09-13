@@ -20,6 +20,7 @@ import {
 } from '@/components/ui';
 import { isOfflinePending } from '@/features/system/queryPhase';
 import { useNow } from '@/features/system/useNow';
+import { StoreTimeNote } from '@/components/system/StoreTimeNote';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { useOrders } from '@/features/orders/hooks';
 import { useReorder } from '@/features/orders/useReorder';
@@ -148,6 +149,13 @@ export default function OrdersScreen() {
             testID="orders-filter-past"
           />
         </View>
+
+        {/*
+          Every time on an order card is the kitchen's, and a customer whose
+          phone is not on SAST had nothing on this screen to tell them so.
+          Renders nothing in South Africa. See `audit:abroad`.
+        */}
+        <StoreTimeNote testID="orders-clock-notice" />
       </View>
 
       <View style={styles.body}>{renderBody()}</View>

@@ -1,5 +1,6 @@
 import type { PaymentMethod } from '@/types';
 import { appNow } from '@/utils/appClock';
+import { instantAtStoreTime } from '@/utils/storeClock';
 
 /**
  * Whether a saved card has run out.
@@ -42,8 +43,27 @@ export function cardHasExpired(expiry: string | undefined, now: Date = appNow())
   // as written, so a backend that sends 2027 is not read as the year 27.
   const year = match[2]!.length === 2 ? 2000 + rawYear : rawYear;
 
-  // The first instant of the month *after* the one printed on the card.
-  const expiresAfter = new Date(year, month, 1, 0, 0, 0, 0);
+  /*
+    The first instant of the month *after* the one printed on the card, on the
+    store's clock.
+
+    This was `new Date(year, month, 1, 0, 0, 0, 0)`, which builds that instant
+    on the *device's* clock — so where the month ends moved with the customer's
+    timezone. A phone in Auckland put the boundary ten hours earlier than
+    Johannesburg, and a card marked 09/26 was refused from two in the afternoon
+    on the 30th of September: the last ten hours of a card that was still good.
+    A phone in Los Angeles gave nine hours it should not have.
+
+    `storeClock`'s own note names this consequence — "`cardHasExpired` can
+    refuse a good card" — for a device whose clock is *wrong*. Nobody had asked
+    what a device in the wrong *zone* does, because every sweep in this
+    repository pinned `Africa/Johannesburg`. `audit:abroad` stopped pinning it.
+
+    `instantAtStoreTime` takes the month zero-based, which is exactly what is
+    wanted here: `month` is 1-12 off the card, so passing it through unchanged
+    names the month after.
+  */
+  const expiresAfter = instantAtStoreTime({ year, month, date: 1 });
   return now.getTime() >= expiresAfter.getTime();
 }
 

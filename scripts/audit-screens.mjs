@@ -701,6 +701,34 @@ try {
       }
       await page.waitForTimeout(700);
 
+      /*
+        A route with an expectation is given time to meet it before it is
+        judged.
+
+        700ms after `networkidle` is enough for every screen here except the
+        one with the deepest chain: `/order/order-4854` asks for the order,
+        then asks the delivery provider for the courier job, and the mock adds
+        latency to each on purpose so the loading states are real. On a busy
+        machine that lands past the deadline, and this sweep reported "shows no
+        Live position reported" — a finding about its own timing, on a screen
+        that was about to draw it.
+
+        That is the worst kind of finding a sweep can produce. A red run that
+        goes green when you look again teaches everybody to look again, and the
+        next real finding is the one nobody believes. So the wait is bounded by
+        what the route is *for*: poll for the expected text, give up after four
+        seconds, and report it missing only when it genuinely never arrives.
+      */
+      const expecting = MUST_SHOW[route];
+      if (expecting) {
+        const deadline = Date.now() + 4000;
+        for (;;) {
+          const text = await page.evaluate(() => document.body.innerText);
+          if (expecting.test(text) || Date.now() > deadline) break;
+          await page.waitForTimeout(200);
+        }
+      }
+
       const r = await page.evaluate(probe, width);
       if (r.blank) findings.push(`${route} @${width} — rendered almost no text`);
       // This sweep runs on the mock layer, where the app is served entirely

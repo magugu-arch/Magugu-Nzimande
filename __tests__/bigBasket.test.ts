@@ -156,8 +156,27 @@ describe('3 — what the analytics were reporting', () => {
   });
 
   it('every itemCount is the same sum the screens show', () => {
+    /*
+      Either called inline, or derived one line above and handed in by name.
+
+      The two `useEffect` events now do the second, because doing the first
+      left their dependency arrays naming `lines.length` while the body read
+      `lines` — a `react-hooks/exhaustive-deps` warning that this project's
+      zero-warning baseline was not actually enforcing. Both are fixed and the
+      lint script now fails on a warning; see `abroad.test.ts` fixture 6.
+
+      What this fixture is about is unchanged: no event counts rows.
+    */
     for (const [file] of EVENTS) {
-      expect(code(file)).toMatch(/itemCount: cartItemCount\(/);
+      // The sum is reached, one way or the other …
+      expect(code(file)).toMatch(/cartItemCount\(/);
+      // … and the row count is not, by any spelling.
+      expect(code(file)).not.toMatch(/itemCount: [\w.]*lines\.length/);
+    }
+    // The two effects derive it a line above, so their dependency arrays can
+    // name a number rather than the array it came from.
+    for (const file of ['src/app/cart/index.tsx', 'src/app/checkout/index.tsx']) {
+      expect(code(file)).toMatch(/= cartItemCount\(lines\);/);
     }
   });
 

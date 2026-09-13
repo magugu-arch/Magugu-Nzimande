@@ -9,7 +9,7 @@ import { isOpeningLater, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
 import { buildScheduleDays, formatDateTime, formatShortDate } from '@/utils/datetime';
 import { skewNotice } from '@/utils/appClock';
-import { clockNotice } from '@/utils/storeClock';
+import { StoreTimeNote } from '@/components/system/StoreTimeNote';
 
 /** Order Scheduling (brief §4). */
 export default function ScheduleScreen() {
@@ -47,7 +47,6 @@ export default function ScheduleScreen() {
   // Recomputed off the same tick as the slots, so a phone that crosses a
   // daylight-saving boundary while this screen sits open stops claiming a
   // difference that is no longer there.
-  const notice = useMemo(() => clockNotice(now), [now]);
 
   /*
     A second, separate fact. The zone notice says the times are the kitchen's
@@ -147,11 +146,7 @@ export default function ScheduleScreen() {
           hour their own phone will never show them. Saying so is the difference
           between a converted time and a wrong one.
         */}
-        {notice ? (
-          <Text variant="caption" color={colors.textMuted} testID="schedule-clock-notice">
-            {notice}
-          </Text>
-        ) : null}
+        <StoreTimeNote at={now} testID="schedule-clock-notice" />
 
         {skew ? (
           <Text variant="caption" color={colors.textMuted} testID="schedule-skew-notice">

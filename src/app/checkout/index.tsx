@@ -200,15 +200,18 @@ export default function CheckoutScreen() {
    * one customer sitting on the screen is worse than no figure at all.
    */
   const announcedCheckout = useRef(false);
+  // Derived outside, so the dependency array names what the effect actually
+  // reads. See the note on the same effect in `cart/index.tsx`.
+  const announcedItemCount = cartItemCount(lines);
   useEffect(() => {
-    if (announcedCheckout.current || lines.length === 0) return;
+    if (announcedCheckout.current || announcedItemCount === 0) return;
     announcedCheckout.current = true;
     track('begin_checkout', {
-      itemCount: cartItemCount(lines),
+      itemCount: announcedItemCount,
       value: totals.total,
       fulfilment: fulfilmentType,
     });
-  }, [lines.length, totals.total, fulfilmentType]);
+  }, [announcedItemCount, totals.total, fulfilmentType]);
 
   /**
    * A failure the customer must not answer by pressing the button again.

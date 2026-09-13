@@ -126,11 +126,20 @@ export default function CartScreen() {
     [menu.data, voucher],
   );
 
+  /*
+    The count is derived outside the effect so the effect depends on a number.
+
+    Round 30 changed `lines.length` to `cartItemCount(lines)` *inside* here and
+    left the dependency array naming `lines.length`, which made the array a
+    lie — and the linter said so, in a warning that then survived two rounds
+    because nothing failed the build on it. See the `lint` script.
+  */
+  const itemCount = cartItemCount(lines);
   useEffect(() => {
-    if (announcedCart.current || lines.length === 0) return;
+    if (announcedCart.current || itemCount === 0) return;
     announcedCart.current = true;
-    track('view_cart', { itemCount: cartItemCount(lines), value: totals.total });
-  }, [lines.length, totals.total]);
+    track('view_cart', { itemCount, value: totals.total });
+  }, [itemCount, totals.total]);
 
   const handleFulfilmentChange = useCallback(
     (next: typeof fulfilmentType) => {

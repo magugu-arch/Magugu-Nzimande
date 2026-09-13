@@ -33,18 +33,38 @@ describe('reading a card’s expiry', () => {
    * The detail most implementations get wrong: a card marked 03/24 works all
    * the way through March, not up to the 1st. Comparing against the month
    * itself would kill a working card up to thirty days early.
+   *
+   * Written as instants rather than as `new Date(2024, 2, 31, 23, 59)`, which
+   * is what this said and which built its boundary on *whatever machine ran
+   * the test*. It passed in UTC and would have failed in Johannesburg, and it
+   * went on passing when the code it tests was wrong in exactly that way.
+   * `audit:abroad` found the code; this is the same mistake in the test.
+   *
+   * SAST is UTC+2 with no daylight saving, so the arithmetic is in the
+   * comments and not in a helper: 23:59 on the 31st of March in Johannesburg
+   * is 21:59 UTC.
    */
+  const sast = (y: number, m: number, d: number, h = 0, min = 0) =>
+    new Date(Date.UTC(y, m, d, h - 2, min));
+
   it('keeps a card alive through the whole of its final month', () => {
-    expect(cardHasExpired('03/24', new Date(2024, 2, 1))).toBe(false);
-    expect(cardHasExpired('03/24', new Date(2024, 2, 31, 23, 59))).toBe(false);
-    expect(cardHasExpired('03/24', new Date(2024, 3, 1))).toBe(true);
+    expect(cardHasExpired('03/24', sast(2024, 2, 1))).toBe(false);
+    expect(cardHasExpired('03/24', sast(2024, 2, 31, 23, 59))).toBe(false);
+    expect(cardHasExpired('03/24', sast(2024, 3, 1))).toBe(true);
+  });
+
+  it('turns over at midnight in Johannesburg, not on the test runner', () => {
+    // One minute either side of the boundary, stated as instants. This is the
+    // assertion the old local-time version could not make.
+    expect(cardHasExpired('03/24', sast(2024, 2, 31, 23, 59))).toBe(false);
+    expect(cardHasExpired('03/24', sast(2024, 3, 1, 0, 1))).toBe(true);
   });
 
   it('reads two digits as this century, and four as written', () => {
-    expect(cardHasExpired('03/27', new Date(2026, 8, 2))).toBe(false);
-    expect(cardHasExpired('03/2027', new Date(2026, 8, 2))).toBe(false);
+    expect(cardHasExpired('03/27', sast(2026, 8, 2))).toBe(false);
+    expect(cardHasExpired('03/2027', sast(2026, 8, 2))).toBe(false);
     // Not read as the year 27.
-    expect(cardHasExpired('03/2027', new Date(2028, 0, 1))).toBe(true);
+    expect(cardHasExpired('03/2027', sast(2028, 0, 1))).toBe(true);
   });
 
   /**
@@ -54,7 +74,7 @@ describe('reading a card’s expiry', () => {
    */
   it('never calls a card expired because it could not read the date', () => {
     for (const nonsense of ['', 'soon', '13/24', '0/24', '2024-03', '03-24', '//']) {
-      expect(cardHasExpired(nonsense, new Date(2030, 0, 1))).toBe(false);
+      expect(cardHasExpired(nonsense, sast(2030, 0, 1))).toBe(false);
     }
   });
 

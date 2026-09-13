@@ -10,6 +10,7 @@ import {
   tierNamed,
 } from './rewardsData';
 import { appNow } from '@/utils/appClock';
+import { instantAtStoreTime, storeClockAt } from '@/utils/storeClock';
 
 /**
  * The "you are almost at the next tier" nudge, written from where the member
@@ -63,9 +64,18 @@ function tierNudge(): { title: string; body: string } {
  * and quietly undo the point of the fixture.
  */
 function birthdayThisMonth(year: number, day: number): string {
-  const now = appNow();
-  const month = now.getMonth() + 1;
-  const lastDay = new Date(now.getFullYear(), month, 0).getDate();
+  /*
+    The store's month, because `inBirthdayMonth` compares against the store's
+    month. Read locally, this seed and the rule it exists to demonstrate could
+    disagree on two days a year — the fixture would be built for September
+    while the app was still in August, and the birthday reward it is there to
+    prove would simply not appear.
+  */
+  const { year: nowYear, month: zeroBased } = storeClockAt(appNow());
+  const month = zeroBased + 1;
+  // Day 0 of the next month is the last day of this one. In store time, so a
+  // 31st clamps against the same calendar the month came from.
+  const lastDay = storeClockAt(instantAtStoreTime({ year: nowYear, month, date: 0 })).date;
   const safeDay = Math.min(day, lastDay);
 
   return `${year}-${String(month).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`;
@@ -284,8 +294,12 @@ export const savedPaymentMethods: PaymentMethod[] = [
  * names, so this is a card that works today and does not work on the 1st.
  */
 function expiryOfCurrentMonth(now: Date = appNow()): string {
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const year = String(now.getFullYear() % 100).padStart(2, '0');
+  // The store's month, to match `cardHasExpired`, which now asks the same
+  // clock. A seed and the rule it demonstrates reading two different calendars
+  // is how "works today, dead on the 1st" stops being true for a day.
+  const { year: fullYear, month: zeroBased } = storeClockAt(now);
+  const month = String(zeroBased + 1).padStart(2, '0');
+  const year = String(fullYear % 100).padStart(2, '0');
   return `${month}/${year}`;
 }
 

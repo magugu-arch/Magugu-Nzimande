@@ -9,7 +9,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\"",
     "test": "jest --passWithNoTests",
@@ -67,7 +67,8 @@
     "audit:wide": "node scripts/audit-wide.mjs",
     "audit:basket": "node scripts/audit-basket.mjs",
     "audit:long": "node scripts/audit-long.mjs",
-    "audit:tabs": "node scripts/audit-tabs.mjs"
+    "audit:tabs": "node scripts/audit-tabs.mjs",
+    "audit:abroad": "node scripts/audit-abroad.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",
@@ -122,6 +123,7 @@
     "prettier": "^3.9.6",
     "react-dom": "19.2.3",
     "react-test-renderer": "19.2.3",
+    "tsx": "^4.23.13",
     "typescript": "~6.0.3"
   },
   "overrides": {

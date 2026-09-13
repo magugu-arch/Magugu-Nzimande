@@ -55,6 +55,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run audit:double-tap` | Press each control that spends something twice — in one tick and 70ms apart — and fail if the server is asked twice |
 | `npm run audit:sparse` | Render every screen against a backend that sends exactly what `wireChecks` demands and nothing more, and fail on a crash screen |
 | `npm run audit:notyours` | Open deep links the server refuses — a thing that is gone, and a thing that is somebody else's — and fail if the app blames itself or invites a futile retry |
+| `npm run audit:abroad` | Drive the same journey from Johannesburg, London and Auckland, and check every clock time says whose clock it is |
 | `npm run audit:tabs` | Open two tabs of one account, act in the first, and check the second is told — a paid-for basket, and a session that ended |
 | `npm run audit:long` | Type an ordinary address, the longest real one, and 400 unbroken characters, and check what each screen does with them |
 | `npm run audit:basket` | Build a basket of seven lines and seven of each, and check that every screen between the menu and the pay button agrees about how many items are in it |

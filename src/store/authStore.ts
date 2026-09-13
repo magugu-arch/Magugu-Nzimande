@@ -243,7 +243,22 @@ export const useAuthStore = create<AuthState>()(
   ),
 );
 
-/** Greeting used on Home. Time-aware and name-aware (brief §11). */
+/**
+ * Greeting used on Home. Time-aware and name-aware (brief §11).
+ *
+ * The one place in this app that deliberately reads the **device's** clock,
+ * and it is written down here so it does not read as the one somebody forgot.
+ *
+ * Everything else the app puts a time on is a fact about a South African
+ * kitchen — when an order was placed, when it is due, when a card runs out —
+ * and those go through `storeClock`. "Good evening" is not a fact about the
+ * kitchen. It is a greeting to whoever is holding the phone, and telling
+ * somebody in London "Good evening" at half past four in the afternoon because
+ * it is evening in Johannesburg would be the app talking to the wrong person.
+ *
+ * `audit:abroad` drives three zones and does not flag this, which is the
+ * intended outcome rather than a gap.
+ */
 export function greetingFor(user: UserProfile | null, now: Date = appNow()): string {
   const hour = now.getHours();
   const period = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';

@@ -1,4 +1,5 @@
 import { appNow } from '@/utils/appClock';
+import { storeClockAt } from '@/utils/storeClock';
 /**
  * Whether today falls in the customer's birthday month.
  *
@@ -24,7 +25,21 @@ import { appNow } from '@/utils/appClock';
  */
 export function inBirthdayMonth(dateOfBirth: string | undefined, now: Date = appNow()): boolean {
   const month = birthMonth(dateOfBirth);
-  return month !== null && month === now.getMonth();
+  /*
+    The store's month, which completes the reasoning above rather than adding
+    to it.
+
+    The paragraph above is careful that the *birth date* must not be read
+    through a local getter, and then read `now` through one anyway. So the
+    customer's side of the comparison was zone-proof and the calendar's side
+    was not: somebody in Auckland on the 1st is still the 30th in
+    Johannesburg, and for two days a year the app and the programme that
+    grants the reward disagreed about which month it was.
+
+    The programme runs on the store's calendar, so that is the month to ask
+    for. Found by `audit:abroad`, which stopped pinning the device's zone.
+  */
+  return month !== null && month === storeClockAt(now).month;
 }
 
 /** The zero-based month of an ISO `YYYY-MM-DD`, or null if it is not one. */

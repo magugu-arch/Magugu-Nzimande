@@ -23,6 +23,7 @@ import {
 } from '@/providers/delivery';
 import { checkedOrder, checkedOrders } from './wireChecks';
 import { appNow } from '@/utils/appClock';
+import { instantAtStoreTime, storeClockAt } from '@/utils/storeClock';
 
 /**
  * Order service.
@@ -1428,9 +1429,28 @@ function seedHistory(): void {
    * teatime today.
    */
   const bookedAt = new Date(Date.now() - 4 * 60_000);
-  const slot = new Date(bookedAt);
-  slot.setDate(slot.getDate() + 1);
-  slot.setHours(18, 30, 0, 0);
+  /*
+    18:30 tomorrow in Johannesburg, not 18:30 tomorrow wherever this is built.
+
+    `setDate` and `setHours` are device-clock operations, so the seeded slot was
+    a different instant on every machine — and rendered back through
+    `formatDateTime`, which is store time, it came out as 19:30 in London and
+    08:30 in Auckland for the same order. `audit:abroad` printed both side by
+    side, which is how it was noticed.
+
+    A seed, so no customer was ever shown a wrong time by it. It still mattered
+    enough to fix: the mock layer is every preview, every demo and every
+    screenshot, and a preview whose times move with the reviewer's laptop is a
+    preview nobody can check.
+  */
+  const tomorrow = storeClockAt(bookedAt);
+  const slot = instantAtStoreTime({
+    year: tomorrow.year,
+    month: tomorrow.month,
+    date: tomorrow.date + 1,
+    hour: 18,
+    minute: 30,
+  });
   ledger.push({
     id: 'order-4850',
     reference: 'BBQ-4850',

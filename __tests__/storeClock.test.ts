@@ -329,11 +329,23 @@ describe('6 — telling the customer their phone disagrees', () => {
   });
 
   it('is shown on the schedule screen and only when there is something to say', () => {
+    /*
+      Through `StoreTimeNote` now rather than inline.
+
+      This screen had the wording written into its JSX, and it was the only
+      screen that did — `audit:abroad` found the orders list and the
+      notifications drawing clock times with nothing to place them. A sentence
+      that promises how the whole app reports time cannot live in one screen
+      and be copied into the next two, so it became a component, and the
+      "only when there is something to say" part moved inside it: it returns
+      null when `clockNotice` does.
+    */
     const screen = code('src/app/checkout/schedule.tsx');
 
-    expect(screen).toMatch(/clockNotice\(now\)/);
-    expect(screen).toMatch(/notice \? \(/);
-    expect(screen).toMatch(/testID="schedule-clock-notice"/);
+    expect(screen).toMatch(/<StoreTimeNote at=\{now\} testID="schedule-clock-notice" \/>/);
+    expect(code('src/components/system/StoreTimeNote.tsx')).toMatch(
+      /if \(notice === null\) return null;/,
+    );
   });
 });
 

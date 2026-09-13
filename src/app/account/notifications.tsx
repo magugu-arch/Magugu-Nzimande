@@ -24,6 +24,7 @@ import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequir
 import { inAppRoute } from '@/utils/linking';
 import { colors, radius, spacing } from '@/theme';
 import { formatDateTime } from '@/utils/datetime';
+import { StoreTimeNote } from '@/components/system/StoreTimeNote';
 import { writeFailureMessage } from '@/features/system/writeFailure';
 import { tell } from '@/ux/dialog';
 
@@ -123,6 +124,11 @@ export default function NotificationsScreen() {
 
   return (
     <Screen scroll edges={['top', 'bottom']} testID="notifications-screen">
+      {/*
+        Every notification is stamped with the kitchen's clock. Renders nothing
+        in South Africa. See `audit:abroad`.
+      */}
+      <StoreTimeNote testID="notifications-clock-notice" />
       <ScreenHeader
         title="Notifications"
         subtitle={unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}

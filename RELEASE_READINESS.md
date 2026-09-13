@@ -1681,6 +1681,75 @@ not gated — a signed-out customer has a basket too — so a sign-in wall could
 never have appeared there. Both corrected: B moves to `/orders`, and the case is
 judged only on what B **draws**.
 
+## 2ad. A phone that is not on the kitchen's clock
+
+Every sweep in this repository pinned `timezoneId: 'Africa/Johannesburg'`. The
+right default, and it meant no sweep had ever seen the app from anywhere else —
+which is not a rare place to be: a South African abroad ordering dinner for
+their parents, somebody tracking an order from a work trip, and every desktop
+browser whose machine was set up in UTC and never changed.
+
+`npm run audit:abroad` drives the same journey from three devices. **It was
+written to find one thing and found a better one.**
+
+### What it was looking for
+
+Every time the app shows is the store's time, and there is a sentence for saying
+so. Nothing had checked *where* it appears. From Johannesburg it appeared
+nowhere, correctly. From London and Auckland it appeared on **one screen of
+three**: the orders list and the notifications drew `Scheduled · Thu, 10 Sep ·
+18:30` with nothing to place it. `storeClock`'s own comment named the order
+timeline as a surface it reached, and it did not.
+
+Fixed with a `StoreTimeNote` component rather than a third copy of the wording:
+the sentence is a promise about how the whole app reports time, and three
+screens each writing their own version is three chances to promise differently.
+
+### What it found instead
+
+The two foreign devices reported **different clock times for the same order** at
+the same pinned instant — 19:30 in London, 08:30 in Auckland. Impossible if
+everything is store time, and it was not. Three places built or read a calendar
+on the *device's* clock, and one of them was production:
+
+**`cardHasExpired` built the month boundary locally.** `new Date(year, month, 1)`
+puts "the first instant of the month after the one on the card" wherever the
+customer is standing. A phone in Auckland put it **ten hours early** — a card
+marked 09/26 refused from two in the afternoon on the 30th of September, the
+last ten hours of a card that was still good. A phone in Los Angeles got nine
+hours it should not have had. The app's own `storeClock` note names that exact
+consequence — "`cardHasExpired` can refuse a good card" — for a device whose
+clock is *wrong*; nobody had asked about the wrong *zone*.
+
+Also fixed: `inBirthdayMonth` compared a zone-proof birth date against a
+device-local month, so for two days a year the app and the programme that grants
+the reward disagreed about which month it was. And two seeds built instants
+locally, which is why the preview's times moved with the reviewer's laptop.
+
+**One device-clock read is left, and it is deliberate.** `greetingFor` says
+"Good evening" to whoever is holding the phone, and telling somebody in London
+it is evening because it is evening in Johannesburg would be the app talking to
+the wrong person. Named in the code so it does not read as the one somebody
+forgot, and a fixture asserts it is the only one.
+
+### Two things this round had to correct about itself
+
+**A lint baseline nothing was holding.** This document has claimed zero warnings
+for several rounds. `eslint .` exits 0 with warnings, so when round 30 left two
+`react-hooks/exhaustive-deps` warnings behind — an effect changed to read
+`lines` while its dependency array still named `lines.length` — the gate passed
+and two audits reported "lint clean" because the gate said so. Both warnings are
+fixed and `lint` now runs `--max-warnings=0`.
+
+**A sweep that was intermittently wrong about itself.** `audit:screens` reported
+"shows no Live position reported" on `/order/order-4854` once, and was green on
+the next two runs with the same code. 700ms after `networkidle` is enough for
+every screen except the one with the deepest chain — order, then courier job,
+each with the mock's deliberate latency. It now polls for what a route is
+expected to show, bounded at four seconds. A red run that goes green when you
+look again teaches everybody to look again, and the next real finding is the one
+nobody believes.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1734,7 +1803,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **114 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **115 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on
