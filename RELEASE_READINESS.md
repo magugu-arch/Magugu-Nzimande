@@ -1483,6 +1483,80 @@ finding about itself. Line length is measured too — 133 characters at the wide
 legibility standard, while what to do about it is a layout decision and design
 is not mine to invent.
 
+## 2aa. An order big enough to be a real order
+
+Every sweep in this repository had bought one or two things. `audit:screens`
+adds a single item, `audit:coldstart` adds a single item, `audit:double-tap`
+adds a single item — which is not what a fried-chicken order looks like. A
+family on a Friday, an office lunch, a braai: eight or ten different things,
+several of each. The app allows twenty per line and puts **no cap at all** on
+the number of lines, so the biggest basket it will accept is not small, and
+nothing had ever been driven with one.
+
+That mattered because there were two sums in this app for the same question:
+
+| | what it computes | what it means |
+| --- | --- | --- |
+| `cartItemCount(lines)` | adds the quantities | how much food is being ordered |
+| `lines.length` | counts the rows | what the basket is made of |
+
+With one of everything the two agree — which is exactly why nothing had ever
+separated them.
+
+`npm run audit:basket` builds a basket where they cannot: seven lines, seven of
+each, forty-nine items. Then it reads every "N items" the app puts on screen
+between the menu and the pay button.
+
+| where | said | should say |
+| --- | --- | --- |
+| the sticky cart bar | 49 items | 49 |
+| **the cart header** | **7 items** | 49 |
+| **the checkout header** | **7 items** | 49 |
+
+A customer taps a bar that says 49 items and lands on a screen that says 7,
+about the same basket, with nothing having happened in between. Neither number
+is nonsense on its own; next to each other one of them is a lie, and it is the
+one on the screen where they are about to pay.
+
+**Three analytics events were counting rows too** — `view_cart`,
+`begin_checkout` and the purchase event, plus `reorder` on the order screen. A
+wrong number on a screen is visible to every customer who looks at it; a wrong
+number in an event is visible to nobody, goes into a dashboard, and becomes the
+basket size somebody plans a kitchen around. Every multi-quantity basket had
+been reported at a fraction of its real size since the events were written.
+
+The sentence is derived in one place now — `describeItemCount` — pluralisation
+included, because a count and its noun disagreeing is the same bug one layer
+down and three copies of `n === 1 ? '' : 's'` are three chances to get it wrong.
+
+### The word, once it means something
+
+Giving "items" a precise meaning made one other sentence wrong by collision.
+The reconciliation notice said *"3 items have changed price"*, where the 3 was a
+count of lines — correct for what it meant, and directly contradicting the
+header above it. It names the products now instead, which is unambiguous
+without inventing a second noun, and more useful: somebody told a price moved
+wants to know on what.
+
+The first attempt at that named one product twice — two lines of the same
+chicken with different options are two lines — and **an existing test caught it
+immediately**, which is the test doing the job it was written for years of
+rounds before.
+
+### Two corrections to the sweep, both found by running it
+
+Its reading table printed `on screen (7 items)` where the screen name should
+have been: the probe returns a `where` of its own and the spread overwrote the
+outer one. A measurement bug in the file whose whole job is measurement, of
+exactly the class this repository keeps finding in its own sweeps.
+
+And it was written with no control. The menu was added for that: it carries the
+sticky cart bar, the one surface already built on the summed count, so a correct
+reading has to appear there or the sweep declares its own findings unproven.
+That guard was then **run with the probe's regex deliberately broken** — it
+printed an empty table and the unproven line, which is the outcome it exists
+for. A check nobody has seen fail is a check nobody knows the state of.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1536,7 +1610,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **111 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **112 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

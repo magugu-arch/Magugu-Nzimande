@@ -26,7 +26,13 @@ import { businessRules } from '@/constants/config';
 import { useCartStore } from '@/store/cartStore';
 import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing, typography } from '@/theme';
-import { meetsDeliveryMinimum, priceBasket, voucherTerms } from '@/utils/cart';
+import {
+  cartItemCount,
+  describeItemCount,
+  meetsDeliveryMinimum,
+  priceBasket,
+  voucherTerms,
+} from '@/utils/cart';
 import { useNow } from '@/features/system/useNow';
 import { formatPrice, groupDigits } from '@/utils/money';
 import { track } from '@/ux/analytics';
@@ -123,7 +129,7 @@ export default function CartScreen() {
   useEffect(() => {
     if (announcedCart.current || lines.length === 0) return;
     announcedCart.current = true;
-    track('view_cart', { itemCount: lines.length, value: totals.total });
+    track('view_cart', { itemCount: cartItemCount(lines), value: totals.total });
   }, [lines.length, totals.total]);
 
   const handleFulfilmentChange = useCallback(
@@ -229,7 +235,7 @@ export default function CartScreen() {
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <ScreenHeader
           title="Your cart"
-          subtitle={`${lines.length} item${lines.length === 1 ? '' : 's'}`}
+          subtitle={describeItemCount(lines)}
           right={
             <Pressable
               onPress={handleClear}

@@ -41,7 +41,12 @@ import { useCartStore } from '@/store/cartStore';
 import { missingFulfilmentRequirement, useFulfilmentStore } from '@/store/fulfilmentStore';
 import { useCourierServiceability } from '@/features/checkout/courierServiceability';
 import { colors, radius, spacing } from '@/theme';
-import { describeOptions, meetsDeliveryMinimum } from '@/utils/cart';
+import {
+  cartItemCount,
+  describeItemCount,
+  describeOptions,
+  meetsDeliveryMinimum,
+} from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
 import { formatPrice, sumRand } from '@/utils/money';
 import { track } from '@/ux/analytics';
@@ -199,7 +204,7 @@ export default function CheckoutScreen() {
     if (announcedCheckout.current || lines.length === 0) return;
     announcedCheckout.current = true;
     track('begin_checkout', {
-      itemCount: lines.length,
+      itemCount: cartItemCount(lines),
       value: totals.total,
       fulfilment: fulfilmentType,
     });
@@ -451,7 +456,7 @@ export default function CheckoutScreen() {
         // separate business decisions, but to a discount chart they are money
         // that did not arrive.
         discount: sumRand([totalsNow.discount, totalsNow.rewardsDiscount]),
-        itemCount: lines.length,
+        itemCount: cartItemCount(lines),
         fulfilment: fulfilmentType,
         storeId: store.id,
       });
@@ -596,10 +601,7 @@ export default function CheckoutScreen() {
       <StatusBar style="dark" />
 
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <ScreenHeader
-          title="Checkout"
-          subtitle={`${lines.length} item${lines.length === 1 ? '' : 's'}`}
-        />
+        <ScreenHeader title="Checkout" subtitle={describeItemCount(lines)} />
       </View>
 
       <ScrollView

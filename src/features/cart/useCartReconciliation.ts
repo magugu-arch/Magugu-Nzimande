@@ -54,7 +54,33 @@ export function describeReconciliation(result: CartReconciliation): string | nul
         );
       }
     } else {
-      parts.push(`${result.repriced.length} items have changed price since you added them.`);
+      /*
+        Named, not counted, and that is a change this round forced.
+
+        This said "3 items have changed price", where the 3 was a count of
+        lines — correct for what it means, and now in direct conflict with the
+        word "items" everywhere else in the app, which since `audit:basket`
+        means the summed quantity. Somebody with three lines of seven reads
+        "49 items" in the header above and "3 items have changed price"
+        underneath it, about the same basket.
+
+        Naming them resolves the collision without inventing a new noun for
+        either sense, and it matches the two branches above, which have always
+        named what they were talking about. It is also the more useful
+        sentence: a customer who is told a price moved wants to know on what.
+
+        Deduplicated, which the first version of this was not and which the
+        existing test caught immediately: two lines of the same chicken with
+        different options are two lines, and "Golden Original Chicken and
+        Golden Original Chicken have changed price" is worse than the count it
+        replaced. One product named once, and the verb agrees with however many
+        names are left rather than with how many lines there were.
+      */
+      const names = [...new Set(result.repriced.map(({ line }) => line.name))];
+      parts.push(
+        `${list(names)} ${names.length === 1 ? 'has' : 'have'} changed price since you added ` +
+          `${names.length === 1 ? 'it' : 'them'}.`,
+      );
     }
   }
 

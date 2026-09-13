@@ -649,6 +649,38 @@ export function cartItemCount(lines: CartLine[]): number {
   return lines.reduce((total, line) => total + line.quantity, 0);
 }
 
+/**
+ * `49 items` — how many things are in the basket, in words, in one place.
+ *
+ * There were two sums in this app for the same question and three copies of
+ * the sentence built on them. `cartItemCount` adds up the quantities, which is
+ * what somebody means when they ask how much food they have ordered.
+ * `lines.length` counts the rows, which is what the basket is made of. With one
+ * of everything the two agree, and every sweep and every fixture in this
+ * repository had bought one of everything.
+ *
+ * `audit:basket` builds a basket where they cannot agree — seven lines, seven
+ * of each — and reads every "N items" on the way to paying:
+ *
+ *     the sticky cart bar     49 items    ✓
+ *     the cart header          7 items    ✗
+ *     the checkout header      7 items    ✗
+ *
+ * A customer taps a bar that says 49 items and lands on a screen that says 7,
+ * about the same basket, with nothing having happened in between. Neither
+ * number is nonsense on its own; shown next to each other one of them has to be
+ * a lie, and it is the one on the screen where they are about to pay.
+ *
+ * So the sentence is derived here rather than written out at each site. The
+ * pluralisation comes with it, because a count and its noun disagreeing is the
+ * same bug one layer down, and because three copies of `n === 1 ? '' : 's'` is
+ * three chances to get it wrong.
+ */
+export function describeItemCount(lines: CartLine[]): string {
+  const count = cartItemCount(lines);
+  return `${count} item${count === 1 ? '' : 's'}`;
+}
+
 /** `Large · Soy Garlic · Extra sauce` — the summary shown under a cart line. */
 export function describeOptions(line: CartLine): string {
   return line.selectedOptions.map((option) => option.optionName).join(' · ');

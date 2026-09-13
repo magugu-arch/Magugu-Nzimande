@@ -320,7 +320,24 @@ describe('the offline sweep seeds a customer the app will actually load', () => 
     for (const name of scripts) {
       const source = code(`scripts/${name}`);
       if (!/setItem\('bbq\./.test(source)) continue;
-      expect(source).toMatch(/PERSIST_VERSION/);
+
+      /*
+        Two ways to satisfy it, and the rule is about neither of them: what
+        matters is that the number comes from the app rather than from a
+        decision the sweep made.
+
+        Most sweeps import `PERSIST_VERSION` and stamp it. `audit:basket` never
+        stamps anything — it writes back the envelope the app itself saved, so
+        the version on it is whatever the store put there — and hands that
+        string to `assertSeeds`, which reads `PERSIST_VERSION` and refuses a
+        mismatch. Requiring the import would have made it import a constant it
+        has no use for, which is how a rule turns into a ritual.
+
+        The half below is the part that has no exception: a literal version in
+        a sweep is always wrong, whichever of the two routes it took.
+      */
+      expect(source).toMatch(/PERSIST_VERSION|assertSeeds\(/);
+      expect(source).not.toMatch(/version: \d+,/);
     }
   });
 

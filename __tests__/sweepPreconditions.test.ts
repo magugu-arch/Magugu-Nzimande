@@ -132,6 +132,21 @@ describe('1 — a sweep that seeds state proves it arrived', () => {
   it('finds the sweeps by what they do, not by name', () => {
     expect(SEEDING_SWEEPS.sort()).toEqual([
       'audit-answers.mjs',
+      /*
+        `audit-basket` earns its place here in an unusual way, and it is worth
+        saying how. It does not compose a basket: it adds real products through
+        the real screens, reads the app's own saved envelope back out, raises
+        the quantity on each line and writes it back. So the value it puts into
+        storage came from `buildCartLine` rather than from a literal.
+
+        It still passes that value through `assertSeeds`, and it should. The
+        checks are the same checks, and the first version of it wrote its own
+        version comparison instead — a second copy of `seedProblems`' rule,
+        which is the mistake this repository keeps meeting one layer up. This
+        derivation catching it is the fixture doing its job on a sweep nobody
+        had thought about when it was written.
+      */
+      'audit-basket.mjs',
       'audit-double-tap.mjs',
       'audit-notyours.mjs',
       'audit-offline.mjs',

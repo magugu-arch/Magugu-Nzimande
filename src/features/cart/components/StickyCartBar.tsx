@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { Text } from '@/components/ui';
 import { useCartStore } from '@/store/cartStore';
 import { colors, elevation, radius, spacing, CART_BAR_HEIGHT } from '@/theme';
+import { describeItemCount } from '@/utils/cart';
 import { formatPrice } from '@/utils/money';
 
 export interface StickyCartBarProps {
@@ -48,7 +49,7 @@ export const StickyCartBar = memo(function StickyCartBar({ offsetBottom = 0 }: S
           router.push('/cart');
         }}
         accessibilityRole="button"
-        accessibilityLabel={`View cart, ${itemCount} item${itemCount === 1 ? '' : 's'}, ${formatPrice(totals.subtotal)}`}
+        accessibilityLabel={`View cart, ${describeItemCount(lines)}, ${formatPrice(totals.subtotal)}`}
         style={({ pressed }) => [styles.bar, pressed ? styles.pressed : null]}
       >
         <View style={styles.count}>

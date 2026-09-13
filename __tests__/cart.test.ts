@@ -525,7 +525,18 @@ describe('describeReconciliation', () => {
     expect(notice).toContain('R 129.00');
   });
 
-  it('counts rather than lists when several prices moved', () => {
+  it('names what moved, and names one product once', () => {
+    /*
+      This used to read "2 items have changed price", and it was changed when
+      the word "items" was given a precise meaning everywhere else in the app:
+      since `audit:basket`, "items" is the summed quantity, so a customer with
+      three lines of seven would read "49 items" in the header and "3 items
+      have changed price" beneath it, about the same basket.
+
+      The two lines here are the same product priced two ways, which is exactly
+      the case that broke the first attempt at this — it listed the name twice.
+      One product, named once, with the verb agreeing.
+    */
     const notice = describeReconciliation({
       lines: [line],
       dropped: [],
@@ -536,7 +547,25 @@ describe('describeReconciliation', () => {
       changed: true,
     });
 
-    expect(notice).toBe('2 items have changed price since you added them.');
+    expect(notice).toBe('Golden Original Chicken has changed price since you added it.');
+    expect(notice).not.toMatch(/\d+ items/);
+  });
+
+  it('lists several different products when several different prices moved', () => {
+    const other = { ...line, id: 'line-2', name: 'Honey Garlic Chicken' };
+    const notice = describeReconciliation({
+      lines: [line, other],
+      dropped: [],
+      repriced: [
+        { line, previousUnitPrice: 129 },
+        { line: other, previousUnitPrice: 100 },
+      ],
+      changed: true,
+    });
+
+    expect(notice).toBe(
+      'Golden Original Chicken and Honey Garlic Chicken have changed price since you added them.',
+    );
   });
 });
 

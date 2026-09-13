@@ -40,7 +40,7 @@ import { errorCode, isRefused } from '@/services/apiClient';
 import { minutesUntilDue, readyLabelFor, statusCopy } from '@/services/orderService';
 import { useNow } from '@/features/system/useNow';
 import { colors, radius, spacing } from '@/theme';
-import { describeOptions } from '@/utils/cart';
+import { cartItemCount, describeOptions } from '@/utils/cart';
 import { formatDateTime, formatEtaWindow } from '@/utils/datetime';
 import { announce } from '@/utils/accessibility';
 import { callNumber, isDiallable, openDirections } from '@/utils/linking';
@@ -579,7 +579,16 @@ export default function OrderTrackingScreen() {
             if (!order.data) return;
             // §15 `reorder` — the "repeat ordering" dashboard. Before the call,
             // because `reorder` navigates away.
-            track('reorder', { orderId: order.data.id, itemCount: order.data.lines.length });
+            /*
+              The food, not the rows. An order of seven lines at seven each is
+              49 items, and a reorder chart built on the row count would say
+              this basket and a single burger were the same size. Same sum as
+              every other `itemCount` in this app since `audit:basket`.
+            */
+            track('reorder', {
+              orderId: order.data.id,
+              itemCount: cartItemCount(order.data.lines),
+            });
             void reorder(order.data);
           }}
           variant={data.status === 'completed' ? 'primary' : 'tertiary'}
