@@ -41,11 +41,24 @@ import { PERSIST_VERSION } from './persist-version.mjs';
 /**
  * Every shape the app uses to say "you are not signed in".
  *
- * `AccountRequired` defaults its `testID` to `account-required`, and all six
- * call sites override it with `<screen>-signed-out`. Both are matched, so a
- * seventh screen is covered whichever convention it picks. Matching the
- * element rather than the copy means a rewrite of the sentence does not
- * quietly switch this check off.
+ * `AccountRequired` defaults its `testID` to `account-required` and every call
+ * site overrides it with `<screen>-signed-out`. Both are matched, so a screen
+ * is covered whichever of the two it picks. Matching the element rather than
+ * the copy means a rewrite of the sentence does not quietly switch this off.
+ *
+ * That paragraph used to end "so a seventh screen is covered whichever
+ * convention it picks", and the seventh screen already existed. Profile was
+ * the wall `AccountRequired` was modelled on; the round that wrote the
+ * component gave it to the six screens with no gate and left the original
+ * hand-rolled, under the id `profile-guest` — which this selector does not
+ * match. Any sweep asserting `signedIn: true` while sitting on it would have
+ * passed its own precondition and measured a signed-out app, which is the one
+ * failure this file exists to prevent.
+ *
+ * Profile goes through `AccountRequired` now, and the claim is no longer a
+ * claim: `coldStart.test.ts` derives every sign-in wall in `src` and fails if
+ * one of them cannot be found by this selector. A convention nothing checks is
+ * how the last one drifted.
  */
 export const SIGN_IN_WALL = '[data-testid="account-required"], [data-testid$="-signed-out"]';
 

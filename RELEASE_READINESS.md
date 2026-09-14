@@ -1802,6 +1802,66 @@ browser fires that event when a tab goes to the back. Specified behaviour, not
 verified here, and the sweep says so in its own header rather than leaving a
 reader to assume otherwise.
 
+## 2af. A detector that could not see one of its own
+
+`audit:screens` signs in before it sweeps, and says why: *"an account screen
+swept in its signed-out state is not the screen anybody uses."* True of the
+screens, and it left a gap underneath — nothing had ever driven the app from a
+**cold start with empty storage**, which is what a push notification, a shared
+link and a browser bookmark all produce.
+
+What the gap hid was not a broken screen. It was a **broken detector**.
+
+Every sweep that seeds a session asks `lib/preconditions.mjs` whether it is
+really looking at a signed-in app, and that helper decides with one selector:
+
+```
+[data-testid="account-required"], [data-testid$="-signed-out"]
+```
+
+Its comment claimed *"a seventh screen is covered whichever convention it
+picks."* **The seventh screen already existed.** `AccountRequired` was modelled
+on Profile's sign-in wall — the component's own doc says *"Profile had it right
+and the others had nothing"* — and the round that wrote the component gave it to
+the six screens that had no gate and left the original standing, hand-rolled,
+under the id `profile-guest`. Which that selector does not match.
+
+So the component written to stop seven copies of a block shipped with one copy
+still standing; it was the block it had been copied from; and the detector every
+seeded sweep leans on could not see it. A sweep asserting `signedIn: true` while
+sitting on Profile would have **passed its own precondition and gone on to
+measure a signed-out app** — the exact failure that file exists to prevent, and
+the one it describes in its own header as "the worst failure a sweep can have,
+because it is invisible by construction".
+
+### The fix, and why not the easy one
+
+Profile goes through `AccountRequired` like the other six. The copy is
+unchanged — the component composes *"Sign in to see your profile"* from the
+title, word for word what the hand-rolled block said.
+
+The easy fix would have been to widen the selector to `$="-guest"`. That is
+wrong: `sign-in-guest` is the **"Continue as guest" button** on a screen that is
+working perfectly, and a detector that fired there would report a wall on every
+cold visit to sign-in. `audit:cold` sweeps `/sign-in`, `/menu`, `/product` and
+`/offers` as controls for precisely that.
+
+### Making the convention true rather than claimed
+
+| route | needs an account | wall found |
+| --- | --- | --- |
+| /orders, /rewards, /rewards/vouchers | yes | `…-signed-out` |
+| /account/notifications, /account/payment-methods | yes | `…-signed-out` |
+| **/account/profile** | yes | **`profile-signed-out`** |
+| /checkout/address | yes | `address-signed-out` |
+| /menu, /product, /sign-in, /offers | no | — *(control)* |
+
+`coldStart.test.ts` derives every `AccountRequired` call site from source,
+parses the selector **out of the helper rather than restating it**, and fails if
+any wall is one the selector cannot find. Put `profile-guest` back and both the
+sweep and the fixture go red. A convention nothing checks is how the last one
+drifted for as long as the component has existed.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1855,7 +1915,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **116 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **117 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

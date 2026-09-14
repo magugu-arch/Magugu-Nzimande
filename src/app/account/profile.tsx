@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   Divider,
-  EmptyState,
   Screen,
   ScreenHeader,
   Text,
@@ -19,6 +18,7 @@ import {
   updateProfile,
 } from '@/services/authService';
 import { config } from '@/constants/config';
+import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { useAuthStore } from '@/store/authStore';
 import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing } from '@/theme';
@@ -39,7 +39,7 @@ export default function ProfileScreen() {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
-  const isGuest = useAuthStore((state) => state.isGuest);
+  const signedOut = useIsSignedOut();
   const setUser = useAuthStore((state) => state.setUser);
   const { forgetLocally } = useSignOut();
 
@@ -165,18 +165,44 @@ export default function ProfileScreen() {
     forgetLocally();
   }, [forgetLocally]);
 
-  if (!user || isGuest) {
+  /*
+    The last hand-rolled sign-in wall in the app, and it was the first one.
+
+    `AccountRequired` exists because six screens had no gate at all and this
+    one did — its own doc says so: "Profile had it right and the others had
+    nothing." The round that wrote the component took this block as the model,
+    gave it to the six, and left the original behind. So the component built to
+    stop seven copies of a block shipped with one copy still standing, and it
+    was the block it was copied from.
+
+    It mattered more than a tidiness question. `lib/preconditions.mjs` detects
+    a signed-out screen with
+    `[data-testid="account-required"], [data-testid$="-signed-out"]`, and its
+    comment claims "a seventh screen is covered whichever convention it picks".
+    The seventh screen existed, called itself `profile-guest`, and was not
+    covered — so any sweep asserting `signedIn: true` while sitting here would
+    have passed its own precondition and gone on to measure a signed-out app.
+    That is the exact failure that file was written to prevent.
+
+    Same component, same copy — `AccountRequired` composes "Sign in to see your
+    profile" from the title, which is word for word what this said.
+  */
+  /*
+    `user === null` as well as the shared predicate, and not out of caution.
+
+    `useIsSignedOut` asks whether this screen should be showing account data —
+    `!isAuthenticated || isGuest`. It does not narrow `user`, and everything
+    below dereferences it. Keeping the null check makes the narrowing the
+    compiler's job rather than an assumption, and it covers the one state the
+    predicate does not name: authenticated with no profile loaded.
+  */
+  if (signedOut || user === null) {
     return (
-      <Screen edges={['top', 'bottom']} testID="profile-guest">
-        <ScreenHeader title="Profile" />
-        <EmptyState
-          icon="person-outline"
-          title="Sign in to see your profile"
-          message="Create an account or sign in to save your details, addresses and rewards."
-          actionLabel="Sign in"
-          onActionPress={() => router.push('/(auth)/sign-in')}
-        />
-      </Screen>
+      <AccountRequired
+        title="Profile"
+        message="Create an account or sign in to save your details, addresses and rewards."
+        testID="profile-signed-out"
+      />
     );
   }
 

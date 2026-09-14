@@ -69,7 +69,8 @@
     "audit:long": "node scripts/audit-long.mjs",
     "audit:tabs": "node scripts/audit-tabs.mjs",
     "audit:abroad": "node scripts/audit-abroad.mjs",
-    "audit:away": "node scripts/audit-away.mjs"
+    "audit:away": "node scripts/audit-away.mjs",
+    "audit:cold": "node scripts/audit-cold.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",
