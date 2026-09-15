@@ -202,8 +202,16 @@ console.log(`Inlined ${replaced}/${dataUris.size} assets into the bundle.`);
  * moved on. It may have been taken off the menu."
  *
  * Rewriting the path before the bundle reads it is enough. From `file://` the
- * browser refuses, so there the entry route is handed over directly instead;
- * both land on the welcome screen.
+ * browser refuses — `replaceState` on a `null` origin throws SecurityError —
+ * so there the catch-all draws for a beat and the shim presses its own "Back
+ * to home" instead.
+ *
+ * Those two are not the same landing, and this comment used to say they were
+ * ("both land on the welcome screen"). Served over http the customer gets the
+ * welcome carousel. Opened off a disk they get **home**, onboarding skipped,
+ * because "Back to home" is what the catch-all offers and home is where it
+ * goes. `audit:single` drives all three deliveries and holds each to the right
+ * one, which is how the claim stopped being only a claim.
  */
 const START_AT_ROOT = `
 (function () {

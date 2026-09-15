@@ -56,6 +56,7 @@ The OTP is always `1234` (the verification screen says so on-screen).
 | `npm run audit:sparse` | Render every screen against a backend that sends exactly what `wireChecks` demands and nothing more, and fail on a crash screen |
 | `npm run audit:notyours` | Open deep links the server refuses — a thing that is gone, and a thing that is somebody else's — and fail if the app blames itself or invites a futile retry |
 | `npm run audit:cold` | Open every gated route with nothing in storage and ask the sweeps' own detector whether the sign-in wall is there |
+| `npm run audit:single` | Drive the published single-file build itself — at a deep path, at the root and off a disk — with a host that 404s anything the document did not bring with it |
 | `npm run audit:away` | Count what the app asks the backend while the customer is watching the screen, while the tab is hidden, and after they come back |
 | `npm run audit:abroad` | Drive the same journey from Johannesburg, London and Auckland, and check every clock time says whose clock it is |
 | `npm run audit:tabs` | Open two tabs of one account, act in the first, and check the second is told — a paid-for basket, and a session that ended |

@@ -218,11 +218,19 @@ describe('2 — a window that can change', () => {
 
       All three now come from the same hook, so they cannot disagree with each
       other or with the window.
+
+      Two of the three are spelled differently since `audit:single` drove this
+      screen for the first time and found it did not advance at all: the offset
+      Next scrolls to is now named (`next * width`) because the press also sets
+      the index, and the divisor is clamped to the deck. What this fixture is
+      about is unchanged — one `width`, and every use of it derived from that
+      one — so it follows the spellings rather than freezing them.
     */
     const screen = code('src/app/(onboarding)/welcome.tsx');
 
-    expect(screen).toMatch(/setIndex\(Math\.round\(offset \/ width\)\)/);
-    expect(screen).toMatch(/scrollToOffset\(\{ offset: \(index \+ 1\) \* width/);
+    expect(screen).toMatch(/Math\.round\(offset \/ width\)/);
+    expect(screen).toMatch(/const next = index \+ 1;/);
+    expect(screen).toMatch(/scrollToOffset\(\{ offset: next \* width/);
     expect(screen).toMatch(/<View style=\{\{ width \}\}>/);
     // And the handlers have to be told, or they close over the first width.
     expect(screen).toMatch(/\},\s*\[width\],\s*\);/);

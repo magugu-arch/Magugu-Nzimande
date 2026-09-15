@@ -70,10 +70,35 @@ export default function WelcomeScreen() {
   */
   const { width } = useWindowDimensions();
 
+  /*
+    Where the carousel has come to rest, read off the offset.
+
+    Bound to `onScroll` as well as `onMomentumScrollEnd`, and that is the whole
+    fix rather than a belt-and-braces flourish. `onMomentumScrollEnd` means
+    "inertia has stopped", which a finger produces and a `scrollToOffset` does
+    not — on react-native-web a programmatic scroll emits `scroll` and no
+    momentum events at all. This was the only thing setting `index`, so on the
+    web build `index` was nailed to 0 from launch:
+
+      • the picture changed and the headline, body and dots under it did not,
+        so the slide the customer was looking at and the words describing it
+        were different slides;
+      • `handleNext` scrolls to `(index + 1) * width`, so every press after the
+        first scrolled to 390 again — the carousel stopped at slide two and
+        could not be moved off it;
+      • `isLastSlide` is `index === 2`, so **"Get started" never appeared** and
+        the button could not finish onboarding. The only way past the first
+        screen of the app was the small "Skip" in the corner.
+
+    Rounding means this agrees with a drag at the halfway point, which is where
+    a paged carousel should flip, and re-setting the value it already holds is
+    a no-op — so the two events and `handleNext` below can all speak without
+    contradicting each other.
+  */
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offset = event.nativeEvent.contentOffset.x;
-      setIndex(Math.round(offset / width));
+      setIndex(Math.min(SLIDES.length - 1, Math.max(0, Math.round(offset / width))));
     },
     [width],
   );
@@ -86,7 +111,18 @@ export default function WelcomeScreen() {
       router.replace('/(auth)/sign-in');
       return;
     }
-    listRef.current?.scrollToOffset({ offset: (index + 1) * width, animated: true });
+    /*
+      Say where we are going before going there.
+
+      The scroll events above would get here on their own on both platforms
+      now, but this is the press's own intent and it should not depend on a
+      listener firing to be true. If a future `pagingEnabled` change, a reduced
+      -motion setting or a platform that skips the animation swallows the
+      scroll, the button still advances the carousel it is pointing at.
+    */
+    const next = index + 1;
+    setIndex(next);
+    listRef.current?.scrollToOffset({ offset: next * width, animated: true });
   }, [isLastSlide, index, width, completeOnboarding, router]);
 
   const handleSkip = useCallback(() => {
@@ -105,6 +141,10 @@ export default function WelcomeScreen() {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        // iOS throttles `onScroll` to once per second without this; 16ms is one
+        // frame, which is what a carousel tracking a finger needs.
+        scrollEventThrottle={16}
         onMomentumScrollEnd={handleScroll}
         renderItem={({ item, index }) => (
           <View style={{ width }}>

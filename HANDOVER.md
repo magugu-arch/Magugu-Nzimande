@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 117 suites; `npm test` prints the count                                                                  |
+| Tests            | 118 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -67,6 +67,7 @@ npm run audit:tabs     # the same customer in two tabs, and whether the second o
 npm run audit:abroad   # a phone that is not on the kitchen's clock, from three timezones
 npm run audit:away     # what the app costs the customer while nobody is looking at it
 npm run audit:cold     # every gated route opened by somebody with no account at all
+npm run audit:single   # the one HTML file we hand over, served the way a host serves it
 npm run audit:slow     # a connection that is not gone, only slow — four speeds, counted
 npm run audit:wide     # both iPad shapes, and a window resized after load
 npm run smoke:order   # signs in, adds an item and places an order, for real

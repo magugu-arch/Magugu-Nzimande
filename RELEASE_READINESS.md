@@ -1862,6 +1862,108 @@ any wall is one the selector cannot find. Put `profile-guest` back and both the
 sweep and the fixture go red. A convention nothing checks is how the last one
 drifted for as long as the component has existed.
 
+## 2ag. The build nothing was driving, and the screen nobody had opened
+
+Thirty-two sweeps build this app, and all thirty-two build it the same way:
+`expo export --platform web` into a directory, served by a small Node server
+each script writes for itself, with a fallback that answers any unknown path
+with `index.html`.
+
+**Nobody outside this repository is ever served by that.** What leaves here is
+one file — `bbq-chicken-app.html`, folded by `bundle-single-file.mjs` — which is
+published as an artifact and attached to a message. Thirty-nine versions of it
+had gone out, checked by exactly one thing: a person, by eye.
+
+`audit:single` serves that file the way a single-document host serves it — one
+document, **404 for everything else, no fallback** — which is the difference
+that matters. In the directory build a missed asset is invisible by
+construction: the sweeps' own servers answer the request with `index.html` and
+a 200. Here it gets the 404 a real host would give it.
+
+### The first screen of the app did not work
+
+Because `audit:single` is the only sweep that lets the app choose its own
+opening screen rather than navigating past it, it opened the welcome carousel.
+Nothing ever had. Every other sweep either seeds `hasCompletedOnboarding` or
+goes straight to a route — correct for what those sweeps measure, and the reason
+`/welcome` went thirty-five rounds unopened.
+
+`index` was fed by `onMomentumScrollEnd` alone, and react-native-web does not
+fire momentum events for a programmatic `scrollToOffset`. So on every web build
+ever handed over:
+
+| | what the customer got |
+| --- | --- |
+| the picture | advanced on each press |
+| the headline, body and dots | stayed on slide one — they were reading one slide and looking at another |
+| the second press of Next | scrolled to `(0 + 1) * width` again; the carousel could not be moved off slide two |
+| **"Get started"** | **never appeared**, because `isLastSlide` is `index === 2` |
+
+So the app's first screen could not be finished with its own button. The only
+way in was **Skip** — a 27x19 link in the corner.
+
+By eye it looked like it worked: pressing Next visibly changes the photograph.
+
+### The fix, and what it is not
+
+`onScroll` is bound alongside `onMomentumScrollEnd` (with `scrollEventThrottle`
+of 16, or iOS sends it about once a second), and `handleNext` sets the index it
+is scrolling to rather than waiting to be told. The offset is clamped to the
+deck, because a rubber-band drag reports one outside it and an out-of-range
+index empties the headline over a photograph.
+
+Stash the fix and the sweep reports all three symptoms separately, on both
+hosted deliveries, while the `file://` row stays green — which is what shows
+the findings are about the carousel and not about delivery.
+
+### Three deliveries, and a correction to the bundler's own comment
+
+| delivery | opens on | why |
+| --- | --- | --- |
+| `/artifact/<id>` | welcome | the shim rewrites `location.pathname` to `/` |
+| `/` | welcome | the control — nothing to rewrite |
+| `file:///…` | **home** | the browser refuses the rewrite, so the catch-all draws and the shim presses its own "Back to home" |
+
+The bundler's comment said *"both land on the welcome screen"*. They do not:
+off a disk the customer lands on home with onboarding skipped. The claim had
+been there for as long as the shim, because nothing had opened the file either
+way. It now records what happens, and `audit:single` holds each delivery to its
+own right answer instead of one wrong shared one.
+
+### Two measurement bugs caught in the sweep itself
+
+- **The interactivity probe could not fail.** It compared `document.body.innerText`
+  before and after a press — wrong twice over, since the photograph is not text
+  and the words never changed. It now reads the headline, the offset and the
+  button's label at each step.
+- **The landing verdict was a race.** `waitForSelector('welcome, catch-all')`
+  and judge the winner: off a disk the catch-all is on screen for about a tenth
+  of a second, so the same file reported *"past it, to home"* on one run and
+  *"nothing at all"* on the next — from a page sitting on home with 33
+  photographs. Polling was not enough either, because the episode fits inside
+  one interval. Dropping the flash from the question was: each delivery is
+  polled for what it is meant to reach, and "somewhere real" must hold across
+  two readings so the splash is not mistaken for a destination. Five
+  consecutive runs, identical.
+
+### What the sweep can and cannot say
+
+The runtime half watches every request the page makes and **zero leave it** — at
+devicePixelRatio 1, 2 and 3, with every `<img>` carrying its own bytes. But it
+can only speak for screens it opens. A counterfactual proved that: one data URI
+put back to a path on a screen the sweep does not visit, and it stayed green.
+
+So the file is also read as a file. Every asset `expo export` wrote must either
+be inlined into the document or be unreferenced by the bundle — the ten
+`@2x/@3x/@4x` density files Metro emits and the web runtime never names. A path
+still in the document that names an emitted file is the bug the bundler cannot
+report, because it prints `Inlined 135/145` and exits 0 whatever those numbers
+are. Put one back and the sweep now fails on the file alone, before a browser
+is involved.
+
+If the export beside the document is gone, the sweep exits 2 rather than
+greening on half of itself.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -1915,7 +2017,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **117 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **118 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on
