@@ -71,7 +71,8 @@
     "audit:abroad": "node scripts/audit-abroad.mjs",
     "audit:away": "node scripts/audit-away.mjs",
     "audit:cold": "node scripts/audit-cold.mjs",
-    "audit:single": "node scripts/audit-single.mjs"
+    "audit:single": "node scripts/audit-single.mjs",
+    "audit:firstrun": "node scripts/audit-firstrun.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/montserrat": "^0.4.2",

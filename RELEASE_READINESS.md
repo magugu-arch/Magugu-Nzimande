@@ -2042,6 +2042,60 @@ Restore the typo and the suite goes red on exactly one line. If Expo's types
 are ever generated here, the compiler check returns on its own: the include is
 still pointing at them, and a fixture says so.
 
+## 2ai. The first five minutes, and a check of mine that could not fail
+
+Every sweep here starts in the middle — seeding a customer or navigating
+straight to the route it is about to measure. Correct for each of them, and it
+left the sequence every new customer actually walks undriven. `audit:single`
+opened the entry point for the first time last round and found the welcome
+carousel broken in a way that had shipped in thirty-nine builds. **The screen
+after it had still never been opened by anything.**
+
+`audit:firstrun` walks the whole thing in order — splash, carousel, sign-in,
+continue as guest, location permission, Home — pressing Next until the carousel
+is finished rather than a fixed number of times, because the deck's length is
+the app's business and a sweep that knows it starts lying the day somebody adds
+a slide. It drives **both** answers to the permission, since a pre-permission
+screen whose decline is a dead end is worse than no screen at all.
+
+### Everything it drove came back sound
+
+Two things were worth doubting and both are right:
+
+- `requestLocation` calls `markAsked()` **above** the await, so a customer who
+  taps "Use my location" and then denies the OS sheet is still recorded as
+  asked. Below it, they would meet the screen again on every sign-in.
+- `forgetPerson` clears `coordinates` and deliberately keeps
+  `locationPermissionAsked` — *"a fact about the handset, not about whoever is
+  holding it"* — so signing out does not restart the asking.
+
+No application defect this round. The journey works.
+
+### The finding was in my own sweep
+
+Its third case checks the promise `postAuthRoute` makes in its doc: *"Once
+asked (granted or declined), we never ask again on sign-in."* Nothing had ever
+tested it.
+
+The first version opened a second page at `/`. **That check could not fail.**
+A second open goes through the splash, which branches on
+`hasCompletedOnboarding` and reaches Home without ever calling `postAuthRoute`.
+Run against a build with `markAsked()` deleted from both call sites, it still
+printed "went straight to Home" — measuring the onboarding flag while claiming
+to measure the location one.
+
+Only the counterfactual caught it. The corrected case enters through
+`/sign-in` and presses "Continue as guest", which is the door `postAuthRoute`
+actually stands behind and what a returning customer does. Against the same
+broken build it now fails, with the sentence a reader can act on; against the
+real build it passes. It also separates "asked again" from "went nowhere",
+because absence of the permission screen is not arrival and a check that treats
+it as such passes on a blank page.
+
+That is the second round running where the defect was in the instrument rather
+than the app, and the second where a counterfactual was the only thing that
+found it. A sweep is not evidence until it has been shown to fail.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -2095,7 +2149,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **119 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **120 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

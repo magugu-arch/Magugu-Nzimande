@@ -251,17 +251,22 @@ describe('4 — the entry point is somebody’s screen', () => {
     .filter((file) => file.startsWith('audit-') && file.endsWith('.mjs'))
     .map((file) => path.join('scripts', file));
 
-  it('has exactly one sweep that lets the app choose its own first screen', () => {
+  it('keeps at least one sweep that lets the app choose its own first screen', () => {
     /*
       Everything else either seeds `hasCompletedOnboarding` or navigates
       straight to a route, which is correct for what those sweeps measure and
-      is why `/welcome` went thirty-five rounds without being opened. This
-      fixture is not asking for more of them — one is enough, and it should
-      keep existing.
+      is why `/welcome` went thirty-five rounds without being opened.
+
+      Written first as exactly one, with "one is enough" as the reasoning. That
+      was wrong the following round: `audit:firstrun` opens the entry point too
+      and walks on through sign-in to the permission screen and Home, which is
+      a second thing worth having rather than a duplicate. What this fixture is
+      actually for is that the count never goes back to zero, so it says that.
     */
     const opensTheEntryPoint = sweeps.filter((file) => /onboarding-next/.test(read(file)));
 
-    expect(opensTheEntryPoint).toEqual(['scripts/audit-single.mjs']);
+    expect(opensTheEntryPoint).toContain('scripts/audit-single.mjs');
+    expect(opensTheEntryPoint).toContain('scripts/audit-firstrun.mjs');
   });
 
   it('documents the single-file build as the thing that gets handed over', () => {
