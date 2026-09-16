@@ -1964,6 +1964,84 @@ is involved.
 If the export beside the document is gone, the sweep exits 2 rather than
 greening on half of itself.
 
+## 2ah. A guarantee the project had switched on and did not have
+
+`app.json` carries `experiments: { typedRoutes: true }`. `tsconfig.json`
+includes `.expo/types` to pick up what that generates. Between them they are
+supposed to turn a navigation typo into a compile error — `router.push('/account/
+notifcations')` refused by `tsc` rather than discovered by a customer landing
+on "This page has moved on".
+
+**It has never worked here, for two independent reasons.**
+
+### 1. Nothing generates the types
+
+`.expo/types/router.d.ts` is written by the Expo dev server. `npx expo export`
+does not write it — checked directly, the directory is still absent after a
+full export — and the dev server does not run in CI or in this environment.
+Without that file, `ExpoRouter.__routes` stays the empty interface expo-router
+ships, and the `Href` conditional falls through to `string | HrefObject`. Every
+string is a valid route.
+
+### 2. The tsconfig excluded what it included
+
+`include` listed the `.expo/types` glob; `exclude` listed `.expo`. Exclude
+filters what include finds, so the generated file would have been discarded
+even if it had existed. Measured with `tsc --showConfig`:
+
+| exclude | `.expo` files in the program |
+| --- | --- |
+| `[… , ".expo"]` | **none — dropped** |
+| `[… , ".expo/web", ".expo/dev"]` | `./.expo/types/probe.d.ts` |
+
+Only the caches were ever meant to be excluded. That is now what is excluded,
+so a developer running the dev server gets real route types.
+
+### Why this is worse than a dead feature
+
+`npm run verify` runs `typecheck`, and this project has reported it clean every
+round — with route targets among the things it was believed to be checking.
+A planted `router.push('/account/notifcations-TYPO-THAT-IS-NOT-A-ROUTE')` in
+`(tabs)/home.tsx` typechecked clean and exited 0. A check that cannot report
+the outcome it exists for is worse than no check, because the absence of the
+check is invisible and its reassurance is not.
+
+### What holds the line now
+
+CI still has nobody to generate Expo's types, and reimplementing their typegen
+would mean writing a file whose contract cannot be read: AGENTS.md points at
+the versioned docs and the egress proxy blocks them. Guessing at a vendor's
+generated format is exactly the kind of invention this project refuses.
+
+So `__tests__/reachableRoutes.test.ts` holds it instead, in the project's own
+idiom — derive both sides from source and compare:
+
+- every route from `src/app`, groups normalised away and parameters treated as
+  holes, so `/(tabs)/menu` and `/menu` are one screen;
+- every navigation target from the calls that navigate, `href` read as a whole
+  expression because the splash chooses between two routes inside a ternary;
+- a target matching no route is a finding — that is the check `typedRoutes` was
+  supposed to be doing;
+- a route nothing can reach is a finding, with tab screens counted as reachable
+  from the tab bar and derived from `<Tabs.Screen name=…>` rather than listed.
+
+**Two derivations, deliberately different.** "Does this target resolve?" must be
+precise, so it reads navigation calls only. "Can this screen be reached?" must
+be generous, because the app routes through helpers — `postAuthRoute` returns a
+path, `index.tsx` picks one in a ternary — and the precise scanner called three
+working screens dead. Using the precise set for both raised three false
+findings; using the generous set for both would let a typo through, since a
+string nothing recognises is exactly what a typo is.
+
+One screen is exempt: `/reset-password`, entered from a link in an email. The
+exemption carries its reason, and a fixture fails if it ever goes stale — if
+somebody links to that screen the exemption stops being true, and an exemption
+nobody re-reads is how a list rots into permission to skip whatever is under it.
+
+Restore the typo and the suite goes red on exactly one line. If Expo's types
+are ever generated here, the compiler check returns on its own: the include is
+still pointing at them, and a fixture says so.
+
 ## 3. Release gates (§11)
 
 | Gate | State |
@@ -2017,7 +2095,7 @@ Recorded so they read as decisions rather than oversights.
 
 ## 6. Verification for this round
 
-- `npm run verify` — **118 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
+- `npm run verify` — **119 suites**, typecheck clean, and lint clean: **zero warnings**, down from the six that had been carried as a baseline for most of this project (`npm test` prints the case count)
 - `npm run audit:screens` — 69 routes at 390pt and 320pt, no defects
 - `npm run smoke:order` — 12 steps, console clean. One order placed and four
   refused, the last of them the one added this round: a customer sitting on

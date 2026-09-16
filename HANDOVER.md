@@ -18,7 +18,7 @@ Africa, built to the supplied brief.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Food photography | All 28 catalogue products, own artwork, no placeholders                                                 |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 118 suites; `npm test` prints the count                                                                  |
+| Tests            | 119 suites; `npm test` prints the count                                                                  |
 | Bundle           | 25.5 MB exported, of which 2.9 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-uber-eats-32bsgf`                                                                         |
 
@@ -73,6 +73,27 @@ npm run audit:wide     # both iPad shapes, and a window resized after load
 npm run smoke:order   # signs in, adds an item and places an order, for real
 npm run preview:single # builds the web export and folds it into one HTML file
 ```
+
+### One thing `npm run typecheck` does not check
+
+`app.json` sets `experiments: { typedRoutes: true }` and `tsconfig.json` pulls
+in `.expo/types`, which together are supposed to make `router.push('/no-such-
+screen')` a compile error. **They do not, under `npm run verify`.**
+
+`.expo/types/router.d.ts` is written by the Expo dev server. `npx expo export`
+does not write it, so CI and this environment never have it — and without that
+file `ExpoRouter.__routes` stays empty and `Href` is just `string`. A planted
+`router.push('/account/notifcations-TYPO-THAT-IS-NOT-A-ROUTE')` typechecked
+clean. (`tsconfig.json` also excluded `.expo` while including `.expo/types`,
+and exclude wins; that part is fixed, so a developer running the dev server
+now gets real route types.)
+
+`__tests__/reachableRoutes.test.ts` is what actually holds the line in CI. It
+derives every route from `src/app` and every navigation target from the calls
+that navigate, and fails on a target that resolves to no screen or a screen
+nothing can reach. If Expo's types ever do get generated here, the compiler
+check comes back on its own — the include is still pointing at them.
+
 
 `bundle:single` is for sending the app to somebody who has no toolchain — a
 franchise partner, a reviewer, anyone with a browser. It inlines the bundle and
