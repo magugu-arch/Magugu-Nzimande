@@ -1645,7 +1645,17 @@ export function signedBounce(
   over: Record<string, unknown> = {},
 ): Request {
   const timestamp = String(Math.floor(Date.now() / 1_000));
-  const token = `tok-${randomBytes(8).toString('hex')}`;
+  /**
+   * A fresh token unless one is named.
+   *
+   * Random is right for almost every test: the token is Mailgun's single-use
+   * half, and two bounces that happen to share one are two bounces the webhook
+   * is entitled to treat as the same delivery. A test about *replay* needs the
+   * opposite, and needs the signature to cover the token it was given rather
+   * than the one this would otherwise have invented — which is why the value is
+   * settled before it is signed.
+   */
+  const token = typeof over.token === 'string' ? over.token : `tok-${randomBytes(8).toString('hex')}`;
 
   return new Request('http://localhost/api/notifications/webhook', {
     method: 'POST',

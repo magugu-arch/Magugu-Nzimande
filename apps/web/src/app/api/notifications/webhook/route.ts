@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
 import { verifyMailgunSignature } from '@/lib/notifications/mailgun';
 import { mailgunWebhookKey } from '@/lib/notifications/registry';
-import {
-  reasonForMailgunEvent,
-  rememberToken,
-  suppress,
-  tokenAlreadySeen,
-} from '@/lib/notifications/suppression';
+import { reasonForMailgunEvent, suppress } from '@/lib/notifications/suppression';
+import { claimOnce } from '@/lib/once';
 import { logger } from '@/lib/observability/log';
 
 /**
@@ -47,15 +43,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Signature rejected' }, { status: 401 });
   }
 
-  // The freshness check lives in verifyMailgunSignature; single use is checked
-  // here because it needs the shared state every worker reads.
-  if (tokenAlreadySeen(signature.token)) {
-    // 200, not 401. It was genuinely Mailgun and we have already acted on it;
-    // answering an error would have them redeliver something we would refuse
-    // again.
-    return NextResponse.json({ received: true, replayed: true });
-  }
-
   const verified = verifyMailgunSignature(
     { timestamp: signature.timestamp, token: signature.token, signature: signature.signature },
     key,
@@ -64,7 +51,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Signature rejected' }, { status: 401 });
   }
 
-  rememberToken(signature.token);
+  /**
+   * Single use, claimed rather than asked about.
+   *
+   * The freshness window lives in verifyMailgunSignature; this is the other
+   * half, and it needs the shared state every worker reads. It used to be a
+   * `tokenAlreadySeen` check up above the signature test and a `rememberToken`
+   * write down here — two operations, so two redeliveries arriving together
+   * both passed the check and both acted.
+   *
+   * 200 and not 401 on a replay. It was genuinely Mailgun and we have already
+   * acted on it; answering an error would have them redeliver something we
+   * would refuse again.
+   *
+   * After the signature check rather than before it, which is the order the
+   * split version could not have: an unverified caller must not be able to
+   * spend a token, and the claim is now the thing that spends it.
+   */
+  if (!claimOnce('webhookTokens', signature.token)) {
+    return NextResponse.json({ received: true, replayed: true });
+  }
 
   const data = (payload['event-data'] ?? {}) as {
     event?: unknown;

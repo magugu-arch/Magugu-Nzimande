@@ -1,5 +1,6 @@
 import type { Order } from '@bbq/types';
 import { mutateState, pushAudit, readState } from '../demo-state';
+import { claimOnce } from '../once';
 import { describe, orderMoved, orderPlaced, passwordReset, paymentRefunded } from './messages';
 import { publicBaseUrl } from '../deployment';
 import { routedTransport } from './registry';
@@ -28,32 +29,25 @@ function transport(): NotificationTransport {
   });
 }
 
-/** Message ids already delivered, so a repeat is a no-op rather than a second send. */
-function alreadySent(id: string): boolean {
-  return readState().notifications.sent.includes(id);
-}
-
-function markSent(id: string): void {
-  mutateState((state) => {
-    if (state.notifications.sent.includes(id)) return;
-    state.notifications.sent.push(id);
-    // Bounded like every other list in this file. Old ids only need to outlive
-    // the retries that would duplicate them.
-    if (state.notifications.sent.length > 2_000) state.notifications.sent.shift();
-  });
-}
-
 async function send(messages: Message[]): Promise<number> {
   const sender = transport();
   let sent = 0;
 
   for (const message of messages) {
-    if (alreadySent(message.id)) continue;
-
-    // Marked before the attempt, not after. A transport that half-succeeds —
-    // delivers, then times out returning — would otherwise be retried, and one
-    // message missed is better than one message twice.
-    markSent(message.id);
+    /**
+     * Claimed, not asked about.
+     *
+     * This read `alreadySent(id)` and then called `markSent(id)` as a separate
+     * write. The write was careful — it re-checked inside its own mutation and
+     * refused to add a duplicate — so the ledger never held one, and two
+     * callers arriving together both delivered anyway. The guard was in the
+     * write while the decision was up here.
+     *
+     * The claim is also taken before the attempt rather than after. A transport
+     * that half-succeeds — delivers, then times out returning — would otherwise
+     * be retried, and one message missed is better than one message twice.
+     */
+    if (!claimOnce('messages', message.id)) continue;
 
     const result = await sender.deliver(message);
     if (result.ok) sent += 1;

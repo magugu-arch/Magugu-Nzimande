@@ -29,10 +29,6 @@ function now(): string {
   return new Date().toISOString();
 }
 
-function readIntent(id: string): PaymentIntent | null {
-  return readState().payments.intents.find((intent) => intent.id === id) ?? null;
-}
-
 export function intentForOrder(orderId: string): PaymentIntent | null {
   return readState().payments.intents.find((intent) => intent.orderId === orderId) ?? null;
 }
@@ -113,36 +109,48 @@ export function recordProviderRef(intentId: string, providerRef: string): void {
  * adapter will eventually call with the trusting half only.
  */
 export function settle(event: PaymentEvent): SettleResult {
-  const intent = readIntent(event.intentId);
-  if (!intent) return { ok: false, status: 404, error: 'No such payment' };
-
-  // The idempotency key. Checked before anything is written, and recorded in
-  // the same mutation as the change, so a redelivery cannot slip between the
-  // two and apply twice.
-  if (readState().payments.appliedEvents.includes(event.id)) {
-    return { ok: true, intent, replayed: true };
-  }
-
-  // A gateway that reports a different amount from the one we asked for is
-  // either misconfigured or talking about somebody else's payment. Neither is
-  // something to settle an order on.
-  if (event.amountCents !== intent.amountCents) {
-    return {
-      ok: false,
-      status: 409,
-      error: 'The settled amount does not match the amount that was asked for',
-    };
-  }
-
-  if (isSettled(intent.status)) {
-    // A second, different event against an already-final payment. Not applied,
-    // but not an error either: the provider is entitled to tell us twice.
-    return { ok: true, intent, replayed: true };
-  }
-
-  const updated = mutateState((state) => {
+  /**
+   * Every question and the answer inside one mutation, which holds the lock.
+   *
+   * The comment that used to sit here said the idempotency key was "recorded in
+   * the same mutation as the change, so a redelivery cannot slip between the
+   * two and apply twice". The recording was. The *checking* was not: both this
+   * and the already-final guard read state through a separate `readState()`
+   * before the mutation opened.
+   *
+   * Two callbacks arriving together therefore each read an intent nobody had
+   * settled yet, each decided it was open, and each wrote. A duplicate applied
+   * id and two audit lines is the cheap version. The expensive one is PayFast's
+   * PENDING-then-COMPLETE pair racing: both read an unsettled intent, and
+   * whichever mutation lands last decides what the customer paid.
+   *
+   * `mutateState` cannot be nested — the lock is a file and is not re-entrant —
+   * so this cannot delegate to `claimOnce` the way the other two ledgers do. It
+   * does the same thing inline, which is the same discipline written out.
+   */
+  const outcome = mutateState((state):
+    | { kind: 'missing' }
+    | { kind: 'mismatch' }
+    | { kind: 'replayed'; intent: PaymentIntent }
+    | { kind: 'applied'; intent: PaymentIntent } => {
     const held = state.payments.intents.find((candidate) => candidate.id === event.intentId);
-    if (!held) return null;
+    if (!held) return { kind: 'missing' };
+
+    // The idempotency key, read from the state this mutation is about to write.
+    if (state.payments.appliedEvents.includes(event.id)) {
+      return { kind: 'replayed', intent: { ...held } };
+    }
+
+    // A gateway that reports a different amount from the one we asked for is
+    // either misconfigured or talking about somebody else's payment. Neither is
+    // something to settle an order on.
+    if (event.amountCents !== held.amountCents) return { kind: 'mismatch' };
+
+    if (isSettled(held.status)) {
+      // A second, different event against an already-final payment. Not applied,
+      // but not an error either: the provider is entitled to tell us twice.
+      return { kind: 'replayed', intent: { ...held } };
+    }
 
     held.status = event.status;
     held.providerRef = event.providerRef ?? held.providerRef;
@@ -150,14 +158,26 @@ export function settle(event: PaymentEvent): SettleResult {
     held.updatedAt = now();
 
     state.payments.appliedEvents.push(event.id);
-    if (state.payments.appliedEvents.length > 1_000) state.payments.appliedEvents.shift();
+    while (state.payments.appliedEvents.length > 1_000) state.payments.appliedEvents.shift();
 
     pushAudit(state, 'payments', `${held.orderNumber} payment ${event.status}`);
-    return { ...held };
+    return { kind: 'applied', intent: { ...held } };
   });
 
-  if (!updated) return { ok: false, status: 404, error: 'No such payment' };
-  return { ok: true, intent: updated, replayed: false };
+  switch (outcome.kind) {
+    case 'missing':
+      return { ok: false, status: 404, error: 'No such payment' };
+    case 'mismatch':
+      return {
+        ok: false,
+        status: 409,
+        error: 'The settled amount does not match the amount that was asked for',
+      };
+    case 'replayed':
+      return { ok: true, intent: outcome.intent, replayed: true };
+    default:
+      return { ok: true, intent: outcome.intent, replayed: false };
+  }
 }
 
 /**

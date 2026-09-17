@@ -117,23 +117,13 @@ export function reasonForMailgunEvent(event: string): SuppressionReason | null {
 }
 
 /**
- * Whether a Mailgun webhook token has already been acted on.
+ * The webhook replay guard used to live here, as a `tokenAlreadySeen` read and
+ * a `rememberToken` write that callers had to remember to pair. Two of them
+ * are two operations, and two redeliveries arriving together both passed the
+ * read before either reached the write.
  *
- * In the shared state rather than a module Set, for the same reason as
- * everything else in this application: the server runs several workers, and a
- * replay guard one of them keeps to itself is not a guard.
+ * It is `claimOnce('webhookTokens', token)` in lib/once.ts now — one operation,
+ * inside the lock, alongside the same claim for message ids. Nothing is left
+ * here, deliberately: a pair of functions that only compose correctly in one
+ * order is a pair somebody will compose in the other.
  */
-export function tokenAlreadySeen(token: string): boolean {
-  return readState().notifications.webhookTokens.includes(token);
-}
-
-export function rememberToken(token: string): void {
-  mutateState((state) => {
-    if (state.notifications.webhookTokens.includes(token)) return;
-    state.notifications.webhookTokens.push(token);
-    // Only has to outlive the freshness window the signature check enforces.
-    if (state.notifications.webhookTokens.length > 1_000) {
-      state.notifications.webhookTokens.shift();
-    }
-  });
-}
