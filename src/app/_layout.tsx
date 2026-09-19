@@ -22,6 +22,7 @@ import { Cinzel_600SemiBold } from '@expo-google-fonts/cinzel/600SemiBold';
 import { Allura_400Regular } from '@expo-google-fonts/allura/400Regular';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/system/OfflineBanner';
+import { DemoPricesBanner } from '@/components/system/DemoPricesBanner';
 import { useAppFocus } from '@/features/system/useAppFocus';
 import { useReduceMotion } from '@/features/system/useReduceMotion';
 import { useSessionExpiry } from '@/features/system/useSessionExpiry';
@@ -162,6 +163,7 @@ function AppShell() {
         <Stack.Screen name="account" />
       </Stack>
 
+      <DemoPricesBanner />
       <OfflineBanner />
     </View>
   );

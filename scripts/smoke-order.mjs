@@ -65,7 +65,13 @@ execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT,
   // `expo export` is a release build, where the mock layer is off by default.
   // This sweep has no backend to talk to, so it asks for the mock by name —
   // the same thing eas.json's preview profile does, and for the same reason.
-  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
+  // Demo prices, because this journey puts a dish in a cart and there is
+  // nothing to put there otherwise: §15 forbids inventing menu prices, so the
+  // shipped catalogue is unpriced and every dish is `available: false`. The
+  // fixture is what gives the commerce path something real to drive. The
+  // browsing sweeps deliberately do NOT set it — they check the honest
+  // unpriced state a customer actually meets today.
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1', EXPO_PUBLIC_DEMO_PRICES: '1' },
 });
 
 const server = await serve();
@@ -143,10 +149,24 @@ try {
   step('signed in');
 
   await go('/menu');
-  await page.getByText('Golden Original Chicken', { exact: false }).first().click({ timeout: 10000 });
+  // The first dish on the menu, whichever it is — never one named in the
+  // script. Naming a dish is what broke every one of these journeys when the
+  // catalogue changed, and it fails twice over: the name goes stale, and a
+  // dish far enough down the list is never rendered at all, because the menu
+  // virtualises. The row's testID is the contract the menu actually keeps.
+  await page.locator('[data-testid^="menu-row-"]').first().click({ timeout: 15000 });
   await page.waitForURL(/product\//, { timeout: 15000 });
   step('opened a product');
 
+  /**
+   * Two of them, so the basket clears the delivery minimum.
+   *
+   * One dish at the demo band is R95 and the minimum for a delivery order is
+   * R100, so a single-item basket is correctly refused at checkout — which is
+   * the app working, not a fault, and is why this journey stopped at "Below
+   * the delivery minimum". A real delivery order is more than one plate.
+   */
+  await page.getByLabel('Increase quantity').first().click({ timeout: 10000 });
   await tap('product-add-to-cart');
   step('added it to the cart');
 
@@ -191,7 +211,7 @@ try {
   step('placed the order');
 
   const reference = await page.locator('body').innerText();
-  const match = /BBQ-\d+/.exec(reference);
+  const match = /PPS-\d+/.exec(reference);
   if (!match) throw new Error('confirmation shows no order reference');
   step(`confirmation shows ${match[0]}`);
 
@@ -220,7 +240,7 @@ try {
   // for the wrong reason.
   const saved = await nightPage.evaluate(() => {
     try {
-      return JSON.parse(localStorage.getItem('bbq.fulfilment') ?? '{}')?.state?.store ?? null;
+      return JSON.parse(localStorage.getItem('pappas.fulfilment') ?? '{}')?.state?.store ?? null;
     } catch {
       return null;
     }
@@ -284,10 +304,14 @@ try {
 
   await goStale('/menu');
   await stalePage
-    .getByText('Golden Original Chicken', { exact: false })
+    .locator('[data-testid^="menu-row-"]')
     .first()
     .click({ timeout: 10000 });
   await stalePage.waitForURL(/product\//, { timeout: 15000 });
+  // Two portions again, so this pass is blocked by the thing it is testing
+  // rather than by the R100 delivery minimum. A single R95 plate stops at
+  // the minimum, and the blocker it then shows is the wrong one.
+  await stalePage.getByLabel('Increase quantity').first().click({ timeout: 10000 });
   await tapStale('product-add-to-cart');
 
   await goStale('/checkout/address');
@@ -317,6 +341,19 @@ try {
   }
 
   await stalePage.evaluate((to) => window.__advanceTo(to), HALF_PAST_SEVEN);
+
+  /**
+   * Tapped, not read off a disabled button — on purpose.
+   *
+   * Place order stays live here, and that is the design rather than an
+   * oversight: the `blocker` memo reads `useNow()`, which ticks coarsely, so
+   * a slot that lapses while somebody sits on the screen would not disable
+   * anything for up to a minute. `handlePlaceOrder` therefore re-checks the
+   * requirement against a fresh clock at the moment of the tap, which is the
+   * only reading that cannot be beaten by timing.
+   *
+   * So the refusal is what this asserts, and the tap is how it is reached.
+   */
   await tapStale('checkout-place-order');
   await stalePage.waitForTimeout(2500);
 
@@ -359,10 +396,14 @@ try {
 
   await goLapsed('/menu');
   await lapsedPage
-    .getByText('Golden Original Chicken', { exact: false })
+    .locator('[data-testid^="menu-row-"]')
     .first()
     .click({ timeout: 10000 });
   await lapsedPage.waitForURL(/product\//, { timeout: 15000 });
+  // Two portions again, so this pass is blocked by the thing it is testing
+  // rather than by the R100 delivery minimum. A single R95 plate stops at
+  // the minimum, and the blocker it then shows is the wrong one.
+  await lapsedPage.getByLabel('Increase quantity').first().click({ timeout: 10000 });
   await tapLapsed('product-add-to-cart');
 
   await goLapsed('/checkout/address');

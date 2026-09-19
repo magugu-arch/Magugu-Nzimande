@@ -247,7 +247,7 @@ export const useCartStore = create<CartState>()(
       hasLine: (lineId) => get().lines.some((line) => line.id === lineId),
     }),
     {
-      name: 'bbq.cart',
+      name: 'pappas.cart',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         lines: state.lines,

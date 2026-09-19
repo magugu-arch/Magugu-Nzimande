@@ -4,6 +4,7 @@ import { voucherDiscount } from '@/utils/cart';
 import { hasPassed } from '@/utils/datetime';
 import { delay, request } from './apiClient';
 import { loyaltyAccount, promotions, rewards, tiers, vouchers } from './data/rewardsData';
+import { demoVouchers, withDemoRewards, withDemoTiers } from './data/demoFixture';
 import { checkedLoyaltyAccount, checkedVouchers } from './wireChecks';
 
 /**
@@ -187,7 +188,14 @@ function stampExpiry(list: Voucher[], now = Date.now()): Voucher[] {
  *
  * A stated one-time promotion paying out for ever, in rand.
  */
-let voucherLedger: Voucher[] = vouchers.map((voucher) => ({ ...voucher }));
+/**
+ * The wallet this build serves. Empty as shipped — Pappas has issued no
+ * vouchers — and carrying one illustrative code under the demo fixture, so
+ * the promo-code and expiry paths have something to exercise.
+ */
+let voucherLedger: Voucher[] = (config.useDemoPrices ? demoVouchers() : vouchers).map(
+  (voucher) => ({ ...voucher }),
+);
 
 /**
  * Replace the mock wallet.
@@ -228,8 +236,21 @@ export function __resetVoucherWallet(): void {
  * economics, so tests seed one here rather than putting invented loyalty
  * rules back into the product to keep a suite green.
  */
-let rewardCatalogue: Reward[] = rewards.map((reward) => ({ ...reward }));
-let tierLadder: TierDefinition[] = tiers.map((tier) => ({ ...tier }));
+/**
+ * The programme as this build serves it.
+ *
+ * Mutable copies so the test seeds below can replace them, and run through
+ * the demo fixture when that is on — the shipped programme has every tier at
+ * threshold 0 and every reward at `pointsCost: 0`, because nobody has set
+ * them, which leaves the ladder and the redemption path with nothing to
+ * exercise.
+ */
+let rewardCatalogue: Reward[] = (config.useDemoPrices ? withDemoRewards(rewards) : rewards).map(
+  (reward) => ({ ...reward }),
+);
+let tierLadder: TierDefinition[] = (config.useDemoPrices ? withDemoTiers(tiers) : tiers).map(
+  (tier) => ({ ...tier }),
+);
 
 export function __seedRewardProgramme(seed: {
   rewards?: Reward[];

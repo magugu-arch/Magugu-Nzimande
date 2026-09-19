@@ -72,6 +72,27 @@ export const config = {
    */
   useMockApi: bool(process.env.EXPO_PUBLIC_USE_MOCK_API, __DEV__),
 
+  /**
+   * Illustrative menu prices, for demonstrating the ordering journey.
+   *
+   * §15 forbids inventing menu prices, so the catalogue ships every dish
+   * unpriced and `available: false`. That is the correct production state and
+   * it stays the default — but it also means nothing downstream of the cart
+   * can be exercised, because an unavailable dish cannot enter one.
+   *
+   * Setting this fills in round placeholder prices from
+   * `data/demoPrices.ts`, which unblocks checkout, loyalty, order placement
+   * and tracking for the browser journeys and for a walkthrough.
+   *
+   * **Off unless asked for, and never in production.** `audit:launch
+   * --production` fails the build when it is on, exactly as it does for the
+   * mock API, and the app shows a standing banner while it is on — a
+   * screenshot of a demo build is otherwise indistinguishable from a real
+   * one, and these numbers would be quoted back at Pappas as though they were
+   * the menu.
+   */
+  useDemoPrices: bool(process.env.EXPO_PUBLIC_DEMO_PRICES, false),
+
   maps: {
     provider: str(process.env.EXPO_PUBLIC_MAPS_PROVIDER, 'google'),
     apiKey: str(process.env.EXPO_PUBLIC_MAPS_API_KEY, ''),

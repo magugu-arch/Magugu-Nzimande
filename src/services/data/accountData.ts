@@ -75,6 +75,29 @@ export const savedPaymentMethods: PaymentMethod[] = [
   },
 ];
 
+/**
+ * The notification inbox, as seeded.
+ *
+ * Every one of the four this replaces was broken, and in a different way:
+ *
+ *   "Your order is on the way"      deep-linked to `/orders`, which is not a
+ *                                   route — the app has `/orders/history` —
+ *                                   so tapping it landed on "this page has
+ *                                   moved on".
+ *   "Spicy Tuesday is back"         a bb.q promotion, quoting a 15% discount
+ *                                   and a code nobody at Pappas has issued.
+ *   "You're 2 160 points from Gold" a tier this programme does not have (they
+ *                                   are Olive, Aegean, Sunset and Square) and
+ *                                   two loyalty figures nobody has set.
+ *   "Rose Ddeok-Bokki has landed"   a Korean dish, linking to `/menu/desserts`
+ *                                   — also not a route; the menu takes a
+ *                                   `?category=` query.
+ *
+ * So two dead deep links and two invented customer promises, in a four-item
+ * seed. What replaces them says only what this app can stand behind: an order
+ * that exists in the seed, a campaign the brief itself supplies, and a
+ * reservation. No discount, no points figure, no tier.
+ */
 export const notifications: AppNotification[] = [
   {
     id: 'notif-1',
@@ -83,34 +106,34 @@ export const notifications: AppNotification[] = [
     receivedAt: new Date(Date.now() - 40 * 60_000).toISOString(),
     read: false,
     category: 'order',
-    href: '/orders',
+    href: '/orders/history',
   },
   {
     id: 'notif-2',
-    title: 'Spicy Tuesday is back',
-    body: '15% off every Hot Spicy box today. Code SPICY15.',
+    title: 'Your table is confirmed',
+    body: 'We have you down for Thursday evening. See you on the Square.',
+    receivedAt: new Date(Date.now() - 5 * 3_600_000).toISOString(),
+    read: false,
+    category: 'order',
+    href: '/reserve',
+  },
+  {
+    id: 'notif-3',
+    title: 'Date Night at Pappas',
+    body: 'Tuesday evenings, for two. Discover the Pappas Date Night experience.',
     receivedAt: new Date(Date.now() - 20 * 3_600_000).toISOString(),
     read: false,
     category: 'promotion',
     href: '/offers',
   },
   {
-    id: 'notif-3',
-    title: "You're 2 160 points from Gold",
-    body: 'Gold unlocks free delivery every week and priority in the kitchen queue.',
-    receivedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-    read: true,
-    category: 'reward',
-    href: '/rewards',
-  },
-  {
     id: 'notif-4',
-    title: 'Rose Ddeok-Bokki has landed',
-    body: 'Creamy, blush-pink and a gentler heat. Now on the menu.',
+    title: 'Whatever came in this morning',
+    body: 'The fish market board changes daily. Have a look at what is on it.',
     receivedAt: new Date(Date.now() - 6 * 86_400_000).toISOString(),
     read: true,
     category: 'promotion',
-    href: '/menu/desserts',
+    href: '/menu?category=fish-market',
   },
 ];
 

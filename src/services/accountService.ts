@@ -1,4 +1,5 @@
 import { config } from '@/constants/config';
+import { withDemoAddresses } from './data/demoFixture';
 import type {
   Address,
   AppNotification,
@@ -22,7 +23,14 @@ import {
  */
 const blank = config.seedProfile === 'new-customer';
 
-let addressLedger: Address[] = blank ? [] : [...savedAddresses];
+/**
+ * The address book this build serves. Under the demo fixture it also carries
+ * one address far outside the delivery radius, so the radius rule has
+ * something to refuse — see `data/demoFixture`.
+ */
+let addressLedger: Address[] = blank
+  ? []
+  : [...(config.useDemoPrices ? withDemoAddresses(savedAddresses) : savedAddresses)];
 let paymentLedger: PaymentMethod[] = blank ? [] : [...savedPaymentMethods];
 let notificationLedger: AppNotification[] = [...notifications];
 

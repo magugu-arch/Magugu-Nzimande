@@ -4,7 +4,18 @@ import { supportsFulfilment } from '@/utils/fulfilment';
 import { distanceKm, type Coordinates } from '@/utils/geo';
 import { isTradingNow } from '@/utils/tradingHours';
 import { delay, request } from './apiClient';
-import { stores } from './data/storeData';
+import { stores as shippedStores } from './data/storeData';
+import { withDemoHours } from './data/demoFixture';
+
+/**
+ * The store list this build serves.
+ *
+ * Pappas has supplied no trading hours, so the shipped list carries none and
+ * the app cannot know when it is shut. The demo fixture supplies illustrative
+ * ones, which is what gives the trading-hours and scheduling rules something
+ * to be outside of.
+ */
+const stores = config.useDemoPrices ? withDemoHours(shippedStores) : shippedStores;
 import { checkedStore, checkedStores } from './wireChecks';
 
 /**

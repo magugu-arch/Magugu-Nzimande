@@ -80,7 +80,7 @@ export const useFavouritesStore = create<FavouritesState>()(
         }),
     }),
     {
-      name: 'bbq.favourites',
+      name: 'pappas.favourites',
       storage: createJSONStorage(() => AsyncStorage),
       // The owner is persisted too, or the check cannot survive the restart it
       // most needs to survive: a phone handed over and opened fresh.

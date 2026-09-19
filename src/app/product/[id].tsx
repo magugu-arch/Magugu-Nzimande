@@ -34,7 +34,7 @@ import {
   unmetOptionGroups,
   unitPriceFor,
 } from '@/utils/cart';
-import { lineTotalLabel, priceLabel } from '@/features/menu/price';
+import { isAwaitingPrice, lineTotalLabel, priceLabel } from '@/features/menu/price';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_WIDTH * 1.05;
@@ -197,6 +197,18 @@ export default function ProductDetailScreen() {
   const item = product.data;
   const ctaLabel =
     unmetGroups.length > 0 ? `Choose ${unmetGroups[0]?.name.toLowerCase()}` : 'Add to cart';
+
+  /**
+   * Whether this dish can be put in a cart at all.
+   *
+   * Two separate reasons it might not be, and the footer tells them apart
+   * because a customer would: a dish nobody has priced yet is coming, and a
+   * dish taken off the menu is not. `available` covers both — the unpriced
+   * dishes ship `available: false` precisely so nothing downstream treats a
+   * R0 line as orderable — so the price status is what distinguishes them.
+   */
+  const awaitingPrice = isAwaitingPrice(item);
+  const orderable = item.available;
 
   return (
     <View style={styles.root}>
@@ -361,18 +373,60 @@ export default function ProductDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Sticky add-to-cart */}
+      {/*
+        Sticky footer — an order, or an honest reason there cannot be one.
+
+        ── The dead button this replaces ────────────────────────────────────
+
+        A dish awaiting a price is `available: false`, and Add to cart was
+        offered for it anyway. Tapping it *worked*: `addLine` put the line in
+        the cart, `router.back()` ran, and then cart reconciliation dropped the
+        line again as `unavailable`. The customer got a haptic tap of success,
+        a screen that closed as though something had happened, and a cart that
+        was still empty, with nothing anywhere saying why.
+
+        Every one of the 45 dishes behaves this way while prices are
+        outstanding, so this is the whole ordering journey ending in a silent
+        no-op. It is the single worst thing the unpriced catalogue caused, and
+        it is not the catalogue's fault — the data said "not available" and the
+        screen asked anyway.
+
+        So the button is only drawn when the dish can actually be ordered.
+        Where it cannot, the footer says so in words and offers the thing the
+        customer *can* do at a restaurant whose kitchen is open and whose menu
+        prices are not published yet: book a table.
+      */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <QuantityStepper quantity={quantity} onChange={setQuantity} testID="product-quantity" />
-        <Button
-          label={ctaLabel}
-          onPress={handleAddToCart}
-          trailingLabel={unmetGroups.length > 0 ? undefined : lineTotalLabel(item, lineTotal)}
-          size="lg"
-          style={styles.cta}
-          testID="product-add-to-cart"
-          preserveCase
-        />
+        {orderable ? (
+          <>
+            <QuantityStepper quantity={quantity} onChange={setQuantity} testID="product-quantity" />
+            <Button
+              label={ctaLabel}
+              onPress={handleAddToCart}
+              trailingLabel={unmetGroups.length > 0 ? undefined : lineTotalLabel(item, lineTotal)}
+              size="lg"
+              style={styles.cta}
+              testID="product-add-to-cart"
+              preserveCase
+            />
+          </>
+        ) : (
+          <View style={styles.unorderable} testID="product-not-orderable">
+            <Text variant="captionMedium" color={colors.textSecondary}>
+              {awaitingPrice
+                ? 'Not orderable yet — our menu prices are still to be published.'
+                : 'This dish is off the menu right now.'}
+            </Text>
+            <Button
+              label="Book a table"
+              onPress={() => router.push('/reserve')}
+              size="lg"
+              style={styles.cta}
+              testID="product-reserve-instead"
+              preserveCase
+            />
+          </View>
+        )}
       </View>
     </View>
   );
@@ -463,5 +517,6 @@ const styles = StyleSheet.create({
   // 254 is measured, not guessed — "Add to cart" plus a four-figure price plus
   // §22.4's 32pt padding either side. On a phone that always wraps, which is
   // the right answer; a tablet has room for both on one row and keeps them.
+  unorderable: { flex: 1, gap: spacing.sm },
   cta: { flex: 1, minWidth: 254 },
 });

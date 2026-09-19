@@ -73,7 +73,13 @@ console.log('Building as a customer with nothing saved…');
 execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT, '--clear'], {
   cwd: root,
   stdio: ['ignore', 'ignore', 'inherit'],
-  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1', EXPO_PUBLIC_SEED_PROFILE: 'new-customer' },
+  // Demo prices, because this journey puts a dish in a cart and there is
+  // nothing to put there otherwise: §15 forbids inventing menu prices, so the
+  // shipped catalogue is unpriced and every dish is `available: false`. The
+  // fixture is what gives the commerce path something real to drive. The
+  // browsing sweeps deliberately do NOT set it — they check the honest
+  // unpriced state a customer actually meets today.
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1', EXPO_PUBLIC_DEMO_PRICES: '1', EXPO_PUBLIC_SEED_PROFILE: 'new-customer' },
 });
 
 const server = await serve();
@@ -118,7 +124,7 @@ try {
   step('signed in with a brand-new account');
 
   // Orders and rewards must be honestly empty, not broken.
-  await go('/orders');
+  await go('/orders/history');
   await page.waitForTimeout(1500);
   const ordersText = await page.evaluate(() => document.body.innerText);
   if (/Something went wrong/i.test(ordersText)) {
@@ -127,8 +133,17 @@ try {
   step('an empty order history reads as empty, not broken');
 
   await go('/menu');
-  await page.getByText('Golden Original Chicken', { exact: false }).first().click({ timeout: 10000 });
+  // The first dish on the menu, whichever it is — never one named in the
+  // script. Naming a dish is what broke every one of these journeys when the
+  // catalogue changed, and it fails twice over: the name goes stale, and a
+  // dish far enough down the list is never rendered at all, because the menu
+  // virtualises. The row's testID is the contract the menu actually keeps.
+  await page.locator('[data-testid^="menu-row-"]').first().click({ timeout: 15000 });
   await page.waitForURL(/product\//, { timeout: 15000 });
+  // Two portions, so the basket clears the R100 delivery minimum: one
+  // dish at the demo band is R95, and a single-plate delivery order is
+  // correctly refused. That refusal is the app working.
+  await page.getByLabel('Increase quantity').first().click({ timeout: 10000 });
   await tap('product-add-to-cart');
   step('found food and put it in the basket');
 
@@ -280,7 +295,7 @@ try {
   await tap('checkout-place-order');
   await page.waitForURL(/confirmation/, { timeout: 30000 });
   const receipt = await page.locator('body').innerText();
-  const reference = /BBQ-\d+/.exec(receipt);
+  const reference = /PPS-\d+/.exec(receipt);
   if (!reference) throw new Error('confirmation shows no order reference');
 
   /**

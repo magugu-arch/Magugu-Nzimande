@@ -113,7 +113,13 @@ console.log('Building…');
 execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT, '--clear'], {
   cwd: root,
   stdio: ['ignore', 'ignore', 'inherit'],
-  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
+  // Demo prices, because this journey puts a dish in a cart and there is
+  // nothing to put there otherwise: §15 forbids inventing menu prices, so the
+  // shipped catalogue is unpriced and every dish is `available: false`. The
+  // fixture is what gives the commerce path something real to drive. The
+  // browsing sweeps deliberately do NOT set it — they check the honest
+  // unpriced state a customer actually meets today.
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1', EXPO_PUBLIC_DEMO_PRICES: '1' },
 });
 
 const server = await serve();
@@ -173,7 +179,7 @@ try {
   /** The address the device is holding right now. */
   const heldAddress = () =>
     page.evaluate(() => {
-      const raw = window.localStorage.getItem('bbq.fulfilment');
+      const raw = window.localStorage.getItem('pappas.fulfilment');
       return JSON.parse(raw ?? '{}')?.state?.address ?? null;
     });
 
@@ -185,8 +191,17 @@ try {
   await page.waitForURL((url) => !url.pathname.endsWith('/sign-in'), { timeout: 20000 });
 
   await go('/menu');
-  await page.getByText('Golden Original Chicken', { exact: false }).first().click({ timeout: 10000 });
+  // The first dish on the menu, whichever it is — never one named in the
+  // script. Naming a dish is what broke every one of these journeys when the
+  // catalogue changed, and it fails twice over: the name goes stale, and a
+  // dish far enough down the list is never rendered at all, because the menu
+  // virtualises. The row's testID is the contract the menu actually keeps.
+  await page.locator('[data-testid^="menu-row-"]').first().click({ timeout: 15000 });
   await page.waitForURL(/product\//, { timeout: 15000 });
+  // Two portions, so the basket clears the R100 delivery minimum: one
+  // dish at the demo band is R95, and a single-plate delivery order is
+  // correctly refused. That refusal is the app working.
+  await page.getByLabel('Increase quantity').first().click({ timeout: 10000 });
   await tap('product-add-to-cart');
   step('signed in with something in the basket');
 
@@ -245,14 +260,28 @@ try {
     step('the picker does not call them nearby either');
   }
 
-  await tap('store-card-store-vanda');
+  // The store the picker offers, whichever it is, rather than one named here.
+  // This used to tap `store-card-store-vanda` and later `store-card-store-sandton`
+  // — two of the seven branches the app this was built from had. Pappas is one
+  // restaurant on Nelson Mandela Square, so both ids matched nothing and the
+  // journey stalled on a card that was never going to appear.
+  await page.locator('[data-testid^="store-card-"]:visible').first().click({ timeout: 15000 });
   await page.waitForURL((url) => !url.pathname.includes('/store'), { timeout: 15000 });
   await settle();
 
   await tapText('Delivering to');
   await page.waitForURL(/checkout\/address/, { timeout: 15000 });
   await settle();
-  await tap('address-card-address-home');
+  /**
+   * The Cape Town address, not the Melrose Arch one.
+   *
+   * This scenario proves the radius rule still bites where the app *does*
+   * know the coordinates, and it used to do that by picking a branch 1 260 km
+   * away. Pappas has one restaurant, so the distance has to come from the
+   * address instead — `demoFixture` supplies one at the V&A Waterfront for
+   * exactly this.
+   */
+  await tap('address-card-address-far');
   await page.waitForURL((url) => !url.pathname.includes('/address'), { timeout: 15000 });
   await settle();
 
@@ -315,23 +344,23 @@ try {
     step('the app did not invent a coordinate for an address it cannot locate');
   }
 
-  // Back out of the address screen, then pick the branch it is nearest to.
+  // Back out of the address screen, then pick the restaurant again.
   await page.goBack();
   await settle();
   await tapText('Cooked at');
   await page.waitForURL(/checkout\/store/, { timeout: 15000 });
   await settle();
-  await tap('store-card-store-sandton');
+  await page.locator('[data-testid^="store-card-"]:visible').first().click({ timeout: 15000 });
   await page.waitForURL((url) => !url.pathname.includes('/store'), { timeout: 15000 });
   await settle();
 
   const why = await blocker();
-  console.log(`  Sandton City says: ${why ?? '(nothing — the order can be placed)'}`);
+  console.log(`  The restaurant says: ${why ?? '(nothing — the order can be placed)'}`);
 
   if (why && /does not deliver/i.test(why)) {
     findings.push(
       `refused an address it has never located: "${why}" — Maude Street runs past ` +
-        'that branch, and the app has no way of knowing otherwise either way',
+        'the restaurant, and the app has no way of knowing otherwise either way',
     );
     console.log('  ✗ refused on a distance it cannot know');
   } else {

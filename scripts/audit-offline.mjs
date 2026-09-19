@@ -38,13 +38,13 @@ const PORT = 8161;
 const ROUTES = [
   '/menu',
   '/offers',
-  '/orders',
+  '/orders/history',
   '/rewards',
   '/rewards/vouchers',
   '/account/payment-methods',
   '/account/notifications',
   '/checkout/store',
-  '/product/golden-original',
+  '/product/pork-souvlaki',
   '/order/order-4821',
 ];
 
@@ -177,7 +177,7 @@ try {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     await context.addInitScript((session) => {
       try {
-        window.localStorage.setItem('bbq.auth', session);
+        window.localStorage.setItem('pappas.auth', session);
       } catch {
         // A context that refuses storage is a browser problem, not an app one.
       }

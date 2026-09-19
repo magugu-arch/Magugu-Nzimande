@@ -76,7 +76,13 @@ console.log('Building…');
 execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT, '--clear'], {
   cwd: root,
   stdio: ['ignore', 'ignore', 'inherit'],
-  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
+  // Demo prices, because this journey puts a dish in a cart and there is
+  // nothing to put there otherwise: §15 forbids inventing menu prices, so the
+  // shipped catalogue is unpriced and every dish is `available: false`. The
+  // fixture is what gives the commerce path something real to drive. The
+  // browsing sweeps deliberately do NOT set it — they check the honest
+  // unpriced state a customer actually meets today.
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1', EXPO_PUBLIC_DEMO_PRICES: '1' },
 });
 
 const server = await serve();
@@ -122,8 +128,17 @@ try {
 
   const addFoodToCart = async () => {
     await go('/menu');
-    await page.getByText('Golden Original Chicken', { exact: false }).first().click({ timeout: 10000 });
+    // The first dish on the menu, whichever it is — never one named in the
+    // script. Naming a dish is what broke every one of these journeys when
+    // the catalogue changed, and it fails twice over: the name goes stale,
+    // and a dish far enough down the list is never rendered at all, because
+    // the menu virtualises. The row's testID is the menu's real contract.
+    await page.locator('[data-testid^="menu-row-"]').first().click({ timeout: 15000 });
     await page.waitForURL(/product\//, { timeout: 15000 });
+    // Two portions, so the basket clears the R100 delivery minimum: one
+    // dish at the demo band is R95, and a single-plate delivery order is
+    // correctly refused. That refusal is the app working.
+    await page.getByLabel('Increase quantity').first().click({ timeout: 10000 });
     await tap('product-add-to-cart');
   };
 
@@ -145,7 +160,7 @@ try {
 
     await tap('checkout-place-order');
     await page.waitForURL(/confirmation/, { timeout: 30000 });
-    const reference = /BBQ-\d+/.exec(await page.locator('body').innerText());
+    const reference = /PPS-\d+/.exec(await page.locator('body').innerText());
     if (!reference) throw new Error(`the ${which} order's confirmation shows no reference`);
     return reference[0];
   };
@@ -214,7 +229,7 @@ try {
    * asserting it were null would be asserting something the app has never
    * done and does not need to.
    */
-  const kept = await page.evaluate(() => window.localStorage.getItem('bbq.fulfilment'));
+  const kept = await page.evaluate(() => window.localStorage.getItem('pappas.fulfilment'));
   const state = JSON.parse(kept ?? '{}')?.state ?? {};
   if (!state.address) {
     throw new Error('placing the order threw away the address the customer had just used');
@@ -253,7 +268,7 @@ try {
   await go('/');
   await signIn('regular@example.co.za');
   const leftover = await page.evaluate(() =>
-    window.localStorage.getItem('bbq.fulfilment'),
+    window.localStorage.getItem('pappas.fulfilment'),
   );
   if (leftover && /"address":\{/.test(leftover)) {
     throw new Error('the device was supposed to start with no address saved on it');

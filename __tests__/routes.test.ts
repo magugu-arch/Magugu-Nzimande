@@ -144,3 +144,52 @@ describe('routes pushed past the type system', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * Every `href` the seed data carries, against the routes that exist.
+ *
+ * The orphan check above asks the opposite question — is there a way *in* to
+ * every screen — and a dead link passes it silently, because a path that
+ * matches no screen is exactly what it treats as "not a way in".
+ *
+ * Two shipped in the notification inbox. "Your order is on the way" pointed
+ * at `/orders`, and the app has `/orders/history`; "Rose Ddeok-Bokki has
+ * landed" pointed at `/menu/desserts`, and the menu takes a `?category=`
+ * query. Both are the first thing a customer taps when a push arrives, and
+ * both landed on "this page has moved on. It may have been taken off the
+ * menu" — which reads as the app being broken, because it is.
+ *
+ * Data rather than screens, deliberately. A wrong `router.push` in a screen
+ * is caught the first time anybody walks that screen; a wrong `href` in a
+ * seed row is only caught by whoever taps that row, and nobody taps the
+ * fourth notification.
+ */
+describe('every href in the data resolves to a real route', () => {
+  const dataDir = path.join(root, 'src', 'services', 'data');
+
+  /** `/menu?category=fish-market` → `/menu`; `/product/[id]` → `/product/:param`. */
+  const defined = new Set(definedRoutes().map(normalise));
+
+  const hrefs = (): { where: string; href: string }[] => {
+    const found: { where: string; href: string }[] = [];
+    for (const file of walk(dataDir, /\.ts$/)) {
+      const source = fs.readFileSync(file, 'utf8');
+      for (const m of source.matchAll(/\bhref:\s*'(\/[^']*)'/g)) {
+        found.push({ where: `${path.basename(file)} → ${m[1]}`, href: m[1]! });
+      }
+    }
+    return found;
+  };
+
+  it('finds the hrefs to check', () => {
+    expect(hrefs().length).toBeGreaterThan(2);
+  });
+
+  it.each(hrefs().map((h) => [h.where, h.href]))('%s', (where, href) => {
+    const target = normalise(href);
+    expect({ where, resolves: defined.has(target) || defined.has(target + '/index') }).toEqual({
+      where,
+      resolves: true,
+    });
+  });
+});

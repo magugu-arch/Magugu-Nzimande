@@ -6,7 +6,7 @@
  * built entirely out of account data. Only Profile ever checked. Driven as a
  * guest against the mock — which is what a demo build runs on:
  *
- *     /rewards                  BBQ-SA-004182 | 1 840 points | Silver member
+ *     /rewards                  PPS-SA-004182 | 1 840 points | Olive member
  *     /checkout/address         Home | 14 Acacia Road, Unit 3 | Melrose Arch…
  *     /account/payment-methods  Visa ending 4821 | Mastercard ending 7702
  *
@@ -34,7 +34,7 @@ const BASE = `http://localhost:${PORT}`;
 
 /** Screens whose contents belong to an account. */
 const ROUTES = [
-  '/orders',
+  '/orders/history',
   '/rewards',
   '/rewards/vouchers',
   '/checkout/address',
@@ -48,10 +48,15 @@ const ROUTES = [
  * and each is the kind of thing that is unmistakable when it appears.
  */
 const SOMEBODY_ELSES = [
-  [/BBQ-SA-\d+/, 'a membership number'],
+  [/PPS-SA-\d+/, 'a membership number'],
   [/Acacia Road|Alice Lane/i, 'a home or work address'],
   [/ending \d{4}/i, 'a card'],
-  [/Silver member|Gold member|lifetime/i, 'a points balance and tier'],
+  // The Pappas tiers, not the four this app was built from. Watching for
+  // "Silver member" on a programme whose tiers are Olive, Aegean, Sunset and
+  // Square is watching for a leak that cannot happen, and missing the one
+  // that can.
+  [/\b(Olive|Aegean|Sunset|Square) member\b/i, 'a membership tier'],
+  [/lifetime points/i, 'a points balance'],
   [/thandi@/i, 'an email address'],
 ];
 
@@ -87,7 +92,13 @@ console.log('Building…');
 execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT, '--clear'], {
   cwd: root,
   stdio: ['ignore', 'ignore', 'inherit'],
-  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
+  // Demo prices, because this journey puts a dish in a cart and there is
+  // nothing to put there otherwise: §15 forbids inventing menu prices, so the
+  // shipped catalogue is unpriced and every dish is `available: false`. The
+  // fixture is what gives the commerce path something real to drive. The
+  // browsing sweeps deliberately do NOT set it — they check the honest
+  // unpriced state a customer actually meets today.
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1', EXPO_PUBLIC_DEMO_PRICES: '1' },
 });
 
 const server = await serve();

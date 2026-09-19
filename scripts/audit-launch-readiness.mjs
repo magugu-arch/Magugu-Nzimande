@@ -83,13 +83,21 @@ const storeData = read('src/services/data/storeData.ts');
 const storeNames = [...storeData.matchAll(/name: '([^']+)'/g)].map((m) => m[1]);
 const storePhones = [...storeData.matchAll(/phone: '([^']+)'/g)].map((m) => m[1]);
 
-if (storeNames.length > 0) {
+/**
+ * The contact details, which are deliberately blank rather than invented.
+ *
+ * This used to report seven seeded branches with invented phone numbers —
+ * the chain the app was built from. Pappas is one restaurant, and its phone
+ * number is `awaiting business input` rather than a plausible one, which is
+ * the right state and still a gap: "Call the restaurant" has nothing to dial.
+ */
+if (storeNames.length > 0 && storePhones.every((phone) => phone.length === 0)) {
   note(
-    'Store list',
-    `${storeNames.length} branches are seeded demo data (${storeNames.slice(0, 2).join(', ')}…) ` +
-      `with invented phone numbers (${storePhones[0]}). Two branches open this year — ` +
-      '1 October and 1 November — so this list is wrong in count as well as detail. A customer ' +
-      'tapping "Call the store" reaches a stranger.',
+    'Phone number',
+    `${storeNames[0]} carries no phone number — it is awaiting business input rather than ` +
+      'invented, which is correct and still leaves the app with nothing to dial. Checkout ' +
+      'falls back to "Contact us" after an uncertain payment because of this, which is the ' +
+      'one place a customer most wants a number.',
     'you',
   );
 }
@@ -100,9 +108,9 @@ const radii = [...new Set([...storeData.matchAll(/deliveryRadiusKm: (\d+)/g)].ma
 if (radii.length === 1) {
   note(
     'Delivery radius',
-    `Every branch carries the same seeded ${radii[0]} km radius. Each one's real range depends ` +
-      'on its drivers and its area, and this is what decides whether a customer is offered ' +
-      'delivery at all.',
+    `The restaurant carries a seeded ${radii[0]} km delivery radius — a UI and quoting bound ` +
+      'rather than a policy anybody has set, and the thing that decides whether a customer is ' +
+      'offered delivery at all. It is one number in one file.',
     'you',
   );
 }
@@ -233,13 +241,54 @@ for (const opening of openings) {
 
 // The menu prices are what a customer is charged. Fictional ones are worse
 // than an empty menu, because they look authoritative.
+/**
+ * Seeded prices, counted from the price *status* rather than from the digits.
+ *
+ * This matched `basePrice: \d+` in the source and reported "1 products carry
+ * seeded prices" — the single zero in the shared `UNPRICED` constant, not a
+ * dish at all. It was counting a line of code.
+ *
+ * What matters now is the opposite direction. Pappas has supplied no prices,
+ * so a *confirmed* price is the thing that would need signing off, and there
+ * are none; what there is instead is a catalogue nobody can order from, which
+ * `audit:placeholders` lists dish by dish.
+ */
 const menuData = read('src/services/data/menuData.ts');
-const priceCount = [...menuData.matchAll(/basePrice: \d+/g)].length;
-if (priceCount > 0) {
+
+/**
+ * Dish *records*, counted the way `audit:placeholders` counts them.
+ *
+ * Counting `priceStatus:` or `...UNPRICED` counts the shared constant that
+ * every dish spreads — one line of code, reported as one dish. The record
+ * shape is the only thing in this file that appears exactly once per dish.
+ */
+const dishRecords = [
+  ...menuData.matchAll(/\n {4}id: '([^']+)',\n {4}name: '([^']+)',\n {4}shortDescription:/g),
+].length;
+/**
+ * Comments stripped first. The file's own header explains how to price a
+ * dish — "set `priceStatus: 'confirmed'`" — and counting that sentence
+ * reported one dish as priced when none is. An audit that miscounts in the
+ * direction of "somebody invented a price" is the one that gets ignored.
+ */
+const menuCode = menuData.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+const confirmedPrices = [...menuCode.matchAll(/priceStatus: 'confirmed'/g)].length;
+const awaitingPrices = confirmedPrices > 0 ? dishRecords - confirmedPrices : dishRecords;
+if (confirmedPrices > 0) {
   note(
     'Menu and prices',
-    `${priceCount} products carry seeded prices. These are placeholders until signed off by ` +
-      'the franchise — every one of them is a number a customer is asked to pay.',
+    `${confirmedPrices} dish(es) carry a seeded price. These are placeholders until signed ` +
+      'off — every one is a number a customer is asked to pay.',
+    'you',
+  );
+}
+if (awaitingPrices > 0) {
+  note(
+    'Menu and prices',
+    `${awaitingPrices} dishes are awaiting a price, so none of them can be ordered: an ` +
+      'unpriced dish ships `available: false` and the product screen offers a table instead ' +
+      'of a cart. The app is fully built around these arriving — setting them is a data ' +
+      'change, not a code one. `npm run audit:placeholders` lists them.',
     'you',
   );
 }
@@ -418,7 +467,8 @@ if (rewardsService.includes('recordPoints')) {
       'reading of `redeemedRewardId` on the order payload, not a rule anybody has ' +
       'given me. Confirm it against how the programme is actually run, along with three ' +
       'numbers the seed invents: 1 point per R1 on food value only (no fees, no ' +
-      'discounted amounts), the Bronze/Silver/Gold/Black thresholds at ' +
+      'discounted amounts), the Olive/Aegean/Sunset/Square thresholds — every one of which '
+      + 'is currently 0, so the ladder has no rungs — at ' +
       '0/1 500/4 000/9 000 lifetime points, and — the one that decides what a ' +
       `redemption is worth — R${rule('randPerPoint') ?? '0.05'} per point coming back the other way. ` +
       `At that rate the seeded rewards convert as ${redemptionExamples}. ` +
@@ -489,6 +539,70 @@ if (!eas.build?.production?.channel) {
 const config = read('src/constants/config.ts');
 if (!/useMockApi:\s*bool\([^,]+,\s*__DEV__\s*\)/.test(config)) {
   note('Mock layer', 'The source default for useMockApi is not __DEV__.', 'build');
+}
+
+/**
+ * The demo price fixture, which must never reach a customer.
+ *
+ * `EXPO_PUBLIC_DEMO_PRICES` fills the catalogue with round placeholder
+ * figures so the ordering journey can be driven. They are not Pappas's
+ * prices and nobody has agreed them, so a build that ships with this on is
+ * quoting invented money to customers — the exact thing §15 forbids, and
+ * harder to notice than the mock layer because the app behaves perfectly.
+ */
+if (!/useDemoPrices:\s*bool\([^,]+,\s*false\s*\)/.test(config)) {
+  note('Demo prices', 'The source default for useDemoPrices is not false.', 'build');
+}
+if (eas.build?.production?.env?.EXPO_PUBLIC_DEMO_PRICES === '1') {
+  note(
+    'Demo prices',
+    'The production profile switches the demo price fixture ON. Those figures are ' +
+      'illustrative placeholders, not Pappas prices, and a customer would be quoted them.',
+    'build',
+  );
+}
+if (process.env.EXPO_PUBLIC_DEMO_PRICES === '1' && strict) {
+  note(
+    'Demo prices',
+    'This production audit is running with EXPO_PUBLIC_DEMO_PRICES=1 in the environment.',
+    'build',
+  );
+}
+
+/**
+ * The brand mark, which is a reconstruction until somebody replaces it.
+ *
+ * Pappas supplied the mark in photographs and on a CI sheet, not as artwork,
+ * so `BrandMark` sets the wordmark in Cinzel and draws the sprig to match.
+ * It is a faithful reconstruction and it is still not the licensed original,
+ * which is the kind of thing that ships unnoticed because it looks right.
+ */
+const brandMark = read('src/components/brand/BrandMark.tsx');
+if (/reconstruction/i.test(brandMark)) {
+  note(
+    'Brand artwork',
+    'The lock-up in the app is reconstructed from the CI sheet, not the licensed artwork. ' +
+      'Get the original files, drop them in, run `npm run assets:brand`. Until then do not ' +
+      'use this mark for print, signage, or anything larger than an app icon.',
+    'you',
+  );
+}
+
+/**
+ * The broker that holds the Uber Eats and Mr D credentials.
+ *
+ * Both channels default off, so an unset broker URL is correct today and
+ * becomes a blocker the moment either flag is turned on.
+ */
+if (/brokerBaseUrl: str\([^,]+,\s*''\s*\)/.test(config)) {
+  note(
+    'Channel broker',
+    'EXPO_PUBLIC_CHANNEL_BROKER_URL is unset, which is correct while Uber Eats and Mr D are ' +
+      'both switched off. It is the first thing either channel needs: the adapters call the ' +
+      'broker, never a provider API, which is what keeps every provider credential off the ' +
+      'handset. Endpoint spec is in docs/DELIVERY_INTEGRATION.md.',
+    'you',
+  );
 }
 
 // --- Report ---------------------------------------------------------------

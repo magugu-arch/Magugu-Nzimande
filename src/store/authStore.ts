@@ -141,7 +141,7 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({ preferences: { ...state.preferences, [key]: value } })),
     }),
     {
-      name: 'bbq.auth',
+      name: 'pappas.auth',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         user: state.user,

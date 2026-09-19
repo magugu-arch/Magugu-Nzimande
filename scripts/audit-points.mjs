@@ -75,7 +75,13 @@ console.log('Building…');
 execFileSync('npx', ['expo', 'export', '--platform', 'web', '--output-dir', OUT, '--clear'], {
   cwd: root,
   stdio: ['ignore', 'ignore', 'inherit'],
-  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1' },
+  // Demo prices, because this journey puts a dish in a cart and there is
+  // nothing to put there otherwise: §15 forbids inventing menu prices, so the
+  // shipped catalogue is unpriced and every dish is `available: false`. The
+  // fixture is what gives the commerce path something real to drive. The
+  // browsing sweeps deliberately do NOT set it — they check the honest
+  // unpriced state a customer actually meets today.
+  env: { ...process.env, EXPO_PUBLIC_USE_MOCK_API: '1', EXPO_PUBLIC_DEMO_PRICES: '1' },
 });
 
 const server = await serve();
@@ -125,7 +131,13 @@ try {
   const readBalance = async () => {
     await openTab('/rewards');
     const shown = await page.evaluate(() => document.body.innerText);
-    const match = /([\d    ]{3,})\s*\n\s*points/i.exec(shown);
+    // One digit is enough, and that is the fix rather than a loosening. This
+    // required three characters, which reads any balance a seeded regular
+    // carries and cannot read `0` — the balance of everybody who has just
+    // joined, and the one this programme starts every member on. The check
+    // failed with "does not state a points balance" against a screen that
+    // was stating it perfectly clearly.
+    const match = /(\d[\d\u00a0\u2009\s]*?)\s*\n\s*points/i.exec(shown);
     if (!match) throw new Error('the rewards screen does not state a points balance');
     const value = Number(match[1].replace(/\D/g, ''));
     if (!Number.isFinite(value)) throw new Error(`could not read "${match[1]}" as a balance`);
@@ -147,18 +159,39 @@ try {
   step(`the rewards screen states a balance — ${before} points`);
 
   // Build an order, entirely in-app.
-  // From the home carousel, by the card's own accessible name. A bare text
-  // match lands on a child node that the card's own layers cover, and the menu
-  // tab has the sticky cart bar over the foot of the list as well.
-  await openTab('/home');
+  //
+  // From the menu rather than the home carousel. This used to reach into the
+  // Home screen's product carousel by a dish's accessible name; the carousel
+  // is editorial now and carries categories, not dishes, so there was nothing
+  // there to click. The menu row's testID is the stable way in, and a bare
+  // text match is not: the card's own layers cover the text node, and the
+  // sticky cart bar covers the foot of the list.
+  await openTab('/menu');
   await page
-    .getByLabel(/^Golden Original Chicken/)
+    .locator('[data-testid^="menu-row-"]')
     .first()
     .click({ timeout: 10000 });
   await page.waitForURL(/product\//, { timeout: 15000 });
+  // Two portions, so the basket clears the R100 delivery minimum: one
+  // dish at the demo band is R95, and a single-plate delivery order is
+  // correctly refused. That refusal is the app working.
+  await page.getByLabel('Increase quantity').first().click({ timeout: 10000 });
   await tap('product-add-to-cart');
   await page.waitForTimeout(1500);
-  await tap('sticky-cart-bar');
+  /**
+   * To the cart by route, not by tapping the sticky bar.
+   *
+   * The bar is reachable and tappable on a fresh menu — checked directly —
+   * but after this journey's particular path through the rewards tab and back
+   * the list sits scrolled, and Playwright's scroll-into-view puts the bar
+   * under the tab bar before the click lands. That is a quirk of driving it,
+   * not a defect a customer meets: `audit:screens` already measures the bar's
+   * touch target on every route, and `smoke:order` taps it for real.
+   *
+   * What this journey is about is whether the points move, so it takes the
+   * short way to the thing it measures.
+   */
+  await page.goto(BASE + '/cart', { waitUntil: 'networkidle', timeout: 45000 });
   await page.waitForTimeout(1800);
   await tap('cart-checkout');
   await page.waitForTimeout(2500);
@@ -170,7 +203,7 @@ try {
    */
   const receiptText = await page.evaluate(() => document.body.innerText);
   const promised = Number(
-    /You.ll earn\s+([\d\s\u202f\u2009\u00a0]+?)\s*bb\.q points/i
+    /You.ll earn\s+([\d\s\u202f\u2009\u00a0]+?)\s*Pappas points/i
       .exec(receiptText)?.[1]
       ?.replace(/\D/g, '') ?? '',
   );
@@ -198,7 +231,7 @@ try {
 
   await tap('checkout-place-order');
   await page.waitForURL(/confirmation/, { timeout: 30000 });
-  const reference = /BBQ-\d+/.exec(await page.locator('body').innerText())?.[0];
+  const reference = /PPS-\d+/.exec(await page.locator('body').innerText())?.[0];
   if (!reference) throw new Error('confirmation shows no order reference');
   step(`placed an order promising ${promised} points — ${reference}`);
 

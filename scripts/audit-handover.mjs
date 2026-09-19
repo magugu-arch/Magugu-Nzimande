@@ -161,7 +161,7 @@ try {
   const favouritesNow = async () => {
     const stored = await page.evaluate(() => {
       try {
-        const raw = window.localStorage.getItem('bbq.favourites');
+        const raw = window.localStorage.getItem('pappas.favourites');
         const parsed = raw ? JSON.parse(raw)?.state : null;
         return { ids: parsed?.productIds ?? [], ownerId: parsed?.ownerId ?? null };
       } catch {
@@ -200,7 +200,7 @@ try {
   const signedInUser = () =>
     page.evaluate(() => {
       try {
-        const raw = window.localStorage.getItem('bbq.auth');
+        const raw = window.localStorage.getItem('pappas.auth');
         return JSON.parse(raw ?? '{}')?.state?.user ?? null;
       } catch {
         return null;
@@ -209,14 +209,14 @@ try {
 
   /** The handover: the previous owner's session gone, everything else as it was. */
   const handOverThePhone = async () => {
-    await page.evaluate(() => window.localStorage.removeItem('bbq.auth'));
+    await page.evaluate(() => window.localStorage.removeItem('pappas.auth'));
     await page.goto(BASE + '/', { waitUntil: 'networkidle', timeout: 45000 });
     await page.waitForTimeout(1500);
   };
 
   // ---- Thandi makes an account and hearts a dish ----
   await registerAs(PERSON_A);
-  await page.goto(BASE + '/product/golden-original', { waitUntil: 'networkidle', timeout: 45000 });
+  await page.goto(BASE + '/product/pork-souvlaki', { waitUntil: 'networkidle', timeout: 45000 });
   await page.waitForTimeout(1500);
   await tap('product-favourite');
   await page.waitForTimeout(1200);

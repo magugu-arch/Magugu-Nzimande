@@ -2,6 +2,7 @@ import { config } from '@/constants/config';
 import type { Category, MenuSnapshot, Product } from '@/types';
 import { delay, request } from './apiClient';
 import { menuSnapshot } from './data/menuData';
+import { withDemoPrices } from './data/demoFixture';
 import { checkedMenu, checkedProduct } from './wireChecks';
 import { matchProducts } from '@/features/menu/search';
 
@@ -11,7 +12,21 @@ import { matchProducts } from '@/features/menu/search';
  */
 
 export async function fetchMenu(): Promise<MenuSnapshot> {
-  if (config.useMockApi) return delay(menuSnapshot);
+  if (config.useMockApi) {
+    /**
+     * One seam, so nothing downstream knows the difference.
+     *
+     * Every screen reads the menu through here, so applying the demo fixture
+     * at this point means the cart, checkout, loyalty and tracking paths are
+     * driven by exactly the code a real priced menu would drive. A fixture
+     * applied per screen would test the fixture instead.
+     */
+    return delay(
+      config.useDemoPrices
+        ? { ...menuSnapshot, products: withDemoPrices(menuSnapshot.products) }
+        : menuSnapshot,
+    );
+  }
   return request<MenuSnapshot>('/v1/menu', { parse: checkedMenu });
 }
 
@@ -27,7 +42,12 @@ export async function fetchProductsByCategory(categoryId: string): Promise<Produ
 
 export async function fetchProduct(productId: string): Promise<Product> {
   if (config.useMockApi) {
-    const product = menuSnapshot.products.find(
+    // Through `fetchMenu`, not the raw snapshot: reading the snapshot directly
+    // meant the detail screen served the unpriced dish while the list beside
+    // it served the demo-priced one, and the two disagreed about whether the
+    // same dish could be ordered.
+    const { products } = await fetchMenu();
+    const product = products.find(
       (candidate) => candidate.id === productId || candidate.slug === productId,
     );
     if (!product) {
