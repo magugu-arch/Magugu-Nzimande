@@ -85,6 +85,41 @@ export const config = {
   push: {
     projectId: str(process.env.EXPO_PUBLIC_PUSH_PROJECT_ID, ''),
   },
+
+  /**
+   * Delivery-channel feature flags — Uber Eats + Mr D extension §5.
+   *
+   * Three independent switches, exactly as the brief specifies, so a channel
+   * can be turned on the day its contract is signed without a code change and
+   * without disturbing the other two. §11's acceptance criteria require both
+   * that Pappas Direct works independently of the external providers and that
+   * Uber Eats and Mr D can be enabled independently of each other; two
+   * separate flags is what makes the second one true.
+   *
+   * Defaults are off for the external channels because no contract exists
+   * yet. A flag that defaults on is a flag that ships a broken checkout the
+   * first time somebody forgets to set it.
+   *
+   * These are *publishable* values: they say which channels the app should
+   * offer, not how to talk to them. Every credential, token and signing
+   * secret stays server-side — extension §1 and §8, and §11's acceptance
+   * criterion "No provider secret is shipped to the client". There is
+   * deliberately no `UBER_EATS_API_KEY` here, and there must never be one:
+   * anything in `EXPO_PUBLIC_*` is readable in the shipped bundle by anyone
+   * who downloads the app.
+   */
+  channels: {
+    pappasDirectEnabled: bool(process.env.EXPO_PUBLIC_PAPPAS_DIRECT_ENABLED, true),
+    uberEatsEnabled: bool(process.env.EXPO_PUBLIC_UBER_EATS_ENABLED, false),
+    mrDEnabled: bool(process.env.EXPO_PUBLIC_MR_D_ENABLED, false),
+    /**
+     * Where the Pappas server exposes the provider-facing endpoints —
+     * quoting, order creation and the webhook receiver. The adapters call
+     * *this*, never a provider API directly, which is what keeps the
+     * credentials off the device.
+     */
+    brokerBaseUrl: str(process.env.EXPO_PUBLIC_CHANNEL_BROKER_URL, ''),
+  },
 } as const;
 
 /** Commercial rules kept out of screen code (brief §3 architecture rule). */
