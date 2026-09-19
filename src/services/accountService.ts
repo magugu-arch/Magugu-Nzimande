@@ -1,5 +1,7 @@
 import { config } from '@/constants/config';
 import { withDemoAddresses } from './data/demoFixture';
+import { fetchCampaigns } from './rewardsService';
+import { mergeSpecialsIntoInbox } from '@/features/marketing/specials';
 import type {
   Address,
   AppNotification,
@@ -194,7 +196,28 @@ export async function saveFavourites(customerId: string, productIds: string[]): 
 }
 
 export async function fetchNotifications(): Promise<AppNotification[]> {
-  if (config.useMockApi) return delay(notificationLedger);
+  if (config.useMockApi) {
+    /**
+     * Live specials arrive in the inbox alongside the seeded messages.
+     *
+     * Against a real backend the campaign engine runs server-side and these
+     * are simply rows the endpoint returns. Here the engine is the client's,
+     * so the merge happens at the same seam the endpoint would have filled —
+     * which keeps the inbox screen unaware that specials are computed rather
+     * than stored, and means it behaves identically once they are.
+     *
+     * `mergeSpecialsIntoInbox` de-duplicates on a campaign-derived id, so
+     * re-opening the inbox does not stack the same special up.
+     */
+    const campaigns = await fetchCampaigns();
+    const now = new Date();
+    const live = campaigns.filter(
+      (campaign) =>
+        Date.parse(campaign.validFrom) <= now.getTime() &&
+        Date.parse(campaign.validUntil) >= now.getTime(),
+    );
+    return delay(mergeSpecialsIntoInbox(notificationLedger, live, now));
+  }
   return request<AppNotification[]>('/v1/account/notifications');
 }
 

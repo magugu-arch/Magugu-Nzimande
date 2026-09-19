@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/services/queryKeys';
 import { useIsSignedOut } from '@/features/system/AccountRequired';
+import { useAuthStore } from '@/store/authStore';
+import { hasMarketingConsent } from '@/features/marketing/specials';
 import {
   createAddress,
   deleteAddress,
@@ -89,12 +91,33 @@ export function useSetDefaultPaymentMethod() {
   });
 }
 
+/**
+ * The inbox, with marketing withheld from anybody who said no to it.
+ *
+ * The consent gate has to be *here* rather than only on the surfaces that
+ * show a special, and that was a real inconsistency for a while: Home ran
+ * the four gates and showed nothing, while this inbox happily listed the
+ * same campaigns two taps away. A customer who switches "Promotions" off
+ * and then finds promotions in their notifications has been ignored, and it
+ * is the kind of thing that gets an app reported rather than uninstalled.
+ *
+ * `select` rather than a filter in the service: the service models what the
+ * endpoint returns, and a real backend would send what it has. Who is
+ * allowed to see it is a client-side reading of a consent record the client
+ * already holds.
+ */
 export function useNotifications() {
   const signedOut = useIsSignedOut();
+  const preferences = useAuthStore((state) => state.preferences);
+  const notificationPreferences = useAuthStore((state) => state.notificationPreferences);
+  const marketingAllowed = hasMarketingConsent(preferences, notificationPreferences);
+
   return useQuery({
     queryKey: queryKeys.notifications,
     queryFn: fetchNotifications,
     enabled: !signedOut,
+    select: (entries) =>
+      marketingAllowed ? entries : entries.filter((entry) => entry.category !== 'promotion'),
   });
 }
 

@@ -21,7 +21,7 @@ extension.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Photography      | 13 supplied Pappas masters, cropped clear of poster type; 45 dishes draw on them                        |
 | Brand mark       | Reconstructed from the CI sheet — **replace with official artwork before production**, see §5           |
-| Tests            | 61 suites; `npm test` prints the count                                                                  |
+| Tests            | 62 suites; `npm test` prints the count                                                                  |
 | Bundle           | 24 MB exported, of which 2.9 MB JavaScript                                                              |
 | Branch           | `claude/pappas-uber-eats-mrd-integration-wtik4s`                                                        |
 

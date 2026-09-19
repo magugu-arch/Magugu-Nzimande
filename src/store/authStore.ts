@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { config } from '@/constants/config';
 import type { AppPreferences, AuthSession, NotificationPreferences, UserProfile } from '@/types';
 import { createGuestUser, signOut as signOutService } from '@/services/authService';
 import { pullFavourites } from '@/features/favourites/sync';
@@ -26,7 +27,21 @@ const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
 
 const DEFAULT_PREFERENCES: AppPreferences = {
   defaultFulfilment: 'delivery',
-  marketingConsent: false,
+  /**
+   * Off by default, and on under the demo fixture.
+   *
+   * Opt-in is the only defensible default for a consent record: POPIA treats
+   * marketing consent as something a person gives, not something they have
+   * to find and withdraw, and an app that ships it pre-ticked has collected
+   * nothing worth the name.
+   *
+   * That correctness makes the marketing features invisible in a demo —
+   * every campaign is refused at the first gate, which is the engine working
+   * and looks like the engine missing. The fixture grants it so a
+   * walkthrough shows the specials, the same way it grants prices so a
+   * walkthrough can reach a cart.
+   */
+  marketingConsent: config.useDemoPrices,
   preferMildFirst: false,
 };
 

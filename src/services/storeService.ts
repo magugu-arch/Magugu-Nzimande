@@ -6,6 +6,7 @@ import { isTradingNow } from '@/utils/tradingHours';
 import { delay, request } from './apiClient';
 import { stores as shippedStores } from './data/storeData';
 import { withDemoHours } from './data/demoFixture';
+import { checkedStore, checkedStores } from './wireChecks';
 
 /**
  * The store list this build serves.
@@ -16,7 +17,6 @@ import { withDemoHours } from './data/demoFixture';
  * to be outside of.
  */
 const stores = config.useDemoPrices ? withDemoHours(shippedStores) : shippedStores;
-import { checkedStore, checkedStores } from './wireChecks';
 
 /**
  * Store locator service. Distances are recomputed against the customer's real

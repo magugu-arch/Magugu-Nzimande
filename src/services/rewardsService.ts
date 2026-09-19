@@ -4,7 +4,8 @@ import { voucherDiscount } from '@/utils/cart';
 import { hasPassed } from '@/utils/datetime';
 import { delay, request } from './apiClient';
 import { loyaltyAccount, promotions, rewards, tiers, vouchers } from './data/rewardsData';
-import { demoVouchers, withDemoRewards, withDemoTiers } from './data/demoFixture';
+import type { PappasPromotion } from './data/rewardsData';
+import { demoVouchers, withDemoRewards, withDemoSpecials, withDemoTiers } from './data/demoFixture';
 import { checkedLoyaltyAccount, checkedVouchers } from './wireChecks';
 
 /**
@@ -297,15 +298,26 @@ export async function fetchActiveVouchers(): Promise<Voucher[]> {
   return list.filter((voucher) => !voucher.used && !voucher.expired);
 }
 
+/**
+ * The campaign list, unfiltered.
+ *
+ * Kept separate from `fetchPromotions` because the marketing engine needs
+ * the campaigns *with* their `audience` and `frequencyCapHours` still on
+ * them — `Promotion` is the narrower public shape and drops both.
+ */
+export async function fetchCampaigns(): Promise<PappasPromotion[]> {
+  const all = config.useDemoPrices ? withDemoSpecials(promotions) : promotions;
+  return config.useMockApi ? delay(all) : delay(all, 0);
+}
+
 export async function fetchPromotions(): Promise<Promotion[]> {
   if (config.useMockApi) {
     const now = Date.now();
-    return delay(
-      promotions.filter(
-        (promotion) =>
-          new Date(promotion.validFrom).getTime() <= now &&
-          new Date(promotion.validUntil).getTime() >= now,
-      ),
+    const all = await fetchCampaigns();
+    return all.filter(
+      (promotion) =>
+        new Date(promotion.validFrom).getTime() <= now &&
+        new Date(promotion.validUntil).getTime() >= now,
     );
   }
   return request<Promotion[]>('/v1/promotions');

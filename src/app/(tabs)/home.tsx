@@ -12,6 +12,7 @@ import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { useCategories } from '@/features/menu/hooks';
 import { useActiveOrder } from '@/features/orders/hooks';
 import { useLoyaltyAccount, usePromotions } from '@/features/rewards/hooks';
+import { useHeadlineSpecial } from '@/features/marketing/hooks';
 import { brand, venue } from '@/data/pappasContent';
 import { fetchUpcomingReservation } from '@/services/reservationService';
 import { statusCopy } from '@/services/orderService';
@@ -72,6 +73,7 @@ export default function HomeScreen() {
 
   const categories = useCategories();
   const promotions = usePromotions();
+  const special = useHeadlineSpecial();
   const loyalty = useLoyaltyAccount();
   const activeOrder = useActiveOrder();
   const reservation = useQuery({
@@ -306,6 +308,54 @@ export default function HomeScreen() {
               {booking.status === 'requested' ? ' · awaiting confirmation' : ''}
             </Text>
           </Card>
+        ) : null}
+
+        {/*
+          The one special this customer should be told about, if there is one.
+
+          Not a slot that is always filled. `useHeadlineSpecial` runs the four
+          gates in `features/marketing/specials.ts` — consent, window,
+          audience, frequency cap — and returns null far more often than not.
+          Rendering a placeholder in that case would be worse than rendering
+          nothing: an empty "what's on" panel advertises that the restaurant
+          has nothing on.
+
+          It sits above the campaign carousel rather than inside it because it
+          is a different thing. The carousel is editorial and the same for
+          everybody; this was chosen for the person holding the phone, and
+          burying it among three invitations would waste that.
+        */}
+        {special ? (
+          <Pressable
+            onPress={() => router.push(special.ctaHref as never)}
+            accessibilityRole="button"
+            accessibilityLabel={`${special.headline}. ${special.description}`}
+            style={({ pressed }) => [styles.special, pressed ? styles.pressed : null]}
+            testID="home-special"
+          >
+            <FoodImage
+              assetKey={special.assetKey}
+              variant="card"
+              style={styles.specialImage}
+              rounded="none"
+              aboveTheFold={false}
+            />
+            <View style={styles.specialCopy}>
+              <Text variant="overline" color={colors.accentInk}>
+                On at Pappas
+              </Text>
+              <Text variant="h3">{special.headline}</Text>
+              <Text variant="caption" color={colors.textSecondary} numberOfLines={2}>
+                {special.description}
+              </Text>
+              <View style={styles.specialCta}>
+                <Text variant="buttonSm" color={colors.primary}>
+                  {special.ctaLabel}
+                </Text>
+                <Ionicons name="arrow-forward" size={14} color={colors.primary} />
+              </View>
+            </View>
+          </Pressable>
         ) : null}
 
         {/* §5's marketing machine. */}
@@ -626,6 +676,23 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxxl,
     paddingBottom: spacing.xxl,
     gap: spacing.xxs,
+  },
+  special: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.gutter,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  specialImage: { width: 104, alignSelf: 'stretch' },
+  specialCopy: { flex: 1, padding: spacing.lg, gap: spacing.xxs },
+  specialCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
   },
   /** Behind the copy, exactly its size. Paint, so it never eats the CTA. */
   heroCopyScrim: {

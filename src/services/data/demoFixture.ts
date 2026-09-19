@@ -1,4 +1,5 @@
 import type { Address, Product, Reward, TierDefinition, Voucher } from '@/types';
+import type { PappasPromotion } from './rewardsData';
 
 /**
  * Illustrative prices, for demonstrating the app. Never Pappas's prices.
@@ -222,4 +223,101 @@ export function demoFarAddress(): Address {
 export function withDemoAddresses(addresses: Address[]): Address[] {
   if (addresses.length === 0) return addresses;
   return [...addresses, demoFarAddress()];
+}
+
+/**
+ * Example specials, so the marketing engine has something to decide about.
+ *
+ * `promotions` ships three editorial invitations — Date Night, the bar at
+ * dusk, the fish market — and not one of them is a *special*: none offers
+ * money off, none has a real window, and all three are `audience: 'all'`.
+ * That is correct, because §15 forbids inventing a customer promise and a
+ * discount is the purest form of one.
+ *
+ * It also means the four gates in `features/marketing/specials.ts` have
+ * nothing to bite on. Every campaign passes every gate, so a demo shows an
+ * engine doing nothing, and the audience and frequency logic is reachable
+ * only by unit test.
+ *
+ * These give it real edges: a window that opens and closes, four different
+ * audiences, and two different frequency caps. Under the demo flag only, and
+ * each one says in its own terms that it is an example.
+ *
+ * ── Why these four ───────────────────────────────────────────────────────
+ *
+ * One per audience the engine knows about, because the interesting behaviour
+ * is what happens when several are live at once and only one may be shown.
+ * On a birthday, three of these are eligible and the birthday one wins.
+ */
+export function demoSpecials(): PappasPromotion[] {
+  const now = Date.now();
+  const iso = (offsetDays: number) => new Date(now + offsetDays * 86_400_000).toISOString();
+
+  return [
+    {
+      id: 'demo-midweek-table',
+      headline: 'Midweek, with the square to yourselves',
+      description: 'Tuesday and Wednesday evenings are the quiet ones. Book the window.',
+      assetKey: 'squareView',
+      ctaLabel: 'Book a table',
+      ctaHref: '/reserve',
+      validFrom: iso(-2),
+      validUntil: iso(21),
+      terms: ['Example campaign for the demo build. Not a Pappas offer.'],
+      usePromotionalComposition: false,
+      channels: ['pappas-direct'],
+      audience: 'all',
+      frequencyCapHours: 72,
+    },
+    {
+      id: 'demo-fish-market',
+      headline: 'On the board this morning',
+      description: 'The fish market changes daily. Today it came in before seven.',
+      assetKey: 'fishMarket',
+      ctaLabel: 'See the catch',
+      ctaHref: '/menu?category=fish-market',
+      validFrom: iso(-1),
+      validUntil: iso(2),
+      terms: ['Example campaign for the demo build. Not a Pappas offer.'],
+      usePromotionalComposition: false,
+      channels: ['pappas-direct'],
+      audience: 'members',
+      frequencyCapHours: 24,
+    },
+    {
+      id: 'demo-we-miss-you',
+      headline: 'It has been a while',
+      description: 'Your table is still here, and the lamb is still slow-cooked.',
+      assetKey: 'signatureMains',
+      ctaLabel: 'Book a table',
+      ctaHref: '/reserve',
+      validFrom: iso(-30),
+      validUntil: iso(60),
+      terms: ['Example campaign for the demo build. Not a Pappas offer.'],
+      usePromotionalComposition: false,
+      channels: ['pappas-direct'],
+      audience: 'lapsed',
+      frequencyCapHours: 336,
+    },
+    {
+      id: 'demo-birthday',
+      headline: 'Many happy returns',
+      description: 'Come and celebrate with us. Tell your waiter it is today.',
+      assetKey: 'desserts',
+      ctaLabel: 'Book a table',
+      ctaHref: '/reserve',
+      validFrom: iso(-180),
+      validUntil: iso(180),
+      terms: ['Example campaign for the demo build. Not a Pappas offer.'],
+      usePromotionalComposition: false,
+      channels: ['pappas-direct'],
+      audience: 'birthday',
+      frequencyCapHours: 24,
+    },
+  ];
+}
+
+/** The campaign list with the example specials appended. */
+export function withDemoSpecials(promotions: PappasPromotion[]): PappasPromotion[] {
+  return [...promotions, ...demoSpecials()];
 }
