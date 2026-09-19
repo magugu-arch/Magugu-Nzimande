@@ -82,18 +82,33 @@ const FOCUS_RING_ROUTES = ['/menu', '/sign-in', '/account/preferences'];
  *
  * Deliberately a handful of routes, not all of them. These are the ones whose
  * whole purpose is to show data that came from somewhere.
+ *
+ * ── Every pattern here is case-insensitive, deliberately ─────────────────
+ *
+ * `/events` read `/Happening at Pappas/` and failed at both widths against a
+ * screen that was showing exactly those words. The overline variant carries
+ * `textTransform: 'uppercase'`, and Chromium's `innerText` — unlike
+ * `textContent` — returns text as it is *rendered*, so the probe was handed
+ * "HAPPENING AT PAPPAS" and a case-sensitive pattern called the screen empty.
+ *
+ * Every capped variant is a loaded version of that trap: overline, micro, and
+ * all three button sizes. Rather than remember which of these strings happens
+ * to sit in a capped heading today — a thing that changes the first time
+ * somebody restyles a section — they all match case-insensitively. None of
+ * them means anything different in another case, and what this file is for is
+ * asserting what a reader sees, not which CSS the heading uses.
  */
 const MUST_SHOW = {
-  '/menu': /Mezedakia|Souvlaki|Seafood/,
-  '/home': /Pappas|Reserve a table|Mezedakia/,
+  '/menu': /Mezedakia|Souvlaki|Seafood/i,
+  '/home': /Pappas|Reserve a table|Mezedakia/i,
   // Not a price. Every dish is awaiting one — §15 forbids inventing menu
   // prices — so the product screen shows the honest placeholder instead, and
   // asserting `R\d` here would be asserting the invention this build refuses
   // to make. What must render is the dish.
-  '/product/pork-souvlaki': /Pork Souvlaki/,
-  '/reserve': /Reserve a table|When would you like/,
-  '/about': /Nelson Mandela Square/,
-  '/events': /Happening at Pappas/,
+  '/product/pork-souvlaki': /Pork Souvlaki/i,
+  '/reserve': /Reserve a table|When would you like/i,
+  '/about': /Nelson Mandela Square/i,
+  '/events': /Happening at Pappas/i,
   // Not a points balance: §15 forbids inventing loyalty rules, so the
   // programme has no economics yet and the screen leads with recognition.
   '/rewards': /Rewards|Olive|Aegean|Sunset/i,

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Button, Card, EmptyState, Screen, ScreenHeader, Text } from '@/components/ui';
+import { Card, EmptyState, Screen, ScreenHeader, Text } from '@/components/ui';
 import { FoodImage } from '@/components/food/FoodImage';
 import { promotions } from '@/services/data/rewardsData';
 import { colors, radius, spacing, aspect } from '@/theme';
@@ -90,13 +90,29 @@ export default function EventsScreen() {
               <Text variant="body" color={colors.textSecondary}>
                 {campaign.description}
               </Text>
-              <Button
-                label={campaign.ctaLabel}
-                variant="tertiary"
-                size="sm"
-                onPress={() => router.push(campaign.ctaHref as never)}
-                style={styles.cardCta}
-              />
+              {/*
+                The call to action, drawn rather than built from a `Button`.
+
+                It used to be a real `Button` with its own `onPress`, sitting
+                inside a `Card` that was itself pressable to the same route.
+                On a handset that is ordinary React Native; on web React Native
+                Web compiles both to `<button>` and the result is a button
+                inside a button — invalid HTML, and two controls at one
+                position with nothing to tell a screen reader which a tap
+                meant. `Card` has a `trailing` slot for the case where the
+                second action is genuinely different, but here it was not: both
+                controls went to `campaign.ctaHref`. So the card is the
+                control, and this is the affordance that says so.
+
+                `accessibilityElementsHidden` keeps it out of the card's
+                accessible name, which already carries the headline.
+              */}
+              <View style={styles.cardCta} importantForAccessibility="no-hide-descendants">
+                <Text variant="buttonSm" color={colors.accentInk}>
+                  {campaign.ctaLabel}
+                </Text>
+                <Ionicons name="arrow-forward" size={14} color={colors.accentInk} />
+              </View>
             </View>
           </Card>
         ))}
@@ -130,5 +146,11 @@ const styles = StyleSheet.create({
   card: { overflow: 'hidden', borderRadius: radius.lg },
   cardImage: { width: '100%', aspectRatio: aspect.banner },
   cardBody: { padding: spacing.lg, gap: spacing.xs },
-  cardCta: { alignSelf: 'flex-start', marginTop: spacing.sm },
+  cardCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
+  },
 });

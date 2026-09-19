@@ -26,7 +26,7 @@ import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BUILD = path.join(root, '.preview-web');
-const out = process.argv[2] ?? path.join(root, '.preview-web', 'bbq-chicken-app.html');
+const out = process.argv[2] ?? path.join(root, '.preview-web', 'pappas-app.html');
 
 if (!existsSync(BUILD)) {
   console.error(
