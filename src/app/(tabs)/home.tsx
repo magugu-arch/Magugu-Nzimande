@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -19,7 +20,6 @@ import {
   colors,
   radius,
   spacing,
-  aspect,
   CART_BAR_HEIGHT,
   MIN_TOUCH_TARGET,
   TAB_BAR_HEIGHT,
@@ -151,14 +151,27 @@ export default function HomeScreen() {
             aboveTheFold
           />
           <View style={[styles.heroTop, { paddingTop: insets.top + spacing.md }]}>
-            <View>
-              <Text variant="overline" color={colors.accent}>
-                {brand.descriptor}
-              </Text>
-              <Text variant="h1" color={colors.textOnDark}>
-                {brand.name}
-              </Text>
-            </View>
+            {/*
+              The wordmark alone, with no descriptor under it.
+
+              `GREEK & MEDITERRANEAN` used to sit here in 11px letterspaced
+              gold, directly on the photograph, and measured 1.95:1 against
+              the 4.5:1 that small text owes §32. Nothing reasonable rescues
+              it: gold on a lit plate needs about 0.80 of black over the
+              picture to clear the threshold, which is the "heavy gradient"
+              §12 rules out, and going white only reaches the 3.39:1 the
+              wordmark itself gets — fine for 26pt display type, still short
+              for 11px.
+
+              So the line comes off the photograph rather than the photograph
+              being destroyed to carry it. `PAPPAS` passes on its own, the
+              descriptor is already set under the mark in `BrandMark`
+              wherever there is a solid ground for it, and it closes the
+              screen in the footer.
+            */}
+            <Text variant="h1" color={colors.textOnDark}>
+              {brand.name}
+            </Text>
             <Pressable
               onPress={() => router.push('/account/notifications')}
               accessibilityRole="button"
@@ -168,6 +181,29 @@ export default function HomeScreen() {
               <Ionicons name="notifications-outline" size={21} color={colors.textOnDark} />
             </Pressable>
           </View>
+
+          {/*
+            The copy sits on its own scrim, not on the photograph.
+
+            Measured rather than judged by eye: with only `heroScrim` under it,
+            the worst pixels behind each run gave 1.58:1 for the script line,
+            2.59:1 for the headline and 1.76:1 for the greeting, against §32's
+            3:1 for display type and 4.5:1 for body. The medians were fine —
+            7:1 and better — which is exactly why looking at it was not enough.
+            The failures are scattered bright spots, a lemon and a white plate
+            rim, and no gradient tuned to thirds can find those.
+
+            So this is a gradient shaped to the copy rather than to the frame:
+            transparent where it meets the photograph, near-solid by the time
+            it reaches the first line of text. `locations` puts the whole fade
+            in the block's padded top, so the photograph keeps its bottom edge
+            and every run below sits on charcoal.
+          */}
+          <LinearGradient
+            colors={['rgba(26,26,26,0)', 'rgba(26,26,26,0.84)', 'rgba(26,26,26,0.96)']}
+            locations={[0, 0.26, 1]}
+            style={styles.heroCopyScrim}
+          />
 
           <View style={styles.heroCopy}>
             <Text variant="caption" color={colors.textOnDarkMuted}>
@@ -523,23 +559,71 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { gap: spacing.xxl },
 
-  hero: { position: 'relative' },
-  heroImage: { width: '100%', aspectRatio: aspect.hero },
+  /**
+   * The hero sizes to its own content, with §5's editorial 4:3 as a floor.
+   *
+   * It used to be a fixed 4:3 frame with both the wordmark row and the copy
+   * block absolutely positioned inside it — the first pinned to the top, the
+   * second to the bottom. Neither knew about the other, and 4:3 at 390pt is
+   * 292pt of height for a safe-area inset, a letterspaced lockup, a greeting,
+   * a two-line display headline, a script line and a button. They collided:
+   * "Savour something unforgettable" ran up through PAPPAS, and the descriptor
+   * disappeared behind the notifications bell.
+   *
+   * Worse on a handset than in a browser, which is why it survived the screen
+   * sweep — the web build has `insets.top` of 0 and a phone has 47, so every
+   * real device pushed the lockup 47pt further into the headline. Overlap is
+   * not overflow, so nothing measuring the right-hand edge could see it.
+   *
+   * Laying the two out in flow and letting the container grow makes the
+   * collision impossible to reintroduce: a longer greeting, a bigger accessible
+   * font or a taller notch adds height rather than stealing it from the
+   * headline. `minHeight` keeps the editorial proportion when the copy is
+   * short, which is the case the 4:3 was there for.
+   */
+  hero: {
+    position: 'relative',
+    /**
+     * Taller than the 4:3 this started at, because the copy needs a scrim and
+     * a scrim needs the photograph to have somewhere to be.
+     *
+     * At 4:3 — 292pt on a 390pt handset — the lockup takes 57 and the copy
+     * block 180, leaving about 55pt of visible photograph. Darkening the copy
+     * enough to read would have left a charcoal panel with a sliver of food
+     * above it. At 1:1.08 there is a real editorial frame between the two.
+     */
+    minHeight: SCREEN_WIDTH * 1.08,
+    // Lockup at the top, copy at the foot of the frame. The photograph is out
+    // of flow behind both, so it takes no part in this.
+    justifyContent: 'space-between',
+  },
+  /**
+   * The photograph is the hero's background, so it fills whatever height the
+   * copy above settles on. With all four edges pinned both dimensions are
+   * already determined, so `FoodImage`'s own aspect ratio has nothing left to
+   * constrain and steps aside.
+   */
+  heroImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   heroTop: {
-    position: 'absolute',
-    top: 0,
-    left: spacing.gutter,
-    right: spacing.gutter,
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
+    paddingHorizontal: spacing.gutter,
   },
   heroCopy: {
-    position: 'absolute',
-    left: spacing.gutter,
-    right: spacing.gutter,
-    bottom: spacing.xxl,
+    paddingHorizontal: spacing.gutter,
+    paddingTop: spacing.xxxl,
+    paddingBottom: spacing.xxl,
     gap: spacing.xxs,
+  },
+  /** Behind the copy, exactly its size. Paint, so it never eats the CTA. */
+  heroCopyScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: '42%',
+    pointerEvents: 'none',
   },
   heroAccent: { marginTop: spacing.xs },
   heroCta: { marginTop: spacing.lg, alignSelf: 'flex-start' },

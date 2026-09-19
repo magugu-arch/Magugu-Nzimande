@@ -232,7 +232,29 @@ export const colors = {
    * the bottom third, not a decorative wash over the whole image.
    */
   imageScrim: ['rgba(26,26,26,0)', 'rgba(26,26,26,0.80)'] as const,
-  heroScrim: ['rgba(26,26,26,0.05)', 'rgba(26,26,26,0.86)'] as const,
+  /**
+   * Three stops, because a hero carries text at *both* ends.
+   *
+   * This was two — 0.05 at the top ramping to 0.86 at the bottom — which is
+   * the right shape for a photograph with a caption under it and the wrong one
+   * for every hero in this app. They all put something at the top of the
+   * frame: the reversed-out lockup and Skip on the welcome carousel, the
+   * lockup and the notifications bell on Home, a back button on About,
+   * Functions, Gift cards and both reserve screens.
+   *
+   * At 0.05 those sat on bare photograph. On the sunlit square and on the
+   * signature-mains plate — bright, busy, warm-lit images — gold
+   * "GREEK & MEDITERRANEAN" and white "PAPPAS" simply disappeared into the
+   * food. It is the restaurant's own mark, unreadable, on the first two
+   * screens of the app.
+   *
+   * The middle stop is what keeps this a scrim rather than the "heavy
+   * gradient" §12 forbids: the photograph is barely touched across its middle,
+   * where the picture actually is, and is protected only in the two bands
+   * where type sits. `LinearGradient` spaces three stops evenly, so those
+   * bands are the top and bottom thirds.
+   */
+  heroScrim: ['rgba(26,26,26,0.52)', 'rgba(26,26,26,0.12)', 'rgba(26,26,26,0.88)'] as const,
 } as const;
 
 export type Colors = typeof colors;

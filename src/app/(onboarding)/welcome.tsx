@@ -18,7 +18,7 @@ import { Button, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/authStore';
 import { colors, radius, spacing } from '@/theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface Slide {
   key: string;
@@ -81,14 +81,40 @@ export default function WelcomeScreen() {
 
   const isLastSlide = index === SLIDES.length - 1;
 
+  /**
+   * Move the carousel, and move the state with it.
+   *
+   * The state change is the fix. This used to scroll the list and wait for
+   * `onMomentumScrollEnd` to report the new position back — which a *swipe*
+   * does, and a programmatic `scrollToOffset` does not reliably do on either
+   * platform. So pressing Next slid the photograph across and left `index` at
+   * zero: the dots stayed on the first pip, the headline and body stayed on
+   * the first slide, the label stayed "Next" instead of becoming "Get
+   * started", and the next press recomputed the same `(0 + 1) * SCREEN_WIDTH`
+   * and went nowhere.
+   *
+   * The result was an onboarding that could not be finished by the button that
+   * exists to finish it — slide two's photograph under slide one's words,
+   * permanently, on the first screen of the app. Only "Skip" got anybody out,
+   * which is the one path that skips the introduction entirely.
+   *
+   * Setting the index here makes the press the source of truth and leaves
+   * `onMomentumScrollEnd` to do what it is good at: reporting swipes. When
+   * both fire they agree, so the duplicate is harmless.
+   */
+  const goToSlide = useCallback((next: number) => {
+    setIndex(next);
+    listRef.current?.scrollToOffset({ offset: next * SCREEN_WIDTH, animated: true });
+  }, []);
+
   const handleNext = useCallback(() => {
     if (isLastSlide) {
       completeOnboarding();
       router.replace('/(auth)/sign-in');
       return;
     }
-    listRef.current?.scrollToOffset({ offset: (index + 1) * SCREEN_WIDTH, animated: true });
-  }, [isLastSlide, index, completeOnboarding, router]);
+    goToSlide(index + 1);
+  }, [isLastSlide, index, goToSlide, completeOnboarding, router]);
 
   const handleSkip = useCallback(() => {
     completeOnboarding();
@@ -118,7 +144,18 @@ export default function WelcomeScreen() {
               // other when only one is on screen. The other two are a swipe
               // away and can wait for it.
               aboveTheFold={index === 0}
-              aspectRatio={SCREEN_WIDTH / (SCREEN_WIDTH * 1.25)}
+              /**
+               * The whole window, so the panel's rounded shoulders land on
+               * the photograph.
+               *
+               * This was a fixed 1:1.25, which on a 390x844 handset drew a
+               * 487pt image and left 357pt of bare charcoal beneath it. The
+               * panel then sat in that band, its `borderTopLeftRadius`
+               * curving charcoal against charcoal — invisible, and the
+               * clearest evidence the photograph was always meant to run
+               * behind it.
+               */
+              aspectRatio={SCREEN_WIDTH / SCREEN_HEIGHT}
               rounded="none"
               withScrim
               scrimIntensity="strong"
@@ -128,8 +165,23 @@ export default function WelcomeScreen() {
         )}
       />
 
+      {/*
+        Both of these sit on bare photograph, and both were measured there
+        against the sunlit square — the brightest image in the set.
+
+        `compact` drops the descriptor, which is what the prop exists for:
+        11px letterspaced type over a photograph measured 3.14:1 against the
+        4.5:1 §32 owes small text, and `colors.heroScrim`'s top stop cannot
+        reach that without laying a black band over every hero in the app.
+        The wordmark itself clears its 3:1 comfortably at 4.61:1, so what
+        comes off is the line that never could.
+
+        Skip came in at 4.32:1 — close enough that the pill behind it is the
+        whole fix, and a pill is what a control floating on a photograph
+        should have had anyway.
+      */}
       <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
-        <BrandMark size="sm" onDark />
+        <BrandMark size="sm" onDark compact />
         <Pressable
           onPress={handleSkip}
           accessibilityRole="button"
@@ -137,7 +189,7 @@ export default function WelcomeScreen() {
           // 27x19, and `hitSlop` of 12 only reached 51x43 — one point short in
           // height on a handset, and 19 on the web build, where hitSlop does
           // nothing. Real padding, handed straight back by the margin.
-          style={{ paddingVertical: 13, paddingHorizontal: 9, margin: -9, marginVertical: -13 }}
+          style={styles.skip}
         >
           <Text variant="captionMedium" color={colors.textOnDark}>
             Skip
@@ -179,6 +231,19 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.brand.charcoal },
   slide: { width: SCREEN_WIDTH },
   image: { flex: 1, width: SCREEN_WIDTH },
+  /**
+   * The padding is the touch target, not decoration: 27x19 of text, and
+   * `hitSlop` does nothing on the web build. The pill is what carries the
+   * contrast — see the note at the call site.
+   */
+  skip: {
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    marginVertical: -13,
+    marginRight: -5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(26,26,26,0.42)',
+  },
   topBar: {
     position: 'absolute',
     top: 0,
