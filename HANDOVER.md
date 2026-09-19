@@ -14,11 +14,11 @@ Africa, built to the supplied brief.
 |                  |                                                                                                         |
 | ---------------- | ------------------------------------------------------------------------------------------------------- |
 | Stack            | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
-| Screens          | 34 routes covering every journey in brief §4                                                            |
+| Screens          | 41 routes covering every journey in brief §4                                                            |
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Photography      | 13 supplied Pappas masters, cropped clear of poster type; 45 products draw on them                      |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
-| Tests            | 57 suites; `npm test` prints the count                                                                  |
+| Tests            | 58 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
 | Branch           | `claude/bbq-chicken-app-czgvuz`                                                                         |
 
@@ -47,7 +47,7 @@ products on the way and they turn up on Home and behind a Menu filter.
 ```bash
 npm run verify        # typecheck → lint → test, the gate before any commit
 npm run preview:web   # the whole app in a browser, no build required
-npm run audit:screens # renders all 31 routes at two widths and reports defects
+npm run audit:screens # renders all 34 routes at two widths and reports defects
 npm run smoke:order   # signs in, adds an item and places an order, for real
 npm run bundle:single # folds the web export into one self-contained HTML file
 ```

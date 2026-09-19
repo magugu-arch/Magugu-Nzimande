@@ -14,7 +14,7 @@ import { directionsTargetFor } from '@/features/orders/directions';
 const collection = {
   id: 'order-1',
   fulfilmentType: 'collection',
-  storeName: 'bb.q Chicken Rosebank',
+  storeName: 'Pappas on the Square',
   storeAddress: '50 Bath Avenue, Rosebank',
   storeLatitude: -26.1465,
   storeLongitude: 28.0436,
@@ -31,7 +31,7 @@ describe('where the tracking screen will send somebody', () => {
     expect(directionsTargetFor(collection)).toEqual({
       latitude: -26.1465,
       longitude: 28.0436,
-      label: 'bb.q Chicken Rosebank',
+      label: 'Pappas on the Square',
     });
   });
 
@@ -64,7 +64,7 @@ describe('where the tracking screen will send somebody', () => {
 
   it('still offers the branch for dine-in, which somebody travels to', () => {
     expect(directionsTargetFor({ ...collection, fulfilmentType: 'dinein' })?.label).toBe(
-      'bb.q Chicken Rosebank',
+      'Pappas on the Square',
     );
   });
 });

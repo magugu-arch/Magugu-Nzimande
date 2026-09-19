@@ -10,7 +10,7 @@ const HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) => ({
 const store = (overrides: Partial<Store> = {}): Store =>
   ({
     id: 'rosebank',
-    name: 'bb.q Chicken Rosebank',
+    name: 'Pappas on the Square',
     addressLine: '177 Oxford Rd',
     suburb: 'Rosebank',
     city: 'Johannesburg',
@@ -73,7 +73,7 @@ describe('isStoreOpenAt', () => {
  * The defect this exists for: `isOpenNow` was a fact about a moment kept like
  * a fact about a place — seeded `true`, never recomputed on fetch, then
  * persisted whole into the selected-store snapshot. At 03:30 the store list
- * said "Open now" against every branch and checkout placed order BBQ-4823 with
+ * said "Open now" against every branch and checkout placed order PPS-4823 with
  * a kitchen that had shut at 22:00.
  *
  * `isStoreOpenAt` was already here, already correct, and had no callers.

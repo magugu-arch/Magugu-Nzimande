@@ -31,7 +31,7 @@ const extra = (Constants.expoConfig?.extra ?? {}) as { apiBaseUrl?: string };
 export const config = {
   apiBaseUrl: str(
     process.env.EXPO_PUBLIC_API_BASE_URL,
-    extra.apiBaseUrl ?? 'https://api.bbqchicken.co.za',
+    extra.apiBaseUrl ?? 'https://api.pappasrestaurant.co.za',
   ),
   apiTimeoutMs: num(process.env.EXPO_PUBLIC_API_TIMEOUT_MS, 15_000),
   /**
@@ -45,7 +45,7 @@ export const config = {
    *
    * `new-customer` is the person who installs the app on opening morning:
    * nothing saved, nothing ordered, nothing earned. That is every customer
-   * bb.q gains on 1 October, and it was the one account nobody could test as.
+   * Pappas gains at launch, and it was the one account nobody could test as.
    *
    * Read only through the mock layer, so it cannot affect a real build — and
    * `audit:launch` fails production if the mock is on at all.
@@ -147,9 +147,15 @@ export const businessRules = {
   deliveryBufferMinutes: 20,
 } as const;
 
-export const SUPPORT = {
-  phone: '0860 022 700',
-  email: 'support@bbqchicken.co.za',
-  whatsapp: '+27 60 000 0000',
-  hours: 'Every day, 10:00 – 22:00',
-} as const;
+/**
+ * Support contact.
+ *
+ * Moved to `data/pappasContent.ts`, where each channel is a `Fact` that is
+ * either verified or explicitly awaiting business input. It cannot live here
+ * as a string constant any more: a phone number and a set of trading hours
+ * are exactly the kind of thing §15 forbids inventing, and a constant has
+ * nowhere to record that nobody has supplied one.
+ *
+ * Re-exported so the existing import path keeps working.
+ */
+export { SUPPORT } from '@/data/pappasContent';

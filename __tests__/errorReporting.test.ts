@@ -59,9 +59,9 @@ describe('scrubbing what an error message picked up', () => {
    */
   it('keeps a URL path and drops its query string', () => {
     const scrubbed = scrub(
-      'Request failed: https://api.bbqchicken.co.za/v1/stores?lat=-26.1&email=a@b.co',
+      'Request failed: https://api.pappasrestaurant.co.za/v1/stores?lat=-26.1&email=a@b.co',
     );
-    expect(scrubbed).toContain('https://api.bbqchicken.co.za/v1/stores');
+    expect(scrubbed).toContain('https://api.pappasrestaurant.co.za/v1/stores');
     expect(scrubbed).not.toContain('a@b.co');
     expect(scrubbed).not.toContain('lat=');
   });

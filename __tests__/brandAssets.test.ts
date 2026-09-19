@@ -19,32 +19,56 @@ function pngSize(file: string): { width: number; height: number } {
   return { width: head.readUInt32BE(16), height: head.readUInt32BE(20) };
 }
 
-describe('brand masters', () => {
-  it('ships both logo masters', () => {
-    for (const master of ['bbq-lockup.png', 'bbq-symbol.png']) {
-      expect(fs.existsSync(path.join(assets, 'brand', 'masters', master))).toBe(true);
-    }
+/**
+ * The Pappas mark is drawn, not licensed — and the tests say so.
+ *
+ * The app this was built from shipped two licensed master PNGs and cut every
+ * icon from them, with a test asserting the masters existed and that
+ * `BrandMark`'s hardcoded aspect ratio matched the artwork. Pappas has not
+ * supplied a logo file: the mark appears in sixteen photographs and on the CI
+ * sheet, and nowhere as artwork.
+ *
+ * So `scripts/generate-brand-assets.mjs` reconstructs it — the olive sprig
+ * drawn to panel 01's silhouette, `PAPPAS` set in Cinzel, which is the face
+ * the CI sheet specifies. §14: "Verify official logo/font files before
+ * replacing any placeholders with production assets."
+ *
+ * What is worth testing shifts with that. There is no master to measure a
+ * ratio against, so instead these check the things a drawn mark can still get
+ * wrong: that every file app.json names exists at the size it expects, that
+ * the mark is actually drawn rather than left blank, and that the faces it is
+ * drawn in are the ones the CI sheet names.
+ */
+describe('the mark is reconstructed from the CI sheet', () => {
+  const script = fs.readFileSync(
+    path.resolve(__dirname, '..', 'scripts', 'generate-brand-assets.mjs'),
+    'utf8',
+  );
+
+  it('sets the wordmark in Cinzel, the face the CI sheet specifies', () => {
+    expect(script).toMatch(/Cinzel_400Regular\.ttf/);
   });
 
-  // BrandMark derives its height from a hardcoded ratio so a caller can never
-  // stretch the lock-up. That is only true while the constant agrees with the
-  // artwork, and replacing the master is exactly when it would stop agreeing.
-  it('matches the aspect ratio BrandMark draws at', () => {
-    const { width, height } = pngSize(path.join(assets, 'brand', 'masters', 'bbq-lockup.png'));
-    const source = fs.readFileSync(
-      path.resolve(__dirname, '..', 'src', 'components', 'brand', 'BrandMark.tsx'),
-      'utf8',
-    );
-
-    const declared = /const ASPECT = (\d+) \/ (\d+);/.exec(source);
-    expect(declared).not.toBeNull();
-    expect(Number(declared?.[1])).toBe(width);
-    expect(Number(declared?.[2])).toBe(height);
+  it('sets the descriptor in Montserrat, as panel 01 does', () => {
+    expect(script).toMatch(/Montserrat_600SemiBold\.ttf/);
   });
 
-  it('keeps the symbol master square enough to centre in an icon', () => {
-    const { width, height } = pngSize(path.join(assets, 'brand', 'masters', 'bbq-symbol.png'));
-    expect(Math.abs(width / height - 1)).toBeLessThan(0.05);
+  it('uses the CI sheet’s own colour values', () => {
+    // Mediterranean Olive, Sunset Gold, Stone Beige, Charcoal — panel 03.
+    expect(script).toContain('(46, 74, 47, 255)');
+    expect(script).toContain('(212, 168, 83, 255)');
+    expect(script).toContain('(237, 230, 217, 255)');
+    expect(script).toContain('(26, 26, 26, 255)');
+  });
+
+  it('says in the source that this is a placeholder, per §14', () => {
+    // The one thing that must not get lost when somebody reads this later.
+    expect(script).toMatch(/placeholder/i);
+    expect(script).toMatch(/verify the official logo|official logo files/i);
+  });
+
+  it('does not ship a licensed master it does not have', () => {
+    expect(fs.existsSync(path.join(assets, 'brand', 'masters'))).toBe(false);
   });
 });
 
@@ -58,20 +82,57 @@ describe('generated brand assets', () => {
     ['android-icon-monochrome.png', 1024, 1024],
     ['notification-icon.png', 96, 96],
     ['favicon.png', 48, 48],
-    ['brand/lockup.png', 240, 43],
-    ['brand/lockup@2x.png', 480, 86],
-    ['brand/lockup@3x.png', 720, 129],
-    ['brand/lockup-reversed.png', 240, 43],
-    ['brand/lockup-reversed@2x.png', 480, 86],
-    ['brand/lockup-reversed@3x.png', 720, 129],
+    // The stacked lock-up: sprig over wordmark over rule over descriptor,
+    // which is taller than the previous brand's horizontal lozenge.
+    ['brand/lockup.png', 240, 138],
+    ['brand/lockup@2x.png', 480, 276],
+    ['brand/lockup@3x.png', 720, 414],
+    ['brand/lockup-reversed.png', 240, 138],
+    ['brand/lockup-reversed@2x.png', 480, 276],
+    ['brand/lockup-reversed@3x.png', 720, 414],
   ];
 
   it.each(expected)('%s is %ix%i', (file, width, height) => {
     expect(pngSize(path.join(assets, file))).toEqual({ width, height });
   });
 
+  /**
+   * The densities must be exact multiples of each other.
+   *
+   * React Native picks one density file and lays it out at the @1x box, so a
+   * @2x that is 277 tall where 276 was expected is half a point of drift on
+   * every surface the mark appears on. Drawing the mark three times at three
+   * sizes rounded every proportion separately and did exactly that; it is now
+   * drawn once and downsampled.
+   */
+  it.each(['lockup', 'lockup-reversed'])('%s scales exactly across densities', (name) => {
+    const one = pngSize(path.join(assets, 'brand', `${name}.png`));
+    const two = pngSize(path.join(assets, 'brand', `${name}@2x.png`));
+    const three = pngSize(path.join(assets, 'brand', `${name}@3x.png`));
+
+    expect(two).toEqual({ width: one.width * 2, height: one.height * 2 });
+    expect(three).toEqual({ width: one.width * 3, height: one.height * 3 });
+  });
+
   it('gives the splash the lock-up proportions, not a square', () => {
     const { width, height } = pngSize(path.join(assets, 'splash-icon.png'));
     expect(width / height).toBeGreaterThan(5);
   });
+
+  /**
+   * That the mark is actually drawn.
+   *
+   * A generator that silently produced empty transparent canvases would pass
+   * every size check above — which is exactly the failure a drawn mark can
+   * have and a cut-from-master one cannot. This reads the alpha channel and
+   * insists something is in it.
+   */
+  it.each(['icon.png', 'favicon.png', 'notification-icon.png', 'brand/lockup.png'])(
+    '%s has ink in it, not an empty canvas',
+    (file) => {
+      const bytes = fs.readFileSync(path.join(assets, file));
+      // A blank 1024px PNG compresses to almost nothing; a drawn one does not.
+      expect(bytes.byteLength).toBeGreaterThan(400);
+    },
+  );
 });

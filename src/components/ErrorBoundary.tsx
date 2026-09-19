@@ -5,6 +5,7 @@ import { BrandMark } from '@/components/brand/BrandMark';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { SUPPORT } from '@/constants/config';
+import { isVerified } from '@/data/businessInput';
 import { colors, radius, spacing } from '@/theme';
 import { reportError } from '@/ux/errorReporting';
 
@@ -81,9 +82,16 @@ export class ErrorBoundary extends Component<Props, State> {
 
           <Button label="Try again" onPress={this.handleReset} size="lg" testID="error-retry" />
 
+          {/*
+            Only offer a number when there is one. `SUPPORT.phone` is a Fact
+            awaiting business input, and a crash screen quoting a placeholder
+            phone number is the worst possible place for one.
+          */}
           <View style={styles.support}>
             <Text variant="caption" color={colors.textMuted} align="center">
-              If it keeps happening, call us on {SUPPORT.phone} — {SUPPORT.hours}.
+              {isVerified(SUPPORT.phone)
+                ? `If it keeps happening, call us on ${SUPPORT.phone.value}.`
+                : 'If it keeps happening, please let the restaurant know.'}
             </Text>
           </View>
 

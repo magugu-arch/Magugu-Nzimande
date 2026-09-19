@@ -13,6 +13,7 @@ import {
   fetchStores,
   fetchStoresForFulfilment,
   isStoreOpenAt,
+  isTradingNow,
 } from '@/services/storeService';
 import {
   cancelOrder,
@@ -145,6 +146,8 @@ describe('storeService', () => {
     });
 
     it('does not order the list as though it did', async () => {
+      // Trivially true with one restaurant, and kept because it is the
+      // invariant a second Pappas would have to preserve.
       const names = (await fetchStores()).map((store) => store.name);
       expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
     });
@@ -160,17 +163,39 @@ describe('storeService', () => {
     });
   });
 
-  it('drops the seeded distance when one branch is fetched on its own', async () => {
-    // `fetchStore` takes no origin, and the seed carries `distanceKm: 0` —
-    // which reached the badge as "0 m away" for whichever branch was opened.
-    const store = await fetchStore('store-sandton');
+  it('drops any seeded distance when the restaurant is fetched on its own', async () => {
+    // `fetchStore` takes no origin, so it cannot know how far away anyone is,
+    // and a stale seeded number reached the badge as "0 m away".
+    const store = await fetchStore('pappas-nelson-mandela-square');
     expect(store.distanceKm).toBeUndefined();
   });
 
-  it('recomputes distance rather than trusting the seed value', async () => {
+  it('measures distance from wherever the customer actually is', async () => {
+    // Pappas is one restaurant, so there is no list to sort — but the
+    // measurement still has to be real. A customer in Cape Town is about
+    // 1,260km from Nelson Mandela Square, and the badge should say so rather
+    // than quoting a seeded zero.
     const capeTown = { latitude: -33.9036, longitude: 18.4201 };
-    const list = await fetchStores(capeTown);
-    expect(list[0]?.city).toBe('Cape Town');
+    const [pappas] = await fetchStores(capeTown);
+    expect(pappas?.distanceKm).toBeGreaterThan(1_000);
+
+    const sandton = { latitude: -26.1076, longitude: 28.0567 };
+    const [near] = await fetchStores(sandton);
+    expect(near?.distanceKm).toBeLessThan(1);
+  });
+
+  /**
+   * One restaurant, not a chain.
+   *
+   * The app this was built from served seven branches across four cities, and
+   * several of these tests were written against that list. Pappas has one
+   * site, and §15 forbids inventing the other six — so the assertions that
+   * needed a *list* now assert the thing that is actually true.
+   */
+  it('lists exactly one restaurant', async () => {
+    const list = await fetchStores(DEFAULT_COORDINATES);
+    expect(list).toHaveLength(1);
+    expect(list[0]?.id).toBe('pappas-nelson-mandela-square');
   });
 
   it('filters by fulfilment support', async () => {
@@ -184,14 +209,39 @@ describe('storeService', () => {
     expect(nearest?.supportsDelivery).toBe(true);
   });
 
-  it('reports opening state against trading hours', () => {
-    const store = stores[0];
-    expect(store).toBeDefined();
-    // Sandton trades 11:00–22:00 on a Monday.
-    const monday = new Date(2026, 0, 5, 14, 0);
-    const earlyMorning = new Date(2026, 0, 5, 6, 0);
-    expect(isStoreOpenAt(store!, monday)).toBe(true);
-    expect(isStoreOpenAt(store!, earlyMorning)).toBe(false);
+  /**
+   * Trading hours, against a restaurant that has not published any.
+   *
+   * §15 forbids inventing opening hours, so `openingHours` is empty — which
+   * makes `isStoreOpenAt` answer false at every hour, because there is no
+   * window to be inside.
+   *
+   * That is the correct answer for *that* function and the wrong answer for
+   * the app, which is why `isTradingNow` exists: with no timetable it falls
+   * back to the kitchen's own flag rather than treating a data gap as a shut
+   * door. Both halves are asserted here, because getting the second one wrong
+   * closes the whole ordering journey — which is exactly what happened while
+   * this was being built.
+   */
+  it('cannot place an hour inside a timetable nobody has published', () => {
+    const store = stores[0]!;
+    expect(store.openingHours).toEqual([]);
+    expect(isStoreOpenAt(store, new Date(2026, 0, 5, 14, 0))).toBe(false);
+  });
+
+  it('still trades, because a missing timetable is not a closed door', () => {
+    expect(isTradingNow(stores[0]!, new Date(2026, 0, 5, 14, 0))).toBe(true);
+  });
+
+  it('honours real hours the moment they are supplied', () => {
+    // The mechanism the restaurant's hours will flow through, proven against
+    // a timetable rather than against the absence of one.
+    const withHours = {
+      ...stores[0]!,
+      openingHours: [{ day: 1, opensAt: '11:00', closesAt: '22:00' }],
+    };
+    expect(isStoreOpenAt(withHours, new Date(2026, 0, 5, 14, 0))).toBe(true);
+    expect(isStoreOpenAt(withHours, new Date(2026, 0, 5, 6, 0))).toBe(false);
   });
 });
 
@@ -247,7 +297,7 @@ describe('orderService', () => {
     });
 
     expect(order.status).toBe('received');
-    expect(order.reference).toMatch(/^BBQ-\d+$/);
+    expect(order.reference).toMatch(/^PPS-\d+$/);
     expect(order.timeline).toHaveLength(statusSequence('delivery').length);
     expect(order.timeline[0]?.occurredAt).not.toBeNull();
     expect(order.timeline.at(-1)?.occurredAt).toBeNull();
@@ -257,7 +307,7 @@ describe('orderService', () => {
 
   /**
    * The order used to carry the store's name and nothing else, so the tracking
-   * screen's "Call the store" dialled `tel:bb.q Chicken Sandton City`. The
+   * screen's "Call the store" dialled `tel:Pappas Sandton City`. The
    * snapshot has to agree with the store record, not merely exist.
    */
   it('carries the branch a customer would have to phone or drive to', async () => {
@@ -438,7 +488,7 @@ describe('paymentService', () => {
       amount: 237,
       paymentMethodId: 'payment-cash',
       methodType: 'cash',
-      orderReference: 'BBQ-1',
+      orderReference: 'PPS-1',
     });
     expect(result).toEqual({ success: true, intentId: 'cash' });
   });
@@ -468,7 +518,7 @@ describe('paymentService', () => {
       amount: 237,
       paymentMethodId: 'payment-visa',
       methodType: 'card',
-      orderReference: 'BBQ-1',
+      orderReference: 'PPS-1',
     });
     expect(result.success).toBe(true);
     expect(result.intentId).toMatch(/^pi_/);
@@ -522,7 +572,7 @@ describe('rewardExpired', () => {
 /**
  * Tracking counted from when the customer paid and ignored `scheduledFor`
  * entirely. An order booked for tomorrow at 18:00 and paid for at 14:00 today
- * read "Completed — Enjoy. Thanks for ordering with bb.q." by 14:42 the same
+ * read "Completed — Enjoy. Thank you for ordering with Pappas." by 14:42 the same
  * afternoon, and fell out of Active into Past orders. Verified in a browser.
  *
  * Scheduling stopped being an edge case the moment closed branches began
@@ -532,7 +582,7 @@ describe('rewardExpired', () => {
 describe('workStartsAt', () => {
   const base = {
     id: 'order-1',
-    reference: 'BBQ-1',
+    reference: 'PPS-1',
     placedAt: new Date(2026, 7, 24, 14, 0).toISOString(),
     fulfilmentType: 'delivery',
     status: 'received',
@@ -540,7 +590,7 @@ describe('workStartsAt', () => {
     lines: [],
     totals: {} as never,
     storeId: 's1',
-    storeName: 'bb.q Chicken Rosebank',
+    storeName: 'Pappas on the Square',
     storePhone: '011 447 2200',
     storeAddress: '177 Oxford Rd',
     storeLatitude: -26.1465,
@@ -697,7 +747,7 @@ describe('what a placed order records about itself', () => {
   });
 
   /**
-   * Cash, SnapScan and instant EFT are rails bb.q accepts rather than things a
+   * Cash, SnapScan and instant EFT are rails Pappas accepts rather than things a
    * customer saves, so their ids match nothing in any ledger. The label fell
    * back to a flat 'Card' — so an order somebody is paying for at their own
    * front door came back reading "Paid with: Card".

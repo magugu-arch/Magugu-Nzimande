@@ -338,7 +338,7 @@ async function execute<T>(
 
     throw new ApiRequestError({
       code: 'network',
-      message: "We can't reach bb.q right now. Check your connection and try again.",
+      message: "We can't reach Pappas right now. Check your connection and try again.",
     });
   } finally {
     clearTimeout(timeout);

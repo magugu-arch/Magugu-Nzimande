@@ -68,7 +68,7 @@ function seedAPerson() {
       address: ADDRESS as never,
       deliveryInstructions: 'Buzzer 3 at the gate. Please call on arrival.',
       coordinates: { latitude: -26.14, longitude: 28.04 },
-      store: { id: 's1', name: 'bb.q Chicken Rosebank' } as never,
+      store: { id: 's1', name: 'Pappas on the Square' } as never,
       tableNumber: '12',
     });
     useCartStore.setState({
@@ -79,7 +79,7 @@ function seedAPerson() {
 
 function renderSignOut() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  queryClient.setQueryData(['orders'], [{ reference: 'BBQ-4821' }]);
+  queryClient.setQueryData(['orders'], [{ reference: 'PPS-4821' }]);
 
   const wrapper = ({ children }: { children: ReactNode }) =>
     createElement(QueryClientProvider, { client: queryClient }, children);
@@ -227,7 +227,7 @@ describe('signing out', () => {
  * nothing undid it. Signing out cleared the app's own memory of a person and
  * left the server still pushing that person's order updates to this phone: on
  * a device that has been shared, handed down or sold, the next owner reads
- * "Your order BBQ-4823 is on its way" for an order that is not theirs.
+ * "Your order PPS-4823 is on its way" for an order that is not theirs.
  */
 describe('the push token this handset is registered under', () => {
   beforeEach(() => {

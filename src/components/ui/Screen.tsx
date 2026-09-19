@@ -8,7 +8,7 @@ export interface ScreenProps {
   children: ReactNode;
   /** Wraps content in a ScrollView. Turn off for FlatList-based screens. */
   scroll?: boolean;
-  /** bb.q Black background with a light status bar. */
+  /** Charcoal background with a light status bar. */
   dark?: boolean;
   padded?: boolean;
   edges?: readonly Edge[];

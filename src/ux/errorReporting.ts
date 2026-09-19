@@ -21,7 +21,7 @@
  * No SDK is bundled. `setErrorReporter` takes one at startup; until then
  * errors go to the console in development and nowhere in production. Sentry
  * and Crashlytics both ship a device identifier and both want an opinion on
- * data residency, which is bb.q's decision rather than a default worth
+ * data residency, which is Pappas' decision rather than a default worth
  * guessing at.
  */
 
@@ -139,6 +139,6 @@ export function reportError(error: unknown, context: ErrorContext): void {
   }
 
   if (__DEV__ && !reporter) {
-    console.error(`[bb.q error: ${safeContext.scope}]`, normalised.name, normalised.message);
+    console.error(`[Pappas error: ${safeContext.scope}]`, normalised.name, normalised.message);
   }
 }

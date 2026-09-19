@@ -14,7 +14,7 @@ interface Clause {
 const TERMS: Clause[] = [
   {
     heading: 'Using this app',
-    body: 'By placing an order through the bb.q Chicken app you agree to these terms. You must be 18 or older, or have permission from a parent or guardian, to create an account.',
+    body: 'By placing an order or requesting a table through the Pappas app you agree to these terms. You must be 18 or older, or have permission from a parent or guardian, to create an account.',
   },
   {
     heading: 'Orders and pricing',
@@ -33,7 +33,7 @@ const TERMS: Clause[] = [
     body: 'You can cancel free of charge while the order is still in the Received state. Once the kitchen starts preparing, cancellation is at the store manager’s discretion. If something is wrong with your order, contact us within 24 hours and we will refund or replace it.',
   },
   {
-    heading: 'bb.q Rewards',
+    heading: 'Pappas Rewards',
     body: 'Points have no cash value and cannot be transferred or sold. They expire 12 months after they are earned. We may change the rewards programme with reasonable notice.',
   },
   {
@@ -49,7 +49,7 @@ const PRIVACY: Clause[] = [
   },
   {
     heading: 'Why we collect it',
-    body: 'To take and deliver your orders, run bb.q Rewards, keep your account secure, and — only if you agree — send you offers. We also look at aggregated ordering patterns to decide what to put on the menu.',
+    body: 'To take and deliver your orders, run Pappas Rewards, keep your account secure, and — only if you agree — send you offers. We also look at aggregated ordering patterns to decide what to put on the menu.',
   },
   {
     heading: 'Who we share it with',
@@ -108,7 +108,7 @@ export default function LegalScreen() {
         ))}
 
         <Text variant="caption" color={colors.textMuted} style={styles.footer}>
-          bb.q Chicken South Africa. All rights reserved.
+          Pappas. All rights reserved.
         </Text>
       </View>
     </Screen>

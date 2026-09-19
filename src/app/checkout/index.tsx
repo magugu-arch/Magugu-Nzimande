@@ -106,7 +106,7 @@ export default function CheckoutScreen() {
 
   /** Rails offered for this fulfilment type — cash is delivery-only. */
   /**
-   * Saved cards plus the rails bb.q always accepts. This used to be only what
+   * Saved cards plus the rails Pappas always accepts. This used to be only what
    * the account endpoint returned, which left a customer with no saved card
    * unable to pay at all — not even cash on delivery, which nobody saves.
    */
@@ -626,17 +626,34 @@ export default function CheckoutScreen() {
 
         {/*
           After a payment that may already have been taken, the way out is the
-          phone, not the button. Offered first and given the store's own number,
-          because "call the store" with no number is advice, not an action.
+          phone, not the button. Offered first and given the restaurant's own
+          number, because "call us" with no number is advice, not an action.
+
+          And when there is no number — Pappas' is still awaiting business
+          input, see `data/pappasContent.ts` — the way out has to be something
+          else rather than nothing. A customer whose card may have been charged
+          and who is shown no route at all is the worst state this screen can
+          reach, so the contact form takes over. It is slower than a phone call
+          and it is a real action.
         */}
-        {mustNotRetry && store?.phone ? (
-          <Button
-            label={`Call ${store.name}`}
-            variant="secondary"
-            onPress={() => void Linking.openURL(`tel:${store.phone}`)}
-            size="lg"
-            testID="checkout-call-store"
-          />
+        {mustNotRetry ? (
+          store?.phone ? (
+            <Button
+              label={`Call ${store.name}`}
+              variant="secondary"
+              onPress={() => void Linking.openURL(`tel:${store.phone}`)}
+              size="lg"
+              testID="checkout-call-store"
+            />
+          ) : (
+            <Button
+              label="Contact us"
+              variant="secondary"
+              onPress={() => router.push('/account/contact')}
+              size="lg"
+              testID="checkout-call-store"
+            />
+          )
         ) : null}
 
         <Button

@@ -35,7 +35,7 @@ const STATUS_COPY: Record<OrderStatus, { label: string; description: string }> =
   },
   completed: {
     label: 'Completed',
-    description: 'Enjoy. Thanks for ordering with bb.q.',
+    description: 'Enjoy. Thank you for ordering with Pappas.',
   },
   cancelled: {
     label: 'Cancelled',
@@ -207,7 +207,7 @@ export function minutesUntilDue(order: Order, now: Date = new Date()): number {
  * Measured from when the kitchen starts, not from when the customer paid.
  * This counted from `placedAt` and ignored `scheduledFor` entirely: an order
  * booked for tomorrow at 18:00 and paid for at 14:00 today read "Completed —
- * Enjoy. Thanks for ordering with bb.q." by 14:42 the same afternoon, and
+ * Enjoy. Thank you for ordering with Pappas." by 14:42 the same afternoon, and
  * dropped out of Active into Past orders. Verified in a browser before the
  * fix.
  *
@@ -270,7 +270,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
 
   const order: Order = {
     id: `order-${referenceCounter}`,
-    reference: `BBQ-${referenceCounter}`,
+    reference: `PPS-${referenceCounter}`,
     placedAt: placedAt.toISOString(),
     fulfilmentType: input.fulfilmentType,
     status: 'received',

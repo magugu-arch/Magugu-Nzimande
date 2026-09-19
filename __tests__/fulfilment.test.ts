@@ -13,7 +13,7 @@ import {
 
 const store: Store = {
   id: 'rosebank',
-  name: 'bb.q Chicken Rosebank',
+  name: 'Pappas on the Square',
   suburb: 'Rosebank',
   city: 'Johannesburg',
   province: 'Gauteng',
@@ -85,7 +85,7 @@ describe('missingFulfilmentRequirement', () => {
 
     it('blocks an order meant for now', () => {
       expect(missingFulfilmentRequirement({ ...base, store: closed, address })).toBe(
-        'bb.q Chicken Rosebank is closed — schedule for later',
+        'Pappas on the Square is closed — schedule for later',
       );
     });
 
@@ -111,7 +111,7 @@ describe('missingFulfilmentRequirement', () => {
           scheduledFor: laterToday,
           now,
         }),
-      ).toBe('bb.q Chicken Rosebank is closed');
+      ).toBe('Pappas on the Square is closed');
     });
 
     it('says nothing about opening hours when the store is open', () => {
@@ -132,7 +132,7 @@ describe('missingFulfilmentRequirement', () => {
     it('refuses the order and says when it opens', () => {
       expect(
         missingFulfilmentRequirement({ ...base, store: openingLater, address, now: before }),
-      ).toBe('bb.q Chicken Rosebank opens on Sun, 1 Nov');
+      ).toBe('Pappas on the Square opens on Sun, 1 Nov');
     });
 
     /**
@@ -185,7 +185,7 @@ describe('missingFulfilmentRequirement', () => {
 
     it('refuses delivery and points at collection', () => {
       expect(missingFulfilmentRequirement({ ...base, store, address: capeTown })).toBe(
-        'bb.q Chicken Rosebank does not deliver to Sea Point — collect instead',
+        'Pappas on the Square does not deliver to Sea Point — collect instead',
       );
     });
 
@@ -337,7 +337,7 @@ describe('the blocker keeps up with the store', () => {
  *
  * It was not a theoretical hole. Driven in a browser with the clock pinned to
  * 03:30 in Johannesburg, every branch showed "Open now", checkout did not
- * block, and order BBQ-4823 was placed with a kitchen that shut at 22:00.
+ * block, and order PPS-4823 was placed with a kitchen that shut at 22:00.
  */
 describe('a store that has shut since it was chosen', () => {
   const TRADING_HOURS = Array.from({ length: 7 }, (_, day) => ({
@@ -363,7 +363,7 @@ describe('a store that has shut since it was chosen', () => {
         address,
         now: middleOfTheNight,
       }),
-    ).toBe('bb.q Chicken Rosebank is closed — schedule for later');
+    ).toBe('Pappas on the Square is closed — schedule for later');
   });
 
   it('takes the order during trading hours', () => {
@@ -399,7 +399,7 @@ describe('a store that has shut since it was chosen', () => {
         scheduledFor: '2026-08-24T12:00:00+02:00',
         now: middleOfTheNight,
       }),
-    ).toBe('bb.q Chicken Rosebank is closed');
+    ).toBe('Pappas on the Square is closed');
   });
 });
 
@@ -448,14 +448,14 @@ describe('a scheduled time that is no longer any good', () => {
   it('refuses a time outside the branch hours, however far ahead it is', () => {
     const threeAmTomorrow = new Date(2026, 7, 25, 3, 0).toISOString();
     expect(check(threeAmTomorrow, fivePm)).toBe(
-      'bb.q Chicken Rosebank is closed at 03:00 — pick another time',
+      'Pappas on the Square is closed at 03:00 — pick another time',
     );
   });
 
   it('refuses a slot at closing time, when the kitchen cannot start it', () => {
     const atClosing = new Date(2026, 7, 24, 22, 0).toISOString();
     expect(check(atClosing, fivePm)).toBe(
-      'bb.q Chicken Rosebank is closed at 22:00 — pick another time',
+      'Pappas on the Square is closed at 22:00 — pick another time',
     );
   });
 

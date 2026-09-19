@@ -8,7 +8,7 @@ import { useFulfilmentStore } from '@/store/fulfilmentStore';
 import { colors, radius, spacing } from '@/theme';
 
 const BENEFITS = [
-  { icon: 'storefront-outline', text: 'Find your nearest bb.q store instantly' },
+  { icon: 'storefront-outline', text: 'Find us on Nelson Mandela Square' },
   { icon: 'time-outline', text: 'Get accurate delivery times, not guesses' },
   { icon: 'bicycle-outline', text: 'See exactly what the delivery fee will be' },
 ] as const;

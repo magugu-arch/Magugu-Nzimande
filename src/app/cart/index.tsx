@@ -306,7 +306,7 @@ export default function CartScreen() {
               <Text variant="bodyMedium">{reward ? reward.name : 'Use a reward'}</Text>
               <Text variant="caption" color={colors.textSecondary}>
                 {!reward
-                  ? 'Spend your bb.q points on this order'
+                  ? 'Spend your Pappas points on this order'
                   : rewardWorth > 0
                     ? `${formatPrice(rewardWorth)} off · ${groupDigits(reward.pointsCost)} points`
                     : // A delivery reward against an order with no delivery fee

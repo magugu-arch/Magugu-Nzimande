@@ -9,7 +9,7 @@ import { Alert, Linking, Platform } from 'react-native';
  * phone with no mail account, an Android build whose manifest does not declare
  * the intent — so the tap did nothing at all and nobody was told why. And the
  * URLs were being built by string interpolation at the call site, which is how
- * the order screen ended up dialling `tel:bb.q Chicken Rosebank`.
+ * the order screen ended up dialling `tel:Pappas on the Square`.
  */
 
 /**

@@ -104,7 +104,19 @@ function Wrapped({ children }: { children: ReactNode }) {
 function seedReadyBasket() {
   const product = products[0]!;
   const line = buildCartLine(product, [], 1);
-  const openStore = stores.find((candidate) => candidate.supportsCollection)!;
+  /**
+   * A restaurant with a phone number.
+   *
+   * Pappas' own is awaiting business input — §15 forbids inventing one — so
+   * the shipped record carries an empty `phone`, and checkout correctly
+   * offers the contact form instead of a `tel:` link to nothing. That
+   * fallback has its own test below; this fixture supplies a number so the
+   * *phone* branch can be exercised too.
+   */
+  const openStore = {
+    ...stores.find((candidate) => candidate.supportsCollection)!,
+    phone: '011 000 0000',
+  };
 
   useCartStore.setState({
     lines: [line],
@@ -236,7 +248,7 @@ describe('checkout after a payment that may already have been taken', () => {
     },
   );
 
-  it('offers the branch’s own number, because "call the store" needs one', async () => {
+  it('offers the restaurant’s own number, because "call us" needs one', async () => {
     const store = seedReadyBasket();
     mockSubmit.mockResolvedValue({ status: 'uncertain', message: 'Cannot tell.' } as SubmitFailure);
 
@@ -253,5 +265,31 @@ describe('checkout after a payment that may already have been taken', () => {
     expect(screen.getByTestId('checkout-call-store').props.accessibilityLabel).toBe(
       `Call ${store.name}`,
     );
+  });
+
+  /**
+   * And when there is no number, the way out cannot be nothing.
+   *
+   * Pappas' phone number is awaiting business input, so this is the branch
+   * the app actually ships in today. A customer whose card may have been
+   * charged and who is offered no route at all is the worst state this screen
+   * can reach — worse than a slow route.
+   */
+  it('offers the contact form when there is no number to call', async () => {
+    seedReadyBasket();
+    useFulfilmentStore.setState({
+      store: { ...useFulfilmentStore.getState().store!, phone: '' },
+    });
+    mockSubmit.mockResolvedValue({ status: 'uncertain', message: 'Cannot tell.' } as SubmitFailure);
+
+    render(
+      <Wrapped>
+        <CheckoutScreen />
+      </Wrapped>,
+    );
+    fireEvent.press(placeOrderButton());
+
+    await waitFor(() => expect(screen.getByTestId('checkout-call-store')).toBeTruthy());
+    expect(screen.getByTestId('checkout-call-store').props.accessibilityLabel).toBe('Contact us');
   });
 });

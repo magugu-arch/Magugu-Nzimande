@@ -73,6 +73,57 @@ export function dayName(day: number): string {
   return DAY_NAMES[((day % 7) + 7) % 7] ?? '';
 }
 
+const LONG_MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/**
+ * `Friday, 21 August 2026`
+ *
+ * The long form a reservation confirmation wants. Built by hand for exactly
+ * the reason `formatShortDate` is — Hermes ships without full ICU on some
+ * builds, so `toLocaleDateString('en-ZA', { weekday: 'long', … })` quietly
+ * falls back to US formatting. On a confirmation screen that is a table
+ * booked on the wrong day.
+ */
+export function formatLongDate(value: string | Date): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return '';
+  return `${dayName(date.getDay())}, ${date.getDate()} ${LONG_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+/** `Friday, 21 August` — the same, without the year. */
+export function formatLongDateNoYear(value: string | Date): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return '';
+  return `${dayName(date.getDay())}, ${date.getDate()} ${LONG_MONTHS[date.getMonth()]}`;
+}
+
+/** `Mon` / `Tue` — the short weekday, for a date picker tile. */
+export function shortDayName(value: string | Date): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return '';
+  return SHORT_DAYS[date.getDay()] ?? '';
+}
+
+/** `Aug` — the short month, for a date picker tile. */
+export function shortMonthName(value: string | Date): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return '';
+  return SHORT_MONTHS[date.getMonth()] ?? '';
+}
+
 /**
  * Whether an ISO date has already gone by.
  *

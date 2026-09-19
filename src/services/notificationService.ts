@@ -140,7 +140,7 @@ export async function registerForPushNotifications(): Promise<PushRegistrationOu
  * somebody else is now holding. That is the whole failure this was written to
  * prevent, and it was reachable by turning off notifications.
  */
-const TOKEN_KEY = 'bbq.pushToken';
+const TOKEN_KEY = 'pappas.pushToken';
 
 let lastSyncedToken: string | null = null;
 
@@ -190,7 +190,7 @@ export async function syncPushToken(token: string): Promise<boolean> {
  * nothing undid it. Signing out cleared the app's own memory of a person —
  * their address, their basket, their cached history — and left the server
  * still sending that person's push to this handset. On a phone that has been
- * shared, handed down or sold, the next owner reads "Your order BBQ-4823 is on
+ * shared, handed down or sold, the next owner reads "Your order PPS-4823 is on
  * its way" for an order that is not theirs, complete with the reference.
  *
  * Best-effort on purpose, and it must run before the session is torn down,

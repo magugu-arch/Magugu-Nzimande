@@ -7,8 +7,29 @@ import { useCartStore } from '@/store/cartStore';
 import { colors, radius, spacing, typography, TAB_BAR_HEIGHT } from '@/theme';
 
 /**
- * Primary navigation (brief §5): Home | Menu | Rewards | Orders | More.
- * bb.q Red marks the active tab.
+ * Primary navigation — brief §4.
+ *
+ *     Home · Menu · Reserve · Rewards · Account
+ *
+ * Two changes from what the app had, and the brief is explicit about both:
+ *
+ *   "Do not create a separate 'Orders' tab unless the existing information
+ *    architecture requires it; order history can live in Account, while an
+ *    active order uses a persistent status card."
+ *
+ * So Orders becomes Reserve. That is not a swap of convenience — §4 puts
+ * Reserve among the five customer jobs the product is organised around, and a
+ * restaurant where most guests eat in should not make booking a table harder
+ * to reach than a receipt. Order history moves into Account, where §9 lists
+ * it, and an active order surfaces as a status card on Home.
+ *
+ * And More becomes Account, because "More" names a drawer rather than a
+ * destination — a guest looking for their reservations has no reason to think
+ * they are under "More".
+ *
+ * The cart badge moves with the work rather than staying on a tab: it now
+ * rides the Menu tab, which is where a part-built order is resumed.
+ * Mediterranean Olive marks the active tab.
  */
 export default function TabsLayout() {
   const itemCount = useCartStore((state) => state.getItemCount());
@@ -46,30 +67,12 @@ export default function TabsLayout() {
         options={{
           title: 'Menu',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'restaurant' : 'restaurant-outline'}
-              size={23}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="rewards"
-        options={{
-          title: 'Rewards',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'gift' : 'gift-outline'} size={23} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="orders"
-        options={{
-          title: 'Orders',
-          tabBarIcon: ({ color, focused }) => (
             <View>
-              <Ionicons name={focused ? 'receipt' : 'receipt-outline'} size={23} color={color} />
+              <Ionicons
+                name={focused ? 'restaurant' : 'restaurant-outline'}
+                size={23}
+                color={color}
+              />
               {itemCount > 0 ? (
                 <View style={styles.badge}>
                   <Text variant="micro" color={colors.onPrimary}>
@@ -82,15 +85,29 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="reserve"
+        options={{
+          title: 'Reserve',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={23} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="rewards"
+        options={{
+          title: 'Rewards',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'ribbon' : 'ribbon-outline'} size={23} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="more"
         options={{
-          title: 'More',
+          title: 'Account',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'ellipsis-horizontal-circle' : 'ellipsis-horizontal-circle-outline'}
-              size={23}
-              color={color}
-            />
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={23} color={color} />
           ),
         }}
       />

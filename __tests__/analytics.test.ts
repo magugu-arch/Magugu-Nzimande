@@ -162,7 +162,7 @@ describe('track never lets analytics break the app', () => {
   it('sends nothing at all until a provider is injected', () => {
     // No vendor SDK is bundled, and none should be reachable by default: an
     // analytics library ships an identifier for every customer, and choosing
-    // one is a decision bb.q has not made.
+    // one is a decision Pappas has not made.
     expect(() => track('view_menu', { categoryCount: 7 })).not.toThrow();
   });
 
@@ -174,7 +174,7 @@ describe('track never lets analytics break the app', () => {
     setAnalyticsAdapter(adapter);
 
     track('purchase', {
-      orderId: 'BBQ-4823',
+      orderId: 'PPS-4823',
       value: 312.5,
       fees: 35,
       discount: 20,
@@ -185,6 +185,6 @@ describe('track never lets analytics break the app', () => {
 
     expect(sent).toHaveLength(1);
     expect(sent[0]?.event).toBe('purchase');
-    expect(sent[0]?.payload).toMatchObject({ orderId: 'BBQ-4823', value: 312.5 });
+    expect(sent[0]?.payload).toMatchObject({ orderId: 'PPS-4823', value: 312.5 });
   });
 });

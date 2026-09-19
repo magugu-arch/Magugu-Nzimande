@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "bb.q Chicken",
-    "slug": "bbq-chicken-sa",
+    "name": "Pappas",
+    "slug": "pappas-app",
     "version": "1.0.0",
     "runtimeVersion": {
       "policy": "fingerprint"
@@ -13,7 +13,7 @@
     },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "bbqchicken",
+    "scheme": "pappas",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "backgroundColor": "#221E1F",
@@ -25,14 +25,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "za.co.bbqchicken.app",
+      "bundleIdentifier": "za.co.pappasrestaurant.app",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "bb.q Chicken uses your location to find your nearest store and estimate delivery times.",
+        "NSLocationWhenInUseUsageDescription": "Pappas uses your location to estimate delivery times and give you directions to the restaurant.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "za.co.bbqchicken.app",
+      "package": "za.co.pappasrestaurant.app",
       "adaptiveIcon": {
         "backgroundColor": "#E31937",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -65,7 +65,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "bb.q Chicken uses your location to find your nearest store and estimate delivery times.",
+          "locationWhenInUsePermission": "Pappas uses your location to estimate delivery times and give you directions to the restaurant.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false
@@ -104,7 +104,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiBaseUrl": "https://api.bbqchicken.co.za",
+      "apiBaseUrl": "https://api.pappasrestaurant.co.za",
       "eas": {
         "projectId": "00000000-0000-0000-0000-000000000000"
       }

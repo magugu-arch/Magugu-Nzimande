@@ -32,7 +32,7 @@ const orderInput = {
   paymentMethodType: 'card',
 } as PlaceOrderInput;
 
-const placedOrder = { id: 'order-1', reference: 'BBQ-1' } as Order;
+const placedOrder = { id: 'order-1', reference: 'PPS-1' } as Order;
 
 function deps(overrides: Partial<SubmitOrderDeps> = {}): SubmitOrderDeps {
   return {

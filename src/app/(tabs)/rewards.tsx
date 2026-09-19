@@ -116,7 +116,7 @@ export default function RewardsScreen() {
         {/* Points hero */}
         <View style={[styles.hero, { paddingTop: insets.top + spacing.xl }]}>
           <Text variant="overline" color={colors.textOnDarkMuted}>
-            bb.q Rewards · {account.memberId}
+            Pappas Rewards · {account.memberId}
           </Text>
 
           <View style={styles.balanceRow}>

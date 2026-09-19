@@ -27,7 +27,7 @@ import { checkedStore, checkedStores } from './wireChecks';
  * `DEFAULT_COORDINATES` — the Johannesburg CBD — which measured every branch
  * from a place the customer had never been to and then sorted the list by that
  * measurement and printed it on a badge. A customer in Durban opened the store
- * picker and read "bb.q Chicken Rosebank · 6.4 km", nearest first.
+ * picker and read "Pappas on the Square · 6.4 km", nearest first.
  *
  * With no origin there is no distance and no nearest, so the list comes back in
  * a stable alphabetical order and the screens have nothing to print. Saying

@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/authStore';
  * entirely out of account data. Only Profile checked. Driven as a guest
  * against the mock, which is the build a demo runs on:
  *
- *     /rewards                  BBQ-SA-004182 | 1 840 points | Silver member
+ *     /rewards                  PPS-SA-004182 | 1 840 points | Silver member
  *     /checkout/address         Home | 14 Acacia Road, Unit 3 | Melrose Arch…
  *     /account/payment-methods  Visa ending 4821 | Mastercard ending 7702
  *

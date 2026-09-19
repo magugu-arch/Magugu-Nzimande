@@ -79,7 +79,7 @@ export const notifications: AppNotification[] = [
   {
     id: 'notif-1',
     title: 'Your order is on the way',
-    body: 'Sipho has collected order BBQ-4821 and is heading to you.',
+    body: 'Sipho has collected order PPS-4821 and is heading to you.',
     receivedAt: new Date(Date.now() - 40 * 60_000).toISOString(),
     read: false,
     category: 'order',

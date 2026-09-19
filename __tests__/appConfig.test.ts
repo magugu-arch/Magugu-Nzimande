@@ -37,12 +37,12 @@ function plugin(name: string) {
 
 describe('identity', () => {
   it('uses the same reverse-DNS id on both platforms', () => {
-    expect(expo.ios.bundleIdentifier).toBe('za.co.bbqchicken.app');
+    expect(expo.ios.bundleIdentifier).toBe('za.co.pappasrestaurant.app');
     expect(expo.android.package).toBe(expo.ios.bundleIdentifier);
   });
 
   it('claims a deep-link scheme, which push tap routing depends on', () => {
-    expect(expo.scheme).toBe('bbqchicken');
+    expect(expo.scheme).toBe('pappas');
   });
 });
 
@@ -88,7 +88,7 @@ describe('ios configuration', () => {
   it('explains why it wants location, in words a person would accept', () => {
     const reason = expo.ios.infoPlist.NSLocationWhenInUseUsageDescription as string;
     expect(reason.length).toBeGreaterThan(30);
-    expect(reason).toMatch(/bb\.q/);
+    expect(reason).toMatch(/Pappas/);
   });
 
   /**

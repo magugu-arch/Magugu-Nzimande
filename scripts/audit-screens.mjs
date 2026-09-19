@@ -45,16 +45,13 @@ const ROUTES = [
   // when the link arrived truncated. Only reachable from an email, so nothing
   // else in the app renders it.
   '/reset-password?token=probe-token', '/reset-password',
-  '/home', '/menu', '/rewards', '/orders', '/more',
-  '/product/golden-original', '/cart', '/checkout', '/checkout/store',
+  '/home', '/menu', '/reserve', '/rewards', '/more',
+  '/reserve/details',
+  '/product/pork-souvlaki', '/cart', '/checkout', '/checkout/store',
   '/checkout/address', '/checkout/schedule', '/offers', '/rewards/vouchers',
+  '/orders/history', '/events', '/functions', '/gift-cards', '/about',
   '/account/profile', '/account/preferences', '/account/notifications',
   '/account/payment-methods', '/account/contact', '/account/help', '/account/legal',
-  // Tracking needs an order to track, so these were missing from the sweep
-  // until the seeded ledger was noticed: `fetchOrder` seeds on first call, so
-  // both are reachable cold. 4821 is a delivery and 4610 a collection, which
-  // is the branch that decides whether the store rows render.
-  '/order/order-4821', '/order/order-4610', '/order/order-4610/rate',
 ];
 
 /** Screens worth tabbing through; they cover every interactive primitive. */
@@ -87,16 +84,19 @@ const FOCUS_RING_ROUTES = ['/menu', '/sign-in', '/account/preferences'];
  * whole purpose is to show data that came from somewhere.
  */
 const MUST_SHOW = {
-  '/menu': /Golden Original|Soy Garlic|Half & Half/,
-  '/home': /Golden Original|Soy Garlic|Wings|Chicken/,
-  '/product/golden-original': /R\s?\d/,
-  // Not /orders: it opens on the Active tab, and a cold app has nothing
-  // cooking — both seeded orders are completed and sit under Past orders. An
-  // empty Active tab is the correct screen, so asserting a reference here
-  // would be asserting a bug. /order/order-4821 covers an order rendering.
-  '/order/order-4821': /BBQ-4821/,
-  '/rewards': /\d+\s*(points|pts)|Gold|Silver|Bronze/i,
-  '/offers': /R\s?\d|%/,
+  '/menu': /Mezedakia|Souvlaki|Seafood/,
+  '/home': /Pappas|Reserve a table|Mezedakia/,
+  // Not a price. Every dish is awaiting one — §15 forbids inventing menu
+  // prices — so the product screen shows the honest placeholder instead, and
+  // asserting `R\d` here would be asserting the invention this build refuses
+  // to make. What must render is the dish.
+  '/product/pork-souvlaki': /Pork Souvlaki/,
+  '/reserve': /Reserve a table|When would you like/,
+  '/about': /Nelson Mandela Square/,
+  '/events': /Happening at Pappas/,
+  // Not a points balance: §15 forbids inventing loyalty rules, so the
+  // programme has no economics yet and the screen leads with recognition.
+  '/rewards': /Rewards|Olive|Aegean|Sunset/i,
 };
 
 /**
@@ -105,7 +105,7 @@ const MUST_SHOW = {
  * notifications list on a cold app, which is correct, and the menu's own empty
  * case is already covered by MUST_SHOW above.
  */
-const FAILURE_COPY = /Something went wrong|Our kitchen is having a moment|We can't reach bb\.q/;
+const FAILURE_COPY = /Something went wrong|Our kitchen is having a moment|We can't reach Pappas/;
 
 const WIDTHS = [390, 320];
 

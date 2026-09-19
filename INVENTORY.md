@@ -11,13 +11,14 @@ disagree, the test fails rather than the document quietly going stale.
 
 ## Route map
 
-34 routes. Paths are what Expo Router resolves: `(groups)` are
+41 routes. Paths are what Expo Router resolves: `(groups)` are
 organisational and never appear in a URL, and `index` collapses into its parent.
 
 | Route | Screen | |
 |---|---|---|
 | `/` | `src/app/index.tsx` |  |
 | `/+not-found` | `src/app/+not-found.tsx` |  |
+| `/about` | `src/app/about.tsx` |  |
 | `/account/contact` | `src/app/account/contact.tsx` |  |
 | `/account/help` | `src/app/account/help.tsx` |  |
 | `/account/legal` | `src/app/account/legal.tsx` |  |
@@ -30,7 +31,10 @@ organisational and never appear in a URL, and `index` collapses into its parent.
 | `/checkout/address` | `src/app/checkout/address.tsx` |  |
 | `/checkout/schedule` | `src/app/checkout/schedule.tsx` |  |
 | `/checkout/store` | `src/app/checkout/store.tsx` |  |
+| `/events` | `src/app/events/index.tsx` |  |
 | `/forgot-password` | `src/app/(auth)/forgot-password.tsx` |  |
+| `/functions` | `src/app/functions/index.tsx` |  |
+| `/gift-cards` | `src/app/gift-cards/index.tsx` |  |
 | `/home` | `src/app/(tabs)/home.tsx` |  |
 | `/location` | `src/app/(onboarding)/location.tsx` |  |
 | `/menu` | `src/app/(tabs)/menu.tsx` |  |
@@ -40,9 +44,12 @@ organisational and never appear in a URL, and `index` collapses into its parent.
 | `/order/[id]` | `src/app/order/[id]/index.tsx` | dynamic |
 | `/order/[id]/confirmation` | `src/app/order/[id]/confirmation.tsx` | dynamic |
 | `/order/[id]/rate` | `src/app/order/[id]/rate.tsx` | dynamic |
-| `/orders` | `src/app/(tabs)/orders.tsx` |  |
+| `/orders/history` | `src/app/orders/history.tsx` |  |
 | `/product/[id]` | `src/app/product/[id].tsx` | dynamic |
 | `/register` | `src/app/(auth)/register.tsx` |  |
+| `/reserve` | `src/app/(tabs)/reserve.tsx` |  |
+| `/reserve/[id]` | `src/app/reserve/[id].tsx` | dynamic |
+| `/reserve/details` | `src/app/reserve/details.tsx` |  |
 | `/reset-password` | `src/app/(auth)/reset-password.tsx` |  |
 | `/rewards` | `src/app/(tabs)/rewards.tsx` |  |
 | `/rewards/[id]` | `src/app/rewards/[id].tsx` | dynamic |

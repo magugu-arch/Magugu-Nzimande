@@ -6,7 +6,7 @@ const NOW = new Date('2026-08-24T13:00:00+02:00');
 const branch = (id: string, latitude: number, longitude: number, opensOn?: string): Store =>
   ({
     id,
-    name: `bb.q Chicken ${id}`,
+    name: `Pappas ${id}`,
     addressLine: '1 Street',
     suburb: id,
     city: 'City',
@@ -68,7 +68,7 @@ describe('what checkout fills in for somebody who has chosen nothing', () => {
    * as one effect without this wait, checkout had stores and no addresses on
    * its first run — so it chose alphabetically, and both guards are "only when
    * nothing is chosen", which made the wrong choice permanent. `audit:points`
-   * failed on exactly that: "bb.q Chicken Canal Walk does not deliver to
+   * failed on exactly that: "Pappas Canal Walk does not deliver to
    * Melrose Arch", for a customer who had picked neither.
    */
   it('waits rather than choosing a branch before the addresses land', () => {

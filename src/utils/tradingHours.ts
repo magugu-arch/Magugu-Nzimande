@@ -9,7 +9,7 @@ import type { OpeningHours, Store } from '@/types';
  * then persisted whole into the selected-store snapshot, where it survived
  * until the customer cleared the app. At half past three in the morning the
  * store list said "Open now" against all seven branches and checkout took the
- * order — verified end to end, order BBQ-4823, to a kitchen that had shut five
+ * order — verified end to end, order PPS-4823, to a kitchen that had shut five
  * hours earlier.
  *
  * The hours were already here and already right. `isStoreOpenAt` had a passing

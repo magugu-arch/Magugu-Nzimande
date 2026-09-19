@@ -14,6 +14,7 @@ import {
 } from '@/components/ui';
 import { useSendContactMessage } from '@/features/account/hooks';
 import { SUPPORT } from '@/constants/config';
+import { isVerified } from '@/data/businessInput';
 import { colors, radius, spacing, typography } from '@/theme';
 import { callNumber, openExternal } from '@/utils/linking';
 import { required, validateFields } from '@/utils/validation';
@@ -84,41 +85,57 @@ export default function ContactScreen() {
     );
   }
 
+  // Narrowed once, so a row and its handler cannot disagree about whether
+  // there is anything to open.
+  const supportPhone = isVerified(SUPPORT.phone) ? SUPPORT.phone.value : null;
+  const supportEmail = isVerified(SUPPORT.email) ? SUPPORT.email.value : null;
+
   return (
     <Screen scroll edges={['top', 'bottom']} testID="contact-screen">
       <ScreenHeader title="Contact us" />
 
-      {/* Direct channels */}
+      {/*
+        Direct channels.
+
+        Each row only exists when there is something behind it. A "Call us"
+        row wired to a placeholder is worse than no row: it opens the dialer
+        on nothing, on the screen someone reaches for when they already have a
+        problem. See `data/pappasContent.ts` — the phone number and email are
+        awaiting business input, and §15 forbids inventing either.
+
+        WhatsApp is gone entirely rather than placeheld, because nobody has
+        said Pappas uses it.
+      */}
       <Card padded={false} style={styles.channels}>
-        <ListRow
-          title="Call us"
-          subtitle={`${SUPPORT.phone} · ${SUPPORT.hours}`}
-          icon="call-outline"
-          accessibilityLabel={`Call support on ${SUPPORT.phone}, ${SUPPORT.hours}`}
-          onPress={() => void callNumber(SUPPORT.phone)}
-        />
-        <ListRow
-          title="Email us"
-          subtitle={SUPPORT.email}
-          icon="mail-outline"
-          onPress={() =>
-            void openExternal(`mailto:${SUPPORT.email}`, {
-              failureTitle: 'Could not open your mail app',
-              failureMessage: `Write to ${SUPPORT.email} instead.`,
-            })
-          }
-        />
-        <ListRow
-          title="WhatsApp"
-          subtitle={SUPPORT.whatsapp}
-          icon="logo-whatsapp"
-          onPress={() =>
-            void openExternal(`https://wa.me/${SUPPORT.whatsapp.replace(/\D/g, '')}`, {
-              failureTitle: 'Could not open WhatsApp',
-              failureMessage: `Message ${SUPPORT.whatsapp} from WhatsApp instead.`,
-            })
-          }
-        />
+        {supportPhone ? (
+          <ListRow
+            title="Call us"
+            subtitle={supportPhone}
+            icon="call-outline"
+            accessibilityLabel={`Call Pappas on ${supportPhone}`}
+            onPress={() => void callNumber(supportPhone)}
+          />
+        ) : null}
+        {supportEmail ? (
+          <ListRow
+            title="Email us"
+            subtitle={supportEmail}
+            icon="mail-outline"
+            onPress={() =>
+              void openExternal(`mailto:${supportEmail}`, {
+                failureTitle: 'Could not open your mail app',
+                failureMessage: `Write to ${supportEmail} instead.`,
+              })
+            }
+          />
+        ) : null}
+        {!supportPhone && !supportEmail ? (
+          <ListRow
+            title="Send us a message"
+            subtitle="Use the form below and we will come back to you"
+            icon="chatbubbles-outline"
+          />
+        ) : null}
       </Card>
 
       {/* Message form */}
@@ -153,7 +170,7 @@ export default function ContactScreen() {
           label="Order reference"
           value={orderReference}
           onChangeText={setOrderReference}
-          placeholder="BBQ-0000 (optional)"
+          placeholder="PPS-0000 (optional)"
           autoCapitalize="characters"
           iconLeft="receipt-outline"
           helperText="Helps us find the order faster."

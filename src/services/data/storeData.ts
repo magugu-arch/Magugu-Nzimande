@@ -1,158 +1,137 @@
+import { isVerified } from '@/data/businessInput';
+import { venue } from '@/data/pappasContent';
 import type { OpeningHours, Store } from '@/types';
 
-/** Standard trading hours: 10:00 – 22:00 every day. */
-const STANDARD_HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) => ({
-  day,
-  opensAt: '10:00',
-  closesAt: '22:00',
-}));
-
-const LATE_HOURS: OpeningHours[] = Array.from({ length: 7 }, (_, day) => ({
-  day,
-  opensAt: '11:00',
-  closesAt: day === 5 || day === 6 ? '23:00' : '22:00',
-}));
+/**
+ * Pappas.
+ *
+ * One restaurant, not a network — and that is the whole point of this file.
+ *
+ * ── Why one ──────────────────────────────────────────────────────────────
+ *
+ * The app this was built from served a chain: seven branches across four
+ * cities, a store picker, a "nearest first" sort and a delivery radius per
+ * branch. Pappas is one restaurant on Nelson Mandela Square. §15 forbids
+ * inventing business facts, and six additional Pappas restaurants is the
+ * largest possible one — a customer in Durban shown a "Pappas Gateway" would
+ * drive to a shopping centre that has no such thing in it.
+ *
+ * Keeping the `Store[]` shape rather than collapsing it to a single object is
+ * deliberate. Every screen, hook and test that reads a store list keeps
+ * working, the delivery-radius and trading-hours logic is unchanged, and a
+ * second Pappas is a data change rather than a re-architecture. §17.1 asks
+ * that working architecture be preserved; a one-element array is how that
+ * survives contact with a one-site restaurant.
+ *
+ * ── Trading hours ────────────────────────────────────────────────────────
+ *
+ * Nobody has supplied them, and §15 forbids inventing opening hours. So
+ * `openingHours` is empty rather than filled with a plausible 12:00–22:00.
+ *
+ * That has a real consequence and it is the correct one: `isTradingNow`
+ * cannot say the restaurant is open, so the app does not claim it is. The
+ * ordering flow offers scheduling and the reservation flow offers a request
+ * the restaurant confirms — both of which work without knowing the hours, and
+ * neither of which sends somebody to a closed door.
+ *
+ * `venue.hours` is where they land when they arrive. This file reads them.
+ */
 
 /**
- * bb.q Chicken South Africa store network.
+ * The supplied hours, in the shape the store model wants.
  *
- * `distanceKm` is not seeded, because it is a fact about the customer rather
- * than about the branch. The store service fills it in against their real
- * coordinates when location has been granted, and leaves it absent when it has
- * not — the app used to substitute the Johannesburg CBD there and print the
- * result as the customer's own distance.
- *
- * It used to sit here as `0` on every record, which `fetchStore` passed through
- * untouched: opening a single branch showed "0 m away".
+ * Empty while `venue.hours` is awaiting business input — see the header, and
+ * `data/pappasContent.ts` for what is being waited on.
  */
+function openingHoursFromVenue(): OpeningHours[] {
+  if (!isVerified(venue.hours)) return [];
+
+  const DAY_INDEX: Record<string, number> = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+  };
+
+  return venue.hours.value.flatMap((entry) => {
+    const day = DAY_INDEX[entry.day];
+    if (day === undefined) return [];
+    return [{ day, opensAt: entry.opens, closesAt: entry.closes }];
+  });
+}
+
 export const stores: Store[] = [
   {
-    id: 'store-sandton',
-    name: 'bb.q Chicken Sandton City',
-    addressLine: 'Shop L47, Sandton City, 83 Rivonia Rd',
-    suburb: 'Sandhurst',
-    city: 'Johannesburg',
-    province: 'Gauteng',
-    phone: '011 883 0100',
-    latitude: -26.1076,
-    longitude: 28.0567,
-    openingHours: LATE_HOURS,
+    id: 'pappas-nelson-mandela-square',
+    name: venue.name,
+    addressLine: isVerified(venue.addressLine) ? venue.addressLine.value : venue.landmark.value,
+    suburb: venue.suburb.value,
+    city: venue.city,
+    province: venue.province,
+    // Empty rather than a plausible number. A `tel:` link to an invented
+    // number rings a stranger.
+    phone: isVerified(venue.phone) ? venue.phone.value : '',
+    /**
+     * Nelson Mandela Square, not the restaurant's own pin.
+     *
+     * The square is a published public landmark; the restaurant's exact
+     * coordinates are awaiting business input. Getting a guest to the square
+     * gets them to within a minute's walk, and the difference is recorded in
+     * `venue.coordinates` rather than papered over.
+     *
+     * These also drive the delivery-radius check, where being a few dozen
+     * metres out changes nothing about who can be delivered to.
+     */
+    latitude: venue.squareLatitude,
+    longitude: venue.squareLongitude,
+    openingHours: openingHoursFromVenue(),
     supportsDelivery: true,
     supportsCollection: true,
     supportsDineIn: true,
+    /**
+     * How far Pappas Direct will deliver, in kilometres.
+     *
+     * A UI and quoting bound rather than a published policy — it stops the
+     * app quoting a delivery to Pretoria — and 10km from Sandton is the
+     * radius the previous app already used for its Sandton branch. Pappas
+     * should set its own; it is one number in one file.
+     */
     deliveryRadiusKm: 10,
-    preparationMinutes: 18,
-    isOpenNow: true,
-  },
-  {
-    id: 'store-rosebank',
-    name: 'bb.q Chicken Rosebank',
-    addressLine: 'The Zone @ Rosebank, 177 Oxford Rd',
-    suburb: 'Rosebank',
-    city: 'Johannesburg',
-    province: 'Gauteng',
-    phone: '011 447 2200',
-    latitude: -26.1465,
-    longitude: 28.0436,
-    openingHours: STANDARD_HOURS,
-    supportsDelivery: true,
-    supportsCollection: true,
-    supportsDineIn: true,
-    deliveryRadiusKm: 10,
-    preparationMinutes: 20,
-    isOpenNow: true,
-  },
-  {
-    id: 'store-fourways',
-    name: 'bb.q Chicken Fourways',
-    addressLine: 'Fourways Mall, Cnr William Nicol & Witkoppen',
-    suburb: 'Fourways',
-    city: 'Johannesburg',
-    province: 'Gauteng',
-    phone: '011 465 3400',
-    latitude: -26.0173,
-    longitude: 28.0114,
-    openingHours: STANDARD_HOURS,
-    supportsDelivery: true,
-    supportsCollection: true,
-    supportsDineIn: false,
-    deliveryRadiusKm: 10,
-    preparationMinutes: 22,
-    isOpenNow: true,
-  },
-  {
-    id: 'store-menlyn',
-    name: 'bb.q Chicken Menlyn Park',
-    addressLine: 'Menlyn Park Shopping Centre, Atterbury Rd',
-    suburb: 'Menlyn',
-    city: 'Pretoria',
-    province: 'Gauteng',
-    phone: '012 348 7700',
-    latitude: -25.7828,
-    longitude: 28.2764,
-    openingHours: STANDARD_HOURS,
-    supportsDelivery: true,
-    supportsCollection: true,
-    supportsDineIn: true,
-    deliveryRadiusKm: 10,
-    preparationMinutes: 19,
-    isOpenNow: true,
-  },
-  {
-    id: 'store-vanda',
-    name: 'bb.q Chicken V&A Waterfront',
-    addressLine: 'Shop 6142, Victoria Wharf, Breakwater Blvd',
-    suburb: 'V&A Waterfront',
-    city: 'Cape Town',
-    province: 'Western Cape',
-    phone: '021 418 9900',
-    latitude: -33.9036,
-    longitude: 18.4201,
-    openingHours: LATE_HOURS,
-    supportsDelivery: true,
-    supportsCollection: true,
-    supportsDineIn: true,
-    deliveryRadiusKm: 10,
-    preparationMinutes: 21,
-    isOpenNow: true,
-  },
-  {
-    id: 'store-canalwalk',
-    name: 'bb.q Chicken Canal Walk',
-    addressLine: 'Canal Walk Shopping Centre, Century Blvd',
-    suburb: 'Century City',
-    city: 'Cape Town',
-    province: 'Western Cape',
-    phone: '021 555 4400',
-    latitude: -33.8919,
-    longitude: 18.5106,
-    openingHours: STANDARD_HOURS,
-    supportsDelivery: true,
-    supportsCollection: true,
-    supportsDineIn: false,
-    deliveryRadiusKm: 10,
-    preparationMinutes: 20,
-    isOpenNow: true,
-  },
-  {
-    id: 'store-gateway',
-    // Placeholder for the second opening. Both real branches open later this
-    // year — 1 October and 1 November — so this state is not hypothetical.
-    opensOn: '2026-11-01T09:00:00+02:00',
-    name: 'bb.q Chicken Gateway',
-    addressLine: 'Gateway Theatre of Shopping, 1 Palm Blvd',
-    suburb: 'Umhlanga Ridge',
-    city: 'Durban',
-    province: 'KwaZulu-Natal',
-    phone: '031 566 8800',
-    latitude: -29.7259,
-    longitude: 31.0684,
-    openingHours: STANDARD_HOURS,
-    supportsDelivery: true,
-    supportsCollection: true,
-    supportsDineIn: true,
-    deliveryRadiusKm: 10,
-    preparationMinutes: 18,
+    /**
+     * Kitchen preparation time, in minutes.
+     *
+     * The same figure the catalogue uses per dish. A restaurant grilling
+     * whole fish and lamb shanks is not a fryer, and quoting eighteen minutes
+     * because that is what a chicken shop quoted would be a promise nobody in
+     * this kitchen made.
+     */
+    preparationMinutes: 25,
+    /**
+     * The kitchen's own flag: is anything stopping us cooking right now?
+     *
+     * True, and the first instinct here was the opposite — nobody has supplied
+     * trading hours, so how can the app claim the restaurant is open?
+     *
+     * That reading confuses the two sources `isTradingNow` deliberately keeps
+     * apart. The flag answers "is anything wrong" — a power cut, a burst pipe,
+     * a shift nobody turned up for. The timetable answers "is this within
+     * opening hours". With no timetable, `isTradingNow` falls back to the flag,
+     * and `utils/tradingHours` gives the reason: "a data gap should not read as
+     * a shut door."
+     *
+     * Setting this false would have been a *different* claim from the one
+     * intended — not "we do not know the hours" but "the restaurant is shut" —
+     * and it closes checkout, the cart and the whole ordering journey against a
+     * restaurant that is very probably open. It was setting it false that broke
+     * three checkout suites, which is how the distinction surfaced.
+     *
+     * Where the app genuinely does not know, it says so in words rather than by
+     * refusing service: the Reserve screen notes that times are confirmed by the
+     * restaurant, and About says the hours are on request.
+     */
     isOpenNow: true,
   },
 ];

@@ -11,7 +11,7 @@ export interface FoodImagePlaceholderProps {
 }
 
 /**
- * Branded stand-in for a product whose supplied bb.q artwork has not landed yet.
+ * Branded stand-in for a product whose supplied Pappas artwork has not landed yet.
  *
  * Deliberately non-photographic: the brief forbids generic stock food imagery
  * and placeholder food blocks in production UI, so this reads unmistakably as

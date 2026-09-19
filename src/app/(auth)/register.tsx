@@ -73,7 +73,7 @@ export default function RegisterScreen() {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Text variant="body" color={colors.textSecondary} style={styles.intro}>
-          Join bb.q Rewards and start earning a point for every rand from your first order.
+          Join Pappas Rewards and let us recognise you when you come back.
         </Text>
 
         <View style={styles.form}>

@@ -10,8 +10,8 @@ import { Platform } from 'react-native';
  * back to AsyncStorage and say so plainly rather than pretending it is secure.
  */
 
-const ACCESS_TOKEN_KEY = 'bbq.auth.accessToken';
-const REFRESH_TOKEN_KEY = 'bbq.auth.refreshToken';
+const ACCESS_TOKEN_KEY = 'pappas.auth.accessToken';
+const REFRESH_TOKEN_KEY = 'pappas.auth.refreshToken';
 
 const secureAvailable = Platform.OS !== 'web';
 

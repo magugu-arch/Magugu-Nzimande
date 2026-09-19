@@ -11,7 +11,7 @@ import {
 describe('telUrl', () => {
   /**
    * The bug this closes: the order screen dialled
-   * `tel:bb.q Chicken Rosebank`. The number was never on the order — only the
+   * `tel:Pappas on the Square`. The number was never on the order — only the
    * name was — and interpolating it at the call site hid that.
    */
   it('strips the spaces South African numbers are written with', () => {
@@ -39,7 +39,7 @@ describe('isDiallable', () => {
   });
 
   it.each([
-    ['a store name', 'bb.q Chicken Rosebank'],
+    ['a store name', 'Pappas on the Square'],
     ['an empty string', ''],
     ['too few digits', '0114'],
     ['nothing at all', undefined],
@@ -49,7 +49,7 @@ describe('isDiallable', () => {
 });
 
 describe('directionsUrl', () => {
-  const target = { latitude: -26.1465, longitude: 28.0436, label: 'bb.q Chicken Rosebank' };
+  const target = { latitude: -26.1465, longitude: 28.0436, label: 'Pappas on the Square' };
 
   afterEach(() => {
     Platform.OS = 'ios';
@@ -67,14 +67,14 @@ describe('directionsUrl', () => {
   it('sends Android to a geo: link so the customer keeps their maps app', () => {
     Platform.OS = 'android';
     expect(directionsUrl(target)).toBe(
-      'geo:-26.1465,28.0436?q=-26.1465,28.0436(bb.q%20Chicken%20Rosebank)',
+      'geo:-26.1465,28.0436?q=-26.1465,28.0436(Pappas%20on%20the%20Square)',
     );
   });
 
   it('escapes the store name, which contains spaces and a full stop', () => {
     Platform.OS = 'ios';
     // An unescaped space truncates the query at the first word on some
-    // handlers, which would open a pin labelled "bb.q".
+    // handlers, which would open a pin labelled "Pappas".
     expect(directionsUrl(target)).not.toMatch(/q=[^&]*\s/);
   });
 
@@ -182,24 +182,24 @@ describe('building a directions link out of API data', () => {
     const url = directionsUrl({
       latitude: -26.1,
       longitude: 28.05,
-      label: 'bb.q Sandton & Co?a=b',
+      label: 'Pappas Sandton & Co?a=b',
     });
     expect(url).not.toContain('&a=b');
-    expect(url).toContain(encodeURIComponent('bb.q Sandton & Co?a=b'));
+    expect(url).toContain(encodeURIComponent('Pappas Sandton & Co?a=b'));
   });
 
   it('coerces coordinates rather than interpolating whatever arrived', () => {
     const url = directionsUrl({
       latitude: '-26.1&daddr=evil' as unknown as number,
       longitude: 28.05,
-      label: 'bb.q',
+      label: 'Pappas',
     });
     expect(url).not.toContain('daddr=evil');
     expect(url).toContain('NaN');
   });
 
   it('still builds an ordinary link', () => {
-    const url = directionsUrl({ latitude: -26.1446, longitude: 28.0424, label: 'bb.q Rosebank' });
+    const url = directionsUrl({ latitude: -26.1446, longitude: 28.0424, label: 'Pappas Rosebank' });
     expect(url).toContain('-26.1446,28.0424');
   });
 });

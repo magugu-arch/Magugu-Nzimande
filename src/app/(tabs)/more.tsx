@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
 import { BrandMark } from '@/components/brand/BrandMark';
 import { Badge, Button, Card, Divider, ListRow, Screen, Text } from '@/components/ui';
+import { factText } from '@/data/businessInput';
 import { StickyCartBar } from '@/features/cart/components/StickyCartBar';
 import { useNotifications } from '@/features/account/hooks';
 import { useLoyaltyAccount } from '@/features/rewards/hooks';
@@ -154,19 +155,84 @@ export default function MoreScreen() {
           </Card>
         </View>
 
+        {/*
+          Your visits.
+
+          §4 moves order history here rather than giving it a tab, and §9 lists
+          reservations, orders, favourites and gift cards under Account. This
+          is that group, and it leads with reservations because at a restaurant
+          like this one most visits are a table rather than a delivery.
+        */}
+        <View style={styles.group}>
+          <Text variant="overline" color={colors.textMuted} style={styles.groupTitle}>
+            Your visits
+          </Text>
+          <Card padded={false} style={styles.groupCard}>
+            <ListRow
+              title="Reservations"
+              subtitle="Tables booked and past visits"
+              icon="calendar-outline"
+              onPress={() => router.push('/reserve')}
+            />
+            <Divider spacingSize="none" />
+            <ListRow
+              title="Order history"
+              subtitle="Everything you have ordered"
+              icon="receipt-outline"
+              onPress={() => router.push('/orders/history')}
+            />
+            <Divider spacingSize="none" />
+            <ListRow
+              title="Favourites"
+              subtitle="The dishes you keep coming back to"
+              icon="heart-outline"
+              onPress={() => router.push('/menu')}
+            />
+          </Card>
+        </View>
+
+        {/* At Pappas */}
+        <View style={styles.group}>
+          <Text variant="overline" color={colors.textMuted} style={styles.groupTitle}>
+            At Pappas
+          </Text>
+          <Card padded={false} style={styles.groupCard}>
+            <ListRow
+              title="Events"
+              subtitle="What is on at the restaurant"
+              icon="sparkles-outline"
+              onPress={() => router.push('/events')}
+            />
+            <Divider spacingSize="none" />
+            <ListRow
+              title="Private dining & functions"
+              subtitle="Celebrations, corporate and larger tables"
+              icon="people-outline"
+              onPress={() => router.push('/functions')}
+            />
+            <Divider spacingSize="none" />
+            <ListRow
+              title="Gift cards"
+              subtitle="Give someone an evening at Pappas"
+              icon="gift-outline"
+              onPress={() => router.push('/gift-cards')}
+            />
+            <Divider spacingSize="none" />
+            <ListRow
+              title="Find us"
+              subtitle="Nelson Mandela Square, Sandton"
+              icon="location-outline"
+              onPress={() => router.push('/about')}
+            />
+          </Card>
+        </View>
+
         {/* Ordering */}
         <View style={styles.group}>
           <Text variant="overline" color={colors.textMuted} style={styles.groupTitle}>
             Ordering
           </Text>
           <Card padded={false} style={styles.groupCard}>
-            <ListRow
-              title="Find a store"
-              subtitle="Locations, hours and services"
-              icon="storefront-outline"
-              onPress={() => router.push('/checkout/store')}
-            />
-            <Divider spacingSize="none" />
             <ListRow
               title="Offers"
               subtitle="Everything running right now"
@@ -198,7 +264,9 @@ export default function MoreScreen() {
             <Divider spacingSize="none" />
             <ListRow
               title="Contact us"
-              subtitle={SUPPORT.hours}
+              // A Fact, not a string: nobody has supplied Pappas' trading
+              // hours, so this reads the placeholder rather than a time.
+              subtitle={factText(SUPPORT.hours, () => 'Every day')}
               icon="chatbubbles-outline"
               onPress={() => router.push('/account/contact')}
             />
@@ -230,7 +298,7 @@ export default function MoreScreen() {
             Version {Constants.expoConfig?.version ?? '1.0.0'}
           </Text>
           <Text variant="caption" color={colors.textDisabled} align="center">
-            bb.q Chicken South Africa
+            Pappas · Greek & Mediterranean
           </Text>
         </View>
       </Screen>

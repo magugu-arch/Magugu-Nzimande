@@ -115,7 +115,7 @@ export default function PreferencesScreen() {
               <View style={styles.pushNoticeBody}>
                 <Text variant="caption" color={colors.textSecondary}>
                   {outcome.status === 'denied'
-                    ? 'Push is switched off for bb.q in your device settings, so these will not arrive.'
+                    ? 'Push is switched off for Pappas in your device settings, so these will not arrive.'
                     : outcome.reason}
                 </Text>
                 {outcome.status === 'denied' ? (

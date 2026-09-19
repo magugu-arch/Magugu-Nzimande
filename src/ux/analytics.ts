@@ -42,7 +42,7 @@
  * ── Nothing is sent until a provider is injected ───────────────────────────
  * There is no vendor SDK in this file and none in the bundle. `setAnalyticsAdapter`
  * takes one at startup; until then events go to the console in development and
- * nowhere at all in production. Choosing the provider is a decision bb.q has
+ * nowhere at all in production. Choosing the provider is a decision Pappas has
  * not made yet, and an analytics SDK is not something to guess at — it ships
  * an identifier for every customer.
  */
@@ -151,7 +151,7 @@ export function track<E extends AnalyticsEvent>(event: E, payload: AnalyticsEven
 
   if (__DEV__ && !adapter) {
     // eslint-disable-next-line no-console
-    console.info('[bb.q analytics]', event, payload);
+    console.info('[Pappas analytics]', event, payload);
   }
 }
 

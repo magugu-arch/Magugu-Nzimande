@@ -203,9 +203,6 @@ add(
 );
 
 /** `goldenOriginalWings` -> `golden-original-wings`. */
-function toKebab(key) {
-  return key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-}
 
 const rendered = lines.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
 
