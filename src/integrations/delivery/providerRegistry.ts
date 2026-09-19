@@ -136,9 +136,7 @@ export async function availabilityFor(
  * not an error, and hiding disabled partners would make the channel picker
  * change shape as flags flip, which is worse than a quiet row.
  */
-export async function listAvailability(
-  mode: FulfilmentMode,
-): Promise<ProviderAvailability[]> {
+export async function listAvailability(mode: FulfilmentMode): Promise<ProviderAvailability[]> {
   return Promise.all(PROVIDER_IDS.map((id) => availabilityFor(id, mode)));
 }
 
@@ -152,9 +150,7 @@ export async function listAvailability(
  * and Pappas owns the relationship. Falling back to the first genuinely
  * available channel keeps the app usable if Direct is ever switched off.
  */
-export async function defaultProviderFor(
-  mode: FulfilmentMode,
-): Promise<ProviderId | null> {
+export async function defaultProviderFor(mode: FulfilmentMode): Promise<ProviderId | null> {
   const states = await listAvailability(mode);
   const direct = states.find((s) => s.provider === 'pappas-direct');
   if (direct?.state === 'available') return 'pappas-direct';

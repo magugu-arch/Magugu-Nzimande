@@ -38,11 +38,7 @@
 export type ProviderId = 'pappas-direct' | 'uber-eats' | 'mr-d';
 
 /** Every provider id, in the order the UI should offer them. */
-export const PROVIDER_IDS: readonly ProviderId[] = [
-  'pappas-direct',
-  'uber-eats',
-  'mr-d',
-] as const;
+export const PROVIDER_IDS: readonly ProviderId[] = ['pappas-direct', 'uber-eats', 'mr-d'] as const;
 
 /**
  * Brief §3. The provider-facing fulfilment vocabulary.
@@ -143,7 +139,7 @@ export interface ProviderOrderItem {
   name: string;
   quantity: number;
   unitPriceCents: number;
-  modifiers?: Array<{ id: string; name: string; priceCents: number }>;
+  modifiers?: { id: string; name: string; priceCents: number }[];
   notes?: string;
 }
 

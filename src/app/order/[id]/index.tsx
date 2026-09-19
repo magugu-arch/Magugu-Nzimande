@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   statusCard: {
     gap: spacing.sm,
     marginBottom: spacing.md,
-    backgroundColor: colors.brand.black,
+    backgroundColor: colors.brand.charcoal,
     borderWidth: 0,
   },
   cancelledCard: { backgroundColor: colors.neutral.grey700 },

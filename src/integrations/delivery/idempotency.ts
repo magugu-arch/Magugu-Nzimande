@@ -62,7 +62,7 @@ export interface OrderIntent {
   fulfilment: string;
   scheduledFor?: string;
   totalCents: number;
-  items: Array<{ sku: string; quantity: number; modifiers?: Array<{ id: string }> }>;
+  items: { sku: string; quantity: number; modifiers?: { id: string }[] }[];
 }
 
 /**

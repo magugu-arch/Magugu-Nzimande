@@ -8,8 +8,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { startFavouritesSync } from '@/features/favourites/sync';
 // Imported per weight, not from the package root. The root barrel `require()`s
-// all eighteen Montserrat cuts and both Playfair faces, and Metro follows it —
-// roughly 6MB of fonts to ship the eight the type scale actually names.
+// all eighteen Montserrat cuts and every Cinzel weight, and Metro follows it —
+// roughly 6MB of fonts to ship the ten the type scale actually names.
 import { Montserrat_300Light } from '@expo-google-fonts/montserrat/300Light';
 import { Montserrat_400Regular } from '@expo-google-fonts/montserrat/400Regular';
 import { Montserrat_500Medium } from '@expo-google-fonts/montserrat/500Medium';
@@ -17,7 +17,9 @@ import { Montserrat_600SemiBold } from '@expo-google-fonts/montserrat/600SemiBol
 import { Montserrat_700Bold } from '@expo-google-fonts/montserrat/700Bold';
 import { Montserrat_800ExtraBold } from '@expo-google-fonts/montserrat/800ExtraBold';
 import { Montserrat_900Black } from '@expo-google-fonts/montserrat/900Black';
-import { PlayfairDisplay_400Regular_Italic } from '@expo-google-fonts/playfair-display/400Regular_Italic';
+import { Cinzel_400Regular } from '@expo-google-fonts/cinzel/400Regular';
+import { Cinzel_600SemiBold } from '@expo-google-fonts/cinzel/600SemiBold';
+import { Allura_400Regular } from '@expo-google-fonts/allura/400Regular';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/system/OfflineBanner';
 import { useAppFocus } from '@/features/system/useAppFocus';
@@ -64,10 +66,15 @@ const queryClient = new QueryClient({
 });
 
 /**
- * The brand faces, per guidelines §11 and §13 — the complete type system.
- * §11.1 names two members and no more, so nothing else is loaded and nothing
- * falls back to a platform face. See `theme/typography.ts` on why Arial is
- * gone.
+ * The Pappas type system — CI sheet panel 04 and brief §3.
+ *
+ * Three faces and no more: Cinzel for display and editorial, Montserrat for
+ * every piece of product UI, Allura for a single accent phrase. Nothing else
+ * is loaded, so nothing silently falls back to a platform face.
+ *
+ * Only the two Cinzel cuts the scale names are bundled. Cinzel ships six
+ * weights and the heavier ones are never used — at heading sizes they close
+ * up the counters and the face starts reading as a logo rather than as type.
  */
 const brandFonts = {
   Montserrat_300Light,
@@ -77,7 +84,9 @@ const brandFonts = {
   Montserrat_700Bold,
   Montserrat_800ExtraBold,
   Montserrat_900Black,
-  PlayfairDisplay_400Regular_Italic,
+  Cinzel_400Regular,
+  Cinzel_600SemiBold,
+  Allura_400Regular,
 };
 
 export default function RootLayout() {

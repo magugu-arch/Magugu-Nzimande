@@ -129,9 +129,9 @@ describe('provider catalogue mapping', () => {
         'steak-on-the-rock': { pappasSku: 'steak-on-the-rock', providerAvailability: false },
       },
     };
-    expect(mapCatalogueForProvider([souvlaki, steak], 'mr-d', overrides).map((i) => i.pappasSku)).toEqual(
-      ['souvlaki-pork'],
-    );
+    expect(
+      mapCatalogueForProvider([souvlaki, steak], 'mr-d', overrides).map((i) => i.pappasSku),
+    ).toEqual(['souvlaki-pork']);
   });
 
   it('will not let an override resurrect a dish the kitchen has taken off', () => {

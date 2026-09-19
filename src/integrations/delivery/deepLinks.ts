@@ -27,10 +27,7 @@ export type DeepLinkTarget =
   | { type: 'reservation'; reservationId?: string };
 
 /** Which targets require a signed-in account before they make sense. */
-const REQUIRES_ACCOUNT: ReadonlySet<DeepLinkTarget['type']> = new Set([
-  'reward',
-  'reservation',
-]);
+const REQUIRES_ACCOUNT: ReadonlySet<DeepLinkTarget['type']> = new Set(['reward', 'reservation']);
 
 export function requiresAccount(target: DeepLinkTarget): boolean {
   return REQUIRES_ACCOUNT.has(target.type);
@@ -77,9 +74,7 @@ export function parseDeepLinkTarget(raw: unknown): DeepLinkTarget | null {
       // The only target whose id is genuinely optional: "open reservations"
       // is a valid destination with nothing to open.
       const reservationId = id('reservationId');
-      return reservationId
-        ? { type: 'reservation', reservationId }
-        : { type: 'reservation' };
+      return reservationId ? { type: 'reservation', reservationId } : { type: 'reservation' };
     }
     default:
       return null;

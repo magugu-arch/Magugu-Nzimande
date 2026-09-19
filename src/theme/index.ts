@@ -1,12 +1,15 @@
 import { colors } from './colors';
 import { typography } from './typography';
-import { spacing, radius, elevation, aspect } from './layout';
+import { spacing, radius, elevation, aspect, motion } from './layout';
 
 export { colors, type Colors } from './colors';
 export {
   typography,
   fontFamily,
   fontWeight,
+  montserrat,
+  cinzel,
+  allura,
   headingGap,
   fontScaleCapFor,
   CHROME_FONT_SCALE_CAP,
@@ -17,6 +20,7 @@ export {
   radius,
   elevation,
   aspect,
+  motion,
   absoluteFill,
   HIT_SLOP,
   MIN_TOUCH_TARGET,
@@ -25,6 +29,14 @@ export {
 } from './layout';
 
 /** Single object for consumers that want the whole token set. */
-export const theme = { colors, typography, spacing, radius, elevation, aspect } as const;
+export const theme = {
+  colors,
+  typography,
+  spacing,
+  radius,
+  elevation,
+  aspect,
+  motion,
+} as const;
 
 export type Theme = typeof theme;

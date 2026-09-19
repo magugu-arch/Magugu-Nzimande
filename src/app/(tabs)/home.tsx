@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     minHeight: MIN_TOUCH_TARGET,
   },
   storeName: { flex: 1 },
-  trackingCard: { backgroundColor: colors.brand.black, gap: spacing.sm, borderWidth: 0 },
+  trackingCard: { backgroundColor: colors.brand.charcoal, gap: spacing.sm, borderWidth: 0 },
   trackingHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     flexBasis: '46%',
     borderRadius: radius.lg,
     overflow: 'hidden',
-    backgroundColor: colors.brand.black,
+    backgroundColor: colors.brand.charcoal,
   },
   categoryLabel: {
     ...absoluteFill,

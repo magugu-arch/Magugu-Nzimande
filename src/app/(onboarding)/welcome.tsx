@@ -157,7 +157,7 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.brand.black },
+  root: { flex: 1, backgroundColor: colors.brand.charcoal },
   slide: { width: SCREEN_WIDTH },
   image: { flex: 1, width: SCREEN_WIDTH },
   topBar: {
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     gap: spacing.md,
     padding: spacing.xl,
-    backgroundColor: colors.brand.black,
+    backgroundColor: colors.brand.charcoal,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
   },

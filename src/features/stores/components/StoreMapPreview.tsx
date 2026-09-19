@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: radius.lg,
     overflow: 'hidden',
-    backgroundColor: colors.brand.black,
+    backgroundColor: colors.brand.charcoal,
   },
   grid: { ...absoluteFill },
   gridLine: {

@@ -66,7 +66,7 @@ const TONES: Record<ButtonVariant, Record<State, Tone>> = {
     hover: { background: colors.primaryHover, border: 'transparent', text: colors.onPrimary },
     pressed: { background: colors.primaryPressed, border: 'transparent', text: colors.onPrimary },
     disabled: {
-      background: colors.brand.redDisabled,
+      background: colors.primaryDisabled,
       border: 'transparent',
       text: colors.primaryPressed,
     },
@@ -75,7 +75,7 @@ const TONES: Record<ButtonVariant, Record<State, Tone>> = {
     default: { background: colors.surface, border: colors.primary, text: colors.primary },
     hover: { background: colors.primarySoft, border: colors.primary, text: colors.primaryHover },
     pressed: {
-      background: colors.brand.redTint,
+      background: colors.brand.oliveWash,
       border: colors.primaryPressed,
       text: colors.primaryPressed,
     },
@@ -86,11 +86,19 @@ const TONES: Record<ButtonVariant, Record<State, Tone>> = {
     },
   },
   tertiary: {
-    default: { background: colors.surface, border: colors.brand.black, text: colors.textPrimary },
-    hover: { background: colors.surfaceAlt, border: colors.brand.black, text: colors.textPrimary },
+    default: {
+      background: colors.surface,
+      border: colors.brand.charcoal,
+      text: colors.textPrimary,
+    },
+    hover: {
+      background: colors.surfaceAlt,
+      border: colors.brand.charcoal,
+      text: colors.textPrimary,
+    },
     pressed: {
       background: colors.neutral.grey200,
-      border: colors.brand.black,
+      border: colors.brand.charcoal,
       text: colors.textPrimary,
     },
     disabled: { background: colors.surface, border: colors.border, text: colors.textDisabled },

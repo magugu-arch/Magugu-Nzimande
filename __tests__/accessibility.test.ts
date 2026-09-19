@@ -1,14 +1,34 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { colors } from '@/theme';
-import { tints } from '@/theme/colors';
 import { AA_LARGE, AA_NORMAL, contrastRatio, luminance, meetsAA, parseHex } from '@/utils/contrast';
 
+/** HSL hue in degrees and saturation in 0–1, for the signal-red rule below. */
+function hueSaturation(hex: string): [number, number] {
+  const [r, g, b] = parseHex(hex).map((c) => c / 255) as [number, number, number];
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  const lightness = (max + min) / 2;
+  if (delta === 0) return [0, 0];
+  const saturation = delta / (1 - Math.abs(2 * lightness - 1));
+  let hue: number;
+  if (max === r) hue = ((g - b) / delta) % 6;
+  else if (max === g) hue = (b - r) / delta + 2;
+  else hue = (r - g) / delta + 4;
+  hue *= 60;
+  return [hue < 0 ? hue + 360 : hue, saturation];
+}
+
 describe('contrast maths', () => {
-  it('matches the ratios the guidelines publish', () => {
-    // §32.3 prints these two as its worked examples.
-    expect(contrastRatio(colors.brand.black, colors.neutral.white)).toBeCloseTo(16.5, 1);
-    expect(contrastRatio(colors.neutral.white, colors.brand.red)).toBeCloseTo(4.7, 1);
+  it('measures the two pairs brief §13 singles out by name', () => {
+    // "WCAG-aware contrast, especially gold on beige and blue on beige."
+    //
+    // Both are worth a number rather than an assumption, and they come out
+    // very differently: the blue pair is comfortable, the gold pair is the
+    // reason gold is not allowed to carry text anywhere in this app.
+    expect(contrastRatio(colors.brand.aegean, colors.brand.stone)).toBeGreaterThan(7);
+    expect(contrastRatio(colors.brand.gold, colors.brand.stone)).toBeLessThan(2);
   });
 
   it('is symmetric and bounded', () => {
@@ -18,7 +38,7 @@ describe('contrast maths', () => {
   });
 
   it('expands three-digit hex', () => {
-    expect(parseHex('#E31937')).toEqual([227, 25, 55]);
+    expect(parseHex('#2E4A2F')).toEqual([46, 74, 47]);
     expect(parseHex('#FFF')).toEqual([255, 255, 255]);
     expect(luminance('#000000')).toBe(0);
   });
@@ -38,16 +58,26 @@ describe('contrast maths', () => {
  */
 describe('theme colour pairs meet §32.3', () => {
   const normal: [string, string, string][] = [
-    ['body text on white', colors.textPrimary, colors.background],
-    ['secondary text on white', colors.textSecondary, colors.background],
-    ['muted text on white', colors.textMuted, colors.background],
-    ['body text on light grey', colors.textPrimary, colors.surfaceAlt],
-    ['white on bb.q Red', colors.onPrimary, colors.primary],
-    ['white on red hover', colors.onPrimary, colors.primaryHover],
-    ['white on red pressed', colors.onPrimary, colors.primaryPressed],
-    ['white on bb.q Black', colors.textOnDark, colors.surfaceDark],
-    ['red on white', colors.primary, colors.background],
-    ['disabled primary label on its fill', colors.primaryPressed, colors.brand.redDisabled],
+    ['body text on the stone ground', colors.textPrimary, colors.background],
+    ['secondary text on the stone ground', colors.textSecondary, colors.background],
+    ['muted text on the stone ground', colors.textMuted, colors.background],
+    ['body text on a white card', colors.textPrimary, colors.surface],
+    ['muted text on a white card', colors.textMuted, colors.surface],
+    ['body text on stone beige', colors.textPrimary, colors.surfaceSunken],
+    ['white on olive', colors.onPrimary, colors.primary],
+    ['white on olive pressed', colors.onPrimary, colors.primaryPressed],
+    ['white on aegean', colors.onSecondary, colors.secondary],
+    ['white on charcoal', colors.textOnDark, colors.surfaceDark],
+    ['olive on the stone ground', colors.primary, colors.background],
+    ['aegean link on the stone ground', colors.textLink, colors.background],
+    ['aegean link on a white card', colors.textLink, colors.surface],
+    // Gold is a fill behind charcoal, never an ink on a light ground.
+    ['charcoal on gold', colors.onAccent, colors.accent],
+    ['the darkened gold ink on its own wash', colors.accentInk, colors.accentSoft],
+    ['the darkened gold ink on a white card', colors.accentInk, colors.surface],
+    ['the darkened terracotta ink on its wash', colors.warmInk, colors.warmSoft],
+    ['the darkened terracotta ink on a white card', colors.warmInk, colors.surface],
+    ['disabled primary label on its fill', colors.primaryPressed, colors.primaryDisabled],
     ['success on its tint', colors.status.success, colors.status.successSoft],
     ['error on its tint', colors.status.error, colors.status.errorSoft],
     ['info on its tint', colors.status.info, colors.status.infoSoft],
@@ -73,8 +103,51 @@ describe('theme colour pairs meet §32.3', () => {
   });
 
   it('never pairs white with the disabled primary fill', () => {
-    // The combination §22.9 scores 2.1:1 and marks Fail.
-    expect(meetsAA(colors.onPrimary, colors.brand.redDisabled)).toBe(false);
+    expect(meetsAA(colors.onPrimary, colors.primaryDisabled)).toBe(false);
+  });
+
+  /**
+   * The rule the whole palette turns on.
+   *
+   * Sunset Gold is the colour that reads as "premium" at a glance, which is
+   * exactly why it keeps getting reached for as an ink. It cannot be one on a
+   * light ground: 2.0:1 on white, 1.7:1 on stone. §13 names this pair. The
+   * app uses gold as a fill behind charcoal, as a rule and as a small mark
+   * beside a worded label — never as small text on a light background, and
+   * never as a primary CTA.
+   */
+  it('refuses gold as an ink on any light ground', () => {
+    expect(meetsAA(colors.accent, colors.surface)).toBe(false);
+    expect(meetsAA(colors.accent, colors.background)).toBe(false);
+    expect(meetsAA(colors.accent, colors.surfaceSunken)).toBe(false);
+  });
+
+  it('keeps a darkened gold available for the one place an ink is needed', () => {
+    // Having both means the correct token is available rather than the
+    // convenient one being reused.
+    expect(meetsAA(colors.accentInk, colors.surface)).toBe(true);
+  });
+
+  /**
+   * §15's first guardrail: no oversized red CTAs, no fast-food UI.
+   *
+   * The Pappas palette has no signal red, and this catches one creeping back
+   * in as a brand or accent colour — which is how a hospitality app slowly
+   * becomes a delivery app.
+   *
+   * What separates a signal red from Terracotta is *saturation*, not hue.
+   * Terracotta sits at hue 16° and 52% saturation: a muted earth tone, and one
+   * the CI sheet names. The red this rule is about sits near hue 351° at 80%.
+   * So the test measures both, and a colour is only a signal red if it is both
+   * red-hued and loud. Charcoal is hue 0° with zero saturation and must not
+   * trip it either, which a hue-only rule would get wrong.
+   */
+  it('admits no signal red into the brand palette', () => {
+    for (const [name, value] of Object.entries(colors.brand)) {
+      const [hue, saturation] = hueSaturation(value);
+      const redHued = hue >= 345 || hue <= 15;
+      expect([name, redHued && saturation >= 0.6]).toEqual([name, false]);
+    }
   });
 });
 
@@ -148,40 +221,47 @@ describe('button labels obey §22.7', () => {
 });
 
 /**
- * §8.2's tint ramps.
+ * The wash tokens.
  *
- * The ramp is computed rather than sampled, because the supplied guideline
- * page is not colour-faithful — its own §8.1 swatches miss their printed hex
- * values. Computing it makes the arithmetic checkable, which is what this
- * does: the endpoints must be the §8.1 brand colours and pure-white-adjacent,
- * the steps must descend in saturation, and one middle value is pinned by hand
- * so a change to the mixing maths cannot pass silently.
+ * Each brand colour has a pale companion used as a surface — a selected row,
+ * a chip fill, the ground behind a status message. They exist to be
+ * *backgrounds*, and a background that cannot hold body text is not a
+ * background, it is a decoration that will one day have text put on it.
+ *
+ * The bb.q palette this replaced carried a computed tint ramp at six steps.
+ * The Pappas CI sheet publishes no such ramp — panel 03 names six flat
+ * values and panel 07 handles softness with texture instead — so the washes
+ * are chosen rather than derived, and the invariant worth keeping is not the
+ * arithmetic but the outcome: every one of them reads.
  */
-describe('§8.2 colour tints', () => {
-  const STEPS = [100, 80, 60, 40, 20, 10] as const;
+describe('the wash surfaces can carry text', () => {
+  const washes: [string, string][] = [
+    ['olive wash', colors.brand.oliveWash],
+    ['aegean wash', colors.brand.aegeanWash],
+    ['gold wash', colors.brand.goldWash],
+    ['terracotta wash', colors.brand.terracottaWash],
+    ['stone beige', colors.brand.stone],
+    ['stone light', colors.brand.stoneLight],
+  ];
 
-  it('starts each ramp at the §8.1 brand colour', () => {
-    expect(tints.red[100]).toBe(colors.brand.red);
-    expect(tints.black[100]).toBe(colors.brand.black);
+  it.each(washes)('%s holds body text at 4.5:1', (_name, wash) => {
+    expect(contrastRatio(colors.textPrimary, wash)).toBeGreaterThanOrEqual(AA_NORMAL);
   });
 
-  it.each(['red', 'black'] as const)('%s lightens monotonically toward white', (ramp) => {
-    const levels = STEPS.map((step) => luminance(tints[ramp][step]));
-    for (let i = 1; i < levels.length; i += 1) {
-      expect(levels[i]).toBeGreaterThan(levels[i - 1] as number);
+  it.each(washes)('%s also holds muted text', (_name, wash) => {
+    // The likelier real use: a caption under a heading inside a filled card.
+    expect(contrastRatio(colors.textMuted, wash)).toBeGreaterThanOrEqual(AA_NORMAL);
+  });
+
+  it('keeps each wash lighter than the colour it belongs to', () => {
+    const pairs: [string, string][] = [
+      [colors.brand.olive, colors.brand.oliveWash],
+      [colors.brand.aegean, colors.brand.aegeanWash],
+      [colors.brand.gold, colors.brand.goldWash],
+      [colors.brand.terracotta, colors.brand.terracottaWash],
+    ];
+    for (const [base, wash] of pairs) {
+      expect(luminance(wash)).toBeGreaterThan(luminance(base));
     }
-  });
-
-  it('mixes over white, not over black or by alpha alone', () => {
-    // bb.q Red at 20%: 0.2 x 227 + 0.8 x 255 = 249.4 -> F9, and so on.
-    expect(tints.red[20]).toBe('#F9D1D7');
-    // bb.q Black at 40%: 0.4 x 34 + 0.6 x 255 = 166.6 -> A7, and so on.
-    expect(tints.black[40]).toBe('#A7A5A5');
-  });
-
-  it('leaves the 10% step light enough to carry body text', () => {
-    // The tints exist to be surfaces. One that cannot hold text is not useful.
-    expect(contrastRatio(colors.textPrimary, tints.red[10])).toBeGreaterThanOrEqual(AA_NORMAL);
-    expect(contrastRatio(colors.textPrimary, tints.black[10])).toBeGreaterThanOrEqual(AA_NORMAL);
   });
 });

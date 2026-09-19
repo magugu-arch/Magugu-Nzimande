@@ -71,7 +71,11 @@ const SANDTON: Store = {
 };
 
 function direct(store: Store | null = SANDTON): PappasDirectAdapter {
-  return new PappasDirectAdapter({ async getStore() { return store; } });
+  return new PappasDirectAdapter({
+    async getStore() {
+      return store;
+    },
+  });
 }
 
 function request(over: Partial<ProviderOrderRequest> = {}): ProviderOrderRequest {
@@ -99,15 +103,29 @@ function request(over: Partial<ProviderOrderRequest> = {}): ProviderOrderRequest
 }
 
 describe('choosing a channel', () => {
-  beforeEach(() => configureDirectChannel({ async getStore() { return SANDTON; } }));
+  beforeEach(() =>
+    configureDirectChannel({
+      async getStore() {
+        return SANDTON;
+      },
+    }),
+  );
 
   it('defaults to Pappas Direct, where the customer earns rewards', async () => {
-    setChannels({ pappasDirectEnabled: true, uberEatsEnabled: true, brokerBaseUrl: 'https://x.test' });
+    setChannels({
+      pappasDirectEnabled: true,
+      uberEatsEnabled: true,
+      brokerBaseUrl: 'https://x.test',
+    });
     await expect(defaultProviderFor('delivery')).resolves.toBe('pappas-direct');
   });
 
   it('falls through to another live channel if Direct is switched off', async () => {
-    setChannels({ pappasDirectEnabled: false, uberEatsEnabled: true, brokerBaseUrl: 'https://x.test' });
+    setChannels({
+      pappasDirectEnabled: false,
+      uberEatsEnabled: true,
+      brokerBaseUrl: 'https://x.test',
+    });
     await expect(defaultProviderFor('delivery')).resolves.toBe('uber-eats');
   });
 
@@ -197,7 +215,13 @@ describe('Pappas Direct quoting', () => {
   it('refuses an address outside the delivery radius, and says which', async () => {
     const quote = await direct().quote(
       request({
-        address: { line1: 'Far', city: 'Pretoria', country: 'ZA', latitude: -25.75, longitude: 28.19 },
+        address: {
+          line1: 'Far',
+          city: 'Pretoria',
+          country: 'ZA',
+          latitude: -25.75,
+          longitude: 28.19,
+        },
       }),
     );
     expect(quote).toMatchObject({ available: false, reason: 'OUT_OF_AREA' });

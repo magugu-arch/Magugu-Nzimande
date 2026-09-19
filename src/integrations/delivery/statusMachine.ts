@@ -46,11 +46,7 @@ const RANK: Record<CanonicalOrderStatus, number> = {
   failed: 8,
 };
 
-const TERMINAL: ReadonlySet<CanonicalOrderStatus> = new Set([
-  'delivered',
-  'cancelled',
-  'failed',
-]);
+const TERMINAL: ReadonlySet<CanonicalOrderStatus> = new Set(['delivered', 'cancelled', 'failed']);
 
 export function isTerminalStatus(status: CanonicalOrderStatus): boolean {
   return TERMINAL.has(status);

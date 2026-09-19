@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: radius.xl,
     overflow: 'hidden',
-    backgroundColor: colors.brand.black,
+    backgroundColor: colors.brand.charcoal,
   },
   overlay: {
     ...absoluteFill,

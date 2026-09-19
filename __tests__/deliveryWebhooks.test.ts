@@ -68,10 +68,7 @@ describe('duplicate webhooks', () => {
   it('treats a different event on the same order as new', () => {
     const ledger = new SeenEventLedger();
     normalizeOrderEvent(webhook({ eventId: 'evt-1', type: 'order.preparing' }), ledger);
-    const second = normalizeOrderEvent(
-      webhook({ eventId: 'evt-2', type: 'order.ready' }),
-      ledger,
-    );
+    const second = normalizeOrderEvent(webhook({ eventId: 'evt-2', type: 'order.ready' }), ledger);
     expect(second.ok).toBe(true);
   });
 
@@ -233,7 +230,10 @@ describe('idempotency keys', () => {
     customerId: 'cust-1',
     fulfilment: 'delivery',
     totalCents: 42_000,
-    items: [{ sku: 'a', quantity: 1 }, { sku: 'b', quantity: 2 }],
+    items: [
+      { sku: 'a', quantity: 1 },
+      { sku: 'b', quantity: 2 },
+    ],
   };
   const now = Date.parse('2026-09-19T12:00:00Z');
 

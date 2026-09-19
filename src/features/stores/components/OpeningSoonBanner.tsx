@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
     borderRadius: radius.lg,
-    backgroundColor: colors.brand.black,
+    backgroundColor: colors.brand.charcoal,
   },
   icon: {
     width: 34,

@@ -31,7 +31,7 @@ export const FoodImagePlaceholder = memo(function FoodImagePlaceholder({
       accessibilityLabel={`${label} — product photography coming soon`}
     >
       <View style={styles.mark}>
-        <Ionicons name="camera-outline" size={compact ? 16 : 22} color={colors.brand.red} />
+        <Ionicons name="camera-outline" size={compact ? 16 : 22} color={colors.brand.gold} />
       </View>
       {!compact ? (
         <>
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
     padding: spacing.md,
-    backgroundColor: colors.brand.black,
+    backgroundColor: colors.brand.charcoal,
   },
   mark: {
     width: 40,

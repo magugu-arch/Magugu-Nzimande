@@ -176,9 +176,13 @@ export abstract class ExternalChannelAdapter implements DeliveryProvider {
     // and gateways commonly key on the header; providers that key on the body
     // still see it. Sending both costs nothing and means a retry after a
     // timeout cannot become a second order — extension §5 and §11.
-    const reply = await this.call<BrokerOrderReply>('create-order', { request }, {
-      'Idempotency-Key': request.idempotencyKey,
-    });
+    const reply = await this.call<BrokerOrderReply>(
+      'create-order',
+      { request },
+      {
+        'Idempotency-Key': request.idempotencyKey,
+      },
+    );
 
     return {
       provider: this.id,

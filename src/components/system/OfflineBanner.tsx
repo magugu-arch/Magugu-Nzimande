@@ -102,7 +102,7 @@ export function OfflineBanner() {
 const styles = StyleSheet.create({
   // The inner view is measured at full height regardless of the outer one, so
   // the clip has to hide the overflow while the bar is closed.
-  clip: { overflow: 'hidden', backgroundColor: colors.brand.black },
+  clip: { overflow: 'hidden', backgroundColor: colors.brand.charcoal },
   banner: {
     position: 'absolute',
     bottom: 0,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm + 2,
-    backgroundColor: colors.brand.black,
+    backgroundColor: colors.brand.charcoal,
   },
   label: { flex: 1 },
 });

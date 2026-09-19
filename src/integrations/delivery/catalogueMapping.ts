@@ -141,9 +141,9 @@ export function mapCatalogueForProvider(
 export function orphanedOverrides(
   items: readonly CanonicalItem[],
   overrides: CatalogueOverrides = catalogueOverrides,
-): Array<{ provider: ProviderId; pappasSku: string }> {
+): { provider: ProviderId; pappasSku: string }[] {
   const known = new Set(items.map((item) => item.sku));
-  const orphans: Array<{ provider: ProviderId; pappasSku: string }> = [];
+  const orphans: { provider: ProviderId; pappasSku: string }[] = [];
   for (const [provider, table] of Object.entries(overrides)) {
     for (const sku of Object.keys(table ?? {})) {
       if (!known.has(sku)) {

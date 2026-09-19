@@ -1,47 +1,54 @@
 import { type TextStyle } from 'react-native';
 
 /**
- * bb.q Chicken typography — guidelines §11, §13, §14.
+ * Pappas typography.
  *
- *   §11  Montserrat, primary. The whole hierarchy: headlines, subheadings,
- *        body copy, captions, buttons and labels.
- *   §13  Playfair Display, editorial. Quotes and accents, sparingly.
+ * Source of truth: the CI brand sheet (asset 15), panel 04, and the build
+ * brief §3, which agree on a three-face system and on what each face is for.
  *
- * Both faces are bundled and loaded at startup (see `app/_layout.tsx`).
+ *   Cinzel      display / editorial — "hero headings, section titles and
+ *               premium menu storytelling only"
+ *   Montserrat  UI / body / navigation — "all interactive product UI, prices,
+ *               descriptions, labels and buttons"
+ *   Allura      accent / campaign script — "sparingly for a single emotional
+ *               phrase or promotional accent; never for navigation, prices,
+ *               form labels or critical information"
  *
- * ── Why no Arial ───────────────────────────────────────────────────────────
- * This file used to set body copy, captions and lists in Arial, on the reading
- * that §12 assigns the supporting face that work. The supplied §11 page
- * settles it the other way, and it is the more authoritative of the two:
+ * All three are bundled and loaded at startup (see `app/_layout.tsx`).
  *
- *   - §11.1 names the type system, and it has exactly two members — Montserrat
- *     primary, Playfair Display secondary. Arial is not in it.
- *   - §11.2's TYPE USAGE table covers the *whole* hierarchy, body copy and
- *     captions included, and puts every row on Montserrat except accents and
- *     quotes. It is not a headline-only table.
- *   - §11's DO NOT is explicit: "Use other typefaces that are not part of the
- *     bb.q system."
+ * ── The three rules that keep this from going wrong ───────────────────────
  *
- * That is the same way the §11-versus-§12 conflict over button text was already
- * resolved on this branch, so the codebase is now consistent about which page
- * wins rather than splitting the difference. §12 has not been supplied to this
- * project, so it is being superseded unseen — if the brand team confirms it
- * governs body copy after all, this is a one-file revert.
+ * **Cinzel is capitals, whatever you type.** It is an inscriptional Roman
+ * face — its lowercase is a set of small capitals, not a true minuscule. That
+ * makes it magnificent for "MEZEDAKIA" across a category hero and unreadable
+ * for a three-line dish description. So every Cinzel role below is a heading
+ * with a short line, and none of them is body copy. This is also why Cinzel
+ * needs positive letter-spacing where Montserrat needs negative: capitals set
+ * tight close up, and the supplied posters set them generously open.
  *
- * On §14's point sizes: those are the print scale — a 90pt H1 is a poster, not
- * a phone. What carries over is the part that is scale-independent: which face
- * and weight each level takes, its casing, and the ratios between levels. The
- * pixel sizes here are the mobile equivalents.
+ * **Allura appears once per screen at most, and never alone.** §3 is explicit
+ * that it must never carry navigation, prices, form labels or critical
+ * information, and §13's accessibility floor adds the reason: a looping
+ * script at 22px is hard to read for anyone, and impossible at speed. The
+ * `accent` role exists for the one line the supplied artwork itself uses that
+ * way — "Small plates. Big moments." — and every place it appears, the same
+ * information is also available in Montserrat nearby.
  *
- * On casing: §14 sets H1–H3 in caps, and the campaign artwork bears that out —
- * "KOREA'S FINEST FRIED CHICKEN". The app mockups do not: screen titles read
- * "My Cart", "Popular Menu", "Chicken". Caps belong to marketing headlines and
- * section eyebrows, so `hero` and `overline` uppercase and nothing else does.
- * Setting a product name or a screen title in caps would contradict the
- * client's own app screens and cost legibility §32.4 asks us to protect.
+ * **Montserrat carries everything a customer must act on.** Prices, buttons,
+ * labels, descriptions, navigation. If a reader needs it to order, reserve or
+ * pay, it is Montserrat.
+ *
+ * ── Sizes ─────────────────────────────────────────────────────────────────
+ *
+ * §17.3's scale (display 34, h1 28, h2 22, h3 18, body 16…) is a design-tool
+ * scale and it is the right proportion, but the top of it is generous for a
+ * 320pt phone: 34px of Cinzel capitals is about eleven characters a line.
+ * The ratios are kept and the top two steps are brought down one notch, which
+ * is the same adjustment §17.4's own `textStyles` makes when it sets
+ * `sectionTitle` at 24 against the token block's 28.
  */
 
-/** Montserrat weights, by the names §11.1 lists them under. */
+/** Montserrat weights — UI, body, navigation, prices. */
 export const montserrat = {
   light: 'Montserrat_300Light',
   regular: 'Montserrat_400Regular',
@@ -53,15 +60,24 @@ export const montserrat = {
 } as const;
 
 /**
- * §13 asks for Playfair "sparingly and with intention", and the app has one
- * genuinely editorial moment. Only the italic §11.2 names for accents and
- * quotes is bundled; add the other weights when there is copy that needs them.
+ * Cinzel weights — display and editorial only.
+ *
+ * Regular and SemiBold are bundled. The heavier cuts exist but are not used:
+ * Cinzel Bold at heading sizes closes up its counters and starts to read as
+ * a logo rather than as type, and the supplied Pappas artwork sets every
+ * headline in the lighter cuts.
  */
-export const playfair = {
-  italic: 'PlayfairDisplay_400Regular_Italic',
+export const cinzel = {
+  regular: 'Cinzel_400Regular',
+  semibold: 'Cinzel_600SemiBold',
 } as const;
 
-export const fontFamily = { montserrat, playfair };
+/** Allura — one weight, because the face has one. */
+export const allura = {
+  regular: 'Allura_400Regular',
+} as const;
+
+export const fontFamily = { montserrat, cinzel, allura };
 
 export const fontWeight = {
   light: '300',
@@ -73,10 +89,7 @@ export const fontWeight = {
   black: '900',
 } as const satisfies Record<string, TextStyle['fontWeight']>;
 
-/**
- * §14.3 — the gaps between hierarchy levels. Ranges in the guidelines; the
- * lower end of each is used, since a phone has less room than a poster.
- */
+/** Vertical rhythm between heading levels. */
 export const headingGap = {
   h1ToH2: 24,
   h2ToH3: 16,
@@ -86,38 +99,56 @@ export const headingGap = {
 
 /** Named text roles. Every `<Text>` in the app resolves to one of these. */
 export const typography = {
-  /** §14 H1. Montserrat Black, all caps, tight tracking. Campaign headlines. */
+  /**
+   * The one-line editorial headline over a hero image.
+   *
+   * Cinzel, open tracking, no uppercase transform — the face is already
+   * capitals, and forcing `textTransform` on top of that breaks its small
+   * capitals into something uneven.
+   */
   hero: {
-    fontFamily: montserrat.black,
+    fontFamily: cinzel.semibold,
     fontSize: 30,
-    lineHeight: 34,
-    fontWeight: fontWeight.black,
-    letterSpacing: -0.5,
-    textTransform: 'uppercase',
+    lineHeight: 38,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: 0.6,
   },
-  /** Largest in-app heading: a product name, a points balance, a thank-you. */
+  /** Largest in-app heading: a dish name on its detail screen, a thank-you. */
   display: {
-    fontFamily: montserrat.extrabold,
-    fontSize: 28,
+    fontFamily: cinzel.semibold,
+    fontSize: 26,
     lineHeight: 34,
-    fontWeight: fontWeight.extrabold,
-    letterSpacing: -0.5,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: 0.4,
   },
+  /** A screen title. */
   h1: {
-    fontFamily: montserrat.bold,
-    fontSize: 24,
-    lineHeight: 30,
-    fontWeight: fontWeight.bold,
-    letterSpacing: -0.3,
+    fontFamily: cinzel.semibold,
+    fontSize: 22,
+    lineHeight: 29,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: 0.4,
   },
+  /**
+   * A section title — "Happening at Pappas", "Explore Pappas".
+   *
+   * §6 asks for "editorial separators and oversized section headings rather
+   * than dense grid repetition", which is what this role is for.
+   */
   h2: {
-    fontFamily: montserrat.bold,
-    fontSize: 20,
+    fontFamily: cinzel.regular,
+    fontSize: 19,
     lineHeight: 26,
-    fontWeight: fontWeight.bold,
-    letterSpacing: -0.2,
+    fontWeight: fontWeight.regular,
+    letterSpacing: 0.5,
   },
-  /** §14 H4. Montserrat SemiBold, sentence case — a title inside a section. */
+  /**
+   * A title inside a section — a card heading, a list group.
+   *
+   * The first role to leave Cinzel. Below about 18px the inscriptional
+   * capitals stop being legible at a glance and start being decorative, and a
+   * card heading has to be scannable.
+   */
   h3: {
     fontFamily: montserrat.semibold,
     fontSize: 16,
@@ -126,20 +157,6 @@ export const typography = {
     letterSpacing: -0.1,
   },
 
-  // §11.2: body copy is Montserrat Regular, captions and small text Montserrat
-  // "Light / Regular". §14.3 puts body line height at 140–160%; every role
-  // below sits inside that band.
-  //
-  // Two readings of §11.2 worth recording, because neither is spelled out:
-  //
-  //   - Captions take the Regular half of "Light / Regular". At 13px, Light
-  //     (300) is too fragile to hold the contrast §32.3 asks for on small text
-  //     — the weight, not just the colour, is what makes it fail. Light stays
-  //     available in the scale for larger, quieter text.
-  //   - The emphasised runs (`bodyMedium`, `captionMedium`) take SemiBold.
-  //     §11.2 has no row for emphasis inside body copy, so this is the nearest
-  //     listed weight that keeps the contrast the old Arial Bold gave; Medium
-  //     (500) all but disappears against Montserrat Regular at these sizes.
   bodyLarge: {
     fontFamily: montserrat.regular,
     fontSize: 16,
@@ -149,13 +166,13 @@ export const typography = {
   body: {
     fontFamily: montserrat.regular,
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
     fontWeight: fontWeight.regular,
   },
   bodyMedium: {
     fontFamily: montserrat.semibold,
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
     fontWeight: fontWeight.semibold,
   },
   caption: {
@@ -178,57 +195,80 @@ export const typography = {
     letterSpacing: 0.3,
   },
 
-  /** §14 H3. Montserrat Bold, all caps, small — the section eyebrow. */
+  /**
+   * The section eyebrow — "PAPPAS SIGNATURE", "DATE NIGHT".
+   *
+   * Montserrat rather than Cinzel, deliberately, even though both are
+   * capitals here. An eyebrow sits directly above a Cinzel section title, and
+   * two capital faces stacked read as one confused heading; the weight and
+   * width contrast is what separates them. The supplied posters do exactly
+   * this — Cinzel "MEZEDAKIA" over a letterspaced sans "A TASTE OF THE
+   * MEDITERRANEAN".
+   */
   overline: {
-    fontFamily: montserrat.bold,
+    fontFamily: montserrat.semibold,
     fontSize: 11,
     lineHeight: 16,
-    fontWeight: fontWeight.bold,
-    letterSpacing: 1.1,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: 1.6,
     textTransform: 'uppercase',
   },
 
-  /** §11.2 accent / quotes. The only place Playfair Display appears. */
-  quote: {
-    fontFamily: playfair.italic,
-    fontSize: 18,
-    lineHeight: 27,
+  /**
+   * The Allura accent. One phrase, never load-bearing.
+   *
+   * Line height is generous because the face has long descenders and a high
+   * ascender loop; at 1.2× it collides with itself.
+   */
+  accent: {
+    fontFamily: allura.regular,
+    fontSize: 24,
+    lineHeight: 34,
     fontWeight: fontWeight.regular,
-    fontStyle: 'italic',
   },
 
-  /** A price is a label, not body copy, so it stays on the primary face. */
+  /**
+   * An editorial pull quote — the venue story, the brand line.
+   *
+   * Cinzel regular rather than Allura: a quote is read, not glanced at.
+   */
+  quote: {
+    fontFamily: cinzel.regular,
+    fontSize: 18,
+    lineHeight: 28,
+    fontWeight: fontWeight.regular,
+    letterSpacing: 0.3,
+  },
+
+  /** §3: prices are Montserrat. Never Cinzel, never Allura. */
   price: {
-    fontFamily: montserrat.bold,
+    fontFamily: montserrat.semibold,
     fontSize: 17,
     lineHeight: 23,
-    fontWeight: fontWeight.bold,
-    letterSpacing: -0.2,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: -0.1,
   },
 
-  // §11.2: button text and labels are Montserrat SemiBold. §22.4 sets the
-  // sizes — 16 / 14 / 13. (§12.2 puts UI buttons on Arial Bold, but §11.2 and
-  // the callouts on §13.3 and §13.4 all say Montserrat SemiBold: two to one.)
   buttonLg: {
     fontFamily: montserrat.semibold,
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 20,
     fontWeight: fontWeight.semibold,
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
   buttonMd: {
     fontFamily: montserrat.semibold,
     fontSize: 14,
     lineHeight: 18,
     fontWeight: fontWeight.semibold,
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
   buttonSm: {
     fontFamily: montserrat.semibold,
     fontSize: 13,
     lineHeight: 17,
     fontWeight: fontWeight.semibold,
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
 } as const satisfies Record<string, TextStyle>;
 
@@ -238,23 +278,24 @@ export type TypographyVariant = keyof typeof typography;
  * How far each role may follow the OS text-size setting.
  *
  * React Native scales every `Text` by the device font scale unless told
- * otherwise, and nothing in this app told it otherwise. iOS reaches about 3.1×
- * at the largest accessibility size, Android 2.0 — enough to burst any box with
- * a fixed height.
+ * otherwise. iOS reaches about 3.1× at the largest accessibility size,
+ * Android 2.0 — enough to burst any box with a fixed height.
  *
  * The split is between text people read and text that labels a control:
  *
  * - **Content** — headings, body, captions, prices — is uncapped. It is the
  *   reason someone turned the setting up, and it sits in boxes that grow.
+ *   §13 asks for exactly this: "responsive typography and Dynamic Type /
+ *   system scaling where the platform supports it".
  * - **Chrome** — button labels, tab labels, badges, eyebrows — is capped at
  *   2×, matching WCAG 1.4.4's 200%. These live in fixed geometry and mostly
  *   cannot wrap, so past that they truncate rather than inform.
  *
- * 2× is not comfortable for a button label on its own: `npm run assets:typefit`
- * measures the real Montserrat advance widths at 320pt and finds the tightest
- * CTA ("TRACK THIS ORDER") has only 1.07× of horizontal headroom on one line.
- * That is why Button pairs this cap with a second line and a minimum rather
- * than a fixed height — the cap bounds the growth, the wrapping absorbs it.
+ * `accent` is capped too, which is the one addition Pappas makes to this
+ * list. Allura at 3× is 72px of looping script; it does not wrap gracefully,
+ * it is decorative rather than informative by §3's own instruction, and
+ * letting it grow unbounded pushes the content someone actually turned the
+ * setting up to read off the bottom of the screen.
  */
 export const CHROME_FONT_SCALE_CAP = 2;
 
@@ -264,6 +305,7 @@ const CAPPED_VARIANTS: ReadonlySet<TypographyVariant> = new Set([
   'buttonSm',
   'overline',
   'micro',
+  'accent',
 ]);
 
 /**

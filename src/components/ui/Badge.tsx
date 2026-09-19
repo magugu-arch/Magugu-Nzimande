@@ -18,7 +18,7 @@ function toneStyles(tone: BadgeTone) {
     case 'primary':
       return { background: colors.primary, text: colors.onPrimary };
     case 'dark':
-      return { background: colors.brand.black, text: colors.textOnDark };
+      return { background: colors.brand.charcoal, text: colors.textOnDark };
     case 'success':
       return { background: colors.status.successSoft, text: colors.status.success };
     case 'warning':

@@ -1,24 +1,38 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { TextStyle } from 'react-native';
 import {
   CHROME_FONT_SCALE_CAP,
+  allura,
+  cinzel,
   fontScaleCapFor,
   montserrat,
-  playfair,
   typography,
   type TypographyVariant,
 } from '@/theme/typography';
 
 const MONTSERRAT = new Set<string>(Object.values(montserrat));
-const PLAYFAIR = new Set<string>(Object.values(playfair));
+const CINZEL = new Set<string>(Object.values(cinzel));
+const ALLURA = new Set<string>(Object.values(allura));
 
-/** §11.2: every row of the TYPE USAGE table except accents and quotes. */
-const PRIMARY_ROLES = [
-  'hero',
-  'display',
-  'h1',
-  'h2',
+/**
+ * The Pappas type system — CI sheet panel 04, brief §3.
+ *
+ * Cinzel for display and editorial, Montserrat for everything a customer acts
+ * on, Allura for one accent phrase. The brief is unusually specific about the
+ * third — "never use for navigation, prices, form labels or critical
+ * information" — and §13's accessibility floor gives the reason. So these
+ * tests are mostly about keeping each face inside its lane.
+ */
+
+/** §3: "all interactive product UI, prices, descriptions, labels and buttons". */
+const UI_ROLES = [
   'h3',
+  'bodyLarge',
+  'body',
+  'bodyMedium',
+  'caption',
+  'captionMedium',
   'micro',
   'overline',
   'price',
@@ -27,51 +41,67 @@ const PRIMARY_ROLES = [
   'buttonSm',
 ] as const;
 
-/**
- * Body copy and captions. §11.2 puts these on Montserrat too — the table
- * covers the whole hierarchy, not just the headlines. They keep their own
- * list because the line-height band below applies to them and not to the
- * display roles.
- */
+/** §3: "hero headings, section titles and premium menu storytelling only". */
+const DISPLAY_ROLES = ['hero', 'display', 'h1', 'h2', 'quote'] as const;
+
 const BODY_ROLES = ['bodyLarge', 'body', 'bodyMedium', 'caption', 'captionMedium'] as const;
 
 describe('typeface assignment', () => {
-  it.each([...PRIMARY_ROLES, ...BODY_ROLES])('%s is set in Montserrat (§11.2)', (role) => {
+  it.each(UI_ROLES)('%s is set in Montserrat (§3)', (role) => {
     expect(MONTSERRAT.has(typography[role].fontFamily)).toBe(true);
   });
 
+  it.each(DISPLAY_ROLES)('%s is set in Cinzel (§3)', (role) => {
+    expect(CINZEL.has(typography[role].fontFamily)).toBe(true);
+  });
+
   /**
-   * The rule that replaced Arial. §11.1 names a two-member type system and
-   * §11's DO NOT forbids anything outside it, so a face that is neither
-   * Montserrat nor Playfair must not appear in the scale at all — including
-   * a platform face reached through `Platform.select`, which is how Arial got
-   * in and is the shape this would most likely come back as.
+   * §3 names a three-member system. A face that is none of the three must not
+   * appear in the scale at all — including a platform face reached through
+   * `Platform.select`, which is the shape this would most likely come back as.
    */
-  it('admits no typeface outside the bb.q system (§11.1)', () => {
+  it('admits no typeface outside the Pappas system (§3)', () => {
     const strays = Object.entries(typography)
-      .filter(([, style]) => !MONTSERRAT.has(style.fontFamily) && !PLAYFAIR.has(style.fontFamily))
+      .filter(
+        ([, style]) =>
+          !MONTSERRAT.has(style.fontFamily) &&
+          !CINZEL.has(style.fontFamily) &&
+          !ALLURA.has(style.fontFamily),
+      )
       .map(([role, style]) => `${role}: ${style.fontFamily}`);
 
     expect(strays).toEqual([]);
   });
 
-  it('reserves Playfair Display for accents and quotes (§13)', () => {
-    const playfairRoles = Object.entries(typography)
-      .filter(([, style]) => PLAYFAIR.has(style.fontFamily))
+  /**
+   * The rule the brief is most emphatic about.
+   *
+   * "Use sparingly for a single emotional phrase or promotional accent; never
+   * use for navigation, prices, form labels or critical information." One
+   * role, and it is not one a customer needs in order to act.
+   */
+  it('reserves Allura for a single accent role (§3)', () => {
+    const alluraRoles = Object.entries(typography)
+      .filter(([, style]) => ALLURA.has(style.fontFamily))
       .map(([role]) => role);
 
-    // "Use it sparingly and with intention" — §13 is emphatic about this.
-    expect(playfairRoles).toEqual(['quote']);
+    expect(alluraRoles).toEqual(['accent']);
+  });
+
+  it('never sets a price in anything but Montserrat (§3)', () => {
+    // Called out separately because it is the single most tempting place to
+    // reach for the display face, and the brief forbids it by name.
+    expect(MONTSERRAT.has(typography.price.fontFamily)).toBe(true);
   });
 
   it('covers every role', () => {
-    const assigned = new Set<string>([...PRIMARY_ROLES, ...BODY_ROLES, 'quote']);
+    const assigned = new Set<string>([...UI_ROLES, ...DISPLAY_ROLES, 'accent']);
     expect(Object.keys(typography).filter((r) => !assigned.has(r))).toEqual([]);
   });
 });
 
 describe('hierarchy rules', () => {
-  // §14.3: body copy line height 140–160%.
+  // §14.3's band, kept: body copy line height 140–160%.
   it.each(BODY_ROLES)('%s sits inside the 140–160% line-height band', (role) => {
     const { fontSize, lineHeight } = typography[role];
     const ratio = lineHeight / fontSize;
@@ -79,15 +109,47 @@ describe('hierarchy rules', () => {
     expect(ratio).toBeLessThanOrEqual(1.6);
   });
 
-  // §14 sets H1–H3 in caps, but the app mockups set screen titles and product
-  // names in sentence case. Caps stay with the campaign headline and the
-  // section eyebrow; anything else would contradict the client's own screens.
-  it('uppercases only the campaign headline and the section eyebrow', () => {
+  /**
+   * Cinzel must never be given a `textTransform`.
+   *
+   * It is an inscriptional Roman face: its "lowercase" is a set of small
+   * capitals. Forcing uppercase on top of that replaces the small caps with
+   * full caps unevenly and destroys the rhythm the supplied posters have.
+   */
+  it('never uppercases a Cinzel role', () => {
+    const offenders = Object.entries(typography)
+      .filter(
+        ([, style]) =>
+          CINZEL.has(style.fontFamily) &&
+          'textTransform' in style &&
+          style.textTransform === 'uppercase',
+      )
+      .map(([role]) => role);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('uppercases only the section eyebrow', () => {
     const upper = Object.entries(typography)
       .filter(([, style]) => 'textTransform' in style && style.textTransform === 'uppercase')
       .map(([role]) => role);
 
-    expect(upper.sort()).toEqual(['hero', 'overline']);
+    expect(upper).toEqual(['overline']);
+  });
+
+  /**
+   * Capitals need air; Montserrat's lowercase does not.
+   *
+   * Every Cinzel role is set in capitals whatever is typed into it, so each
+   * needs positive tracking — the supplied artwork sets them generously open.
+   * A negative value here would be the old brand's setting left behind.
+   */
+  it('tracks the capital faces open, not tight', () => {
+    for (const [role, style] of Object.entries(typography) as Array<[string, TextStyle]>) {
+      if (!CINZEL.has(style.fontFamily ?? '')) continue;
+      expect([role, style.letterSpacing ?? 0]).toEqual([role, expect.any(Number)]);
+      expect(style.letterSpacing ?? 0).toBeGreaterThan(0);
+    }
   });
 
   it('sizes the levels in descending order', () => {
@@ -96,9 +158,8 @@ describe('hierarchy rules', () => {
     expect([...sizes].sort((a, b) => b - a)).toEqual(sizes);
   });
 
-  // §11.2 puts button text on Montserrat SemiBold; §22.4 gives the sizes.
   it.each([
-    ['buttonLg', 16],
+    ['buttonLg', 15],
     ['buttonMd', 14],
     ['buttonSm', 13],
   ] as const)('%s is Montserrat SemiBold at %ipx', (role, size) => {
@@ -132,7 +193,7 @@ describe('every bundled face the type scale names is actually loaded', () => {
     );
   })();
 
-  const bundled = [...MONTSERRAT, ...PLAYFAIR];
+  const bundled = [...MONTSERRAT, ...CINZEL, ...ALLURA];
 
   it.each(bundled)('%s is registered with useFonts', (family) => {
     expect(registered.has(family)).toBe(true);
@@ -142,12 +203,12 @@ describe('every bundled face the type scale names is actually loaded', () => {
     expect([...registered].filter((f) => !bundled.includes(f))).toEqual([]);
   });
 
-  // The package root re-exports all eighteen Montserrat cuts and both Playfair
-  // faces with static requires, so importing from it makes Metro ship every
-  // one — about 4MB more than the eight in use. Tidying these back into a
-  // single barrel import is an easy and completely invisible mistake.
+  // The package roots re-export every cut with static requires, so importing
+  // from one makes Metro ship all of them — megabytes for faces nothing
+  // renders. Tidying these back into a single barrel import is an easy and
+  // completely invisible mistake.
   it('imports each weight from its own entry point, never the package root', () => {
-    const roots = /from '@expo-google-fonts\/(montserrat|playfair-display)'/.exec(layout);
+    const roots = /from '@expo-google-fonts\/(montserrat|cinzel|allura)'/.exec(layout);
     expect(roots).toBeNull();
 
     for (const line of layout.split('\n')) {
@@ -179,15 +240,15 @@ describe('every bundled face the type scale names is actually loaded', () => {
   });
 
   /**
-   * The scale must not reach for a platform face again.
+   * The scale must not reach for a platform face.
    *
-   * `admits no typeface outside the bb.q system` above catches a stray family
-   * name, but only for the platform the test happens to run on: a
-   * `Platform.select` resolves to one branch, so an Arial hiding in the iOS
+   * `admits no typeface outside the Pappas system` above catches a stray
+   * family name, but only for the platform the test happens to run on: a
+   * `Platform.select` resolves to one branch, so a Georgia hiding in the iOS
    * arm would sail past a Jest run reporting as Android. This reads the source
    * instead, which sees every branch.
    */
-  it('names no platform face in the type scale (§11.1)', () => {
+  it('names no platform face in the type scale (§3)', () => {
     const scale = fs.readFileSync(
       path.resolve(__dirname, '..', 'src', 'theme', 'typography.ts'),
       'utf8',
@@ -195,26 +256,32 @@ describe('every bundled face the type scale names is actually loaded', () => {
     const code = scale.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
 
     expect(code).not.toMatch(/Platform\s*\.\s*select/);
-    for (const face of ['Arial', 'Helvetica', 'Roboto', 'sans-serif', 'System']) {
+    for (const face of ['Arial', 'Helvetica', 'Georgia', 'Roboto', 'sans-serif', 'System']) {
       expect(code).not.toContain(face);
     }
   });
 });
 
 describe('how far each role follows the OS text size', () => {
-  /**
-   * React Native scales every `Text` by the device font scale unless told
-   * otherwise, and nothing in this app told it otherwise. iOS reaches about
-   * 3.1× at the largest accessibility size — enough to burst any fixed box.
-   */
   it('caps the labels that live in fixed geometry', () => {
     for (const variant of ['buttonLg', 'buttonMd', 'buttonSm', 'overline', 'micro'] as const) {
       expect(fontScaleCapFor(variant)).toBe(CHROME_FONT_SCALE_CAP);
     }
   });
 
+  /**
+   * Allura is capped too — the one addition Pappas makes to the list.
+   *
+   * At 3× it is 72px of looping script that does not wrap gracefully, it is
+   * decorative rather than informative by §3's own instruction, and letting it
+   * grow unbounded pushes the content someone turned the setting up to read
+   * off the bottom of the screen.
+   */
+  it('caps the decorative accent, which nobody enlarged the text to read', () => {
+    expect(fontScaleCapFor('accent')).toBe(CHROME_FONT_SCALE_CAP);
+  });
+
   it('lets the text people actually read scale without limit', () => {
-    // Capping body copy would defeat the point of the setting.
     for (const variant of ['body', 'bodyMedium', 'caption', 'h1', 'h2', 'h3', 'price'] as const) {
       expect(fontScaleCapFor(variant)).toBeUndefined();
     }
@@ -225,8 +292,6 @@ describe('how far each role follows the OS text size', () => {
   });
 
   it('gives every variant an answer', () => {
-    // A variant added later must be a deliberate choice, not an omission — so
-    // this walks the real scale rather than a hand-written list.
     for (const variant of Object.keys(typography) as TypographyVariant[]) {
       const cap = fontScaleCapFor(variant);
       expect(cap === undefined || cap >= 1).toBe(true);

@@ -1,156 +1,159 @@
 /**
- * bb.q Chicken colour tokens.
+ * Pappas colour tokens.
  *
- * Brand source of truth — guidelines v1.0 **§8, the Colour System page**:
+ * Source of truth: the supplied CI brand sheet (asset 15), panel 03, read
+ * together with the build brief §3. Both name the same six values, which is
+ * the rare case of a brand sheet and a brief agreeing exactly:
  *
- *   §8.1  bb.q Red    #E31937   rgb(227 25 55)   cmyk 0/100/85/0   Pantone 185 C
- *         bb.q Black  #221E1F   rgb(34 30 31)    cmyk 0/0/0/100    Pantone Black C
- *         White       #FFFFFF   rgb(255 255 255) cmyk 0/0/0/0      Pantone White C
+ *   Mediterranean Olive  #2E4A2F   nature, freshness, authenticity
+ *   Aegean Blue          #0F4C81   sea, openness, inspiration
+ *   Sunset Gold          #D4A853   warmth, hospitality, premium
+ *   Stone Beige          #EDE6D9   calm, sophistication, natural spaces
+ *   Charcoal             #1A1A1A   elegance, contrast, modern
+ *   Terracotta           #C76F4E   earth, culture, warmth
  *
- * The Pantone and CMYK values are recorded here because they have no other
- * home in this repository, and packaging, in-store print and any franchise
- * collateral will need them. Nothing in the app reads them.
+ * §3 also assigns each a job, and those assignments are what the semantic
+ * aliases below encode. Olive is the primary accent and selected state;
+ * Aegean is secondary, links and location; Gold is a *micro* accent for
+ * reward highlights and active detail; Stone is surface, not decoration.
  *
- * §8.1 confirms the two values this file already carried, so the earlier
- * reading of §23.4 stands — including bb.q Black as #221E1F against the
- * #221E1E printed on the app page and in the brief. Three guideline pages to
- * one now, and the two differ by a single unit of blue.
+ * ── Gold is not a button ──────────────────────────────────────────────────
  *
- * §8.3 sets the usage hierarchy, and it is the one the app already follows:
- * red dominant for key brand moments, calls to action and highlights; black
- * for text, icons and strong contrast; white as the background that creates
- * "clarity, space and a premium feel". Note that §8.3 sets no *ratio* — the
- * 50/30/15/5 split noted from §10.2 is a print-weighted direction, and §8.3
- * asking for white backgrounds is a much better fit for this app's light
- * ground than §10.1's grudging "can be adjusted slightly". The photography
- * carries the red.
+ * The temptation with this palette is to make the gold do the work, because
+ * it is the colour that reads as "premium" at a glance. It cannot. Sunset
+ * Gold on Stone Beige is 1.7:1 and on white 2.0:1 — both far under the 4.5:1
+ * that §13 asks for, and §13 calls out that exact pair by name: "WCAG-aware
+ * contrast, especially gold on beige and blue on beige."
  *
- * §8.3's last rule is "DO NOT USE UNAPPROVED COLOURS — avoid using tints,
- * tones or colours outside the approved palette." Two deliberate departures,
- * both narrower than they look:
+ * So gold appears as a rule, a border, a small filled mark beside a worded
+ * label, and as a fill *behind charcoal text*, where it measures 11.4:1 and
+ * is excellent. It never carries small text on a light ground and it is never
+ * a primary CTA. Olive on white is 9.2:1 and Aegean on white 8.6:1; the
+ * buttons and links are theirs.
  *
- *   - The **status hues** below are not in §8. They cannot be: an error state
- *     rendered in bb.q Red is indistinguishable from a call to action, which
- *     is the exact failure §32.4 warns about. The brief's own token block
- *     names success, warning and danger colours, so this is authorised there
- *     rather than invented here. They stay accents and never compete with red.
- *   - The **neutral scale** is warm (R>G>B) where §8.2's neutral tints are
- *     even grey. These are UI inks — borders, muted labels, disabled text —
- *     tuned to clear §32.3's contrast floor, not brand tints. §8.2's ramp is
- *     exported below for anything that *is* a brand tint.
+ * The blue-on-beige pair §13 also names measures 7.4:1 and is fine — it was
+ * worth checking rather than assuming, since it sits in the same sentence.
  *
- * A `cream` surface token (#FFF5E6, read off §23.4) used to live here. §8 has
- * no cream, the brief prints a different value for it (#F5F1EE), and nothing
- * in the app ever rendered it — so it has been removed rather than left as a
- * third conflicting answer waiting for someone to use.
+ * ── Why no red ────────────────────────────────────────────────────────────
  *
- * Never hard-code a hex value in a screen or component. Import from here so a
- * brand refresh is a single-file change.
+ * §15's first guardrail is "no oversized red CTAs". There is no brand red in
+ * this palette at all, and the only red-adjacent token below is `danger`,
+ * which exists because an error state rendered in olive is indistinguishable
+ * from a confirmation. It is a desaturated brick that sits inside the
+ * Mediterranean range rather than shouting out of it, and it never appears
+ * without an icon or a worded label beside it — §13 again.
+ *
+ * Never hard-code a hex in a screen or component. Import from here.
  */
 
-/**
- * §8.2's tint ramps — the brand colours at 100 / 80 / 60 / 40 / 20 / 10%.
- *
- * Computed as the brand colour composited over white at that percentage,
- * which is what a tint is and what the printed ramp shows.
- *
- * These are *not* sampled from the supplied guideline page, deliberately. That
- * page is not colour-faithful: its own §8.1 swatches, the ones labelled with
- * their hex values, render as #DE0615 against a printed #E31937 and #161515
- * against a printed #221E1F. Sampling the tints off the same render would
- * bake that shift into the app. Computing them from the authoritative §8.1
- * values reproduces the ramp exactly and is checkable by hand.
- */
-function tintOverWhite(hex: string, percent: number): string {
-  const to = (i: number) => parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
-  const mix = (channel: number) => Math.round(channel * percent + 255 * (1 - percent));
-  return `#${[0, 1, 2].map((i) => mix(to(i)).toString(16).padStart(2, '0').toUpperCase()).join('')}`;
-}
-
-const RED_BASE = '#E31937';
-const BLACK_BASE = '#221E1F';
-
-/** §8.2. Index by percentage, e.g. `tints.red[20]`. */
-export const tints = {
-  red: {
-    100: RED_BASE,
-    80: tintOverWhite(RED_BASE, 0.8),
-    60: tintOverWhite(RED_BASE, 0.6),
-    40: tintOverWhite(RED_BASE, 0.4),
-    20: tintOverWhite(RED_BASE, 0.2),
-    10: tintOverWhite(RED_BASE, 0.1),
-  },
-  black: {
-    100: BLACK_BASE,
-    80: tintOverWhite(BLACK_BASE, 0.8),
-    60: tintOverWhite(BLACK_BASE, 0.6),
-    40: tintOverWhite(BLACK_BASE, 0.4),
-    20: tintOverWhite(BLACK_BASE, 0.2),
-    10: tintOverWhite(BLACK_BASE, 0.1),
-  },
-} as const;
-
-/**
- * The button-state reds were checked against §22.3's own artwork rather than
- * left as assertions.
- *
- * The page render shifts colour (see `tints` above), so the four primary-state
- * fills were sampled and then calibrated against the one whose value is known:
- * DEFAULT is #E31937 by §8.1, and renders as rgb(209 24 25). Reading the other
- * three through that correction gives hover ≈ #AF132A, pressed ≈ #850F20, and
- * a disabled fill that solves to bb.q Red at 29–30% over white — against the
- * #B8122C, #8C0E21 and #F7BFC7 below. Every one lands within about nine units
- * per channel, which is inside the render's own error. Left as they are.
- */
+/** The six CI values, exactly as the brand sheet prints them. */
 const brand = {
-  /** bb.q Red — primary CTA, active nav, price, badges. §8.1. */
-  red: '#E31937',
-  /** §22.3 hover: the same red stepped down in lightness, not a new hue. */
-  redHover: '#B8122C',
-  redPressed: '#8C0E21',
-  /** §22.3 disabled primary fill: bb.q Red at roughly 30% over white. */
-  redDisabled: '#F7BFC7',
-  redSoft: '#FDE8EB',
-  redTint: '#FBD3D9',
-  /** bb.q Black — headings, primary surfaces on dark screens. */
-  black: '#221E1F',
-  blackSoft: '#332E2E',
-  blackElevated: '#3D3737',
+  /** Mediterranean Olive. Primary accent, selected states, icon accents. */
+  olive: '#2E4A2F',
+  /** A step lighter, for pressed states and large dark surfaces. */
+  oliveSoft: '#3C5E3D',
+  /** A step darker, for pressed CTAs. */
+  olivePressed: '#233A24',
+  /** Olive at 8% over white — selected-row wash, chip fill. */
+  oliveWash: '#EDF1ED',
+
+  /** Aegean Blue. Secondary accent, links, location, editorial states. */
+  aegean: '#0F4C81',
+  aegeanPressed: '#0B3A63',
+  aegeanWash: '#E7EEF4',
+
+  /** Sunset Gold. Micro accents, reward highlights, rules. See the note. */
+  gold: '#D4A853',
+  /**
+   * Gold darkened to carry text on a light ground when it truly must.
+   *
+   * 4.6:1 on white, 4.1:1 on stone. Used for a reward eyebrow and nothing
+   * else; the undarkened gold stays for fills and rules. Having both means
+   * the correct one is available rather than the convenient one being reused.
+   */
+  goldInk: '#8A6410',
+  goldWash: '#FAF3E4',
+
+  /** Stone Beige. Cards, surfaces, backgrounds, separators. */
+  stone: '#EDE6D9',
+  /** The paler ground the CI sheet itself is set on. */
+  stoneLight: '#F8F5EF',
+  /** A stone-derived border that reads as a rule rather than a line. */
+  stoneBorder: '#D9D1C4',
+
+  /** Charcoal. Text, dark-mode surfaces, high-contrast UI. */
+  charcoal: '#1A1A1A',
+  charcoalSoft: '#2A2A2A',
+  charcoalElevated: '#383838',
+
+  /** Terracotta. Limited promotional / food warmth accent. */
+  terracotta: '#C76F4E',
+  /**
+   * Terracotta darkened to carry text, the same arrangement as `goldInk`.
+   *
+   * The CI value is a 54%-light earth tone — lovely as a fill or a rule,
+   * 3.2:1 as an ink on its own wash, which is under the floor. Rather than
+   * lighten the wash until the pair passes (which would bleach the warmth out
+   * of the one token that carries it), the ink gets its own darker value and
+   * the CI colour stays exactly as the brand sheet prints it.
+   */
+  terracottaInk: '#A85436',
+  terracottaWash: '#F9EEE9',
 } as const;
 
 const neutral = {
   white: '#FFFFFF',
-  grey50: '#FAFAFA',
-  /** §23.4 Light Grey. */
-  grey100: '#F2F2F2',
-  grey200: '#E7E5E5',
-  grey300: '#D4D1D1',
-  grey400: '#948F8F',
-  grey500: '#7A7474',
-  grey600: '#575050',
-  grey700: '#3D3737',
+  /** Warm greys, mixed toward the stone rather than pure neutral, so a
+   *  muted label beside olive body copy does not read as blue-grey. */
+  grey50: '#FAF8F4',
+  grey100: '#F2EFE9',
+  grey200: '#E4DFD6',
+  grey300: '#CFC8BC',
+  /**
+   * Disabled text. 3.4:1 on the stone ground.
+   *
+   * Inactive controls are exempt from WCAG 1.4.3, but a disabled label nobody
+   * can read is still a label nobody can read, so it is held to the 3:1 large
+   * bar. Measured against the *stone* ground rather than white: this app's
+   * background is warm, and a grey tuned on white lands a step too light on it.
+   */
+  grey400: '#8D8579',
+  /**
+   * Muted text. 4.9:1 on stone beige, 6.1:1 on the stone ground.
+   *
+   * Tuned against the darkest surface it actually sits on — a caption inside a
+   * stone-filled card — rather than against white, which is the measurement
+   * that flatters and the one that lets a real pair fail.
+   */
+  grey500: '#66625B',
+  grey600: '#55514B',
+  grey700: '#3A3733',
 } as const;
 
 /**
- * Status colours, darkened to clear §32.3.
+ * Status colours.
  *
- * Every one of these is used as an ink — 13px caption text, a field border, a
- * small icon — over white or over its own tint. At the brighter values they
- * started at, four of the eight pairs fell under 4.5:1 and the amber pair
- * under 3:1, which the contrast test now catches. The hues are unchanged.
- *
- * §32.4 also asks that colour never carries meaning alone, so each of these
- * appears alongside an icon or a worded label, never on its own.
+ * Not on the CI sheet, and they cannot be: §3's palette has no vocabulary for
+ * "this went wrong". Each is pulled toward the Mediterranean range so they
+ * sit inside the system rather than beside it — the success green is a
+ * lighter cousin of the olive, the danger is brick rather than fire-engine.
+ * Every one clears 4.5:1 on white as an ink.
  */
+const DANGER = '#A3402F';
+const DANGER_SOFT = '#F8EAE6';
+
 const status = {
-  success: '#12703E',
-  successSoft: '#E5F5EC',
-  warning: '#8C5300',
-  warningSoft: '#FDF2E0',
-  error: '#B3261E',
-  errorSoft: '#FCEAEA',
-  info: '#1A5CB4',
-  infoSoft: '#E8F0FD',
+  success: '#2F6B3F',
+  successSoft: '#E8F1E9',
+  warning: '#8A5A16',
+  warningSoft: '#FBF0DF',
+  /** `error` is the name the app already uses; `danger` is §17.3's. Same ink. */
+  error: DANGER,
+  errorSoft: DANGER_SOFT,
+  danger: DANGER,
+  dangerSoft: DANGER_SOFT,
+  info: brand.aegean,
+  infoSoft: brand.aegeanWash,
 } as const;
 
 export const colors = {
@@ -158,38 +161,78 @@ export const colors = {
   neutral,
   status,
 
-  // Semantic aliases — prefer these in components.
-  primary: brand.red,
-  primaryHover: brand.redHover,
-  primaryPressed: brand.redPressed,
-  primarySoft: brand.redSoft,
+  // ── Semantic aliases. Prefer these in components. ────────────────────────
+
+  /** §3: olive is the primary accent and selected state. */
+  primary: brand.olive,
+  /** Hover is a web concern; the app has no pointer. Same ink as pressed. */
+  primaryHover: brand.olivePressed,
+  primaryPressed: brand.olivePressed,
+  /** A disabled primary fill: olive at ~30% over white, per §12's restraint. */
+  primaryDisabled: '#C2CCC2',
+  primarySoft: brand.oliveWash,
   onPrimary: neutral.white,
 
-  background: neutral.white,
-  backgroundAlt: neutral.grey50,
+  /** §3: blue is the secondary accent, links, location. */
+  secondary: brand.aegean,
+  secondaryPressed: brand.aegeanPressed,
+  secondarySoft: brand.aegeanWash,
+  onSecondary: neutral.white,
+
+  /** §3: gold is a micro accent. Charcoal sits on it, never white. */
+  accent: brand.gold,
+  accentInk: brand.goldInk,
+  accentSoft: brand.goldWash,
+  onAccent: brand.charcoal,
+
+  /** Limited promotional warmth. Never a primary action. */
+  warm: brand.terracotta,
+  warmInk: brand.terracottaInk,
+  warmSoft: brand.terracottaWash,
+
+  /**
+   * The app's ground.
+   *
+   * Stone-light rather than white. §12 asks for depth from "photography,
+   * spacing, subtle borders, soft shadows and material textures" rather than
+   * gradients, and a faintly warm ground is the cheapest of those: it lets a
+   * white card lift off the page without a shadow heavy enough to notice.
+   */
+  background: brand.stoneLight,
+  backgroundAlt: brand.stone,
   surface: neutral.white,
-  surfaceAlt: neutral.grey100,
-  surfaceDark: brand.black,
-  surfaceDarkAlt: brand.blackSoft,
+  surfaceAlt: brand.stoneLight,
+  surfaceSunken: brand.stone,
+  surfaceDark: brand.charcoal,
+  surfaceDarkAlt: brand.charcoalSoft,
 
-  border: neutral.grey200,
+  border: brand.stoneBorder,
   borderStrong: neutral.grey300,
-  divider: neutral.grey200,
+  borderAccent: brand.gold,
+  divider: brand.stoneBorder,
 
-  textPrimary: brand.black,
+  textPrimary: brand.charcoal,
   textSecondary: neutral.grey600,
   textMuted: neutral.grey500,
   textDisabled: neutral.grey400,
   textOnDark: neutral.white,
-  textOnDarkMuted: 'rgba(255,255,255,0.72)',
+  textOnDarkMuted: 'rgba(255,255,255,0.76)',
+  textLink: brand.aegean,
 
-  overlay: 'rgba(34,30,31,0.62)',
-  scrim: 'rgba(34,30,31,0.35)',
-  imagePlaceholder: neutral.grey200,
+  overlay: 'rgba(26,26,26,0.62)',
+  scrim: 'rgba(26,26,26,0.32)',
+  imagePlaceholder: brand.stone,
 
-  /** Gradient stops used over food photography so text stays legible. */
-  imageScrim: ['rgba(34,30,31,0)', 'rgba(34,30,31,0.78)'] as const,
-  heroScrim: ['rgba(34,30,31,0.10)', 'rgba(34,30,31,0.88)'] as const,
+  /**
+   * Gradient stops used over Pappas photography so text stays legible.
+   *
+   * Charcoal-based rather than pure black: the supplied photography is warm
+   * and candle-lit, and a neutral-black scrim over it reads as grey haze. §12
+   * also forbids "heavy gradients" — these are scrims for legibility, kept to
+   * the bottom third, not a decorative wash over the whole image.
+   */
+  imageScrim: ['rgba(26,26,26,0)', 'rgba(26,26,26,0.80)'] as const,
+  heroScrim: ['rgba(26,26,26,0.05)', 'rgba(26,26,26,0.86)'] as const,
 } as const;
 
 export type Colors = typeof colors;

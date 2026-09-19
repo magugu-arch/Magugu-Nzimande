@@ -24,7 +24,11 @@ export {
   configureDirectChannel,
   resetProviderRegistry,
 } from './providerRegistry';
-export { PappasDirectAdapter, ProviderOrderRejected, haversineKm } from './providers/PappasDirectAdapter';
+export {
+  PappasDirectAdapter,
+  ProviderOrderRejected,
+  haversineKm,
+} from './providers/PappasDirectAdapter';
 export { UberEatsAdapter } from './providers/UberEatsAdapter';
 export { MrDAdapter } from './providers/MrDAdapter';
 export { ExternalChannelAdapter, BrokerUnavailable } from './providers/ExternalChannelAdapter';
