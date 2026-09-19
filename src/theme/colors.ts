@@ -179,7 +179,21 @@ export const colors = {
   secondarySoft: brand.aegeanWash,
   onSecondary: neutral.white,
 
-  /** §3: gold is a micro accent. Charcoal sits on it, never white. */
+  /**
+   * §3: gold is a micro accent. Charcoal sits on it, never white.
+   *
+   * And it never carries text on a **photograph**, which is the case the
+   * original note missed. The rule above was written about flat grounds —
+   * gold on beige is 1.7:1, gold on white 2.0:1 — and a lit photograph is a
+   * light ground that also moves: a sunlit square or a plate under a lamp
+   * hands you patches brighter than beige, in unpredictable places, so there
+   * is no value to tune against.
+   *
+   * Every gold eyebrow in this app sat on exactly that. `NELSON MANDELA
+   * SQUARE` over the square measured worse than the 1.7:1 the flat-ground
+   * note already calls unusable. Use `textOnDark` over photography, and
+   * `accentInk` — the darkened cut — for a gold eyebrow on a light panel.
+   */
   accent: brand.gold,
   accentInk: brand.goldInk,
   accentSoft: brand.goldWash,
@@ -216,7 +230,19 @@ export const colors = {
   textMuted: neutral.grey500,
   textDisabled: neutral.grey400,
   textOnDark: neutral.white,
-  textOnDarkMuted: 'rgba(255,255,255,0.76)',
+  /**
+   * Muted ink on a dark ground — a caption under a headline on a photograph.
+   *
+   * 0.88, up from 0.76. The lower value is a sensible desktop figure and does
+   * not survive a phone: every surface this appears on is a *photograph*, not
+   * a flat dark panel, so the 24% it gave away came off a background that was
+   * already uneven and already carrying a scrim. The result on the venue card
+   * and the category tiles was a line of grey text a reader had to work at.
+   *
+   * It still reads as secondary beside `textOnDark` — that is what the step
+   * is for — but it is now secondary rather than faint.
+   */
+  textOnDarkMuted: 'rgba(255,255,255,0.88)',
   textLink: brand.aegean,
 
   overlay: 'rgba(26,26,26,0.62)',

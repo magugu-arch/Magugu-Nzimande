@@ -46,6 +46,39 @@ import { type TextStyle } from 'react-native';
  * The ratios are kept and the top two steps are brought down one notch, which
  * is the same adjustment §17.4's own `textStyles` makes when it sets
  * `sectionTitle` at 24 against the token block's 28.
+ *
+ * ── Weight, and why the text roles are Medium rather than Regular ─────────
+ *
+ * The first cut of this scale set every text role in Montserrat Regular,
+ * which is the obvious reading of "Montserrat carries the UI" and was wrong
+ * on a handset. Three things compound:
+ *
+ *   - **Montserrat is geometric.** Near-circular counters, near-uniform
+ *     stroke, generous sidebearings. At a given nominal weight it puts less
+ *     ink on the page than a humanist sans, so Regular here is visibly
+ *     lighter than Regular in the faces most UI scales were tuned on.
+ *   - **The ground is warm, not white.** `background` is stone at #F8F5EF.
+ *     Every ratio on it is lower than the same pair on white, and thin
+ *     strokes are what loses first.
+ *   - **Phones are read at arm's length in daylight.** The web preview this
+ *     was designed against flatters all of it.
+ *
+ * So the roles a customer actually reads — body, bodyLarge, caption — are
+ * Medium. That is one step, not a shout: it restores the colour the page was
+ * drawn to have without turning captions into headings, and it leaves the
+ * semibold roles above them still clearly heavier.
+ *
+ * ── The small end ────────────────────────────────────────────────────────
+ *
+ * 11px was the floor for `overline` and `micro`, and 11px of letterspaced
+ * capitals is decorative rather than readable at arm's length. Both move to
+ * 12, and `caption` — which carries dish descriptions, addresses and helper
+ * text — moves to 14.
+ *
+ * `overline`'s tracking comes down with it. Tracking that opens a display
+ * line destroys word shape at text sizes: 1.6 on 11px is 15% of the em, wide
+ * enough that a reader assembles the word letter by letter. 1.2 on 12px is
+ * 10% — still unmistakably a spaced capital eyebrow, still a word.
  */
 
 /** Montserrat weights — UI, body, navigation, prices. */
@@ -135,11 +168,17 @@ export const typography = {
    * §6 asks for "editorial separators and oversized section headings rather
    * than dense grid repetition", which is what this role is for.
    */
+  /**
+   * SemiBold, not Regular. Cinzel Regular is an elegant inscriptional cut
+   * and at 20px on a warm ground it reads as a caption in a serif rather
+   * than as the section heading §6 asks to be "oversized". The heavier cut
+   * is what makes the heading hold the section together.
+   */
   h2: {
-    fontFamily: cinzel.regular,
-    fontSize: 19,
-    lineHeight: 26,
-    fontWeight: fontWeight.regular,
+    fontFamily: cinzel.semibold,
+    fontSize: 20,
+    lineHeight: 27,
+    fontWeight: fontWeight.semibold,
     letterSpacing: 0.5,
   },
   /**
@@ -158,16 +197,16 @@ export const typography = {
   },
 
   bodyLarge: {
-    fontFamily: montserrat.regular,
+    fontFamily: montserrat.medium,
     fontSize: 16,
-    lineHeight: 24,
-    fontWeight: fontWeight.regular,
+    lineHeight: 25,
+    fontWeight: fontWeight.medium,
   },
   body: {
-    fontFamily: montserrat.regular,
+    fontFamily: montserrat.medium,
     fontSize: 15,
     lineHeight: 23,
-    fontWeight: fontWeight.regular,
+    fontWeight: fontWeight.medium,
   },
   bodyMedium: {
     fontFamily: montserrat.semibold,
@@ -176,23 +215,23 @@ export const typography = {
     fontWeight: fontWeight.semibold,
   },
   caption: {
-    fontFamily: montserrat.regular,
-    fontSize: 13,
-    lineHeight: 19,
-    fontWeight: fontWeight.regular,
+    fontFamily: montserrat.medium,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: fontWeight.medium,
   },
   captionMedium: {
     fontFamily: montserrat.semibold,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: fontWeight.semibold,
   },
   micro: {
     fontFamily: montserrat.semibold,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 12,
+    lineHeight: 17,
     fontWeight: fontWeight.semibold,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
 
   /**
@@ -206,11 +245,11 @@ export const typography = {
    * MEDITERRANEAN".
    */
   overline: {
-    fontFamily: montserrat.semibold,
-    fontSize: 11,
-    lineHeight: 16,
-    fontWeight: fontWeight.semibold,
-    letterSpacing: 1.6,
+    fontFamily: montserrat.bold,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: fontWeight.bold,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
 

@@ -98,7 +98,7 @@ export const OrderTotals = memo(function OrderTotals({
         <View style={styles.points}>
           <Ionicons name="star" size={13} color={colors.primary} />
           <Text variant="caption" color={colors.textSecondary}>
-            You&apos;ll earn {groupDigits(totals.pointsEarned)} bb.q points on this order
+            You&apos;ll earn {groupDigits(totals.pointsEarned)} Pappas points on this order
           </Text>
         </View>
       ) : null}

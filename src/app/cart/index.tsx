@@ -136,7 +136,7 @@ export default function CartScreen() {
         <EmptyState
           icon="basket-outline"
           title="Your cart is empty"
-          message="Nothing in here yet. Have a look at what is coming out of the fryer."
+          message="Nothing in here yet. Have a look at what is coming out of the kitchen."
           actionLabel="Browse the menu"
           onActionPress={() => router.replace('/(tabs)/menu')}
           testID="cart-empty-state"

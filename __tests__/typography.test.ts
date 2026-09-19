@@ -298,3 +298,66 @@ describe('how far each role follows the OS text size', () => {
     }
   });
 });
+
+/**
+ * The floors that keep this scale readable on a handset.
+ *
+ * Every one of these is a defect that shipped. The app was designed against a
+ * desktop browser preview, where 11px Montserrat Regular on warm stone looks
+ * refined; on a phone at arm's length it is a grey smudge, and that is what a
+ * customer reported — "make the text bold, it's not readable".
+ *
+ * These are deliberately floors rather than exact values. The scale should be
+ * free to move; what it must not do is drift back under the thresholds where
+ * legibility goes, one convenient tweak at a time.
+ */
+describe('the legibility floors', () => {
+  /** Roles a customer reads as prose, rather than glances at as a label. */
+  const READING_ROLES = ['bodyLarge', 'body', 'bodyMedium', 'caption', 'captionMedium'] as const;
+
+  it('sets no role below 12px', () => {
+    for (const [name, style] of Object.entries(typography)) {
+      expect({ role: name, size: style.fontSize }).toEqual({
+        role: name,
+        size: expect.any(Number),
+      });
+      expect(style.fontSize).toBeGreaterThanOrEqual(12);
+    }
+  });
+
+  /**
+   * Montserrat is geometric — circular counters, near-uniform stroke — so it
+   * lays down less ink at a given weight than the humanist faces most UI
+   * scales are tuned on. On this app's warm ground that shows. Regular is a
+   * step too light for anything a customer has to read.
+   */
+  it('sets every reading role at Medium or heavier', () => {
+    for (const role of READING_ROLES) {
+      expect({ role, weight: Number(typography[role].fontWeight) }).toEqual({
+        role,
+        weight: expect.any(Number),
+      });
+      expect(Number(typography[role].fontWeight)).toBeGreaterThanOrEqual(500);
+    }
+  });
+
+  it('gives every reading role room to breathe between lines', () => {
+    for (const role of READING_ROLES) {
+      const { fontSize, lineHeight } = typography[role];
+      expect({ role, ratio: Number((lineHeight / fontSize).toFixed(2)) >= 1.3 }).toEqual({
+        role,
+        ratio: true,
+      });
+    }
+  });
+
+  /**
+   * Tracking that opens a display line destroys word shape at text sizes: a
+   * reader stops seeing a word and starts assembling it letter by letter.
+   * 10% of the em still reads unmistakably as a spaced capital eyebrow.
+   */
+  it('keeps the eyebrow tracking under a tenth of its own size', () => {
+    const { fontSize, letterSpacing } = typography.overline;
+    expect(letterSpacing).toBeLessThanOrEqual(fontSize * 0.105);
+  });
+});

@@ -455,7 +455,18 @@ export default function HomeScreen() {
                   <Text variant="h3" color={colors.textOnDark}>
                     {category.name}
                   </Text>
-                  <Text variant="micro" color={colors.textOnDarkMuted} numberOfLines={1}>
+                  {/*
+                    Two lines, not one.
+
+                    At one line every tagline on the carousel truncated in the
+                    middle of a word — "Small plates. Big m…", "Fresh.
+                    Vibrant. Medi…" — which is worse than showing nothing: an
+                    ellipsis mid-phrase reads as a rendering fault, and the
+                    half-word it leaves is the part that carried no meaning.
+                    These taglines are two short sentences; the second line is
+                    all they ever needed.
+                  */}
+                  <Text variant="micro" color={colors.textOnDarkMuted} numberOfLines={2}>
                     {category.tagline}
                   </Text>
                 </View>
@@ -483,7 +494,7 @@ export default function HomeScreen() {
             aboveTheFold={false}
           />
           <View style={styles.venueCopy}>
-            <Text variant="overline" color={colors.accent}>
+            <Text variant="overline" color={colors.textOnDark}>
               {venue.landmark.value}
             </Text>
             <Text variant="h2" color={colors.textOnDark}>
@@ -707,5 +718,23 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     alignItems: 'flex-start',
   },
-  footerLinks: { flexDirection: 'row', flexWrap: 'wrap', marginTop: spacing.xs },
+  /**
+   * `gap`, which was missing, and is the whole bug.
+   *
+   * A `text` Button draws no background and no horizontal padding, so three
+   * of them in a row with nothing between them rendered as one run of
+   * underlined capitals: "FIND USCONTACTPRIVACY". It looked like a single
+   * broken link, and there was no way to tell where to press for which.
+   *
+   * `columnGap` and `rowGap` separately because this wraps at 320pt: the
+   * horizontal gap wants to be generous enough to read as three controls,
+   * the vertical one only wants to clear the line.
+   */
+  footerLinks: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: spacing.xxl,
+    rowGap: spacing.sm,
+    marginTop: spacing.sm,
+  },
 });

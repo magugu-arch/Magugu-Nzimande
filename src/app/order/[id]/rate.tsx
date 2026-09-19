@@ -15,7 +15,7 @@ import {
 import { useOrder, useRateOrder } from '@/features/orders/hooks';
 import { colors, radius, spacing, typography } from '@/theme';
 
-const POSITIVE_TAGS = ['Crispy as always', 'Right on time', 'Well packed', 'Friendly driver'];
+const POSITIVE_TAGS = ['Cooked beautifully', 'Right on time', 'Well packed', 'Friendly driver'];
 const NEGATIVE_TAGS = ['Arrived cold', 'Late', 'Item missing', 'Wrong order'];
 
 /** Rate Order (brief §4). */

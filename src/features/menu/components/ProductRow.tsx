@@ -5,7 +5,7 @@ import type { Product } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
 import { Badge, FavouriteButton, Text } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
-import { formatPrice } from '@/utils/money';
+import { priceLabel } from '@/features/menu/price';
 
 export interface ProductRowProps {
   product: Product;
@@ -34,7 +34,7 @@ export const ProductRow = memo(function ProductRow({ product, onPress, testID }:
         testID={testID}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${product.name}, from ${formatPrice(product.basePrice)}. ${product.shortDescription}`}
+        accessibilityLabel={`${product.name}, from ${priceLabel(product)}. ${product.shortDescription}`}
         style={({ pressed }) => [styles.main, pressed ? styles.pressed : null]}
       >
         <FoodImage
@@ -61,7 +61,7 @@ export const ProductRow = memo(function ProductRow({ product, onPress, testID }:
 
           <View style={styles.footer}>
             <Text variant="price" color={colors.primary}>
-              {formatPrice(product.basePrice)}
+              {priceLabel(product)}
             </Text>
             {product.tags.includes('bestseller') ? (
               <Badge label="Bestseller" tone="neutral" />

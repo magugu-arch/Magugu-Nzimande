@@ -33,7 +33,7 @@ export default function SplashRoute() {
       <StatusBar style="light" />
       <BrandMark size="lg" onDark />
       <Text variant="caption" color={colors.textOnDarkMuted} align="center">
-        Korean fried chicken, done properly
+        Greek and Mediterranean, on Nelson Mandela Square
       </Text>
     </View>
   );

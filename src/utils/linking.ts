@@ -148,7 +148,7 @@ export async function openAppSettings(): Promise<boolean> {
   } catch {
     Alert.alert(
       'Could not open settings',
-      'Open Settings yourself, find bb.q Chicken, and turn notifications back on.',
+      'Open Settings yourself, find Pappas, and turn notifications back on.',
     );
     return false;
   }

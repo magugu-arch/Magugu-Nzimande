@@ -5,7 +5,7 @@ import type { Product } from '@/types';
 import { FoodImage } from '@/components/food/FoodImage';
 import { Badge, Text } from '@/components/ui';
 import { colors, elevation, radius, spacing } from '@/theme';
-import { formatPrice } from '@/utils/money';
+import { priceLabel } from '@/features/menu/price';
 
 export interface ProductCardProps {
   product: Product;
@@ -38,7 +38,7 @@ export const ProductCard = memo(function ProductCard({
       testID={testID}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${product.name}, from ${formatPrice(product.basePrice)}`}
+      accessibilityLabel={`${product.name}, from ${priceLabel(product)}`}
       accessibilityHint="Opens the product page"
       style={({ pressed }) => [
         styles.card,
@@ -66,7 +66,7 @@ export const ProductCard = memo(function ProductCard({
 
         <View style={styles.footer}>
           <Text variant="price" color={colors.primary}>
-            {formatPrice(product.basePrice)}
+            {priceLabel(product)}
           </Text>
           <View style={styles.addButton}>
             <Ionicons name="add" size={17} color={colors.onPrimary} />

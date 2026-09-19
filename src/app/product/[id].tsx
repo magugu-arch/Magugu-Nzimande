@@ -34,7 +34,7 @@ import {
   unmetOptionGroups,
   unitPriceFor,
 } from '@/utils/cart';
-import { formatPrice } from '@/utils/money';
+import { lineTotalLabel, priceLabel } from '@/features/menu/price';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_WIDTH * 1.05;
@@ -284,7 +284,7 @@ export default function ProductDetailScreen() {
                 </Text>
               </View>
               <Text variant="price" color={colors.primary} style={styles.basePrice}>
-                {formatPrice(item.basePrice)}
+                {priceLabel(item)}
               </Text>
             </View>
           </View>
@@ -309,7 +309,7 @@ export default function ProductDetailScreen() {
             <TextInput
               value={instructions}
               onChangeText={setInstructions}
-              placeholder="e.g. extra crispy, no spring onion, sauce on the side"
+              placeholder="e.g. no onion, dressing on the side, well done"
               placeholderTextColor={colors.textDisabled}
               multiline
               maxLength={200}
@@ -367,7 +367,7 @@ export default function ProductDetailScreen() {
         <Button
           label={ctaLabel}
           onPress={handleAddToCart}
-          trailingLabel={unmetGroups.length > 0 ? undefined : formatPrice(lineTotal)}
+          trailingLabel={unmetGroups.length > 0 ? undefined : lineTotalLabel(item, lineTotal)}
           size="lg"
           style={styles.cta}
           testID="product-add-to-cart"

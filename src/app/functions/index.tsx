@@ -89,7 +89,7 @@ export default function FunctionsScreen() {
           scrimIntensity="strong"
         />
         <View style={styles.heroCopy}>
-          <Text variant="overline" color={colors.accent}>
+          <Text variant="overline" color={colors.textOnDark}>
             Private dining
           </Text>
           <Text variant="hero" color={colors.textOnDark}>

@@ -56,7 +56,7 @@ export default function AboutScreen() {
           <Text variant="hero" color={colors.textOnDark}>
             {brand.name}
           </Text>
-          <Text variant="overline" color={colors.accent}>
+          <Text variant="overline" color={colors.textOnDark}>
             {brand.descriptor}
           </Text>
           <Text variant="accent" color={colors.textOnDark} style={styles.heroAccent}>

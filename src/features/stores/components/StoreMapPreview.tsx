@@ -83,7 +83,7 @@ export const StoreMapPreview = memo(function StoreMapPreview({
   return (
     <View
       style={[styles.container, { height }]}
-      accessibilityLabel={origin ? 'Map of nearby bb.q stores' : 'Map of bb.q stores'}
+      accessibilityLabel={origin ? 'Map showing Pappas and where you are' : 'Map showing Pappas'}
     >
       {/* Grid backdrop */}
       <View style={[styles.grid, styles.decorative]}>

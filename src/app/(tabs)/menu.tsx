@@ -212,7 +212,7 @@ export default function MenuScreen() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Search chicken, sides, meals…"
+            placeholder="Search dishes, mezedakia, drinks…"
             placeholderTextColor={colors.textDisabled}
             style={styles.searchInput}
             returnKeyType="search"
@@ -266,8 +266,17 @@ export default function MenuScreen() {
         listedProducts.length === 0 &&
         !search.isLoading ? null : isSearching ? null : (
           <View style={styles.suggestions}>
-            <Text variant="micro" color={colors.textMuted}>
-              POPULAR SEARCHES
+            {/*
+              "Try" rather than "Popular". Nobody has told us what sells, and
+              §15 forbids inventing it — "popular" reads as chrome and is
+              actually a claim about the business.
+
+              `overline` rather than a hand-typed capital string, so the
+              casing comes from the type scale like every other eyebrow and
+              the tracking comes with it.
+            */}
+            <Text variant="overline" color={colors.textMuted}>
+              Try searching for
             </Text>
             <View style={styles.suggestionRow}>
               {POPULAR_SEARCH_TERMS.slice(0, 4).map((term) => (

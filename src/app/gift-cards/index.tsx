@@ -49,7 +49,7 @@ export default function GiftCardsScreen() {
           scrimIntensity="strong"
         />
         <View style={styles.heroCopy}>
-          <Text variant="overline" color={colors.accent}>
+          <Text variant="overline" color={colors.textOnDark}>
             Gift cards
           </Text>
           <Text variant="hero" color={colors.textOnDark}>

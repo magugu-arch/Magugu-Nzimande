@@ -89,7 +89,7 @@ export default function ReserveScreen() {
           scrimIntensity="strong"
         />
         <View style={styles.heroCopy}>
-          <Text variant="overline" color={colors.accent}>
+          <Text variant="overline" color={colors.textOnDark}>
             Reserve a table
           </Text>
           <Text variant="hero" color={colors.textOnDark}>

@@ -23,11 +23,11 @@ const STATUS_COPY: Record<OrderStatus, { label: string; description: string }> =
   },
   preparing: {
     label: 'Preparing',
-    description: 'Your chicken is being battered and dropped into the fryer.',
+    description: 'The kitchen has your order on the grill.',
   },
   ready: {
     label: 'Ready',
-    description: 'Boxed, sealed and ready to go.',
+    description: 'Plated, packed and ready to go.',
   },
   out_for_delivery: {
     label: 'Out for delivery',
