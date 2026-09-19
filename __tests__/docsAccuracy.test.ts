@@ -111,8 +111,18 @@ describe('the counts in the docs, against the repository', () => {
     }
   });
 
+  /**
+   * "dishes" as well as "products", because the documents now say dishes.
+   *
+   * `products` is the type's name and the right word in the code; a restaurant
+   * serves dishes, and the handover is written for a reader, not a compiler.
+   * Counting only one noun meant rewriting the prose in the restaurant's own
+   * language silently dropped two of the three claims this guards — the test
+   * failed on the count of claims rather than on a wrong number, which is the
+   * one useful thing it did here.
+   */
   it('counts the catalogue products the photography claim covers', () => {
-    const claims = claimed(/(\d+)(?: of \d+)? (?:catalogue )?products/g);
+    const claims = claimed(/(\d+)(?: of \d+)? (?:catalogue )?(?:products|dishes)/g);
     expect(claims.length).toBeGreaterThan(2);
 
     for (const claim of claims) {
