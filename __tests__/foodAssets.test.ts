@@ -14,18 +14,39 @@ import {
 import { menuSnapshot } from '@/services/data/menuData';
 import { promotions, rewards, vouchers } from '@/services/data/rewardsData';
 
-const VARIANTS: ImageVariant[] = ['thumb', 'card', 'detail', 'banner'];
+const VARIANTS: ImageVariant[] = ['thumb', 'card', 'detail', 'hero', 'banner'];
 
 describe('food asset catalogue', () => {
-  it('covers all 16 products the brief requires', () => {
-    expect(FOOD_ASSET_KEYS).toHaveLength(16);
-    expect(new Set(FOOD_ASSET_KEYS).size).toBe(16);
+  /**
+   * Thirteen, not sixteen.
+   *
+   * §10 supplies sixteen images, and three of them — 01 and 02, the
+   * photography-direction boards, and 15, the CI brand sheet — are references
+   * for the people building the app rather than content for it. §10's own
+   * implementation rules say so: "use as visual direction", "treat as the
+   * visual system reference".
+   *
+   * They have no keys here and the derivative pipeline refuses to cut them,
+   * so there is no way to put the CI sheet on a home screen by accident.
+   */
+  it('covers the thirteen supplied photographs that appear in the product', () => {
+    expect(FOOD_ASSET_KEYS).toHaveLength(13);
+    expect(new Set(FOOD_ASSET_KEYS).size).toBe(13);
+  });
+
+  it('holds back the three art-direction references', () => {
+    for (const reference of ['foodMaster', 'foodGuide', 'ciSheet']) {
+      expect(FOOD_ASSET_KEYS as readonly string[]).not.toContain(reference);
+    }
   });
 
   it('has a label and a filename for every key', () => {
     FOOD_ASSET_KEYS.forEach((key) => {
       expect(FOOD_ASSET_LABELS[key]).toBeTruthy();
-      expect(FOOD_ASSET_FILENAMES[key]).toMatch(/^[a-z0-9-]+$/);
+      // The Pappas pipeline keys its output on the supplied filenames, which
+      // carry §10's numbering — `03_mezedakia` rather than `mezedakia`. The
+      // numbering is what makes an asset traceable back to the brief's table.
+      expect(FOOD_ASSET_FILENAMES[key]).toMatch(/^\d{2}_[a-z0-9_]+$/);
     });
   });
 
@@ -160,8 +181,24 @@ describe('menu data integrity', () => {
     });
   });
 
-  it('prices every product above zero', () => {
+  /**
+   * Every dish is either priced, or explicitly marked as awaiting a price and
+   * withdrawn from sale. There is no third state, and in particular no dish
+   * that is offered for sale at zero.
+   *
+   * Today every dish is in the second state — §15 forbids inventing menu
+   * prices and the Pappas website, the brief's own source, is unreachable
+   * from this build. See `services/data/menuData.ts`.
+   */
+  it('either prices a dish or withdraws it, never offers it at zero', () => {
     menuSnapshot.products.forEach((product) => {
+      if (product.priceStatus === 'awaiting-business-input') {
+        expect({ id: product.id, available: product.available }).toEqual({
+          id: product.id,
+          available: false,
+        });
+        return;
+      }
       expect(product.basePrice).toBeGreaterThan(0);
     });
   });

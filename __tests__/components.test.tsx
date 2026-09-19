@@ -259,9 +259,11 @@ describe('OrderTimeline', () => {
 
 describe('FoodImage', () => {
   it('labels a supplied asset with its product name', () => {
-    render(<FoodImage assetKey="goldenOriginal" variant="card" />);
-    expect(hasFoodAsset('goldenOriginal')).toBe(true);
-    expect(screen.getByLabelText('Golden Original Chicken')).toBeTruthy();
+    render(<FoodImage assetKey="souvlaki" variant="card" />);
+    expect(hasFoodAsset('souvlaki')).toBe(true);
+    // The label describes the photograph rather than repeating the heading
+    // printed beside it — see FOOD_ASSET_LABELS.
+    expect(screen.getByLabelText(/souvlaki skewers/i)).toBeTruthy();
   });
 
   it("labels a substituted product with its own name, not the stand-in's", () => {

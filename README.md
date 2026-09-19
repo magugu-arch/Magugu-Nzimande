@@ -52,62 +52,76 @@ The OTP is always `1234` (the verification screen says so on-screen).
 
 ---
 
-## Food imagery — the important part
+## Photography — the important part
 
-The brief requires that **every** food image in the production UI be a supplied
-high-resolution bb.q asset, with no generic stock photography and no placeholder
-food blocks. The codebase enforces this rather than trusting discipline.
+Brief §10 supplies sixteen Pappas images and §6, §14 and §15 all say the same
+thing about them: use them, and do not let their baked-in poster typography
+reach a product surface. The codebase enforces that rather than trusting
+discipline.
+
+### The problem
+
+Every supplied master is a *finished poster*. Each carries a Cinzel headline, a
+letterspaced sub-line and usually an Allura script phrase, printed into the
+pixels. Crop a category card naively out of `03_mezedakia.png` and the card
+prints "MEZEDAKIA" in the image, with the live Cinzel heading "Mezedakia"
+directly beneath it — §15's "do not duplicate text that is already baked into a
+poster image", and the single most visible way this brand would look broken.
 
 ### How it works
 
-1. **Masters** live in `assets/food/masters/<kebab-name>.jpg`. They are never
-   loaded by the app — only used to generate derivatives.
-2. **`npm run assets:derive`** produces four responsive crops per master:
+1. **Masters** live in `assets/pappas/{food,venue,ci}/`, named exactly as §10's
+   asset table names them. They are never loaded by the app.
+
+2. **`npm run assets:pappas`** cuts four responsive derivatives per master,
+   each from inside a declared `food_safe` rectangle that excludes the
+   typography:
 
    | Variant | Ratio | Width | Used on |
    |---|---|---|---|
-   | `thumb` | 1:1 | 400px | menu rows, cart lines, order lines |
-   | `card` | 4:5 | 800px | catalogue cards, best sellers, category tiles |
-   | `detail` | 4:5 | 1200px | product detail hero |
-   | `banner` | 16:9 | 1600px | home promotions, offer banners |
+   | `thumb` | 1:1 | 400px | menu rows, cart lines, reorder chips |
+   | `card` | 4:5 | 800px | category cards, editorial cards, dish cards |
+   | `hero` | 4:3 | 1400px | home hero, category hero, product detail |
+   | `banner` | 16:9 | 1600px | campaign banners, event cards |
 
-   Every crop is a centre-weighted **cover** crop at an exact ratio, so nothing
-   is ever stretched or squeezed. Portrait masters are cropped with an upward
-   gravity so the hero piece is never sliced off.
+   Every crop is a **cover** crop at an exact ratio, so nothing is ever
+   stretched — §16 names low-resolution stretching as a failure condition. A
+   source that cannot honestly fill a target is clamped to the width its pixels
+   support rather than upscaled.
 
-3. **`src/constants/foodAssets.ts`** is the single catalogue. Screens never
-   `require()` an image — they pass a `FoodAssetKey` to `<FoodImage>`, which
-   picks the right derivative for the surface.
+   The safe boxes are in `scripts/generate-pappas-derivatives.mjs`, each with a
+   note on what it is avoiding. They were checked by rendering all four
+   variants and looking for a clipped letterform, which is how three of them
+   got tightened: a box that clears a headline at 4:5 can still catch a
+   branded cup or a serving-board legend at 4:3 or 16:9, because the wider
+   ratios keep more width.
 
-### Adding a supplied asset
+3. **`src/data/pappasAssets.ts`** is the single registry. Screens never
+   `require()` an image — they pass a key to `<FoodImage>`, which picks the
+   derivative for the surface it is drawing on.
 
-Artwork arrives in batches, so adding a batch is one command:
+### Three masters are deliberately unreachable
 
-```bash
-# 1. Drop the masters in, named by their catalogue stem
-cp secret-sauce.jpg cheesling.jpg assets/food/masters/
+`01_pappas_food_photography_master_style`, `02_pappas_food_photography_style_guide`
+and `15_ci_brand_sheet` have no registry keys, and the derivative pipeline
+refuses to cut them. §10 designates all three as references — "use as visual
+direction", "treat as the visual system reference" — so they are instructions
+to the people building the app, not content for it. There is no way to put the
+CI sheet on a home screen by accident.
 
-# 2. Derive the crops and regenerate the static require() registry
-npm run assets:derive
-```
+They remain in `assets/pappas/` where a designer can find them.
 
-No hand-editing and no screen changes. Metro needs literal `require()` paths, so
-`src/constants/foodAssetRegistry.ts` is **generated** by that command from
-whichever masters are on disk — never edit it by hand.
+### One photograph, many dishes
 
-Run `npm run assets:audit` to see what is still outstanding. It exits non-zero
-while any of the 16 catalogue products lack their own artwork, so it can gate a
-release build.
+Pappas supplied thirteen usable photographs for a menu of 45 products, because
+each one is a *category* composition: the seafood poster shows prawns,
+mussels, oysters and calamari together. So most dishes legitimately share their
+category's photograph, and that is what the catalogue records.
 
-### Current asset status
-
-**All 16 of 16** catalogue products carry their own supplied bb.q photograph.
-Nothing borrows, nothing renders a placeholder, and `npm run assets:audit`
-exits clean:
-
-```
-All 16 catalogue products have supplied artwork. Cleared for production.
-```
+It is worth being clear-eyed that this is a compromise. A customer looking at a
+prawn platter while ordering mussels has been mildly misled, and a per-dish
+shoot is what would fix it. `npm run audit:placeholders` reports which dishes
+are sharing, so the shoot list knows.
 
 ### Promo compositions and per-master crop overrides
 

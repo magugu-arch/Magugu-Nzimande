@@ -33,20 +33,20 @@ describe('what loads first', () => {
     ['banner', 'high', 'eager'],
     ['detail', 'high', 'eager'],
   ] as const)('%s is a hero: %s priority, %s', (variant, priority, loading) => {
-    const props = loadPropsFor({ assetKey: 'goldenOriginal', variant });
+    const props = loadPropsFor({ assetKey: 'souvlaki', variant });
     expect(props.priority).toBe(priority);
     expect(props.loading).toBe(loading);
   });
 
   it('a catalogue card is ordinary, and still deferred', () => {
-    const props = loadPropsFor({ assetKey: 'goldenOriginal', variant: 'card' });
+    const props = loadPropsFor({ assetKey: 'souvlaki', variant: 'card' });
     expect(props.priority).toBe('normal');
     expect(props.loading).toBe('lazy');
   });
 
   it('a menu-row thumbnail yields to everything else', () => {
     // Small, and almost always below the fold. Arriving late costs nothing.
-    const props = loadPropsFor({ assetKey: 'goldenOriginal', variant: 'thumb' });
+    const props = loadPropsFor({ assetKey: 'souvlaki', variant: 'thumb' });
     expect(props.priority).toBe('low');
     expect(props.loading).toBe('lazy');
   });
@@ -55,7 +55,7 @@ describe('what loads first', () => {
 describe('when the screen knows better than the variant', () => {
   it('promotes a card that sits at the top of a screen', () => {
     const props = loadPropsFor({
-      assetKey: 'goldenOriginal',
+      assetKey: 'souvlaki',
       variant: 'card',
       aboveTheFold: true,
     });
@@ -72,7 +72,7 @@ describe('when the screen knows better than the variant', () => {
    */
   it('demotes a hero-sized image that is not on screen yet', () => {
     const props = loadPropsFor({
-      assetKey: 'goldenOriginal',
+      assetKey: 'souvlaki',
       variant: 'detail',
       aboveTheFold: false,
     });

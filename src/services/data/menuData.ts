@@ -1,860 +1,742 @@
 import type { Category, MenuSnapshot, OptionGroup, Product } from '@/types';
 
 /**
- * bb.q Chicken South Africa menu catalogue (brief §10).
+ * The Pappas catalogue.
  *
  * This is the seed dataset the mock service serves and the shape the real API
  * must return. It lives in data, not in screens — swapping in a live endpoint
  * means changing one service, not thirty components.
  *
- * Prices are ZAR, inclusive of VAT.
+ * ── Where every dish here comes from ─────────────────────────────────────
+ *
+ * §1 and §15 both forbid inventing dishes, and §17.15 says to use a clearly
+ * marked business-input placeholder when source data is missing. The brief's
+ * primary source is the Pappas website (§2), which this build environment
+ * cannot reach — the network egress policy blocks it. So the catalogue is
+ * built from the one Pappas source that *is* available: the sixteen supplied
+ * photographs, which are Pappas' own artwork and therefore Pappas' own menu.
+ *
+ * Each dish below is legible in a supplied composition, and `sourcedFrom`
+ * records which one and what is visible in it. Two assets go further and
+ * print their contents as text, which is supplied content rather than
+ * interpretation:
+ *
+ *   - 09_mediterranean_fish_market carries a chalkboard reading "Fresh Fish ·
+ *     Line Fish · Kingklip · Sea Bass · Dorado · Calamari · Prawns · Mussels".
+ *   - 12_cocktails prints seven cocktails with their ingredients beneath
+ *     each glass.
+ *
+ * Nothing else has been added. There is no lamb kleftiko here, no moussaka,
+ * no saganaki — all of them plausible at a Greek restaurant in Sandton, none
+ * of them visible in anything Pappas supplied.
+ *
+ * ── Why every price is zero ──────────────────────────────────────────────
+ *
+ * Because no price has been supplied, and a photograph does not carry one.
+ *
+ * Every dish is `priceStatus: 'awaiting-business-input'` with
+ * `available: false`, which means the menu renders it with "Price on request"
+ * and the add-to-order control disabled. The zero is never arithmetic: an
+ * unavailable dish cannot enter a cart, so no total is ever computed from it.
+ * That pairing is deliberate and `__tests__/pappasCatalogue.test.ts` holds it.
+ *
+ * This is the state §17.15 asks for, and it is not a placeholder in the
+ * dismissive sense — it is the single most valuable output of this build for
+ * the Pappas team, because `npm run audit:placeholders` prints the exact list
+ * of what has to be supplied before the app can take an order. Filling it in
+ * is a data change: set `basePrice`, set `priceStatus: 'confirmed'`, set
+ * `available: true`. No code moves.
  */
 
-const SIZE_GROUP = (base: string, prices: [number, number, number]): OptionGroup => ({
-  id: `${base}-size`,
-  name: 'Choose your size',
-  kind: 'size',
-  minSelect: 1,
-  maxSelect: 1,
-  defaultOptionIds: [`${base}-size-medium`],
-  options: [
-    {
-      id: `${base}-size-small`,
-      name: 'Small · 6 pieces',
-      description: 'Serves 1 – 2',
-      priceDelta: prices[0],
-      available: true,
-    },
-    {
-      id: `${base}-size-medium`,
-      name: 'Medium · 9 pieces',
-      description: 'Serves 2 – 3',
-      priceDelta: prices[1],
-      available: true,
-    },
-    {
-      id: `${base}-size-large`,
-      name: 'Large · 12 pieces',
-      description: 'Serves 3 – 4',
-      priceDelta: prices[2],
-      available: true,
-    },
-  ],
-});
-
-const SAUCE_GROUP = (base: string): OptionGroup => ({
-  id: `${base}-sauce`,
-  name: 'Extra dipping sauce',
-  kind: 'addon',
-  minSelect: 0,
-  maxSelect: 3,
-  defaultOptionIds: [],
-  options: [
-    { id: `${base}-sauce-honey`, name: 'Honey Garlic dip', priceDelta: 18, available: true },
-    { id: `${base}-sauce-soy`, name: 'Soy Garlic dip', priceDelta: 18, available: true },
-    { id: `${base}-sauce-hot`, name: 'Hot Spicy dip', priceDelta: 18, available: true },
-    { id: `${base}-sauce-secret`, name: 'Secret Sauce dip', priceDelta: 20, available: true },
-    { id: `${base}-sauce-ranch`, name: 'Creamy ranch', priceDelta: 16, available: true },
-  ],
-});
-
-const SIDE_GROUP = (base: string): OptionGroup => ({
-  id: `${base}-side`,
-  name: 'Add a side',
-  kind: 'side',
-  minSelect: 0,
-  maxSelect: 2,
-  defaultOptionIds: [],
-  options: [
-    {
-      id: `${base}-side-fries`,
-      name: 'French Fries',
-      priceDelta: 39,
-      available: true,
-      assetKey: 'frenchFries',
-    },
-    {
-      id: `${base}-side-cheesling-fries`,
-      name: 'Cheesling Fries',
-      priceDelta: 55,
-      available: true,
-      assetKey: 'cheeslingFries',
-    },
-    {
-      id: `${base}-side-ddeok`,
-      name: 'Ddeok-Bokki',
-      priceDelta: 62,
-      available: true,
-      assetKey: 'ddeokBokki',
-    },
-    {
-      id: `${base}-side-slaw`,
-      name: 'Korean coleslaw',
-      priceDelta: 28,
-      available: true,
-    },
-  ],
-});
-
-const DRINK_GROUP = (base: string): OptionGroup => ({
-  id: `${base}-drink`,
-  name: 'Add a drink',
-  kind: 'drink',
-  minSelect: 0,
-  maxSelect: 2,
-  defaultOptionIds: [],
-  options: [
-    { id: `${base}-drink-coke`, name: 'Coca-Cola 330ml', priceDelta: 22, available: true },
-    { id: `${base}-drink-coke-zero`, name: 'Coke Zero 330ml', priceDelta: 22, available: true },
-    { id: `${base}-drink-sprite`, name: 'Sprite 330ml', priceDelta: 22, available: true },
-    { id: `${base}-drink-water`, name: 'Still water 500ml', priceDelta: 18, available: true },
-    { id: `${base}-drink-milkis`, name: 'Milkis soda', priceDelta: 32, available: true },
-  ],
-});
-
-const HALF_FLAVOUR_GROUP: OptionGroup = {
-  id: 'half-and-half-flavours',
-  name: 'Pick your two flavours',
-  kind: 'flavour',
-  minSelect: 2,
-  maxSelect: 2,
-  defaultOptionIds: ['half-flavour-golden', 'half-flavour-honey'],
-  options: [
-    {
-      id: 'half-flavour-golden',
-      name: 'Golden Original',
-      priceDelta: 0,
-      available: true,
-      assetKey: 'goldenOriginal',
-    },
-    {
-      id: 'half-flavour-honey',
-      name: 'Honey Garlic',
-      priceDelta: 0,
-      available: true,
-      assetKey: 'honeyGarlic',
-    },
-    {
-      id: 'half-flavour-soy',
-      name: 'Soy Garlic',
-      priceDelta: 0,
-      available: true,
-      assetKey: 'soyGarlic',
-    },
-    {
-      id: 'half-flavour-secret',
-      name: 'Secret Sauce',
-      priceDelta: 10,
-      available: true,
-      assetKey: 'secretSauce',
-    },
-    {
-      id: 'half-flavour-hot',
-      name: 'Hot Spicy',
-      priceDelta: 0,
-      available: true,
-      assetKey: 'hotSpicy',
-    },
-    {
-      id: 'half-flavour-cheesling',
-      name: 'Cheesling',
-      priceDelta: 15,
-      available: true,
-      assetKey: 'cheesling',
-    },
-  ],
-};
+/**
+ * The dietary and character tags a photograph can honestly support.
+ *
+ * §6 permits a dietary tag "when verified". Vegetarian is verifiable by
+ * looking — a plate of dolmades and halloumi has no meat on it. A gluten-free
+ * or allergen claim is not, and none is made anywhere in this file: §15's
+ * "do not invent … customer promises" covers allergens, and an allergen claim
+ * is the one kind of invented content that can put somebody in hospital.
+ */
 
 /**
- * The seven categories that have supplied products, in the brief's own order.
+ * Standard preparation estimate.
  *
- * §8 and §17 name nine. Drinks and Sauces & Extras are typed in `CategoryId`
- * but deliberately absent here, and the reason is photography rather than
- * naming: both already exist as add-ons — `DRINK_GROUP` and `SAUCE_GROUP`
- * below carry the items and their prices — but a *browsable* category needs
- * product cards, and a card needs a photograph. None was supplied for a drink
- * or a sauce; the cups in the campaign masters are dressing on a chicken shot,
- * not product artwork. `npm run assets:audit` fails the build for a catalogue
- * product with no artwork of its own, which is exactly the guard that should
- * stop someone promoting these to products before the shoot lands.
+ * §15 forbids inventing customer promises, and a per-dish cook time is one.
+ * Every dish therefore carries the restaurant's single preparation figure
+ * from `businessRules` rather than a number chosen per plate; the kitchen can
+ * refine it per dish when it wants to.
+ */
+const PREP_MINUTES = 25;
+
+/** Every dish is awaiting its price. The pairing that makes that safe. */
+const UNPRICED = {
+  basePrice: 0,
+  priceStatus: 'awaiting-business-input',
+  available: false,
+} as const;
+
+/**
+ * Where a dish was read from, kept on the record rather than in a comment.
  *
- * Five of the seven hold a single product today. That is the supplied menu
- * being sixteen items, not the taxonomy being wrong — §17 asks for this
- * structure precisely so "the wider menu supplied elsewhere in the project"
- * has somewhere to land without a refactor.
+ * Not part of the `Product` type — it would travel to the client for no
+ * reason — but held beside the catalogue so `audit:placeholders` can print
+ * "Pork Souvlaki, read from 07_souvlaki" and a reviewer can check it against
+ * the artwork.
+ */
+export const DISH_SOURCES: Record<string, string> = {};
+
+interface DishSpec {
+  id: string;
+  name: string;
+  shortDescription: string;
+  description: string;
+  categoryId: Product['categoryId'];
+  assetKey: Product['assetKey'];
+  /** Which supplied asset this dish is legible in. */
+  sourcedFrom: string;
+  tags?: Product['tags'];
+  serves?: string;
+  optionGroups?: OptionGroup[];
+  recommendedProductIds?: string[];
+}
+
+function dish(spec: DishSpec): Product {
+  DISH_SOURCES[spec.id] = spec.sourcedFrom;
+  return {
+    id: spec.id,
+    slug: spec.id,
+    name: spec.name,
+    shortDescription: spec.shortDescription,
+    description: spec.description,
+    categoryId: spec.categoryId,
+    assetKey: spec.assetKey,
+    spiceLevel: 0,
+    tags: spec.tags ?? [],
+    optionGroups: spec.optionGroups ?? [],
+    recommendedProductIds: spec.recommendedProductIds ?? [],
+    preparationMinutes: PREP_MINUTES,
+    serves: spec.serves ?? '1',
+    // Empty, deliberately. See the note on dietary tags above: an allergen
+    // list nobody supplied is the one invented claim that can hurt somebody.
+    allergens: [],
+    ...UNPRICED,
+  };
+}
+
+/**
+ * The ten categories, in menu order.
+ *
+ * Order follows a Greek table rather than a delivery app's: small plates and
+ * salads first, then the grill and the sea, then sweet. Breakfast and Drinks
+ * sit at the ends because they are separate occasions. §6 asks for a menu
+ * that "feels like a premium digital menu, not a catalogue grid", and the
+ * sequence a kitchen would serve in is part of that.
  */
 export const categories: Category[] = [
   {
-    id: 'chicken',
-    name: 'Chicken',
-    tagline: 'Double-fried, hand-glazed, unmistakably bb.q',
-    assetKey: 'goldenOriginal',
+    id: 'mezedakia',
+    name: 'Mezedakia',
+    tagline: 'Small plates. Big moments.',
+    assetKey: 'mezedakia',
     sortOrder: 1,
   },
   {
-    id: 'wings',
-    name: 'Wings',
-    tagline: 'All the crunch, none of the cutlery',
-    assetKey: 'goldenOriginalWings',
+    id: 'salads',
+    name: 'Salads',
+    tagline: 'Fresh. Vibrant. Mediterranean.',
+    assetKey: 'salads',
     sortOrder: 2,
   },
   {
-    id: 'boneless',
-    name: 'Boneless',
-    tagline: 'Bite-sized, built for sharing',
-    assetKey: 'boneless',
+    id: 'souvlaki',
+    name: 'Souvlaki',
+    tagline: 'A taste of Greece.',
+    assetKey: 'souvlaki',
     sortOrder: 3,
   },
   {
-    id: 'meals',
-    name: 'Meals',
-    tagline: 'A full plate, sorted',
-    assetKey: 'chickenRiceMeal',
+    id: 'seafood',
+    name: 'Seafood',
+    tagline: 'Fresh from the Mediterranean.',
+    assetKey: 'seafood',
     sortOrder: 4,
   },
   {
-    id: 'burgers',
-    name: 'Burgers',
-    tagline: 'Our crust, between two buns',
-    assetKey: 'chickenBurger',
+    id: 'fish-market',
+    name: 'Fish Market',
+    tagline: 'Ocean to our table.',
+    assetKey: 'fishMarket',
     sortOrder: 5,
   },
   {
-    id: 'rice-bowls',
-    name: 'Rice Bowls',
-    tagline: 'Korean comfort in one bowl',
-    assetKey: 'koreanRiceBowl',
+    id: 'signature-mains',
+    name: 'Signature Mains',
+    tagline: 'Timeless classics.',
+    assetKey: 'signatureMains',
     sortOrder: 6,
   },
   {
-    id: 'sides',
-    name: 'Sides',
-    tagline: 'The supporting cast that steals the show',
-    assetKey: 'cheeslingFries',
+    id: 'steak-on-the-rock',
+    name: 'Steak on the Rock',
+    tagline: 'Sear. Slice. Savour.',
+    assetKey: 'steakOnRock',
     sortOrder: 7,
+  },
+  {
+    id: 'desserts',
+    name: 'Desserts',
+    tagline: 'Always a perfect ending.',
+    assetKey: 'desserts',
+    sortOrder: 8,
+  },
+  {
+    id: 'breakfast',
+    name: 'Breakfast',
+    tagline: 'Good food, brighter mornings.',
+    assetKey: 'breakfast',
+    sortOrder: 9,
+  },
+  {
+    id: 'drinks',
+    name: 'Drinks',
+    tagline: 'Bold flavours. Golden moments.',
+    assetKey: 'cocktails',
+    sortOrder: 10,
   },
 ];
 
-export const products: Product[] = [
-  {
-    id: 'golden-original',
-    slug: 'golden-original-chicken',
-    name: 'Golden Original Chicken',
-    shortDescription: 'The one that started it all — twice-fried, seasoned, shatteringly crisp.',
+/**
+ * Category taglines above are the sub-lines the supplied posters themselves
+ * carry — "Small plates. Big moments." is printed on 03, "Sear. Slice.
+ * Savour." on 08. They are Pappas' own words, used as live type rather than
+ * left baked in the image, which is exactly the swap §6 and §14 ask for.
+ */
+
+const MEZEDAKIA: Product[] = [
+  dish({
+    id: 'spanakopita',
+    name: 'Spanakopita',
+    shortDescription: 'Spinach and feta in crisp filo',
     description:
-      'Our signature bird, marinated for 12 hours, hand-battered and twice-fried in 100% olive oil blend until the crust turns golden and audibly crisp. Seasoned simply so the chicken does the talking.',
-    basePrice: 149,
-    categoryId: 'chicken',
-    assetKey: 'goldenOriginal',
-    spiceLevel: 0,
-    tags: ['bestseller', 'popular'],
-    optionGroups: [
-      SIZE_GROUP('golden-original', [0, 60, 115]),
-      SAUCE_GROUP('golden-original'),
-      SIDE_GROUP('golden-original'),
-      DRINK_GROUP('golden-original'),
-    ],
-    recommendedProductIds: ['french-fries', 'cheesling-fries', 'honey-garlic'],
-    available: true,
-    preparationMinutes: 18,
-    serves: 'Serves 2 – 3',
-    allergens: ['Gluten', 'Soy'],
-    nutrition: { kilojoules: 2480, protein: 44, carbs: 32, fat: 34 },
-  },
-  {
-    id: 'honey-garlic',
-    slug: 'honey-garlic-chicken',
-    name: 'Honey Garlic Chicken',
-    shortDescription: 'Sticky honey, toasted garlic, a glaze that clings to every ridge.',
+      'Spinach and feta folded into filo and baked until the pastry shatters. Served with ' +
+      'micro herbs.',
+    categoryId: 'mezedakia',
+    assetKey: 'mezedakia',
+    sourcedFrom: '03_mezedakia — filo triangles, front left',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'hummus',
+    name: 'Hummus',
+    shortDescription: 'Chickpea, olive oil, paprika',
     description:
-      'Golden Original finished in a warm honey and roasted garlic glaze, then showered with sesame and spring onion. Sweet up front, savoury on the finish, sticky the whole way through.',
-    basePrice: 165,
-    categoryId: 'chicken',
-    assetKey: 'honeyGarlic',
-    spiceLevel: 0,
-    tags: ['bestseller', 'popular'],
-    optionGroups: [
-      SIZE_GROUP('honey-garlic', [0, 60, 115]),
-      SAUCE_GROUP('honey-garlic'),
-      SIDE_GROUP('honey-garlic'),
-      DRINK_GROUP('honey-garlic'),
-    ],
-    recommendedProductIds: ['cheesling-fries', 'golden-original', 'ddeok-bokki'],
-    available: true,
-    preparationMinutes: 20,
-    serves: 'Serves 2 – 3',
-    allergens: ['Gluten', 'Soy', 'Sesame'],
-    nutrition: { kilojoules: 2720, protein: 43, carbs: 48, fat: 33 },
-  },
-  {
-    id: 'soy-garlic',
-    slug: 'soy-garlic-chicken',
-    name: 'Soy Garlic Chicken',
-    shortDescription: 'Deep soy lacquer, roasted garlic, sesame on top.',
-    description:
-      'The Korean fried chicken benchmark. Our crisp bird lacquered in a slow-reduced soy and garlic sauce until it turns glossy and dark, then finished with toasted sesame seeds.',
-    basePrice: 165,
-    categoryId: 'chicken',
-    assetKey: 'soyGarlic',
-    spiceLevel: 0,
-    tags: ['bestseller'],
-    optionGroups: [
-      SIZE_GROUP('soy-garlic', [0, 60, 115]),
-      SAUCE_GROUP('soy-garlic'),
-      SIDE_GROUP('soy-garlic'),
-      DRINK_GROUP('soy-garlic'),
-    ],
-    recommendedProductIds: ['french-fries', 'korean-rice-bowl', 'hot-spicy'],
-    available: true,
-    preparationMinutes: 20,
-    serves: 'Serves 2 – 3',
-    allergens: ['Gluten', 'Soy', 'Sesame'],
-    nutrition: { kilojoules: 2650, protein: 45, carbs: 41, fat: 32 },
-  },
-  {
-    id: 'secret-sauce',
-    slug: 'secret-sauce-chicken',
-    name: 'Secret Sauce Chicken',
-    shortDescription: 'Our house sauce. We are not telling you what is in it.',
-    description:
-      'A closely guarded bb.q recipe: layered, faintly smoky, a little sweet, with a slow warmth that builds. Ask the kitchen and they will smile and say nothing.',
-    basePrice: 175,
-    categoryId: 'chicken',
-    assetKey: 'secretSauce',
-    spiceLevel: 1,
-    tags: ['new'],
-    optionGroups: [
-      SIZE_GROUP('secret-sauce', [0, 60, 115]),
-      SAUCE_GROUP('secret-sauce'),
-      SIDE_GROUP('secret-sauce'),
-      DRINK_GROUP('secret-sauce'),
-    ],
-    recommendedProductIds: ['cheesling-fries', 'rose-ddeok-bokki', 'golden-original'],
-    available: true,
-    preparationMinutes: 20,
-    serves: 'Serves 2 – 3',
-    allergens: ['Gluten', 'Soy'],
-    nutrition: { kilojoules: 2700, protein: 44, carbs: 45, fat: 33 },
-  },
-  {
-    id: 'hot-spicy',
-    slug: 'hot-spicy-chicken',
-    name: 'Hot Spicy Chicken',
-    shortDescription: 'Gochujang heat with a sweet edge. Bring a drink.',
-    description:
-      'Fermented Korean chilli paste, chilli flakes and a touch of sugar reduced into a fierce red glaze. Properly hot, properly moreish, and finished with fresh spring onion.',
-    basePrice: 169,
-    categoryId: 'chicken',
-    assetKey: 'hotSpicy',
-    spiceLevel: 3,
-    tags: ['spicy', 'popular'],
-    optionGroups: [
-      SIZE_GROUP('hot-spicy', [0, 60, 115]),
-      SAUCE_GROUP('hot-spicy'),
-      SIDE_GROUP('hot-spicy'),
-      DRINK_GROUP('hot-spicy'),
-    ],
-    recommendedProductIds: ['french-fries', 'golden-original', 'korean-rice-bowl'],
-    available: true,
-    preparationMinutes: 20,
-    serves: 'Serves 2 – 3',
-    allergens: ['Gluten', 'Soy', 'Sesame'],
-    nutrition: { kilojoules: 2610, protein: 44, carbs: 39, fat: 32 },
-  },
-  {
-    id: 'cheesling',
-    slug: 'cheesling-chicken',
-    name: 'Cheesling Chicken',
-    shortDescription: 'Crisp chicken under a snowfall of savoury cheese powder.',
-    description:
-      'Golden Original tossed while still hot in our signature cheese seasoning so it melts into the crust. Salty, umami-heavy and dangerously easy to keep eating.',
-    basePrice: 175,
-    categoryId: 'chicken',
-    assetKey: 'cheesling',
-    spiceLevel: 0,
-    tags: ['popular'],
-    optionGroups: [
-      SIZE_GROUP('cheesling', [0, 60, 115]),
-      SAUCE_GROUP('cheesling'),
-      SIDE_GROUP('cheesling'),
-      DRINK_GROUP('cheesling'),
-    ],
-    recommendedProductIds: ['cheesling-fries', 'hot-spicy', 'french-fries'],
-    available: true,
-    preparationMinutes: 18,
-    serves: 'Serves 2 – 3',
-    allergens: ['Gluten', 'Soy', 'Milk'],
-    nutrition: { kilojoules: 2760, protein: 46, carbs: 36, fat: 37 },
-  },
-  {
-    id: 'golden-original-wings',
-    slug: 'golden-original-wings',
-    name: 'Golden Original Wings',
-    shortDescription: 'All wings, all crunch, no compromises.',
-    description:
-      'Nothing but wings and drumettes, brined and twice-fried to the same golden standard as our whole-bird original. The pick for anyone who only ever wants the good bits.',
-    basePrice: 155,
-    categoryId: 'wings',
-    assetKey: 'goldenOriginalWings',
-    spiceLevel: 0,
+      'Whipped chickpea, finished with olive oil, whole chickpeas and a dusting of paprika. ' +
+      'Served with warm pita.',
+    categoryId: 'mezedakia',
+    assetKey: 'mezedakia',
+    sourcedFrom: '03_mezedakia — centre bowl',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'tzatziki',
+    name: 'Tzatziki',
+    shortDescription: 'Yoghurt, cucumber, dill',
+    description: 'Thick yoghurt with cucumber and dill, finished with olive oil.',
+    categoryId: 'mezedakia',
+    assetKey: 'mezedakia',
+    sourcedFrom: '03_mezedakia — left bowl',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'grilled-halloumi',
+    name: 'Grilled Halloumi',
+    shortDescription: 'Chargrilled, lemon, oregano',
+    description: 'Halloumi grilled over flame until it takes the bars, with lemon and oregano.',
+    categoryId: 'mezedakia',
+    assetKey: 'mezedakia',
+    sourcedFrom: '03_mezedakia — centre plate',
+    tags: ['vegetarian'],
+  }),
+  /**
+   * Calamari appears on both the Mezedakia and the Seafood poster, which is
+   * how a Greek menu works — the same thing, in a sharing size and a main
+   * size. Both are kept, because a customer browsing Mezedakia should find
+   * what is in the photograph.
+   *
+   * The two are named differently on purpose. Listing "Grilled Calamari"
+   * twice returns two identical rows from a search with nothing to choose
+   * between them, which reads as a duplicate record rather than as two
+   * portions.
+   */
+  dish({
+    id: 'calamari-meze',
+    name: 'Calamari',
+    shortDescription: 'Flame-grilled, herbs, lemon — a plate to share',
+    description: 'Calamari rings and tentacles grilled hot and fast, with herbs and lemon.',
+    categoryId: 'mezedakia',
+    assetKey: 'mezedakia',
+    sourcedFrom: '03_mezedakia — right plate',
     tags: ['sharing'],
-    optionGroups: [
-      {
-        id: 'wings-size',
-        name: 'How many wings?',
-        kind: 'size',
-        minSelect: 1,
-        maxSelect: 1,
-        defaultOptionIds: ['wings-size-10'],
-        options: [
-          { id: 'wings-size-6', name: '6 wings', priceDelta: 0, available: true },
-          { id: 'wings-size-10', name: '10 wings', priceDelta: 65, available: true },
-          { id: 'wings-size-16', name: '16 wings', priceDelta: 145, available: true },
-        ],
-      },
-      SAUCE_GROUP('wings'),
-      SIDE_GROUP('wings'),
-      DRINK_GROUP('wings'),
-    ],
-    recommendedProductIds: ['french-fries', 'hot-spicy', 'cheesling-fries'],
-    available: true,
-    preparationMinutes: 16,
-    serves: 'Serves 2',
-    allergens: ['Gluten', 'Soy'],
-    nutrition: { kilojoules: 2280, protein: 42, carbs: 28, fat: 31 },
-  },
-  {
-    id: 'boneless',
-    slug: 'boneless-chicken',
-    name: 'Boneless Chicken',
-    shortDescription: 'Bite-sized, boneless, built for sharing (or not).',
+  }),
+  dish({
+    id: 'dolmades',
+    name: 'Dolmades',
+    shortDescription: 'Stuffed vine leaves',
+    description: 'Vine leaves rolled around rice and herbs, served cool with lemon.',
+    categoryId: 'mezedakia',
+    assetKey: 'mezedakia',
+    sourcedFrom: '03_mezedakia — bottom right bowl',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'marinated-olives',
+    name: 'Marinated Olives',
+    shortDescription: 'Green and kalamata',
+    description: 'Green and kalamata olives, marinated, with lemon.',
+    categoryId: 'mezedakia',
+    assetKey: 'mezedakia',
+    sourcedFrom: '03_mezedakia — top right bowl',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'pita-and-oil',
+    name: 'Warm Pita & Olive Oil',
+    shortDescription: 'Grilled flatbread, olive oil',
+    description: 'Flatbread grilled to order, with olive oil and herbs for dipping.',
+    categoryId: 'mezedakia',
+    assetKey: 'mezedakia',
+    sourcedFrom: '03_mezedakia — bottom left basket',
+    tags: ['vegetarian', 'sharing'],
+  }),
+];
+
+const SALADS: Product[] = [
+  dish({
+    id: 'greek-salad',
+    name: 'Greek Salad',
+    shortDescription: 'Feta, cucumber, tomato, kalamata',
     description:
-      'Tender thigh pieces, boneless and battered, fried until crisp and finished in the flavour of your choice. No bones, no ceremony, no slowing down.',
-    basePrice: 169,
-    categoryId: 'boneless',
-    assetKey: 'boneless',
-    spiceLevel: 0,
-    tags: ['boneless', 'popular'],
-    optionGroups: [
-      {
-        id: 'boneless-flavour',
-        name: 'Choose your flavour',
-        kind: 'flavour',
-        minSelect: 1,
-        maxSelect: 1,
-        defaultOptionIds: ['boneless-flavour-golden'],
-        options: [
-          {
-            id: 'boneless-flavour-golden',
-            name: 'Golden Original',
-            priceDelta: 0,
-            available: true,
-            assetKey: 'goldenOriginal',
-          },
-          {
-            id: 'boneless-flavour-honey',
-            name: 'Honey Garlic',
-            priceDelta: 16,
-            available: true,
-            assetKey: 'honeyGarlic',
-          },
-          {
-            id: 'boneless-flavour-soy',
-            name: 'Soy Garlic',
-            priceDelta: 16,
-            available: true,
-            assetKey: 'soyGarlic',
-          },
-          {
-            id: 'boneless-flavour-hot',
-            name: 'Hot Spicy',
-            priceDelta: 20,
-            available: true,
-            assetKey: 'hotSpicy',
-          },
-          {
-            id: 'boneless-flavour-cheesling',
-            name: 'Cheesling',
-            priceDelta: 26,
-            available: true,
-            assetKey: 'cheesling',
-          },
-        ],
-      },
-      SIZE_GROUP('boneless', [0, 55, 105]),
-      SIDE_GROUP('boneless'),
-      DRINK_GROUP('boneless'),
-    ],
-    recommendedProductIds: ['french-fries', 'ddeok-bokki', 'korean-rice-bowl'],
-    available: true,
-    preparationMinutes: 16,
-    serves: 'Serves 2 – 3',
-    allergens: ['Gluten', 'Soy'],
-    nutrition: { kilojoules: 2400, protein: 47, carbs: 34, fat: 29 },
-  },
-  {
-    id: 'half-and-half',
-    slug: 'half-and-half-chicken',
-    name: 'Half & Half Chicken',
-    shortDescription: "Can't choose? Don't. Two flavours, one box.",
+      'Cucumber, tomato, red onion and kalamata olives under a slab of feta, dressed with ' +
+      'olive oil and oregano.',
+    categoryId: 'salads',
+    assetKey: 'salads',
+    sourcedFrom: '05_salads — left bowl',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'grilled-chicken-avocado-salad',
+    name: 'Grilled Chicken & Avocado Salad',
+    shortDescription: 'Chargrilled chicken, avocado, feta',
     description:
-      'Half of one signature flavour, half of another, in a single box. The diplomatic solution to every table argument about what to order.',
-    basePrice: 189,
-    categoryId: 'chicken',
-    assetKey: 'halfAndHalf',
-    spiceLevel: 1,
-    tags: ['sharing', 'value'],
-    optionGroups: [
-      HALF_FLAVOUR_GROUP,
-      SIZE_GROUP('half-and-half', [0, 60, 115]),
-      SIDE_GROUP('half-and-half'),
-      DRINK_GROUP('half-and-half'),
-    ],
-    recommendedProductIds: ['cheesling-fries', 'french-fries', 'rose-ddeok-bokki'],
-    available: true,
-    preparationMinutes: 22,
-    serves: 'Serves 3 – 4',
-    allergens: ['Gluten', 'Soy', 'Sesame'],
-    nutrition: { kilojoules: 2690, protein: 45, carbs: 42, fat: 33 },
-  },
-  {
-    id: 'chicken-rice-meal',
-    slug: 'chicken-rice-meal',
-    name: 'Chicken & Rice Meal',
-    shortDescription: 'Chicken, steamed rice, pickles, sorted lunch.',
+      'Chargrilled chicken over leaves with avocado, tomato and red onion, finished with ' +
+      'micro herbs.',
+    categoryId: 'salads',
+    assetKey: 'salads',
+    sourcedFrom: '05_salads — front bowl',
+  }),
+  dish({
+    id: 'prawn-avocado-salad',
+    name: 'Prawn & Avocado Salad',
+    shortDescription: 'Grilled prawns, avocado, feta',
+    description: 'Grilled prawns with avocado, feta and olives over dressed leaves.',
+    categoryId: 'salads',
+    assetKey: 'salads',
+    sourcedFrom: '05_salads — right bowl',
+  }),
+  dish({
+    id: 'calamari-salad',
+    name: 'Calamari Salad',
+    shortDescription: 'Crisp calamari, avocado, leaves',
+    description: 'Crisp calamari over leaves with avocado, tomato and olives.',
+    categoryId: 'salads',
+    assetKey: 'salads',
+    sourcedFrom: '05_salads — top bowl',
+  }),
+];
+
+const SOUVLAKI: Product[] = [
+  dish({
+    id: 'pork-souvlaki',
+    name: 'Pork Souvlaki',
+    shortDescription: 'Flame-grilled skewers, pita, tzatziki',
     description:
-      'Two pieces of our signature chicken over steamed rice with house pickled radish and a side of slaw. The everyday plate that eats like a treat.',
-    basePrice: 119,
-    categoryId: 'meals',
-    assetKey: 'chickenRiceMeal',
-    spiceLevel: 0,
-    tags: ['value', 'popular'],
-    optionGroups: [
-      {
-        id: 'rice-meal-flavour',
-        name: 'Chicken flavour',
-        kind: 'flavour',
-        minSelect: 1,
-        maxSelect: 1,
-        defaultOptionIds: ['rice-meal-flavour-golden'],
-        options: [
-          {
-            id: 'rice-meal-flavour-golden',
-            name: 'Golden Original',
-            priceDelta: 0,
-            available: true,
-            assetKey: 'goldenOriginal',
-          },
-          {
-            id: 'rice-meal-flavour-honey',
-            name: 'Honey Garlic',
-            priceDelta: 12,
-            available: true,
-            assetKey: 'honeyGarlic',
-          },
-          {
-            id: 'rice-meal-flavour-soy',
-            name: 'Soy Garlic',
-            priceDelta: 12,
-            available: true,
-            assetKey: 'soyGarlic',
-          },
-          {
-            id: 'rice-meal-flavour-hot',
-            name: 'Hot Spicy',
-            priceDelta: 14,
-            available: true,
-            assetKey: 'hotSpicy',
-          },
-        ],
-      },
-      DRINK_GROUP('rice-meal'),
-    ],
-    recommendedProductIds: ['french-fries', 'ddeok-bokki', 'golden-original'],
-    available: true,
-    preparationMinutes: 14,
-    serves: 'Serves 1',
-    allergens: ['Gluten', 'Soy'],
-    nutrition: { kilojoules: 3120, protein: 38, carbs: 96, fat: 22 },
-  },
-  {
-    id: 'chicken-burger',
-    slug: 'chicken-burger',
-    name: 'Chicken Burger',
-    shortDescription: 'Whole crispy fillet, slaw, brioche, done properly.',
+      'Pork grilled over flame on the skewer, with warm pita, tzatziki and a village salad ' +
+      'of tomato, cucumber and red onion.',
+    categoryId: 'souvlaki',
+    assetKey: 'souvlaki',
+    sourcedFrom: '07_souvlaki — front plate',
+    tags: ['signature'],
+  }),
+  dish({
+    id: 'chicken-souvlaki',
+    name: 'Chicken Souvlaki',
+    shortDescription: 'Flame-grilled skewers, pita, tzatziki',
+    description: 'Chicken grilled on the skewer, with warm pita, tzatziki and village salad.',
+    categoryId: 'souvlaki',
+    assetKey: 'souvlaki',
+    sourcedFrom: '07_souvlaki — rear plate',
+  }),
+];
+
+const SEAFOOD: Product[] = [
+  dish({
+    id: 'grilled-king-prawns',
+    name: 'Grilled King Prawns',
+    shortDescription: 'Whole prawns, herbs, grilled lemon',
     description:
-      'A whole crispy chicken thigh fillet in a toasted brioche bun with Korean slaw, pickles and our signature sauce. Built to be eaten with two hands.',
-    basePrice: 109,
-    categoryId: 'burgers',
-    assetKey: 'chickenBurger',
-    spiceLevel: 1,
-    tags: ['popular'],
-    optionGroups: [
-      {
-        id: 'burger-heat',
-        name: 'Heat level',
-        kind: 'flavour',
-        minSelect: 1,
-        maxSelect: 1,
-        defaultOptionIds: ['burger-heat-classic'],
-        options: [
-          { id: 'burger-heat-classic', name: 'Classic', priceDelta: 0, available: true },
-          { id: 'burger-heat-spicy', name: 'Hot Spicy', priceDelta: 8, available: true },
-          { id: 'burger-heat-honey', name: 'Honey Garlic', priceDelta: 8, available: true },
-        ],
-      },
-      {
-        id: 'burger-extras',
-        name: 'Make it more',
-        kind: 'addon',
-        minSelect: 0,
-        maxSelect: 4,
-        defaultOptionIds: [],
-        options: [
-          {
-            id: 'burger-extra-cheese',
-            name: 'Extra cheese slice',
-            priceDelta: 14,
-            available: true,
-          },
-          { id: 'burger-extra-patty', name: 'Double the fillet', priceDelta: 45, available: true },
-          { id: 'burger-extra-bacon', name: 'Crispy bacon', priceDelta: 26, available: true },
-          {
-            id: 'burger-extra-jalapeno',
-            name: 'Pickled jalapeño',
-            priceDelta: 12,
-            available: true,
-          },
-        ],
-      },
-      SIDE_GROUP('burger'),
-      DRINK_GROUP('burger'),
-    ],
-    recommendedProductIds: ['french-fries', 'cheesling-fries', 'hot-spicy'],
-    available: true,
-    preparationMinutes: 12,
-    serves: 'Serves 1',
-    allergens: ['Gluten', 'Soy', 'Milk', 'Egg'],
-    nutrition: { kilojoules: 2890, protein: 36, carbs: 62, fat: 34 },
-  },
-  {
-    id: 'korean-rice-bowl',
-    slug: 'korean-rice-bowl',
-    name: 'Korean Rice Bowl',
-    shortDescription: 'Rice, glazed chicken, vegetables, egg on top.',
+      'King prawns grilled in the shell with herbs and olive oil, served with grilled lemon.',
+    categoryId: 'seafood',
+    assetKey: 'seafood',
+    sourcedFrom: '04_seafood — centre platter',
+    tags: ['signature'],
+  }),
+  dish({
+    id: 'mussels',
+    name: 'Mussels',
+    shortDescription: 'Black mussels, white wine, grilled bread',
+    description: 'Black mussels in a white wine broth, with grilled bread.',
+    categoryId: 'seafood',
+    assetKey: 'seafood',
+    sourcedFrom: '04_seafood — left bowl',
+  }),
+  dish({
+    id: 'oysters',
+    name: 'Oysters',
+    shortDescription: 'On ice, mignonette, lemon',
+    description: 'Oysters served on ice with mignonette and lemon.',
+    categoryId: 'seafood',
+    assetKey: 'seafood',
+    sourcedFrom: '04_seafood — iced platter',
+  }),
+  dish({
+    id: 'kataifi-prawns',
+    name: 'Kataifi Prawns',
+    shortDescription: 'Prawns wrapped in kataifi pastry',
+    description: 'Prawns wrapped in kataifi pastry and fried crisp, with a dipping sauce.',
+    categoryId: 'seafood',
+    assetKey: 'seafood',
+    sourcedFrom: '04_seafood — right plate',
+  }),
+  dish({
+    id: 'grilled-calamari',
+    name: 'Grilled Calamari',
+    shortDescription: 'Flame-grilled, tzatziki, lemon',
+    description: 'Calamari grilled hot and fast, with tzatziki and lemon.',
+    categoryId: 'seafood',
+    assetKey: 'seafood',
+    sourcedFrom: '04_seafood — bottom left plate',
+  }),
+];
+
+/**
+ * The Fish Market.
+ *
+ * The one category whose contents are *printed* in the supplied artwork:
+ * 09's chalkboard reads "Fresh Fish · Line Fish · Kingklip · Sea Bass ·
+ * Dorado · Calamari · Prawns · Mussels". That is a supplied menu, not an
+ * interpretation of a photograph, so these seven are as well-sourced as
+ * anything in this file.
+ *
+ * Calamari, prawns and mussels already appear under Seafood, which is how the
+ * artwork has it — the fish market is a counter, and the same catch is
+ * cooked both ways. They are not duplicated here.
+ */
+const FISH_MARKET: Product[] = [
+  dish({
+    id: 'line-fish',
+    name: 'Line Fish',
+    shortDescription: 'The day’s catch, grilled whole',
     description:
-      'Steamed rice topped with glazed boneless chicken, seasoned vegetables, kimchi and a fried egg. Everything in one bowl, exactly as it should be.',
-    basePrice: 129,
-    categoryId: 'rice-bowls',
-    assetKey: 'koreanRiceBowl',
-    spiceLevel: 2,
-    tags: ['new'],
-    optionGroups: [
-      {
-        id: 'bowl-glaze',
-        name: 'Glaze',
-        kind: 'flavour',
-        minSelect: 1,
-        maxSelect: 1,
-        defaultOptionIds: ['bowl-glaze-soy'],
-        options: [
-          {
-            id: 'bowl-glaze-soy',
-            name: 'Soy Garlic',
-            priceDelta: 0,
-            available: true,
-            assetKey: 'soyGarlic',
-          },
-          {
-            id: 'bowl-glaze-hot',
-            name: 'Hot Spicy',
-            priceDelta: 0,
-            available: true,
-            assetKey: 'hotSpicy',
-          },
-          {
-            id: 'bowl-glaze-honey',
-            name: 'Honey Garlic',
-            priceDelta: 0,
-            available: true,
-            assetKey: 'honeyGarlic',
-          },
-        ],
-      },
-      {
-        id: 'bowl-extras',
-        name: 'Add to your bowl',
-        kind: 'addon',
-        minSelect: 0,
-        maxSelect: 3,
-        defaultOptionIds: [],
-        options: [
-          { id: 'bowl-extra-egg', name: 'Extra fried egg', priceDelta: 15, available: true },
-          { id: 'bowl-extra-kimchi', name: 'Extra kimchi', priceDelta: 18, available: true },
-          { id: 'bowl-extra-chicken', name: 'Extra chicken', priceDelta: 42, available: true },
-        ],
-      },
-      DRINK_GROUP('bowl'),
-    ],
-    recommendedProductIds: ['ddeok-bokki', 'soy-garlic', 'french-fries'],
-    available: true,
-    preparationMinutes: 14,
-    serves: 'Serves 1',
-    allergens: ['Gluten', 'Soy', 'Egg', 'Sesame'],
-    nutrition: { kilojoules: 3040, protein: 39, carbs: 91, fat: 24 },
-  },
-  {
-    id: 'french-fries',
-    slug: 'french-fries',
-    name: 'French Fries',
-    shortDescription: 'Crisp outside, fluffy inside, salted while hot.',
+      'The day’s line fish, grilled whole with herbs, olive oil and lemon. Ask your host ' +
+      'what came in this morning.',
+    categoryId: 'fish-market',
+    assetKey: 'fishMarket',
+    sourcedFrom: '09_mediterranean_fish_market — chalkboard, "Line Fish"',
+    tags: ['seasonal'],
+  }),
+  dish({
+    id: 'kingklip',
+    name: 'Kingklip',
+    shortDescription: 'Grilled, herbs, lemon',
+    description: 'Kingklip grilled with herbs and olive oil, finished with lemon.',
+    categoryId: 'fish-market',
+    assetKey: 'fishMarket',
+    sourcedFrom: '09_mediterranean_fish_market — chalkboard, "Kingklip"',
+  }),
+  dish({
+    id: 'sea-bass',
+    name: 'Sea Bass',
+    shortDescription: 'Grilled whole, herbs, lemon',
+    description: 'Whole sea bass grilled with herbs, tomato and grilled lemon.',
+    categoryId: 'fish-market',
+    assetKey: 'fishMarket',
+    sourcedFrom: '09_mediterranean_fish_market — chalkboard, "Sea Bass"',
+  }),
+  dish({
+    id: 'dorado',
+    name: 'Dorado',
+    shortDescription: 'Grilled whole, herbs, lemon',
+    description: 'Whole dorado grilled with herbs and olive oil.',
+    categoryId: 'fish-market',
+    assetKey: 'fishMarket',
+    sourcedFrom: '09_mediterranean_fish_market — chalkboard, "Dorado"',
+  }),
+];
+
+const SIGNATURE_MAINS: Product[] = [
+  dish({
+    id: 'lamb-shank',
+    name: 'Lamb Shank',
+    shortDescription: 'Slow-cooked, mash, rosemary',
     description:
-      'Thick-cut fries fried to order and salted the moment they leave the oil. The default side, and there is a reason for that.',
-    basePrice: 45,
-    categoryId: 'sides',
-    assetKey: 'frenchFries',
-    spiceLevel: 0,
-    tags: ['popular'],
-    optionGroups: [
-      {
-        id: 'fries-size',
-        name: 'Size',
-        kind: 'size',
-        minSelect: 1,
-        maxSelect: 1,
-        defaultOptionIds: ['fries-size-regular'],
-        options: [
-          { id: 'fries-size-regular', name: 'Regular', priceDelta: 0, available: true },
-          { id: 'fries-size-large', name: 'Large', priceDelta: 22, available: true },
-          { id: 'fries-size-sharing', name: 'Sharing bucket', priceDelta: 48, available: true },
-        ],
-      },
-      {
-        id: 'fries-seasoning',
-        name: 'Seasoning',
-        kind: 'addon',
-        minSelect: 0,
-        maxSelect: 2,
-        defaultOptionIds: [],
-        options: [
-          { id: 'fries-seasoning-cheese', name: 'Cheese dust', priceDelta: 14, available: true },
-          { id: 'fries-seasoning-spicy', name: 'Hot Spicy dust', priceDelta: 14, available: true },
-          { id: 'fries-seasoning-garlic', name: 'Garlic butter', priceDelta: 16, available: true },
-        ],
-      },
-    ],
-    recommendedProductIds: ['golden-original', 'chicken-burger', 'cheesling-fries'],
-    available: true,
-    preparationMinutes: 8,
-    serves: 'Serves 1 – 2',
-    allergens: ['Gluten'],
-    nutrition: { kilojoules: 1520, protein: 5, carbs: 48, fat: 17 },
-  },
-  {
-    id: 'cheesling-fries',
-    slug: 'cheesling-fries',
-    name: 'Cheesling Fries',
-    shortDescription: 'Our fries, buried in signature cheese seasoning.',
+      'Lamb shank cooked slowly until it gives, served on mash with roasted vegetables and ' +
+      'its own sauce.',
+    categoryId: 'signature-mains',
+    assetKey: 'signatureMains',
+    sourcedFrom: '06_signature_mains — rear left plate',
+    tags: ['signature'],
+  }),
+  dish({
+    id: 'lamb-chops',
+    name: 'Lamb Chops',
+    shortDescription: 'Grilled, herbs, grilled lemon',
+    description: 'Lamb chops grilled over flame with herbs, served with tzatziki and lemon.',
+    categoryId: 'signature-mains',
+    assetKey: 'signatureMains',
+    sourcedFrom: '06_signature_mains — left plate',
+  }),
+  dish({
+    id: 'pork-ribs',
+    name: 'Pork Ribs',
+    shortDescription: 'Glazed, slaw',
+    description: 'A rack of ribs, glazed and grilled, with slaw.',
+    categoryId: 'signature-mains',
+    assetKey: 'signatureMains',
+    sourcedFrom: '06_signature_mains — right plate',
+  }),
+  dish({
+    id: 'grilled-chicken',
+    name: 'Grilled Chicken',
+    shortDescription: 'Half chicken, lemon, herbs',
+    description: 'Chicken grilled with herbs and lemon, served with chips.',
+    categoryId: 'signature-mains',
+    assetKey: 'signatureMains',
+    sourcedFrom: '06_signature_mains — top right plate',
+  }),
+  dish({
+    id: 'chicken-breast-cream-sauce',
+    name: 'Chicken Breast',
+    shortDescription: 'Cream sauce, spinach, baby potatoes',
     description:
-      'Hot fries tossed in the same cheese seasoning that made Cheesling Chicken famous, then finished with spring onion. Order a large. You will want a large.',
-    basePrice: 62,
-    categoryId: 'sides',
-    assetKey: 'cheeslingFries',
-    spiceLevel: 0,
-    tags: ['bestseller'],
-    optionGroups: [
-      {
-        id: 'cheesling-fries-size',
-        name: 'Size',
-        kind: 'size',
-        minSelect: 1,
-        maxSelect: 1,
-        defaultOptionIds: ['cheesling-fries-size-regular'],
-        options: [
-          { id: 'cheesling-fries-size-regular', name: 'Regular', priceDelta: 0, available: true },
-          { id: 'cheesling-fries-size-large', name: 'Large', priceDelta: 24, available: true },
-        ],
-      },
-    ],
-    recommendedProductIds: ['cheesling', 'honey-garlic', 'golden-original'],
-    available: true,
-    preparationMinutes: 9,
-    serves: 'Serves 1 – 2',
-    allergens: ['Gluten', 'Milk'],
-    nutrition: { kilojoules: 1840, protein: 9, carbs: 50, fat: 23 },
-  },
-  {
-    id: 'ddeok-bokki',
-    slug: 'ddeok-bokki',
-    name: 'Ddeok-Bokki',
-    shortDescription: 'Chewy rice cakes in a sweet-hot gochujang sauce.',
+      'Chargrilled chicken breast in a cream sauce over spinach, with baby potatoes and ' +
+      'blistered tomato.',
+    categoryId: 'signature-mains',
+    assetKey: 'signatureMains',
+    sourcedFrom: '06_signature_mains — front plate',
+  }),
+];
+
+const STEAK_ON_THE_ROCK: Product[] = [
+  dish({
+    id: 'steak-on-the-rock',
+    name: 'Steak on the Rock',
+    shortDescription: 'Served searing on volcanic stone',
     description:
-      'Cylindrical Korean rice cakes simmered in gochujang until the sauce thickens and clings. Chewy, sweet, properly spicy — the Seoul street-food classic.',
-    basePrice: 72,
-    categoryId: 'sides',
-    assetKey: 'ddeokBokki',
-    spiceLevel: 3,
-    tags: ['spicy'],
-    optionGroups: [
-      {
-        id: 'ddeok-extras',
-        name: 'Add to it',
-        kind: 'addon',
-        minSelect: 0,
-        maxSelect: 3,
-        defaultOptionIds: [],
-        options: [
-          { id: 'ddeok-extra-egg', name: 'Boiled egg', priceDelta: 12, available: true },
-          { id: 'ddeok-extra-fishcake', name: 'Extra fish cake', priceDelta: 20, available: true },
-          { id: 'ddeok-extra-cheese', name: 'Melted cheese', priceDelta: 22, available: true },
-        ],
-      },
-    ],
-    recommendedProductIds: ['golden-original', 'korean-rice-bowl', 'rose-ddeok-bokki'],
-    available: true,
-    preparationMinutes: 12,
-    serves: 'Serves 1 – 2',
-    allergens: ['Gluten', 'Soy', 'Fish'],
-    nutrition: { kilojoules: 1690, protein: 11, carbs: 71, fat: 9 },
-  },
-  {
-    id: 'rose-ddeok-bokki',
-    slug: 'rose-ddeok-bokki',
-    name: 'Rose Ddeok-Bokki',
-    shortDescription: 'Ddeok-bokki gone creamy. Rich, blush-pink, milder heat.',
+      'A steak brought to the table still searing on a volcanic stone, so you finish it ' +
+      'exactly as you like it. Served with three sauces and chips.',
+    categoryId: 'steak-on-the-rock',
+    assetKey: 'steakOnRock',
+    sourcedFrom: '08_steak_on_the_rock — the whole composition',
+    tags: ['signature'],
+    serves: '1',
+  }),
+];
+
+const DESSERTS: Product[] = [
+  dish({
+    id: 'baklava',
+    name: 'Baklava',
+    shortDescription: 'Filo, pistachio, honey, ice cream',
+    description: 'Layered filo with pistachio and honey, served warm with a scoop of ice cream.',
+    categoryId: 'desserts',
+    assetKey: 'desserts',
+    sourcedFrom: '10_desserts — front plate',
+    tags: ['signature', 'vegetarian'],
+  }),
+  dish({
+    id: 'chocolate-fondant',
+    name: 'Chocolate Fondant',
+    shortDescription: 'Molten centre, vanilla ice cream',
+    description: 'Chocolate fondant with a molten centre, vanilla ice cream and berries.',
+    categoryId: 'desserts',
+    assetKey: 'desserts',
+    sourcedFrom: '10_desserts — right plate',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'berry-cheesecake',
+    name: 'Berry Cheesecake',
+    shortDescription: 'Baked cheesecake, berry compote',
+    description: 'Baked cheesecake under a berry compote, with fresh berries and mint.',
+    categoryId: 'desserts',
+    assetKey: 'desserts',
+    sourcedFrom: '10_desserts — left plate',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'tiramisu',
+    name: 'Tiramisu',
+    shortDescription: 'Layered, cocoa',
+    description: 'Tiramisu layered in the glass and dusted with cocoa.',
+    categoryId: 'desserts',
+    assetKey: 'desserts',
+    sourcedFrom: '10_desserts — rear glass',
+    tags: ['vegetarian'],
+  }),
+];
+
+const BREAKFAST: Product[] = [
+  dish({
+    id: 'classic-breakfast',
+    name: 'Classic Breakfast',
+    shortDescription: 'Eggs, sourdough, tomato, mushroom, feta',
     description:
-      'The same chewy rice cakes in a rosé sauce — gochujang softened with cream until it turns blush pink. Rounder, richer and a gentler heat than the original.',
-    basePrice: 82,
-    categoryId: 'sides',
-    assetKey: 'roseDdeokBokki',
-    spiceLevel: 2,
-    tags: ['new', 'popular'],
-    optionGroups: [
-      {
-        id: 'rose-extras',
-        name: 'Add to it',
-        kind: 'addon',
-        minSelect: 0,
-        maxSelect: 3,
-        defaultOptionIds: [],
-        options: [
-          { id: 'rose-extra-egg', name: 'Boiled egg', priceDelta: 12, available: true },
-          { id: 'rose-extra-cheese', name: 'Extra melted cheese', priceDelta: 22, available: true },
-          { id: 'rose-extra-bacon', name: 'Crispy bacon', priceDelta: 28, available: true },
-        ],
-      },
-    ],
-    recommendedProductIds: ['cheesling', 'secret-sauce', 'ddeok-bokki'],
-    available: true,
-    preparationMinutes: 13,
-    serves: 'Serves 1 – 2',
-    allergens: ['Gluten', 'Soy', 'Milk', 'Fish'],
-    nutrition: { kilojoules: 1980, protein: 13, carbs: 68, fat: 18 },
-  },
+      'Fried eggs with grilled sourdough, blistered tomato, mushrooms, wilted spinach and feta.',
+    categoryId: 'breakfast',
+    assetKey: 'breakfast',
+    sourcedFrom: '11_breakfast — centre plate, tile "CLASSIC"',
+  }),
+  dish({
+    id: 'healthy-start',
+    name: 'Healthy Start',
+    shortDescription: 'Yoghurt, granola, berries, honey',
+    description: 'Greek yoghurt layered with granola, berries and honey.',
+    categoryId: 'breakfast',
+    assetKey: 'breakfast',
+    sourcedFrom: '11_breakfast — tile "HEALTHY START"',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'sweet-mornings',
+    name: 'Pancakes',
+    shortDescription: 'Stacked, berries, syrup',
+    description: 'A stack of pancakes with berries and syrup.',
+    categoryId: 'breakfast',
+    assetKey: 'breakfast',
+    sourcedFrom: '11_breakfast — tile "SWEET MORNINGS"',
+    tags: ['vegetarian'],
+  }),
+  dish({
+    id: 'mediterranean-breakfast',
+    name: 'Mediterranean Breakfast',
+    shortDescription: 'Feta, olives, tomato, cucumber, pita',
+    description:
+      'Feta, olives, tomato, cucumber and dips with warm pita — breakfast the Mediterranean way.',
+    categoryId: 'breakfast',
+    assetKey: 'breakfast',
+    sourcedFrom: '11_breakfast — tile "MEDITERRANEAN STYLE"',
+    tags: ['vegetarian', 'sharing'],
+  }),
+  dish({
+    id: 'salmon-scrambled-eggs',
+    name: 'Salmon & Scrambled Eggs',
+    shortDescription: 'Smoked salmon, scrambled eggs, sourdough',
+    description: 'Scrambled eggs and smoked salmon on grilled sourdough.',
+    categoryId: 'breakfast',
+    assetKey: 'breakfast',
+    sourcedFrom: '11_breakfast — first tile',
+  }),
+];
+
+/**
+ * Drinks.
+ *
+ * The best-sourced category in the file. 12_cocktails prints seven cocktails
+ * with their ingredients set beneath each glass, which is supplied copy — so
+ * the descriptions below are Pappas' own words, transcribed, not written.
+ */
+const DRINKS: Product[] = [
+  dish({
+    id: 'aperol-spritz',
+    name: 'Aperol Spritz',
+    shortDescription: 'Aperol, Prosecco, soda, orange',
+    description: 'Aperol, Prosecco, soda, orange. Light. Bubbly. Iconic.',
+    categoryId: 'drinks',
+    assetKey: 'cocktails',
+    sourcedFrom: '12_cocktails — tile "APEROL SPRITZ", ingredients printed',
+  }),
+  dish({
+    id: 'mojito',
+    name: 'Mojito',
+    shortDescription: 'White rum, fresh mint, lime, soda',
+    description: 'White rum, fresh mint, lime, soda. Fresh. Zesty. Timeless.',
+    categoryId: 'drinks',
+    assetKey: 'cocktails',
+    sourcedFrom: '12_cocktails — tile "MOJITO", ingredients printed',
+  }),
+  dish({
+    id: 'strawberry-daiquiri',
+    name: 'Strawberry Daiquiri',
+    shortDescription: 'Rum, strawberry, lime',
+    description: 'Rum, strawberry, lime, natural sweetness. Fruity. Smooth. Irresistible.',
+    categoryId: 'drinks',
+    assetKey: 'cocktails',
+    sourcedFrom: '12_cocktails — tile "STRAWBERRY DAIQUIRI", ingredients printed',
+  }),
+  dish({
+    id: 'classic-margarita',
+    name: 'Classic Margarita',
+    shortDescription: 'Tequila, triple sec, lime',
+    description: 'Tequila, triple sec, lime. Crisp. Bold. Refreshing.',
+    categoryId: 'drinks',
+    assetKey: 'cocktails',
+    sourcedFrom: '12_cocktails — tile "CLASSIC MARGARITA", ingredients printed',
+  }),
+  dish({
+    id: 'greek-gin-tonic',
+    name: 'Greek G&T',
+    shortDescription: 'Premium gin, Mediterranean botanicals, tonic',
+    description: 'Premium gin, Mediterranean botanicals, tonic. Elegant. Herbal. Refined.',
+    categoryId: 'drinks',
+    assetKey: 'cocktails',
+    sourcedFrom: '12_cocktails — tile "GREEK G&T", ingredients printed',
+    tags: ['signature'],
+  }),
+  dish({
+    id: 'old-fashioned',
+    name: 'Old Fashioned',
+    shortDescription: 'Whisky, bitters, orange',
+    description: 'Whisky, bitters, orange. Classic. Strong. Sophisticated.',
+    categoryId: 'drinks',
+    assetKey: 'cocktails',
+    sourcedFrom: '12_cocktails — tile "OLD FASHIONED", ingredients printed',
+  }),
+  dish({
+    id: 'moscow-mule',
+    name: 'Moscow Mule',
+    shortDescription: 'Vodka, ginger beer, lime',
+    description: 'Vodka, ginger beer, lime. Bold. Refreshing. Different.',
+    categoryId: 'drinks',
+    assetKey: 'cocktails',
+    sourcedFrom: '12_cocktails — tile "MOSCOW MULE", ingredients printed',
+  }),
+];
+
+export const products: Product[] = [
+  ...MEZEDAKIA,
+  ...SALADS,
+  ...SOUVLAKI,
+  ...SEAFOOD,
+  ...FISH_MARKET,
+  ...SIGNATURE_MAINS,
+  ...STEAK_ON_THE_ROCK,
+  ...DESSERTS,
+  ...BREAKFAST,
+  ...DRINKS,
 ];
 
 export const menuSnapshot: MenuSnapshot = {
   categories,
   products,
-  updatedAt: new Date('2026-01-01T08:00:00Z').toISOString(),
+  updatedAt: new Date('2026-09-19T00:00:00Z').toISOString(),
 };

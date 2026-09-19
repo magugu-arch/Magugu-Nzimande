@@ -56,8 +56,8 @@ const product: Product = {
   shortDescription: 'Crispy',
   description: 'Crispy chicken',
   basePrice: 149,
-  categoryId: 'chicken',
-  assetKey: 'goldenOriginal',
+  categoryId: 'souvlaki',
+  assetKey: 'souvlaki',
   spiceLevel: 0,
   tags: ['bestseller'],
   optionGroups: [sizeGroup, addonGroup],
@@ -194,7 +194,7 @@ describe('buildCartLine', () => {
     expect(line.unitPrice).toBe(209);
     expect(line.lineTotal).toBe(418);
     expect(line.quantity).toBe(2);
-    expect(line.assetKey).toBe('goldenOriginal');
+    expect(line.assetKey).toBe('souvlaki');
   });
 
   it('omits blank special instructions rather than storing empty strings', () => {
@@ -228,7 +228,7 @@ describe('calculateTotals', () => {
     id: `line-${total}`,
     productId: 'p',
     name: 'Item',
-    assetKey: 'goldenOriginal',
+    assetKey: 'souvlaki',
     unitBasePrice: total,
     quantity,
     selectedOptions: [],

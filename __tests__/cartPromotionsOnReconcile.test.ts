@@ -9,7 +9,26 @@ import {
 import type { CartLine, Product } from '@/types';
 import { products } from '@/services/data/menuData';
 
-const first = products[0]!;
+/**
+ * A priced, orderable dish to reconcile against.
+ *
+ * Built from the first catalogue entry rather than used as-is, because every
+ * dish in the shipped Pappas catalogue is `available: false` at a price of
+ * zero until Pappas supplies its menu pricing — see
+ * `services/data/menuData.ts`. Reconciling against an unavailable line tests
+ * the drop path, which is a different test; this file is about what happens
+ * to a voucher when a line survives.
+ *
+ * Taking the real dish's shape and overriding the two commercial fields keeps
+ * the fixture honest about everything else, and means these tests start
+ * exercising the real seed the moment pricing lands.
+ */
+const first = {
+  ...products[0]!,
+  basePrice: 120,
+  available: true,
+  priceStatus: 'confirmed' as const,
+};
 
 /** The basket a customer gets by adding the item without touching anything. */
 const lineFor = (product: Product): CartLine =>

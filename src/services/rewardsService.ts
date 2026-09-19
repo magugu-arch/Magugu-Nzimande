@@ -35,7 +35,7 @@ function standingFor(
   LoyaltyAccount,
   'tier' | 'tierName' | 'nextTier' | 'pointsToNextTier' | 'tierProgress' | 'lifetimePoints'
 > {
-  const ranked = [...tiers].sort((a, b) => a.threshold - b.threshold);
+  const ranked = [...tierLadder].sort((a, b) => a.threshold - b.threshold);
   const currentIndex = Math.max(
     0,
     ranked.filter((candidate) => lifetimePoints >= candidate.threshold).length - 1,
@@ -119,10 +119,22 @@ export async function fetchRewards(): Promise<Reward[]> {
   if (config.useMockApi) {
     const balance = (await fetchLoyaltyAccount()).pointsBalance;
     // Redeemability is a function of the live balance, never a static flag.
-    return rewards.map((reward) => ({
+    //
+    // `pointsCost > 0` is not pedantry. A reward whose economics Pappas has
+    // not set carries a cost of zero, and `balance >= 0` is true for
+    // everybody — so without this, every unpriced reward reads as affordable
+    // to a member with no points at all, and redeeming one succeeds with a
+    // discount of R0. That is a redemption that deducts nothing and delivers
+    // nothing, and the member has no way to tell it apart from a real one.
+    //
+    // Nothing in the programme is genuinely free, so a zero means unset.
+    return rewardCatalogue.map((reward) => ({
       ...reward,
       redeemable:
-        !rewardExpired(reward) && reward.category !== 'birthday' && balance >= reward.pointsCost,
+        !rewardExpired(reward) &&
+        reward.category !== 'birthday' &&
+        reward.pointsCost > 0 &&
+        balance >= reward.pointsCost,
     }));
   }
 
@@ -144,7 +156,7 @@ export async function fetchReward(rewardId: string): Promise<Reward> {
 }
 
 export async function fetchTiers(): Promise<TierDefinition[]> {
-  if (config.useMockApi) return delay(tiers, 120);
+  if (config.useMockApi) return delay(tierLadder, 120);
   return request<TierDefinition[]>('/v1/loyalty/tiers');
 }
 
@@ -176,6 +188,61 @@ function stampExpiry(list: Voucher[], now = Date.now()): Voucher[] {
  * A stated one-time promotion paying out for ever, in rand.
  */
 let voucherLedger: Voucher[] = vouchers.map((voucher) => ({ ...voucher }));
+
+/**
+ * Replace the mock wallet.
+ *
+ * The shipped Pappas wallet is empty — §15 forbids inventing promotions, and
+ * a voucher is a discount, a code, an expiry and a minimum spend, which is
+ * four invented commercial terms in one object. Nobody has issued one.
+ *
+ * But voucher *validation* is real behaviour that must keep working the day
+ * Pappas does issue one: unknown codes refused, minimum spends enforced, a
+ * one-time code refused on its second use. Testing that against an empty
+ * wallet is impossible, and seeding the shipped wallet to make the tests
+ * pass would put invented promotions back in the product to serve the suite.
+ *
+ * So the seam is here instead. Mock mode only — against a real backend the
+ * wallet comes from the server and this is never called.
+ */
+export function __seedVoucherWallet(seed: Voucher[]): void {
+  voucherLedger = seed.map((voucher) => ({ ...voucher }));
+}
+
+/** Put the wallet back to what the app actually ships with. */
+export function __resetVoucherWallet(): void {
+  voucherLedger = vouchers.map((voucher) => ({ ...voucher }));
+}
+
+/**
+ * The reward catalogue and tier ladder the mock layer serves.
+ *
+ * Same seam, same reason as the wallet above. The shipped Pappas programme
+ * has no points costs and no tier thresholds — §15 forbids inventing loyalty
+ * rules, and a threshold is one — so nothing in it is redeemable and no tier
+ * boundary exists to cross.
+ *
+ * The *mechanics* still have to work the day Pappas sets the numbers:
+ * redeeming must deduct, cancelling must refund, and crossing a threshold
+ * must move the tier. None of that is testable against a programme with no
+ * economics, so tests seed one here rather than putting invented loyalty
+ * rules back into the product to keep a suite green.
+ */
+let rewardCatalogue: Reward[] = rewards.map((reward) => ({ ...reward }));
+let tierLadder: TierDefinition[] = tiers.map((tier) => ({ ...tier }));
+
+export function __seedRewardProgramme(seed: {
+  rewards?: Reward[];
+  tiers?: TierDefinition[];
+}): void {
+  if (seed.rewards) rewardCatalogue = seed.rewards.map((reward) => ({ ...reward }));
+  if (seed.tiers) tierLadder = seed.tiers.map((tier) => ({ ...tier }));
+}
+
+export function __resetRewardProgramme(): void {
+  rewardCatalogue = rewards.map((reward) => ({ ...reward }));
+  tierLadder = tiers.map((tier) => ({ ...tier }));
+}
 
 /** Spend a voucher, so it cannot be spent again. Mock only. */
 export function markVoucherUsed(code: string): void {
@@ -298,6 +365,25 @@ export async function redeemReward(
   // too — without this the customer would be told they are short of points
   // when the points were never the problem.
   if (rewardExpired(reward)) throw new Error('That reward has expired.');
+
+  /**
+   * Two different reasons a reward cannot be taken, and they need different
+   * words.
+   *
+   * "You do not have enough points yet" is the right message when a member is
+   * short. It is the wrong message — and a confusing one — for a reward whose
+   * economics Pappas has not set, because there is no number of points that
+   * would help. Telling a member to earn more toward a threshold that does
+   * not exist is worse than telling them nothing.
+   *
+   * A reward awaiting its economics is the `pointsCost === 0` case: nothing
+   * in the programme is genuinely free, so a zero means unset rather than
+   * costless. See `services/data/rewardsData.ts` on why every reward is in
+   * that state today.
+   */
+  if (!reward.redeemable && reward.pointsCost === 0) {
+    throw new Error('This reward is not available yet.');
+  }
   if (!reward.redeemable) throw new Error('You do not have enough points for this reward yet.');
 
   /**

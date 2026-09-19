@@ -145,7 +145,7 @@ describe('hierarchy rules', () => {
    * A negative value here would be the old brand's setting left behind.
    */
   it('tracks the capital faces open, not tight', () => {
-    for (const [role, style] of Object.entries(typography) as Array<[string, TextStyle]>) {
+    for (const [role, style] of Object.entries(typography) as [string, TextStyle][]) {
       if (!CINZEL.has(style.fontFamily ?? '')) continue;
       expect([role, style.letterSpacing ?? 0]).toEqual([role, expect.any(Number)]);
       expect(style.letterSpacing ?? 0).toBeGreaterThan(0);

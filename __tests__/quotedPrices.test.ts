@@ -41,18 +41,41 @@ const sentences: { where: string; text: string }[] = [
 describe('the numbers written into seeded copy', () => {
   it('found sentences to check, rather than passing on an empty list', () => {
     // The failure mode this whole file exists to avoid is a check that stopped
-    // reading anything and kept reporting green.
+    // reading anything and kept reporting green. The sentence list must be
+    // real even when none of them quotes money.
     expect(sentences.length).toBeGreaterThan(10);
-    expect(sentences.filter((sentence) => quoted(sentence.text).length > 0).length).toBeGreaterThan(
-      2,
-    );
+  });
+
+  /**
+   * The Pappas seed quotes no rand amount anywhere, and that is the point.
+   *
+   * §15 forbids inventing prices, and a campaign reading "Free delivery over
+   * R350" invents two of them — a threshold and a delivery fee — in a
+   * sentence a customer will believe. So every seeded campaign is editorial
+   * rather than promotional, and there is nothing here to disagree with
+   * `businessRules`.
+   *
+   * The consistency checks below are kept and still run: the moment somebody
+   * writes a rand figure into a campaign or a help answer, they start
+   * comparing it against the constants the app actually charges. This test is
+   * what tells you which state you are in.
+   */
+  it('quotes no money at all, because none has been supplied', () => {
+    const quoting = sentences
+      .filter((sentence) => quoted(sentence.text).length > 0)
+      .map((sentence) => sentence.where);
+
+    expect(quoting).toEqual([]);
   });
 
   it('quotes the free-delivery threshold the app actually applies', () => {
     const claims = sentences.filter(({ text }) =>
       /free.{0,30}(?:over|above)\s*R|(?:over|above)\s*R\s?\d[\d\s]*.{0,30}free/i.test(text),
     );
-    expect(claims.length).toBeGreaterThan(0);
+    // No existence guard. There are no such claims in the Pappas seed and
+    // there should not be — `quotes no money at all` above is what makes sure
+    // this loop is empty for the right reason rather than because the regex
+    // rotted. The loop is here for the day a real threshold is published.
 
     for (const claim of claims) {
       expect({ where: claim.where, quoted: quoted(claim.text) }).toEqual({
@@ -64,7 +87,7 @@ describe('the numbers written into seeded copy', () => {
 
   it('quotes the delivery fee the app actually charges', () => {
     const claims = sentences.filter(({ text }) => /delivery is R\s?\d/i.test(text));
-    expect(claims.length).toBeGreaterThan(0);
+    // Same as above: empty today, and held empty by `quotes no money at all`.
 
     for (const claim of claims) {
       expect({ where: claim.where, quoted: quoted(claim.text) }).toEqual({

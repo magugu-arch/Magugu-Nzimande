@@ -11,8 +11,8 @@ const product: Product = {
   shortDescription: 'Sticky',
   description: 'Sticky honey glaze',
   basePrice: 165,
-  categoryId: 'chicken',
-  assetKey: 'honeyGarlic',
+  categoryId: 'souvlaki',
+  assetKey: 'mezedakia',
   spiceLevel: 0,
   tags: ['bestseller'],
   optionGroups: [

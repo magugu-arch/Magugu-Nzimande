@@ -1,104 +1,114 @@
 import type { ImageSourcePropType } from 'react-native';
-import { suppliedFoodAssets } from './foodAssetRegistry';
+import {
+  PAPPAS_ASSET_KEYS,
+  pappasAsset,
+  pappasAssetDescription,
+  type PappasAssetKey,
+} from '@/data/pappasAssets';
 
 /**
- * Central bb.q Chicken food asset catalogue (brief §8 / §14).
+ * The app's food-imagery surface, pointed at the Pappas photography.
  *
  * Every food image in the app resolves through this module. Screens never
- * `require()` an image directly — they pass a `FoodAssetKey` to <FoodImage>,
- * which picks the right derivative for the surface it is rendering on.
+ * `require()` an image directly — they pass a key to `<FoodImage>`, which
+ * picks the derivative for the surface it is rendering on.
  *
- * Derivatives are produced by `npm run assets:derive` from the masters in
- * assets/food/masters/. Masters are deliberately NOT reachable from this map:
- * list screens must never load a 1122px master (brief §15).
+ * ── Why this file is a thin adapter now ──────────────────────────────────
  *
- *   thumb   1:1   400px   menu rows, cart lines, reorder chips
- *   card    4:5   800px   catalogue cards, best sellers, category tiles
- *   detail  4:5  1200px   product detail hero
- *   banner 16:9  1600px   home promotions, offer banners
+ * The photography registry itself lives in `data/pappasAssets.ts`, matching
+ * §17.5's structure. This module stays because a great deal of the app
+ * already speaks its vocabulary — `FoodAssetKey`, `ImageVariant`,
+ * `resolveFoodAsset`, `<FoodImage>` — and §13's "do not regress existing
+ * functional tests" plus §17.1's "keep the current framework and
+ * architecture" both point the same way: re-point the existing seam rather
+ * than rewrite thirty call sites to say the same thing differently.
  *
- * ── Adding supplied artwork ────────────────────────────────────────────────
- *   1. Drop the master into assets/food/masters/<kebab-key>.jpg
- *   2. Run `npm run assets:derive`
- * That regenerates the crops and the static require() registry. No hand-editing
- * and no screen changes — the product stops substituting on the next build.
+ * The one vocabulary change that could not be avoided: the Pappas pipeline
+ * cuts a `hero` at 4:3 where the old one cut a `detail` at 4:5. §5 asks for
+ * "one large, editorial food or venue image", and 4:5 on a phone is a
+ * portrait box rather than an editorial frame. `detail` is mapped onto
+ * `hero` here so existing callers keep working and get the better crop.
+ *
+ * ── The substitution mechanism ───────────────────────────────────────────
+ *
+ * Kept, and it now does real work. The old catalogue had one photograph per
+ * product. Pappas supplied thirteen photographs for a menu of more dishes
+ * than that, because each one is a *category* composition — the seafood
+ * poster shows prawns, mussels, oysters and calamari together. So most
+ * dishes legitimately share their category's photograph, and
+ * `SUBSTITUTE_ASSET_KEYS` is how a dish says which one it borrows.
+ *
+ * A borrowed photograph is captioned "Serving suggestion" on the detail
+ * screen and counts as outstanding in `npm run assets:audit`. That is not
+ * pedantry: a customer looking at a prawn platter while ordering mussels has
+ * been misled, mildly, and the shoot list should know it.
  */
 
-/** The 16 products the brief requires artwork for. */
-export const FOOD_ASSET_KEYS = [
-  'goldenOriginal',
-  'honeyGarlic',
-  'soyGarlic',
-  'secretSauce',
-  'hotSpicy',
-  'cheesling',
-  'goldenOriginalWings',
-  'boneless',
-  'halfAndHalf',
-  'chickenRiceMeal',
-  'chickenBurger',
-  'koreanRiceBowl',
-  'frenchFries',
-  'cheeslingFries',
-  'ddeokBokki',
-  'roseDdeokBokki',
-] as const;
+/** The thirteen supplied Pappas photographs. */
+export const FOOD_ASSET_KEYS = PAPPAS_ASSET_KEYS;
 
-export type FoodAssetKey = (typeof FOOD_ASSET_KEYS)[number];
+export type FoodAssetKey = PappasAssetKey;
 
-export type ImageVariant = 'thumb' | 'card' | 'detail' | 'banner';
+/**
+ * `detail` is retained as an alias for `hero` so existing callers are
+ * unchanged. New code should ask for `hero`.
+ */
+export type ImageVariant = 'thumb' | 'card' | 'detail' | 'hero' | 'banner';
 
 export interface FoodAsset {
   thumb: ImageSourcePropType;
   card: ImageSourcePropType;
   detail: ImageSourcePropType;
+  hero: ImageSourcePropType;
   banner: ImageSourcePropType;
 }
 
-/**
- * Products with their own supplied photography, from the generated registry.
- * `hasFoodAsset` reports against this — not against the substitution below.
- */
-export const foodAssets = suppliedFoodAssets;
+const build = (key: FoodAssetKey): FoodAsset => ({
+  thumb: pappasAsset(key, 'thumb'),
+  card: pappasAsset(key, 'card'),
+  detail: pappasAsset(key, 'hero'),
+  hero: pappasAsset(key, 'hero'),
+  banner: pappasAsset(key, 'banner'),
+});
+
+export const foodAssets: Record<FoodAssetKey, FoodAsset> = Object.fromEntries(
+  FOOD_ASSET_KEYS.map((key) => [key, build(key)]),
+) as Record<FoodAssetKey, FoodAsset>;
 
 /**
- * Stand-in photography for products whose own shoot has not landed yet.
+ * Dishes that borrow their category's photograph.
  *
- * **Empty, and it should stay that way.** All 16 catalogue products now carry
- * their own supplied bb.q photograph, so nothing borrows and nothing renders
- * the placeholder tile.
- *
- * The mechanism is kept for the next product added to the menu ahead of its
- * shoot. Map the new key to the closest supplied asset by visual family —
- * glaze colour and finish, not menu section, since that is what a customer
- * reads in a thumbnail. Anything mapped here is flagged by `isSubstituted`
- * and captioned "Serving suggestion" on the product detail screen, and still
- * counts as outstanding in `npm run assets:audit`: substitution changes what
- * a customer sees, not what the shoot list owes.
+ * Empty: every key in this registry has its own supplied composition. The
+ * mechanism matters at the *product* level instead — see `assetKey` on each
+ * dish in the catalogue, where several dishes point at one category image,
+ * and `isSubstituted` below.
  */
 export const SUBSTITUTE_ASSET_KEYS: Partial<Record<FoodAssetKey, FoodAssetKey>> = {};
 
 /**
- * Products still awaiting their own supplied bb.q artwork. Currently empty.
+ * Photography Pappas still owes.
  *
- * `npm run assets:audit` fails the build while this list is non-empty, so a
- * product added to the menu without a photograph cannot ship unnoticed.
+ * Empty against the thirteen supplied keys. It is not empty against the
+ * *menu*: most dishes share a category composition rather than having their
+ * own plate shot, which `npm run audit:placeholders` reports. §10 supplied
+ * category heroes, not a dish-by-dish shoot, and the app is honest about
+ * which it is showing.
  */
 export const PENDING_ASSET_KEYS: readonly FoodAssetKey[] = FOOD_ASSET_KEYS.filter(
   (key) => foodAssets[key] === undefined,
 );
 
-/** True only when the product has its OWN photography. */
+/** True only when the key has its own supplied photograph. */
 export function hasFoodAsset(key: FoodAssetKey): boolean {
   return foodAssets[key] !== undefined;
 }
 
-/** True when the product is borrowing another product's photograph. */
+/** True when the key is borrowing another key's photograph. */
 export function isSubstituted(key: FoodAssetKey): boolean {
   return !hasFoodAsset(key) && resolveSubstitute(key) !== null;
 }
 
-/** The key actually rendered for a product: itself, or its stand-in. */
+/** The key actually rendered: itself, or its stand-in. */
 export function resolveSubstitute(key: FoodAssetKey): FoodAssetKey | null {
   if (foodAssets[key]) return key;
   const substitute = SUBSTITUTE_ASSET_KEYS[key];
@@ -106,9 +116,8 @@ export function resolveSubstitute(key: FoodAssetKey): FoodAssetKey | null {
 }
 
 /**
- * Resolve one derivative. Falls back to the substitute photograph, and returns
- * `null` only when neither the product nor its stand-in has artwork — in which
- * case the branded placeholder tile renders instead.
+ * Resolve one derivative. Returns `null` only when neither the key nor its
+ * stand-in has artwork — in which case the branded placeholder tile renders.
  */
 export function resolveFoodAsset(
   key: FoodAssetKey,
@@ -119,42 +128,30 @@ export function resolveFoodAsset(
   return foodAssets[resolved]?.[variant] ?? null;
 }
 
-/** Human-readable product names, used by the placeholder tile and alt text. */
-export const FOOD_ASSET_LABELS: Record<FoodAssetKey, string> = {
-  goldenOriginal: 'Golden Original Chicken',
-  honeyGarlic: 'Honey Garlic Chicken',
-  soyGarlic: 'Soy Garlic Chicken',
-  secretSauce: 'Secret Sauce Chicken',
-  hotSpicy: 'Hot Spicy Chicken',
-  cheesling: 'Cheesling Chicken',
-  goldenOriginalWings: 'Golden Original Wings',
-  boneless: 'Boneless Chicken',
-  halfAndHalf: 'Half & Half Chicken',
-  chickenRiceMeal: 'Chicken & Rice Meal',
-  chickenBurger: 'Chicken Burger',
-  koreanRiceBowl: 'Korean Rice Bowl',
-  frenchFries: 'French Fries',
-  cheeslingFries: 'Cheesling Fries',
-  ddeokBokki: 'Ddeok-Bokki',
-  roseDdeokBokki: 'Rose Ddeok-Bokki',
-};
+/**
+ * What each photograph shows.
+ *
+ * Descriptions of the image, not repetitions of the heading printed beside
+ * it — §13 asks for accessible labels, and a screen reader that says
+ * "Mezedakia. Mezedakia." has been given two labels and no information.
+ */
+export const FOOD_ASSET_LABELS: Record<FoodAssetKey, string> = Object.fromEntries(
+  FOOD_ASSET_KEYS.map((key) => [key, pappasAssetDescription(key)]),
+) as Record<FoodAssetKey, string>;
 
-/** Filename stem the derivative pipeline expects for each key. */
+/** Filename stem the derivative pipeline writes for each key. */
 export const FOOD_ASSET_FILENAMES: Record<FoodAssetKey, string> = {
-  goldenOriginal: 'golden-original',
-  honeyGarlic: 'honey-garlic',
-  soyGarlic: 'soy-garlic',
-  secretSauce: 'secret-sauce',
-  hotSpicy: 'hot-spicy',
-  cheesling: 'cheesling',
-  goldenOriginalWings: 'golden-original-wings',
-  boneless: 'boneless',
-  halfAndHalf: 'half-and-half',
-  chickenRiceMeal: 'chicken-rice-meal',
-  chickenBurger: 'chicken-burger',
-  koreanRiceBowl: 'korean-rice-bowl',
-  frenchFries: 'french-fries',
-  cheeslingFries: 'cheesling-fries',
-  ddeokBokki: 'ddeok-bokki',
-  roseDdeokBokki: 'rose-ddeok-bokki',
+  mezedakia: '03_mezedakia',
+  seafood: '04_seafood',
+  salads: '05_salads',
+  signatureMains: '06_signature_mains',
+  souvlaki: '07_souvlaki',
+  steakOnRock: '08_steak_on_the_rock',
+  fishMarket: '09_mediterranean_fish_market',
+  desserts: '10_desserts',
+  breakfast: '11_breakfast',
+  cocktails: '12_cocktails',
+  diningRoom: '13_main_dining_room',
+  barDetail: '14_bar_detail',
+  squareView: '16_window_square_view',
 };

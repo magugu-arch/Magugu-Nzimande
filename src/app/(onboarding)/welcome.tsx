@@ -27,24 +27,43 @@ interface Slide {
   body: string;
 }
 
+/**
+ * §11's screen 02 — "Pappas in your pocket".
+ *
+ * Three slides, one per thing the app is for, drawn from §4's five customer
+ * jobs: discover, reserve, belong. Ordering is deliberately not one of them —
+ * it is the least surprising thing a restaurant app does, and spending a
+ * slide on it would be spending the only three screens a customer reads on
+ * the one they already assumed.
+ *
+ * Each slide takes a venue or food photograph rather than a single dish, and
+ * the copy describes the restaurant rather than a product. §15's guardrail
+ * about not turning Pappas into a fast-food UI starts here: the previous
+ * onboarding's third slide said "Order more, pay less", which is
+ * discount-first messaging in the first thirty seconds of the app.
+ *
+ * Nothing here states a price, a points rate or an opening hour — all three
+ * are §15 inventions, and all three are what an onboarding carousel usually
+ * reaches for.
+ */
 const SLIDES: Slide[] = [
   {
-    key: 'crispy',
-    assetKey: 'goldenOriginal',
-    headline: 'Twice-fried. Never soggy.',
-    body: 'Our signature bird is marinated overnight, hand-battered and fried twice for a crust you can hear from across the table.',
+    key: 'discover',
+    assetKey: 'diningRoom',
+    headline: 'A taste of a brighter life',
+    body: 'Greek and Mediterranean cooking on Nelson Mandela Square — olive trees, an open kitchen and a room built for long evenings.',
   },
   {
-    key: 'glaze',
-    assetKey: 'honeyGarlic',
-    headline: 'Glazed to order, not in advance',
-    body: 'Honey Garlic, Soy Garlic, Secret Sauce or Hot Spicy — every box is coated the moment it leaves the fryer.',
+    key: 'reserve',
+    assetKey: 'squareView',
+    headline: 'Your table, in a few taps',
+    body: 'Book, change or cancel a table without a phone call. We will remember where you like to sit.',
   },
   {
-    key: 'rewards',
-    assetKey: 'hotSpicy',
-    headline: 'Order more, pay less',
-    body: 'Earn a point for every rand, unlock free sides and delivery, and keep your favourites one tap away.',
+    key: 'belong',
+    assetKey: 'mezedakia',
+    headline: 'Good food. Great company.',
+    body: 'Save your favourites, hear about new dishes first, and let us recognise you when you come back.',
   },
 ];
 

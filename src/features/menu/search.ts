@@ -1,3 +1,4 @@
+import { categories } from '@/services/data/menuData';
 import type { Product } from '@/types';
 
 /**
@@ -8,12 +9,10 @@ import type { Product } from '@/types';
  * contiguously, in order, punctuated exactly as the menu punctuates it. On a
  * sixteen-item menu, seven of ten plausible queries returned nothing:
  *
- *     "ddeok bokki"       nothing   — the dish is called Ddeok-Bokki
- *     "half and half"     nothing   — the dish is called Half & Half Chicken
- *     "chicken and rice"  nothing   — Chicken & Rice Meal
- *     "cheese fries"      nothing   — Cheesling Fries
- *     "burger chicken"    nothing   — Chicken Burger, in the other order
- *     "honey garlic wings" nothing  — two dishes, neither with all three words
+ *     "prawn and avocado" nothing   — the dish is Prawn & Avocado Salad
+ *     "greek g t"         nothing   — the drink is Greek G&T
+ *     "souvlaki pork"     nothing   — Pork Souvlaki, in the other order
+ *     "mezedakia"         nothing   — a section, not a dish
  *
  * A customer who types the name of a dish and is told "We couldn't find
  * anything" concludes the restaurant does not sell it.
@@ -43,10 +42,33 @@ export function normaliseForSearch(text: string): string {
     .trim();
 }
 
+/**
+ * The name of the section a dish sits under.
+ *
+ * Included in what a dish matches against, because on this menu the section
+ * name is very often what a customer types. "Mezedakia" is not the name of
+ * any single dish — it is the name of eight of them together — and a customer
+ * who types it and is told "We couldn't find anything" concludes a Greek
+ * restaurant does not serve meze.
+ *
+ * The same holds for "souvlaki", "fish market" and "breakfast": each is a
+ * category, each is the obvious thing to type, and only one of them happens
+ * to also appear in a dish name.
+ */
+function categoryNameFor(product: Product): string {
+  return categories.find((category) => category.id === product.categoryId)?.name ?? '';
+}
+
 /** Everything about a product worth matching against, normalised once. */
 function haystackFor(product: Product): string {
   return normaliseForSearch(
-    [product.name, product.shortDescription, product.description, ...product.tags].join(' '),
+    [
+      product.name,
+      product.shortDescription,
+      product.description,
+      categoryNameFor(product),
+      ...product.tags,
+    ].join(' '),
   );
 }
 

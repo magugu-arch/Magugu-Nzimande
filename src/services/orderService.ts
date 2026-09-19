@@ -98,7 +98,7 @@ function buildTimeline(
   });
 }
 
-/** In-memory ledger for mock mode, seeded with realistic order history. */
+/** In-memory ledger for mock mode. See `seedHistory` on why it starts empty. */
 const ledger: Order[] = [];
 let referenceCounter = 4822;
 
@@ -118,7 +118,7 @@ function storeSnapshot(
 
   return {
     storeId: store?.id ?? storeId,
-    storeName: store?.name ?? 'bb.q Chicken',
+    storeName: store?.name ?? 'Pappas',
     storePhone: store?.phone ?? '',
     storeAddress: store ? `${store.addressLine}, ${store.suburb}` : '',
     // Omitted rather than zeroed when there is no branch to read them off.
@@ -128,135 +128,29 @@ function storeSnapshot(
   };
 }
 
+/**
+ * Seed the mock order ledger.
+ *
+ * Empty for Pappas, and that is a decision rather than an omission.
+ *
+ * The previous seed held two completed orders — a Honey Garlic Chicken at
+ * R225, Cheesling Fries at R62, a Mastercard ending 7702, a four-star rating.
+ * Reproducing that shape for Pappas would mean writing "Pork Souvlaki, R185"
+ * into an order history, and §15 forbids inventing prices as squarely there
+ * as on a menu. An invented price in a receipt is worse than one on a card,
+ * in fact: it reads as something that already happened.
+ *
+ * So a Pappas customer opens the app with no history, which is what every
+ * real customer will do on launch day, and the order-history screen shows its
+ * empty state. That state is worth more than a fabricated receipt — it is
+ * the screen most likely to ship unlooked-at, and the old seed was exactly
+ * what hid it.
+ *
+ * Once Pappas supplies the menu pricing, a seeded history can be rebuilt from
+ * real dishes at real prices in this function, and nothing else changes.
+ */
 function seedHistory(): void {
-  if (ledger.length > 0) return;
-  // Somebody who installed the app this morning has never ordered.
-  if (config.seedProfile === 'new-customer') return;
-
-  const historyPlacedAt = new Date(Date.now() - 3 * 86_400_000);
-  ledger.push({
-    id: 'order-4821',
-    reference: 'BBQ-4821',
-    placedAt: historyPlacedAt.toISOString(),
-    fulfilmentType: 'delivery',
-    status: 'completed',
-    timeline: buildTimeline('delivery', 'completed', historyPlacedAt, 42),
-    lines: [
-      {
-        id: 'honey-garlic__honey-garlic-size:honey-garlic-size-medium',
-        productId: 'honey-garlic',
-        name: 'Honey Garlic Chicken',
-        assetKey: 'honeyGarlic',
-        unitBasePrice: 165,
-        quantity: 1,
-        selectedOptions: [
-          {
-            groupId: 'honey-garlic-size',
-            groupName: 'Choose your size',
-            optionId: 'honey-garlic-size-medium',
-            optionName: 'Medium · 9 pieces',
-            priceDelta: 60,
-          },
-        ],
-        unitPrice: 225,
-        lineTotal: 225,
-      },
-      {
-        id: 'cheesling-fries__cheesling-fries-size:cheesling-fries-size-regular',
-        productId: 'cheesling-fries',
-        name: 'Cheesling Fries',
-        assetKey: 'cheeslingFries',
-        unitBasePrice: 62,
-        quantity: 1,
-        selectedOptions: [
-          {
-            groupId: 'cheesling-fries-size',
-            groupName: 'Size',
-            optionId: 'cheesling-fries-size-regular',
-            optionName: 'Regular',
-            priceDelta: 0,
-          },
-        ],
-        unitPrice: 62,
-        lineTotal: 62,
-      },
-    ],
-    totals: {
-      subtotal: 287,
-      deliveryFee: 32,
-      serviceFee: 5,
-      discount: 0,
-      rewardsDiscount: 0,
-      total: 324,
-      pointsEarned: 287,
-    },
-    ...storeSnapshot('store-sandton'),
-    addressId: 'address-home',
-    addressSummary: '14 Acacia Road, Melrose Arch',
-    paymentMethodLabel: 'Visa ending 4821',
-    etaMinutes: 42,
-    driverName: 'Sipho',
-    rating: 5,
-  });
-
-  const olderPlacedAt = new Date(Date.now() - 12 * 86_400_000);
-  ledger.push({
-    id: 'order-4610',
-    reference: 'BBQ-4610',
-    placedAt: olderPlacedAt.toISOString(),
-    fulfilmentType: 'collection',
-    status: 'completed',
-    timeline: buildTimeline('collection', 'completed', olderPlacedAt, 25),
-    lines: [
-      {
-        id: 'half-and-half__half-and-half-flavours:half-flavour-golden|half-and-half-flavours:half-flavour-hot',
-        productId: 'half-and-half',
-        name: 'Half & Half Chicken',
-        assetKey: 'halfAndHalf',
-        unitBasePrice: 189,
-        quantity: 1,
-        selectedOptions: [
-          {
-            groupId: 'half-and-half-flavours',
-            groupName: 'Pick your two flavours',
-            optionId: 'half-flavour-golden',
-            optionName: 'Golden Original',
-            priceDelta: 0,
-          },
-          {
-            groupId: 'half-and-half-flavours',
-            groupName: 'Pick your two flavours',
-            optionId: 'half-flavour-hot',
-            optionName: 'Hot Spicy',
-            priceDelta: 0,
-          },
-          {
-            groupId: 'half-and-half-size',
-            groupName: 'Choose your size',
-            optionId: 'half-and-half-size-large',
-            optionName: 'Large · 12 pieces',
-            priceDelta: 115,
-          },
-        ],
-        unitPrice: 304,
-        lineTotal: 304,
-      },
-    ],
-    totals: {
-      subtotal: 304,
-      deliveryFee: 0,
-      serviceFee: 5,
-      discount: 0,
-      rewardsDiscount: 0,
-      total: 309,
-      pointsEarned: 304,
-    },
-    ...storeSnapshot('store-rosebank'),
-    paymentMethodLabel: 'Mastercard ending 7702',
-    etaMinutes: 25,
-    rating: 4,
-    ratingComment: 'Crispy as always, collection was quick.',
-  });
+  // Deliberately empty. See above.
 }
 
 /**

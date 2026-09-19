@@ -110,72 +110,120 @@ export const notifications: AppNotification[] = [
     receivedAt: new Date(Date.now() - 6 * 86_400_000).toISOString(),
     read: true,
     category: 'promotion',
-    href: '/product/rose-ddeok-bokki',
+    href: '/menu/desserts',
   },
 ];
 
+/**
+ * Help answers.
+ *
+ * Rewritten for Pappas, and shorter than the set they replace — because most
+ * of what a help centre answers is a commercial fact, and §15 forbids
+ * inventing those. The previous answers stated a R32 delivery fee, a R350
+ * free-delivery threshold, a 35–50 minute delivery window, a 1-point-per-rand
+ * earn rate, a 12-month points expiry and a list of accepted payment rails.
+ * Every one of those is a customer promise, and nobody has supplied a single
+ * one for Pappas.
+ *
+ * An answer that invents them is worse than no answer: the help centre is
+ * exactly where a customer goes to find out what something costs, so a
+ * fabricated figure there is a fabricated figure at its most believable.
+ *
+ * So each answer below either describes how the *app* works — which is a fact
+ * this repository knows — or says plainly that the detail is confirmed by the
+ * restaurant. `__tests__/quotedPrices.test.ts` fails if a rand figure appears
+ * in any of them before the constants agree.
+ */
 export const supportTopics: SupportTopic[] = [
   {
     id: 'help-track',
     question: 'How do I track my order?',
     answer:
-      'Open Orders from the bottom navigation and tap your active order. You will see live status from Received through to Completed, plus your estimated time.',
+      'Open your order from Account, or tap the status card on Home. You will see it move from ' +
+      'Sent to Pappas through Preparing to Ready, with an estimate where we have one.',
     category: 'orders',
   },
   {
     id: 'help-change',
     question: 'Can I change or cancel my order?',
     answer:
-      'You can cancel while the order is still in Received. Once the kitchen starts preparing, call the store directly on the number shown on your order and they will help where they can.',
+      'You can cancel while the order is still waiting to be confirmed. Once the kitchen has ' +
+      'started, call the restaurant on the number shown on your order and they will help where ' +
+      'they can.',
     category: 'orders',
   },
   {
-    id: 'help-delivery-time',
-    question: 'How long does delivery take?',
+    id: 'help-reserve',
+    question: 'How do I book a table?',
     answer:
-      'Most deliveries arrive in 35 to 50 minutes depending on your distance from the store and how busy the kitchen is. Your live estimate is always shown on the order.',
-    category: 'delivery',
+      'Tap Reserve and choose a date, a time and how many of you there are. You can add a ' +
+      'seating preference or tell us the occasion, and you will get a confirmation you can ' +
+      'change or cancel from the app.',
+    category: 'orders',
   },
   {
     id: 'help-delivery-fee',
     question: 'What does delivery cost?',
     answer:
-      'Delivery is R32 within our standard zones, and free on orders over R350. The exact fee is always shown before you pay.',
+      'The delivery fee is shown before you pay, and it depends on where you are. We do not ' +
+      'quote a figure here because the one on your order is the one you are charged.',
+    category: 'delivery',
+  },
+  {
+    id: 'help-delivery-area',
+    question: 'Do you deliver to me?',
+    answer:
+      'Enter your address at checkout and we will tell you straight away. If we cannot reach ' +
+      'you, collection from Nelson Mandela Square is always available.',
+    category: 'delivery',
+  },
+  {
+    id: 'help-channels',
+    question: 'Can I order through Uber Eats or Mr D?',
+    answer:
+      'Not yet. Ordering directly with Pappas is available now, and we will announce the other ' +
+      'channels in the app when they open.',
     category: 'delivery',
   },
   {
     id: 'help-payment',
     question: 'Which payment methods can I use?',
     answer:
-      'Visa and Mastercard, Instant EFT, SnapScan, Apple Pay and Google Pay. Cash is available on delivery orders at selected stores.',
+      'The payment options available to you are shown at checkout. If one you expect is ' +
+      'missing, tell us through Contact and we will look into it.',
     category: 'payments',
   },
   {
     id: 'help-refund',
     question: 'Something was missing from my order',
     answer:
-      'We are sorry. Open the order, tap Contact us and tell us what was missing. We will refund or replace it, usually within one business day.',
+      'We are sorry. Open the order, tap Contact us and tell us what was missing, and we will ' +
+      'put it right.',
     category: 'payments',
   },
   {
     id: 'help-points',
-    question: 'How do bb.q Rewards points work?',
+    question: 'How does Pappas Rewards work?',
     answer:
-      'You earn 1 point per R1 spent on food, and more as you move up tiers. Points can be redeemed for free items and discounts from the Rewards tab.',
+      'Rewards recognises you for coming back — your favourites remembered, invitations to ' +
+      'member evenings, and a table held when we can. The full programme details are being ' +
+      'confirmed and will appear in the app.',
     category: 'rewards',
   },
   {
-    id: 'help-points-expire',
-    question: 'Do my points expire?',
+    id: 'help-rewards-channels',
+    question: 'Do I earn rewards on delivery orders?',
     answer:
-      'Points expire 12 months after they are earned. Your Rewards screen shows anything expiring in the next 30 days.',
+      'You earn on orders placed directly with Pappas. Orders placed through a delivery ' +
+      'marketplace are handled by that service, so we cannot recognise them.',
     category: 'rewards',
   },
   {
     id: 'help-delete',
     question: 'How do I delete my account?',
     answer:
-      'Go to More, then Profile, and choose Delete account. We remove your personal data within 30 days, keeping only what tax law requires us to retain.',
+      'Go to Account, then Profile, and choose Delete account. We remove your personal data ' +
+      'within 30 days, keeping only what the law requires us to retain.',
     category: 'account',
   },
 ];

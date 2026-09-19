@@ -103,21 +103,24 @@ const productsByAsset = new Map();
   }
 }
 
-const registrySource = readFileSync(
-  path.join(root, 'src', 'constants', 'foodAssetRegistry.ts'),
-  'utf8',
-);
+const registrySource = readFileSync(path.join(root, 'src', 'data', 'pappasAssets.ts'), 'utf8');
 const suppliedKeys = [...registrySource.matchAll(/^ {2}(\w+): \{$/gm)].map((m) => m[1]);
 
-const masters = walk(path.join(root, 'assets', 'food', 'masters'), /\.(jpg|jpeg|png)$/i).map((f) =>
-  path.basename(f),
+/** The supplied Pappas masters, across the three folders §10 groups them in. */
+const masters = ['food', 'venue', 'ci']
+  .flatMap((group) => walk(path.join(root, 'assets', 'pappas', group), /\.(jpg|jpeg|png)$/i))
+  .map((f) => path.basename(f));
+
+/** Which master each registry key is cut from, read off the filename map. */
+const filenames = new Map(
+  [...registrySource.matchAll(/^ {2}(\w+): '(\d{2}_[a-z0-9_]+)',$/gm)].map((m) => [m[1], m[2]]),
 );
 
 const VARIANTS = [
   ['thumb', '1:1', '400px', 'menu rows, cart lines, reorder chips'],
-  ['card', '4:5', '800px', 'catalogue cards, best sellers, category tiles'],
-  ['detail', '4:5', '1200px', 'product detail hero'],
-  ['banner', '16:9', '1600px', 'home promotions, offer banners'],
+  ['card', '4:5', '800px', 'category cards, editorial cards, dish cards'],
+  ['hero', '4:3', '1400px', 'home hero, category hero, product detail'],
+  ['banner', '16:9', '1600px', 'campaign banners, event cards'],
 ];
 
 // ── Render ─────────────────────────────────────────────────────────────────
@@ -168,8 +171,8 @@ for (const [group, entries] of components) {
 
 add('---', '', '## Asset manifest', '');
 add(
-  `${suppliedKeys.length} supplied photographs, one per catalogue product, each`,
-  'derived into four responsive variants by `npm run assets:derive`.',
+  `${suppliedKeys.length} supplied photographs, each derived into four responsive`,
+  'variants by `npm run assets:pappas`.',
   '',
   '| Variant | Ratio | Width | Used on |',
   '|---|---|---|---|',
@@ -177,21 +180,25 @@ add(
 for (const [name, ratio, width, use] of VARIANTS) {
   add(`| \`${name}\` | ${ratio} | ${width} | ${use} |`);
 }
-add('', '| Product | Category | Asset key | Master |', '|---|---|---|---|');
+add('', '| Asset key | Master | First catalogue use |', '|---|---|---|');
 for (const key of suppliedKeys) {
   const product = productsByAsset.get(key);
-  const master = masters.find((m) => m.replace(/\.[^.]+$/, '') === toKebab(key));
+  const stem = filenames.get(key);
+  const master = masters.find((m) => m.replace(/\.[^.]+$/, '') === stem);
   add(
-    `| ${product ? product.name : '_unused_'} | ${product ? `\`${product.category}\`` : '—'} | \`${key}\` | \`${master ?? '—'}\` |`,
+    `| \`${key}\` | \`${master ?? '—'}\` | ${product ? `${product.name} (\`${product.category}\`)` : '_venue / editorial only_'} |`,
   );
 }
 
 add(
   '',
-  'Masters live in `assets/food/masters/` and are never shipped to a list screen.',
-  'Eight of them are campaign compositions carrying their own headline typography;',
-  'the derivative pipeline crops catalogue surfaces inside a `promo_safe` region so',
-  'a card never slices a headline, while the banner keeps the full artwork.',
+  'Masters live in `assets/pappas/{food,venue,ci}/` and are never shipped to a',
+  'screen. Every one is a finished poster carrying its own Cinzel headline, so the',
+  'derivative pipeline cuts each variant from inside a declared `food_safe` region',
+  'that excludes the typography — brief §6 and §14. Three masters are held back',
+  'entirely and have no key here: `01` and `02` are photography-direction boards',
+  'and `15` is the CI brand sheet, which §10 designates as references rather than',
+  'content.',
   '',
 );
 

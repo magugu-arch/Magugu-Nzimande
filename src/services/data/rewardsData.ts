@@ -1,319 +1,286 @@
 import type { LoyaltyAccount, Promotion, Reward, TierDefinition, Voucher } from '@/types';
+import type { ProviderId } from '@/integrations/delivery';
 
-/** bb.q Rewards tiers (brief §11). */
+/**
+ * Pappas Rewards, and the marketing surfaces that sit beside it.
+ *
+ * ── Recognition, not coupon clipping ─────────────────────────────────────
+ *
+ * §8 is the whole design brief for this file in one sentence: "Make loyalty
+ * feel like recognition, not coupon clipping." §5 adds "show current
+ * recognition / points / next benefit without shouting discount language",
+ * and §15 forbids "discount-first messaging" outright.
+ *
+ * So the tiers below are named for places rather than metals. A "Bronze"
+ * member is being told they are the lowest grade of customer; an "Olive"
+ * member is being told they belong to something. The perks are hospitality —
+ * a table held, a seat at a tasting, a dish sent out — rather than a ladder
+ * of delivery discounts, which is the shape the previous scheme had and the
+ * shape §15 rules out.
+ *
+ * ── Why every threshold and point cost is zero ───────────────────────────
+ *
+ * §15: "Do not invent menu prices, events, opening hours, **loyalty rules**
+ * or customer promises."
+ *
+ * A tier threshold is a loyalty rule. A points cost is a loyalty rule. An
+ * earn rate is a loyalty rule and a financial commitment. Nobody has supplied
+ * any of them, so none is stated: every threshold and `pointsCost` is 0 and
+ * every reward is `redeemable: false`, which renders as "Coming soon" rather
+ * than as a number a member might plan around and then find changed.
+ *
+ * The structure is real and complete — this is a working programme with the
+ * commercial numbers left blank, not a sketch. Filling it in is a data
+ * change, and `npm run audit:placeholders` lists exactly which fields.
+ *
+ * ── Channel eligibility ──────────────────────────────────────────────────
+ *
+ * Every promotion carries `channels`, which the delivery extension §7
+ * requires so "a direct-only promotion cannot accidentally be applied to
+ * Uber Eats or Mr D". All of them are direct-only today, because a Pappas
+ * campaign funded on a commissioned marketplace is a commercial decision
+ * nobody has made.
+ */
+
+/**
+ * Membership tiers.
+ *
+ * Named for the Mediterranean rather than for metals — §8's "recognition,
+ * not coupon clipping" is a naming problem before it is a perks problem. The
+ * ids stay on the existing `MembershipTier` union so nothing downstream
+ * changes; only what a member reads is different.
+ */
 export const tiers: TierDefinition[] = [
   {
     tier: 'bronze',
-    name: 'Bronze',
+    name: 'Olive',
     threshold: 0,
-    perks: ['1 point per R1 spent', 'Birthday treat', 'Members-only offers'],
+    perks: [
+      'Your favourites remembered',
+      'A note from us on your birthday',
+      'First to hear about new dishes',
+    ],
   },
   {
     tier: 'silver',
-    name: 'Silver',
-    threshold: 1500,
-    perks: ['1.25 points per R1 spent', 'Free delivery twice a month', 'Early access to new drops'],
+    name: 'Aegean',
+    threshold: 0,
+    perks: [
+      'Priority when tables are tight',
+      'Invitations to member evenings',
+      'Early access to seasonal menus',
+    ],
   },
   {
     tier: 'gold',
-    name: 'Gold',
-    threshold: 4000,
-    perks: ['1.5 points per R1 spent', 'Free delivery every week', 'Priority kitchen queue'],
+    name: 'Sunset',
+    threshold: 0,
+    perks: [
+      'A table held for you at short notice',
+      'A seat at Pappas tastings',
+      'Something from the kitchen, on us',
+    ],
   },
   {
     tier: 'black',
-    name: 'Black',
-    threshold: 9000,
+    name: 'Square',
+    threshold: 0,
     perks: [
-      '2 points per R1 spent',
-      'Unlimited free delivery',
-      'Invitations to bb.q tasting events',
+      'The window table, when it is free',
+      'Private dining enquiries answered first',
+      'An invitation to everything we do',
     ],
   },
 ];
 
+/**
+ * Member experiences.
+ *
+ * §8 asks the rewards home to show "status, progress, available rewards,
+ * member experiences and history". These are the experiences — they read as
+ * hospitality rather than as vouchers, which is the point.
+ *
+ * Every one is `redeemable: false` at `pointsCost: 0` until Pappas sets the
+ * programme's economics. The app renders that as "Coming soon", not as a
+ * free reward.
+ */
 export const rewards: Reward[] = [
   {
-    id: 'reward-fries',
-    name: 'Free French Fries',
-    description: 'A regular portion of our thick-cut fries, on the house.',
-    pointsCost: 400,
-    assetKey: 'frenchFries',
-    category: 'food',
-    redeemable: true,
-    termsAndConditions: [
-      'Redeemable on any order over R100.',
-      'One reward per order.',
-      'Cannot be combined with another voucher.',
-    ],
-  },
-  {
-    id: 'reward-cheesling-fries',
-    name: 'Free Cheesling Fries',
-    description: 'Upgrade to the fries everyone actually fights over.',
-    pointsCost: 650,
-    assetKey: 'cheeslingFries',
-    category: 'food',
-    redeemable: true,
-    termsAndConditions: ['Redeemable on any order over R150.', 'One reward per order.'],
-  },
-  {
-    id: 'reward-delivery',
-    name: 'Free Delivery',
-    description: 'We cover the delivery fee on your next order.',
-    pointsCost: 300,
-    category: 'delivery',
-    redeemable: true,
-    termsAndConditions: ['Delivery orders only.', 'Valid within standard delivery zones.'],
-  },
-  {
-    id: 'reward-wings',
-    name: 'Free 6 Golden Original Wings',
-    description: 'Six wings added to your order, no charge.',
-    pointsCost: 1200,
-    assetKey: 'goldenOriginalWings',
-    category: 'food',
-    redeemable: true,
-    termsAndConditions: ['Redeemable on any order over R250.', 'One reward per order.'],
-  },
-  {
-    id: 'reward-r50',
-    name: 'R50 off your order',
-    description: 'Straight R50 off anything on the menu.',
-    pointsCost: 1000,
-    category: 'discount',
-    redeemable: true,
-    termsAndConditions: ['Minimum spend R200.', 'Excludes delivery and service fees.'],
-  },
-  {
-    id: 'reward-half-and-half',
-    name: 'Free Half & Half Chicken',
-    description: 'A medium Half & Half, entirely on us. The big one.',
-    pointsCost: 3500,
-    assetKey: 'halfAndHalf',
+    id: 'reward-chefs-meze',
+    name: 'Mezedakia from the kitchen',
+    description: 'A plate of small plates, chosen by the kitchen and sent to your table.',
+    pointsCost: 0,
+    assetKey: 'mezedakia',
     category: 'food',
     redeemable: false,
     termsAndConditions: [
-      'Redeemable on any order over R300.',
-      'Medium size only; upgrade at own cost.',
+      'Available on a dine-in visit.',
+      'Reward economics to be confirmed by Pappas.',
+    ],
+  },
+  {
+    id: 'reward-dessert',
+    name: 'Dessert, on us',
+    description: 'Finish with the baklava. We will take care of it.',
+    pointsCost: 0,
+    assetKey: 'desserts',
+    category: 'food',
+    redeemable: false,
+    termsAndConditions: ['One per visit.', 'Reward economics to be confirmed by Pappas.'],
+  },
+  {
+    id: 'reward-aperitif',
+    name: 'An aperitif at the bar',
+    description: 'Arrive early and start at the bar with a drink from us.',
+    pointsCost: 0,
+    assetKey: 'cocktails',
+    category: 'food',
+    redeemable: false,
+    termsAndConditions: [
+      'Available to members of legal drinking age.',
+      'Reward economics to be confirmed by Pappas.',
+    ],
+  },
+  {
+    id: 'reward-window-table',
+    name: 'The window table',
+    description: 'When it is free, it is yours — the table looking out onto Nelson Mandela Square.',
+    pointsCost: 0,
+    assetKey: 'squareView',
+    category: 'food',
+    redeemable: false,
+    termsAndConditions: [
+      'Subject to availability on the evening.',
+      'Reward economics to be confirmed by Pappas.',
     ],
   },
   {
     id: 'reward-birthday',
-    name: 'Birthday Boneless Box',
-    description: 'Our gift to you during your birthday month.',
+    name: 'Your birthday at Pappas',
+    description: 'Tell us when it is, and we will make something of it.',
     pointsCost: 0,
-    assetKey: 'boneless',
     category: 'birthday',
     redeemable: false,
     termsAndConditions: [
-      'Unlocks in your birthday month.',
-      'Add your date of birth to your profile to qualify.',
+      'Requires a date of birth on your profile.',
+      'Reward economics to be confirmed by Pappas.',
     ],
   },
 ];
 
-export const vouchers: Voucher[] = [
-  {
-    id: 'voucher-welcome',
-    code: 'WELCOME50',
-    title: 'R50 off your first order',
-    description: 'Welcome to bb.q. Here is R50 towards your first box.',
-    discountType: 'fixed',
-    discountValue: 50,
-    minimumSpend: 200,
-    expiresAt: new Date(Date.now() + 30 * 86_400_000).toISOString(),
-    used: false,
-    expired: false,
-  },
-  {
-    id: 'voucher-freedel',
-    code: 'FREEDEL',
-    title: 'Free delivery',
-    description: 'Delivery on us, any order over R150.',
-    discountType: 'freeDelivery',
-    discountValue: 0,
-    minimumSpend: 150,
-    expiresAt: new Date(Date.now() + 14 * 86_400_000).toISOString(),
-    used: false,
-    expired: false,
-  },
-  {
-    id: 'voucher-spicy15',
-    code: 'SPICY15',
-    title: '15% off Hot Spicy',
-    description: 'Fifteen percent off when the heat is on.',
-    discountType: 'percentage',
-    discountValue: 15,
-    minimumSpend: 150,
-    expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
-    used: false,
-    expired: false,
-    assetKey: 'hotSpicy',
-  },
-  {
-    id: 'voucher-used',
-    code: 'SOYFAN',
-    title: 'R30 off Soy Garlic',
-    description: 'Already used on your last order.',
-    discountType: 'fixed',
-    discountValue: 30,
-    minimumSpend: 120,
-    expiresAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
-    used: true,
-    expired: true,
-    assetKey: 'soyGarlic',
-  },
-];
-
+/**
+ * A member's account.
+ *
+ * Zeroed rather than seeded with a plausible balance. A demo account holding
+ * 2,340 points implies an earn rate, which §15 forbids inventing, and it is
+ * also the exact seed that hides the state every new member actually starts
+ * in — the one the previous app's `new-customer` seed profile existed to
+ * expose.
+ */
 export const loyaltyAccount: LoyaltyAccount = {
-  memberId: 'BBQ-SA-004182',
-  pointsBalance: 1840,
-  tier: 'silver',
-  tierName: 'Silver',
-  pointsToNextTier: 2160,
-  nextTier: 'gold',
-  tierProgress: (1840 - 1500) / (4000 - 1500),
-  lifetimePoints: 4620,
-  history: [
-    {
-      id: 'points-1',
-      description: 'Order BBQ-4821 · Honey Garlic Chicken',
-      points: 231,
-      occurredAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-      orderReference: 'BBQ-4821',
-    },
-    {
-      id: 'points-2',
-      description: 'Redeemed · Free French Fries',
-      points: -400,
-      occurredAt: new Date(Date.now() - 9 * 86_400_000).toISOString(),
-    },
-    {
-      id: 'points-3',
-      description: 'Order BBQ-4610 · Half & Half Chicken',
-      points: 318,
-      occurredAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
-      orderReference: 'BBQ-4610',
-    },
-    {
-      id: 'points-4',
-      description: 'Tier bonus · Silver unlocked',
-      points: 250,
-      occurredAt: new Date(Date.now() - 20 * 86_400_000).toISOString(),
-    },
-  ],
+  memberId: 'pappas-member',
+  pointsBalance: 0,
+  tier: 'bronze',
+  tierName: 'Olive',
+  pointsToNextTier: 0,
+  nextTier: 'silver',
+  tierProgress: 0,
+  lifetimePoints: 0,
+  history: [],
 };
 
 /**
- * Home and offers promotions. Fully data-driven (brief §11): artwork, copy,
- * CTA target, validity and terms all come from here, never from a screen.
+ * Vouchers in the wallet.
+ *
+ * Empty. A voucher is a discount with a code, an expiry and a minimum spend —
+ * three invented commercial terms in one object. None exists until Pappas
+ * issues one.
  */
-export const promotions: Promotion[] = [
+export const vouchers: Voucher[] = [];
+
+/**
+ * A campaign, extended with the channel scoping the delivery extension needs.
+ *
+ * `Promotion` is the app's existing shape and is kept; `channels` is added
+ * because §7 of the delivery extension requires every promotion to carry it.
+ * Making it non-optional here means a new campaign cannot be written without
+ * somebody deciding which channels may fund it.
+ */
+export interface PappasPromotion extends Promotion {
+  channels: readonly ProviderId[];
+  /** §8's audience segmentation, for the notification engine. */
+  audience: 'all' | 'members' | 'lapsed' | 'birthday' | 'frequent';
+  /** §8: "Build frequency caps … into the product." Hours between sends. */
+  frequencyCapHours: number;
+}
+
+/**
+ * The campaign carousel — §5's "marketing machine".
+ *
+ * Three campaigns, and every one of them is either named in the brief or
+ * describes something the supplied photography shows. Date Night is §17.11's
+ * own worked example, headline and body included, so it is quoted rather than
+ * written. The other two point at the venue and the bar, which assets 16 and
+ * 14 establish.
+ *
+ * What is deliberately absent: a percentage, a "2 for 1", a countdown, a
+ * "limited time only". §15's guardrail against discount-first messaging, and
+ * §8's instruction to avoid "shouting discount language". None of these
+ * campaigns offers money off, because none has been authorised to.
+ *
+ * `validUntil` is set a year out rather than invented as a promotional
+ * window — these are editorial invitations rather than dated offers, and a
+ * fabricated end date is a fabricated customer promise.
+ */
+const YEAR_FROM_BUILD = '2027-09-19T00:00:00.000Z';
+const BUILD_DATE = '2026-09-19T00:00:00.000Z';
+
+export const promotions: PappasPromotion[] = [
   {
-    id: 'promo-honey-garlic',
-    headline: 'Honey Garlic, glazed to order',
-    description: 'Sticky, garlicky and finished by hand. Our most-ordered box, two weeks only.',
-    assetKey: 'honeyGarlic',
-    ctaLabel: 'Order now',
-    ctaHref: '/product/honey-garlic',
-    validFrom: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-    validUntil: new Date(Date.now() + 11 * 86_400_000).toISOString(),
-    terms: ['While stocks last.', 'Available at participating stores.'],
+    id: 'date-night',
+    headline: 'Your Tuesday, elevated.',
+    description: 'Discover the Pappas Date Night experience.',
+    assetKey: 'squareView',
+    ctaLabel: 'Reserve now',
+    ctaHref: '/reserve',
+    validFrom: BUILD_DATE,
+    validUntil: YEAR_FROM_BUILD,
+    terms: ['Details of the Date Night experience to be confirmed by Pappas.'],
     usePromotionalComposition: true,
+    channels: ['pappas-direct'],
+    audience: 'members',
+    // §17.11's own example value: one send a week at most.
+    frequencyCapHours: 168,
   },
   {
-    id: 'promo-first-order',
-    headline: 'R50 off your first order',
-    description: 'New to bb.q? Use code WELCOME50 at checkout on orders over R200.',
-    assetKey: 'goldenOriginal',
-    ctaLabel: 'Claim R50',
-    ctaHref: '/(tabs)/menu',
-    promoCode: 'WELCOME50',
-    validFrom: new Date(Date.now() - 10 * 86_400_000).toISOString(),
-    validUntil: new Date(Date.now() + 45 * 86_400_000).toISOString(),
-    terms: [
-      'Valid on your first order only.',
-      'Minimum spend R200.',
-      'Cannot be combined with other offers.',
-    ],
+    id: 'the-bar-at-dusk',
+    headline: 'The bar, at dusk.',
+    description: 'Cocktails, Mediterranean botanicals and the light going gold over the square.',
+    assetKey: 'barDetail',
+    ctaLabel: 'See the drinks',
+    ctaHref: '/menu/drinks',
+    validFrom: BUILD_DATE,
+    validUntil: YEAR_FROM_BUILD,
+    terms: [],
     usePromotionalComposition: true,
+    channels: ['pappas-direct'],
+    audience: 'all',
+    frequencyCapHours: 336,
   },
   {
-    id: 'promo-half-and-half',
-    headline: 'Half & Half. Both, obviously.',
+    id: 'the-fish-market',
+    headline: 'Whatever came in this morning.',
     description:
-      'Golden Original on one side, Hot Spicy on the other. One box, no arguments at the table.',
-    assetKey: 'halfAndHalf',
-    ctaLabel: 'Build your box',
-    ctaHref: '/product/half-and-half',
-    validFrom: new Date(Date.now() - 5 * 86_400_000).toISOString(),
-    validUntil: new Date(Date.now() + 40 * 86_400_000).toISOString(),
-    terms: ['Available in medium and large.', 'Flavour choice subject to availability.'],
-    usePromotionalComposition: true,
-  },
-  {
-    id: 'promo-spicy-tuesday',
-    headline: 'Spicy Tuesday',
-    description: '15% off every Hot Spicy box, every Tuesday. Bring a drink.',
-    assetKey: 'hotSpicy',
-    ctaLabel: 'See the heat',
-    ctaHref: '/product/hot-spicy',
-    promoCode: 'SPICY15',
-    validFrom: new Date(Date.now() - 30 * 86_400_000).toISOString(),
-    validUntil: new Date(Date.now() + 60 * 86_400_000).toISOString(),
-    terms: ['Tuesdays only.', 'Discount applies to Hot Spicy items only.'],
-    usePromotionalComposition: true,
-  },
-  {
-    id: 'promo-korean-rice-bowl',
-    headline: 'The Korean Rice Bowl has landed',
-    description:
-      'Glazed chicken over steamed rice with kimchi, cucumber, carrot and a fried egg. One bowl, everything in it.',
-    assetKey: 'koreanRiceBowl',
-    ctaLabel: 'Try the bowl',
-    ctaHref: '/product/korean-rice-bowl',
-    validFrom: new Date(Date.now() - 7 * 86_400_000).toISOString(),
-    validUntil: new Date(Date.now() + 50 * 86_400_000).toISOString(),
-    terms: ['Available at participating stores.'],
-    usePromotionalComposition: true,
-  },
-  {
-    id: 'promo-cheesling-fries',
-    headline: 'Cheesling Fries, loaded',
-    description:
-      'Our fries under cheese sauce, spring onion and chilli. Add them to any box for R55.',
-    assetKey: 'cheeslingFries',
-    ctaLabel: 'Add to my order',
-    ctaHref: '/product/cheesling-fries',
-    validFrom: new Date(Date.now() - 14 * 86_400_000).toISOString(),
-    validUntil: new Date(Date.now() + 30 * 86_400_000).toISOString(),
-    terms: ['Add-on price applies with any chicken box.', 'While stocks last.'],
-    usePromotionalComposition: true,
-  },
-  {
-    id: 'promo-ddeok-bokki',
-    headline: 'Ddeok-Bokki, two ways',
-    description:
-      'The fiery original, or the rosé version softened with cream. Chewy rice cakes either way.',
-    assetKey: 'ddeokBokki',
-    ctaLabel: 'Pick your sauce',
-    ctaHref: '/product/ddeok-bokki',
-    validFrom: new Date(Date.now() - 4 * 86_400_000).toISOString(),
-    validUntil: new Date(Date.now() + 45 * 86_400_000).toISOString(),
-    terms: ['Available at participating stores.'],
-    usePromotionalComposition: true,
-  },
-  {
-    id: 'promo-free-delivery',
-    headline: 'Free delivery over R350',
-    description: 'Fill the box, skip the fee. Automatically applied at checkout.',
-    assetKey: 'soyGarlic',
-    ctaLabel: 'Start an order',
-    ctaHref: '/(tabs)/menu',
-    validFrom: new Date(Date.now() - 60 * 86_400_000).toISOString(),
-    validUntil: new Date(Date.now() + 120 * 86_400_000).toISOString(),
-    terms: ['Applies to delivery orders within standard zones.'],
+      'Line fish, kingklip, sea bass and dorado — grilled whole, the way the coast does it.',
+    assetKey: 'fishMarket',
+    ctaLabel: 'See the catch',
+    ctaHref: '/menu/fish-market',
+    validFrom: BUILD_DATE,
+    validUntil: YEAR_FROM_BUILD,
+    terms: ['The day’s catch varies. Ask your host what is in.'],
     usePromotionalComposition: false,
+    channels: ['pappas-direct'],
+    audience: 'all',
+    frequencyCapHours: 336,
   },
 ];

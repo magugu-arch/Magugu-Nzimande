@@ -1,5 +1,5 @@
 {
-  "name": "bbq-chicken-sa",
+  "name": "pappas-app",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "private": true,
@@ -15,10 +15,6 @@
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "verify": "npm run typecheck && npm run lint && npm run format:check && npm test",
-    "assets:derive": "node scripts/generate-image-derivatives.mjs && node scripts/generate-asset-registry.mjs",
-    "assets:audit": "node scripts/audit-food-assets.mjs",
-    "assets:audit:warn": "node scripts/audit-food-assets.mjs --warn",
-    "assets:registry": "node scripts/generate-asset-registry.mjs",
     "docs:inventory": "node scripts/generate-inventory.mjs",
     "docs:inventory:check": "node scripts/generate-inventory.mjs --check",
     "assets:brand": "node scripts/generate-brand-assets.mjs",
@@ -47,7 +43,9 @@
     "audit:handover": "node scripts/audit-handover.mjs",
     "audit:tracking": "node scripts/audit-tracking.mjs",
     "audit:guest": "node scripts/audit-guest.mjs",
-    "audit:delivery-range": "node scripts/audit-delivery-range.mjs"
+    "audit:delivery-range": "node scripts/audit-delivery-range.mjs",
+    "assets:pappas": "node scripts/generate-pappas-derivatives.mjs",
+    "audit:placeholders": "node scripts/audit-placeholders.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/allura": "^0.4.2",

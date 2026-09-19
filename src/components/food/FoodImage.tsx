@@ -46,7 +46,10 @@ export interface FoodImageProps {
 const VARIANT_ASPECT: Record<ImageVariant, number> = {
   thumb: aspect.thumb,
   card: aspect.card,
-  detail: aspect.detail,
+  // `detail` is the older name for the same crop; both resolve to the 4:3
+  // editorial frame §5 asks for. See the note in `constants/foodAssets.ts`.
+  detail: aspect.hero,
+  hero: aspect.hero,
   banner: aspect.banner,
 };
 
@@ -79,6 +82,7 @@ const LOAD_BEHAVIOUR: Record<
   { priority: 'low' | 'normal' | 'high'; eager: boolean }
 > = {
   banner: { priority: 'high', eager: true },
+  hero: { priority: 'high', eager: true },
   detail: { priority: 'high', eager: true },
   card: { priority: 'normal', eager: false },
   thumb: { priority: 'low', eager: false },

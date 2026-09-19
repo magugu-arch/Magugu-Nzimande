@@ -139,7 +139,6 @@ export function reportError(error: unknown, context: ErrorContext): void {
   }
 
   if (__DEV__ && !reporter) {
-    // eslint-disable-next-line no-console
     console.error(`[bb.q error: ${safeContext.scope}]`, normalised.name, normalised.message);
   }
 }

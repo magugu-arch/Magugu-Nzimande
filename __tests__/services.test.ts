@@ -27,6 +27,10 @@ import {
   workStartsAt,
 } from '@/services/orderService';
 import {
+  __resetRewardProgramme,
+  __resetVoucherWallet,
+  __seedRewardProgramme,
+  __seedVoucherWallet,
   discountFor,
   fetchActiveVouchers,
   fetchLoyaltyAccount,
@@ -56,16 +60,16 @@ describe('menuService', () => {
   });
 
   it('filters products by category', async () => {
-    const sides = await fetchProductsByCategory('sides');
-    expect(sides.length).toBeGreaterThan(0);
-    sides.forEach((product) => expect(product.categoryId).toBe('sides'));
+    const meze = await fetchProductsByCategory('mezedakia');
+    expect(meze.length).toBeGreaterThan(0);
+    meze.forEach((product) => expect(product.categoryId).toBe('mezedakia'));
   });
 
   it('finds a product by id or slug', async () => {
-    const byId = await fetchProduct('golden-original');
-    const bySlug = await fetchProduct('golden-original-chicken');
-    expect(byId.id).toBe('golden-original');
-    expect(bySlug.id).toBe('golden-original');
+    const byId = await fetchProduct('pork-souvlaki');
+    const bySlug = await fetchProduct('pork-souvlaki');
+    expect(byId.id).toBe('pork-souvlaki');
+    expect(bySlug.id).toBe('pork-souvlaki');
   });
 
   it('rejects an unknown product', async () => {
@@ -73,31 +77,38 @@ describe('menuService', () => {
   });
 
   it('preserves the caller ordering when fetching by ids', async () => {
-    const products = await fetchProductsByIds(['french-fries', 'golden-original']);
-    expect(products.map((product) => product.id)).toEqual(['french-fries', 'golden-original']);
+    const products = await fetchProductsByIds(['baklava', 'pork-souvlaki']);
+    expect(products.map((product) => product.id)).toEqual(['baklava', 'pork-souvlaki']);
   });
 
   it('drops unknown ids rather than returning holes', async () => {
-    const products = await fetchProductsByIds(['golden-original', 'ghost']);
+    const products = await fetchProductsByIds(['pork-souvlaki', 'ghost']);
     expect(products).toHaveLength(1);
   });
 
   it('searches case-insensitively across name and tags', async () => {
-    const results = await searchProducts('HONEY');
-    expect(results.some((product) => product.id === 'honey-garlic')).toBe(true);
+    const results = await searchProducts('SOUVLAKI');
+    expect(results.some((product) => product.id === 'pork-souvlaki')).toBe(true);
 
-    const spicy = await searchProducts('spicy');
-    expect(spicy.length).toBeGreaterThan(0);
+    const vegetarian = await searchProducts('vegetarian');
+    expect(vegetarian.length).toBeGreaterThan(0);
   });
 
   it('returns nothing for an empty query', async () => {
     expect(await searchProducts('   ')).toEqual([]);
   });
 
-  it('returns only tagged bestsellers, respecting the limit', async () => {
-    const bestSellers = await fetchBestSellers(2);
-    expect(bestSellers).toHaveLength(2);
-    bestSellers.forEach((product) => expect(product.tags).toContain('bestseller'));
+  /**
+   * Nothing is tagged a best seller, and that is the correct answer.
+   *
+   * §6 permits a best-seller label "only when backed by business data", and
+   * there is none — nobody has run a Pappas till yet. So the carousel is
+   * empty rather than filled with whichever dishes somebody liked the look
+   * of, and a Home screen that asks for best sellers gets an honest nothing
+   * and renders its empty state.
+   */
+  it('returns no best sellers, because no sales data backs one', async () => {
+    expect(await fetchBestSellers(2)).toEqual([]);
   });
 
   it('stamps the snapshot with an update time', async () => {
@@ -297,9 +308,22 @@ describe('orderService', () => {
     expect(active?.status).not.toBe('completed');
   });
 
-  it('seeds order history alongside live orders', async () => {
+  /**
+   * A new customer has no history, and the app no longer pretends otherwise.
+   *
+   * The previous seed carried two completed orders with dish names and
+   * prices. Reproducing that for Pappas would mean writing an invented price
+   * into a receipt, which §15 forbids and which reads as more authoritative
+   * than an invented price on a card — it looks like something that already
+   * happened. See `seedHistory` in orderService.
+   *
+   * The empty order-history state is worth more than a fabricated receipt: it
+   * is the screen most likely to ship unlooked-at, and the old seed was
+   * exactly what hid it.
+   */
+  it('starts a new customer with no order history', async () => {
     const orders = await fetchOrders();
-    expect(orders.some((order) => order.status === 'completed')).toBe(true);
+    expect(orders.filter((order) => order.status === 'completed')).toEqual([]);
   });
 });
 
@@ -330,6 +354,33 @@ describe('rewardsService', () => {
     expect(discountFor({ ...fixed, discountType: 'freeDelivery', discountValue: 0 }, 200)).toBe(0);
   });
 
+  /**
+   * Voucher validation, against a seeded wallet.
+   *
+   * The shipped Pappas wallet is empty: §15 forbids inventing promotions and
+   * nobody has issued one. But the validation logic has to keep working for
+   * the day somebody does, so these tests seed the mock wallet rather than
+   * putting invented vouchers back into the product to keep a suite green.
+   */
+  const seeded: Voucher[] = [
+    {
+      ...fixed,
+      id: 'seed-welcome',
+      code: 'WELCOME50',
+      title: 'Seeded for tests',
+      minimumSpend: 200,
+    },
+    { ...fixed, id: 'seed-used', code: 'ALREADYUSED', used: true },
+  ];
+
+  beforeEach(() => __seedVoucherWallet(seeded));
+  afterEach(() => __resetVoucherWallet());
+
+  it('ships with an empty wallet, because no voucher has been issued', () => {
+    __resetVoucherWallet();
+    expect(vouchers).toEqual([]);
+  });
+
   it('validates a real code above its minimum spend', async () => {
     const result = await validateVoucherCode('welcome50', 250);
     expect(result.voucher.code).toBe('WELCOME50');
@@ -345,9 +396,7 @@ describe('rewardsService', () => {
   });
 
   it('rejects an already-used code', async () => {
-    const usedVoucher = vouchers.find((voucher) => voucher.used);
-    expect(usedVoucher).toBeDefined();
-    await expect(validateVoucherCode(usedVoucher!.code, 500)).rejects.toThrow();
+    await expect(validateVoucherCode('ALREADYUSED', 500)).rejects.toThrow();
   });
 
   it('rejects an empty code', async () => {
@@ -772,6 +821,44 @@ describe('calling an order back', () => {
  * redemption settles with the order, and nobody loses points by browsing.
  */
 describe('the points a customer actually has', () => {
+  /**
+   * A programme with economics, seeded for these tests.
+   *
+   * The shipped Pappas programme has none — §15 forbids inventing loyalty
+   * rules, so every reward costs 0 points and every tier threshold is 0. The
+   * mechanics below (redeem deducts, cancel refunds, crossing a threshold
+   * moves the tier) still have to work the day Pappas sets the numbers, and
+   * none of it is exercisable against a programme with no numbers.
+   *
+   * Seeding here keeps the invented figures in the test, where they belong,
+   * rather than in the product to keep a suite green.
+   */
+  beforeEach(() => {
+    __seedRewardProgramme({
+      rewards: [
+        {
+          id: 'test-reward',
+          name: 'Seeded reward',
+          description: '',
+          pointsCost: 400,
+          category: 'food',
+          redeemable: true,
+          termsAndConditions: [],
+        },
+      ],
+      // Spaced far wider than anything these tests earn, so the shared
+      // mutable ledger cannot drift across a boundary between cases and make
+      // the tier assertion depend on test order.
+      tiers: [
+        { tier: 'bronze', name: 'Olive', threshold: 0, perks: [] },
+        { tier: 'silver', name: 'Aegean', threshold: 50_000, perks: [] },
+        { tier: 'gold', name: 'Sunset', threshold: 200_000, perks: [] },
+      ],
+    });
+  });
+
+  afterEach(() => __resetRewardProgramme());
+
   const totals = (pointsEarned: number, rewardsDiscount = 0) => ({
     subtotal: 200,
     deliveryFee: 32,
@@ -908,6 +995,54 @@ describe('the points a customer actually has', () => {
  * "R50 off your first order" coming off every order there would ever be.
  */
 describe('spending a promo code', () => {
+  // Seeded for the same reason as the validation tests above: the shipped
+  // Pappas wallet is empty because §15 forbids inventing promotions, and
+  // one-time-use enforcement still has to work for the day one is issued.
+  //
+  // Once for the block, not per test: these cases deliberately carry state
+  // between them — one spends the code and the next checks it is gone —
+  // which is the only way to observe that a one-time code stays spent.
+  beforeAll(() =>
+    __seedVoucherWallet([
+      {
+        id: 'seed-welcome',
+        code: 'WELCOME50',
+        title: 'Seeded for tests',
+        description: '',
+        discountType: 'fixed',
+        discountValue: 50,
+        minimumSpend: 0,
+        expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+        used: false,
+        expired: false,
+      },
+      {
+        id: 'seed-percentage',
+        code: 'SPICY15',
+        title: 'Seeded for tests',
+        description: '',
+        discountType: 'percentage',
+        discountValue: 15,
+        minimumSpend: 0,
+        expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+        used: false,
+        expired: false,
+      },
+      {
+        id: 'seed-freedel',
+        code: 'FREEDEL',
+        title: 'Seeded for tests',
+        description: '',
+        discountType: 'freeDelivery',
+        discountValue: 0,
+        minimumSpend: 0,
+        expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+        used: false,
+        expired: false,
+      },
+    ]),
+  );
+
   const totals = {
     subtotal: 300,
     deliveryFee: 32,

@@ -123,36 +123,36 @@ reaches for a raw colour or type value — everything resolves through `src/them
 
 ## Asset manifest
 
-16 supplied photographs, one per catalogue product, each
-derived into four responsive variants by `npm run assets:derive`.
+13 supplied photographs, each derived into four responsive
+variants by `npm run assets:pappas`.
 
 | Variant | Ratio | Width | Used on |
 |---|---|---|---|
 | `thumb` | 1:1 | 400px | menu rows, cart lines, reorder chips |
-| `card` | 4:5 | 800px | catalogue cards, best sellers, category tiles |
-| `detail` | 4:5 | 1200px | product detail hero |
-| `banner` | 16:9 | 1600px | home promotions, offer banners |
+| `card` | 4:5 | 800px | category cards, editorial cards, dish cards |
+| `hero` | 4:3 | 1400px | home hero, category hero, product detail |
+| `banner` | 16:9 | 1600px | campaign banners, event cards |
 
-| Product | Category | Asset key | Master |
-|---|---|---|---|
-| Golden Original Chicken | `chicken` | `goldenOriginal` | `golden-original.jpg` |
-| Honey Garlic Chicken | `chicken` | `honeyGarlic` | `honey-garlic.jpg` |
-| Soy Garlic Chicken | `chicken` | `soyGarlic` | `soy-garlic.jpg` |
-| Secret Sauce Chicken | `chicken` | `secretSauce` | `secret-sauce.jpg` |
-| Hot Spicy Chicken | `chicken` | `hotSpicy` | `hot-spicy.jpg` |
-| Cheesling Chicken | `chicken` | `cheesling` | `cheesling.jpg` |
-| Golden Original Wings | `wings` | `goldenOriginalWings` | `golden-original-wings.jpg` |
-| Boneless Chicken | `boneless` | `boneless` | `boneless.jpg` |
-| Half & Half Chicken | `chicken` | `halfAndHalf` | `half-and-half.jpg` |
-| Chicken & Rice Meal | `meals` | `chickenRiceMeal` | `chicken-rice-meal.jpg` |
-| Chicken Burger | `burgers` | `chickenBurger` | `chicken-burger.jpg` |
-| Korean Rice Bowl | `rice-bowls` | `koreanRiceBowl` | `korean-rice-bowl.jpg` |
-| French Fries | `sides` | `frenchFries` | `french-fries.jpg` |
-| Cheesling Fries | `sides` | `cheeslingFries` | `cheesling-fries.jpg` |
-| Ddeok-Bokki | `sides` | `ddeokBokki` | `ddeok-bokki.jpg` |
-| Rose Ddeok-Bokki | `sides` | `roseDdeokBokki` | `rose-ddeok-bokki.jpg` |
+| Asset key | Master | First catalogue use |
+|---|---|---|
+| `mezedakia` | `—` | _venue / editorial only_ |
+| `seafood` | `—` | _venue / editorial only_ |
+| `salads` | `—` | _venue / editorial only_ |
+| `signatureMains` | `—` | _venue / editorial only_ |
+| `souvlaki` | `—` | _venue / editorial only_ |
+| `steakOnRock` | `—` | _venue / editorial only_ |
+| `fishMarket` | `—` | _venue / editorial only_ |
+| `desserts` | `—` | _venue / editorial only_ |
+| `breakfast` | `—` | _venue / editorial only_ |
+| `cocktails` | `—` | _venue / editorial only_ |
+| `diningRoom` | `—` | _venue / editorial only_ |
+| `barDetail` | `—` | _venue / editorial only_ |
+| `squareView` | `—` | _venue / editorial only_ |
 
-Masters live in `assets/food/masters/` and are never shipped to a list screen.
-Eight of them are campaign compositions carrying their own headline typography;
-the derivative pipeline crops catalogue surfaces inside a `promo_safe` region so
-a card never slices a headline, while the banner keeps the full artwork.
+Masters live in `assets/pappas/{food,venue,ci}/` and are never shipped to a
+screen. Every one is a finished poster carrying its own Cinzel headline, so the
+derivative pipeline cuts each variant from inside a declared `food_safe` region
+that excludes the typography — brief §6 and §14. Three masters are held back
+entirely and have no key here: `01` and `02` are photography-direction boards
+and `15` is the CI brand sheet, which §10 designates as references rather than
+content.

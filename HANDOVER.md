@@ -16,7 +16,7 @@ Africa, built to the supplied brief.
 | Stack            | Expo SDK 57 · React Native 0.86 · React 19 · TypeScript strict · Expo Router · TanStack Query · Zustand |
 | Screens          | 34 routes covering every journey in brief §4                                                            |
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
-| Food photography | All 16 catalogue products, own artwork, no placeholders                                                 |
+| Photography      | 13 supplied Pappas masters, cropped clear of poster type; 45 products draw on them                      |
 | Logo             | Licensed bb.q lock-up, both approved variants, all icons derived from it                                |
 | Tests            | 57 suites; `npm test` prints the count                                                                  |
 | Bundle           | 19.1 MB exported, of which 4.4 MB JavaScript                                                            |
@@ -394,7 +394,8 @@ These fail loudly rather than rotting quietly — leave them on.
 - **CI** (`.github/workflows/verify.yml`) runs that on every push, plus a Metro
   bundle for both platforms, a real prebuild audit of the native projects, and
   the asset checks.
-- **`npm run assets:audit`** exits non-zero while any of the 16 products lacks
+- **`npm run audit:placeholders`** lists every fact Pappas still has to supply
+  and which of the 45 products lacks
   its own photograph, so a new menu item can't ship on a placeholder.
 - **`npm run smoke:order`** places an order: signs in, adds an item, chooses an
   address, submits, checks the confirmation carries a reference and that
