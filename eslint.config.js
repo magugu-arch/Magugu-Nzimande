@@ -28,6 +28,30 @@ module.exports = defineConfig([
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'react-hooks/exhaustive-deps': 'warn',
+
+      /**
+       * `Alert` is a no-op on React Native Web — the implementation is
+       * `static alert() {}`, an empty body — so every confirmation written
+       * with it is a dead control in the web build. It cost this app sixteen
+       * of them, Clear cart included, and nothing failed: the types check and
+       * the call runs, it simply does nothing.
+       *
+       * `Dialog.alert` takes the same arguments and works on all three
+       * platforms, so the fix is one word at the call site.
+       */
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react-native',
+              importNames: ['Alert'],
+              message:
+                "Alert is a no-op on web. Use `import { Dialog } from '@/utils/dialog'` — same arguments, works everywhere.",
+            },
+          ],
+        },
+      ],
     },
   },
   {

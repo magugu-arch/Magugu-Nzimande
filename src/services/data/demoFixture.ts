@@ -97,22 +97,60 @@ export function withDemoTiers(tiers: TierDefinition[]): TierDefinition[] {
 }
 
 /**
- * Reward costs, so a reward can be afforded, redeemed and refused.
+ * Reward costs and expiry dates, so a reward can be afforded, redeemed,
+ * refused — and run out of time.
  *
  * `pointsCost: 0` is what made a reward compute as affordable at a zero
  * balance and redeem for R0 — the defect the unpriced catalogue surfaced.
  * These give the redemption path something real to refuse.
+ *
+ * The dates close the same gap one layer further in. `rewardExpired` is
+ * enforced in `fetchRewards` and printed on the reward screen as "Expires 27
+ * Sep", and not one of the six seeded rewards carries an `expiresAt` — so the
+ * rule has never once fired in this app. A branch that has never run is a
+ * branch nobody has seen, and the first time it runs should not be in a
+ * customer's hand on their birthday.
+ *
+ * So the fixture spreads them deliberately: one already past, so the refusal
+ * is visible on the rewards screen rather than hypothetical; one inside the
+ * week, so the date formatting and the urgency copy have a real case; the
+ * rest far enough out to behave as unexpiring. Pappas still has to decide the
+ * real windows — §15, and the launch audit asks for them by name.
  */
 export function withDemoRewards(rewards: Reward[]): Reward[] {
   const costs = [600, 900, 1200, 2000, 0];
+
+  /**
+   * Days from now, per reward, or null to leave it unexpiring.
+   *
+   * Computed against the clock rather than written as ISO strings, because a
+   * hard-coded date is a fixture that quietly stops demonstrating anything
+   * the week after it is written — every reward expired, which reads as a
+   * broken programme rather than an illustrative one.
+   */
+  const days: (number | null)[] = [-2, 6, 45, null, 30];
+
   return rewards.map((reward, index) => {
     const pointsCost = costs[index] ?? 1000;
+    const offset = days[index] ?? null;
+    const expiresAt =
+      offset === null ? undefined : new Date(Date.now() + offset * 86_400_000).toISOString();
+
     return {
       ...reward,
       pointsCost,
-      // The birthday reward stays at zero cost and stays non-redeemable: it is
-      // earned by a date, not a balance, and that distinction is real.
-      redeemable: pointsCost > 0,
+      ...(expiresAt ? { expiresAt } : {}),
+      /*
+       * `redeemable` is recomputed against the live balance in `fetchRewards`
+       * and against the expiry there too, so this is only the fixture's own
+       * opening position. It still has to agree, or the catalogue asserts one
+       * thing and the service another — which is the disagreement this whole
+       * file exists to stop.
+       *
+       * The birthday reward stays at zero cost and stays non-redeemable: it is
+       * earned by a date, not a balance, and that distinction is real.
+       */
+      redeemable: pointsCost > 0 && !(offset !== null && offset < 0),
     };
   });
 }

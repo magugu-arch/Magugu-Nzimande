@@ -89,6 +89,25 @@ export default function RewardsScreen() {
   const account = loyalty.data;
   const availableRewards = (rewards.data ?? []).filter((reward) => reward.redeemable);
   const lockedRewards = (rewards.data ?? []).filter((reward) => !reward.redeemable);
+
+  /**
+   * The cheapest reward that actually costs something, for the empty state.
+   *
+   * This line used to read "your first reward unlocks at 300 points" — a
+   * number written into the screen, matching nothing in the catalogue. §15
+   * forbids inventing a loyalty rule, and a threshold quoted to a customer is
+   * exactly that; worse, it was quoted against a catalogue where every reward
+   * costs 0 because nobody has set them, so the one concrete promise on the
+   * screen was the only figure on it that was certainly false.
+   *
+   * A cost of 0 means unset, not free — the same rule `fetchRewards` applies
+   * — so those are excluded. With nothing priced there is no number to give,
+   * and the copy below says so instead of choosing one.
+   */
+  const cheapestReward = (rewards.data ?? [])
+    .map((reward) => reward.pointsCost)
+    .filter((cost) => cost > 0)
+    .sort((a, b) => a - b)[0];
   const activeVouchers = (vouchers.data ?? []).filter(
     (voucher) => !voucher.used && !voucher.expired,
   );
@@ -143,10 +162,16 @@ export default function RewardsScreen() {
               accessibilityLabel={`${Math.round(account.tierProgress * 100)} percent to next tier`}
             />
             <Text variant="caption" color={colors.textOnDark}>
-              {account.nextTier
-                ? `${groupDigits(account.pointsToNextTier)} points to ${
-                    account.nextTier.charAt(0).toUpperCase() + account.nextTier.slice(1)
-                  }`
+              {/*
+                The name, never the identifier. `nextTier` is 'silver' — the
+                API's own word, from the metal scheme §8 replaced — and
+                capitalising it put "0 points to Silver" in front of every new
+                member, naming a tier this programme does not have. A server
+                that sends no name falls back to the neutral phrasing rather
+                than to the id.
+              */}
+              {account.nextTier && account.nextTierName
+                ? `${groupDigits(account.pointsToNextTier)} points to ${account.nextTierName}`
                 : "You're at our top tier"}
             </Text>
           </View>
@@ -198,7 +223,9 @@ export default function RewardsScreen() {
             ) : (
               <View style={styles.emptyBlock}>
                 <Text variant="caption" color={colors.textSecondary}>
-                  Keep ordering — your first reward unlocks at 300 points.
+                  {cheapestReward
+                    ? `Keep ordering — your first reward unlocks at ${groupDigits(cheapestReward)} points.`
+                    : 'Keep ordering — points are collecting, and rewards open up as you go.'}
                 </Text>
               </View>
             )}

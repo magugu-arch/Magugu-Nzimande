@@ -265,3 +265,50 @@ describe('the wash surfaces can carry text', () => {
     }
   });
 });
+
+/**
+ * The destructive button, which is new and is the one a customer should
+ * hesitate over.
+ *
+ * Its three live fills are hand-darkened rather than taken from tokens —
+ * the palette has no `dangerPressed` — so nothing else in the theme holds
+ * them to the contrast rule. These ratios are read off the component itself
+ * rather than copied here, so darkening a state without checking it fails.
+ */
+describe('the destructive button carries its label at every state', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../src/components/ui/Button.tsx'), 'utf8');
+
+  /** The literal fills inside the `destructive` tone block. */
+  const fills = (() => {
+    const block = /destructive:\s*\{([\s\S]*?)\n  \},/.exec(source)?.[1] ?? '';
+    return [...block.matchAll(/background:\s*'(#[0-9A-Fa-f]{6})'/g)].map((match) => match[1]!);
+  })();
+
+  it('states its fills as literals this test can find', () => {
+    // Two of the four states take tokens; the hand-darkened pair must be here.
+    expect(fills.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it.each(fills.map((fill) => [fill]))('%s carries white text', (fill) => {
+    expect({ fill, passes: meetsAA(colors.onPrimary, fill) }).toEqual({ fill, passes: true });
+  });
+
+  /**
+   * And the token-driven states, which the theme owns. Red on the wash is the
+   * disabled pairing — the one §22.9 flags on the primary button, and which
+   * this variant gets right without a departure.
+   */
+  it('passes on the states taken from tokens', () => {
+    expect(meetsAA(colors.onPrimary, colors.status.danger)).toBe(true);
+    expect(meetsAA(colors.status.danger, colors.status.dangerSoft)).toBe(true);
+  });
+
+  /**
+   * Darkening has to go one way. A "pressed" fill lighter than the resting
+   * one reads as the button releasing under the thumb rather than taking it.
+   */
+  it('gets darker as it is pressed, never lighter', () => {
+    const measured = fills.map(luminance);
+    expect(measured).toEqual([...measured].sort((a, b) => b - a));
+  });
+});

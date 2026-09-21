@@ -28,12 +28,67 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BUILD = path.join(root, '.preview-web');
 const out = process.argv[2] ?? path.join(root, '.preview-web', 'pappas-app.html');
 
+const EXPORT_COMMAND =
+  '  EXPO_PUBLIC_USE_MOCK_API=1 EXPO_PUBLIC_DEMO_PRICES=1 \\\n' +
+  '    npx expo export --platform web --output-dir .preview-web --clear';
+
 if (!existsSync(BUILD)) {
-  console.error(
-    'No export found. Run:\n' +
-      '  EXPO_PUBLIC_USE_MOCK_API=1 npx expo export --platform web --output-dir .preview-web',
-  );
+  console.error('No export found. Run:\n' + EXPORT_COMMAND);
   process.exit(2);
+}
+
+/**
+ * Refuse a build that is older than the source it claims to be built from.
+ *
+ * This directory is not the one `expo export` writes by default — that is
+ * `dist` — so exporting the ordinary way and then running this script reads a
+ * *previous* export, inlines it, and writes a brand-new file with today's
+ * timestamp and last week's code in it. Nothing errors. The output is the
+ * right size, opens correctly, and is wrong.
+ *
+ * That is how a fix fails to reach the person who reported it: the bug is
+ * fixed, the tests pass, the file is rebuilt and sent, and the button still
+ * does nothing — because the button that was fixed is not the button in the
+ * file. It happened here, with a build two days stale, and the only reason it
+ * was caught is that somebody opened the artifact and pressed the thing.
+ *
+ * So the check is the crude one that actually works: if anything under `src`
+ * is newer than the bundle, the export is out of date and this stops.
+ */
+function newestSourceTime() {
+  let newest = 0;
+  for (const file of walk(path.join(root, 'src'))) {
+    const at = statSync(file).mtimeMs;
+    if (at > newest) newest = at;
+  }
+  return newest;
+}
+
+function bundleTime() {
+  const jsDir = path.join(BUILD, '_expo', 'static', 'js', 'web');
+  if (!existsSync(jsDir)) return 0;
+  return Math.max(...readdirSync(jsDir).map((name) => statSync(path.join(jsDir, name)).mtimeMs), 0);
+}
+
+// `walk` is a hoisted function declaration, so this runs before its definition
+// is reached textually. The check belongs here, beside the one above it.
+{
+  const built = bundleTime();
+  const changed = newestSourceTime();
+  if (built === 0) {
+    console.error('The export in .preview-web has no JavaScript bundle. Re-run:\n' + EXPORT_COMMAND);
+    process.exit(2);
+  }
+  if (changed > built) {
+    const hours = Math.round((changed - built) / 3_600_000);
+    console.error(
+      `The export in .preview-web is older than src/ — by about ${hours} hour(s).\n` +
+        'Bundling it would publish code that is not what is in the repository.\n' +
+        'Re-export first:\n' +
+        EXPORT_COMMAND,
+    );
+    process.exit(2);
+  }
 }
 
 /**

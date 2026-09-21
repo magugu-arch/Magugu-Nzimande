@@ -1,4 +1,5 @@
-import { Alert, Linking, Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
+import { Dialog } from '@/utils/dialog';
 
 /**
  * Handing off to another app — the dialler, mail, maps, WhatsApp.
@@ -124,7 +125,7 @@ export async function openExternal(
     await Linking.openURL(url);
     return true;
   } catch {
-    Alert.alert(
+    Dialog.alert(
       failureTitle,
       failureMessage ?? 'This device does not have an app that can handle it.',
     );
@@ -146,7 +147,7 @@ export async function openAppSettings(): Promise<boolean> {
     await Linking.openSettings();
     return true;
   } catch {
-    Alert.alert(
+    Dialog.alert(
       'Could not open settings',
       'Open Settings yourself, find Pappas, and turn notifications back on.',
     );

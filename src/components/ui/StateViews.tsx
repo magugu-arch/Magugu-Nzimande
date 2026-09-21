@@ -66,6 +66,13 @@ export const EmptyState = memo(function EmptyState({
           fullWidth={false}
           style={styles.cta}
           preserveCase
+          /*
+           * Derived from the view's own testID so every empty state gets one
+           * for free. This is the recovery route out of a dead end — the only
+           * control on the screen — and until now nothing could drive it,
+           * which is why the dialog journey had to reach for it by label.
+           */
+          {...(testID ? { testID: `${testID}-action` } : {})}
         />
       ) : null}
     </View>

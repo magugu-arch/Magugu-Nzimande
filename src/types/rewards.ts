@@ -60,6 +60,17 @@ export interface LoyaltyAccount {
   /** Points still needed for the next tier; 0 when already at the top. */
   pointsToNextTier: number;
   nextTier?: MembershipTier;
+  /**
+   * The next tier as a customer would say it — "Aegean", not "silver".
+   *
+   * `MembershipTier` is the API's identifier and still carries the metal
+   * scheme this programme replaced; §8 renamed the tiers for places precisely
+   * so nobody is told they are the bronze grade of customer. `tierName`
+   * already existed for the current tier and nothing carried the next one, so
+   * the rewards screen capitalised the identifier and told every new member
+   * they were "0 points to Silver" — a tier this programme does not have.
+   */
+  nextTierName?: string;
   /** 0..1 progress toward the next tier, for the progress bar. */
   tierProgress: number;
   lifetimePoints: number;

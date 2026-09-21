@@ -184,6 +184,7 @@ export const loyaltyAccount: LoyaltyAccount = {
   tierName: 'Olive',
   pointsToNextTier: 0,
   nextTier: 'silver',
+  nextTierName: 'Aegean',
   tierProgress: 0,
   lifetimePoints: 0,
   history: [],

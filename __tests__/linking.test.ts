@@ -1,4 +1,5 @@
-import { Alert, Linking, Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
+import { useDialogStore } from '@/features/system/dialogStore';
 import {
   callNumber,
   directionsUrl,
@@ -87,15 +88,25 @@ describe('directionsUrl', () => {
 describe('openExternal', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
+    useDialogStore.setState({ request: null });
   });
+
+  /**
+   * Read off the store rather than a spy on `Dialog.alert`.
+   *
+   * A spy would prove the call was made; this proves a dialog the customer
+   * could actually read came out of it. That distinction is the whole reason
+   * this file changed: the old version spied on `Alert.alert`, saw it called,
+   * and passed — while on web that call did nothing whatsoever.
+   */
+  const raised = () => useDialogStore.getState().request;
 
   it('opens the URL and reports success', async () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
     await expect(openExternal('tel:0118830100')).resolves.toBe(true);
     expect(openURL).toHaveBeenCalledWith('tel:0118830100');
-    expect(alert).not.toHaveBeenCalled();
+    expect(raised()).toBeNull();
   });
 
   /**
@@ -105,25 +116,21 @@ describe('openExternal', () => {
    */
   it('says something when the handoff fails instead of failing silently', async () => {
     jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('no handler'));
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
     await expect(openExternal('tel:0118830100')).resolves.toBe(false);
-    expect(alert).toHaveBeenCalledTimes(1);
+    expect(raised()).not.toBeNull();
   });
 
   it('puts the number in the failure message, so the call is still possible', async () => {
     jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('no handler'));
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
     await callNumber('011 883 0100');
 
-    const [, message] = alert.mock.calls[0] as [string, string];
-    expect(message).toContain('011 883 0100');
+    expect(raised()?.message).toContain('011 883 0100');
   });
 
   it('never rejects, so no caller needs a catch of its own', async () => {
     jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('no handler'));
-    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
     // `void openExternal(...)` is the call shape used throughout the app; an
     // unhandled rejection there is a red box in development.

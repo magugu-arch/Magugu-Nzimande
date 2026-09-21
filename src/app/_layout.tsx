@@ -23,6 +23,7 @@ import { Allura_400Regular } from '@expo-google-fonts/allura/400Regular';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/system/OfflineBanner';
 import { DemoPricesBanner } from '@/components/system/DemoPricesBanner';
+import { DialogHost } from '@/components/system/DialogHost';
 import { useAppFocus } from '@/features/system/useAppFocus';
 import { useReduceMotion } from '@/features/system/useReduceMotion';
 import { useSessionExpiry } from '@/features/system/useSessionExpiry';
@@ -165,6 +166,12 @@ function AppShell() {
 
       <DemoPricesBanner />
       <OfflineBanner />
+      {/*
+        Last, and above the navigator: a confirmation raised on one screen has
+        to outlive a route change, and must draw over the tab bar and the
+        sticky cart bar rather than under them.
+      */}
+      <DialogHost />
     </View>
   );
 }

@@ -14,8 +14,19 @@ import { colors, radius, spacing, MIN_TOUCH_TARGET, elevation } from '@/theme';
 import { Text } from './Text';
 import { a11yState } from '@/utils/a11yState';
 
-/** The four levels of guidelines §22.2, in descending emphasis. */
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'text';
+/**
+ * The four levels of guidelines §22.2, in descending emphasis — plus one.
+ *
+ * `destructive` is not a fifth level. §22.2's four are a ladder of emphasis
+ * and this is orthogonal to all of them: it is a primary button whose action
+ * cannot be undone. It exists because the alternative was shipping "Empty
+ * cart" and "Delete my account permanently" in the brand olive, which is the
+ * colour this app uses to mean *this is the thing to do* — the exact opposite
+ * of what a destructive confirmation is asking. Every other convention, iOS
+ * and Material alike, marks these in red, and a customer reaching for the
+ * safe button deserves the colour to agree with the word.
+ */
+export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'text' | 'destructive';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps {
@@ -109,10 +120,33 @@ const TONES: Record<ButtonVariant, Record<State, Tone>> = {
     pressed: { background: 'transparent', border: 'transparent', text: colors.primaryPressed },
     disabled: { background: 'transparent', border: 'transparent', text: colors.textDisabled },
   },
+  /**
+   * Primary's shape, danger's ink.
+   *
+   * `status.danger` is §17.3's. White on it measures 6.30:1, and the two
+   * darker states 7.70:1 and 9.30:1 — all three clear AA comfortably, and
+   * the disabled pairing clears it too at 5.37:1, so unlike the disabled
+   * primary above this one needs no departure from the guidelines.
+   *
+   * Hover and pressed are hand-darkened rather than taken from a token
+   * because the palette has no `dangerPressed`; one of these is the only
+   * button in the app a customer should hesitate over, and a fill that does
+   * not react to a press reads as a control that did not hear them.
+   */
+  destructive: {
+    default: { background: colors.status.danger, border: 'transparent', text: colors.onPrimary },
+    hover: { background: '#8E3729', border: 'transparent', text: colors.onPrimary },
+    pressed: { background: '#7A2F23', border: 'transparent', text: colors.onPrimary },
+    disabled: {
+      background: colors.status.dangerSoft,
+      border: 'transparent',
+      text: colors.status.danger,
+    },
+  },
 };
 
 function borderWidth(variant: ButtonVariant, size: ButtonSize): number {
-  if (variant === 'primary' || variant === 'text') return 0;
+  if (variant === 'primary' || variant === 'text' || variant === 'destructive') return 0;
   return size === 'sm' ? 1.5 : 2;
 }
 
@@ -218,7 +252,9 @@ export const Button = memo(function Button({
           },
           variant === 'text' ? styles.textVariant : null,
           fullWidth ? styles.fullWidth : styles.autoWidth,
-          variant === 'primary' && !isInactive ? elevation.sm : null,
+          // Destructive is primary's shape, so it lifts off the surface the
+          // same way — the two differ in ink, not in weight.
+          (variant === 'primary' || variant === 'destructive') && !isInactive ? elevation.sm : null,
           style,
         ];
       }}

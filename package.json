@@ -44,6 +44,7 @@
     "audit:tracking": "node scripts/audit-tracking.mjs",
     "audit:guest": "node scripts/audit-guest.mjs",
     "audit:delivery-range": "node scripts/audit-delivery-range.mjs",
+    "audit:dialogs": "node scripts/audit-dialogs.mjs",
     "assets:pappas": "node scripts/generate-pappas-derivatives.mjs",
     "audit:placeholders": "node scripts/audit-placeholders.mjs"
   },

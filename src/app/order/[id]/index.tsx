@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { OrderStatus } from '@/types';
@@ -33,6 +33,7 @@ import { callNumber, isDiallable, openDirections } from '@/utils/linking';
 import { directionsTargetFor } from '@/features/orders/directions';
 import { formatPrice } from '@/utils/money';
 import { track } from '@/ux/analytics';
+import { Dialog } from '@/utils/dialog';
 
 /** Live Order Tracking + Order Details + Re-order (brief §4). */
 export default function OrderTrackingScreen() {
@@ -92,7 +93,7 @@ export default function OrderTrackingScreen() {
 
   const handleCancel = useCallback(() => {
     if (!order.data) return;
-    Alert.alert('Cancel this order?', 'We can only cancel before the kitchen starts cooking.', [
+    Dialog.alert('Cancel this order?', 'We can only cancel before the kitchen starts cooking.', [
       { text: 'Keep it', style: 'cancel' },
       {
         text: 'Cancel order',
@@ -100,7 +101,7 @@ export default function OrderTrackingScreen() {
         onPress: () => {
           cancelOrder.mutate(order.data.id, {
             onError: (error) =>
-              Alert.alert(
+              Dialog.alert(
                 'Too late to cancel',
                 error instanceof Error ? error.message : 'Please call the store.',
               ),

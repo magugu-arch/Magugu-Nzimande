@@ -35,7 +35,13 @@ function standingFor(
   lifetimePoints: number,
 ): Pick<
   LoyaltyAccount,
-  'tier' | 'tierName' | 'nextTier' | 'pointsToNextTier' | 'tierProgress' | 'lifetimePoints'
+  | 'tier'
+  | 'tierName'
+  | 'nextTier'
+  | 'nextTierName'
+  | 'pointsToNextTier'
+  | 'tierProgress'
+  | 'lifetimePoints'
 > {
   const ranked = [...tierLadder].sort((a, b) => a.threshold - b.threshold);
   const currentIndex = Math.max(
@@ -49,7 +55,9 @@ function standingFor(
     lifetimePoints,
     tier: current.tier,
     tierName: current.name,
-    ...(next ? { nextTier: next.tier } : {}),
+    // Both, always together: the identifier for the API and the name for the
+    // customer. Carrying only the first is what put "Silver" on the screen.
+    ...(next ? { nextTier: next.tier, nextTierName: next.name } : {}),
     pointsToNextTier: next ? Math.max(0, next.threshold - lifetimePoints) : 0,
     tierProgress: next
       ? Math.min(

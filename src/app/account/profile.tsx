@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   Badge,
@@ -17,6 +17,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSignOut } from '@/features/system/useSignOut';
 import { colors, radius, spacing } from '@/theme';
 import { formatShortDate } from '@/utils/datetime';
+import { Dialog } from '@/utils/dialog';
 import {
   minLength,
   required,
@@ -78,7 +79,7 @@ export default function ProfileScreen() {
       setUser(updated);
       setSaved(true);
     } catch (error) {
-      Alert.alert(
+      Dialog.alert(
         'Could not save',
         error instanceof Error ? error.message : 'Please try again shortly.',
       );
@@ -94,7 +95,7 @@ export default function ProfileScreen() {
       await requestEmailVerification(user.email);
       setEmailSent(true);
     } catch (error) {
-      Alert.alert(
+      Dialog.alert(
         'Could not send that',
         error instanceof Error ? error.message : 'Please try again shortly.',
       );
@@ -104,7 +105,7 @@ export default function ProfileScreen() {
   }, [user]);
 
   const handleDelete = useCallback(() => {
-    Alert.alert(
+    Dialog.alert(
       'Delete your account?',
       'We remove your personal data within 30 days, keeping only what tax law requires. This cannot be undone.',
       [
@@ -127,7 +128,7 @@ export default function ProfileScreen() {
               try {
                 await deleteAccount();
               } catch (error) {
-                Alert.alert(
+                Dialog.alert(
                   'We could not delete your account',
                   error instanceof Error
                     ? `${error.message} Your account is still here — please try again, or contact us.`

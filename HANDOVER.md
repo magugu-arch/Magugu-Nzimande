@@ -21,7 +21,7 @@ extension.
 | Browser journeys | 10, driven end to end against the mock layer                                                            |
 | Photography      | 13 supplied Pappas masters, cropped clear of poster type; 45 dishes draw on them                        |
 | Brand mark       | Reconstructed from the CI sheet — **replace with official artwork before production**, see §5           |
-| Tests            | 62 suites; `npm test` prints the count                                                                  |
+| Tests            | 64 suites; `npm test` prints the count                                                                  |
 | Bundle           | 24 MB exported, of which 2.9 MB JavaScript                                                              |
 | Branch           | `claude/pappas-uber-eats-mrd-integration-wtik4s`                                                        |
 
@@ -85,11 +85,29 @@ npm run bundle:single    # folds the web export into one self-contained HTML fil
 `bundle:single` is for sending the app to somebody who has no toolchain — an
 investor, a reviewer, anyone with a browser. It inlines the bundle and every
 photograph into a single 11.6 MB document, so there is nothing to serve and
-nothing to install. Run `expo export --platform web` first; it reads that
-build. Two caveats worth stating when you send it: the photographs are
-re-encoded smaller than the store build ships, and because there is only one
-document, deep links into a route cannot work — the app opens at its own start
-and is navigated from there.
+nothing to install. Export **into `.preview-web`** first:
+
+```bash
+EXPO_PUBLIC_USE_MOCK_API=1 EXPO_PUBLIC_DEMO_PRICES=1 \
+  npx expo export --platform web --output-dir .preview-web --clear
+npm run bundle:single
+```
+
+The output directory matters and this file used to be vaguer about it.
+`expo export --platform web` writes to `dist` by default, `bundle:single`
+reads `.preview-web`, and exporting the default way then bundling produced a
+new file with an **old** bundle inside it — right size, opens fine, wrong
+code. It shipped a build two days stale. The script now compares the export
+against `src/` and refuses rather than publishing quietly out-of-date code,
+but the shape of that mistake is worth knowing: nothing errored, and the only
+way it was caught was opening the artifact and pressing the button.
+
+Two caveats worth stating when you send it: the photographs are re-encoded
+smaller than the store build ships, and because there is only one document,
+deep links into a route cannot work — the app opens at its own start and is
+navigated from there. Under `file://` the router also logs a `SecurityError`
+each time it tries to sync the URL; navigation itself is unaffected, and it
+does not appear when the same build is served over HTTP.
 
 The browser preview is the fastest way to see a change. It is not the device —
 gestures, haptics and push do not apply — but layout and typography are honest,
@@ -332,11 +350,20 @@ These fail loudly rather than rotting quietly — leave them on.
   once, or `CHROMIUM_PATH` pointed at one the machine already has.
 - **`npm run smoke:order`** places an order end to end and checks the
   confirmation carries a reference and that tracking shows the first status.
-- **Eight more browser journeys**, each driving one thing a unit test cannot
+- **Nine more browser journeys**, each driving one thing a unit test cannot
   reach, and each of which caught something: `audit:offline`,
   `audit:coldstart`, `audit:returning`, `audit:points`, `audit:tracking`,
   `audit:handover` (one phone, two people), `audit:guest`,
-  `audit:delivery-range`.
+  `audit:delivery-range`, `audit:dialogs`.
+- **`npm run audit:dialogs`** presses the destructive buttons and checks
+  something happens. It exists because `Alert.alert` is a no-op on React
+  Native Web — the implementation is `static alert() {}`, an empty body — so
+  sixteen confirmations in this app were dead in the web build, Clear cart
+  among them. Nothing could have caught it: the types check, the unit tests
+  saw `Alert` called, and only a finger on a button in a real browser knew.
+  Confirmations now go through `Dialog.alert` (`src/utils/dialog.ts`), which
+  takes the same arguments and draws the app's own dialog on all three
+  platforms. A lint rule bans the `Alert` import so it cannot come back.
 - **Two rules these browser checks must keep**, learned by breaking both.
   First, each one establishes the session it means to measure. Second, no soft
   branches: a route that says nothing recognisable fails rather than warns. A

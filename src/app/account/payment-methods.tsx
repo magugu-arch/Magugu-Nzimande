@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { PaymentMethod } from '@/types';
 import {
@@ -24,6 +24,7 @@ import { config } from '@/constants/config';
 import { describePaymentMethod } from '@/services/paymentService';
 import { AccountRequired, useIsSignedOut } from '@/features/system/AccountRequired';
 import { colors, radius, spacing } from '@/theme';
+import { Dialog } from '@/utils/dialog';
 
 const ICONS: Record<PaymentMethod['type'], keyof typeof Ionicons.glyphMap> = {
   card: 'card-outline',
@@ -43,7 +44,7 @@ export default function PaymentMethodsScreen() {
 
   const handleDelete = useCallback(
     (method: PaymentMethod) => {
-      Alert.alert('Remove this payment method?', method.label, [
+      Dialog.alert('Remove this payment method?', method.label, [
         { text: 'Keep it', style: 'cancel' },
         {
           text: 'Remove',
@@ -58,7 +59,7 @@ export default function PaymentMethodsScreen() {
   const handleAdd = useCallback(() => {
     // Card capture must happen inside the gateway's PCI-compliant SDK, never in
     // our own form. This is the hook-in point for that flow.
-    Alert.alert(
+    Dialog.alert(
       'Add a payment method',
       `New cards are captured securely by our payment provider (${config.payments.provider}). Connect the provider SDK to enable this.`,
     );
