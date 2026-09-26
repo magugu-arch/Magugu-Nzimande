@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // The Quest4Best website is a separate Vite project with its own tooling.
+      'quest4best/**',
     ],
   },
   {
