@@ -1,0 +1,102 @@
+# Grateful — website
+
+The website for **Grateful (Pty) Ltd**, the fashion design studio of Phindi Britou-Nzimande in Mulbarton, Johannesburg. It's an editorial, black-and-white, Baskerville-led site with real booking, payment and email flows, built from the *Grateful UI/UX + Claude Code brief* and the *Grateful CI manual*.
+
+React 19 · TypeScript · Vite · Tailwind CSS 4 · Framer Motion · Lucide · React Router · Supabase · PayFast · Resend
+
+```bash
+cd grateful
+npm install
+npm run dev          # http://localhost:5173 — the whole site, API included
+```
+
+No accounts or keys are needed to run it locally. With no environment set, the site uses an in-memory database with sample availability, a **mock payment gateway** (its own test checkout page) and a **console mailer** that prints each email to the terminal. The full journey works end to end: book, pay, get the webhook, see the confirmation, receive the emails.
+
+To try the paid checkout locally, run `DEMO_PRICING=true npm run dev`. This gives the services sample prices. It only works in development.
+
+## What's where
+
+```
+src/                 the browser app
+  pages/             Home, Work (+ /work/:slug), About, Services, Booking, Payment, Confirmation, Contact
+  components/        layout/ (Header, MobileNav, Footer), ui/, booking/, forms/, work/
+  data/              site.ts (contact, hours, terms), services.ts (seed), work.ts, images.ts
+  assets/logo/       the logo, vector-extracted from the CI manual
+shared/              types, validation (zod) and formatting used by both browser and server
+server/              the API: router, booking rules, slots, security
+  db/                Repository interface → supabase.ts (production) / memory.ts (dev, tests)
+  payments/          PaymentProvider interface → payfast.ts / mock.ts
+  email/             EmailProvider → Resend / console, plus branded HTML templates
+api/[...path].ts     Vercel serverless entry. Every /api/* request goes through server/router.ts
+supabase/            migrations/0001_init.sql (schema + transactional functions), seed.sql
+public/images/       the three supplied photographs + WebP derivatives
+```
+
+## Brand decisions
+
+- **Colour:** `#000` and `#fff` only. Secondary text and rules use those two colours at lower opacity. The CI names no accent colour, so there isn't one.
+- **Type:** Baskerville is set as *Baskervville*, the open web cut of the same face, self-hosted as a variable font (regular to bold, plus italics). A quiet sans (Inter) is used only for small uppercase labels and form inputs, as the brief allows.
+- **Logo:** the `g | GRATEFUL` lockup and the `g` monogram are the vector artwork from page 2 of the CI manual. They weren't redrawn or reset in type. They're inlined so they follow the text colour (monotone on black or on white, as the CI shows).
+- **Photography:** monochrome on the Home, About and Services pages. The Work page shows original colour, and the homepage tiles return to colour on hover.
+- **Reference image:** used for its principles only: dash-joined stacked headings, bracketed labels like `(FASHION)`, asymmetric grids and large crops. The layout itself is original.
+
+## Nothing invented
+
+The brief forbids making up prices, credentials, clients, dates or project names. So:
+
+- **Every service is "Quote required"** and books *without* payment. To take payment for a service, set `price` (and optionally `deposit_amount`) in the `services` table. The Booking and Payment pages then add the deposit/full choice and checkout automatically. No code changes are needed.
+- **Portfolio items** are labelled *Garment Study 01–03*, with `year: null`. The UI hides null fields. Edit `src/data/work.ts`.
+- **Service durations** (60/90/45/90 min) are scheduling estimates. **Opening hours** say "By appointment" and **sample availability** is Tue–Fri 09:00–17:00 and Sat 09:00–13:00. Confirm all of these with the studio.
+- **Social links** are null and hidden until they're added in `src/data/site.ts`.
+
+## Booking and payment rules
+
+1. The browser lists slots, but `POST /api/booking` **re-derives them on the server** and refuses anything that isn't open.
+2. `reserve_booking()` (Postgres) claims a slot in a single transaction, with an advisory lock per date. A `btree_gist` **exclusion constraint** makes overlapping active bookings impossible at the database level.
+3. Paid services are held as `pending_payment` for 20 minutes (`BOOKING_HOLD_MINUTES`). Lapsed holds are released inside the same transaction that would otherwise be blocked by them.
+4. `POST /api/payment` works out the amount from the service (deposit or full). The browser never sends an amount. The server returns a signed PayFast form, so the passphrase stays on the server.
+5. A booking becomes `confirmed` **only** through `POST /api/webhooks/payfast`, and only after all of these pass: signature ✓, PayFast source host ✓, PayFast's `/eng/query/validate` says `VALID` ✓, and the amount matches what we charged ✓. `confirm_payment()` is idempotent, because gateways retry.
+6. If someone pays after their hold has lapsed and another person has taken the slot, the booking is flagged `needs_attention`. The client and the studio are both emailed, and the refund or rebooking is handled by a person.
+7. After a successful payment, the confirmation page polls until the webhook has landed. Coming back from checkout doesn't prove payment on its own.
+
+All times are Africa/Johannesburg (fixed UTC+02:00). `date` and `time` are stored as wall-clock values, and `starts_at`/`ends_at` as `timestamptz`.
+
+## Emails
+
+Sent through `server/email/providers.ts` (Resend, or console in development). Templates in `server/email/templates.ts` use the site's black-and-white Baskerville style and escape all user input.
+
+| Trigger | To |
+| --- | --- |
+| Booking confirmed (free, or after verified payment) | client + studio |
+| Payment successful → receipt | client |
+| Paid for a slot that's no longer free | client + studio (action needed) |
+| Booking cancelled (admin API) | client |
+| Contact enquiry | studio (reply-to = sender) |
+| Newsletter signup (first time only) | subscriber |
+
+An email failure is logged, but it never undoes a booking or a payment, because the database is the record. The cancel/reschedule template is sent by `POST /api/admin/bookings/:id/cancel` with `Authorization: Bearer $ADMIN_TOKEN`.
+
+## Security
+
+- Service-role, PayFast and Resend secrets are read only in `server/`. No `VITE_` variables exist, so nothing secret can be bundled.
+- All input is validated server-side with the same zod schemas the forms use, and control characters are stripped.
+- Public forms have per-IP rate limits, a honeypot field and a minimum fill time. The rate limits are in-memory per instance: put the host's WAF in front for more.
+- RLS is on for every table with no policies, so the anon key can't do anything.
+- Production refuses to start with the in-memory database or the mock gateway.
+- Card details never touch the site: PayFast's hosted checkout handles them.
+
+## Going live
+
+1. **Supabase:** create a project, then run `supabase/migrations/0001_init.sql` and `supabase/seed.sql` (or `supabase db push`). Replace the sample availability with real hours, and set prices where they apply.
+2. **PayFast:** create a merchant account and test on the sandbox first (`PAYFAST_SANDBOX=true`). Set `PAYMENT_PROVIDER=payfast` and the merchant ID, key and passphrase.
+3. **Resend:** verify a sending domain, then set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` and `EMAIL_FROM`.
+4. **Vercel:** import the repo with **root directory `grateful`**, add the variables from `.env.example`, and set `SITE_URL` to the real domain (PayFast's notify URL is built from it).
+
+## Scripts
+
+| | |
+| --- | --- |
+| `npm run dev` | site + API with hot reload |
+| `npm run build` | typecheck and production build to `dist/` |
+| `npm test` | Vitest: slot rules, double booking, holds, payment verification, PayFast signatures, API routes |
+| `npm run verify` | typecheck, lint, test, build: what CI runs |

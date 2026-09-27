@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // The Grateful website is its own project with its own lint config.
+      'grateful/**',
     ],
   },
   {

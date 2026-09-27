@@ -1,0 +1,156 @@
+@import 'tailwindcss';
+
+/*
+ * Grateful design tokens. The CI allows black and white only; secondary text
+ * and rules are those two colours at reduced opacity, never a new hue.
+ * Baskerville leads (Baskervville is the web cut of the same face); a quiet
+ * sans is used only for small functional labels and form inputs.
+ */
+@theme {
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-muted: rgb(255 255 255 / 0.58);
+  --color-line: rgb(255 255 255 / 0.16);
+  --color-ink-muted: rgb(0 0 0 / 0.58);
+  --color-ink-line: rgb(0 0 0 / 0.14);
+
+  --font-serif: 'Baskervville Variable', 'Baskerville', 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter Variable', Inter, 'Avenir Next', Avenir, 'Helvetica Neue', Arial, sans-serif;
+
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--color-black);
+    color: var(--color-white);
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: #fff;
+    color: #000;
+  }
+  .surface-light ::selection {
+    background: #000;
+    color: #fff;
+  }
+  button,
+  input,
+  textarea,
+  select {
+    font-family: var(--font-sans);
+  }
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+  img {
+    max-width: 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .editorial-title {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+  .editorial-italic {
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: -0.02em;
+  }
+  .ui-label {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+  .page-gutter {
+    padding-inline: 1rem;
+  }
+  @media (min-width: 768px) {
+    .page-gutter {
+      padding-inline: 2rem;
+    }
+  }
+  @media (min-width: 1280px) {
+    .page-gutter {
+      padding-inline: 3.5rem;
+    }
+  }
+  /* 4 / 8 / 12 columns, per the brief. */
+  .editorial-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 1rem;
+  }
+  @media (min-width: 768px) {
+    .editorial-grid {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      column-gap: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .editorial-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+  }
+  .mono {
+    filter: grayscale(1) contrast(1.12) brightness(0.96);
+  }
+}
+
+/* Film grain: a fixed, very faint noise layer. Purely decorative. */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.logo-svg svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.06));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}

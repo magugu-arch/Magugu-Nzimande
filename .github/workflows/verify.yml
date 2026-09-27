@@ -73,6 +73,31 @@ jobs:
       - name: Check the launch-readiness audit still runs
         run: npm run audit:launch
 
+  # The Grateful website is a separate Vite project in grateful/, with its own
+  # lockfile, so it installs and checks on its own.
+  grateful:
+    name: Grateful website — typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: grateful
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: grateful/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify
+        run: npm run verify
+
   # Rendering the app catches what unit tests structurally cannot: overflow,
   # clipped labels, a screen that renders blank, a journey that no longer
   # connects. Kept out of `npm run verify` because a browser sweep is minutes,
