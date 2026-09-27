@@ -3,7 +3,11 @@ export const CONTACT_EMAIL = 'hello@quest4best.co.za';
 
 // Optional form service (e.g. Formspree, Web3Forms, Basin) that accepts a JSON
 // POST. Unset, the request form opens the visitor's mail app pre-filled instead.
-export const FORM_ENDPOINT: string | undefined = import.meta.env.VITE_FORM_ENDPOINT || undefined;
+// Only an https:// endpoint is accepted, so form data is never sent in the clear.
+const endpoint = String(import.meta.env.VITE_FORM_ENDPOINT ?? '');
+export const FORM_ENDPOINT: string | undefined = /^https:\/\//.test(endpoint)
+  ? endpoint
+  : undefined;
 
 export const BRAND_LINE = 'Better questions. Better decisions. Better outcomes.';
 

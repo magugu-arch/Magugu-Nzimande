@@ -70,6 +70,15 @@ before any JavaScript runs.
   - a `sitemap.xml` with last-modified date and image entries, and `robots.txt`
   - Google Search Console and Bing verification tags injected from repository variables
   - a step-by-step Search Console guide
+- **Security layer (see [SECURITY.md](SECURITY.md)):**
+  - a Content Security Policy on both builds, hash-locked in the single file
+  - a clickjacking guard, verified by framing the site from another origin
+  - a strict referrer policy
+  - form hardening: length limits, header-injection stripping, bot timing check, throttling,
+    https-only form service
+  - `security.txt`, and a `_headers` file with HSTS, nosniff, frame and permission policies
+    for Netlify or Cloudflare Pages
+  - 0 known vulnerabilities in the dependencies
 - Web manifest, full icon set, 404 page.
 - **Request-information form** in Contact: name, email, organisation, role, phone, area of
   interest, message and POPIA consent, with inline validation, a spam honeypot and accessible

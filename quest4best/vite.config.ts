@@ -1,4 +1,4 @@
-import { copyFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -47,6 +47,15 @@ ${images}
 </urlset>
 `,
       );
+      // RFC 9116: where to report a security problem. Refreshed on every build.
+      const expires = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString();
+      mkdirSync(resolve(outDir, '.well-known'), { recursive: true });
+      writeFileSync(
+        resolve(outDir, '.well-known/security.txt'),
+        `Contact: mailto:hello@quest4best.co.za\nExpires: ${expires}\nPreferred-Languages: en\nCanonical: ${base}/.well-known/security.txt\n`,
+      );
+      // Serve dot-folders such as .well-known as-is on GitHub Pages.
+      writeFileSync(resolve(outDir, '.nojekyll'), '');
       // One page, anchor navigation: any stray URL should land on the site.
       copyFileSync(resolve(outDir, 'index.html'), resolve(outDir, '404.html'));
     },
@@ -72,6 +81,53 @@ function verificationTags(env: Record<string, string>): Plugin {
   };
 }
 
+// Content Security Policy for the hosted build: only the site's own scripts,
+// styles, fonts and images may load, and the form may only talk to itself,
+// the visitor's mail app or the configured https form service. GitHub Pages
+// cannot send headers, so this ships as a <meta> tag; public/_headers adds
+// the header-only protections on hosts that support them.
+export function contentSecurityPolicy(
+  extra: { script?: string[]; style?: string[] } = {},
+  formEndpoint = '',
+) {
+  let formOrigin = '';
+  try {
+    if (/^https:\/\//.test(formEndpoint)) formOrigin = new URL(formEndpoint).origin;
+  } catch {
+    formOrigin = '';
+  }
+  const directives: Record<string, string[]> = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'", ...(extra.script ?? [])],
+    'style-src': ["'self'", ...(extra.style ?? [])],
+    'img-src': ["'self'", 'data:'],
+    'font-src': ["'self'", 'data:'],
+    'connect-src': ["'self'", formOrigin].filter(Boolean),
+    'form-action': ["'self'", 'mailto:', formOrigin].filter(Boolean),
+    'manifest-src': ["'self'"],
+    'base-uri': ["'self'"],
+    'object-src': ["'none'"],
+    'upgrade-insecure-requests': [],
+  };
+  return Object.entries(directives)
+    .map(([k, v]) => [k, ...v].join(' '))
+    .join('; ');
+}
+
+function securityMeta(csp: string): Plugin {
+  return {
+    name: 'quest4best-csp',
+    apply: 'build',
+    transformIndexHtml: () => [
+      {
+        tag: 'meta',
+        attrs: { 'http-equiv': 'Content-Security-Policy', content: csp },
+        injectTo: 'head-prepend',
+      },
+    ],
+  };
+}
+
 // Public URL for canonical, Open Graph, robots and sitemap.
 // PLACEHOLDER — confirm the production domain before launch.
 const DEFAULT_SITE_URL = 'https://quest4best.co.za';
@@ -88,6 +144,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
     return {
       base: './',
       build: { outDir: 'dist-ssr-html', assetsInlineLimit: Number.MAX_SAFE_INTEGER },
+      define: { __SINGLE_FILE__: 'true' },
       plugins: [react()],
     };
   }
@@ -95,12 +152,21 @@ export default defineConfig(({ mode, isSsrBuild }) => {
     return {
       base: './',
       build: { outDir: 'dist-html', assetsInlineLimit: Number.MAX_SAFE_INTEGER },
+      define: { __SINGLE_FILE__: 'true' },
+      // The CSP for the single file is added by scripts/finish-html.mjs,
+      // which hashes the inlined script and styles once they exist.
       plugins: [react(), verificationTags(env), viteSingleFile({ removeViteModuleLoader: true })],
     };
   }
 
   return {
     base: env.BASE_PATH || '/',
-    plugins: [react(), verificationTags(env), siteFiles(process.env.VITE_SITE_URL)],
+    define: { __SINGLE_FILE__: 'false' },
+    plugins: [
+      react(),
+      verificationTags(env),
+      securityMeta(contentSecurityPolicy({}, env.VITE_FORM_ENDPOINT)),
+      siteFiles(process.env.VITE_SITE_URL),
+    ],
   };
 });

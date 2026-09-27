@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { ArrowUpRight, Check } from 'lucide-react';
 import { CONTACT_EMAIL, FORM_ENDPOINT } from '../content';
 
@@ -22,6 +22,42 @@ type Fields = {
 
 type Errors = Partial<Record<keyof Fields, string>>;
 
+// Upper bounds keep payloads small and stop the form being used to push
+// large blobs of text through the visitor's mail app or a form service.
+const MAX: Record<Exclude<keyof Fields, 'consent'>, number> = {
+  name: 100,
+  email: 254,
+  organisation: 120,
+  role: 100,
+  phone: 20,
+  interest: 40,
+  message: 3000,
+};
+
+// Anti-abuse: people take longer than this to fill in a form; bots do not.
+const MIN_FILL_MS = 3000;
+// One request per this interval from the same page.
+const RESUBMIT_MS = 30000;
+
+/** Single-line fields: no control characters or line breaks (header injection). */
+const oneLine = (v: string) => v.replace(/[\u0000-\u001F\u007F]+/g, ' ').trim();
+/** Message: keep line breaks, drop other control characters. */
+const multiLine = (v: string) =>
+  v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim();
+
+function clean(f: Fields): Fields {
+  return {
+    name: oneLine(f.name).slice(0, MAX.name),
+    email: oneLine(f.email).slice(0, MAX.email),
+    organisation: oneLine(f.organisation).slice(0, MAX.organisation),
+    role: oneLine(f.role).slice(0, MAX.role),
+    phone: oneLine(f.phone).slice(0, MAX.phone),
+    interest: oneLine(f.interest),
+    message: multiLine(f.message).slice(0, MAX.message),
+    consent: f.consent,
+  };
+}
+
 const EMPTY: Fields = {
   name: '',
   email: '',
@@ -41,7 +77,8 @@ function validate(f: Fields): Errors {
     e.email = 'That email address does not look right.';
   if (f.phone && !/^[+()\d\s-]{7,20}$/.test(f.phone.trim()))
     e.phone = 'Use digits, spaces and + only.';
-  if (!f.interest) e.interest = 'Choose the area closest to your question.';
+  if (!(INTERESTS as readonly string[]).includes(f.interest))
+    e.interest = 'Choose the area closest to your question.';
   if (f.message.trim().length < 20)
     e.message = 'A sentence or two helps us prepare (20+ characters).';
   if (!f.consent) e.consent = 'Please confirm we may use these details to respond.';
@@ -60,13 +97,19 @@ function toBody(f: Fields) {
   return [...details, '', f.message].join('\n');
 }
 
-type Status = 'idle' | 'sending' | 'sent-direct' | 'sent-mail' | 'error';
+type Status = 'idle' | 'sending' | 'sent-direct' | 'sent-mail' | 'error' | 'throttled';
 
 export function ContactForm() {
   const id = useId();
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<Status>('idle');
+  const loadedAt = useRef(0);
+  const lastSentAt = useRef(0);
+
+  useEffect(() => {
+    loadedAt.current = Date.now();
+  }, []);
 
   const set = <K extends keyof Fields>(key: K, value: Fields[K]) => {
     setFields((f) => ({ ...f, [key]: value }));
@@ -79,15 +122,24 @@ export function ContactForm() {
     // Honeypot: people never see this field, form-filling bots do.
     if ((form.elements.namedItem('company_website') as HTMLInputElement | null)?.value) return;
 
-    const found = validate(fields);
+    const safe = clean(fields);
+    const found = validate(safe);
     setErrors(found);
     const first = Object.keys(found)[0];
     if (first) {
       form.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
       return;
     }
+    // A valid form sent faster than a person could fill it: quietly drop it,
+    // as with the honeypot.
+    if (Date.now() - loadedAt.current < MIN_FILL_MS) return;
+    if (Date.now() - lastSentAt.current < RESUBMIT_MS) {
+      setStatus('throttled');
+      return;
+    }
+    lastSentAt.current = Date.now();
 
-    const subject = `Information request — ${fields.interest}`;
+    const subject = `Information request — ${safe.interest}`;
 
     if (FORM_ENDPOINT) {
       setStatus('sending');
@@ -95,12 +147,15 @@ export function ContactForm() {
         const res = await fetch(FORM_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ ...fields, _subject: subject }),
+          body: JSON.stringify({ ...safe, _subject: subject }),
+          credentials: 'omit',
+          referrerPolicy: 'no-referrer',
         });
         if (!res.ok) throw new Error(String(res.status));
         setStatus('sent-direct');
         setFields(EMPTY);
       } catch {
+        lastSentAt.current = 0; // a failed send should not block a retry
         setStatus('error');
       }
       return;
@@ -110,7 +165,7 @@ export function ContactForm() {
     // app, fully written, so nothing depends on a server.
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
       subject,
-    )}&body=${encodeURIComponent(toBody(fields))}`;
+    )}&body=${encodeURIComponent(toBody(safe))}`;
     setStatus('sent-mail');
   }
 
@@ -172,6 +227,7 @@ export function ContactForm() {
           </label>
           <input
             {...field('name')}
+            maxLength={MAX.name}
             type="text"
             autoComplete="name"
             required
@@ -187,6 +243,7 @@ export function ContactForm() {
           </label>
           <input
             {...field('email')}
+            maxLength={MAX.email}
             type="email"
             autoComplete="email"
             required
@@ -203,6 +260,7 @@ export function ContactForm() {
           </label>
           <input
             {...field('organisation')}
+            maxLength={MAX.organisation}
             type="text"
             autoComplete="organization"
             value={fields.organisation}
@@ -217,6 +275,7 @@ export function ContactForm() {
           </label>
           <input
             {...field('role')}
+            maxLength={MAX.role}
             type="text"
             autoComplete="organization-title"
             value={fields.role}
@@ -231,6 +290,7 @@ export function ContactForm() {
           </label>
           <input
             {...field('phone')}
+            maxLength={MAX.phone}
             type="tel"
             autoComplete="tel"
             inputMode="tel"
@@ -268,6 +328,7 @@ export function ContactForm() {
           </label>
           <textarea
             {...field('message')}
+            maxLength={MAX.message}
             rows={4}
             required
             value={fields.message}
@@ -338,6 +399,11 @@ export function ContactForm() {
           <p className="text-white/70">
             Your email app should now open with the request written out — press send there to reach
             us. If nothing opened, email {CONTACT_EMAIL} directly.
+          </p>
+        )}
+        {status === 'throttled' && (
+          <p className="text-white/70">
+            Your request has just been sent. Please wait a moment before sending another.
           </p>
         )}
         {status === 'error' && (
