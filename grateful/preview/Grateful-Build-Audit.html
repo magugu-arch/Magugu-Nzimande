@@ -135,7 +135,7 @@
       <div class="meter" role="img" aria-label="80 percent complete, 20 percent remaining">
         <span class="done" style="width:80%"></span><span class="left" style="width:20%"></span>
       </div>
-      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
+      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
     </div>
   </div>
 
@@ -245,13 +245,11 @@
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>A Content Security Policy now tells browsers exactly what the site may load: its own scripts, the Google map, and forms sent only to the site or PayFast</li>
-      <li>That blocks injected scripts and stops other sites showing Grateful inside a frame</li>
-      <li>Browsers are also told to use only the secure (https) address</li>
-      <li>Tested on a production build with the real headers: zero blocked items across every page and the studio dashboard</li>
-      <li>Fixed along the way: the form-checking library tried a technique the policy forbids; it now runs without it</li>
-      <li>Four new tests keep the policy and PayFast’s addresses in step (82 tests); the browser test passes</li>
-      <li>Quality moves to 95%; the total rounds to 80%, because what remains needs the studio or its accounts</li>
+      <li>Dependency security audit: 0 known vulnerabilities in the site’s packages, including the build tools</li>
+      <li>The costing now includes the security work: a 10–16 hour line, and a realistic budget of about R320k (R369k incl. VAT)</li>
+      <li>Earlier this round: the Content Security Policy and HTTPS-only header, tested with zero blocked items on every page</li>
+      <li>All 82 tests and the browser test pass; the offline preview opens with no errors</li>
+      <li>No build work remains that doesn’t need the studio or its accounts, so the total holds at 80%</li>
     </ul>
     <div class="links">
       <a class="btn solid" href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN" target="_blank" rel="noopener">Open the site &amp; dashboard preview</a>
@@ -260,7 +258,7 @@
 
   <section style="border-bottom:0">
     <p class="label">How the percentage was worked out</p>
-    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.95 + 10×0.95 + 7×0.78 = 80.1, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.95 + 10×0.95 + 7×0.78 = 80.1, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
   </section>
 </div>
 </body>
