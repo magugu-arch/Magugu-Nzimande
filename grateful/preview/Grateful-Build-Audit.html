@@ -131,16 +131,16 @@
       <p>Every page, the booking engine, payments, email, the database layer and now the studio dashboard are written and tested. Almost everything left is outside the code: facts only the studio can supply, which it can now enter itself in the dashboard, and the Supabase, PayFast, Resend and hosting accounts that switch the site on.</p>
     </div>
     <div>
-      <div class="big mono">77<small>%</small></div>
-      <div class="meter" role="img" aria-label="77 percent complete, 23 percent remaining">
-        <span class="done" style="width:77%"></span><span class="left" style="width:23%"></span>
+      <div class="big mono">78<small>%</small></div>
+      <div class="meter" role="img" aria-label="78 percent complete, 22 percent remaining">
+        <span class="done" style="width:78%"></span><span class="left" style="width:22%"></span>
       </div>
-      <div class="meter-key mono"><span>77% complete, up from 72%</span><span>23% remaining</span></div>
+      <div class="meter-key mono"><span>78% complete (72% → 77% → 78%)</span><span>22% remaining</span></div>
     </div>
   </div>
 
   <section aria-labelledby="ws-h">
-    <h2 id="ws-h">Where the 77% comes from</h2>
+    <h2 id="ws-h">Where the 78% comes from</h2>
     <p class="sub">The build is split into eight workstreams, each weighted by how much of a finished, live website it represents. A workstream counts as done only when it is verified, not just when its code is written. Hover over a bar to see what is left in that workstream.</p>
     <table class="ws">
       <thead><tr><th class="label">Workstream</th><th class="label">Progress</th><th class="label" style="text-align:right">Done · weight</th></tr></thead>
@@ -162,8 +162,8 @@
         </tr>
         <tr>
           <td class="name"><strong>Content from the studio</strong><span>Prices, durations, hours, bio, portfolio names, socials</span></td>
-          <td class="bar"><div class="track" tabindex="0"><i style="width:30%"></i><span class="tip">Contact details and three photos came from the CI and brief. Everything else is an editable placeholder, because the brief forbids inventing facts. Prices, durations, hours and service wording can now be entered by the studio in the dashboard, with no developer needed.</span></div><div class="left-note">Left: most facts, which only Grateful can supply (now self-serve)</div></td>
-          <td class="num mono"><b>30%</b>of 15</td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:35%"></i><span class="tip">Contact details and three photos came from the CI and brief. Everything else is an editable placeholder, because the brief forbids inventing facts. Prices, durations, hours and service wording can now be entered by the studio in the dashboard, with no developer needed. The site now speaks as the studio throughout, so no personal bio is needed.</span></div><div class="left-note">Left: most facts, which only Grateful can supply (now self-serve)</div></td>
+          <td class="num mono"><b>35%</b>of 15</td>
         </tr>
         <tr>
           <td class="name"><strong>Database &amp; hosting</strong><span>Supabase schema, migrations, seed; Vercel config</span></td>
@@ -176,8 +176,8 @@
           <td class="num mono"><b>88%</b>of 10</td>
         </tr>
         <tr>
-          <td class="name"><strong>Studio operations</strong><span>How Phindi manages bookings day to day</span></td>
-          <td class="bar"><div class="track" tabindex="0"><i style="width:90%"></i><span class="tip">The dashboard (diary, reschedule, cancel, opening hours, prices, enquiries) and a plain-language guide are done. Left: a first session with Phindi on the live site to confirm it suits how she works.</span></div><div class="left-note">Up from 40%. Left: a trial run with Phindi on the live site</div></td>
+          <td class="name"><strong>Studio operations</strong><span>How the studio manages bookings day to day</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:90%"></i><span class="tip">The dashboard (diary, reschedule, cancel, opening hours, prices, enquiries) and a plain-language guide are done. Left: a first session with the studio team on the live site to confirm it suits how they work.</span></div><div class="left-note">Up from 40%. Left: a trial run with the studio team on the live site</div></td>
           <td class="num mono"><b>90%</b>of 10</td>
         </tr>
         <tr>
@@ -186,15 +186,15 @@
           <td class="num mono"><b>75%</b>of 7</td>
         </tr>
       </tbody>
-      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">77.5 of 100</td></tr></tfoot>
+      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">78.2 of 100</td></tr></tfoot>
     </table>
   </section>
 
   <section aria-labelledby="ev-h">
     <h2 id="ev-h">What was verified</h2>
-    <p class="sub">These were measured on the current code, commit <span class="mono">a2b838f</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
+    <p class="sub">These were measured on the current code, commit <span class="mono">5cd0504</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
     <div class="facts">
-      <div><span class="label">Unit tests</span><b class="mono">51 / 51</b><p>Slots, double booking, holds, forged and wrong-amount payments, PayFast signatures, reschedule, prices, opening hours, admin access.</p></div>
+      <div><span class="label">Unit tests</span><b class="mono">53 / 53</b><p>Slots, double booking, holds, forged and wrong-amount payments, PayFast signatures, reschedule, prices, opening hours, admin access, and a guard that no individual is named.</p></div>
       <div><span class="label">Browser smoke test</span><b class="mono">3 journeys</b><p>27 page renders at 320, 390 and 1440px; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours. Runs in CI.</p></div>
       <div><span class="label">Accessibility (axe)</span><b class="mono">0</b><p>Serious or critical issues on every page and the dashboard. The smoke run caught a faint dashboard label, now fixed.</p></div>
       <div><span class="label">Offline preview</span><b class="mono">2.1 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
@@ -202,16 +202,16 @@
   </section>
 
   <section aria-labelledby="left-h">
-    <h2 id="left-h">The remaining 23%</h2>
+    <h2 id="left-h">The remaining 22%</h2>
     <p class="sub">Grouped by who has to act. Almost none of it is code any more.</p>
     <div class="cols">
       <div>
         <h3>From the studio</h3>
-        <div class="pts mono">≈ 13 points</div>
+        <div class="pts mono">≈ 12 points</div>
         <ul>
           <li>Prices and deposits per service<small>Enter them in Studio → Services &amp; prices; until then, “Quote required”</small></li>
           <li>Confirmed durations and real opening hours<small>Studio → Opening hours; now a sample Tue–Sat diary</small></li>
-          <li>Designer bio and sign-off on page copy</li>
+          <li>Sign-off on the page copy<small>Now written in the studio’s own voice, with no individual named</small></li>
           <li>Portfolio names, and more approved photographs</li>
           <li>Social media links, and privacy notice facts</li>
           <li>A first session using the dashboard on the live site</li>
@@ -242,17 +242,14 @@
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>Studio dashboard at /studio: diary for the next 7 days, with call, WhatsApp and email links</li>
-      <li>Reschedule that only offers free times; cancel with an on-card confirm (both email the client)</li>
-      <li>Opening hours: single days or weekly patterns; close, reopen, delete</li>
-      <li>Services &amp; prices: price, deposit, duration, wording, visibility, checked on the server</li>
-      <li>Enquiries list: mark replied, archive</li>
-      <li>Overview figures: today, next 7 days, awaiting payment, needs attention</li>
-      <li>STUDIO_GUIDE.md: a plain-language how-to for Phindi</li>
-      <li>8 new tests and new fixtures; the smoke test now drives the dashboard</li>
-      <li>Fixed: sample deposits larger than their price (found by the new validation)</li>
-      <li>Fixed: faint “No bookings” label; diary showing an empty past week</li>
-      <li>One-file preview that opens by clicking it on a Mac or Android</li>
+      <li>Grateful now speaks as a studio: the individual’s name is removed from every page, email and search listing</li>
+      <li>“Led by” and “the studio of” rewritten as the studio speaking as “we”</li>
+      <li>Footer and every email signed “Grateful Studio · Fashion design studio”</li>
+      <li>Home, About, Work, Services and Contact copy tightened in one voice</li>
+      <li>Service descriptions updated in the site and the database seed together</li>
+      <li>A guard test that fails if a personal name reappears, and checks email signatures</li>
+      <li>Earlier this round: the studio dashboard (diary, reschedule, cancel, hours, prices, enquiries) and its guide</li>
+      <li>One-file preview rebuilt with the new wording; opens with a click on a Mac or Android</li>
     </ul>
     <div class="links">
       <a class="btn solid" href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN" target="_blank" rel="noopener">Open the site &amp; dashboard preview</a>
@@ -261,7 +258,7 @@
 
   <section style="border-bottom:0">
     <p class="label">How the percentage was worked out</p>
-    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.30 + 10×0.60 + 10×0.88 + 10×0.90 + 7×0.75 = 77.5, shown as 77%. The previous audit was 72%. The weights are a judgement; the verified facts above are measurements.</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.60 + 10×0.88 + 10×0.90 + 7×0.75 = 78.2, shown as 78%. Earlier audits: 72%, then 77%. The weights are a judgement; the verified facts above are measurements.</p>
   </section>
 </div>
 </body>
