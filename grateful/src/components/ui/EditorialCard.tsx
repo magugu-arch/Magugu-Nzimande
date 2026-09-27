@@ -1,20 +1,17 @@
 import { ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router';
-import { images } from '../../data/images';
 import type { WorkItem } from '../../data/work';
 import { ImageReveal } from './ImageReveal';
 import { Picture } from './Picture';
 
 /**
- * A portfolio tile. Image first; on hover the photo eases to 1.03 and, where
- * it is shown in monochrome, its original colour returns — then the metadata
- * slides up. On touch screens the metadata is simply always visible.
+ * A portfolio tile. Image first; on hover the photo eases to 1.03 and the
+ * metadata slides up. On touch screens the metadata is simply always visible.
  */
 export function EditorialCard({
   item,
   aspect = 'aspect-[4/5]',
   sizes,
-  mono = false,
   index,
   headingLevel = 'h3',
 }: {
@@ -23,11 +20,9 @@ export function EditorialCard({
   item: WorkItem;
   aspect?: string;
   sizes: string;
-  mono?: boolean;
   index?: number;
 }) {
   const Heading = headingLevel;
-  const grey = mono && !('alwaysColour' in images[item.image]);
   return (
     <Link to={`/work/${item.slug}`} className="group block" aria-label={`${item.title} — ${item.category}`}>
       <ImageReveal className={`relative ${aspect}`}>
@@ -35,9 +30,7 @@ export function EditorialCard({
           image={item.image}
           sizes={sizes}
           className="h-full"
-          imgClassName={`transition-[transform,filter] duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-[1.03] ${
-            grey ? '[filter:grayscale(1)_contrast(1.12)] group-hover:[filter:grayscale(0)_contrast(1)]' : ''
-          }`}
+          imgClassName="transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-[1.03]"
         />
         {index !== undefined && <span className="ui-label absolute top-4 left-4 mix-blend-difference">({String(index + 1).padStart(2, '0')})</span>}
       </ImageReveal>

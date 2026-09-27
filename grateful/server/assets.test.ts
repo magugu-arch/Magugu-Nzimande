@@ -33,11 +33,11 @@ describe('site photography', () => {
     const keys = new Set(Object.keys(images));
     for (const w of work) expect(keys.has(w.image), w.slug).toBe(true);
     for (const s of serviceSeed) expect(keys.has(s.image), s.id).toBe(true);
-    const seedKeys = [...readFileSync('supabase/seed.sql', 'utf8').matchAll(/'(\w+(?:Gown|Look|Detail|Garment))'/g)].map((m) => m[1]!);
+    const seedKeys = [...readFileSync('supabase/seed.sql', 'utf8').matchAll(/'(\w+(?:Gown|Look|Detail|Dress|Garment))'/g)].map((m) => m[1]!);
     for (const k of seedKeys) expect(keys.has(k), `seed.sql: ${k}`).toBe(true);
   });
 
-  it('no longer references the retired white-shirt photograph anywhere', () => {
+  it('no longer references any retired photograph anywhere', () => {
     const offenders = [...files('src'), ...files('server'), ...files('supabase'), 'index.html']
       .filter((f) => !f.endsWith('assets.test.ts'))
       .filter((f) => RETIRED.test(readFileSync(f, 'utf8')));
@@ -47,6 +47,13 @@ describe('site photography', () => {
   it('uses every catalogued image somewhere, so no photograph is left orphaned', () => {
     const source = [...files('src').filter((f) => !f.endsWith('images.ts')), 'supabase/seed.sql'].map((f) => readFileSync(f, 'utf8')).join('\n');
     for (const key of Object.keys(images)) expect(source.includes(key), key).toBe(true);
+  });
+
+  it('shows every photograph in colour: no greyscale filter outside the embedded map', () => {
+    const offenders = files('src')
+      .filter((f) => !f.endsWith('Contact.tsx'))
+      .filter((f) => /grayscale|\bmono\b(?!gram)/.test(readFileSync(f, 'utf8').replace(/font-mono/g, '')));
+    expect(offenders).toEqual([]);
   });
 
   it('gives every image descriptive alt text', () => {

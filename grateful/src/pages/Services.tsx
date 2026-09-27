@@ -45,7 +45,7 @@ export default function Services() {
         return (
           <section key={s.id} aria-labelledby={`svc-${s.id}`} className="border-t border-line lg:grid lg:min-h-[85svh] lg:grid-cols-12">
             <ImageReveal className={`relative aspect-[4/5] lg:col-span-5 lg:aspect-auto ${flip ? 'lg:order-2 lg:col-start-8' : ''}`}>
-              <Picture image={s.image} mono={i % 2 === 0} sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" />
+              <Picture image={s.image} sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" />
             </ImageReveal>
             <div className={`page-gutter flex flex-col justify-between gap-12 py-16 lg:col-span-7 lg:py-20 ${flip ? 'lg:order-1' : 'lg:pl-16'}`}>
               <span className="ui-label opacity-50">{String(i + 1).padStart(2, '0')} / {String(services.length).padStart(2, '0')}</span>

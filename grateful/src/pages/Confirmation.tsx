@@ -130,7 +130,7 @@ export default function Confirmation() {
   return (
     <div className="pt-16 lg:grid lg:min-h-svh lg:grid-cols-12 lg:pt-20">
       <ImageReveal className="relative h-[46svh] lg:order-2 lg:col-span-5 lg:h-auto">
-        <Picture image={booking.serviceImage} mono priority sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" />
+        <Picture image={booking.serviceImage} priority sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" />
       </ImageReveal>
 
       <div className="page-gutter pt-12 pb-24 lg:order-1 lg:col-span-7 lg:pt-16">

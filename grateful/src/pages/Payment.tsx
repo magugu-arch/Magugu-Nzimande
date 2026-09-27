@@ -96,7 +96,7 @@ export default function Payment() {
         {/* Order summary first on mobile: it must be visible before checkout. */}
         <section aria-labelledby="summary-title" className="lg:order-2 lg:col-span-5 lg:col-start-8">
           <div className="border border-line lg:sticky lg:top-28">
-            <Picture image={booking.serviceImage} alt="" mono sizes="(min-width: 1024px) 36vw, 100vw" className="aspect-[16/9]" />
+            <Picture image={booking.serviceImage} alt="" sizes="(min-width: 1024px) 36vw, 100vw" className="aspect-[16/9]" />
             <div className="p-6">
               <h2 id="summary-title" className="ui-label opacity-60">
                 Order summary

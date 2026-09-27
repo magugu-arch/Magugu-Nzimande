@@ -21,7 +21,7 @@ export function BookingSummary({ service, date, time, compact = false }: { servi
 
   return (
     <div className={compact ? 'flex gap-4' : ''}>
-      <Picture image={service.image} alt="" mono sizes={compact ? '80px' : '(min-width: 1024px) 28vw, 100vw'} className={compact ? 'h-24 w-20 shrink-0' : 'aspect-[4/3]'} />
+      <Picture image={service.image} alt="" sizes={compact ? '80px' : '(min-width: 1024px) 28vw, 100vw'} className={compact ? 'h-24 w-20 shrink-0' : 'aspect-[4/3]'} />
       <div className={compact ? 'min-w-0 flex-1' : 'mt-6'}>
         <p className="ui-label opacity-50">Your booking</p>
         <p className={`mt-2 font-serif leading-tight ${compact ? 'text-xl' : 'text-3xl'}`}>{service.name}</p>

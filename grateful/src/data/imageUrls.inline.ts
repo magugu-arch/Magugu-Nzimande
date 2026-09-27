@@ -4,6 +4,8 @@ import green1280 from '../../public/images/green-gown-1280.webp?inline';
 import green640 from '../../public/images/green-gown-640.webp?inline';
 import gown1280 from '../../public/images/burgundy-gown-1280.webp?inline';
 import gown640 from '../../public/images/burgundy-gown-640.webp?inline';
+import navy1280 from '../../public/images/navy-dress-1280.webp?inline';
+import navy640 from '../../public/images/navy-dress-640.webp?inline';
 import shirt1280 from '../../public/images/white-shirt-look-1280.webp?inline';
 import shirt640 from '../../public/images/white-shirt-look-640.webp?inline';
 
@@ -15,6 +17,7 @@ const table: Record<string, { w640: string; w1280: string }> = {
   'burgundy-gown': { w640: gown640, w1280: gown1280 },
   'white-shirt-look': { w640: shirt640, w1280: shirt1280 },
   'green-gown': { w640: green640, w1280: green1280 },
+  'navy-dress': { w640: navy640, w1280: navy1280 },
   IMG_1411: { w640: burgundy640, w1280: burgundy1280 },
 };
 

@@ -12,8 +12,6 @@ export type BrandImage = {
   height: number;
   /** CSS object-position that keeps the garment in frame at any crop. */
   focus: string;
-  /** Never shown in monochrome: the colour is the point of the photograph. */
-  alwaysColour?: boolean;
 };
 
 const base = import.meta.env.BASE_URL;
@@ -32,7 +30,6 @@ export const images = {
     width: 1060,
     height: 1484,
     focus: '62% 35%',
-    alwaysColour: true,
   },
   burgundyDetail: {
     src: `${base}images/IMG_1411`,
@@ -47,6 +44,13 @@ export const images = {
     width: 941,
     height: 1672,
     focus: '50% 6%',
+  },
+  navyDress: {
+    src: `${base}images/navy-dress`,
+    alt: 'A navy Grateful dress on a dress form against a grey wall, with a sculpted oversized bow at the neck, a fitted darted bodice and full gathered sleeves caught at the wrist.',
+    width: 940,
+    height: 1673,
+    focus: '50% 30%',
   },
 } satisfies Record<string, BrandImage>;
 

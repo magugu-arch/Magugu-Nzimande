@@ -17,8 +17,6 @@ export type WorkItem = {
   year: number | null;
   summary: string;
   image: ImageKey;
-  /** Show the photo in its original colour (Work page) rather than monochrome. */
-  colour: boolean;
   details: string[];
 };
 
@@ -30,7 +28,6 @@ export const work: WorkItem[] = [
     year: null,
     summary: 'Burgundy satin in full movement: an oversized bow at the neck, gathered sleeves and a skirt that sweeps out into a train, opened by a high slit.',
     image: 'burgundyGown',
-    colour: true,
     details: ['Burgundy satin gown', 'Oversized neck bow', 'Full gathered sleeves', 'High slit and sweeping train'],
   },
   {
@@ -40,7 +37,6 @@ export const work: WorkItem[] = [
     year: null,
     summary: 'Emerald satin caught in the evening wind: ruffled shoulders and a full skirt that falls in tiers of ruffles, each hem sweeping out behind.',
     image: 'greenGown',
-    colour: true,
     details: ['Emerald satin gown', 'Ruffled cap shoulders', 'Tiered ruffle hems', 'Full, sweeping skirt'],
   },
   {
@@ -48,10 +44,9 @@ export const work: WorkItem[] = [
     title: 'Garment Study 03',
     category: 'Construction Detail',
     year: null,
-    summary: 'Burgundy, cut close. An oversized neck bow and full gathered sleeves, seen on the form where construction reads most clearly.',
-    image: 'burgundyDetail',
-    colour: true,
-    details: ['Oversized bow at the neck', 'Gathered bell sleeves', 'Fitted bodice'],
+    summary: 'Navy, cut close. A sculpted neck bow, a darted bodice and full sleeves gathered at the wrist, seen on the form where the construction reads most clearly.',
+    image: 'navyDress',
+    details: ['Sculpted bow at the neck', 'Full sleeves gathered at the wrist', 'Darted, fitted bodice', 'Flared skirt'],
   },
 ];
 

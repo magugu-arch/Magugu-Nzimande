@@ -70,7 +70,7 @@ export default function About() {
             </dl>
           </div>
           <ImageReveal className="relative aspect-[4/5] lg:col-span-5 lg:aspect-auto">
-            <Picture image="whiteShirtLook" mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 6%" />
+            <Picture image="whiteShirtLook" sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 6%" />
           </ImageReveal>
         </div>
       </section>

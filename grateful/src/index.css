@@ -124,9 +124,6 @@
       grid-template-columns: repeat(12, minmax(0, 1fr));
     }
   }
-  .mono {
-    filter: grayscale(1) contrast(1.12) brightness(0.96);
-  }
 }
 
 /* Film grain: a fixed, very faint noise layer. Purely decorative. */

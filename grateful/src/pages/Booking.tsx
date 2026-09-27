@@ -255,7 +255,7 @@ export default function Booking() {
                           }}
                           className={`flex w-full items-stretch gap-4 border text-left transition-colors ${on ? 'border-white bg-white text-black' : 'border-white/25 hover:border-white'}`}
                         >
-                          <Picture image={s.image} alt="" mono sizes="96px" className="w-20 shrink-0 sm:w-24" />
+                          <Picture image={s.image} alt="" sizes="96px" className="w-20 shrink-0 sm:w-24" />
                           <span className="flex flex-1 flex-col justify-center py-4 pr-4">
                             <span className="font-serif text-xl leading-tight sm:text-2xl">{s.name}</span>
                             <span className="mt-2 font-sans text-sm opacity-70">

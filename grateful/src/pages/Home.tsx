@@ -130,17 +130,17 @@ function FeaturedWork() {
       <div className="editorial-grid mt-16 gap-y-16 lg:mt-24">
         {a && (
           <div className="col-span-4 md:col-span-5 lg:col-span-7">
-            <EditorialCard item={a} index={0} mono aspect="aspect-[4/5]" sizes="(min-width: 1024px) 55vw, (min-width: 768px) 60vw, 100vw" />
+            <EditorialCard item={a} index={0} aspect="aspect-[4/5]" sizes="(min-width: 1024px) 55vw, (min-width: 768px) 60vw, 100vw" />
           </div>
         )}
         {b && (
           <div className="col-span-4 md:col-span-3 lg:col-span-4 lg:col-start-9 lg:mt-56">
-            <EditorialCard item={b} index={1} mono aspect="aspect-[3/4]" sizes="(min-width: 1024px) 32vw, (min-width: 768px) 38vw, 100vw" />
+            <EditorialCard item={b} index={1} aspect="aspect-[3/4]" sizes="(min-width: 1024px) 32vw, (min-width: 768px) 38vw, 100vw" />
           </div>
         )}
         {c && (
           <div className="col-span-4 md:col-span-4 md:col-start-3 lg:col-span-4 lg:col-start-3 lg:-mt-16">
-            <EditorialCard item={c} index={2} mono aspect="aspect-[3/4]" sizes="(min-width: 1024px) 32vw, (min-width: 768px) 50vw, 100vw" />
+            <EditorialCard item={c} index={2} aspect="aspect-[3/4]" sizes="(min-width: 1024px) 32vw, (min-width: 768px) 50vw, 100vw" />
           </div>
         )}
         <FadeIn className="col-span-4 self-end md:col-span-8 lg:col-span-4 lg:col-start-8 lg:pb-24">
@@ -158,7 +158,7 @@ function Philosophy() {
     <section aria-labelledby="philosophy-title" className="surface-light bg-white text-black">
       <div className="lg:grid lg:grid-cols-12">
         <ImageReveal className="relative aspect-[4/5] lg:col-span-5 lg:aspect-auto lg:min-h-[900px]">
-          <Picture image="whiteShirtLook" mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 6%" />
+          <Picture image="whiteShirtLook" sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 6%" />
         </ImageReveal>
         <div className="page-gutter flex flex-col justify-between gap-16 py-20 lg:col-span-7 lg:py-28 lg:pl-16">
           <p className="ui-label text-ink-muted">(Philosophy)</p>
