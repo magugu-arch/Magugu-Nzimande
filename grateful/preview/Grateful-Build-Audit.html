@@ -135,7 +135,7 @@
       <div class="meter" role="img" aria-label="80 percent complete, 20 percent remaining">
         <span class="done" style="width:80%"></span><span class="left" style="width:20%"></span>
       </div>
-      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
+      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
     </div>
   </div>
 
@@ -172,8 +172,8 @@
         </tr>
         <tr>
           <td class="name"><strong>Quality &amp; compliance</strong><span>Tests, accessibility, SEO, performance, POPIA</span></td>
-          <td class="bar"><div class="track" tabindex="0"><i style="width:94%"></i><span class="tip">78 unit tests, including search metadata checks (length, uniqueness, Johannesburg on every local page), (including checks that every photograph exists in all sizes, is used and is shown in colour, and that the icons and share image exist), a browser test covering the dashboard and phone bookings, axe checks, a wrong-key lockout and an automated launch checker. Left: complete and review the privacy notice, test on real phones, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
-          <td class="num mono"><b>94%</b>of 10</td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:95%"></i><span class="tip">82 unit tests (including the security headers), including search metadata checks (length, uniqueness, Johannesburg on every local page), (including checks that every photograph exists in all sizes, is used and is shown in colour, and that the icons and share image exist), a browser test covering the dashboard and phone bookings, axe checks, a wrong-key lockout and an automated launch checker. Left: complete and review the privacy notice, test on real phones, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
+          <td class="num mono"><b>95%</b>of 10</td>
         </tr>
         <tr>
           <td class="name"><strong>Studio operations</strong><span>How the studio manages bookings day to day</span></td>
@@ -186,15 +186,15 @@
           <td class="num mono"><b>78%</b>of 7</td>
         </tr>
       </tbody>
-      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">80.0 of 100</td></tr></tfoot>
+      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">80.1 of 100</td></tr></tfoot>
     </table>
   </section>
 
   <section aria-labelledby="ev-h">
     <h2 id="ev-h">What was verified</h2>
-    <p class="sub">These were measured on the current code, commit <span class="mono">6848a2b</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
+    <p class="sub">These were measured on the current code, commit <span class="mono">edd34f1</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
     <div class="facts">
-      <div><span class="label">Unit tests</span><b class="mono">78 / 78</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice. Every photograph checked in all three sizes, none left unused, none turned black and white.</p></div>
+      <div><span class="label">Unit tests</span><b class="mono">82 / 82</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice. Every photograph checked in all three sizes, none left unused, none turned black and white.</p></div>
       <div><span class="label">Browser smoke test</span><b class="mono">5 journeys</b><p>27 page renders at 320, 390 and 1440px; page titles and noindex; the Back and Back to top buttons; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours, record a phone booking. Runs in CI.</p></div>
       <div><span class="label">Accessibility (axe)</span><b class="mono">0</b><p>Serious or critical issues on every page and the dashboard. The smoke run caught a faint dashboard label, now fixed.</p></div>
       <div><span class="label">Offline preview</span><b class="mono">1.8 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
@@ -245,12 +245,13 @@
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>Pages that shouldn’t appear in Google are now marked “noindex”: the page-not-found page, unknown garment studies, payment, confirmation, unsubscribe and the dashboard</li>
-      <li>This matters because the host shows the site for any address, so without it Google could list error pages</li>
-      <li>Real pages stay indexable with their own titles; the browser test now checks both</li>
-      <li>Earlier this round: the studio number on booking pages, per-page search titles and descriptions, sitemap and Search Console support</li>
-      <li>All 78 tests and the browser test pass; the offline file opens with no errors</li>
-      <li>The total holds at 80%: everything left needs the studio or its accounts</li>
+      <li>A Content Security Policy now tells browsers exactly what the site may load: its own scripts, the Google map, and forms sent only to the site or PayFast</li>
+      <li>That blocks injected scripts and stops other sites showing Grateful inside a frame</li>
+      <li>Browsers are also told to use only the secure (https) address</li>
+      <li>Tested on a production build with the real headers: zero blocked items across every page and the studio dashboard</li>
+      <li>Fixed along the way: the form-checking library tried a technique the policy forbids; it now runs without it</li>
+      <li>Four new tests keep the policy and PayFast’s addresses in step (82 tests); the browser test passes</li>
+      <li>Quality moves to 95%; the total rounds to 80%, because what remains needs the studio or its accounts</li>
     </ul>
     <div class="links">
       <a class="btn solid" href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN" target="_blank" rel="noopener">Open the site &amp; dashboard preview</a>
@@ -259,7 +260,7 @@
 
   <section style="border-bottom:0">
     <p class="label">How the percentage was worked out</p>
-    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.94 + 10×0.95 + 7×0.78 = 80.0, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.95 + 10×0.95 + 7×0.78 = 80.1, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
   </section>
 </div>
 </body>
