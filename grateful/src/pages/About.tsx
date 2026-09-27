@@ -49,7 +49,7 @@ export default function About() {
         <div className="lg:grid lg:grid-cols-12">
           <div className="page-gutter py-24 lg:col-span-7 lg:py-36">
             <p className="ui-label text-ink-muted">(Philosophy)</p>
-            <h2 id="philosophy-title" className="editorial-title mt-10 text-5xl sm:text-6xl lg:text-8xl">
+            <h2 id="philosophy-title" className="editorial-title mt-10 text-5xl sm:text-6xl lg:text-[clamp(3.5rem,5.6vw,6rem)]">
               Individuality.
               <br />
               <span className="editorial-italic">Craft.</span>
@@ -70,7 +70,7 @@ export default function About() {
             </dl>
           </div>
           <ImageReveal className="relative aspect-[4/5] lg:col-span-5 lg:aspect-auto">
-            <Picture image="burgundyDetail" mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 18%" />
+            <Picture image="whiteShirtLook" mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 6%" />
           </ImageReveal>
         </div>
       </section>

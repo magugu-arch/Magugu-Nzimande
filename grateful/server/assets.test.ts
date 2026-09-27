@@ -44,6 +44,11 @@ describe('site photography', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('uses every catalogued image somewhere, so no photograph is left orphaned', () => {
+    const source = [...files('src').filter((f) => !f.endsWith('images.ts')), 'supabase/seed.sql'].map((f) => readFileSync(f, 'utf8')).join('\n');
+    for (const key of Object.keys(images)) expect(source.includes(key), key).toBe(true);
+  });
+
   it('gives every image descriptive alt text', () => {
     for (const img of Object.values(images)) expect(img.alt.length).toBeGreaterThan(40);
   });

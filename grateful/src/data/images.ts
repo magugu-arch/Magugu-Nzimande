@@ -38,6 +38,13 @@ export const images = {
     height: 2048,
     focus: '50% 25%',
   },
+  whiteShirtLook: {
+    src: `${base}images/white-shirt-look`,
+    alt: 'A woman stands in soft sunlight wearing an oversized white shirt with a gathered yoke and a sweeping high-low hem, over wide black pleated trousers.',
+    width: 941,
+    height: 1672,
+    focus: '50% 6%',
+  },
 } satisfies Record<string, BrandImage>;
 
 export type ImageKey = keyof typeof images;

@@ -158,7 +158,7 @@ function Philosophy() {
     <section aria-labelledby="philosophy-title" className="surface-light bg-white text-black">
       <div className="lg:grid lg:grid-cols-12">
         <ImageReveal className="relative aspect-[4/5] lg:col-span-5 lg:aspect-auto lg:min-h-[900px]">
-          <Picture image="burgundyDetail" mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 20%" />
+          <Picture image="whiteShirtLook" mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 6%" />
         </ImageReveal>
         <div className="page-gutter flex flex-col justify-between gap-16 py-20 lg:col-span-7 lg:py-28 lg:pl-16">
           <p className="ui-label text-ink-muted">(Philosophy)</p>
