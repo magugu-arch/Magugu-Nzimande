@@ -144,7 +144,15 @@ try {
   await studio.getByRole('button', { name: 'Diary' }).click();
   await studio.getByRole('button', { name: 'Add a booking' }).click();
   await studio.locator('#add-service').selectOption('fittings');
-  await studio.waitForFunction(() => [...document.querySelectorAll('#add-time option')].some((o) => /^\d\d:\d\d$/.test(o.textContent ?? '')), null, { timeout: 5000 });
+  // Today may have no free time left (late in the day, or a closed day), so walk forward to the first day that does.
+  for (let d = 0; d < 10; d++) {
+    const day = new Date(Date.now() + 2 * 3600_000 + d * 86_400_000).toISOString().slice(0, 10);
+    await studio.locator('#add-date').fill(day);
+    const found = await studio
+      .waitForFunction(() => [...document.querySelectorAll('#add-time option')].some((o) => /^\d\d:\d\d$/.test(o.textContent ?? '')), null, { timeout: 2500 })
+      .then(() => true, () => false);
+    if (found) break;
+  }
   const free = (await studio.locator('#add-time option').allTextContents()).filter((t) => /^\d\d:\d\d$/.test(t));
   await studio.locator('#add-time').selectOption(free[0]);
   await studio.locator('#add-name').fill('Phone Booking Smoke');
