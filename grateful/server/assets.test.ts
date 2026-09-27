@@ -72,6 +72,15 @@ describe('site photography', () => {
     expect(existsSync(`public${og}`)).toBe(true);
   });
 
+  it('preloads the home hero with the same sizes the page asks for, so it downloads once', () => {
+    const html = readFileSync('index.html', 'utf8');
+    const home = readFileSync('src/pages/Home.tsx', 'utf8');
+    const preload = /<link rel="preload"[^>]*imagesizes="([^"]+)"/.exec(html)?.[1];
+    const hero = /image="burgundyGown" priority[^>]*sizes="([^"]+)"/.exec(home)?.[1];
+    expect(preload).toBeDefined();
+    expect(preload).toBe(hero);
+  });
+
   it('gives every image descriptive alt text', () => {
     for (const img of Object.values(images)) expect(img.alt.length).toBeGreaterThan(40);
   });

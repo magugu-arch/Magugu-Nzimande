@@ -11,7 +11,7 @@ export default function WorkDetail() {
   const { slug } = useParams();
   const index = work.findIndex((w) => w.slug === slug);
   const item = work[index];
-  useTitle(item?.title ?? 'Work');
+  useTitle(item?.title ?? 'Work', item?.summary);
   if (!item) return <NotFound />;
   const next = work[(index + 1) % work.length]!;
 
