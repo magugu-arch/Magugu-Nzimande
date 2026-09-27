@@ -34,8 +34,8 @@ the written brief:
 - **Domain** — `DEFAULT_SITE_URL` in `vite.config.ts` (`https://quest4best.co.za`) is a placeholder.
 - **Biography** — the About section uses only the working copy from the brief. Add verified
   career facts only once the client has approved them.
-- **Hero video** — hosted on an external CDN (`HERO_VIDEO` in `src/content.ts`). Consider
-  self-hosting before launch; the poster image keeps the hero usable if it fails.
+- **Hero photograph** — `hero-business` is 800px wide; replace with a higher-resolution original
+  when available.
 
 ## Request form
 
@@ -63,14 +63,13 @@ See [AUDIT.md](AUDIT.md) for what remains before launch.
 
 `share/quest4best-website.html` is the whole site in one file, with scripts, styles, the font
 and every photo embedded, for review by email or opening from disk. Regenerate it with
-`npm run build:html` and copy `dist-html/index.html` over it. Only the hero video still
-streams from its CDN, and the poster shows when offline.
+`npm run build:html` and copy `dist-html/index.html` over it.
 
 ## Photography
 
 | File                                       | Used in                                           |
 | ------------------------------------------ | ------------------------------------------------- |
-| `hero-business.webp`                       | Hero video poster                                 |
+| `hero-business.webp`                       | Hero background (still, slow drift)               |
 | `mlungisi-meeting.jpg`                     | 01 The Quest                                      |
 | `mlungisi-standing.jpg`                    | 03 About                                          |
 | `executive-window.jpg`, `meeting-warm.jpg` | Visual proof                                      |

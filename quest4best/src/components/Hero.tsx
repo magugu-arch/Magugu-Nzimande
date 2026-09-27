@@ -1,54 +1,27 @@
-import { useEffect, useRef } from 'react';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
-import { HERO_VIDEO, asset } from '../content';
+import { asset } from '../content';
 
 export function Hero() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  // The video is atmosphere, not content: hold it on its first frame for
-  // anyone who has asked the system for less motion, and stop decoding it
-  // once it has scrolled out of view.
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let visible = true;
-    const apply = () => {
-      if (query.matches || !visible) video.pause();
-      else void video.play().catch(() => {});
-    };
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry?.isIntersecting ?? true;
-      apply();
-    });
-    observer.observe(video);
-    apply();
-    query.addEventListener('change', apply);
-    return () => {
-      observer.disconnect();
-      query.removeEventListener('change', apply);
-    };
-  }, []);
-
   return (
     <section
       id="home"
       aria-labelledby="hero-heading"
       className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-ink"
     >
-      <video
-        ref={videoRef}
-        className="absolute inset-0 -z-20 h-full w-full object-cover grayscale-[35%]"
-        src={HERO_VIDEO}
-        poster={asset('hero-business.webp')}
-        muted
-        autoPlay
-        loop
-        playsInline
-        preload="metadata"
-        aria-hidden
-        tabIndex={-1}
-      />
+      {/* A still photograph with a slow, barely-there drift in place of video
+          (see .hero-drift in index.css; it holds still for reduced motion). */}
+      <picture>
+        <source type="image/webp" srcSet={asset('hero-business.webp')} />
+        <img
+          src={asset('hero-business.jpg')}
+          alt=""
+          width={800}
+          height={450}
+          fetchPriority="high"
+          decoding="async"
+          className="hero-drift absolute inset-0 -z-20 h-full w-full object-cover object-[50%_30%] grayscale-[35%]"
+        />
+      </picture>
       <div aria-hidden className="absolute inset-0 -z-10 bg-black/35" />
       <div
         aria-hidden

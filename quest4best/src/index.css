@@ -48,6 +48,24 @@
   }
 }
 
+/* The hero's only motion: a 1.00 → 1.06 scale over 30 s, back and forth. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-drift {
+    animation: hero-drift 30s ease-in-out infinite alternate;
+    transform-origin: 50% 35%;
+    will-change: transform;
+  }
+}
+
+@keyframes hero-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
 /* Base visual language from the brief, section 16 — keep verbatim. */
 .liquid-glass {
   background: rgba(255, 255, 255, 0.01);

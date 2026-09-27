@@ -15,13 +15,10 @@ export const NAV_LINKS = [
   { label: 'Contact', href: '#contact' },
 ] as const;
 
-export const HERO_VIDEO =
-  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_230229_7c9bc431-46cf-489a-948d-e8144d8eb5d4.mp4';
-
 // Every photo goes through Vite, so the normal build fingerprints it for
 // long-term caching and the single-file build can embed it in the page.
 const ASSETS = import.meta.glob<string>(
-  ['./assets/*.{jpg,png,webp}', '!./assets/mlungisi-portrait.*', '!./assets/hero-business.jpg'],
+  ['./assets/*.{jpg,png,webp}', '!./assets/mlungisi-portrait.*'],
   { eager: true, query: '?url', import: 'default' },
 );
 
