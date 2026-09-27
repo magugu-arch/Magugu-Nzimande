@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grateful Website Costing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400..700;1,400..700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #ffffff; --ink: #0b0b0b; --ink-2: #4a4a4a; --ink-3: #6e6e6e;
+    --rule: #dcdcdc; --track: #ececec; --fill: #0b0b0b; --soft: #f5f5f4;
+    --serif: 'Baskervville', Baskerville, 'Libre Baskerville', Georgia, serif;
+    --sans: 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
+      --rule: #2c2c2c; --track: #262626; --fill: #f4f4f4; --soft: #151515;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
+    --rule: #2c2c2c; --track: #262626; --fill: #f4f4f4; --soft: #151515;
+  }
+
+  body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--serif); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; }
+  .label { font: 600 11px/1.4 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+  .num, .mono { font-variant-numeric: tabular-nums; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  header.mast { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--ink); padding-bottom: 12px; }
+  header.mast .who { font: 600 12px/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; }
+
+  .hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 40px; align-items: end; padding-block: 48px 36px; border-bottom: 1px solid var(--rule); }
+  .hero h1 { margin: 0; font-weight: 400; font-size: clamp(2.3rem, 5.2vw, 3.8rem); line-height: 1.02; letter-spacing: -.02em; text-wrap: balance; }
+  .hero h1 em { font-style: italic; }
+  .hero p { margin: 16px 0 0; max-width: 34em; color: var(--ink-2); }
+  .price { font-size: clamp(3.6rem, 10vw, 6.4rem); line-height: .9; letter-spacing: -.03em; }
+
+  section { padding-block: 40px; border-bottom: 1px solid var(--rule); }
+  h2 { margin: 0 0 6px; font-weight: 400; font-size: 1.9rem; line-height: 1.1; text-wrap: balance; }
+  h2 + .sub { margin: 0 0 24px; color: var(--ink-2); max-width: 46em; }
+
+  /* Three quotes */
+  .quotes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .quotes > div { background: var(--paper); padding: 22px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .quotes .pick { background: var(--ink); color: var(--paper); }
+  .quotes .pick .label, .quotes .pick p { color: inherit; opacity: .75; }
+  .quotes h3 { margin: 0; font-weight: 400; font-style: italic; font-size: 1.35rem; }
+  .quotes .amt { font-size: 2rem; line-height: 1.1; margin-top: 6px; }
+  .quotes .rate { font: 600 12px/1.4 var(--sans); letter-spacing: .06em; }
+  .quotes p { margin: 6px 0 0; font: 13px/1.55 var(--sans); color: var(--ink-2); }
+
+  /* Tables */
+  .scroll { overflow-x: auto; }
+  table.t { width: 100%; border-collapse: collapse; min-width: 560px; }
+  .t th { text-align: left; padding: 0 12px 10px 0; border-bottom: 1px solid var(--ink); }
+  .t th.r, .t td.r { text-align: right; padding-right: 0; padding-left: 12px; white-space: nowrap; }
+  .t td { padding: 13px 12px 13px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .t td strong { display: block; font-weight: 400; font-size: 1.08rem; line-height: 1.3; }
+  .t td span { display: block; margin-top: 3px; font: 13px/1.5 var(--sans); color: var(--ink-3); }
+  .t td.r { font: 14px/1.5 var(--sans); }
+  .t tfoot td { border-bottom: 0; border-top: 1px solid var(--ink); font: 600 14px/1.5 var(--sans); }
+  .hbar { height: 6px; background: var(--track); border-radius: 3px; margin-top: 8px; position: relative; max-width: 240px; }
+  .hbar i { position: absolute; top: 0; bottom: 0; background: var(--fill); border-radius: 3px 0 0 3px; }
+  .hbar i.hi { opacity: .35; border-radius: 0 3px 3px 0; }
+
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+  .cols h3 { margin: 0 0 10px; font-weight: 400; font-style: italic; font-size: 1.35rem; }
+  .list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
+  .list li { padding: 10px 0; border-bottom: 1px solid var(--rule); line-height: 1.45; display: flex; justify-content: space-between; gap: 16px; }
+  .list li small { display: block; font: 12.5px/1.45 var(--sans); color: var(--ink-3); margin-top: 2px; }
+  .list li .r { font: 14px/1.5 var(--sans); white-space: nowrap; text-align: right; }
+
+  .note { background: var(--soft); padding: 18px 20px; font: 14px/1.6 var(--sans); color: var(--ink-2); max-width: 60em; }
+  .note b { color: var(--ink); }
+  .method { font: 13px/1.6 var(--sans); color: var(--ink-2); max-width: 62em; }
+  .sources { font: 13px/1.7 var(--sans); color: var(--ink-2); margin: 8px 0 0; padding-left: 18px; }
+
+  @media (max-width: 760px) {
+    .hero { grid-template-columns: 1fr; gap: 20px; padding-block: 32px 28px; }
+    .quotes, .cols { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="mast">
+    <span class="who">Grateful (Pty) Ltd · Website</span>
+    <span class="label">Costing · 27 September 2026 · ZAR, excl. VAT</span>
+  </header>
+
+  <div class="hero">
+    <div>
+      <p class="label" style="margin:0 0 10px">What would a website like this cost today?</p>
+      <h1>A custom studio site with bookings, payments and a dashboard. <em>Priced at South African rates.</em></h1>
+      <p>This is what it would cost to commission the Grateful website from scratch in Johannesburg in 2026: the same pages, booking engine, PayFast payments, email and studio dashboard, built and tested to the same standard. Monthly running costs are listed separately.</p>
+    </div>
+    <div>
+      <p class="label" style="margin:0 0 8px">Realistic budget</p>
+      <div class="price num">R300k</div>
+      <small style="font:500 13px/1.5 var(--sans);color:var(--ink-2);display:block;margin-top:14px;max-width:26em">About 460 hours with a boutique studio at R650/h. Range R171k–R518k, depending on who builds it. R345k incl. VAT.</small>
+    </div>
+  </div>
+
+  <section aria-labelledby="who-h">
+    <h2 id="who-h">What it costs, by who builds it</h2>
+    <p class="sub">The same 379–545 hours of work, priced at three kinds of South African supplier. The difference is mostly rate, plus how much design, project management and testing comes included.</p>
+    <div class="quotes">
+      <div>
+        <span class="label">Option A</span>
+        <h3>Senior freelancer</h3>
+        <span class="rate num">≈ R450 / hour</span>
+        <div class="amt num">R171k – R245k</div>
+        <p>Lowest cost. One person designs and builds, so it takes longer (4–6 months) and depends on that one person for support.</p>
+      </div>
+      <div class="pick">
+        <span class="label">Option B · recommended</span>
+        <h3>Boutique studio</h3>
+        <span class="rate num">≈ R650 / hour</span>
+        <div class="amt num">R246k – R354k</div>
+        <p>A designer and developer working together, with project management. About 3–4 months. The best fit for a site of this kind.</p>
+      </div>
+      <div>
+        <span class="label">Option C</span>
+        <h3>Established agency</h3>
+        <span class="rate num">≈ R950 / hour</span>
+        <div class="amt num">R360k – R518k</div>
+        <p>A full team, account management and formal support agreements. Fastest delivery, highest cost.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="hours-h">
+    <h2 id="hours-h">Where the hours go</h2>
+    <p class="sub">Estimated from the measured scope of this build: 12 public pages, a five-section studio dashboard, 97 source files, about 9,400 lines of code and 70 automated tests. The cost column uses the boutique-studio rate.</p>
+    <div class="scroll">
+      <table class="t">
+        <thead><tr><th class="label">Work</th><th class="label r">Hours</th><th class="label r">At R650/h</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Discovery &amp; brief</strong><span>Reading the brief and CI manual, planning pages and the booking rules</span><div class="hbar" title="12–20 hours"><i style="left:0;width:10.0%"></i><i class="hi" style="left:10.0%;width:6.7%"></i></div></td><td class="r num">12–20</td><td class="r num">R7,800 – R13,000</td></tr>
+          <tr><td><strong>Visual design</strong><span>Editorial layouts for desktop and phone, type, motion, image treatment</span><div class="hbar" title="45–70 hours"><i style="left:0;width:37.5%"></i><i class="hi" style="left:37.5%;width:20.8%"></i></div></td><td class="r num">45–70</td><td class="r num">R29,250 – R45,500</td></tr>
+          <tr><td><strong>Building the pages</strong><span>12 responsive pages, animation, forms, accessibility, SEO basics</span><div class="hbar" title="90–120 hours"><i style="left:0;width:75.0%"></i><i class="hi" style="left:75.0%;width:25.0%"></i></div></td><td class="r num">90–120</td><td class="r num">R58,500 – R78,000</td></tr>
+          <tr><td><strong>Booking engine &amp; database</strong><span>Available times, 20-minute holds, no double bookings, reschedule and cancel</span><div class="hbar" title="60–85 hours"><i style="left:0;width:50.0%"></i><i class="hi" style="left:50.0%;width:20.8%"></i></div></td><td class="r num">60–85</td><td class="r num">R39,000 – R55,250</td></tr>
+          <tr><td><strong>PayFast payments</strong><span>Hosted checkout, deposits, verified payment notifications</span><div class="hbar" title="20–30 hours"><i style="left:0;width:16.7%"></i><i class="hi" style="left:16.7%;width:8.3%"></i></div></td><td class="r num">20–30</td><td class="r num">R13,000 – R19,500</td></tr>
+          <tr><td><strong>Email &amp; newsletter</strong><span>Seven branded emails, day-before reminders, sign-up and unsubscribe</span><div class="hbar" title="20–30 hours"><i style="left:0;width:16.7%"></i><i class="hi" style="left:16.7%;width:8.3%"></i></div></td><td class="r num">20–30</td><td class="r num">R13,000 – R19,500</td></tr>
+          <tr><td><strong>Studio dashboard</strong><span>Diary, phone bookings, opening hours, prices, enquiries, secure sign-in</span><div class="hbar" title="55–75 hours"><i style="left:0;width:45.8%"></i><i class="hi" style="left:45.8%;width:16.7%"></i></div></td><td class="r num">55–75</td><td class="r num">R35,750 – R48,750</td></tr>
+          <tr><td><strong>Testing &amp; accessibility</strong><span>Automated tests, browser tests at three screen sizes, accessibility checks</span><div class="hbar" title="30–45 hours"><i style="left:0;width:25.0%"></i><i class="hi" style="left:25.0%;width:12.5%"></i></div></td><td class="r num">30–45</td><td class="r num">R19,500 – R29,250</td></tr>
+          <tr><td><strong>Launch &amp; studio guide</strong><span>Accounts, deployment, domain, a plain-language guide for the studio</span><div class="hbar" title="12–20 hours"><i style="left:0;width:10.0%"></i><i class="hi" style="left:10.0%;width:6.7%"></i></div></td><td class="r num">12–20</td><td class="r num">R7,800 – R13,000</td></tr>
+          <tr><td><strong>Project management</strong><span>Meetings, reviews, feedback rounds (about 10%)</span><div class="hbar" title="35–50 hours"><i style="left:0;width:29.2%"></i><i class="hi" style="left:29.2%;width:12.5%"></i></div></td><td class="r num">35–50</td><td class="r num">R22,750 – R32,500</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td class="r num">379–545</td><td class="r num">R246,350 – R354,250</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="run-h">
+    <h2 id="run-h">Running costs once it is live</h2>
+    <p class="sub">The services this site is built on. Three are billed in US dollars, converted here at R16.30 to the dollar (25 September 2026), so the rand amount moves with the exchange rate.</p>
+    <div class="cols">
+      <div>
+        <h3>Monthly</h3>
+        <ul class="list">
+          <li><div>Vercel Pro hosting<small>$20 a month. The free plan is for non-commercial use only</small></div><span class="r num">R326</span></li>
+          <li><div>Supabase Pro database<small>$25 a month. Free projects pause when idle, which a booking site can’t afford</small></div><span class="r num">R408</span></li>
+          <li><div>Resend email<small>Free up to 3,000 emails a month; Pro is $20 if the studio outgrows it</small></div><span class="r num">R0</span></li>
+          <li><div>.co.za domain<small>About R100–R150 a year</small></div><span class="r num">≈ R10</span></li>
+          <li><div><b style="font-weight:600">Total</b><small>About R8,900 a year</small></div><span class="r num"><b>≈ R744</b></span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Per payment, and optional</h3>
+        <ul class="list">
+          <li><div>PayFast card fee<small>3.2% + R2.00 excl. VAT per card payment. No setup or monthly fee</small></div><span class="r num">per payment</span></li>
+          <li><div>Example: R500 deposit<small>R16.00 + R2.00, plus VAT</small></div><span class="r num">R20.70</span></li>
+          <li><div>Example: R2,000 payment<small>R64.00 + R2.00, plus VAT</small></div><span class="r num">R75.90</span></li>
+          <li><div>Support &amp; updates (optional)<small>2–4 hours a month for fixes, changes and security updates</small></div><span class="r num">R900 – R3,800</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="alt-h">
+    <h2 id="alt-h">Cheaper routes, and what they give up</h2>
+    <p class="sub">A site that looks similar can cost much less. What drops away is the custom booking engine, the studio dashboard and the finish.</p>
+    <div class="scroll">
+      <table class="t">
+        <thead><tr><th class="label">Route</th><th class="label">What you give up</th><th class="label r">Build cost</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Template site builder</strong><span>Wix, Squarespace or similar, set up yourself or by a freelancer</span></td><td><span style="margin:0">Generic layouts, booking and payments limited to what the platform offers, ongoing platform fees</span></td><td class="r num">From ≈ R2,000</td></tr>
+          <tr><td><strong>WordPress with booking plugins</strong><span>A theme, a booking plugin and a PayFast plugin</span></td><td><span style="margin:0">Plugin-shaped booking flow and admin, weaker double-booking guarantees, more upkeep and security patching</span></td><td class="r num">R40k – R90k</td></tr>
+          <tr><td><strong>Custom build like this one</strong><span>Designed to the CI; booking rules and dashboard made for the studio</span></td><td><span style="margin:0">Nothing. It costs more up front, but the studio owns the code</span></td><td class="r num">R171k – R518k</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="finish-h">
+    <h2 id="finish-h">To finish this site from where it stands</h2>
+    <p class="sub">This build is 80% complete. Almost all of the remaining 20% is content from the studio and opening accounts, which are not developer costs.</p>
+    <div class="note">
+      <b>Developer time still needed: about 10–16 hours, R4,500 – R15,200.</b> Setting up Supabase, PayFast, Resend and Vercel; connecting the domain; a PayFast sandbox test; testing on real phones; and the changes from the studio’s review. After that, only the monthly running costs of about R744 remain, plus PayFast’s fee on each payment.
+    </div>
+  </section>
+
+  <section aria-labelledby="ex-h">
+    <h2 id="ex-h">Not included in these figures</h2>
+    <ul class="list" style="max-width:46em">
+      <li><div>Photography<small>An editorial fashion shoot. Get quotes from photographers, and confirm image rights in writing</small></div></li>
+      <li><div>Logo and brand identity<small>Already exists in the CI manual</small></div></li>
+      <li><div>Advertising, SEO campaigns and social media management</div></li>
+      <li><div>VAT at 15%<small>Added if the supplier is VAT-registered. The R300k budget becomes R345k</small></div></li>
+    </ul>
+  </section>
+
+  <section style="border-bottom:0">
+    <p class="label">How this was worked out</p>
+    <p class="method">Hours are an estimate for a competent South African team building this exact scope from scratch, measured against the finished code. Hourly rates are placed within published 2026 South African ranges: freelancers R350–R900 (senior React and Node developers R700–R1,200) and agencies R450–R1,200. Actual quotes vary by supplier and by how much scope is trimmed. Service prices and the PayFast fee are the providers’ published 2026 rates. The rand amounts for dollar-billed services use R16.30 to the dollar.</p>
+    <p class="label" style="margin-top:20px">Sources</p>
+    <ol class="sources">
+      <li><a href="https://freelancian.co.za/freelance-pricing-in-south-africa/" target="_blank" rel="noopener">Freelance pricing in South Africa, 2026 (Freelancian)</a></li>
+      <li><a href="https://www.naveck.com/blog/web-development-cost-south-africa/" target="_blank" rel="noopener">Web development company costs in South Africa, 2026 (Naveck)</a></li>
+      <li><a href="https://www.juanq.co.za/how-much-does-website-development-cost-in-south-africa/" target="_blank" rel="noopener">Website development cost in South Africa, 2026 pricing guide</a></li>
+      <li><a href="https://www.newperspectivestudio.co.za/wp/what-is-the-cost-of-creating-a-website-in-south-africa/" target="_blank" rel="noopener">Website design cost South Africa, 2026 (New Perspective Studio)</a></li>
+      <li><a href="https://payfast.io/fees/" target="_blank" rel="noopener">Payfast fees</a></li>
+      <li><a href="https://vercel.com/pricing" target="_blank" rel="noopener">Vercel pricing</a> · <a href="https://supabase.com/pricing" target="_blank" rel="noopener">Supabase pricing</a> · <a href="https://resend.com/pricing" target="_blank" rel="noopener">Resend pricing</a></li>
+      <li><a href="https://hostafrica.co.za/blog/domains/co-za-domain-price-increase-2026/" target="_blank" rel="noopener">.co.za domain price change, October 2026 (HostAfrica)</a></li>
+      <li><a href="https://tradingeconomics.com/south-africa/currency" target="_blank" rel="noopener">USD/ZAR exchange rate (Trading Economics)</a></li>
+    </ol>
+  </section>
+</div>
+</body>
+</html>
