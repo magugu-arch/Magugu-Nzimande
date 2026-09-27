@@ -36,10 +36,11 @@ function Hero() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.8, ease }}
         >
-          <Picture image="whiteGarment" priority mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 22%" />
+          <Picture image="burgundyGown" priority mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 18%" />
         </motion.div>
-        <p className="ui-label absolute bottom-5 left-4 md:left-8 lg:left-14">(Fashion)</p>
-        <p className="ui-label absolute right-4 bottom-5 opacity-80 md:right-8 lg:hidden">{site.location}</p>
+        {/* Difference blending keeps these legible over both the pale backdrop and the dark gown. */}
+        <p className="ui-label absolute bottom-5 left-4 mix-blend-difference md:left-8 lg:left-14">(Fashion)</p>
+        <p className="ui-label absolute right-4 bottom-5 mix-blend-difference md:right-8 lg:hidden">{site.location}</p>
       </div>
 
       <div className="page-gutter relative flex flex-col justify-end pt-10 pb-14 lg:col-span-7 lg:pt-10 lg:pb-12 lg:pl-12 xl:pl-16">

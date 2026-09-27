@@ -26,12 +26,12 @@ export const work: WorkItem[] = [
   {
     slug: 'garment-study-01',
     title: 'Garment Study 01',
-    category: 'Tailoring',
+    category: 'Evening',
     year: null,
-    summary: 'A white shirt reworked with volume: a crisp collar and placket above a dramatic high-low hem that opens like a cape.',
-    image: 'whiteGarment',
+    summary: 'Burgundy satin in full movement: an oversized bow at the neck, gathered sleeves and a skirt that sweeps out into a train, opened by a high slit.',
+    image: 'burgundyGown',
     colour: true,
-    details: ['Oversized white shirt', 'High-low, flared hem', 'Classic collar and button placket'],
+    details: ['Burgundy satin gown', 'Oversized neck bow', 'Full gathered sleeves', 'High slit and sweeping train'],
   },
   {
     slug: 'garment-study-02',

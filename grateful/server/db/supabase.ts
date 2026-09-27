@@ -26,7 +26,7 @@ const service = (r: Row): Service => ({
   durationMinutes: Number(r.duration_minutes),
   priceCents: toCents(r.price),
   depositCents: toCents(r.deposit_amount),
-  image: String(r.image ?? 'whiteGarment'),
+  image: String(r.image ?? 'burgundyGown'),
   sortOrder: Number(r.sort_order ?? 0),
   active: Boolean(r.active),
 });

@@ -27,11 +27,11 @@ export function Picture({
   /** Override alt, e.g. '' when the image is decorative next to its own caption. */
   alt?: string;
 }) {
-  const img = images[image as ImageKey] ?? images.whiteGarment;
+  const img = images[image as ImageKey] ?? images.burgundyGown;
   const url = imageUrls(img.src);
   return (
     <picture className={`block overflow-hidden ${className}`}>
-      <source type="image/webp" srcSet={`${url.w640} 640w, ${url.w1280} 1280w`} sizes={sizes} />
+      <source type="image/webp" srcSet={`${url.w640} 640w, ${url.w1280} ${Math.min(1280, img.width)}w`} sizes={sizes} />
       <img
         src={url.fallback}
         alt={alt ?? img.alt}

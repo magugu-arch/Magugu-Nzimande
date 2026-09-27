@@ -24,7 +24,7 @@ export default function About() {
           </FadeIn>
         </div>
         <ImageReveal className="relative h-[80svh] lg:col-span-5 lg:h-auto">
-          <Picture image="whiteGarment" priority sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 25%" />
+          <Picture image="burgundyGown" priority sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 18%" />
         </ImageReveal>
       </section>
 

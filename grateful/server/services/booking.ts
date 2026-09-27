@@ -130,7 +130,7 @@ export async function getPublicBooking(id: string): Promise<PublicBooking | null
     id: booking.id,
     serviceId: booking.serviceId,
     serviceName: service?.name ?? 'Appointment',
-    serviceImage: service?.image ?? 'whiteGarment',
+    serviceImage: service?.image ?? 'burgundyGown',
     durationMinutes: booking.durationMinutes,
     date: booking.date,
     time: booking.time,

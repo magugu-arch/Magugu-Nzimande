@@ -5,7 +5,7 @@
  */
 
 export type BrandImage = {
-  /** Base path without extension; `-640.webp`, `-1280.webp` and `.jpeg` exist. */
+  /** Base path without extension; `-640.webp`, `-1280.webp` (the large size, up to 1280 wide) and `.jpeg` exist. */
   src: string;
   alt: string;
   width: number;
@@ -17,12 +17,12 @@ export type BrandImage = {
 const base = import.meta.env.BASE_URL;
 
 export const images = {
-  whiteGarment: {
-    src: `${base}images/IMG_2438`,
-    alt: 'A woman stands facing the camera in a white, oversized Grateful shirt with a dramatic high-low hem that flares out at the sides, worn over black leggings.',
-    width: 1536,
-    height: 2048,
-    focus: '50% 30%',
+  burgundyGown: {
+    src: `${base}images/burgundy-gown`,
+    alt: 'A model in a flowing burgundy satin gown with an oversized bow at the neck, full gathered sleeves, a high slit and a sweeping train, against a pale studio backdrop.',
+    width: 1084,
+    height: 1451,
+    focus: '50% 20%',
   },
   styledLook: {
     src: `${base}images/IMG_2243`,

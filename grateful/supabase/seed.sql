@@ -9,7 +9,7 @@
 insert into public.services (id, slug, name, description, duration_minutes, price, deposit_amount, image, sort_order) values
   ('consultation', 'consultation', 'Consultation & Concept Development',
    'A first conversation about you, the occasion and the idea. We talk through silhouette, fabric and how you want to feel, and shape a direction for the piece.',
-   60, null, null, 'whiteGarment', 1),
+   60, null, null, 'burgundyGown', 1),
   ('custom-design', 'custom-design', 'Custom Fashion Design',
    'A garment designed and made around you, from sketch and pattern to cut, construction and finish, with fittings along the way.',
    90, null, null, 'styledLook', 2),

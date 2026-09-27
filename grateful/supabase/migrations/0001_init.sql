@@ -21,7 +21,7 @@ create table public.services (
   duration_minutes integer not null check (duration_minutes between 15 and 480),
   price            numeric(10,2) check (price is null or price >= 0),          -- null = quote required
   deposit_amount   numeric(10,2) check (deposit_amount is null or deposit_amount >= 0),
-  image            text not null default 'whiteGarment',
+  image            text not null default 'burgundyGown',
   sort_order       integer not null default 0,
   active           boolean not null default true,
   created_at       timestamptz not null default now(),
