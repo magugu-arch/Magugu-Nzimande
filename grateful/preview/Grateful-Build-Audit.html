@@ -192,10 +192,10 @@
 
   <section aria-labelledby="ev-h">
     <h2 id="ev-h">What was verified</h2>
-    <p class="sub">These were measured on the current code, commit <span class="mono">b4bb60a</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
+    <p class="sub">These were measured on the current code, commit <span class="mono">be6b506</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
     <div class="facts">
       <div><span class="label">Unit tests</span><b class="mono">70 / 70</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice. Every photograph checked in all three sizes, none left unused, none turned black and white.</p></div>
-      <div><span class="label">Browser smoke test</span><b class="mono">3 journeys</b><p>27 page renders at 320, 390 and 1440px; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours, record a phone booking. Runs in CI.</p></div>
+      <div><span class="label">Browser smoke test</span><b class="mono">4 journeys</b><p>27 page renders at 320, 390 and 1440px; the back-to-top button; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours, record a phone booking. Runs in CI.</p></div>
       <div><span class="label">Accessibility (axe)</span><b class="mono">0</b><p>Serious or critical issues on every page and the dashboard. The smoke run caught a faint dashboard label, now fixed.</p></div>
       <div><span class="label">Offline preview</span><b class="mono">1.8 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
     </div>
@@ -243,13 +243,13 @@
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>Every photograph now shows in its original colour, on every page</li>
-      <li>That includes the Philosophy image, the Work tiles on the home page, Services, and the pictures in booking, payment and confirmation</li>
-      <li>Garment Study 03 now shows the navy bow dress, with its description rewritten to match</li>
-      <li>The burgundy dress stays on the Fittings and Special Occasion services</li>
-      <li>The black-and-white code is removed entirely, and a new test fails if it returns (70 tests)</li>
-      <li>The browser test passes, and the offline file opens with no errors</li>
-      <li>Content changes only, so the percentage holds at 80%</li>
+      <li>The Contact page map now shows in full colour, like every photograph</li>
+      <li>New “Back to top” button on every page, shown once a visitor scrolls past the first screen</li>
+      <li>On phones it sits above the booking bar; on desktop, bottom right</li>
+      <li>It returns keyboard and screen-reader users to the start of the page too</li>
+      <li>The browser test now checks the button works; the colour test now covers the map</li>
+      <li>Earlier this round: every photograph in colour, and the navy dress for Garment Study 03</li>
+      <li>Small finishing changes, so the percentage holds at 80%</li>
     </ul>
     <div class="links">
       <a class="btn solid" href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN" target="_blank" rel="noopener">Open the site &amp; dashboard preview</a>
