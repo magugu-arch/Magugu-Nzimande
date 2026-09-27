@@ -8,13 +8,16 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 // one build serves the real domain and a preview host alike.
 function siteFiles(siteUrl: string): Plugin {
   let outDir = 'dist';
+  let skip = false;
   return {
     name: 'quest4best-site-files',
     apply: 'build',
     configResolved(config) {
       outDir = resolve(config.root, config.build.outDir);
+      skip = Boolean(config.build.ssr);
     },
     closeBundle() {
+      if (skip) return;
       const base = siteUrl.replace(/\/$/, '');
       writeFileSync(
         resolve(outDir, 'robots.txt'),

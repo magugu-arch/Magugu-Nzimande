@@ -20,16 +20,19 @@ client**, not development time. Once those inputs arrive, the remaining build wo
 
 ## Measured quality (Lighthouse 12, production build)
 
+Measured through a local server with gzip compression, as GitHub Pages serves the site.
+
 | Category       | Mobile | Desktop |
 | -------------- | -----: | ------: |
-| Performance    |     88 |      99 |
+| Performance    |     98 |      99 |
 | Accessibility  |    100 |     100 |
 | Best practices |     96 |      96 |
 | SEO            |    100 |     100 |
 
-The mobile performance figure was measured on a local server with no compression or caching.
-GitHub Pages adds both, so the live score should be higher. The best-practices deduction is the
-hero video failing to load inside the audit sandbox.
+On mobile (simulated slow 4G) the headline appears at 2.2 s, with no main-thread blocking and a
+layout shift of 0.05. The page's HTML is pre-rendered at build time, so the headline paints
+before any JavaScript runs. The best-practices deduction is the hero video failing to load inside
+the audit sandbox.
 
 ## Brief acceptance criteria (§22)
 
@@ -66,6 +69,8 @@ hero video failing to load inside the audit sandbox.
   error messages. With no form service configured it opens the visitor's mail app with the
   request fully written out. Setting `VITE_FORM_ENDPOINT` makes it post directly and show an
   on-page confirmation. Both paths are tested.
+- Pre-rendered HTML: the hosted build writes the full page into `index.html` at build time and
+  React hydrates it, so content shows without waiting for JavaScript.
 - A POPIA privacy notice in the footer, covering the request form, no cookies and no analytics.
 - A self-contained single-file version, `share/quest4best-website.html` (`npm run build:html`),
   that opens from disk or an email attachment with everything embedded.

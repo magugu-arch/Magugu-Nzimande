@@ -136,7 +136,7 @@ export function ContactForm() {
   });
 
   const inputClass =
-    'mt-2 w-full scroll-mt-28 border-0 border-b border-white/25 bg-transparent px-0 py-3 text-base text-white placeholder:text-white/40 transition-colors focus:border-quest focus:outline-none focus:ring-0 aria-[invalid=true]:border-quest';
+    'mt-2 w-full scroll-mt-28 border-0 border-b border-white/45 bg-transparent px-0 py-3 text-base text-white placeholder:text-white/60 transition-colors focus:border-quest focus:outline-none focus:ring-0 aria-[invalid=true]:border-quest';
   const labelClass = 'label text-white/70';
 
   const FieldError = ({ name }: { name: keyof Fields }) =>
@@ -240,7 +240,7 @@ export function ContactForm() {
             required
             value={fields.interest}
             onChange={(e) => set('interest', e.target.value)}
-            className={`${inputClass} appearance-none bg-[length:12px] bg-[right_0.25rem_center] bg-no-repeat pr-8 [background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-opacity='.7' fill='none' stroke-width='1.5'/%3E%3C/svg%3E")] ${fields.interest ? '' : 'text-white/40'}`}
+            className={`${inputClass} appearance-none bg-[length:12px] bg-[right_0.25rem_center] bg-no-repeat pr-8 [background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-opacity='.7' fill='none' stroke-width='1.5'/%3E%3C/svg%3E")] ${fields.interest ? '' : 'text-white/60'}`}
           >
             <option value="" disabled className="bg-ink text-white/60">
               Choose one
