@@ -1,4 +1,4 @@
-import { copyFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -23,13 +23,52 @@ function siteFiles(siteUrl: string): Plugin {
         resolve(outDir, 'robots.txt'),
         `User-agent: *\nAllow: /\n\nSitemap: ${base}/sitemap.xml\n`,
       );
+      // Image entries help the photographs surface in Google Images.
+      const photos = readdirSync(resolve(outDir, 'assets'))
+        .filter((f) => /\.webp$/.test(f) && !/-640-/.test(f))
+        .map((f) => `${base}/assets/${f}`)
+        .concat(`${base}/assets/og-image.jpg`);
+      const images = photos
+        .map((u) => `    <image:image><image:loc>${u}</image:loc></image:image>`)
+        .join('\n');
+      const lastmod = new Date().toISOString().slice(0, 10);
       writeFileSync(
         resolve(outDir, 'sitemap.xml'),
-        `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${base}/</loc></url>\n</urlset>\n`,
+        `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>${base}/</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+${images}
+  </url>
+</urlset>
+`,
       );
       // One page, anchor navigation: any stray URL should land on the site.
       copyFileSync(resolve(outDir, 'index.html'), resolve(outDir, '404.html'));
     },
+  };
+}
+
+// Search-engine ownership tags. Values come from the environment (in CI, the
+// GOOGLE_SITE_VERIFICATION and BING_SITE_VERIFICATION repository variables),
+// so no code change is needed to verify Google Search Console or Bing.
+function verificationTags(env: Record<string, string>): Plugin {
+  const tags = [
+    ['google-site-verification', env.GOOGLE_SITE_VERIFICATION],
+    ['msvalidate.01', env.BING_SITE_VERIFICATION],
+  ].filter((t): t is [string, string] => Boolean(t[1]));
+  return {
+    name: 'quest4best-verification',
+    transformIndexHtml: () =>
+      tags.map(([name, content]) => ({
+        tag: 'meta',
+        attrs: { name, content },
+        injectTo: 'head' as const,
+      })),
   };
 }
 
@@ -56,12 +95,12 @@ export default defineConfig(({ mode, isSsrBuild }) => {
     return {
       base: './',
       build: { outDir: 'dist-html', assetsInlineLimit: Number.MAX_SAFE_INTEGER },
-      plugins: [react(), viteSingleFile({ removeViteModuleLoader: true })],
+      plugins: [react(), verificationTags(env), viteSingleFile({ removeViteModuleLoader: true })],
     };
   }
 
   return {
     base: env.BASE_PATH || '/',
-    plugins: [react(), siteFiles(process.env.VITE_SITE_URL)],
+    plugins: [react(), verificationTags(env), siteFiles(process.env.VITE_SITE_URL)],
   };
 });

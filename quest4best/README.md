@@ -57,7 +57,9 @@ every push to the site branch. The build takes two variables:
 One-time setup (repository owner): Settings → Pages → Source: **GitHub Actions**, and allow the
 site branch under Settings → Environments → `github-pages`.
 
-See [AUDIT.md](AUDIT.md) for what remains before launch.
+See [AUDIT.md](AUDIT.md) for what remains before launch, and [SEO.md](SEO.md) for the keyword
+plan and the Google Search Console steps. Set `GOOGLE_SITE_VERIFICATION` (and optionally
+`BING_SITE_VERIFICATION`) as repository variables to add the ownership tags.
 
 ## Shareable single file
 

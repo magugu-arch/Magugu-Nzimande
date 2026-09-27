@@ -315,6 +315,10 @@ export function Footer() {
               <Logo className="w-[170px]" />
             </a>
             <p className="mt-6 text-sm text-white/50">{BRAND_LINE}</p>
+            <p className="mt-2 max-w-[28rem] text-sm text-white/50">
+              Strategy consulting, business transformation and leadership advisory for leaders in
+              South Africa.
+            </p>
           </div>
           <nav aria-label="Footer">
             <ul className="flex flex-wrap gap-x-7 gap-y-3">

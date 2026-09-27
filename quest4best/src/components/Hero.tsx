@@ -35,7 +35,7 @@ export function Hero() {
       <div className="mx-auto flex w-full max-w-page flex-1 flex-col justify-end px-6 pb-14 pt-32 md:px-10 md:pb-20 xl:px-16 xl:pb-24">
         <p className="label mb-8 flex items-center gap-3 text-white/70">
           <span aria-hidden className="h-px w-8 bg-quest" />
-          Quest4Best Consulting
+          Independent strategic advisory · South Africa
         </p>
 
         <h1

@@ -50,6 +50,9 @@ jobs:
           # Optional: Settings → Secrets and variables → Actions → Variables.
           # Unset, the request form falls back to the visitor's mail app.
           VITE_FORM_ENDPOINT: ${{ vars.FORM_ENDPOINT }}
+          # Search Console / Bing ownership codes (the content="…" value only).
+          GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+          BING_SITE_VERIFICATION: ${{ vars.BING_SITE_VERIFICATION }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

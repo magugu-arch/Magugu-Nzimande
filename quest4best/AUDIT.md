@@ -61,8 +61,16 @@ before any JavaScript runs.
 - Keyboard: skip link, visible focus ring, logical tab order.
 - Respects reduced-motion settings: the hero photo's slow drift switches off.
 - Responsive WebP images with JPEG fallback, lazy-loaded below the fold.
-- Open Graph and Twitter preview image (1200×630), JSON-LD, canonical URL, sitemap, robots.txt,
-  web manifest, full icon set, 404 page.
+- **Search optimisation (see [SEO.md](SEO.md)):**
+  - a keyword plan for South Africa, used in the title, description, visible copy and
+    structured data, without hidden text or stuffing
+  - title (58 characters) and description (148 characters)
+  - keywords, robots, hreflang, Open Graph and Twitter metadata
+  - JSON-LD graph: ProfessionalService with three services, Person, WebSite and WebPage
+  - a `sitemap.xml` with last-modified date and image entries, and `robots.txt`
+  - Google Search Console and Bing verification tags injected from repository variables
+  - a step-by-step Search Console guide
+- Web manifest, full icon set, 404 page.
 - **Request-information form** in Contact: name, email, organisation, role, phone, area of
   interest, message and POPIA consent, with inline validation, a spam honeypot and accessible
   error messages. With no form service configured it opens the visitor's mail app with the
@@ -94,21 +102,27 @@ before any JavaScript runs.
    Formspree or Web3Forms form for the confirmed address and add its URL as the repository
    variable `FORM_ENDPOINT` (Settings → Secrets and variables → Actions → Variables). _(15 min.)_
 
+6. **Google Search Console.** Once the site is live, add the property with the Google account
+   that should own it, verify it (DNS TXT record, or the `GOOGLE_SITE_VERIFICATION` variable),
+   submit `sitemap.xml` and request indexing. Follow the steps in [SEO.md](SEO.md). _(15 min.)_
+7. **LinkedIn links.** Send the company and personal LinkedIn URLs so they can be linked from
+   the site and the structured data. _(10 min.)_
+
 ### Recommended before launch
 
-6. **Company details in the privacy notice.** The notice is live. Add the registered company
+8. **Company details in the privacy notice.** The notice is live. Add the registered company
    name and number (Quest4Best Consulting (Pty) Ltd) and a named contact for information
    requests once supplied. _(15 min.)_
-7. **Real-device QA.** iOS Safari and Android Chrome, including the form handing off to the mail app. _(1 h.)_
-8. **Higher-resolution portrait.** `mlungisi-portrait.jpg` is only 396px wide. It is currently
-   unused, and is needed if a press or LinkedIn preview uses it.
-9. **Hero photograph.** `hero-business` is only 800px wide, soft on large screens behind the
-   overlays. A higher-resolution original, or a new owned image, would sharpen the first
-   impression. _(15 min once supplied.)_
+9. **Real-device QA.** iOS Safari and Android Chrome, including the form handing off to the mail app. _(1 h.)_
+10. **Higher-resolution portrait.** `mlungisi-portrait.jpg` is only 396px wide. It is currently
+    unused, and is needed if a press or LinkedIn preview uses it.
+11. **Hero photograph.** `hero-business` is only 800px wide, soft on large screens behind the
+    overlays. A higher-resolution original, or a new owned image, would sharpen the first
+    impression. _(15 min once supplied.)_
 
 ### Optional
 
-10. The photos the brief lists but that were never supplied (`city-buildings`, `modern-building`)
+12. The photos the brief lists but that were never supplied (`city-buildings`, `modern-building`)
     have been substituted with `executive-window`. Swap them in if they arrive.
-11. Privacy-friendly analytics (e.g. Plausible) if the client wants visitor numbers.
-12. Replace the GitHub Pages URL with the custom domain in the deploy workflow environment.
+13. Privacy-friendly analytics (e.g. Plausible) if the client wants visitor numbers.
+14. Replace the GitHub Pages URL with the custom domain in the deploy workflow environment.
