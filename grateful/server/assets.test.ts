@@ -49,9 +49,8 @@ describe('site photography', () => {
     for (const key of Object.keys(images)) expect(source.includes(key), key).toBe(true);
   });
 
-  it('shows every photograph in colour: no greyscale filter outside the embedded map', () => {
+  it('shows every photograph, and the map, in colour: no greyscale filter anywhere', () => {
     const offenders = files('src')
-      .filter((f) => !f.endsWith('Contact.tsx'))
       .filter((f) => /grayscale|\bmono\b(?!gram)/.test(readFileSync(f, 'utf8').replace(/font-mono/g, '')));
     expect(offenders).toEqual([]);
   });

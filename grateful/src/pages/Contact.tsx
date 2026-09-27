@@ -161,7 +161,7 @@ export default function Contact() {
           src={site.mapEmbed}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          className="block h-[50svh] w-full border-0 [filter:grayscale(1)_invert(0.92)_contrast(0.9)]"
+          className="block h-[50svh] w-full border-0"
         />
         )}
       </section>

@@ -58,6 +58,17 @@ try {
     await page.close();
   }
 
+  // The back-to-top button appears on a long page and returns to the top.
+  {
+    const page = await newPage(390);
+    await page.goto(base + '/', { waitUntil: 'networkidle' });
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
+    await page.getByRole('button', { name: 'Back to top' }).click();
+    await page.waitForFunction(() => window.scrollY === 0, null, { timeout: 3000 }).catch(() => fail('back to top: page did not return to the top'));
+    console.log('  ✓ back-to-top button returns to the top');
+    await page.close();
+  }
+
   // 2 & 3. Book, then book and pay.
   async function book(page, serviceName) {
     await page.goto(`${base}/booking`, { waitUntil: 'networkidle' });
