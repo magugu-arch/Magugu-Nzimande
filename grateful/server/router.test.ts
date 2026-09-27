@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { EmailMessage } from './email/types';
 import { route, type ApiRequest } from './router';
 import { unsubscribeToken } from './services/forms';
-import { realServices, resetStudio, setupStudio, TEST_DATE as date } from './test/fixtures';
+import { adminAuth, realServices, resetStudio, setupStudio, TEST_DATE as date } from './test/fixtures';
 
 let sent: EmailMessage[];
 
@@ -99,6 +99,24 @@ describe('API', () => {
     expect(denied.status).toBe(401);
     const ok = await route({ ...req('GET', `/api/admin/bookings?from=${date}&to=${date}`), headers: { authorization: 'Bearer studio-secret-token' } });
     expect((ok.body as { bookings: unknown[] }).bookings).toHaveLength(1);
+  });
+
+  it('runs the dashboard endpoints behind the token: session, services, hours, messages', async () => {
+    const headers = adminAuth();
+    const as = (r: ApiRequest) => route({ ...r, headers });
+    expect((await as(req('GET', '/api/admin/session'))).status).toBe(200);
+    expect((await as(req('PATCH', '/api/admin/services/fittings', { priceCents: 30_000 }))).body).toMatchObject({ service: { priceCents: 30_000 } });
+    expect((await as(req('PATCH', '/api/admin/services/fittings', { priceCents: 10_000, depositCents: 50_000 }))).status).toBe(422);
+    const added = await as(req('POST', '/api/admin/hours', { date, startTime: '14:00', endTime: '16:00' }));
+    expect(added.status).toBe(201);
+    const bad = await as(req('POST', '/api/admin/hours', { date, startTime: '16:00', endTime: '09:00' }));
+    expect(bad.status).toBe(422);
+    const hours = (await as(req('GET', `/api/admin/hours?from=${date}&to=${date}`))).body as { hours: { id: string }[] };
+    expect(hours.hours.length).toBeGreaterThanOrEqual(2);
+    expect((await as(req('DELETE', `/api/admin/hours/${hours.hours[0]!.id}`))).status).toBe(200);
+    expect((await as(req('GET', '/api/admin/messages'))).status).toBe(200);
+    // The same calls without the token are refused.
+    expect((await route(req('PATCH', '/api/admin/services/fittings', { priceCents: 1 }))).status).toBe(401);
   });
 
   it('keeps admin endpoints closed without a token', async () => {

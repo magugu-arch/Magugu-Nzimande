@@ -77,15 +77,30 @@ Sent through `server/email/providers.ts` (Resend, or console in development). Te
 
 An email failure is logged, but it never undoes a booking or a payment, because the database is the record. Every newsletter email carries a signed, one-click unsubscribe link (`/unsubscribe`, signed with `NEWSLETTER_SECRET`).
 
-## Studio admin API
+## Studio dashboard
 
-The studio has no dashboard yet. Until it does, the Supabase table editor covers day-to-day viewing, and these endpoints cover the operations that need the booking rules. All of them require `Authorization: Bearer $ADMIN_TOKEN`:
+**`/studio`**: where Phindi runs the studio day to day. Sign in with the `ADMIN_TOKEN` value. It has:
+
+- **Diary:** the next seven days of bookings, with call/WhatsApp/email links, **reschedule** (only free times are offered) and **cancel** (confirmed on the card before it acts). Both email the client.
+- **Opening hours:** open single days or a weekly pattern, and close, reopen or delete blocks. The booking page follows at once.
+- **Services & prices:** price, deposit, duration, wording and visibility per service. A blank price means "Quote required".
+- **Enquiries:** contact messages to mark replied or archive.
+- **Overview figures:** today, next 7 days, awaiting payment, needs attention, new enquiries, subscribers.
+
+The plain-language guide for the studio is **[STUDIO_GUIDE.md](STUDIO_GUIDE.md)**. The dashboard isn't linked from the site, is excluded in `robots.txt`, and is sent with `X-Robots-Tag: noindex`. The token is kept in `sessionStorage` only.
+
+Under the dashboard sits the admin API. Every call needs `Authorization: Bearer $ADMIN_TOKEN`:
 
 | | |
 | --- | --- |
-| `GET /api/admin/bookings?from=YYYY-MM-DD&to=YYYY-MM-DD` | the diary for a date range |
-| `POST /api/admin/bookings/:id/reschedule` `{ "date", "time" }` | move a confirmed booking (checked against opening hours and clashes; emails the client) |
-| `POST /api/admin/bookings/:id/cancel` | cancel and free the slot (emails the client; issue any refund in PayFast) |
+| `GET /api/admin/overview` | the figures along the top |
+| `GET /api/admin/bookings?from=&to=` | the diary |
+| `GET /api/admin/bookings/:id/options?date=` | free times a booking could move to |
+| `POST /api/admin/bookings/:id/reschedule` `{ date, time }` | move a confirmed booking |
+| `POST /api/admin/bookings/:id/cancel` | cancel and free the slot |
+| `GET /api/admin/services` · `PATCH /api/admin/services/:id` | read and edit services (the deposit is checked against the price) |
+| `GET /api/admin/hours?from=&to=` · `POST /api/admin/hours` · `PATCH`/`DELETE /api/admin/hours/:id` | opening hours (one date, or `from`/`to`/`weekdays`) |
+| `GET /api/admin/messages` · `PATCH /api/admin/messages/:id` | enquiries |
 
 ## Security
 
@@ -111,6 +126,7 @@ The studio has no dashboard yet. Until it does, the Supabase table editor covers
 | `npm run dev` | site + API with hot reload |
 | `npm run build` | typecheck and production build to `dist/` |
 | `npm test` | Vitest: slot rules, double booking, holds, payment verification, PayFast signatures, reschedule, unsubscribe, API routes. Shared fixtures live in `server/test/fixtures.ts` |
-| `npm run smoke` | real browser against the dev server: every page at 320/390/1440px (sideways scroll, console errors, axe), then a free and a paid booking end to end |
+| `npm run smoke` | real browser against the dev server: every page at 320/390/1440px (sideways scroll, console errors, axe), then a free and a paid booking end to end, then the studio dashboard (sign in, find the booking, reschedule, set a price, open hours) |
 | `npm run verify` | typecheck, lint, test, build: what CI runs (followed by `smoke`) |
+| `npm run build:single` | the same preview as **one self-contained HTML file** (`dist-single/index.html`, about 2 MB: scripts, styles, fonts and photos inlined) that opens by double-clicking on a Mac or tapping it on Android. A copy is kept at `preview/Grateful-Website-Preview.html` |
 | `npm run build:demo` | static click-through preview in `dist-demo/`, with the API simulated in the browser (`src/lib/demoApi.ts`). Nothing is saved or sent. Never deploy it as the real site |

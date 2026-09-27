@@ -68,3 +68,43 @@ export type ApiError = {
   /** Field-level messages, keyed by input name. */
   fields?: Record<string, string>;
 };
+
+/** A block of opening hours on one day. Bookable times are derived from open ones. */
+export type OpeningHours = {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: 'open' | 'closed';
+};
+
+export type ServiceUpdate = Partial<Pick<Service, 'name' | 'description' | 'durationMinutes' | 'priceCents' | 'depositCents' | 'active'>>;
+
+export type ContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  status: 'new' | 'replied' | 'archived';
+  createdAt: string;
+};
+
+/** A booking as the studio sees it in the dashboard. */
+export type AdminBooking = {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  clientName: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+  durationMinutes: number;
+  notes: string;
+  status: BookingStatus;
+  paymentStatus: PaymentStatus;
+  paymentReference: string | null;
+  createdAt: string;
+};

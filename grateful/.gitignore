@@ -5,3 +5,4 @@ dist/
 .vercel/
 *.tsbuildinfo
 dist-demo/
+dist-single/

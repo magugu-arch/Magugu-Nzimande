@@ -59,3 +59,18 @@ export function resetStudio() {
   setEmailProvider(null);
   delete process.env.ADMIN_TOKEN;
 }
+
+export const ADMIN_TOKEN = 'studio-test-token-0123456789';
+
+/** Turn on the admin API for this test and return the header that unlocks it. */
+export function adminAuth(): Record<string, string> {
+  process.env.ADMIN_TOKEN = ADMIN_TOKEN;
+  return { authorization: `Bearer ${ADMIN_TOKEN}` };
+}
+
+/** Three sample clients booked into TEST_DATE, for tests that need a filled diary. */
+export const sampleClients = [
+  { clientName: 'Lerato Dlamini', email: 'lerato@example.com', phone: '082 111 2222', notes: 'Matric dance dress, emerald.' },
+  { clientName: 'Nomsa Khumalo', email: 'nomsa@example.com', phone: '083 333 4444', notes: '' },
+  { clientName: 'Aisha Patel', email: 'aisha@example.com', phone: '084 555 6666', notes: 'Taking in a blazer.' },
+];

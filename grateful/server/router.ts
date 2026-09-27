@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
-import { bookingSchema, contactSchema, fieldErrors, newsletterSchema, paymentSchema } from '../shared/validation';
+import { bookingSchema, contactSchema, fieldErrors, newsletterSchema, openingHoursSchema, paymentSchema, serviceUpdateSchema } from '../shared/validation';
 import { config } from './config';
 import { PaymentVerificationError } from './payments/types';
 import { looksLikeSpam, rateLimit } from './security';
@@ -19,6 +19,8 @@ import {
   startPayment,
 } from './services/booking';
 import { submitContact, subscribe, unsubscribe } from './services/forms';
+import { addOpeningHours, overview, rescheduleOptions, updateService } from './services/admin';
+import { repository } from './db';
 
 /**
  * Every API endpoint, as plain functions from request to response so the same
@@ -190,6 +192,59 @@ export async function route(req: ApiRequest): Promise<ApiResponse> {
         if (!isDate(from) || !isDate(to)) return err(400, 'Provide from and to as YYYY-MM-DD.');
         return { status: 200, headers: { 'Cache-Control': 'no-store' }, body: { bookings: await listBookingsForAdmin(from, to) } };
       }
+      const noStore = (body: unknown): ApiResponse => ({ status: 200, headers: { 'Cache-Control': 'no-store' }, body });
+
+      // GET /api/admin/session — lets the dashboard check a token before showing anything
+      if (method === 'GET' && b === 'session') return noStore({ ok: true });
+      // GET /api/admin/overview — the numbers across the top of the dashboard
+      if (method === 'GET' && b === 'overview') return noStore(await overview());
+
+      // Services: GET list (incl. hidden), PATCH one
+      if (method === 'GET' && b === 'services' && !id) return noStore({ services: await repository().listServices({ includeInactive: true }) });
+      if (method === 'PATCH' && b === 'services' && id) {
+        const v = validated(serviceUpdateSchema, req);
+        if (!v.ok) return v.res;
+        const service = await updateService(id, v.data);
+        return json(200, { service });
+      }
+
+      // Opening hours: GET range, POST one day or a weekly pattern, PATCH open/closed, DELETE
+      if (method === 'GET' && b === 'hours') {
+        const from = req.query.get('from');
+        const to = req.query.get('to');
+        if (!isDate(from) || !isDate(to)) return err(400, 'Provide from and to as YYYY-MM-DD.');
+        return noStore({ hours: await repository().listOpeningHours(from, to) });
+      }
+      if (method === 'POST' && b === 'hours' && !id) {
+        const v = validated(openingHoursSchema, req);
+        if (!v.ok) return v.res;
+        return json(201, await addOpeningHours(v.data));
+      }
+      if (method === 'PATCH' && b === 'hours' && isUuid(id)) {
+        const v = validated(z.object({ status: z.enum(['open', 'closed']) }), req);
+        if (!v.ok) return v.res;
+        const hours = await repository().setOpeningHoursStatus(id, v.data.status);
+        return hours ? json(200, { hours }) : err(404, 'Not found.');
+      }
+      if (method === 'DELETE' && b === 'hours' && isUuid(id)) {
+        return (await repository().deleteOpeningHours(id)) ? json(200, { ok: true }) : err(404, 'Not found.');
+      }
+
+      // Enquiries: GET newest first, PATCH status
+      if (method === 'GET' && b === 'messages') return noStore({ messages: await repository().listContactMessages(100) });
+      if (method === 'PATCH' && b === 'messages' && isUuid(id)) {
+        const v = validated(z.object({ status: z.enum(['new', 'replied', 'archived']) }), req);
+        if (!v.ok) return v.res;
+        return (await repository().setContactStatus(id, v.data.status)) ? json(200, { ok: true }) : err(404, 'Not found.');
+      }
+
+      // GET /api/admin/bookings/:id/options?date= — times a booking could move to
+      if (method === 'GET' && b === 'bookings' && isUuid(id) && segments[3] === 'options') {
+        const date = req.query.get('date');
+        if (!isDate(date)) return err(400, 'Provide date as YYYY-MM-DD.');
+        return noStore({ slots: await rescheduleOptions(id, date) });
+      }
+
       if (method === 'POST' && b === 'bookings' && isUuid(id) && segments[3] === 'cancel') {
         const booking = await cancelBooking(id);
         return json(200, { booking: { id: booking.id, status: booking.status } });

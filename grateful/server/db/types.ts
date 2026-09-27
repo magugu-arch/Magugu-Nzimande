@@ -1,4 +1,4 @@
-import type { BookingStatus, PaymentOption, PaymentStatus, Service } from '../../shared/types';
+import type { BookingStatus, ContactMessage, OpeningHours, PaymentOption, PaymentStatus, Service, ServiceUpdate } from '../../shared/types';
 import type { Busy, Window } from '../slots';
 
 export type Booking = {
@@ -56,6 +56,14 @@ export type ConfirmResult =
 export interface Repository {
   listServices(opts?: { includeInactive?: boolean }): Promise<Service[]>;
   getService(id: string): Promise<Service | null>;
+  /** Admin: change a service's price, deposit, duration, wording or visibility. */
+  updateService(id: string, patch: ServiceUpdate): Promise<Service | null>;
+
+  /** Admin: every opening-hours block in [from, to], open or closed. */
+  listOpeningHours(from: string, to: string): Promise<OpeningHours[]>;
+  addOpeningHours(block: Omit<OpeningHours, 'id' | 'status'>): Promise<OpeningHours>;
+  setOpeningHoursStatus(id: string, status: OpeningHours['status']): Promise<OpeningHours | null>;
+  deleteOpeningHours(id: string): Promise<boolean>;
 
   listAvailability(from: string, to: string): Promise<Window[]>;
   /** Confirmed bookings and holds that have not yet expired, in [from, to]. */
@@ -82,4 +90,8 @@ export interface Repository {
   /** Returns false if the address was not subscribed. */
   unsubscribe(email: string): Promise<boolean>;
   addContactMessage(msg: { name: string; email: string; phone: string; subject: string; message: string }): Promise<void>;
+  /** Admin: newest first. */
+  listContactMessages(limit: number): Promise<ContactMessage[]>;
+  setContactStatus(id: string, status: ContactMessage['status']): Promise<boolean>;
+  countSubscribers(): Promise<number>;
 }

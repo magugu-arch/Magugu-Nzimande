@@ -12,7 +12,8 @@
     "test": "vitest run",
     "verify": "npm run typecheck && npm run lint && npm test && vite build",
     "smoke": "node e2e/smoke.mjs",
-    "build:demo": "vite build --mode demo --base ./ --outDir dist-demo"
+    "build:demo": "vite build --mode demo --base ./ --outDir dist-demo",
+    "build:single": "vite build --mode single"
   },
   "dependencies": {
     "@fontsource-variable/baskervville": "^5.3.0",
@@ -41,6 +42,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",
     "vite": "^8.3.1",
+    "vite-plugin-singlefile": "^2.3.3",
     "vitest": "^5.0.2"
   }
 }

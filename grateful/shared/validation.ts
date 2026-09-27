@@ -71,3 +71,36 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   }
   return out;
 }
+
+// --- Studio dashboard ------------------------------------------------------
+
+const cents = z.number().int().min(0).max(100_000_000);
+
+export const serviceUpdateSchema = z
+  .object({
+    name: trimmed(120).min(2).optional(),
+    description: trimmed(1000).optional(),
+    durationMinutes: z.number().int().min(15, 'At least 15 minutes.').max(480, 'At most 8 hours.').optional(),
+    priceCents: cents.nullable().optional(),
+    depositCents: cents.nullable().optional(),
+    active: z.boolean().optional(),
+  })
+  .refine((s) => !(s.depositCents != null && s.priceCents === null), { message: 'A deposit needs a price.', path: ['depositCents'] })
+  .refine((s) => s.depositCents == null || s.priceCents == null || s.depositCents <= s.priceCents, {
+    message: 'The deposit cannot be more than the price.',
+    path: ['depositCents'],
+  });
+
+export const openingHoursSchema = z
+  .object({
+    /** One date, or a range with the weekdays to fill (0 = Sunday … 6 = Saturday). */
+    date: isoDate.optional(),
+    from: isoDate.optional(),
+    to: isoDate.optional(),
+    weekdays: z.array(z.number().int().min(0).max(6)).max(7).optional(),
+    startTime: hhmm,
+    endTime: hhmm,
+  })
+  .refine((h) => h.endTime > h.startTime, { message: 'Closing time must be after opening time.', path: ['endTime'] })
+  .refine((h) => !!h.date || (!!h.from && !!h.to && !!h.weekdays?.length), { message: 'Choose a date, or a date range and weekdays.', path: ['date'] })
+  .refine((h) => !h.from || !h.to || h.to >= h.from, { message: 'The end date must be on or after the start date.', path: ['to'] });

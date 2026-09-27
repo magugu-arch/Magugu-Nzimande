@@ -1,6 +1,6 @@
 import { slotsForDate, type Busy, type Window } from '../../server/slots';
 import { addDays, todayInSast } from '../../shared/format';
-import type { PublicBooking, Service } from '../../shared/types';
+import type { AdminBooking, ContactMessage, OpeningHours, PublicBooking, Service, ServiceUpdate } from '../../shared/types';
 import { serviceSeed } from '../data/services';
 
 /**
@@ -12,7 +12,7 @@ import { serviceSeed } from '../data/services';
  */
 
 type Json = Record<string, unknown>;
-type DemoBooking = PublicBooking & { amountDueCents: number | null };
+type DemoBooking = PublicBooking & { amountDueCents: number | null; phone: string; notes: string; createdAt: string };
 
 const SAMPLE_PRICES: Record<string, [number, number | null]> = {
   consultation: [50000, null],
@@ -37,25 +37,31 @@ export const demo = {
   },
 };
 
-function services(): Service[] {
-  return serviceSeed.map((s) => {
-    if (!samplePricing) return s;
-    const [price, deposit] = SAMPLE_PRICES[s.id] ?? [null, null];
-    return { ...s, priceCents: price, depositCents: deposit };
-  });
+// Changes made in the preview's studio dashboard, layered over the seed.
+const edits = new Map<string, ServiceUpdate>();
+
+function services(includeInactive = false): Service[] {
+  return serviceSeed
+    .map((s) => {
+      const base = samplePricing ? { ...s, priceCents: SAMPLE_PRICES[s.id]?.[0] ?? null, depositCents: SAMPLE_PRICES[s.id]?.[1] ?? null } : s;
+      return { ...base, ...edits.get(s.id) };
+    })
+    .filter((s) => includeInactive || s.active);
 }
 
 // Tuesday–Friday 09:00–17:00, Saturday 09:00–13:00, as in supabase/seed.sql.
 const today = todayInSast();
-const availability: Window[] = [];
+const hours: OpeningHours[] = [];
 for (let i = 0; i < 90; i++) {
   const date = addDays(today, i);
   const wd = new Date(`${date}T12:00:00Z`).getUTCDay();
-  if (wd >= 2 && wd <= 5) availability.push({ date, startTime: '09:00', endTime: '17:00' });
-  if (wd === 6) availability.push({ date, startTime: '09:00', endTime: '13:00' });
+  if (wd >= 2 && wd <= 5) hours.push({ id: crypto.randomUUID(), date, startTime: '09:00', endTime: '17:00', status: 'open' });
+  if (wd === 6) hours.push({ id: crypto.randomUUID(), date, startTime: '09:00', endTime: '13:00', status: 'open' });
 }
+const openWindows = (): Window[] => hours.filter((h) => h.status === 'open').map(({ date, startTime, endTime }) => ({ date, startTime, endTime }));
 
 const bookings = new Map<string, DemoBooking>();
+const messages: ContactMessage[] = [];
 const payments = new Map<string, { bookingId: string; amount: number }>();
 
 const busy = (): Busy[] =>
@@ -64,7 +70,7 @@ const busy = (): Busy[] =>
     .map((b) => ({ date: b.date, time: b.time, durationMinutes: b.durationMinutes }));
 
 const slots = (s: Service, date: string) =>
-  date < today || date > addDays(today, 60) ? [] : slotsForDate(date, availability, busy(), { durationMinutes: s.durationMinutes, stepMinutes: 30, minNoticeMinutes: 24 * 60, now: new Date() });
+  date < today || date > addDays(today, 60) ? [] : slotsForDate(date, openWindows(), busy(), { durationMinutes: s.durationMinutes, stepMinutes: 30, minNoticeMinutes: 24 * 60, now: new Date() });
 
 class DemoError extends Error {
   constructor(
@@ -89,7 +95,7 @@ function handle(method: string, url: URL, body: Json): unknown {
     const date = url.searchParams.get('date');
     if (date) return { slots: slots(s, date) };
     const month = url.searchParams.get('month') ?? '';
-    return { dates: [...new Set(availability.filter((w) => w.date.startsWith(month)).map((w) => w.date))].filter((d) => slots(s, d).length) };
+    return { dates: [...new Set(openWindows().filter((w) => w.date.startsWith(month)).map((w) => w.date))].filter((d) => slots(s, d).length) };
   }
 
   if (a === 'booking' && method === 'POST') {
@@ -115,6 +121,9 @@ function handle(method: string, url: URL, body: Json): unknown {
       amountPaidCents: null,
       amountDueCents: null,
       holdExpiresAt: paid ? new Date(Date.now() + 20 * 60_000).toISOString() : null,
+      phone: String(body.phone ?? ''),
+      notes: String(body.notes ?? ''),
+      createdAt: new Date().toISOString(),
     });
     return { bookingId: id, paymentRequired: paid };
   }
@@ -158,7 +167,12 @@ function handle(method: string, url: URL, body: Json): unknown {
     return 'OK';
   }
 
-  if (a === 'contact' || a === 'newsletter') return { ok: true };
+  if (a === 'contact') {
+    messages.unshift({ id: crypto.randomUUID(), name: String(body.name), email: String(body.email), phone: String(body.phone ?? ''), subject: String(body.subject ?? ''), message: String(body.message), status: 'new', createdAt: new Date().toISOString() });
+    return { ok: true };
+  }
+  if (a === 'newsletter') return { ok: true };
+  if (a === 'admin') return handleAdmin(method, parts.slice(1), url, body);
   throw new DemoError(404, 'Not found.');
 }
 
@@ -181,3 +195,154 @@ export async function demoFetch(path: string, init?: RequestInit): Promise<Respo
     return new Response(JSON.stringify({ error: err.message, fields: err.fields }), { status: err.status });
   }
 }
+
+// --- Studio dashboard (preview) --------------------------------------------
+
+const toAdmin = (b: DemoBooking): AdminBooking => ({
+  id: b.id,
+  serviceId: b.serviceId,
+  serviceName: b.serviceName,
+  clientName: b.clientName,
+  email: b.email,
+  phone: b.phone,
+  date: b.date,
+  time: b.time,
+  durationMinutes: b.durationMinutes,
+  notes: b.notes,
+  status: b.status,
+  paymentStatus: b.paymentStatus,
+  paymentReference: null,
+  createdAt: b.createdAt,
+});
+
+function handleAdmin(method: string, parts: string[], url: URL, body: Json): unknown {
+  const [section, id, action] = parts;
+  const q = (k: string) => url.searchParams.get(k) ?? '';
+
+  if (section === 'session') return { ok: true };
+  if (section === 'overview') {
+    const live = [...bookings.values()];
+    return {
+      today,
+      todayCount: live.filter((b) => b.date === today && b.status === 'confirmed').length,
+      weekCount: live.filter((b) => b.date >= today && b.date <= addDays(today, 6) && b.status === 'confirmed').length,
+      needsAttention: live.filter((b) => b.status === 'needs_attention').length,
+      awaitingPayment: live.filter((b) => b.status === 'pending_payment').length,
+      newMessages: messages.filter((m) => m.status === 'new').length,
+      subscribers: 0,
+    };
+  }
+  if (section === 'bookings' && !id) {
+    return { bookings: [...bookings.values()].filter((b) => b.date >= q('from') && b.date <= q('to')).sort((x, y) => (x.date + x.time < y.date + y.time ? -1 : 1)).map(toAdmin) };
+  }
+  if (section === 'bookings' && id) {
+    const b = bookings.get(id);
+    if (!b) throw new DemoError(404, 'Booking not found.');
+    if (action === 'options') {
+      const others = busy().filter((x) => !(x.date === b.date && x.time === b.time));
+      return { slots: slotsForDate(q('date'), openWindows(), others, { durationMinutes: b.durationMinutes, stepMinutes: 30, minNoticeMinutes: 0, now: new Date() }) };
+    }
+    if (action === 'reschedule') {
+      Object.assign(b, { date: String(body.date), time: String(body.time) });
+      return { booking: { id: b.id, date: b.date, time: b.time } };
+    }
+    if (action === 'cancel') {
+      b.status = 'cancelled';
+      return { booking: { id: b.id, status: b.status } };
+    }
+  }
+  if (section === 'services' && !id) return { services: services(true) };
+  if (section === 'services' && id && method === 'PATCH') {
+    const u = body as ServiceUpdate;
+    const current = services(true).find((s) => s.id === id);
+    const price = u.priceCents !== undefined ? u.priceCents : current?.priceCents;
+    const deposit = u.depositCents !== undefined ? u.depositCents : current?.depositCents;
+    if (deposit != null && (price == null || deposit > price)) throw new DemoError(400, 'The deposit must be less than the price.', { depositCents: 'Must be less than the price.' });
+    edits.set(id, { ...edits.get(id), ...u });
+    return { service: services(true).find((s) => s.id === id) };
+  }
+  if (section === 'hours' && !id && method === 'GET') return { hours: hours.filter((h) => h.date >= q('from') && h.date <= q('to')).sort((x, y) => (x.date + x.startTime < y.date + y.startTime ? -1 : 1)) };
+  if (section === 'hours' && !id && method === 'POST') {
+    const dates: string[] = [];
+    if (body.date) dates.push(String(body.date));
+    else for (let d = String(body.from); d <= String(body.to); d = addDays(d, 1)) if ((body.weekdays as number[]).includes(new Date(`${d}T12:00:00Z`).getUTCDay())) dates.push(d);
+    const added: OpeningHours[] = [];
+    const skipped: string[] = [];
+    for (const date of dates) {
+      if (hours.some((h) => h.date === date && h.status === 'open' && h.startTime < String(body.endTime) && String(body.startTime) < h.endTime)) skipped.push(date);
+      else {
+        const row: OpeningHours = { id: crypto.randomUUID(), date, startTime: String(body.startTime), endTime: String(body.endTime), status: 'open' };
+        hours.push(row);
+        added.push(row);
+      }
+    }
+    return { added, skipped };
+  }
+  if (section === 'hours' && id) {
+    const i = hours.findIndex((h) => h.id === id);
+    if (i < 0) throw new DemoError(404, 'Not found.');
+    if (method === 'DELETE') hours.splice(i, 1);
+    else hours[i]!.status = body.status === 'closed' ? 'closed' : 'open';
+    return { ok: true };
+  }
+  if (section === 'messages' && !id) return { messages };
+  if (section === 'messages' && id) {
+    const m = messages.find((x) => x.id === id);
+    if (m) m.status = body.status as ContactMessage['status'];
+    return { ok: true };
+  }
+  throw new DemoError(404, 'Not found.');
+}
+
+/**
+ * Preview fixtures: a few fictional clients so the dashboard has something
+ * to show. They exist only in this browser tab.
+ */
+function seedPreview() {
+  const sample: [number, string, string, string, string, DemoBooking['status']][] = [
+    [1, '10:00', 'consultation', 'Lerato Dlamini (sample)', 'Matric dance dress — thinking emerald, off-the-shoulder.', 'confirmed'],
+    [1, '14:00', 'fittings', 'Aisha Patel (sample)', 'Taking in a blazer at the waist.', 'confirmed'],
+    [2, '09:30', 'custom-design', 'Nomsa Khumalo (sample)', '', 'confirmed'],
+    [3, '11:00', 'special-occasion', 'Zanele Mokoena (sample)', 'Wedding in March. Bringing fabric swatches.', 'confirmed'],
+  ];
+  for (const [offset, time, serviceId, name, notes, status] of sample) {
+    let date = addDays(today, offset);
+    // Land on the next open day so the sample reads like a real diary.
+    while (!openWindows().some((w) => w.date === date)) date = addDays(date, 1);
+    const s = serviceSeed.find((x) => x.id === serviceId)!;
+    const id = crypto.randomUUID();
+    bookings.set(id, {
+      id,
+      serviceId,
+      serviceName: s.name,
+      serviceImage: s.image,
+      durationMinutes: s.durationMinutes,
+      date,
+      time,
+      clientName: name,
+      email: `${name.split(' ')[0]!.toLowerCase()}@example.com`,
+      phone: '082 000 0000',
+      notes,
+      status,
+      paymentStatus: 'not_required',
+      paymentRequired: false,
+      priceCents: null,
+      depositCents: null,
+      amountPaidCents: null,
+      amountDueCents: null,
+      holdExpiresAt: null,
+      createdAt: new Date().toISOString(),
+    });
+  }
+  messages.push({
+    id: crypto.randomUUID(),
+    name: 'Thandi Nkosi (sample)',
+    email: 'thandi@example.com',
+    phone: '',
+    subject: 'Custom Fashion Design',
+    message: 'Hi! I would love a two-piece for my sister’s traditional wedding in April. Do you work with shweshwe?',
+    status: 'new',
+    createdAt: new Date().toISOString(),
+  });
+}
+seedPreview();

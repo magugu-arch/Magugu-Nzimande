@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { serviceSeed } from '../../src/data/services';
 import { addDays, sastToDate, todayInSast } from '../../shared/format';
-import type { Service } from '../../shared/types';
+import type { ContactMessage, OpeningHours, Service } from '../../shared/types';
 import type { Busy, Window } from '../slots';
 import type { Booking, ConfirmResult, NewBooking, Payment, Repository, ReserveResult } from './types';
 
@@ -39,13 +39,19 @@ export function createMemoryRepository(opts: { services?: Service[]; availabilit
   let services = (opts.services ?? serviceSeed).map((s) => ({ ...s }));
   if (opts.demoPricing) {
     // DEMO_PRICING=true, local development only. Not real prices.
-    services = services.map((s, i) => ({ ...s, priceCents: [50000, 250000, 35000, 400000][i] ?? 50000, depositCents: i === 0 ? null : 25000 * (i + 1) }));
+    const sample: Record<string, [number, number | null]> = {
+      consultation: [50000, null],
+      'custom-design': [250000, 50000],
+      fittings: [35000, null],
+      'special-occasion': [400000, 100000],
+    };
+    services = services.map((s) => ({ ...s, priceCents: sample[s.id]?.[0] ?? null, depositCents: sample[s.id]?.[1] ?? null }));
   }
-  const availability = opts.availability ?? sampleAvailability(todayInSast(), 90);
+  const hours: OpeningHours[] = (opts.availability ?? sampleAvailability(todayInSast(), 90)).map((w) => ({ ...w, id: randomUUID(), status: 'open' }));
   const bookings = new Map<string, Booking>();
   const payments = new Map<string, Payment>();
   const subscribers = new Map<string, { consent: boolean; createdAt: string }>();
-  const messages: unknown[] = [];
+  const messages: ContactMessage[] = [];
 
   const isActive = (b: Booking, now: Date) =>
     b.status === 'confirmed' ||
@@ -64,8 +70,37 @@ export function createMemoryRepository(opts: { services?: Service[]; availabilit
     async getService(id) {
       return services.find((s) => s.id === id) ?? null;
     },
+    async updateService(id, patch) {
+      const s = services.find((x) => x.id === id);
+      if (!s) return null;
+      Object.assign(s, patch);
+      return { ...s };
+    },
     async listAvailability(from, to) {
-      return availability.filter((w) => w.date >= from && w.date <= to);
+      return hours.filter((w) => w.status === 'open' && w.date >= from && w.date <= to).map(({ date, startTime, endTime }) => ({ date, startTime, endTime }));
+    },
+    async listOpeningHours(from, to) {
+      return hours
+        .filter((w) => w.date >= from && w.date <= to)
+        .sort((a, b) => (a.date + a.startTime < b.date + b.startTime ? -1 : 1))
+        .map((w) => ({ ...w }));
+    },
+    async addOpeningHours(block) {
+      const row: OpeningHours = { ...block, id: randomUUID(), status: 'open' };
+      hours.push(row);
+      return { ...row };
+    },
+    async setOpeningHoursStatus(id, status) {
+      const w = hours.find((x) => x.id === id);
+      if (!w) return null;
+      w.status = status;
+      return { ...w };
+    },
+    async deleteOpeningHours(id) {
+      const i = hours.findIndex((x) => x.id === id);
+      if (i < 0) return false;
+      hours.splice(i, 1);
+      return true;
     },
     async listBusy(from, to, now): Promise<Busy[]> {
       return [...bookings.values()]
@@ -154,7 +189,18 @@ export function createMemoryRepository(opts: { services?: Service[]; availabilit
       return { created };
     },
     async addContactMessage(msg) {
-      messages.push({ ...msg, createdAt: new Date().toISOString(), status: 'new' });
+      messages.push({ ...msg, id: randomUUID(), createdAt: new Date().toISOString(), status: 'new' });
+    },
+    async listContactMessages(limit) {
+      return [...messages].reverse().slice(0, limit).map((m) => ({ ...m }));
+    },
+    async setContactStatus(id, status) {
+      const m = messages.find((x) => x.id === id);
+      if (m) m.status = status;
+      return !!m;
+    },
+    async countSubscribers() {
+      return subscribers.size;
     },
   };
 }

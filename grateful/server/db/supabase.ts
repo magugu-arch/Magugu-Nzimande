@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Service } from '../../shared/types';
+import type { ContactMessage, OpeningHours, Service } from '../../shared/types';
 import type { Busy, Window } from '../slots';
 import type { Booking, ConfirmResult, Payment, Repository } from './types';
 
@@ -29,6 +29,14 @@ const service = (r: Row): Service => ({
   image: String(r.image ?? 'whiteGarment'),
   sortOrder: Number(r.sort_order ?? 0),
   active: Boolean(r.active),
+});
+
+const hoursRow = (r: Row): OpeningHours => ({
+  id: String(r.id),
+  date: String(r.date),
+  startTime: hhmm(r.start_time),
+  endTime: hhmm(r.end_time),
+  status: r.status as OpeningHours['status'],
 });
 
 const booking = (r: Row): Booking => ({
@@ -90,6 +98,33 @@ export function createSupabaseRepository(url: string, serviceRoleKey: string): R
     async getService(id) {
       const rows = must(await db.from('services').select('*').eq('id', id).limit(1));
       return rows?.[0] ? service(rows[0]) : null;
+    },
+    async updateService(id, patch) {
+      const row: Row = {};
+      if (patch.name !== undefined) row.name = patch.name;
+      if (patch.description !== undefined) row.description = patch.description;
+      if (patch.durationMinutes !== undefined) row.duration_minutes = patch.durationMinutes;
+      if (patch.priceCents !== undefined) row.price = patch.priceCents == null ? null : toRands(patch.priceCents);
+      if (patch.depositCents !== undefined) row.deposit_amount = patch.depositCents == null ? null : toRands(patch.depositCents);
+      if (patch.active !== undefined) row.active = patch.active;
+      const rows = must(await db.from('services').update(row).eq('id', id).select('*'));
+      return rows?.[0] ? service(rows[0]) : null;
+    },
+    async listOpeningHours(from, to): Promise<OpeningHours[]> {
+      const rows = must(await db.from('availability').select('*').gte('date', from).lte('date', to).order('date').order('start_time'));
+      return (rows ?? []).map(hoursRow);
+    },
+    async addOpeningHours(block) {
+      const rows = must(await db.from('availability').insert({ date: block.date, start_time: block.startTime, end_time: block.endTime }).select('*'));
+      return hoursRow(rows![0]!);
+    },
+    async setOpeningHoursStatus(id, status) {
+      const rows = must(await db.from('availability').update({ status }).eq('id', id).select('*'));
+      return rows?.[0] ? hoursRow(rows[0]) : null;
+    },
+    async deleteOpeningHours(id) {
+      const rows = must(await db.from('availability').delete().eq('id', id).select('id'));
+      return !!rows?.length;
     },
     async listAvailability(from, to): Promise<Window[]> {
       const rows = must(await db.from('availability').select('date,start_time,end_time').eq('status', 'open').gte('date', from).lte('date', to));
@@ -199,6 +234,28 @@ export function createSupabaseRepository(url: string, serviceRoleKey: string): R
     },
     async addContactMessage(msg) {
       must(await db.from('contact_messages').insert(msg));
+    },
+    async listContactMessages(limit): Promise<ContactMessage[]> {
+      const rows = must(await db.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(limit));
+      return (rows ?? []).map((r) => ({
+        id: String(r.id),
+        name: String(r.name),
+        email: String(r.email),
+        phone: String(r.phone ?? ''),
+        subject: String(r.subject ?? ''),
+        message: String(r.message),
+        status: r.status as ContactMessage['status'],
+        createdAt: String(r.created_at),
+      }));
+    },
+    async setContactStatus(id, status) {
+      const rows = must(await db.from('contact_messages').update({ status }).eq('id', id).select('id'));
+      return !!rows?.length;
+    },
+    async countSubscribers() {
+      const res = await db.from('newsletter_subscribers').select('id', { count: 'exact', head: true });
+      if (res.error) throw new Error(`Supabase: ${res.error.message}`);
+      return res.count ?? 0;
     },
   };
 }

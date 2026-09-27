@@ -17,6 +17,7 @@ const Contact = lazy(() => import('./pages/Contact'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Unsubscribe = lazy(() => import('./pages/Unsubscribe'));
 const Privacy = lazy(() => import('./pages/Privacy'));
+const Studio = lazy(() => import('./pages/studio/Studio'));
 
 const page = (el: ReactNode) => <Suspense fallback={<div className="min-h-dvh" aria-busy="true" />}>{el}</Suspense>;
 
@@ -40,5 +41,7 @@ export const routes: RouteObject[] = [
       { path: '*', element: page(<NotFound />) },
     ],
   },
+  // The studio dashboard has its own chrome, so it sits outside the public layout.
+  { path: '/studio', element: page(<Studio />), errorElement: <RouteError /> },
 ];
 

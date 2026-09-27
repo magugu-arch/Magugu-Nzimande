@@ -1,4 +1,5 @@
 import { images, type ImageKey } from '../../data/images';
+import { imageUrls } from '../../data/imageUrls';
 
 /**
  * A supplied Grateful photograph at the right size for the screen: WebP at
@@ -27,11 +28,12 @@ export function Picture({
   alt?: string;
 }) {
   const img = images[image as ImageKey] ?? images.whiteGarment;
+  const url = imageUrls(img.src);
   return (
     <picture className={`block overflow-hidden ${className}`}>
-      <source type="image/webp" srcSet={`${img.src}-640.webp 640w, ${img.src}-1280.webp 1280w`} sizes={sizes} />
+      <source type="image/webp" srcSet={`${url.w640} 640w, ${url.w1280} 1280w`} sizes={sizes} />
       <img
-        src={`${img.src}.jpeg`}
+        src={url.fallback}
         alt={alt ?? img.alt}
         width={img.width}
         height={img.height}

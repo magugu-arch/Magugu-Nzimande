@@ -19,7 +19,7 @@ export default function DemoApp() {
   return (
     <>
       <RouterProvider router={router} />
-      <DemoBanner />
+      <DemoBanner onNavigate={(to) => void router.navigate(to)} />
     </>
   );
 }

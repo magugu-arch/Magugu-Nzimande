@@ -5,7 +5,9 @@
  *      no horizontal scroll, no serious/critical axe accessibility issues;
  *   2. books a quote-required consultation and lands on the confirmation;
  *   3. books a paid service, pays a deposit through the mock checkout and
- *      waits for the verified webhook to confirm it.
+ *      waits for the verified webhook to confirm it;
+ *   4. signs in to the studio dashboard, finds that booking, reschedules it,
+ *      sets a service price and opens extra hours.
  *
  *   npm run smoke            (set PW_CHROMIUM=/path/to/chrome to use a local browser)
  */
@@ -15,6 +17,7 @@ import { createServer } from 'vite';
 
 process.env.DEMO_PRICING = 'true';
 process.env.MIN_NOTICE_HOURS = '0';
+process.env.ADMIN_TOKEN = 'smoke-test-studio-key';
 
 const PAGES = ['/', '/work', '/work/garment-study-01', '/about', '/services', '/booking', '/contact', '/privacy', '/nope'];
 const failures = [];
@@ -95,6 +98,50 @@ try {
   if (!(await page.getByText(/Deposit paid/).count())) fail('paid booking: confirmation does not show the deposit');
   console.log('  ✓ booked, paid a deposit, and saw the verified confirmation');
   for (const e of page.errors) fail(`console (booking): ${e}`);
+
+  // 4. Studio dashboard, at desktop width.
+  const studio = await newPage(1280);
+  await studio.goto(`${base}/studio`, { waitUntil: 'networkidle' });
+  const axeLogin = await new AxeBuilder({ page: studio }).analyze();
+  for (const v of axeLogin.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')) fail(`/studio sign-in: axe ${v.id}`);
+  await studio.getByLabel('Studio key').fill('wrong-key');
+  await studio.getByRole('button', { name: 'Sign in' }).click();
+  await studio.getByText('That studio key is not right').waitFor();
+  studio.errors.length = 0; // the 401 just logged was the point of that step
+  await studio.getByLabel('Studio key').fill('smoke-test-studio-key');
+  await studio.getByRole('button', { name: 'Sign in' }).click();
+  await studio.getByRole('heading', { name: 'Diary' }).waitFor();
+  // The smoke bookings may land next week; step forward until they show.
+  const diaryLoaded = () => studio.getByText('Loading the diary…').waitFor({ state: 'detached' });
+  await diaryLoaded();
+  for (let i = 0; i < 4 && !(await studio.getByText('Smoke Test').count()); i++) {
+    await studio.getByRole('button', { name: 'Next 7 days' }).click();
+    await studio.waitForTimeout(300);
+    await diaryLoaded();
+  }
+  if (!(await studio.getByText('Smoke Test').count())) fail('studio: the smoke bookings are not in the diary');
+  else {
+    const axeDash = await new AxeBuilder({ page: studio }).analyze();
+    for (const v of axeDash.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')) fail(`/studio diary: axe ${v.id} — ${v.nodes[0]?.target.join(' ')}`);
+    await studio.getByRole('button', { name: 'Reschedule' }).first().click();
+    const select = studio.locator('select').filter({ hasText: /Choose a time|No free times/ }).first();
+    await studio.waitForFunction(() => [...document.querySelectorAll('select option')].some((o) => /^\d\d:\d\d$/.test(o.textContent ?? '')), null, { timeout: 5000 });
+    const times = await select.locator('option').allTextContents();
+    await select.selectOption(times.find((t) => /^\d\d:\d\d$/.test(t) && t >= '15:00') ?? times.filter((t) => /^\d\d:\d\d$/.test(t)).at(-1));
+    await studio.getByRole('button', { name: 'Move booking' }).click();
+    await studio.getByRole('button', { name: 'Move booking' }).waitFor({ state: 'detached' });
+    console.log('  ✓ studio: signed in, found the booking, rescheduled it');
+  }
+  await studio.getByRole('button', { name: 'Services & prices' }).click();
+  await studio.locator('#fittings-price').fill('350');
+  await studio.getByRole('button', { name: 'Save Fittings' }).click();
+  await studio.getByText('Clients now see “From R 350”').waitFor();
+  await studio.getByRole('button', { name: 'Opening hours' }).click();
+  await studio.getByRole('radio', { name: 'One day' }).click();
+  await studio.getByRole('button', { name: 'Open these times' }).click();
+  await studio.getByText(/Opened \d+ day|already had overlapping/).waitFor();
+  console.log('  ✓ studio: set a price and opened hours');
+  for (const e of studio.errors) fail(`console (studio): ${e}`);
 } catch (e) {
   fail(`journey failed: ${e instanceof Error ? e.message.split('\n')[0] : e}`);
 } finally {
