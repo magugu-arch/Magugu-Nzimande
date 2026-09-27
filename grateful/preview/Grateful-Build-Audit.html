@@ -135,7 +135,7 @@
       <div class="meter" role="img" aria-label="80 percent complete, 20 percent remaining">
         <span class="done" style="width:80%"></span><span class="left" style="width:20%"></span>
       </div>
-      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
+      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
     </div>
   </div>
 
@@ -203,7 +203,7 @@
 
   <section aria-labelledby="left-h">
     <h2 id="left-h">The remaining 20%</h2>
-    <p class="sub">Grouped by who has to act. None of it is new code: it is content, accounts, and changes from the studio’s review.</p>
+    <p class="sub">The studio’s part can now be filled in on the <a href="https://claude.ai/artifact/8Min81Y6Tcq4Tg2XbQ3eN6" target="_blank" rel="noopener">launch checklist</a>. Grouped by who has to act. None of it is new code: it is content, accounts, and changes from the studio’s review.</p>
     <div class="cols">
       <div>
         <h3>From the studio</h3>
@@ -245,13 +245,14 @@
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>Tested a slimmer way of loading the animation library: 11 KB less to download in total</li>
-      <li>Measured side by side, it made the first view slower (speed score 82–85 against a steady 88), because more work landed in the first file the page needs</li>
-      <li>So it was undone: the site keeps the faster setup. Measured, not guessed</li>
-      <li>Also checked: the icon library is small; the larger shared file is the page-routing code the site needs</li>
-      <li>Accessibility, good practice and search remain 100 on every page; all 82 tests pass</li>
-      <li>No build work remains that doesn’t need the studio or its accounts, so the total holds at 80%</li>
+      <li>New: a launch checklist page where the studio fills in everything the site still needs</li>
+      <li>It covers portfolio names, photo permission and credits, social links, hours and prices, the privacy notice, wording sign-off and the accounts to open</li>
+      <li>Answers save as they are entered, can be finished over several visits, and are read back straight into the website</li>
+      <li>A progress bar shows how much of the studio’s part is done (26 items)</li>
+      <li>The website itself is unchanged this round; all 82 tests and the browser test pass</li>
+      <li>The total holds at 80% until the checklist is filled and the accounts exist</li>
     </ul>
+    <div class="links" style="margin-top:14px"><a class="btn solid" href="https://claude.ai/artifact/8Min81Y6Tcq4Tg2XbQ3eN6" target="_blank" rel="noopener">Open the launch checklist</a></div>
     <div class="links">
       <a class="btn solid" href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN" target="_blank" rel="noopener">Open the site &amp; dashboard preview</a>
     </div>
@@ -259,7 +260,7 @@
 
   <section style="border-bottom:0">
     <p class="label">How the percentage was worked out</p>
-    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.96 + 10×0.95 + 7×0.78 = 80.2, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.96 + 10×0.95 + 7×0.78 = 80.2, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
   </section>
 </div>
 </body>
