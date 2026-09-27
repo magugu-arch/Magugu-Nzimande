@@ -107,7 +107,7 @@ export function Nav() {
                 onClick={close}
                 className="flex items-baseline gap-5 py-5 text-3xl font-medium tracking-tight text-white transition-colors hover:text-quest"
               >
-                <span className="label text-white/35">{String(i + 1).padStart(2, '0')}</span>
+                <span className="label text-white/50">{String(i + 1).padStart(2, '0')}</span>
                 {link.label}
               </a>
             </li>

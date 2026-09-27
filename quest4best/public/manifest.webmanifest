@@ -1,0 +1,13 @@
+{
+  "name": "Quest4Best Consulting",
+  "short_name": "Quest4Best",
+  "description": "Independent strategic counsel for leaders navigating growth, transformation and the decisions that shape what comes next.",
+  "start_url": ".",
+  "display": "browser",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

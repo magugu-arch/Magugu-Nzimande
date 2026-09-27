@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-ZA">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,17 +9,69 @@
       content="Independent strategic counsel for leaders navigating growth, transformation and the decisions that shape what comes next."
     />
     <meta name="theme-color" content="#0A0A0A" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
+    <meta name="color-scheme" content="dark" />
+    <link rel="canonical" href="%VITE_SITE_URL%/" />
+
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Quest4Best Consulting" />
+    <meta property="og:locale" content="en_ZA" />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
+    <meta property="og:title" content="Quest4Best Consulting" />
+    <meta
+      property="og:description"
+      content="Better questions. Better decisions. Better outcomes. Independent strategic counsel for leaders navigating growth and transformation."
     />
-    <link rel="preload" as="image" href="/assets/hero-business.jpg" />
+    <meta property="og:image" content="%VITE_SITE_URL%/assets/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Quest4Best Consulting logo beside a portrait of Mlungisi Mathonsi."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Quest4Best Consulting" />
+    <meta
+      name="twitter:description"
+      content="Better questions. Better decisions. Better outcomes."
+    />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/assets/og-image.jpg" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": "Quest4Best Consulting",
+        "slogan": "Better questions. Better decisions. Better outcomes.",
+        "description": "Independent strategic counsel for leaders navigating growth, transformation and the decisions that shape what comes next.",
+        "url": "%VITE_SITE_URL%/",
+        "logo": "%VITE_SITE_URL%/assets/quest4best-logo.png",
+        "image": "%VITE_SITE_URL%/assets/og-image.jpg",
+        "email": "hello@quest4best.co.za",
+        "areaServed": "ZA",
+        "knowsAbout": ["Strategic growth", "Business transformation", "Leadership advisory"]
+      }
+    </script>
+
+    <link
+      rel="preload"
+      as="image"
+      type="image/webp"
+      href="/assets/hero-business.webp"
+      fetchpriority="high"
+    />
   </head>
   <body>
+    <noscript>
+      <p style="padding: 2rem; font-family: system-ui, sans-serif; color: #fff">
+        Quest4Best Consulting — Better questions. Better decisions. Better outcomes. Contact:
+        hello@quest4best.co.za
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

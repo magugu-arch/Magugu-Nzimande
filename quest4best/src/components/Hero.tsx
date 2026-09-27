@@ -1,23 +1,33 @@
 import { useEffect, useRef } from 'react';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
-import { HERO_VIDEO } from '../content';
+import { HERO_VIDEO, asset } from '../content';
 
 export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // The video is atmosphere, not content: hold it on its first frame for
-  // anyone who has asked the system for less motion.
+  // anyone who has asked the system for less motion, and stop decoding it
+  // once it has scrolled out of view.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let visible = true;
     const apply = () => {
-      if (query.matches) video.pause();
+      if (query.matches || !visible) video.pause();
       else void video.play().catch(() => {});
     };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? true;
+      apply();
+    });
+    observer.observe(video);
     apply();
     query.addEventListener('change', apply);
-    return () => query.removeEventListener('change', apply);
+    return () => {
+      observer.disconnect();
+      query.removeEventListener('change', apply);
+    };
   }, []);
 
   return (
@@ -30,7 +40,7 @@ export function Hero() {
         ref={videoRef}
         className="absolute inset-0 -z-20 h-full w-full object-cover grayscale-[35%]"
         src={HERO_VIDEO}
-        poster="/assets/hero-business.jpg"
+        poster={asset('hero-business.webp')}
         muted
         autoPlay
         loop

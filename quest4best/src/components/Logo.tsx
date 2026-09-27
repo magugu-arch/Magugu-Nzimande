@@ -1,3 +1,5 @@
+import { asset } from '../content';
+
 type LogoProps = {
   className?: string;
 };
@@ -7,7 +9,7 @@ type LogoProps = {
 export function Logo({ className = '' }: LogoProps) {
   return (
     <img
-      src="/assets/quest4best-logo.png"
+      src={asset('quest4best-logo.png')}
       alt="Quest4Best Consulting"
       width={1024}
       height={200}

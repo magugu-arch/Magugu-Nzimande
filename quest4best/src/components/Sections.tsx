@@ -1,33 +1,44 @@
 import { ArrowUpRight } from 'lucide-react';
-import { BRAND_LINE, CONTACT_EMAIL, NAV_LINKS } from '../content';
+import { BRAND_LINE, CONTACT_EMAIL, NAV_LINKS, asset } from '../content';
 import { Logo } from './Logo';
 
 const container = 'mx-auto w-full max-w-page px-6 md:px-10 xl:px-16';
 
-function SectionLabel({ index, children }: { index: string; children: string }) {
+type SectionLabelProps = { index: string; children: string; onLight?: boolean };
+
+// Orange on the off-white background is only 3.2:1, too low for small text,
+// so on light sections the orange moves to the rule and the words go to ink.
+function SectionLabel({ index, children, onLight = false }: SectionLabelProps) {
   return (
-    <p className="label flex items-center gap-3 text-quest">
+    <p className={`label flex items-center gap-3 ${onLight ? 'text-ink' : 'text-quest'}`}>
       <span>{index}</span>
-      <span aria-hidden className="h-px w-6 bg-current opacity-60" />
+      <span aria-hidden className="h-px w-6 bg-quest" />
       <span>{children}</span>
     </p>
   );
 }
 
 type PhotoProps = {
-  src: string;
+  /** Base name in public/assets; expects `<name>.jpg`, `<name>.webp` and, when wide, `<name>-640.webp`. */
+  name: string;
   alt: string;
   width: number;
   height: number;
+  sizes: string;
   className?: string;
   imgClassName?: string;
 };
 
-function Photo({ src, alt, width, height, className = '', imgClassName = '' }: PhotoProps) {
+function Photo({ name, alt, width, height, sizes, className = '', imgClassName = '' }: PhotoProps) {
+  const srcSet =
+    width > 700
+      ? `${asset(`${name}-640.webp`)} 640w, ${asset(`${name}.webp`)} ${width}w`
+      : `${asset(`${name}.webp`)} ${width}w`;
   return (
-    <div className={`overflow-hidden bg-soft ${className}`}>
+    <picture className={`block overflow-hidden bg-soft ${className}`}>
+      <source type="image/webp" srcSet={srcSet} sizes={sizes} />
       <img
-        src={src}
+        src={asset(`${name}.jpg`)}
         alt={alt}
         width={width}
         height={height}
@@ -35,7 +46,7 @@ function Photo({ src, alt, width, height, className = '', imgClassName = '' }: P
         decoding="async"
         className={`h-full w-full object-cover ${imgClassName}`}
       />
-    </div>
+    </picture>
   );
 }
 
@@ -70,7 +81,7 @@ export function Quest() {
                   key={principle}
                   className="flex items-baseline gap-6 border-b border-white/10 py-7 md:gap-10 md:py-9"
                 >
-                  <span className="label w-8 shrink-0 text-white/35">
+                  <span className="label w-8 shrink-0 text-white/50">
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <span className="text-2xl font-medium tracking-tight text-white md:text-4xl">
@@ -82,7 +93,8 @@ export function Quest() {
           </div>
 
           <Photo
-            src="/assets/mlungisi-meeting.jpg"
+            name="mlungisi-meeting"
+            sizes="(min-width: 1024px) 34vw, 100vw"
             alt="Mlungisi Mathonsi listening at a meeting table with two colleagues, rain on the window behind them."
             width={1023}
             height={1537}
@@ -118,7 +130,9 @@ export function Expertise() {
       className="bg-paper py-24 text-ink md:py-36 xl:py-44"
     >
       <div className={container}>
-        <SectionLabel index="02">Expertise</SectionLabel>
+        <SectionLabel index="02" onLight>
+          Expertise
+        </SectionLabel>
 
         <div className="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-12">
           <h2
@@ -127,7 +141,7 @@ export function Expertise() {
           >
             Senior thinking for consequential moments.
           </h2>
-          <p className="max-w-[26rem] text-lg leading-relaxed text-black/55 lg:col-span-4 lg:self-end">
+          <p className="max-w-[26rem] text-lg leading-relaxed text-black/60 lg:col-span-4 lg:self-end">
             Built for leaders who need an experienced outside perspective, without the theatre of
             traditional consulting.
           </p>
@@ -139,7 +153,7 @@ export function Expertise() {
               key={service.title}
               className="grid gap-4 border-b border-black/15 py-10 md:grid-cols-12 md:gap-10 md:py-14"
             >
-              <span className="label pt-2 text-quest md:col-span-2">
+              <span className="text-2xl font-semibold tabular-nums tracking-tight text-quest md:col-span-2 md:text-3xl">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <h3 className="text-3xl font-semibold tracking-[-0.025em] md:col-span-4 md:text-4xl">
@@ -166,7 +180,8 @@ export function About() {
     <section id="about" aria-labelledby="about-heading" className="bg-ink py-24 md:py-36 xl:py-44">
       <div className={`${container} grid gap-14 lg:grid-cols-12 lg:gap-10`}>
         <Photo
-          src="/assets/mlungisi-standing.jpg"
+          name="mlungisi-standing"
+          sizes="(min-width: 1024px) 40vw, 100vw"
           alt="Mlungisi Mathonsi standing still in a dark overcoat while a crowd moves past him."
           width={941}
           height={1672}
@@ -211,12 +226,13 @@ export function VisualProof() {
           id="proof-heading"
           className="display max-w-[18ch] text-[clamp(2.2rem,4.6vw,4.75rem)] text-white"
         >
-          Quiet confidence. <span className="text-white/35">Serious ambition.</span>
+          Quiet confidence. <span className="text-white/50">Serious ambition.</span>
         </h2>
 
         <div className="mt-14 grid gap-4 md:mt-20 md:grid-cols-12 md:gap-6">
           <Photo
-            src="/assets/executive-window.jpg"
+            name="executive-window"
+            sizes="(min-width: 768px) 58vw, 100vw"
             alt="A lone figure silhouetted against floor-to-ceiling glass, looking over a city at dusk."
             width={636}
             height={960}
@@ -224,7 +240,8 @@ export function VisualProof() {
             imgClassName="saturate-[.8] object-[50%_72%]"
           />
           <Photo
-            src="/assets/meeting-warm.jpg"
+            name="meeting-warm"
+            sizes="(min-width: 768px) 42vw, 100vw"
             alt="Three people in quiet discussion around a meeting table, warm light through a misted window."
             width={640}
             height={1141}
@@ -259,7 +276,7 @@ export function Contact() {
           </p>
 
           <a
-            href={`mailto:${CONTACT_EMAIL}`}
+            href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Starting a conversation')}`}
             className="group mt-14 inline-flex w-fit items-center gap-4 border-b border-white/25 pb-3 text-2xl font-medium tracking-tight text-white transition-colors hover:border-quest md:text-4xl"
           >
             {CONTACT_EMAIL}
@@ -271,15 +288,22 @@ export function Contact() {
         </div>
 
         <div className="relative -mx-6 aspect-[4/5] md:-mx-10 lg:col-span-5 lg:mx-0 lg:aspect-auto xl:-mr-16">
-          <img
-            src="/assets/mlungisi-chair.jpg"
-            alt=""
-            width={1024}
-            height={1536}
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover grayscale"
-          />
+          <picture>
+            <source
+              type="image/webp"
+              srcSet={`${asset('mlungisi-chair-640.webp')} 640w, ${asset('mlungisi-chair.webp')} 1024w`}
+              sizes="(min-width: 1024px) 42vw, 100vw"
+            />
+            <img
+              src={asset('mlungisi-chair.jpg')}
+              alt=""
+              width={1024}
+              height={1536}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover grayscale"
+            />
+          </picture>
           <div
             aria-hidden
             className="absolute inset-0 bg-gradient-to-b from-ink via-transparent to-ink lg:bg-gradient-to-r lg:from-ink lg:via-transparent lg:to-transparent"
@@ -316,7 +340,7 @@ export function Footer() {
             </ul>
           </nav>
         </div>
-        <p className="mt-14 text-xs text-white/35">
+        <p className="mt-14 text-xs text-white/50">
           © {new Date().getFullYear()} Quest4Best Consulting. All rights reserved.
         </p>
       </div>

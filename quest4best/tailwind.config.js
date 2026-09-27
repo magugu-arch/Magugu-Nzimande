@@ -12,7 +12,7 @@ export default {
       },
       fontFamily: {
         // CI/01 section 06: Inter is the one typeface.
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"Inter Variable"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       maxWidth: {
         page: '1600px',
