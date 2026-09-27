@@ -33,20 +33,17 @@ jobs:
           cache: npm
           cache-dependency-path: quest4best/package-lock.json
 
-      - id: pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
       - run: npm ci
 
       # Pages serves the site under /<repo>/, so the build needs that base and
       # the matching public URL for canonical, Open Graph and the sitemap.
+      # (Derived directly rather than via configure-pages, which fails when the
+      # Pages API is slow to report a newly enabled site.)
       - name: Build
         run: npm run build
         env:
-          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
-          VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
           # Optional: Settings → Secrets and variables → Actions → Variables.
           # Unset, the request form falls back to the visitor's mail app.
           VITE_FORM_ENDPOINT: ${{ vars.FORM_ENDPOINT }}
