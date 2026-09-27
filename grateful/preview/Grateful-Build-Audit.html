@@ -135,7 +135,7 @@
       <div class="meter" role="img" aria-label="80 percent complete, 20 percent remaining">
         <span class="done" style="width:80%"></span><span class="left" style="width:20%"></span>
       </div>
-      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
+      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
     </div>
   </div>
 
@@ -172,8 +172,8 @@
         </tr>
         <tr>
           <td class="name"><strong>Quality &amp; compliance</strong><span>Tests, accessibility, SEO, performance, POPIA</span></td>
-          <td class="bar"><div class="track" tabindex="0"><i style="width:92%"></i><span class="tip">74 unit tests (including checks that every photograph exists in all sizes, is used and is shown in colour, and that the icons and share image exist), a browser test covering the dashboard and phone bookings, axe checks, a wrong-key lockout and an automated launch checker. Left: complete and review the privacy notice, test on real phones, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
-          <td class="num mono"><b>92%</b>of 10</td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:94%"></i><span class="tip">78 unit tests, including search metadata checks (length, uniqueness, Johannesburg on every local page), (including checks that every photograph exists in all sizes, is used and is shown in colour, and that the icons and share image exist), a browser test covering the dashboard and phone bookings, axe checks, a wrong-key lockout and an automated launch checker. Left: complete and review the privacy notice, test on real phones, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
+          <td class="num mono"><b>94%</b>of 10</td>
         </tr>
         <tr>
           <td class="name"><strong>Studio operations</strong><span>How the studio manages bookings day to day</span></td>
@@ -186,15 +186,15 @@
           <td class="num mono"><b>78%</b>of 7</td>
         </tr>
       </tbody>
-      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">79.8 of 100</td></tr></tfoot>
+      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">80.0 of 100</td></tr></tfoot>
     </table>
   </section>
 
   <section aria-labelledby="ev-h">
     <h2 id="ev-h">What was verified</h2>
-    <p class="sub">These were measured on the current code, commit <span class="mono">baf076f</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
+    <p class="sub">These were measured on the current code, commit <span class="mono">2900b6c</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
     <div class="facts">
-      <div><span class="label">Unit tests</span><b class="mono">74 / 74</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice. Every photograph checked in all three sizes, none left unused, none turned black and white.</p></div>
+      <div><span class="label">Unit tests</span><b class="mono">78 / 78</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice. Every photograph checked in all three sizes, none left unused, none turned black and white.</p></div>
       <div><span class="label">Browser smoke test</span><b class="mono">4 journeys</b><p>27 page renders at 320, 390 and 1440px; the Back and Back to top buttons; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours, record a phone booking. Runs in CI.</p></div>
       <div><span class="label">Accessibility (axe)</span><b class="mono">0</b><p>Serious or critical issues on every page and the dashboard. The smoke run caught a faint dashboard label, now fixed.</p></div>
       <div><span class="label">Offline preview</span><b class="mono">1.8 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
@@ -226,6 +226,8 @@
           <li>PayFast merchant account; sandbox test, then live</li>
           <li>Resend account and a verified sending domain</li>
           <li>Vercel deployment, environment variables, domain and DNS<small>Run <code>npm run check:launch</code> until it says “Ready to launch”</small></li>
+          <li>Google Search Console: verify the site, submit the sitemap<small>Steps in README → Search; set <code>GOOGLE_SITE_VERIFICATION</code></small></li>
+          <li>Google Business Profile with photos and reviews<small>The biggest single factor in local search</small></li>
           <li>Real-device test and Lighthouse on the live site</li>
         </ul>
       </div>
@@ -243,12 +245,13 @@
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>The studio’s phone number is removed everywhere: footer, menu, Contact, Booking, Confirmation, Privacy and the error page</li>
-      <li>The WhatsApp buttons that used that number are removed too</li>
-      <li>Every client email, the calendar invite and Google’s business listing now point to gratefulpty@gmail.com only</li>
-      <li>Clients still give their own phone number when booking, so the studio can reach them</li>
-      <li>A new test fails if the studio’s number ever reappears (74 tests); the browser test passes</li>
-      <li>A content change, so the total holds at 80%</li>
+      <li>The studio number is back on the booking pages only: Book, Payment and Confirmation</li>
+      <li>Every page has its own search title and description, aimed at local searches such as “fashion designer Johannesburg” and “custom dresses”</li>
+      <li>The build writes a separate file per page with its title, description, canonical address and share tags, so Google and WhatsApp see the right page</li>
+      <li>sitemap.xml lists all 10 public pages with dates, and robots.txt points to it once the domain is set</li>
+      <li>Google Search Console is ready: one setting adds its verification tag; the steps are in the README</li>
+      <li>Page headings and intro text now name custom dresses, evening gowns, alterations and Johannesburg</li>
+      <li>Four new tests (78 in total); the browser test passes. Quality moves to 94%</li>
     </ul>
     <div class="links">
       <a class="btn solid" href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN" target="_blank" rel="noopener">Open the site &amp; dashboard preview</a>
@@ -257,7 +260,7 @@
 
   <section style="border-bottom:0">
     <p class="label">How the percentage was worked out</p>
-    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.92 + 10×0.95 + 7×0.78 = 79.8, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.94 + 10×0.95 + 7×0.78 = 80.0, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
   </section>
 </div>
 </body>
