@@ -71,8 +71,10 @@ before any JavaScript runs.
 - Pre-rendered HTML: the hosted build writes the full page into `index.html` at build time and
   React hydrates it, so content shows without waiting for JavaScript.
 - A POPIA privacy notice in the footer, covering the request form, no cookies and no analytics.
-- A self-contained single-file version, `share/quest4best-website.html` (`npm run build:html`),
-  that opens from disk or an email attachment with everything embedded.
+- A self-contained single-file version, `share/Quest4Best-Website.html` (`npm run build:html`),
+  tested opening from disk on desktop (Mac-sized) and on an emulated Android phone. It is
+  pre-rendered, so it still shows the full site where JavaScript is off (file previews, mail and
+  chat apps). Without JavaScript the form falls back to a plain mailto submission.
 - A deploy workflow to GitHub Pages (`.github/workflows/quest4best-pages.yml`).
 
 ## Remaining work

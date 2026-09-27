@@ -61,9 +61,14 @@ See [AUDIT.md](AUDIT.md) for what remains before launch.
 
 ## Shareable single file
 
-`share/quest4best-website.html` is the whole site in one file, with scripts, styles, the font
-and every photo embedded, for review by email or opening from disk. Regenerate it with
-`npm run build:html` and copy `dist-html/index.html` over it.
+`share/Quest4Best-Website.html` is the whole site in one file (about 2.5 MB), with scripts,
+styles, the font and every photo embedded. Double-click it on a Mac (it opens in Safari or the
+default browser) or tap it on Android (it opens in Chrome). The page is pre-rendered into the
+file, so it also reads correctly in viewers that do not run JavaScript, such as file previews and
+mail or chat apps. There the menu and form validation are inactive, but every section, image and
+link still shows.
+
+Regenerate it with `npm run build:html` and copy `dist-html/index.html` over it.
 
 ## Photography
 

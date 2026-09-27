@@ -4,3 +4,4 @@ dist/
 *.tsbuildinfo
 dist-html/
 dist-ssr/
+dist-ssr-html/

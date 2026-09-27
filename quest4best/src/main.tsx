@@ -11,7 +11,7 @@ const app = (
   </StrictMode>
 );
 
-// The hosted build ships pre-rendered HTML to hydrate; the single-file build
-// does not, so it renders from scratch.
+// Both builds ship pre-rendered HTML to hydrate; render from scratch only if
+// the markup is missing (e.g. the dev server).
 if (root.hasChildNodes()) hydrateRoot(root, app);
 else createRoot(root).render(app);

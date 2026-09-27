@@ -151,7 +151,16 @@ export function ContactForm() {
   );
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-labelledby={`${id}-title`} className="mt-14">
+    <form
+      // Without JavaScript the browser falls back to a plain mailto submission.
+      action={`mailto:${CONTACT_EMAIL}`}
+      method="post"
+      encType="text/plain"
+      noValidate
+      onSubmit={onSubmit}
+      aria-labelledby={`${id}-title`}
+      className="mt-14"
+    >
       <h3 id={`${id}-title`} className="text-xl font-semibold tracking-tight text-white">
         Request information
       </h3>

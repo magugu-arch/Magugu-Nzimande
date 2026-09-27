@@ -37,12 +37,21 @@ function siteFiles(siteUrl: string): Plugin {
 // PLACEHOLDER — confirm the production domain before launch.
 const DEFAULT_SITE_URL = 'https://quest4best.co.za';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, isSsrBuild }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Set before Vite resolves its env so %VITE_SITE_URL% in index.html is filled.
   process.env.VITE_SITE_URL = (env.VITE_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, '');
   // `npm run build:html` — the whole site as one self-contained index.html,
   // with scripts, styles, fonts and photos embedded, for sharing as a file.
+  if (env.SINGLE_FILE && isSsrBuild) {
+    // Server copy for pre-rendering the single file; images inline the same
+    // way as the client build so hydration sees identical markup.
+    return {
+      base: './',
+      build: { outDir: 'dist-ssr-html', assetsInlineLimit: Number.MAX_SAFE_INTEGER },
+      plugins: [react()],
+    };
+  }
   if (env.SINGLE_FILE) {
     return {
       base: './',

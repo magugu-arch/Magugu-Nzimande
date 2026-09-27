@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
-    "build:html": "tsc -b && SINGLE_FILE=1 vite build && node scripts/finish-html.mjs",
+    "build:html": "tsc -b && SINGLE_FILE=1 vite build && SINGLE_FILE=1 vite build --ssr src/entry-server.tsx && node scripts/finish-html.mjs",
     "typecheck": "tsc -b",
     "preview": "vite preview"
   },
