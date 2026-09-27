@@ -1,5 +1,6 @@
 import { ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router';
+import { images } from '../../data/images';
 import type { WorkItem } from '../../data/work';
 import { ImageReveal } from './ImageReveal';
 import { Picture } from './Picture';
@@ -26,6 +27,7 @@ export function EditorialCard({
   index?: number;
 }) {
   const Heading = headingLevel;
+  const grey = mono && !('alwaysColour' in images[item.image]);
   return (
     <Link to={`/work/${item.slug}`} className="group block" aria-label={`${item.title} — ${item.category}`}>
       <ImageReveal className={`relative ${aspect}`}>
@@ -34,7 +36,7 @@ export function EditorialCard({
           sizes={sizes}
           className="h-full"
           imgClassName={`transition-[transform,filter] duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-[1.03] ${
-            mono ? '[filter:grayscale(1)_contrast(1.12)] group-hover:[filter:grayscale(0)_contrast(1)]' : ''
+            grey ? '[filter:grayscale(1)_contrast(1.12)] group-hover:[filter:grayscale(0)_contrast(1)]' : ''
           }`}
         />
         {index !== undefined && <span className="ui-label absolute top-4 left-4 mix-blend-difference">({String(index + 1).padStart(2, '0')})</span>}

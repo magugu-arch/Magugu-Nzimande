@@ -10,7 +10,7 @@ import { work } from '../src/data/work';
  * images the client has retired must not creep back in.
  */
 
-const RETIRED = /IMG_2438|whiteGarment/;
+const RETIRED = /IMG_2438|IMG_2243|whiteGarment|styledLook/;
 
 const onDisk = (src: string) => src.replace(/^.*images\//, 'public/images/');
 

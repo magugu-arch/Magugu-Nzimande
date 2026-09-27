@@ -36,7 +36,7 @@ function Hero() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.8, ease }}
         >
-          <Picture image="burgundyGown" priority mono sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 18%" />
+          <Picture image="burgundyGown" priority sizes="(min-width: 1024px) 42vw, 100vw" className="h-full" focus="50% 18%" />
         </motion.div>
         {/* Difference blending keeps these legible over both the pale backdrop and the dark gown. */}
         <p className="ui-label absolute bottom-5 left-4 mix-blend-difference md:left-8 lg:left-14">(Fashion)</p>
@@ -242,7 +242,7 @@ function BookingCta() {
           </FadeIn>
         </div>
         <ImageReveal className="col-span-2 col-start-3 aspect-[3/4] md:col-span-3 md:col-start-6 lg:col-span-3 lg:col-start-10">
-          <Picture image="styledLook" mono sizes="(min-width: 1024px) 24vw, 45vw" className="h-full" />
+          <Picture image="greenGown" sizes="(min-width: 1024px) 24vw, 45vw" className="h-full" />
         </ImageReveal>
       </div>
     </section>

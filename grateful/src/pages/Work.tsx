@@ -16,7 +16,7 @@ const layout = [
 ];
 
 export default function Work() {
-  useTitle('Work', 'Garments from the Grateful studio in Johannesburg — tailoring, styled looks and construction detail.');
+  useTitle('Work', 'Garments from the Grateful studio in Johannesburg — evening gowns, occasion wear and construction detail.');
   const [filter, setFilter] = useState('All');
   const [lightbox, setLightbox] = useState<number | null>(null);
   const items = filter === 'All' ? work : work.filter((w) => w.category === filter);

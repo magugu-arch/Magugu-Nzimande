@@ -36,12 +36,12 @@ export const work: WorkItem[] = [
   {
     slug: 'garment-study-02',
     title: 'Garment Study 02',
-    category: 'Styled Look',
+    category: 'Occasion',
     year: null,
-    summary: 'A full look with movement: an off-the-shoulder ruffle in green, paired with wide-leg trousers in a bold monochrome geometric print.',
-    image: 'styledLook',
+    summary: 'Emerald satin caught in the evening wind: ruffled shoulders and a full skirt that falls in tiers of ruffles, each hem sweeping out behind.',
+    image: 'greenGown',
     colour: true,
-    details: ['Off-the-shoulder ruffled top', 'Wide-leg printed trousers', 'Styled outdoors'],
+    details: ['Emerald satin gown', 'Ruffled cap shoulders', 'Tiered ruffle hems', 'Full, sweeping skirt'],
   },
   {
     slug: 'garment-study-03',

@@ -35,7 +35,7 @@ export const serviceSeed: Service[] = [
     durationMinutes: 90,
     priceCents: null,
     depositCents: null,
-    image: 'styledLook',
+    image: 'greenGown',
     sortOrder: 2,
     active: true,
   },

@@ -37,7 +37,7 @@ public/images/       the three supplied photographs + WebP derivatives
 - **Colour:** `#000` and `#fff` only. Secondary text and rules use those two colours at lower opacity. The CI names no accent colour, so there isn't one.
 - **Type:** Baskerville is set as *Baskervville*, the open web cut of the same face, self-hosted as a variable font (regular to bold, plus italics). A quiet sans (Inter) is used only for small uppercase labels and form inputs, as the brief allows.
 - **Logo:** the `g | GRATEFUL` lockup and the `g` monogram are the vector artwork from page 2 of the CI manual. They weren't redrawn or reset in type. They're inlined so they follow the text colour (monotone on black or on white, as the CI shows).
-- **Photography:** monochrome on the Home, About and Services pages. The Work page shows original colour, and the homepage tiles return to colour on hover.
+- **Photography:** the homepage hero and the emerald gown are always in colour. Other photos are monochrome on the Home, About and Services pages and return to colour on hover in the homepage tiles. The Work page shows original colour throughout.
 - **Reference image:** used for its principles only: dash-joined stacked headings, bracketed labels like `(FASHION)`, asymmetric grids and large crops. The layout itself is original.
 
 ## Nothing invented

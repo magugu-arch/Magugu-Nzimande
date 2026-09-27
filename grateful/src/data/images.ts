@@ -12,6 +12,8 @@ export type BrandImage = {
   height: number;
   /** CSS object-position that keeps the garment in frame at any crop. */
   focus: string;
+  /** Never shown in monochrome: the colour is the point of the photograph. */
+  alwaysColour?: boolean;
 };
 
 const base = import.meta.env.BASE_URL;
@@ -24,12 +26,13 @@ export const images = {
     height: 1451,
     focus: '50% 20%',
   },
-  styledLook: {
-    src: `${base}images/IMG_2243`,
-    alt: 'A woman poses on a brick garden path between tall hedges, wearing a green off-the-shoulder ruffled top with wide-leg black and white geometric print trousers.',
-    width: 1536,
-    height: 2048,
-    focus: '50% 45%',
+  greenGown: {
+    src: `${base}images/green-gown`,
+    alt: 'At sunset, a woman in sunglasses stands on a sandstone wall in an emerald satin gown with ruffled shoulders and tiered, ruffled hems that sweep out behind her, with palms and a mountain beyond.',
+    width: 1060,
+    height: 1484,
+    focus: '62% 35%',
+    alwaysColour: true,
   },
   burgundyDetail: {
     src: `${base}images/IMG_1411`,

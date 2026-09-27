@@ -1,4 +1,4 @@
-import { images, type ImageKey } from '../../data/images';
+import { images, type BrandImage, type ImageKey } from '../../data/images';
 import { imageUrls } from '../../data/imageUrls';
 
 /**
@@ -27,7 +27,7 @@ export function Picture({
   /** Override alt, e.g. '' when the image is decorative next to its own caption. */
   alt?: string;
 }) {
-  const img = images[image as ImageKey] ?? images.burgundyGown;
+  const img: BrandImage = images[image as ImageKey] ?? images.burgundyGown;
   const url = imageUrls(img.src);
   return (
     <picture className={`block overflow-hidden ${className}`}>
@@ -41,7 +41,7 @@ export function Picture({
         decoding={priority ? 'sync' : 'async'}
         fetchPriority={priority ? 'high' : 'auto'}
         style={{ objectPosition: focus ?? img.focus }}
-        className={`h-full w-full object-cover ${mono ? 'mono' : ''} ${imgClassName}`}
+        className={`h-full w-full object-cover ${mono && !img.alwaysColour ? 'mono' : ''} ${imgClassName}`}
       />
     </picture>
   );

@@ -12,7 +12,7 @@ insert into public.services (id, slug, name, description, duration_minutes, pric
    60, null, null, 'burgundyGown', 1),
   ('custom-design', 'custom-design', 'Custom Fashion Design',
    'A garment designed and made around you, from sketch and pattern to cut, construction and finish, with fittings along the way.',
-   90, null, null, 'styledLook', 2),
+   90, null, null, 'greenGown', 2),
   ('fittings', 'fittings', 'Fittings & Alterations',
    'Measured fittings for pieces in progress, and considered alterations that bring an existing garment back to the body it belongs to.',
    45, null, null, 'burgundyDetail', 3),
