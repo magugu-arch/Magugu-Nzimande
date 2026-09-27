@@ -61,8 +61,12 @@ hero video failing to load inside the audit sandbox.
 - Responsive WebP images with JPEG fallback, lazy-loaded below the fold.
 - Open Graph and Twitter preview image (1200×630), JSON-LD, canonical URL, sitemap, robots.txt,
   web manifest, full icon set, 404 page.
-- A POPIA privacy notice in the footer, stating only what is true of the site (no cookies,
-  analytics or forms).
+- **Request-information form** in Contact: name, email, organisation, role, phone, area of
+  interest, message and POPIA consent, with inline validation, a spam honeypot and accessible
+  error messages. With no form service configured it opens the visitor's mail app with the
+  request fully written out. Setting `VITE_FORM_ENDPOINT` makes it post directly and show an
+  on-page confirmation. Both paths are tested.
+- A POPIA privacy notice in the footer, covering the request form, no cookies and no analytics.
 - A self-contained single-file version, `share/quest4best-website.html` (`npm run build:html`),
   that opens from disk or an email attachment with everything embedded.
 - A deploy workflow to GitHub Pages (`.github/workflows/quest4best-pages.yml`).
@@ -82,18 +86,23 @@ hero video failing to load inside the audit sandbox.
 5. **Hero video.** Confirm usage rights, and preferably supply the file so it is hosted with the
    site rather than on a third-party CDN. _(30 min.)_
 
+6. **Form delivery.** Decide how form requests arrive. Today they go through the visitor's own
+   email app. To receive them directly (more reliable on shared or work devices), create a free
+   Formspree or Web3Forms form for the confirmed address and add its URL as the repository
+   variable `FORM_ENDPOINT` (Settings → Secrets and variables → Actions → Variables). _(15 min.)_
+
 ### Recommended before launch
 
-6. **Company details in the privacy notice.** The notice is live. Add the registered company
+7. **Company details in the privacy notice.** The notice is live. Add the registered company
    name and number (Quest4Best Consulting (Pty) Ltd) and a named contact for information
    requests once supplied. _(15 min.)_
-7. **Real-device QA.** iOS Safari and Android Chrome, especially video autoplay. _(1 h.)_
-8. **Higher-resolution portrait.** `mlungisi-portrait.jpg` is only 396px wide. It is currently
+8. **Real-device QA.** iOS Safari and Android Chrome, especially video autoplay. _(1 h.)_
+9. **Higher-resolution portrait.** `mlungisi-portrait.jpg` is only 396px wide. It is currently
    unused, and is needed if a press or LinkedIn preview uses it.
 
 ### Optional
 
-9. The photos the brief lists but that were never supplied (`city-buildings`, `modern-building`)
-   have been substituted with `executive-window`. Swap them in if they arrive.
-10. Privacy-friendly analytics (e.g. Plausible) if the client wants visitor numbers.
-11. Replace the GitHub Pages URL with the custom domain in the deploy workflow environment.
+10. The photos the brief lists but that were never supplied (`city-buildings`, `modern-building`)
+    have been substituted with `executive-window`. Swap them in if they arrive.
+11. Privacy-friendly analytics (e.g. Plausible) if the client wants visitor numbers.
+12. Replace the GitHub Pages URL with the custom domain in the deploy workflow environment.

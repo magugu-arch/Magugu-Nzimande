@@ -47,6 +47,9 @@ jobs:
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
           VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          # Optional: Settings → Secrets and variables → Actions → Variables.
+          # Unset, the request form falls back to the visitor's mail app.
+          VITE_FORM_ENDPOINT: ${{ vars.FORM_ENDPOINT }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

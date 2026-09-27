@@ -1,5 +1,5 @@
-import { ArrowUpRight } from 'lucide-react';
 import { BRAND_LINE, CONTACT_EMAIL, NAV_LINKS, asset } from '../content';
+import { ContactForm } from './ContactForm';
 import { Logo } from './Logo';
 
 const container = 'mx-auto w-full max-w-page px-6 md:px-10 xl:px-16';
@@ -275,16 +275,7 @@ export function Contact() {
             experienced perspective to the table.
           </p>
 
-          <a
-            href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Starting a conversation')}`}
-            className="group mt-14 inline-flex w-fit items-center gap-4 border-b border-white/25 pb-3 text-2xl font-medium tracking-tight text-white transition-colors hover:border-quest md:text-4xl"
-          >
-            {CONTACT_EMAIL}
-            <ArrowUpRight
-              aria-hidden
-              className="h-6 w-6 shrink-0 text-quest transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 md:h-8 md:w-8"
-            />
-          </a>
+          <ContactForm />
         </div>
 
         <div className="relative -mx-6 aspect-[4/5] md:-mx-10 lg:col-span-5 lg:mx-0 lg:aspect-auto xl:-mr-16">
@@ -344,14 +335,15 @@ export function Footer() {
           <p className="text-xs text-white/50">
             © {new Date().getFullYear()} Quest4Best Consulting. All rights reserved.
           </p>
-          {/* True of the site as built: no cookies, analytics or forms. Revisit
-              if any of those are added, and add company registration details
-              once supplied. */}
+          {/* True of the site as built: no cookies or analytics; the request form
+              only reaches us by email or the configured form service. Revisit if
+              that changes, and add company registration details once supplied. */}
           <p id="privacy" className="max-w-[40rem] text-xs leading-relaxed text-white/50">
-            <span className="font-semibold text-white/70">Privacy.</span> This site sets no cookies,
-            runs no analytics and collects no personal information. If you email us, we use your
-            message only to reply and handle it in line with the Protection of Personal Information
-            Act (POPIA).
+            <span className="font-semibold text-white/70">Privacy.</span> This site sets no cookies
+            and runs no analytics. The only personal information we receive is what you choose to
+            send through the request form or by email. We use it solely to respond to you, do not
+            share or sell it, and handle it in line with the Protection of Personal Information Act
+            (POPIA). To see, correct or delete what we hold, email {CONTACT_EMAIL}.
           </p>
         </div>
       </div>

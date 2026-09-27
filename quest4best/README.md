@@ -37,6 +37,14 @@ the written brief:
 - **Hero video** — hosted on an external CDN (`HERO_VIDEO` in `src/content.ts`). Consider
   self-hosting before launch; the poster image keeps the hero usable if it fails.
 
+## Request form
+
+The Contact section's form works without a server: on submit it opens the visitor's mail app with
+the request written out to `CONTACT_EMAIL`. To receive submissions directly, point
+`VITE_FORM_ENDPOINT` at any service that accepts a JSON POST (Formspree, Web3Forms, Basin),
+either in the build environment or in the deploy workflow's Build step. The form then posts and
+shows an on-page confirmation.
+
 ## Deploy
 
 `.github/workflows/quest4best-pages.yml` builds this folder and deploys it to GitHub Pages on
