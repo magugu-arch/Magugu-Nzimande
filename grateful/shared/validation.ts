@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+// No eval: zod's optional speed-up compiles validators with new Function,
+// which the site's Content Security Policy (script-src 'self') forbids. The
+// forms are small, so the plain path costs nothing noticeable.
+z.config({ jitless: true });
+
 /**
  * One set of schemas, used by the forms for instant feedback and by the API as
  * the check that actually counts. The browser copy is a courtesy; the server

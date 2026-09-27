@@ -144,6 +144,7 @@ Keywords `<meta>` tags are not used: Google ignores them. What ranks a local stu
 - RLS is on for every table with no policies, so the anon key can't do anything.
 - Production refuses to start with the in-memory database or the mock gateway.
 - Card details never touch the site: PayFast's hosted checkout handles them.
+- `vercel.json` sends a Content Security Policy: scripts only from the site itself (no inline code, no `eval`, so zod runs `jitless`), the Google map as the only frame, and forms only to the site and PayFast. Plus HSTS, `X-Frame-Options: DENY`, `nosniff` and a strict referrer policy. `server/headers.test.ts` keeps the policy and the PayFast addresses in step.
 
 ## Going live
 
