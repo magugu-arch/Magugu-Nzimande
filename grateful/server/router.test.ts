@@ -119,6 +119,15 @@ describe('API', () => {
     expect((await route(req('PATCH', '/api/admin/services/fittings', { priceCents: 1 }))).status).toBe(401);
   });
 
+  it('locks out an address after 10 wrong studio keys, even for the right key', async () => {
+    const good = adminAuth();
+    const wrong = { authorization: 'Bearer not-the-studio-key-000000' };
+    for (let i = 0; i < 10; i++) expect((await route({ ...req('GET', '/api/admin/session', undefined, '10.9.9.9'), headers: wrong })).status).toBe(401);
+    expect((await route({ ...req('GET', '/api/admin/session', undefined, '10.9.9.9'), headers: good })).status).toBe(429);
+    // Another address is unaffected, and correct use never counts against the limit.
+    for (let i = 0; i < 15; i++) expect((await route({ ...req('GET', '/api/admin/session', undefined, '10.8.8.8'), headers: good })).status).toBe(200);
+  });
+
   it('keeps admin endpoints closed without a token', async () => {
     expect((await route(req('POST', '/api/admin/bookings/00000000-0000-4000-8000-000000000000/cancel'))).status).toBe(401);
   });

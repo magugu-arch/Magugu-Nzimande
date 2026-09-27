@@ -81,7 +81,7 @@ An email failure is logged, but it never undoes a booking or a payment, because 
 
 **`/studio`**: where the studio team runs bookings day to day. Sign in with the `ADMIN_TOKEN` value. It has:
 
-- **Diary:** the next seven days of bookings, with call/WhatsApp/email links, **reschedule** (only free times are offered) and **cancel** (confirmed on the card before it acts). Both email the client.
+- **Diary:** the next seven days of bookings, **Add a booking** for ones taken by phone, WhatsApp or in person (free times only; the client can optionally be emailed), with call/WhatsApp/email links, **reschedule** (only free times are offered) and **cancel** (confirmed on the card before it acts). Both email the client.
 - **Opening hours:** open single days or a weekly pattern, and close, reopen or delete blocks. The booking page follows at once.
 - **Services & prices:** price, deposit, duration, wording and visibility per service. A blank price means "Quote required".
 - **Enquiries:** contact messages to mark replied or archive.
@@ -96,16 +96,24 @@ Under the dashboard sits the admin API. Every call needs `Authorization: Bearer 
 | `GET /api/admin/overview` | the figures along the top |
 | `GET /api/admin/bookings?from=&to=` | the diary |
 | `GET /api/admin/bookings/:id/options?date=` | free times a booking could move to |
+| `GET /api/admin/slots?serviceId=&date=` · `POST /api/admin/bookings` | free times for, and saving of, a booking the studio enters |
 | `POST /api/admin/bookings/:id/reschedule` `{ date, time }` | move a confirmed booking |
 | `POST /api/admin/bookings/:id/cancel` | cancel and free the slot |
 | `GET /api/admin/services` · `PATCH /api/admin/services/:id` | read and edit services (the deposit is checked against the price) |
 | `GET /api/admin/hours?from=&to=` · `POST /api/admin/hours` · `PATCH`/`DELETE /api/admin/hours/:id` | opening hours (one date, or `from`/`to`/`weekdays`) |
 | `GET /api/admin/messages` · `PATCH /api/admin/messages/:id` | enquiries |
 
+## Reminders, health and launch checks
+
+- **Day-before reminders.** `GET /api/cron/reminders` emails everyone booked for tomorrow, once each (`reminder_sent_at`, migration 0003). `vercel.json` schedules it daily at 14:45 UTC (16:45 in Johannesburg). It is disabled until `CRON_SECRET` is set; Vercel's scheduler sends that secret automatically. The diary shows "Reminder emailed" on each booking that has had one.
+- **`GET /api/health`** returns 200 when the environment is ready for real bookings and 503 otherwise, with pass/fail per check and never a value. Point an uptime monitor at it.
+- **`npm run check:launch [-- --env-file=.env.production]`** prints every launch setting with ✓/✗ and the fix. It exits 1 while anything required is missing.
+
 ## Security
 
 - Service-role, PayFast and Resend secrets are read only in `server/`. No `VITE_` variables exist, so nothing secret can be bundled.
 - All input is validated server-side with the same zod schemas the forms use, and control characters are stripped.
+- Ten wrong studio keys from one address in 15 minutes lock that address out of the admin API for the rest of the window.
 - Public forms have per-IP rate limits, a honeypot field and a minimum fill time. The rate limits are in-memory per instance: put the host's WAF in front for more.
 - RLS is on for every table with no policies, so the anon key can't do anything.
 - Production refuses to start with the in-memory database or the mock gateway.
@@ -113,11 +121,12 @@ Under the dashboard sits the admin API. Every call needs `Authorization: Bearer 
 
 ## Going live
 
-1. **Supabase:** create a project, then run `supabase/migrations/0001_init.sql` and `supabase/seed.sql` (or `supabase db push`). Replace the sample availability with real hours, and set prices where they apply.
-2. **PayFast:** create a merchant account and test on the sandbox first (`PAYFAST_SANDBOX=true`). Set `PAYMENT_PROVIDER=payfast` and the merchant ID, key and passphrase.
-3. **Newsletter:** set `NEWSLETTER_SECRET` to a long random string.
-4. **Resend:** verify a sending domain, then set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` and `EMAIL_FROM`.
-5. **Vercel:** import the repo with **root directory `grateful`**, add the variables from `.env.example`, and set `SITE_URL` to the real domain (PayFast's notify URL is built from it).
+1. **Supabase:** create a project, then run every file in `supabase/migrations` in order (`0001`–`0003`), then `supabase/seed.sql` (or `supabase db push`). Replace the sample availability with real hours, and set prices where they apply.
+2. **Reminders:** set `CRON_SECRET` (16+ random characters).
+3. **PayFast:** create a merchant account and test on the sandbox first (`PAYFAST_SANDBOX=true`). Set `PAYMENT_PROVIDER=payfast` and the merchant ID, key and passphrase.
+4. **Newsletter:** set `NEWSLETTER_SECRET` to a long random string.
+5. **Resend:** verify a sending domain, then set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` and `EMAIL_FROM`.
+6. **Vercel:** import the repo with **root directory `grateful`**, add the variables from `.env.example`, and set `SITE_URL` to the real domain (PayFast's notify URL is built from it). Then run `npm run check:launch` against those values: it should print "Ready to launch."
 
 ## Scripts
 
@@ -127,6 +136,7 @@ Under the dashboard sits the admin API. Every call needs `Authorization: Bearer 
 | `npm run build` | typecheck and production build to `dist/` |
 | `npm test` | Vitest: slot rules, double booking, holds, payment verification, PayFast signatures, reschedule, unsubscribe, API routes. Shared fixtures live in `server/test/fixtures.ts` |
 | `npm run smoke` | real browser against the dev server: every page at 320/390/1440px (sideways scroll, console errors, axe), then a free and a paid booking end to end, then the studio dashboard (sign in, find the booking, reschedule, set a price, open hours) |
+| `npm run check:launch` | lists every setting the live site needs, with ✓/✗ and how to fix it; exits 1 until ready |
 | `npm run verify` | typecheck, lint, test, build: what CI runs (followed by `smoke`) |
 | `npm run build:single` | the same preview as **one self-contained HTML file** (`dist-single/index.html`, about 2 MB: scripts, styles, fonts and photos inlined) that opens by double-clicking on a Mac or tapping it on Android. A copy is kept at `preview/Grateful-Website-Preview.html` |
 | `npm run build:demo` | static click-through preview in `dist-demo/`, with the API simulated in the browser (`src/lib/demoApi.ts`). Nothing is saved or sent. Never deploy it as the real site |

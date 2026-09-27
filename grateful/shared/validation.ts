@@ -104,3 +104,16 @@ export const openingHoursSchema = z
   .refine((h) => h.endTime > h.startTime, { message: 'Closing time must be after opening time.', path: ['endTime'] })
   .refine((h) => !!h.date || (!!h.from && !!h.to && !!h.weekdays?.length), { message: 'Choose a date, or a date range and weekdays.', path: ['date'] })
   .refine((h) => !h.from || !h.to || h.to >= h.from, { message: 'The end date must be on or after the start date.', path: ['to'] });
+
+/** A booking the studio records itself (taken by phone, WhatsApp or in person). */
+export const studioBookingSchema = z.object({
+  serviceId: z.string().min(1, 'Choose a service.'),
+  date: isoDate,
+  time: hhmm,
+  clientName: name,
+  phone,
+  // Optional: many phone bookings come without an email address.
+  email: z.union([z.literal(''), z.string().trim().toLowerCase().pipe(z.email('Enter a valid email, or leave it blank.'))]).optional().default(''),
+  notes: trimmed(2000).optional().default(''),
+  notifyClient: z.boolean().optional().default(false),
+});

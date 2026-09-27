@@ -57,6 +57,9 @@ export const adminApi = {
   checkToken: (token: string) => call<{ ok: true }>('GET', '/session', undefined, token),
   overview: () => call<Overview>('GET', '/overview'),
   bookings: (from: string, to: string) => call<{ bookings: AdminBooking[] }>('GET', `/bookings?from=${from}&to=${to}`).then((r) => r.bookings),
+  studioSlots: (serviceId: string, date: string) => call<{ slots: string[] }>('GET', `/slots?serviceId=${encodeURIComponent(serviceId)}&date=${date}`).then((r) => r.slots),
+  createBooking: (body: { serviceId: string; date: string; time: string; clientName: string; phone: string; email: string; notes: string; notifyClient: boolean }) =>
+    call<{ booking: { id: string; date: string; time: string } }>('POST', '/bookings', body),
   rescheduleOptions: (id: string, date: string) => call<{ slots: string[] }>('GET', `/bookings/${id}/options?date=${date}`).then((r) => r.slots),
   reschedule: (id: string, date: string, time: string) => call<unknown>('POST', `/bookings/${id}/reschedule`, { date, time }),
   cancel: (id: string) => call<unknown>('POST', `/bookings/${id}/cancel`),

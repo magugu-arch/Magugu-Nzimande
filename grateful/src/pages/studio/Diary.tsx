@@ -4,6 +4,7 @@ import { addDays, formatDuration, formatLongDate, todayInSast } from '../../../s
 import type { AdminBooking } from '../../../shared/types';
 import { adminApi } from '../../lib/adminApi';
 import { RequestError } from '../../lib/api';
+import { AddBooking } from './AddBooking';
 import { BookingChip, inputCls, Loading, Notice, Panel, PaymentChip, SmallButton } from './ui';
 
 
@@ -23,6 +24,8 @@ export function Diary({ onChange }: { onChange: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [reload, setReload] = useState(0);
+  const [adding, setAdding] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
   const end = addDays(start, 6);
   // Clear the old range while the new one loads, so a stale week is never mistaken for this one.
   const go = (d: string) => {
@@ -66,6 +69,9 @@ export function Diary({ onChange }: { onChange: () => void }) {
           <SmallButton variant="text" onClick={() => go(todayInSast())} disabled={start === todayInSast()}>
             From today
           </SmallButton>
+          <SmallButton variant="solid" onClick={() => (setAdding(true), setSaved(null))}>
+            Add a booking
+          </SmallButton>
           <label className="flex min-h-11 items-center gap-2 font-sans text-sm">
             <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} className="size-4 accent-white" />
             Show cancelled &amp; lapsed
@@ -73,6 +79,23 @@ export function Diary({ onChange }: { onChange: () => void }) {
         </div>
       }
     >
+      {adding && (
+        <AddBooking
+          onCancel={() => setAdding(false)}
+          onDone={(d) => {
+            setAdding(false);
+            setSaved('Booking saved.');
+            // Jump to the week that contains the new booking so it is visible.
+            if (d < start || d > end) go(d);
+            refresh();
+          }}
+        />
+      )}
+      {saved && (
+        <div className="mb-4">
+          <Notice kind="ok">{saved}</Notice>
+        </div>
+      )}
       {error && <Notice kind="error">{error}</Notice>}
       {!bookings && !error && <Loading label="Loading the diary…" />}
       {bookings && (
@@ -156,6 +179,7 @@ function BookingCard({ booking: b, onChanged }: { booking: AdminBooking; onChang
         </div>
       </div>
 
+      {b.reminderSentAt && <p className="mt-1 font-sans text-xs opacity-60">Reminder emailed</p>}
       {b.notes && <p className="mt-2 border-l border-white/30 pl-3 font-sans text-sm whitespace-pre-line opacity-80">{b.notes}</p>}
 
       <div className="mt-2 flex flex-wrap gap-x-4 font-sans text-sm">

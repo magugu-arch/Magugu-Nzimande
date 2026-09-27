@@ -15,6 +15,8 @@ export type Booking = {
   paymentStatus: PaymentStatus;
   paymentReference: string | null;
   holdExpiresAt: string | null;
+  /** When the day-before reminder went out; null until then. */
+  reminderSentAt?: string | null;
   createdAt: string;
 };
 
@@ -80,6 +82,10 @@ export interface Repository {
   failPayment(reference: string, status: 'failed' | 'cancelled', providerReference: string | null): Promise<Payment | null>;
   /** Mark a payment paid and confirm its booking, atomically and idempotently. */
   confirmPayment(reference: string, providerReference: string, now: Date): Promise<ConfirmResult | null>;
+
+  /** Confirmed bookings on `date` whose reminder has not been sent. */
+  listRemindersDue(date: string): Promise<Booking[]>;
+  markReminderSent(id: string, at: Date): Promise<void>;
 
   /** Admin: every booking in [from, to], newest first. */
   listBookings(from: string, to: string): Promise<Booking[]>;

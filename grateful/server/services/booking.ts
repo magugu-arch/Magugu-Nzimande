@@ -6,6 +6,7 @@ import { repository } from '../db';
 import type { Booking, Payment } from '../db/types';
 import {
   bookingCancelledClient,
+  appointmentReminderClient,
   bookingConfirmedClient,
   bookingNotificationStudio,
   paymentConflictClient,
@@ -242,11 +243,12 @@ function emailData(b: Booking, s: Service, p: Payment | null): BookingEmailData 
   };
 }
 
-async function sendConfirmation(b: Booking, s: Service, p: Payment | null) {
+export async function sendConfirmation(b: Booking, s: Service, p: Payment | null, opts: { client?: boolean } = {}) {
   const { siteUrl, studioEmail } = config();
   const data = emailData(b, s, p);
-  const messages = [bookingConfirmedClient(siteUrl, data), bookingNotificationStudio(siteUrl, data, studioEmail)];
-  if (p) messages.push(paymentReceiptClient(siteUrl, data, p.reference));
+  const toClient = opts.client !== false && !!b.email;
+  const messages = [...(toClient ? [bookingConfirmedClient(siteUrl, data)] : []), bookingNotificationStudio(siteUrl, data, studioEmail)];
+  if (p && toClient) messages.push(paymentReceiptClient(siteUrl, data, p.reference));
   await sendSafely(messages);
 }
 
@@ -321,4 +323,28 @@ export async function rescheduleBooking(id: string, date: string, time: string, 
   const { siteUrl } = config();
   await sendSafely([bookingCancelledClient(siteUrl, emailData(moved.booking, service, null), 'rescheduled')]);
   return moved.booking;
+}
+
+/**
+ * Daily job: remind everyone booked for tomorrow (Johannesburg time), once.
+ * Safe to run more than once a day: a booking is marked as reminded the
+ * moment its email is handed over, and is skipped after that. Bookings with
+ * no email address (some phone bookings) are marked and skipped.
+ */
+export async function sendReminders(now = new Date()): Promise<{ date: string; sent: number; skipped: number }> {
+  const repo = repository();
+  const date = addDays(todayInSast(now), 1);
+  const due = await repo.listRemindersDue(date);
+  const { siteUrl } = config();
+  let sent = 0;
+  let skipped = 0;
+  for (const b of due) {
+    const service = await repo.getService(b.serviceId);
+    if (b.email && service) {
+      await sendSafely([appointmentReminderClient(siteUrl, emailData(b, service, null))]);
+      sent++;
+    } else skipped++;
+    await repo.markReminderSent(b.id, now);
+  }
+  return { date, sent, skipped };
 }

@@ -164,6 +164,13 @@ export function createMemoryRepository(opts: { services?: Service[]; availabilit
       b.status = clash ? 'needs_attention' : 'confirmed';
       return { outcome: b.status === 'confirmed' ? 'confirmed' : 'conflict', booking: { ...b }, payment: { ...p } };
     },
+    async listRemindersDue(date) {
+      return [...bookings.values()].filter((b) => b.date === date && b.status === 'confirmed' && !b.reminderSentAt).map((b) => ({ ...b }));
+    },
+    async markReminderSent(id, at) {
+      const b = bookings.get(id);
+      if (b) b.reminderSentAt = at.toISOString();
+    },
     async listBookings(from, to) {
       return [...bookings.values()]
         .filter((b) => b.date >= from && b.date <= to)

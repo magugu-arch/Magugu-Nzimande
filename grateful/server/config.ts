@@ -40,6 +40,9 @@ export function config() {
     /** Signs newsletter unsubscribe links. Required in production. */
     newsletterSecret: env('NEWSLETTER_SECRET'),
 
+    /** Bearer token the host's scheduler sends to /api/cron/*. Vercel sends CRON_SECRET automatically. */
+    cronSecret: env('CRON_SECRET'),
+
     /** Bearer token for /api/admin/*. Unset → admin endpoints are disabled. */
     adminToken: env('ADMIN_TOKEN'),
 

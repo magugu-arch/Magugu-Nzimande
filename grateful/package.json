@@ -13,7 +13,8 @@
     "verify": "npm run typecheck && npm run lint && npm test && vite build",
     "smoke": "node e2e/smoke.mjs",
     "build:demo": "vite build --mode demo --base ./ --outDir dist-demo",
-    "build:single": "vite build --mode single"
+    "build:single": "vite build --mode single",
+    "check:launch": "node scripts/check-launch.mjs"
   },
   "dependencies": {
     "@fontsource-variable/baskervville": "^5.3.0",

@@ -23,6 +23,12 @@ export function rateLimit(bucket: string, ip: string, limit: number, windowMs: n
   return w.count <= limit;
 }
 
+/** How many hits a bucket has recorded for an IP in its current window, without adding one. */
+export function failureCount(bucket: string, ip: string, now = Date.now()): number {
+  const w = windows.get(`${bucket}:${ip}`);
+  return w && w.resetAt > now ? w.count : 0;
+}
+
 export function resetRateLimits() {
   windows.clear();
 }

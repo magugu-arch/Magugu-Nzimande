@@ -53,6 +53,7 @@ const booking = (r: Row): Booking => ({
   paymentStatus: r.payment_status as Booking['paymentStatus'],
   paymentReference: (r.payment_reference as string | null) ?? null,
   holdExpiresAt: (r.hold_expires_at as string | null) ?? null,
+  reminderSentAt: (r.reminder_sent_at as string | null) ?? null,
   createdAt: String(r.created_at),
 });
 
@@ -214,6 +215,13 @@ export function createSupabaseRepository(url: string, serviceRoleKey: string): R
       const [b, p] = await Promise.all([getBooking(String(r.booking_id)), getPaymentById(String(r.payment_id))]);
       if (!b || !p) return null;
       return { outcome: r.outcome as ConfirmResult['outcome'], booking: b, payment: p } as ConfirmResult;
+    },
+    async listRemindersDue(date) {
+      const rows = must(await db.from('bookings').select('*').eq('date', date).eq('status', 'confirmed').is('reminder_sent_at', null));
+      return (rows ?? []).map(booking);
+    },
+    async markReminderSent(id, at) {
+      must(await db.from('bookings').update({ reminder_sent_at: at.toISOString() }).eq('id', id));
     },
     async listBookings(from, to) {
       const rows = must(await db.from('bookings').select('*').gte('date', from).lte('date', to).order('date').order('time'));

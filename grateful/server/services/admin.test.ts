@@ -2,10 +2,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { addDays } from '../../shared/format';
 import { repository } from '../db';
 import { realServices, resetStudio, sampleClients, setupStudio, TEST_DATE as date } from '../test/fixtures';
-import { addOpeningHours, overview, rescheduleOptions, updateService } from './admin';
+import { addOpeningHours, createStudioBooking, overview, rescheduleOptions, updateService } from './admin';
 import { availableDates, availableSlots, createBooking } from './booking';
 
-beforeEach(() => setupStudio({ services: realServices }));
+let outbox: { to: string; subject: string }[];
+beforeEach(() => {
+  outbox = setupStudio({ services: realServices }).outbox;
+});
 afterEach(resetStudio);
 
 describe('studio dashboard', () => {
@@ -58,5 +61,24 @@ describe('studio dashboard', () => {
     expect(o.newMessages).toBe(1);
     // TEST_DATE is a week out, so it counts as upcoming but not as today or this week.
     expect(o).toMatchObject({ todayCount: 0, weekCount: 0, awaitingPayment: 0, needsAttention: 0, subscribers: 0 });
+  });
+
+  it('records a phone booking as confirmed, blocks the slot, and emails only the studio by default', async () => {
+    const b = await createStudioBooking({ serviceId: 'fittings', date, time: '13:00', clientName: 'Walk-in client', phone: '082 555 0000', email: '', notes: '', notifyClient: false });
+    expect(b.status).toBe('confirmed');
+    expect(await availableSlots('fittings', date)).not.toContain('13:00');
+    expect(outbox.map((m) => m.to)).toEqual(['gratefulpty@gmail.com']);
+  });
+
+  it('emails the client too when asked and an address is given', async () => {
+    await createStudioBooking({ serviceId: 'consultation', date, time: '09:00', ...sampleClients[1]!, notifyClient: true });
+    expect(outbox.map((m) => m.to).sort()).toEqual(['gratefulpty@gmail.com', sampleClients[1]!.email]);
+  });
+
+  it('refuses a phone booking that clashes or falls outside opening hours', async () => {
+    await createBooking({ serviceId: 'consultation', date, time: '10:00', ...sampleClients[0]! });
+    const base = { serviceId: 'consultation', clientName: 'X', phone: '082 000 0000', email: '', notes: '', notifyClient: false, date };
+    await expect(createStudioBooking({ ...base, time: '10:30' })).rejects.toMatchObject({ status: 409 });
+    await expect(createStudioBooking({ ...base, time: '20:00' })).rejects.toMatchObject({ status: 409 });
   });
 });

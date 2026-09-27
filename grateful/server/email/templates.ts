@@ -247,3 +247,25 @@ export function newsletterWelcome(siteUrl: string, email: string, unsubscribeHre
     text: text(heading, intro, [], `Explore the work: ${siteUrl}/work\n\nUnsubscribe: ${unsubscribeHref}`),
   };
 }
+
+export function appointmentReminderClient(siteUrl: string, b: BookingEmailData): EmailMessage {
+  const heading = 'See you tomorrow';
+  const intro = `A reminder, ${b.clientName.split(' ')[0]}: your appointment with Grateful is tomorrow.`;
+  const rows = bookingRows(b);
+  const body = `Bring any inspiration you love: images, fabrics, or a garment you want to reference. If you need to change the time, call ${site.phone} or reply to this email.`;
+  return {
+    to: b.email,
+    replyTo: site.email,
+    subject: `Tomorrow at ${b.time}: ${b.serviceName}`,
+    html: layout({
+      siteUrl,
+      preheader: `${formatLongDate(b.date)} at ${b.time}`,
+      heading,
+      intro,
+      rows,
+      body: `<p style="margin:0 0 24px;font:16px/1.6 ${serif};color:#222">${esc(body)}</p>`,
+      cta: { href: `${siteUrl}/confirmation?booking=${b.bookingId}`, label: 'View booking' },
+    }),
+    text: text(heading, intro, rows, body),
+  };
+}

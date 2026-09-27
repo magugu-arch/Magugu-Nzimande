@@ -2,7 +2,8 @@ import { addDays, todayInSast } from '../../shared/format';
 import type { OpeningHours, ServiceUpdate } from '../../shared/types';
 import { repository } from '../db';
 import { slotsForDate } from '../slots';
-import { BookingError, listBookingsForAdmin } from './booking';
+import { BookingError, listBookingsForAdmin, sendConfirmation } from './booking';
+import { sanitizeText } from '../security';
 import { config } from '../config';
 
 /**
@@ -85,4 +86,49 @@ export async function rescheduleOptions(bookingId: string, date: string, now = n
   // Its own current slot does not count against it.
   const others = busy.filter((b) => !(booking.date === date && b.time === booking.time && b.durationMinutes === booking.durationMinutes));
   return slotsForDate(date, windows, others, { durationMinutes: booking.durationMinutes, stepMinutes: config().booking.slotStepMinutes, minNoticeMinutes: 0, now });
+}
+
+/** Free start times for a service on a date, for the studio's own bookings: opening hours minus bookings, no notice period. */
+export async function studioSlots(serviceId: string, date: string, now = new Date()) {
+  const repo = repository();
+  const service = await repo.getService(serviceId);
+  if (!service) throw new BookingError('Service not found.', 404);
+  const [windows, busy] = await Promise.all([repo.listAvailability(date, date), repo.listBusy(date, date, now)]);
+  return slotsForDate(date, windows, busy, { durationMinutes: service.durationMinutes, stepMinutes: config().booking.slotStepMinutes, minNoticeMinutes: 0, now });
+}
+
+/**
+ * Record a booking taken by phone, WhatsApp or in person. It is confirmed at
+ * once; any payment is settled with the studio directly, so none is asked
+ * for online. The same overlap guard as online bookings applies.
+ */
+export async function createStudioBooking(
+  input: { serviceId: string; date: string; time: string; clientName: string; phone: string; email: string; notes: string; notifyClient: boolean },
+  now = new Date(),
+) {
+  const repo = repository();
+  const service = await repo.getService(input.serviceId);
+  if (!service) throw new BookingError('Service not found.', 404, 'serviceId');
+  if (!(await studioSlots(service.id, input.date, now)).includes(input.time)) {
+    throw new BookingError('That time is taken or outside opening hours.', 409, 'time');
+  }
+  const reserved = await repo.reserveBooking(
+    {
+      serviceId: service.id,
+      clientName: sanitizeText(input.clientName),
+      email: input.email,
+      phone: sanitizeText(input.phone),
+      date: input.date,
+      time: input.time,
+      durationMinutes: service.durationMinutes,
+      notes: sanitizeText(input.notes),
+      status: 'confirmed',
+      paymentStatus: 'not_required',
+      holdExpiresAt: null,
+    },
+    now,
+  );
+  if (!reserved.ok) throw new BookingError('Someone has just booked that time.', 409, 'time');
+  await sendConfirmation(reserved.booking, service, null, { client: input.notifyClient });
+  return reserved.booking;
 }

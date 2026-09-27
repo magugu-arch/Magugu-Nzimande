@@ -1,9 +1,10 @@
 import { timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
-import { bookingSchema, contactSchema, fieldErrors, newsletterSchema, openingHoursSchema, paymentSchema, serviceUpdateSchema } from '../shared/validation';
+import { bookingSchema, contactSchema, fieldErrors, newsletterSchema, openingHoursSchema, paymentSchema, serviceUpdateSchema, studioBookingSchema } from '../shared/validation';
 import { config } from './config';
+import { checkLaunchConfig, launchReady } from './launch';
 import { PaymentVerificationError } from './payments/types';
-import { looksLikeSpam, rateLimit } from './security';
+import { failureCount, looksLikeSpam, rateLimit } from './security';
 import {
   availableDates,
   availableSlots,
@@ -16,10 +17,11 @@ import {
   listBookingsForAdmin,
   listServices,
   rescheduleBooking,
+  sendReminders,
   startPayment,
 } from './services/booking';
 import { submitContact, subscribe, unsubscribe } from './services/forms';
-import { addOpeningHours, overview, rescheduleOptions, updateService } from './services/admin';
+import { addOpeningHours, createStudioBooking, overview, rescheduleOptions, studioSlots, updateService } from './services/admin';
 import { repository } from './db';
 
 /**
@@ -68,6 +70,9 @@ const isDate = (s: string | null): s is string => !!s && /^\d{4}-\d{2}-\d{2}$/.t
 const isMonth = (s: string | null): s is string => !!s && /^\d{4}-(0[1-9]|1[0-2])$/.test(s);
 const isUuid = (s: string | undefined): s is string => !!s && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
+const ADMIN_FAIL_LIMIT = 10;
+const adminLockedOut = (ip: string) => failureCount('admin-fail', ip) >= ADMIN_FAIL_LIMIT;
+
 function adminAuthorised(req: ApiRequest): boolean {
   const token = config().adminToken;
   if (!token) return false;
@@ -82,6 +87,18 @@ export async function route(req: ApiRequest): Promise<ApiResponse> {
   const [a, b, c] = segments;
 
   try {
+    // GET /api/health — for uptime monitors and the person deploying. Pass/fail per
+    // check only; never a value. 200 when ready to take real bookings, else 503.
+    if (method === 'GET' && a === 'health') {
+      const checks = checkLaunchConfig(process.env);
+      const ready = launchReady(checks);
+      return {
+        status: ready ? 200 : 503,
+        headers: { 'Cache-Control': 'no-store' },
+        body: { ready, checks: checks.map(({ id, ok, level }) => ({ id, ok, level })) },
+      };
+    }
+
     // GET /api/services
     if (method === 'GET' && a === 'services' && !b) {
       return { status: 200, headers: { 'Cache-Control': 'public, max-age=60' }, body: { services: await listServices() } };
@@ -181,9 +198,25 @@ export async function route(req: ApiRequest): Promise<ApiResponse> {
       return json(201, { ok: true });
     }
 
+    // GET /api/cron/reminders — daily, from the host's scheduler (vercel.json "crons").
+    // Authorization: Bearer $CRON_SECRET. Disabled until CRON_SECRET is set.
+    if (a === 'cron' && b === 'reminders' && (method === 'GET' || method === 'POST')) {
+      const secret = config().cronSecret;
+      const given = Buffer.from((req.headers.authorization ?? '').replace(/^Bearer\s+/i, ''));
+      if (!secret || given.length !== Buffer.byteLength(secret) || !timingSafeEqual(given, Buffer.from(secret))) return err(401, 'Unauthorised.');
+      return { status: 200, headers: { 'Cache-Control': 'no-store' }, body: await sendReminders() };
+    }
+
     // POST /api/admin/bookings/:id/cancel — Authorization: Bearer $ADMIN_TOKEN
     if (a === 'admin') {
-      if (!adminAuthorised(req)) return err(401, 'Unauthorised.');
+      // Guessing the studio key: after 10 wrong tries from one address in 15
+      // minutes, refuse everything from it (right key included) until the
+      // window passes. Correct requests do not count against the limit.
+      if (adminLockedOut(req.ip)) return err(429, 'Too many wrong studio keys. Please wait 15 minutes and try again.');
+      if (!adminAuthorised(req)) {
+        rateLimit('admin-fail', req.ip, ADMIN_FAIL_LIMIT, 15 * 60_000);
+        return err(401, 'Unauthorised.');
+      }
       const id = segments[2];
       // GET /api/admin/bookings?from=YYYY-MM-DD&to=YYYY-MM-DD
       if (method === 'GET' && b === 'bookings' && !id) {
@@ -236,6 +269,21 @@ export async function route(req: ApiRequest): Promise<ApiResponse> {
         const v = validated(z.object({ status: z.enum(['new', 'replied', 'archived']) }), req);
         if (!v.ok) return v.res;
         return (await repository().setContactStatus(id, v.data.status)) ? json(200, { ok: true }) : err(404, 'Not found.');
+      }
+
+      // GET /api/admin/slots?serviceId=&date= — free times for a booking the studio is entering
+      if (method === 'GET' && b === 'slots') {
+        const serviceId = req.query.get('serviceId');
+        const date = req.query.get('date');
+        if (!serviceId || !isDate(date)) return err(400, 'Provide serviceId and date.');
+        return noStore({ slots: await studioSlots(serviceId, date) });
+      }
+      // POST /api/admin/bookings — a booking taken by phone, WhatsApp or in person
+      if (method === 'POST' && b === 'bookings' && !id) {
+        const v = validated(studioBookingSchema, req);
+        if (!v.ok) return v.res;
+        const booking = await createStudioBooking(v.data);
+        return json(201, { booking: { id: booking.id, date: booking.date, time: booking.time } });
       }
 
       // GET /api/admin/bookings/:id/options?date= — times a booking could move to

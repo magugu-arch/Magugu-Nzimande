@@ -27,6 +27,10 @@ Each booking shows the time, the client, the service, any notes the client added
 - **Reschedule** lets you pick a new date, then a time from the list. The list only shows times that are open and free. Choose **Move booking** and the client is emailed the new time.
 - **Cancel booking** asks you to confirm first. The time becomes free again and the client is emailed. If they had paid, refund them in your PayFast account: cancelling here doesn't move money.
 
+**Add a booking** records an appointment taken by phone, WhatsApp or in person. Pick the service, date and a free time, then add the client's name and phone number. Email is optional. Tick **Email the client a confirmation** if you'd like them to receive one. These bookings are confirmed straight away, and any payment is settled with you directly.
+
+The day before each appointment, clients with an email address automatically get a reminder. Once it has gone, the booking shows **Reminder emailed**.
+
 Tick **Show cancelled & lapsed** to see bookings that were cancelled or never paid for.
 
 ## Opening hours
@@ -58,6 +62,10 @@ Every contact-form message is also emailed to gratefulpty@gmail.com. The Enquiri
 
 - Select the email address to reply from your own email.
 - Choose **Mark replied** once you've answered, and **Archive** to move a message out of the way.
+
+## If you are locked out
+
+After ten wrong keys from the same device in 15 minutes, the dashboard stops accepting any key, even the right one, for the rest of those 15 minutes. This protects the studio from someone guessing the key. Wait and try again.
 
 ## If something goes wrong
 

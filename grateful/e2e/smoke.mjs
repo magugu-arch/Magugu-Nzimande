@@ -141,6 +141,18 @@ try {
   await studio.getByRole('button', { name: 'Open these times' }).click();
   await studio.getByText(/Opened \d+ day|already had overlapping/).waitFor();
   console.log('  ✓ studio: set a price and opened hours');
+  await studio.getByRole('button', { name: 'Diary' }).click();
+  await studio.getByRole('button', { name: 'Add a booking' }).click();
+  await studio.locator('#add-service').selectOption('fittings');
+  await studio.waitForFunction(() => [...document.querySelectorAll('#add-time option')].some((o) => /^\d\d:\d\d$/.test(o.textContent ?? '')), null, { timeout: 5000 });
+  const free = (await studio.locator('#add-time option').allTextContents()).filter((t) => /^\d\d:\d\d$/.test(t));
+  await studio.locator('#add-time').selectOption(free[0]);
+  await studio.locator('#add-name').fill('Phone Booking Smoke');
+  await studio.locator('#add-phone').fill('082 123 4567');
+  await studio.getByRole('button', { name: 'Save booking' }).click();
+  await studio.getByText('Booking saved.').waitFor();
+  await studio.getByText('Phone Booking Smoke').waitFor();
+  console.log('  ✓ studio: recorded a phone booking and saw it in the diary');
   for (const e of studio.errors) fail(`console (studio): ${e}`);
 } catch (e) {
   fail(`journey failed: ${e instanceof Error ? e.message.split('\n')[0] : e}`);

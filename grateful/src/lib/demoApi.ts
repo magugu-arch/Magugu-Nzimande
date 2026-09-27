@@ -232,6 +232,26 @@ function handleAdmin(method: string, parts: string[], url: URL, body: Json): unk
       subscribers: 0,
     };
   }
+  if (section === 'slots') {
+    const svc = services(true).find((x) => x.id === q('serviceId'));
+    if (!svc) throw new DemoError(404, 'Service not found.');
+    return { slots: slotsForDate(q('date'), openWindows(), busy(), { durationMinutes: svc.durationMinutes, stepMinutes: 30, minNoticeMinutes: 0, now: new Date() }) };
+  }
+  if (section === 'bookings' && !id && method === 'POST') {
+    const svc = services(true).find((x) => x.id === body.serviceId);
+    if (!svc) throw new DemoError(404, 'Service not found.');
+    const free = slotsForDate(String(body.date), openWindows(), busy(), { durationMinutes: svc.durationMinutes, stepMinutes: 30, minNoticeMinutes: 0, now: new Date() });
+    if (!free.includes(String(body.time))) throw new DemoError(409, 'That time is taken or outside opening hours.', { time: 'Taken' });
+    const bid = crypto.randomUUID();
+    bookings.set(bid, {
+      id: bid, serviceId: svc.id, serviceName: svc.name, serviceImage: svc.image, durationMinutes: svc.durationMinutes,
+      date: String(body.date), time: String(body.time), clientName: String(body.clientName), email: String(body.email ?? ''),
+      phone: String(body.phone ?? ''), notes: String(body.notes ?? ''), status: 'confirmed', paymentStatus: 'not_required',
+      paymentRequired: false, priceCents: null, depositCents: null, amountPaidCents: null, amountDueCents: null, holdExpiresAt: null,
+      createdAt: new Date().toISOString(),
+    });
+    return { booking: { id: bid, date: body.date, time: body.time } };
+  }
   if (section === 'bookings' && !id) {
     return { bookings: [...bookings.values()].filter((b) => b.date >= q('from') && b.date <= q('to')).sort((x, y) => (x.date + x.time < y.date + y.time ? -1 : 1)).map(toAdmin) };
   }

@@ -106,5 +106,6 @@ export type AdminBooking = {
   status: BookingStatus;
   paymentStatus: PaymentStatus;
   paymentReference: string | null;
+  reminderSentAt?: string | null;
   createdAt: string;
 };
