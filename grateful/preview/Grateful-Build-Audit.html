@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grateful Build Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400..700;1,400..700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #ffffff;
+    --ink: #0b0b0b;
+    --ink-2: #4a4a4a;
+    --ink-3: #6e6e6e;
+    --rule: #dcdcdc;
+    --track: #ececec;
+    --fill: #0b0b0b;
+    --soft: #f5f5f4;
+    --serif: 'Baskervville', Baskerville, 'Libre Baskerville', Georgia, serif;
+    --sans: 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
+      --rule: #2c2c2c; --track: #262626; --fill: #f4f4f4; --soft: #151515;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
+    --rule: #2c2c2c; --track: #262626; --fill: #f4f4f4; --soft: #151515;
+  }
+
+  body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--serif); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; }
+  .label { font: 600 11px/1.4 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+  .mono { font-variant-numeric: tabular-nums; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  header.mast { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--ink); padding-bottom: 12px; }
+  header.mast .who { font: 600 12px/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; }
+
+  .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; align-items: end; padding-block: 48px 36px; border-bottom: 1px solid var(--rule); }
+  .hero h1 { margin: 0; font-weight: 400; font-size: clamp(2.4rem, 5.5vw, 4rem); line-height: 1; letter-spacing: -.02em; text-wrap: balance; }
+  .hero h1 em { font-style: italic; }
+  .big { font-size: clamp(5.5rem, 16vw, 10rem); line-height: .85; letter-spacing: -.04em; }
+  .big small { font-size: .35em; letter-spacing: 0; margin-left: 4px; }
+  .hero p { margin: 16px 0 0; max-width: 34em; color: var(--ink-2); }
+  .meter { margin-top: 20px; display: flex; gap: 2px; height: 14px; }
+  .meter span { display: block; height: 100%; }
+  .meter .done { background: var(--fill); border-radius: 4px 0 0 4px; }
+  .meter .left { background: var(--track); border-radius: 0 4px 4px 0; }
+  .meter-key { display: flex; justify-content: space-between; margin-top: 8px; font: 13px/1.4 var(--sans); color: var(--ink-2); }
+
+  section { padding-block: 40px; border-bottom: 1px solid var(--rule); }
+  h2 { margin: 0 0 6px; font-weight: 400; font-size: 1.9rem; line-height: 1.1; }
+  h2 + .sub { margin: 0 0 24px; color: var(--ink-2); max-width: 44em; }
+
+  /* Workstream table */
+  .ws { width: 100%; border-collapse: collapse; }
+  .ws th { text-align: left; padding: 0 0 10px; border-bottom: 1px solid var(--ink); }
+  .ws td { padding: 16px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .ws td.name { width: 34%; padding-right: 20px; }
+  .ws td.name strong { display: block; font-weight: 400; font-size: 1.15rem; line-height: 1.25; }
+  .ws td.name span { display: block; margin-top: 4px; font: 13px/1.5 var(--sans); color: var(--ink-3); }
+  .ws td.bar { padding-right: 20px; }
+  .ws td.num { width: 14%; text-align: right; font: 14px/1.4 var(--sans); white-space: nowrap; }
+  .ws td.num b { display: block; font: 600 20px/1.2 var(--sans); }
+  .track { position: relative; height: 10px; background: var(--track); border-radius: 4px; margin-top: 8px; cursor: default; }
+  .track i { position: absolute; inset: 0 auto 0 0; background: var(--fill); border-radius: 4px; }
+  .track .tip { position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: 280px; padding: 8px 10px; background: var(--ink); color: var(--paper); font: 12px/1.45 var(--sans); border-radius: 4px; opacity: 0; transform: translateY(4px); transition: opacity .15s, transform .15s; pointer-events: none; z-index: 2; }
+  .track:hover .tip, .track:focus-visible .tip { opacity: 1; transform: none; }
+  .left-note { margin-top: 8px; font: 13px/1.5 var(--sans); color: var(--ink-2); }
+  .ws tfoot td { border-bottom: 0; border-top: 1px solid var(--ink); font: 600 14px/1.4 var(--sans); }
+
+  /* Evidence tiles */
+  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .facts div { background: var(--paper); padding: 18px; }
+  .facts b { display: block; font: 400 2.2rem/1 var(--serif); margin: 8px 0 6px; }
+  .facts p { margin: 0; font: 13px/1.5 var(--sans); color: var(--ink-2); }
+
+  /* Remaining work */
+  .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+  .cols h3 { margin: 0 0 4px; font-weight: 400; font-style: italic; font-size: 1.35rem; }
+  .cols .pts { font: 600 13px/1.4 var(--sans); color: var(--ink-3); margin-bottom: 12px; }
+  .cols ul { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
+  .cols li { padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: .98rem; line-height: 1.45; }
+  .cols li small { display: block; font: 12.5px/1.45 var(--sans); color: var(--ink-3); margin-top: 2px; }
+
+  .done-list { columns: 2; column-gap: 32px; margin: 0; padding: 0; list-style: none; }
+  .done-list li { break-inside: avoid; padding: 8px 0 8px 22px; position: relative; border-bottom: 1px solid var(--rule); font-size: .98rem; line-height: 1.45; }
+  .done-list li::before { content: ""; position: absolute; left: 2px; top: 15px; width: 9px; height: 5px; border-left: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); transform: rotate(-45deg); }
+
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+  .btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1px solid var(--ink); font: 600 12px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; text-decoration: none; }
+  .btn.solid { background: var(--ink); color: var(--paper); }
+  .method { font: 13px/1.6 var(--sans); color: var(--ink-2); max-width: 60em; }
+
+  @media (max-width: 760px) {
+    .hero { grid-template-columns: 1fr; gap: 12px; padding-block: 32px 28px; }
+    .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cols { grid-template-columns: 1fr; }
+    .done-list { columns: 1; }
+    .ws thead { display: none; }
+    .ws, .ws tbody, .ws tr, .ws td { display: block; width: auto !important; }
+    .ws tr { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+    .ws td { border: 0; padding: 0; }
+    .ws td.bar { padding: 8px 0 0; }
+    .ws td.num { text-align: left; padding-top: 6px; }
+    .ws td.num b { display: inline; margin-right: 8px; }
+    .ws tfoot tr { border-top: 1px solid var(--ink); border-bottom: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .track .tip { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="mast">
+    <span class="who">Grateful (Pty) Ltd · Website</span>
+    <span class="label">Build audit · 27 September 2026</span>
+  </header>
+
+  <div class="hero">
+    <div>
+      <p class="label" style="margin:0 0 10px">How complete is the website?</p>
+      <h1>Built, tested, and run from its own dashboard. <em>Waiting on content and accounts.</em></h1>
+      <p>Every page, the booking engine, payments, email, the database layer and now the studio dashboard are written and tested. Almost everything left is outside the code: facts only the studio can supply, which it can now enter itself in the dashboard, and the Supabase, PayFast, Resend and hosting accounts that switch the site on.</p>
+    </div>
+    <div>
+      <div class="big mono">77<small>%</small></div>
+      <div class="meter" role="img" aria-label="77 percent complete, 23 percent remaining">
+        <span class="done" style="width:77%"></span><span class="left" style="width:23%"></span>
+      </div>
+      <div class="meter-key mono"><span>77% complete, up from 72%</span><span>23% remaining</span></div>
+    </div>
+  </div>
+
+  <section aria-labelledby="ws-h">
+    <h2 id="ws-h">Where the 77% comes from</h2>
+    <p class="sub">The build is split into eight workstreams, each weighted by how much of a finished, live website it represents. A workstream counts as done only when it is verified, not just when its code is written. Hover over a bar to see what is left in that workstream.</p>
+    <table class="ws">
+      <thead><tr><th class="label">Workstream</th><th class="label">Progress</th><th class="label" style="text-align:right">Done · weight</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="name"><strong>Visual design &amp; pages</strong><span>12 pages, responsive, motion, CI-faithful logo, type and palette</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:95%"></i><span class="tip">Left: one review round with the studio, and more approved photographs so Work reads as a full portfolio.</span></div><div class="left-note">Left: the studio's design review and more photos</div></td>
+          <td class="num mono"><b>95%</b>of 22</td>
+        </tr>
+        <tr>
+          <td class="name"><strong>Booking engine</strong><span>Slots, holds, double-booking guard, reschedule, cancel</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:100%"></i><span class="tip">Complete and covered by unit and browser tests.</span></div><div class="left-note">Complete</div></td>
+          <td class="num mono"><b>100%</b>of 14</td>
+        </tr>
+        <tr>
+          <td class="name"><strong>Payments</strong><span>PayFast hosted checkout, verified webhook, deposits</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:75%"></i><span class="tip">Code and signature tests done. Left: a PayFast merchant account, a sandbox run end to end, then switching to live.</span></div><div class="left-note">Left: PayFast account, sandbox test, go live</div></td>
+          <td class="num mono"><b>75%</b>of 12</td>
+        </tr>
+        <tr>
+          <td class="name"><strong>Content from the studio</strong><span>Prices, durations, hours, bio, portfolio names, socials</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:30%"></i><span class="tip">Contact details and three photos came from the CI and brief. Everything else is an editable placeholder, because the brief forbids inventing facts. Prices, durations, hours and service wording can now be entered by the studio in the dashboard, with no developer needed.</span></div><div class="left-note">Left: most facts, which only Grateful can supply (now self-serve)</div></td>
+          <td class="num mono"><b>30%</b>of 15</td>
+        </tr>
+        <tr>
+          <td class="name"><strong>Database &amp; hosting</strong><span>Supabase schema, migrations, seed; Vercel config</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:60%"></i><span class="tip">Schema, transactional functions and deploy config are written. Left: create the Supabase project, run the migrations, deploy to Vercel, point the domain.</span></div><div class="left-note">Left: create accounts, deploy, domain</div></td>
+          <td class="num mono"><b>60%</b>of 10</td>
+        </tr>
+        <tr>
+          <td class="name"><strong>Quality &amp; compliance</strong><span>Tests, accessibility, SEO, performance, POPIA</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:88%"></i><span class="tip">51 unit tests, a browser smoke test covering the dashboard, and axe are all passing. Left: complete and review the privacy notice, test on real iPhone and Android, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
+          <td class="num mono"><b>88%</b>of 10</td>
+        </tr>
+        <tr>
+          <td class="name"><strong>Studio operations</strong><span>How Phindi manages bookings day to day</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:90%"></i><span class="tip">The dashboard (diary, reschedule, cancel, opening hours, prices, enquiries) and a plain-language guide are done. Left: a first session with Phindi on the live site to confirm it suits how she works.</span></div><div class="left-note">Up from 40%. Left: a trial run with Phindi on the live site</div></td>
+          <td class="num mono"><b>90%</b>of 10</td>
+        </tr>
+        <tr>
+          <td class="name"><strong>Email</strong><span>Confirmations, receipts, enquiries, newsletter</span></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:75%"></i><span class="tip">All six templates are built, escaped and tested. Left: verify a sending domain in Resend and check delivery in Gmail and Outlook.</span></div><div class="left-note">Left: sending domain, inbox check</div></td>
+          <td class="num mono"><b>75%</b>of 7</td>
+        </tr>
+      </tbody>
+      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">77.5 of 100</td></tr></tfoot>
+    </table>
+  </section>
+
+  <section aria-labelledby="ev-h">
+    <h2 id="ev-h">What was verified</h2>
+    <p class="sub">These were measured on the current code, commit <span class="mono">a2b838f</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
+    <div class="facts">
+      <div><span class="label">Unit tests</span><b class="mono">51 / 51</b><p>Slots, double booking, holds, forged and wrong-amount payments, PayFast signatures, reschedule, prices, opening hours, admin access.</p></div>
+      <div><span class="label">Browser smoke test</span><b class="mono">3 journeys</b><p>27 page renders at 320, 390 and 1440px; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours. Runs in CI.</p></div>
+      <div><span class="label">Accessibility (axe)</span><b class="mono">0</b><p>Serious or critical issues on every page and the dashboard. The smoke run caught a faint dashboard label, now fixed.</p></div>
+      <div><span class="label">Offline preview</span><b class="mono">2.1 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="left-h">
+    <h2 id="left-h">The remaining 23%</h2>
+    <p class="sub">Grouped by who has to act. Almost none of it is code any more.</p>
+    <div class="cols">
+      <div>
+        <h3>From the studio</h3>
+        <div class="pts mono">≈ 13 points</div>
+        <ul>
+          <li>Prices and deposits per service<small>Enter them in Studio → Services &amp; prices; until then, “Quote required”</small></li>
+          <li>Confirmed durations and real opening hours<small>Studio → Opening hours; now a sample Tue–Sat diary</small></li>
+          <li>Designer bio and sign-off on page copy</li>
+          <li>Portfolio names, and more approved photographs</li>
+          <li>Social media links, and privacy notice facts</li>
+          <li>A first session using the dashboard on the live site</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Accounts &amp; launch</h3>
+        <div class="pts mono">≈ 9 points</div>
+        <ul>
+          <li>Supabase project; run the two migrations and the seed</li>
+          <li>PayFast merchant account; sandbox test, then live</li>
+          <li>Resend account and a verified sending domain</li>
+          <li>Vercel deployment, environment variables (incl. the studio key), domain and DNS</li>
+          <li>Real-device test and Lighthouse on the live site</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Build work left</h3>
+        <div class="pts mono">≈ 1 point</div>
+        <ul>
+          <li>Design changes from the studio’s review<small>Unknown until the review happens</small></li>
+          <li>Wiring the site to the real accounts once they exist<small>Configuration, not new code</small></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="done-h">
+    <h2 id="done-h">Finished in this round</h2>
+    <ul class="done-list">
+      <li>Studio dashboard at /studio: diary for the next 7 days, with call, WhatsApp and email links</li>
+      <li>Reschedule that only offers free times; cancel with an on-card confirm (both email the client)</li>
+      <li>Opening hours: single days or weekly patterns; close, reopen, delete</li>
+      <li>Services &amp; prices: price, deposit, duration, wording, visibility, checked on the server</li>
+      <li>Enquiries list: mark replied, archive</li>
+      <li>Overview figures: today, next 7 days, awaiting payment, needs attention</li>
+      <li>STUDIO_GUIDE.md: a plain-language how-to for Phindi</li>
+      <li>8 new tests and new fixtures; the smoke test now drives the dashboard</li>
+      <li>Fixed: sample deposits larger than their price (found by the new validation)</li>
+      <li>Fixed: faint “No bookings” label; diary showing an empty past week</li>
+      <li>One-file preview that opens by clicking it on a Mac or Android</li>
+    </ul>
+    <div class="links">
+      <a class="btn solid" href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN" target="_blank" rel="noopener">Open the site &amp; dashboard preview</a>
+    </div>
+  </section>
+
+  <section style="border-bottom:0">
+    <p class="label">How the percentage was worked out</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.30 + 10×0.60 + 10×0.88 + 10×0.90 + 7×0.75 = 77.5, shown as 77%. The previous audit was 72%. The weights are a judgement; the verified facts above are measurements.</p>
+  </section>
+</div>
+</body>
+</html>
