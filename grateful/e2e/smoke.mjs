@@ -58,6 +58,20 @@ try {
     await page.close();
   }
 
+  // Search: real pages are indexable with their own title; the 404 is marked noindex.
+  {
+    const page = await newPage(1440);
+    await page.goto(base + '/services', { waitUntil: 'networkidle' });
+    if (!/Custom Dresses/.test(await page.title())) fail(`seo: /services title is "${await page.title()}"`);
+    if (await page.locator('meta[name="robots"]').count()) fail('seo: /services is marked noindex');
+    await page.goto(base + '/no-such-page', { waitUntil: 'networkidle' });
+    if ((await page.locator('meta[name="robots"]').getAttribute('content').catch(() => null)) !== 'noindex') fail('seo: the 404 page is not marked noindex');
+    await page.goto(base + '/work/no-such-study', { waitUntil: 'networkidle' });
+    if ((await page.locator('meta[name="robots"]').getAttribute('content').catch(() => null)) !== 'noindex') fail('seo: an unknown garment study is not marked noindex');
+    console.log('  ✓ search: page titles set; unknown pages marked noindex');
+    await page.close();
+  }
+
   // The back-to-top button appears on a long page and returns to the top.
   {
     const page = await newPage(390);

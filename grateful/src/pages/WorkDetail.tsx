@@ -12,7 +12,7 @@ export default function WorkDetail() {
   const { slug } = useParams();
   const index = work.findIndex((w) => w.slug === slug);
   const item = work[index];
-  useSeo(item ? workSeo(item) : pageSeo['/work']);
+  useSeo(item ? workSeo(item) : pageSeo['/work'], { index: !!item });
   if (!item) return <NotFound />;
   const next = work[(index + 1) % work.length]!;
 
