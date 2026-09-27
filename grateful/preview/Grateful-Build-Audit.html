@@ -135,7 +135,7 @@
       <div class="meter" role="img" aria-label="80 percent complete, 20 percent remaining">
         <span class="done" style="width:80%"></span><span class="left" style="width:20%"></span>
       </div>
-      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80%)</span><span>20% remaining</span></div>
+      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80%)</span><span>20% remaining</span></div>
     </div>
   </div>
 
@@ -172,8 +172,8 @@
         </tr>
         <tr>
           <td class="name"><strong>Quality &amp; compliance</strong><span>Tests, accessibility, SEO, performance, POPIA</span></td>
-          <td class="bar"><div class="track" tabindex="0"><i style="width:90%"></i><span class="tip">64 unit tests, a browser test covering the dashboard and phone bookings, axe checks, a wrong-key lockout and an automated launch checker. Left: complete and review the privacy notice, test on real phones, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
-          <td class="num mono"><b>90%</b>of 10</td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:91%"></i><span class="tip">68 unit tests (including checks that every photograph exists in all sizes), a browser test covering the dashboard and phone bookings, axe checks, a wrong-key lockout and an automated launch checker. Left: complete and review the privacy notice, test on real phones, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
+          <td class="num mono"><b>91%</b>of 10</td>
         </tr>
         <tr>
           <td class="name"><strong>Studio operations</strong><span>How the studio manages bookings day to day</span></td>
@@ -186,15 +186,15 @@
           <td class="num mono"><b>78%</b>of 7</td>
         </tr>
       </tbody>
-      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">79.6 of 100</td></tr></tfoot>
+      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">79.7 of 100</td></tr></tfoot>
     </table>
   </section>
 
   <section aria-labelledby="ev-h">
     <h2 id="ev-h">What was verified</h2>
-    <p class="sub">These were measured on the current code, commit <span class="mono">d11830f</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
+    <p class="sub">These were measured on the current code, commit <span class="mono">ca34354</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
     <div class="facts">
-      <div><span class="label">Unit tests</span><b class="mono">64 / 64</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice.</p></div>
+      <div><span class="label">Unit tests</span><b class="mono">68 / 68</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice. Every photograph checked in all three sizes.</p></div>
       <div><span class="label">Browser smoke test</span><b class="mono">3 journeys</b><p>27 page renders at 320, 390 and 1440px; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours, record a phone booking. Runs in CI.</p></div>
       <div><span class="label">Accessibility (axe)</span><b class="mono">0</b><p>Serious or critical issues on every page and the dashboard. The smoke run caught a faint dashboard label, now fixed.</p></div>
       <div><span class="label">Offline preview</span><b class="mono">2.1 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
@@ -213,6 +213,7 @@
           <li>Confirmed durations and real opening hours<small>Studio → Opening hours; now a sample Tue–Sat diary</small></li>
           <li>Sign-off on the page copy<small>Now written in the studio’s own voice, with no individual named</small></li>
           <li>Portfolio names, and more approved photographs</li>
+          <li>Confirm the rights to use the new gown photograph<small>It reads as a professional editorial image: a public site needs the photographer’s permission</small></li>
           <li>Social media links, and privacy notice facts</li>
           <li>A first session using the dashboard on the live site</li>
         </ul>
@@ -242,15 +243,14 @@
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>Dashboard: “Add a booking” for appointments taken by phone, WhatsApp or in person</li>
-      <li>Phone bookings use the same double-booking guard and only offer free times; client email optional</li>
-      <li>Automatic day-before reminder emails, sent once per booking, scheduled daily</li>
-      <li>Diary shows “Reminder emailed” on bookings that have had one</li>
-      <li>Wrong-key lockout: 10 wrong studio keys in 15 minutes locks that address out</li>
-      <li><code>npm run check:launch</code>: every go-live setting with ✓/✗ and how to fix it</li>
-      <li>/api/health for uptime monitoring (pass/fail only, never a value)</li>
-      <li>11 new tests (64 in total); the browser test now records a phone booking</li>
-      <li>Studio guide and README updated; preview rebuilt and republished</li>
+      <li>The white-shirt photograph is replaced everywhere by the burgundy gown image</li>
+      <li>Homepage hero (black and white, as the brief sets for the homepage), About and Work (in colour)</li>
+      <li>Consultation service, booking and confirmation screens, share image and search listing updated</li>
+      <li>Garment Study 01 now describes the gown: “Evening”, neck bow, gathered sleeves, slit and train</li>
+      <li>Images now declare their true width, so the smaller gown photo is never over-promised to browsers</li>
+      <li>Fixed: hero labels were hard to read over the new pale backdrop on phones</li>
+      <li>New test: every photograph exists in all three sizes, and the retired photo is referenced nowhere</li>
+      <li>This round was a content change, so the percentage holds at 80%</li>
     </ul>
     <div class="links">
       <a class="btn solid" href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN" target="_blank" rel="noopener">Open the site &amp; dashboard preview</a>
@@ -259,7 +259,7 @@
 
   <section style="border-bottom:0">
     <p class="label">How the percentage was worked out</p>
-    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.90 + 10×0.95 + 7×0.78 = 79.6, shown as 80%. Earlier audits: 72%, 77%, 78%. The weights are a judgement; the verified facts above are measurements.</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.91 + 10×0.95 + 7×0.78 = 79.7, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
   </section>
 </div>
 </body>
