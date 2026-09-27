@@ -36,7 +36,11 @@ const ROUTES = ['/', '/work', '/work/garment-study-01', '/work/garment-study-02'
 function seoFiles(): Plugin {
   return {
     name: 'grateful-seo-files',
-    apply: 'build',
+    // Social previews (WhatsApp, Facebook, LinkedIn) need an absolute image URL,
+    // so %SITE% becomes SITE_URL when it is set, and stays relative in development.
+    transformIndexHtml(html) {
+      return html.replaceAll('%SITE%', process.env.SITE_URL?.replace(/\/$/, '') ?? '');
+    },
     generateBundle() {
       const site = process.env.SITE_URL?.replace(/\/$/, '');
       const disallow = ['/payment', '/confirmation', '/unsubscribe', '/studio', '/api/'].map((p) => `Disallow: ${p}`).join('\n');
@@ -57,7 +61,9 @@ function offlineHtml(): Plugin {
       const icon = readFileSync(fileURLToPath(new URL('./public/favicon.svg', import.meta.url)), 'utf8');
       return html
         .replace(/\s*<link rel="preload"[^>]*>/, '')
-        .replace(/\s*<meta property="og:image"[^>]*>/, '')
+        .replace(/\s*<meta property="og:image[^>]*>/g, '')
+        .replace(/\s*<link rel="(apple-touch-icon|manifest)"[^>]*>/g, '')
+        .replaceAll('%SITE%', '')
         .replace('href="/favicon.svg"', `href="data:image/svg+xml,${encodeURIComponent(icon)}"`)
         .replace('<title>Grateful — Fashion designed around your identity</title>', '<title>Grateful — Website Preview</title>');
     },

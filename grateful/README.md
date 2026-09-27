@@ -38,6 +38,7 @@ public/images/       the three supplied photographs + WebP derivatives
 - **Type:** Baskerville is set as *Baskervville*, the open web cut of the same face, self-hosted as a variable font (regular to bold, plus italics). A quiet sans (Inter) is used only for small uppercase labels and form inputs, as the brief allows.
 - **Logo:** the `g | GRATEFUL` lockup and the `g` monogram are the vector artwork from page 2 of the CI manual. They weren't redrawn or reset in type. They're inlined so they follow the text colour (monotone on black or on white, as the CI shows).
 - **Photography:** every photograph is shown in its original colour, on every page. The black-and-white interface frames the colour.
+- **Icons and sharing:** the `g` monogram is the browser icon, the iPhone and Android home-screen icon (`apple-touch-icon.png`, `site.webmanifest`) and nothing else. Links shared on WhatsApp, Facebook or LinkedIn preview the burgundy gown as a JPEG; set `SITE_URL` for the build so that image link (and the sitemap) use the real domain.
 - **Reference image:** used for its principles only: dash-joined stacked headings, bracketed labels like `(FASHION)`, asymmetric grids and large crops. The layout itself is original.
 
 ## Nothing invented

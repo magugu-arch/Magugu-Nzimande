@@ -55,6 +55,23 @@ describe('site photography', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('has the home-screen icons and manifest that index.html links to', () => {
+    const html = readFileSync('index.html', 'utf8');
+    for (const href of ['/favicon.svg', '/apple-touch-icon.png', '/site.webmanifest']) {
+      expect(html.includes(`href="${href}"`), href).toBe(true);
+      expect(existsSync(`public${href}`), href).toBe(true);
+    }
+    const manifest = JSON.parse(readFileSync('public/site.webmanifest', 'utf8')) as { icons: { src: string }[] };
+    for (const icon of manifest.icons) expect(existsSync(`public${icon.src}`), icon.src).toBe(true);
+  });
+
+  it('points social previews at a catalogued JPEG, since some apps ignore WebP', () => {
+    const html = readFileSync('index.html', 'utf8');
+    const og = /property="og:image" content="%SITE%(\/images\/[^"]+)"/.exec(html)?.[1];
+    expect(og).toMatch(/\.jpeg$/);
+    expect(existsSync(`public${og}`)).toBe(true);
+  });
+
   it('gives every image descriptive alt text', () => {
     for (const img of Object.values(images)) expect(img.alt.length).toBeGreaterThan(40);
   });
