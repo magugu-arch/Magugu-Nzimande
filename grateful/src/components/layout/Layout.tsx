@@ -2,7 +2,7 @@ import { AnimatePresence, motion, MotionConfig, useReducedMotion } from 'framer-
 import { useEffect } from 'react';
 import { useLocation, useOutlet } from 'react-router';
 import { ButtonLink } from '../ui/Button';
-import { BackToTop } from './BackToTop';
+import { PageNav } from './PageNav';
 import { Footer } from './Footer';
 import { Header } from './Header';
 
@@ -39,7 +39,7 @@ export function Layout() {
           </motion.main>
         </AnimatePresence>
         <Footer />
-        <BackToTop />
+        <PageNav />
 
         {showCta && (
           <nav aria-label="Quick booking" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-black/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">

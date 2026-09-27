@@ -66,6 +66,20 @@ try {
     await page.getByRole('button', { name: 'Back to top' }).click();
     await page.waitForFunction(() => window.scrollY === 0, null, { timeout: 3000 }).catch(() => fail('back to top: page did not return to the top'));
     console.log('  ✓ back-to-top button returns to the top');
+    const desk = await newPage(1440);
+    await desk.goto(base + '/about', { waitUntil: 'networkidle' });
+    await desk.getByRole('navigation', { name: /main/i }).getByRole('link', { name: 'Services' }).click();
+    await desk.waitForURL(/\/services$/);
+    await desk.getByRole('button', { name: 'Back', exact: true }).click();
+    await desk.waitForURL(/\/about$/, { timeout: 3000 }).catch(() => fail('back button: did not return to the previous page'));
+    await desk.close();
+    // Opened directly (nothing to go back to), Back goes up a level instead of leaving the site.
+    const direct = await newPage(390);
+    await direct.goto(base + '/work/garment-study-02', { waitUntil: 'networkidle' });
+    await direct.getByRole('button', { name: 'Back', exact: true }).click();
+    await direct.waitForURL(/\/work$/, { timeout: 3000 }).catch(() => fail('back button: a direct visit did not go up to /work'));
+    await direct.close();
+    console.log('  ✓ back button returns to the previous page');
     await page.close();
   }
 
