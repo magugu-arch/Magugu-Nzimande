@@ -14,6 +14,15 @@ export const NAV_LINKS = [
 export const HERO_VIDEO =
   'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_230229_7c9bc431-46cf-489a-948d-e8144d8eb5d4.mp4';
 
-// Resolves a file in public/assets against the deploy base, so the site works
-// at a domain root and under a sub-path (GitHub Pages) alike.
-export const asset = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
+// Every photo goes through Vite, so the normal build fingerprints it for
+// long-term caching and the single-file build can embed it in the page.
+const ASSETS = import.meta.glob<string>(
+  ['./assets/*.{jpg,png,webp}', '!./assets/mlungisi-portrait.*', '!./assets/hero-business.jpg'],
+  { eager: true, query: '?url', import: 'default' },
+);
+
+export const asset = (file: string): string => {
+  const url = ASSETS[`./assets/${file}`];
+  if (!url) throw new Error(`Missing asset: ${file}`);
+  return url;
+};

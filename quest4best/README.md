@@ -8,6 +8,7 @@ cd quest4best
 npm install
 npm run dev      # local development
 npm run build    # typecheck + production build into dist/
+npm run build:html  # the whole site as one self-contained file in dist-html/
 ```
 
 ## Brand decisions
@@ -25,7 +26,7 @@ the written brief:
 ## Before launch
 
 - **Contact email** — `hello@quest4best.co.za` is a placeholder (`src/content.ts`). Confirm it.
-- **Logo** — `public/assets/quest4best-logo.png` is taken from the reversed lockup on the CI sheet.
+- **Logo** — `src/assets/quest4best-logo.png (and the copy in public/assets used by link previews)` is taken from the reversed lockup on the CI sheet.
   Replace it with the vector master (SVG, white version) when it is supplied; the component
   (`src/components/Logo.tsx`) needs no other change.
 - **Favicon** — `public/favicon.ico`, `favicon-32.png`, `apple-touch-icon.png` and `icon-*.png` are
@@ -49,6 +50,13 @@ One-time setup (repository owner): Settings → Pages → Source: **GitHub Actio
 site branch under Settings → Environments → `github-pages`.
 
 See [AUDIT.md](AUDIT.md) for what remains before launch.
+
+## Shareable single file
+
+`share/quest4best-website.html` is the whole site in one file, with scripts, styles, the font
+and every photo embedded, for review by email or opening from disk. Regenerate it with
+`npm run build:html` and copy `dist-html/index.html` over it. Only the hero video still
+streams from its CDN, and the poster shows when offline.
 
 ## Photography
 

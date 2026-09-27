@@ -2,6 +2,7 @@ import { copyFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { viteSingleFile } from 'vite-plugin-singlefile';
 
 // Files whose content depends on the public URL, written after the bundle so
 // one build serves the real domain and a preview host alike.
@@ -37,6 +38,16 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Set before Vite resolves its env so %VITE_SITE_URL% in index.html is filled.
   process.env.VITE_SITE_URL = (env.VITE_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, '');
+  // `npm run build:html` — the whole site as one self-contained index.html,
+  // with scripts, styles, fonts and photos embedded, for sharing as a file.
+  if (env.SINGLE_FILE) {
+    return {
+      base: './',
+      build: { outDir: 'dist-html', assetsInlineLimit: Number.MAX_SAFE_INTEGER },
+      plugins: [react(), viteSingleFile({ removeViteModuleLoader: true })],
+    };
+  }
+
   return {
     base: env.BASE_PATH || '/',
     plugins: [react(), siteFiles(process.env.VITE_SITE_URL)],

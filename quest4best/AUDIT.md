@@ -3,7 +3,7 @@
 Audited 27 September 2026 against the Claude Code brief (sections 1–22) and the CI/01 identity
 sheet.
 
-## Result: 80% complete — 20% remaining
+## Result: 81% complete — 19% remaining
 
 Engineering is essentially done. Almost everything left needs **input or a decision from the
 client**, not development time. Once those inputs arrive, the remaining build work is roughly
@@ -12,11 +12,11 @@ client**, not development time. Once those inputs arrive, the remaining build wo
 | Area                        | Weight | Done | Contributes |
 | --------------------------- | -----: | ---: | ----------: |
 | Build, design & engineering |    45% | 100% |         45% |
-| Content & copy              |    20% |  80% |         16% |
+| Content & copy              |    20% |  85% |         17% |
 | Brand assets                |    10% |  70% |          7% |
 | Launch infrastructure       |    15% |  60% |          9% |
 | Client review & device QA   |    10% |  30% |          3% |
-| **Total**                   |        |      |     **80%** |
+| **Total**                   |        |      |     **81%** |
 
 ## Measured quality (Lighthouse 12, production build)
 
@@ -61,6 +61,10 @@ hero video failing to load inside the audit sandbox.
 - Responsive WebP images with JPEG fallback, lazy-loaded below the fold.
 - Open Graph and Twitter preview image (1200×630), JSON-LD, canonical URL, sitemap, robots.txt,
   web manifest, full icon set, 404 page.
+- A POPIA privacy notice in the footer, stating only what is true of the site (no cookies,
+  analytics or forms).
+- A self-contained single-file version, `share/quest4best-website.html` (`npm run build:html`),
+  that opens from disk or an email attachment with everything embedded.
 - A deploy workflow to GitHub Pages (`.github/workflows/quest4best-pages.yml`).
 
 ## Remaining work
@@ -80,9 +84,9 @@ hero video failing to load inside the audit sandbox.
 
 ### Recommended before launch
 
-6. **Privacy notice (POPIA).** The site collects no data and sets no cookies, but a short privacy
-   statement with the registered company details (Quest4Best Consulting (Pty) Ltd, registration
-   number) is good practice. _(30 min once the details are supplied.)_
+6. **Company details in the privacy notice.** The notice is live. Add the registered company
+   name and number (Quest4Best Consulting (Pty) Ltd) and a named contact for information
+   requests once supplied. _(15 min.)_
 7. **Real-device QA.** iOS Safari and Android Chrome, especially video autoplay. _(1 h.)_
 8. **Higher-resolution portrait.** `mlungisi-portrait.jpg` is only 396px wide. It is currently
    unused, and is needed if a press or LinkedIn preview uses it.

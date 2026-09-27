@@ -340,9 +340,20 @@ export function Footer() {
             </ul>
           </nav>
         </div>
-        <p className="mt-14 text-xs text-white/50">
-          © {new Date().getFullYear()} Quest4Best Consulting. All rights reserved.
-        </p>
+        <div className="mt-14 flex flex-col gap-6 border-t border-white/10 pt-8 md:flex-row md:items-start md:justify-between">
+          <p className="text-xs text-white/50">
+            © {new Date().getFullYear()} Quest4Best Consulting. All rights reserved.
+          </p>
+          {/* True of the site as built: no cookies, analytics or forms. Revisit
+              if any of those are added, and add company registration details
+              once supplied. */}
+          <p id="privacy" className="max-w-[40rem] text-xs leading-relaxed text-white/50">
+            <span className="font-semibold text-white/70">Privacy.</span> This site sets no cookies,
+            runs no analytics and collects no personal information. If you email us, we use your
+            message only to reply and handle it in line with the Protection of Personal Information
+            Act (POPIA).
+          </p>
+        </div>
       </div>
     </footer>
   );
