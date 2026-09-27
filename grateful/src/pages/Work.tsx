@@ -4,8 +4,9 @@ import { EditorialCard } from '../components/ui/EditorialCard';
 import { FadeIn } from '../components/ui/ImageReveal';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Lightbox } from '../components/work/Lightbox';
+import { pageSeo } from '../data/seo';
 import { work, workCategories } from '../data/work';
-import { useTitle } from '../lib/useTitle';
+import { useSeo } from '../lib/useTitle';
 
 /** Rhythm for the editorial grid: spans and aspect ratios cycle so no two neighbours match. */
 const layout = [
@@ -16,7 +17,7 @@ const layout = [
 ];
 
 export default function Work() {
-  useTitle('Work', 'Garments from the Grateful studio in Johannesburg — evening gowns, occasion wear and construction detail.');
+  useSeo(pageSeo['/work']);
   const [filter, setFilter] = useState('All');
   const [lightbox, setLightbox] = useState<number | null>(null);
   const items = filter === 'All' ? work : work.filter((w) => w.category === filter);
@@ -26,9 +27,9 @@ export default function Work() {
     <>
       <section className="page-gutter pt-32 pb-16 lg:pt-44">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-          <SectionHeading as="h1" size="xl" lines={['The —', 'Work']} />
+          <SectionHeading as="h1" size="xl" eyebrow="(Evening gowns & occasion wear)" lines={['The —', 'Work']} />
           <FadeIn className="max-w-sm lg:pb-4">
-            <p className="text-lg opacity-80">Pieces from the Grateful studio, shown in their true colour so the fabric, the styling and the construction can speak for themselves.</p>
+            <p className="text-lg opacity-80">Evening gowns, occasion wear and construction detail from our Johannesburg studio, shown in true colour so the fabric, the styling and the finish can speak for themselves.</p>
           </FadeIn>
         </div>
 

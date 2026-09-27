@@ -11,9 +11,10 @@ import { FadeIn, ImageReveal } from '../components/ui/ImageReveal';
 import { MonogramSeal } from '../components/ui/Logo';
 import { Picture } from '../components/ui/Picture';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { pageSeo } from '../data/seo';
 import { site } from '../data/site';
 import { work } from '../data/work';
-import { useTitle } from '../lib/useTitle';
+import { useSeo } from '../lib/useTitle';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -45,6 +46,7 @@ function Hero() {
 
       <div className="page-gutter relative flex flex-col justify-end pt-10 pb-14 lg:col-span-7 lg:pt-10 lg:pb-12 lg:pl-12 xl:pl-16">
         <h1 id="hero-title" className="editorial-title text-[clamp(3.6rem,17vw,5.5rem)] lg:text-[clamp(5.5rem,9.4vw,10.5rem)]">
+          <span className="ui-label mb-6 block opacity-60">Fashion designer · Custom dresses · Johannesburg</span>
           {lines.map((l, i) => (
             <span key={l.text} className="-mb-[0.12em] block overflow-hidden pb-[0.18em]">
               <motion.span
@@ -102,7 +104,7 @@ function Intro() {
         <p className="ui-label col-span-4 opacity-60 md:col-span-2">(Studio) — {site.location}</p>
         <FadeIn className="col-span-4 md:col-span-6 lg:col-span-9 lg:col-start-4">
           <p className="font-serif text-[1.9rem] leading-[1.15] sm:text-4xl lg:text-[3.4rem] lg:leading-[1.08]">
-            Grateful is a fashion design studio in {site.location}. We design and make considered garments around the people who wear them: <em>cut, fitted and finished</em> for you alone.
+            Grateful is a fashion design studio in {site.location}. We design and make custom dresses, evening gowns and bespoke garments around the people who wear them: <em>cut, fitted and finished</em> for you alone.
           </p>
           <Link to="/about" className="ui-label mt-10 inline-flex min-h-11 items-center gap-2 opacity-70 hover:opacity-100">
             Meet Grateful <ArrowUpRight aria-hidden className="size-4" />
@@ -250,7 +252,7 @@ function BookingCta() {
 }
 
 export default function Home() {
-  useTitle(null);
+  useSeo(pageSeo['/']);
   return (
     <>
       <Hero />

@@ -4,19 +4,20 @@ import { FadeIn, ImageReveal } from '../components/ui/ImageReveal';
 import { Logo } from '../components/ui/Logo';
 import { Picture } from '../components/ui/Picture';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { pageSeo } from '../data/seo';
 import { site } from '../data/site';
-import { useTitle } from '../lib/useTitle';
+import { useSeo } from '../lib/useTitle';
 
 /** The tools of the trade, from the CI's image library page. Named, not illustrated, until approved photography exists. */
 const craft = ['Scissors', 'Tape measure', 'Pattern pieces', 'Cutting fabric', 'Sewing machine', 'Mannequin', 'Technical drawings', 'Needles & tools'];
 
 export default function About() {
-  useTitle('About', 'Meet Grateful, a fashion design studio in Mulbarton, Johannesburg, making garments around the people who wear them.');
+  useSeo(pageSeo['/about']);
   return (
     <>
       <section className="lg:grid lg:min-h-svh lg:grid-cols-12 lg:pt-20">
         <div className="page-gutter flex flex-col justify-end pt-32 pb-16 lg:col-span-7 lg:pt-24 lg:pb-20">
-          <SectionHeading as="h1" size="xl" eyebrow="(About)" lines={['Meet —', <span className="editorial-italic">Grateful.</span>]} />
+          <SectionHeading as="h1" size="xl" eyebrow="(Fashion design studio · Mulbarton, Johannesburg)" lines={['Meet —', <span className="editorial-italic">Grateful.</span>]} />
           <FadeIn delay={0.2} className="mt-12 max-w-xl">
             <p className="font-serif text-2xl leading-snug">
               Grateful is a fashion design studio in {site.location}. We design, cut and finish garments made for <em>one person at a time</em>.

@@ -4,24 +4,25 @@ import { ButtonLink } from '../components/ui/Button';
 import { FadeIn, ImageReveal } from '../components/ui/ImageReveal';
 import { Picture } from '../components/ui/Picture';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { pageSeo } from '../data/seo';
 import { useServices } from '../lib/useServices';
-import { useTitle } from '../lib/useTitle';
+import { useSeo } from '../lib/useTitle';
 
 /**
  * Long-form services: a magazine spread per service, image and text swapping
  * sides, rather than a grid of identical cards (brief §21, Services).
  */
 export default function Services() {
-  useTitle('Services', 'Custom fashion design, consultations, fittings and alterations, and bespoke special-occasion garments in Johannesburg.');
+  useSeo(pageSeo['/services']);
   const { services, error, loading } = useServices();
 
   return (
     <>
       <section className="page-gutter pt-32 pb-20 lg:pt-44 lg:pb-28">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-          <SectionHeading as="h1" size="xl" eyebrow="(Services)" lines={['From idea —', 'to finished', <span className="editorial-italic">garment.</span>]} />
+          <SectionHeading as="h1" size="xl" eyebrow="(Custom dresses, alterations & bespoke garments)" lines={['From idea —', 'to finished', <span className="editorial-italic">garment.</span>]} />
           <FadeIn className="max-w-sm lg:pb-4">
-            <p className="text-lg opacity-80">Every commission follows the same considered path, from the first conversation to the final fitting. Choose where you would like to begin.</p>
+            <p className="text-lg opacity-80">From custom dresses and evening gowns to fittings and alterations, every commission follows the same considered path, from the first conversation to the final fitting. Choose where you would like to begin.</p>
           </FadeIn>
         </div>
       </section>

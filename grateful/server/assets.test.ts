@@ -44,11 +44,13 @@ describe('site photography', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('publishes no studio phone number (or WhatsApp link to it): the studio is reached by email', () => {
-    const offenders = [...files('src'), ...files('server'), 'index.html']
-      .filter((f) => !f.endsWith('assets.test.ts'))
-      .filter((f) => /76\s?081\s?4788|760814788/.test(readFileSync(f, 'utf8')));
-    expect(offenders).toEqual([]);
+  it('shows the studio phone number only in the booking flow', () => {
+    const all = [...files('src'), ...files('server'), 'index.html'].filter((f) => !f.endsWith('assets.test.ts'));
+    // The number itself lives in one place…
+    expect(all.filter((f) => /76\s?081\s?4788|760814788/.test(readFileSync(f, 'utf8')))).toEqual(['src/data/site.ts']);
+    // …and only the booking pages may show it.
+    const allowed = ['src/components/booking/BookingHelp.tsx', 'src/pages/Booking.tsx', 'src/pages/Payment.tsx', 'src/pages/Confirmation.tsx', 'src/data/site.ts'];
+    expect(all.filter((f) => /bookingPhone/.test(readFileSync(f, 'utf8')) && !allowed.includes(f))).toEqual([]);
   });
 
   it('uses every catalogued image somewhere, so no photograph is left orphaned', () => {

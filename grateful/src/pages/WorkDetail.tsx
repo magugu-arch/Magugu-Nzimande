@@ -3,15 +3,16 @@ import { Link, useParams } from 'react-router';
 import { ButtonLink } from '../components/ui/Button';
 import { FadeIn, ImageReveal } from '../components/ui/ImageReveal';
 import { Picture } from '../components/ui/Picture';
+import { pageSeo, workSeo } from '../data/seo';
 import { work } from '../data/work';
-import { useTitle } from '../lib/useTitle';
+import { useSeo } from '../lib/useTitle';
 import NotFound from './NotFound';
 
 export default function WorkDetail() {
   const { slug } = useParams();
   const index = work.findIndex((w) => w.slug === slug);
   const item = work[index];
-  useTitle(item?.title ?? 'Work', item?.summary);
+  useSeo(item ? workSeo(item) : pageSeo['/work']);
   if (!item) return <NotFound />;
   const next = work[(index + 1) % work.length]!;
 

@@ -1,9 +1,12 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import { indexablePages, pageSeo, withPageHead } from './src/data/seo';
+import { work } from './src/data/work';
 
 /**
  * In development the API runs inside the Vite server, through the same
@@ -28,26 +31,47 @@ function devApi(): Plugin {
 }
 
 /**
- * robots.txt and sitemap.xml, written at build time. The sitemap needs the
- * real domain, so it is only emitted when SITE_URL is set for the build.
+ * Search: robots.txt, sitemap.xml, and one HTML file per public page with its
+ * own title, description, canonical address and social tags already in
+ * <head> (from src/data/seo.ts), so search engines and link previews that
+ * never run JavaScript still see the right page. Vercel serves /about from
+ * about.html (cleanUrls). Absolute addresses need the live domain, so the
+ * sitemap, canonical tags and og:url are only written when SITE_URL is set.
+ * GOOGLE_SITE_VERIFICATION adds Google Search Console's ownership tag.
  */
-const ROUTES = ['/', '/work', '/work/garment-study-01', '/work/garment-study-02', '/work/garment-study-03', '/about', '/services', '/booking', '/contact', '/privacy'];
-
 function seoFiles(): Plugin {
+  const site = () => process.env.SITE_URL?.replace(/\/$/, '') || null;
+  let outDir = 'dist';
+  const pages = indexablePages(work);
   return {
     name: 'grateful-seo-files',
-    // Social previews (WhatsApp, Facebook, LinkedIn) need an absolute image URL,
-    // so %SITE% becomes SITE_URL when it is set, and stays relative in development.
+    configResolved(c) {
+      outDir = c.build.outDir;
+    },
     transformIndexHtml(html) {
-      return html.replaceAll('%SITE%', process.env.SITE_URL?.replace(/\/$/, '') ?? '');
+      const verify = process.env.GOOGLE_SITE_VERIFICATION?.trim();
+      const withVerify = verify ? html.replace('<!--seo:head-->', `<!--seo:head-->\n    <meta name="google-site-verification" content="${verify.replace(/"/g, '')}" />`) : html;
+      const s = site();
+      return withPageHead(withVerify.replaceAll('%SITE%', s ?? ''), pageSeo['/'], s ? `${s}/` : null);
     },
     generateBundle() {
-      const site = process.env.SITE_URL?.replace(/\/$/, '');
+      const s = site();
       const disallow = ['/payment', '/confirmation', '/unsubscribe', '/studio', '/api/'].map((p) => `Disallow: ${p}`).join('\n');
-      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: `User-agent: *\n${disallow}\n${site ? `\nSitemap: ${site}/sitemap.xml\n` : ''}` });
-      if (site) {
-        const urls = ROUTES.map((r) => `  <url><loc>${site}${r === '/' ? '/' : r}</loc></url>`).join('\n');
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: `User-agent: *\n${disallow}\n${s ? `\nSitemap: ${s}/sitemap.xml\n` : ''}` });
+      if (s) {
+        const today = new Date().toISOString().slice(0, 10);
+        const urls = pages.map((p) => `  <url><loc>${s}${p.path}</loc><lastmod>${today}</lastmod></url>`).join('\n');
         this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n` });
+      }
+    },
+    writeBundle() {
+      const s = site();
+      const index = readFileSync(resolve(outDir, 'index.html'), 'utf8');
+      for (const p of pages) {
+        if (p.path === '/') continue;
+        const file = resolve(outDir, `.${p.path}.html`);
+        mkdirSync(dirname(file), { recursive: true });
+        writeFileSync(file, withPageHead(index, p.meta, s ? `${s}${p.path}` : null));
       }
     },
   };
@@ -65,7 +89,8 @@ function offlineHtml(): Plugin {
         .replace(/\s*<link rel="(apple-touch-icon|manifest)"[^>]*>/g, '')
         .replaceAll('%SITE%', '')
         .replace('href="/favicon.svg"', `href="data:image/svg+xml,${encodeURIComponent(icon)}"`)
-        .replace('<title>Grateful — Fashion designed around your identity</title>', '<title>Grateful — Website Preview</title>');
+        .replace('<!--seo:head-->', '')
+        .replace(/<title>[^<]*<\/title>/, '<title>Grateful — Website Preview</title>');
     },
   };
 }

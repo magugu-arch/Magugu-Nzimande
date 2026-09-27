@@ -110,6 +110,31 @@ Under the dashboard sits the admin API. Every call needs `Authorization: Bearer 
 - **`GET /api/health`** returns 200 when the environment is ready for real bookings and 503 otherwise, with pass/fail per check and never a value. Point an uptime monitor at it.
 - **`npm run check:launch [-- --env-file=.env.production]`** prints every launch setting with ✓/✗ and the fix. It exits 1 while anything required is missing.
 
+## Search (SEO)
+
+Every public page has its own title, description, canonical address and social-preview tags, kept in one file: **`src/data/seo.ts`**. The page sets them in the browser, and the build writes them into a separate HTML file per page (`about.html`, `work/garment-study-01.html` and so on), so Google and WhatsApp/Facebook previews see the right page without running JavaScript. The main heading of each page carries its target search, in the small label above the display type.
+
+**Target searches** (one lead phrase per page, all local to Johannesburg):
+
+| Page | Leads with |
+| --- | --- |
+| Home | fashion designer Johannesburg, custom dresses Johannesburg |
+| Services | custom dresses, dress alterations, bespoke garments |
+| Work | evening gowns, occasion wear |
+| About | fashion design studio Mulbarton, Johannesburg South |
+| Book | book a fashion design consultation |
+| Contact | fashion designer Johannesburg contact |
+
+Keywords `<meta>` tags are not used: Google ignores them. What ranks a local studio is the title, description and headings (done), real photographs with good alt text (done), and above all a **Google Business Profile** with reviews, which the studio sets up at business.google.com.
+
+**Sitemap and robots.** `robots.txt` is always written. `sitemap.xml` (every public page, with today's date) needs the live address, so it is written when `SITE_URL` is set for the build, and `robots.txt` then points to it. Booking steps, the dashboard and the API are kept out of search.
+
+**Google Search Console** (after the site is live on its domain):
+1. Go to search.google.com/search-console, add a **URL-prefix** property for the live address, and choose the **HTML tag** method.
+2. Copy the `content` value from the tag into `GOOGLE_SITE_VERIFICATION` in Vercel, redeploy, then press **Verify**. (Or verify the whole domain with a DNS record at the domain registrar instead.)
+3. Under **Sitemaps**, submit `sitemap.xml`.
+4. Use **URL inspection** on the home page and **Request indexing**. Pages usually appear within days; Search Console then shows which searches find the site.
+
 ## Security
 
 - Service-role, PayFast and Resend secrets are read only in `server/`. No `VITE_` variables exist, so nothing secret can be bundled.
@@ -127,7 +152,8 @@ Under the dashboard sits the admin API. Every call needs `Authorization: Bearer 
 3. **PayFast:** create a merchant account and test on the sandbox first (`PAYFAST_SANDBOX=true`). Set `PAYMENT_PROVIDER=payfast` and the merchant ID, key and passphrase.
 4. **Newsletter:** set `NEWSLETTER_SECRET` to a long random string.
 5. **Resend:** verify a sending domain, then set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` and `EMAIL_FROM`.
-6. **Vercel:** import the repo with **root directory `grateful`**, add the variables from `.env.example`, and set `SITE_URL` to the real domain (PayFast's notify URL is built from it). Then run `npm run check:launch` against those values: it should print "Ready to launch."
+6. **Vercel:** import the repo with **root directory `grateful`**, add the variables from `.env.example`, and set `SITE_URL` to the real domain (PayFast's notify URL, the sitemap and canonical addresses are built from it). Then run `npm run check:launch` against those values: it should print "Ready to launch."
+7. **Google:** set up Search Console (see [Search](#search-seo)) and a Google Business Profile.
 
 ## Scripts
 

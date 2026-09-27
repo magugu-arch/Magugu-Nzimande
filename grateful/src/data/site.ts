@@ -8,7 +8,8 @@
  * no individual is named anywhere on the public site or in emails.
  */
 
-// The studio is reached by email only: no phone number is published, by the studio's request.
+// The studio is reached by email. Its phone number appears only in the booking
+// flow (Book, Payment, Confirmation), by the studio's request: see BookingHelp.
 export const site = {
   name: 'Grateful',
   legalName: 'Grateful (Pty) Ltd',
@@ -16,6 +17,9 @@ export const site = {
   studioName: 'Grateful Studio',
   studioLine: 'Fashion design studio',
   email: 'gratefulpty@gmail.com',
+  /** Shown only on the booking pages, through <BookingHelp />. */
+  bookingPhone: '+27 76 081 4788',
+  bookingPhoneHref: 'tel:+27760814788',
   location: 'Mulbarton, Johannesburg',
   // Suburb-level only: the brief asks that no street address is exposed.
   mapHref: 'https://www.google.com/maps/search/?api=1&query=Mulbarton%2C+Johannesburg',

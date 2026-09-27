@@ -17,6 +17,7 @@ const live = {
   ADMIN_TOKEN: 'x'.repeat(32),
   NEWSLETTER_SECRET: 'y'.repeat(40),
   CRON_SECRET: 'z'.repeat(20),
+  GOOGLE_SITE_VERIFICATION: 'search-console-token',
 };
 
 describe('launch readiness', () => {

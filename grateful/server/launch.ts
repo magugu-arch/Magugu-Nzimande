@@ -24,6 +24,7 @@ export function checkLaunchConfig(env: Record<string, string | undefined>): Laun
   add('studio-key', 'Studio key is long and random', v('ADMIN_TOKEN').length >= 24, 'Set ADMIN_TOKEN to a random string of at least 24 characters. It unlocks the studio dashboard.');
   add('newsletter-secret', 'Unsubscribe links are signed', v('NEWSLETTER_SECRET').length >= 32, 'Set NEWSLETTER_SECRET to a random string of at least 32 characters.');
   add('cron', 'Day-before reminders are switched on', v('CRON_SECRET').length >= 16, 'Set CRON_SECRET (16+ characters). Vercel then calls /api/cron/reminders daily.', 'recommended');
+  add('search-console', 'Google Search Console can verify the site', !!v('GOOGLE_SITE_VERIFICATION'), 'Add a URL-prefix property in Google Search Console, choose "HTML tag", and put its content value in GOOGLE_SITE_VERIFICATION (or verify by DNS instead).', 'recommended');
   add('no-demo', 'Sample prices are off', v('DEMO_PRICING') !== 'true', 'Remove DEMO_PRICING.');
   return checks;
 }

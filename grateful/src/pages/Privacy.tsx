@@ -1,6 +1,7 @@
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { pageSeo } from '../data/seo';
 import { site } from '../data/site';
-import { useTitle } from '../lib/useTitle';
+import { useSeo } from '../lib/useTitle';
 
 /**
  * Privacy notice, structured around what POPIA (Protection of Personal
@@ -61,7 +62,7 @@ const sections: { title: string; body: string[] }[] = [
 ];
 
 export default function Privacy() {
-  useTitle('Privacy', 'How Grateful collects, uses and protects personal information, under POPIA.');
+  useSeo(pageSeo['/privacy']);
   return (
     <article className="page-gutter pt-32 pb-24 lg:pt-44">
       <SectionHeading as="h1" size="lg" eyebrow="(Privacy)" lines={['Your', <span className="editorial-italic">information.</span>]} />

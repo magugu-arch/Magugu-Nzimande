@@ -5,12 +5,13 @@ import { Alert, Checkbox, Honeypot, SelectField, TextArea, TextField } from '../
 import { Button } from '../components/ui/Button';
 import { FadeIn } from '../components/ui/ImageReveal';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { pageSeo } from '../data/seo';
 import { serviceSeed } from '../data/services';
 import { site } from '../data/site';
 import { api } from '../lib/api';
 import { IS_DEMO } from '../lib/env';
 import { useForm } from '../lib/useForm';
-import { useTitle } from '../lib/useTitle';
+import { useSeo } from '../lib/useTitle';
 
 function ContactForm() {
   const f = useForm(contactSchema, { name: '', email: '', phone: '', subject: '', message: '', consent: false });
@@ -84,13 +85,13 @@ function ContactForm() {
 }
 
 export default function Contact() {
-  useTitle('Contact', 'Contact Grateful by email at gratefulpty@gmail.com, or send a message from this page. Mulbarton, Johannesburg.');
+  useSeo(pageSeo['/contact']);
   return (
     <>
       <section className="page-gutter pt-32 pb-16 lg:pt-44 lg:pb-24">
-        <SectionHeading as="h1" size="xl" eyebrow="(Contact)" lines={['Let’s create', <span className="editorial-italic">something.</span>]} />
+        <SectionHeading as="h1" size="xl" eyebrow="(Contact the studio · Johannesburg)" lines={['Let’s create', <span className="editorial-italic">something.</span>]} />
         <FadeIn delay={0.2} className="mt-10 max-w-md">
-          <p className="text-xl opacity-80">Tell us what you are imagining. Every piece starts with a conversation.</p>
+          <p className="text-xl opacity-80">Planning a custom dress, an evening gown or an alteration? Tell us what you are imagining. Every piece starts with a conversation.</p>
         </FadeIn>
       </section>
 

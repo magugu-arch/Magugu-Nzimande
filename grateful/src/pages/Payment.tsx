@@ -6,6 +6,7 @@ import type { PaymentOption } from '../../shared/types';
 import { Alert, Checkbox } from '../components/forms/Field';
 import { Button, ButtonLink } from '../components/ui/Button';
 import { Picture } from '../components/ui/Picture';
+import { BookingHelp } from '../components/booking/BookingHelp';
 import { site } from '../data/site';
 import { api, RequestError, submitCheckout } from '../lib/api';
 import { useBooking } from '../lib/useBooking';
@@ -91,6 +92,7 @@ export default function Payment() {
       <h1 className="editorial-title mt-6 text-5xl sm:text-6xl lg:text-7xl">
         Secure your <span className="editorial-italic">appointment.</span>
       </h1>
+      <BookingHelp lead="Questions about payment?" className="mt-4 max-w-md" />
 
       <div className="mt-14 lg:grid lg:grid-cols-12 lg:gap-12">
         {/* Order summary first on mobile: it must be visible before checkout. */}

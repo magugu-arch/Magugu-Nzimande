@@ -30,8 +30,10 @@ export function SectionHeading({
   };
   return (
     <div className={`${align === 'right' ? 'text-right' : ''} ${className}`}>
-      {eyebrow && <p className="ui-label mb-6 opacity-60">{eyebrow}</p>}
+      {/* On a page's h1 the label sits inside the heading, so it counts as part of the page title for search. */}
+      {eyebrow && Tag !== 'h1' && <p className="ui-label mb-6 opacity-60">{eyebrow}</p>}
       <Tag id={id} className={`editorial-title ${sizes[size]}`}>
+        {eyebrow && Tag === 'h1' && <span className="ui-label mb-6 block not-italic opacity-60">{eyebrow}</span>}
         {lines.map((line, i) => (
           <FadeIn key={i} as="span" delay={i * 0.08} className="block">
             {line}

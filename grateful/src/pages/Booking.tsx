@@ -1,20 +1,22 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { addDays, formatDuration, formatLongDate, formatPriceState, todayInSast } from '../../shared/format';
 import type { Service } from '../../shared/types';
 import { bookingSchema, fieldErrors } from '../../shared/validation';
+import { BookingHelp } from '../components/booking/BookingHelp';
 import { BookingCalendar } from '../components/booking/BookingCalendar';
 import { BookingSummary } from '../components/booking/BookingSummary';
 import { TimeSlotPicker } from '../components/booking/TimeSlotPicker';
 import { Alert, Honeypot, TextArea, TextField } from '../components/forms/Field';
 import { Button } from '../components/ui/Button';
 import { Picture } from '../components/ui/Picture';
+import { pageSeo } from '../data/seo';
 import { site } from '../data/site';
 import { api, RequestError } from '../lib/api';
 import { useServices } from '../lib/useServices';
-import { useTitle } from '../lib/useTitle';
+import { useSeo } from '../lib/useTitle';
 
 /**
  * Booking in four steps — service, date & time, details, review — sized to
@@ -42,7 +44,7 @@ function loadDraft(): Draft | null {
 }
 
 export default function Booking() {
-  useTitle('Book', 'Book a consultation or fitting with Grateful online — choose a service, a date and a time.');
+  useSeo(pageSeo['/booking']);
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { services, error: servicesError } = useServices();
@@ -173,11 +175,12 @@ export default function Booking() {
     <div className="page-gutter pt-28 pb-24 lg:pt-36">
       <div className="lg:grid lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-7">
-          <p className="ui-label opacity-60">(Booking)</p>
+          <p className="ui-label opacity-60">(Book a consultation · Johannesburg)</p>
           <h1 className="editorial-title mt-6 text-5xl sm:text-6xl lg:text-7xl">
             Let’s create <span className="editorial-italic">something.</span>
           </h1>
-          <p className="mt-4 max-w-md opacity-70">Book a consultation and start your next piece.</p>
+          <p className="mt-4 max-w-md opacity-70">Book a fashion design consultation, fitting or bespoke commission with our Johannesburg studio, and start your next piece.</p>
+          <BookingHelp lead="Prefer to talk it through first?" className="mt-3 max-w-md lg:hidden" />
 
           {/* Steps */}
           <nav aria-label="Booking steps" className="mt-12">
@@ -394,9 +397,7 @@ export default function Booking() {
         <aside aria-label="Booking summary" className="hidden lg:col-span-4 lg:col-start-9 lg:block">
           <div className="sticky top-28">
             <BookingSummary service={service} date={date} time={time} />
-            <p className="mt-8 font-sans text-sm opacity-60">
-              Questions first? Email <a className="underline" href={`mailto:${site.email}`}>{site.email}</a> or <Link className="underline" to="/contact">send a message</Link>.
-            </p>
+            <BookingHelp lead="Questions first?" className="mt-8" />
           </div>
         </aside>
       </div>
