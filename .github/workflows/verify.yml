@@ -76,9 +76,9 @@ jobs:
   # The Grateful website is a separate Vite project in grateful/, with its own
   # lockfile, so it installs and checks on its own.
   grateful:
-    name: Grateful website — typecheck, lint, test, build
+    name: Grateful website — verify and smoke test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: grateful
@@ -97,6 +97,14 @@ jobs:
 
       - name: Verify
         run: npm run verify
+
+      # Real browser, real dev server: every page at 320/390/1440 (overflow,
+      # console errors, axe), then a free booking and a paid one end to end.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke test
+        run: npm run smoke
 
   # Rendering the app catches what unit tests structurally cannot: overflow,
   # clipped labels, a screen that renders blank, a journey that no longer

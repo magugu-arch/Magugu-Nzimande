@@ -13,10 +13,12 @@ import {
   createBooking,
   getPublicBooking,
   handlePaymentNotification,
+  listBookingsForAdmin,
   listServices,
+  rescheduleBooking,
   startPayment,
 } from './services/booking';
-import { submitContact, subscribe } from './services/forms';
+import { submitContact, subscribe, unsubscribe } from './services/forms';
 
 /**
  * Every API endpoint, as plain functions from request to response so the same
@@ -158,8 +160,17 @@ export async function route(req: ApiRequest): Promise<ApiResponse> {
       return json(201, { ok: true });
     }
 
+    // POST /api/newsletter/unsubscribe { email, token } — the link in every newsletter email
+    if (method === 'POST' && a === 'newsletter' && b === 'unsubscribe') {
+      const tooMany = limited(req, 'unsubscribe', 10, 15);
+      if (tooMany) return tooMany;
+      const v = validated(z.object({ email: z.string().trim().toLowerCase().pipe(z.email()), token: z.string().min(10).max(100) }), req);
+      if (!v.ok) return v.res;
+      return (await unsubscribe(v.data.email, v.data.token)) ? json(200, { ok: true }) : err(400, 'This unsubscribe link is not valid.');
+    }
+
     // POST /api/newsletter
-    if (method === 'POST' && a === 'newsletter') {
+    if (method === 'POST' && a === 'newsletter' && !b) {
       const tooMany = limited(req, 'newsletter', 5, 15);
       if (tooMany) return tooMany;
       const v = validated(newsletterSchema, req);
@@ -172,9 +183,23 @@ export async function route(req: ApiRequest): Promise<ApiResponse> {
     if (a === 'admin') {
       if (!adminAuthorised(req)) return err(401, 'Unauthorised.');
       const id = segments[2];
+      // GET /api/admin/bookings?from=YYYY-MM-DD&to=YYYY-MM-DD
+      if (method === 'GET' && b === 'bookings' && !id) {
+        const from = req.query.get('from');
+        const to = req.query.get('to');
+        if (!isDate(from) || !isDate(to)) return err(400, 'Provide from and to as YYYY-MM-DD.');
+        return { status: 200, headers: { 'Cache-Control': 'no-store' }, body: { bookings: await listBookingsForAdmin(from, to) } };
+      }
       if (method === 'POST' && b === 'bookings' && isUuid(id) && segments[3] === 'cancel') {
         const booking = await cancelBooking(id);
         return json(200, { booking: { id: booking.id, status: booking.status } });
+      }
+      // POST /api/admin/bookings/:id/reschedule { date, time }
+      if (method === 'POST' && b === 'bookings' && isUuid(id) && segments[3] === 'reschedule') {
+        const v = validated(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/) }), req);
+        if (!v.ok) return v.res;
+        const booking = await rescheduleBooking(id, v.data.date, v.data.time);
+        return json(200, { booking: { id: booking.id, date: booking.date, time: booking.time } });
       }
     }
 

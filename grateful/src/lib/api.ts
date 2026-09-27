@@ -36,6 +36,7 @@ export const api = {
   startPayment: (data: unknown) => post<{ checkout: CheckoutForm }>('/api/payment', data).then((r) => r.checkout),
   contact: (data: unknown) => post<{ ok: true }>('/api/contact', data),
   newsletter: (data: unknown) => post<{ ok: true }>('/api/newsletter', data),
+  unsubscribe: (data: { email: string; token: string }) => post<{ ok: true }>('/api/newsletter/unsubscribe', data),
 };
 
 /** Send the browser to a hosted checkout by building and submitting its form. */

@@ -12,7 +12,7 @@ import { useTitle } from '../lib/useTitle';
  * sides, rather than a grid of identical cards (brief §21, Services).
  */
 export default function Services() {
-  useTitle('Services');
+  useTitle('Services', 'Custom fashion design, consultations, fittings and alterations, and bespoke special-occasion garments in Johannesburg.');
   const { services, error, loading } = useServices();
 
   return (
@@ -50,7 +50,7 @@ export default function Services() {
             <div className={`page-gutter flex flex-col justify-between gap-12 py-16 lg:col-span-7 lg:py-20 ${flip ? 'lg:order-1' : 'lg:pl-16'}`}>
               <span className="ui-label opacity-50">{String(i + 1).padStart(2, '0')} / {String(services.length).padStart(2, '0')}</span>
               <div>
-                <h2 id={`svc-${s.id}`} className="editorial-title text-5xl sm:text-6xl lg:text-7xl">
+                <h2 id={`svc-${s.id}`} className="editorial-title text-[2.6rem] break-words sm:text-6xl lg:text-7xl">
                   {s.name}
                 </h2>
                 <FadeIn className="mt-8 max-w-lg">

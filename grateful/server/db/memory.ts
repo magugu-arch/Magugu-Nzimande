@@ -129,6 +129,25 @@ export function createMemoryRepository(opts: { services?: Service[]; availabilit
       b.status = clash ? 'needs_attention' : 'confirmed';
       return { outcome: b.status === 'confirmed' ? 'confirmed' : 'conflict', booking: { ...b }, payment: { ...p } };
     },
+    async listBookings(from, to) {
+      return [...bookings.values()]
+        .filter((b) => b.date >= from && b.date <= to)
+        .sort((a, b) => (a.date + a.time < b.date + b.time ? -1 : 1))
+        .map((b) => ({ ...b }));
+    },
+    async rescheduleBooking(id, date, time, now): Promise<ReserveResult> {
+      sweep(now);
+      const b = bookings.get(id);
+      if (!b) return { ok: false, reason: 'slot_taken' };
+      const moved = { ...b, date, time };
+      if ([...bookings.values()].some((o) => o.id !== id && isActive(o, now) && overlaps(o, moved))) return { ok: false, reason: 'slot_taken' };
+      b.date = date;
+      b.time = time;
+      return { ok: true, booking: { ...b } };
+    },
+    async unsubscribe(email) {
+      return subscribers.delete(email);
+    },
     async addSubscriber(email, consent) {
       const created = !subscribers.has(email);
       subscribers.set(email, { consent, createdAt: new Date().toISOString() });

@@ -33,7 +33,7 @@ export function ServiceList({ tone = 'dark' }: { tone?: 'dark' | 'light' }) {
         <FadeIn as="li" key={s.id} delay={i * 0.05} className={`border-b ${line}`}>
           <div className="editorial-grid items-baseline gap-y-4 py-8 lg:py-10">
             <span className="ui-label col-span-1 opacity-50">{String(i + 1).padStart(2, '0')}</span>
-            <h3 className="col-span-3 font-serif text-3xl leading-[1.05] uppercase sm:text-4xl md:col-span-7 lg:col-span-5">{s.name}</h3>
+            <h3 className="col-span-3 font-serif text-[1.6rem] leading-[1.05] break-words uppercase sm:text-4xl md:col-span-7 lg:col-span-5">{s.name}</h3>
             <p className="col-span-4 max-w-md opacity-70 md:col-span-6 md:col-start-2 lg:col-span-3 lg:col-start-auto">{s.description}</p>
             <dl className="col-span-2 font-sans text-sm md:col-span-4 md:col-start-2 lg:col-span-2 lg:col-start-auto">
               <div className="flex gap-2">

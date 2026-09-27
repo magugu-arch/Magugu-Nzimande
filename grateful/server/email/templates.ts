@@ -230,14 +230,21 @@ export function contactNotificationStudio(
   };
 }
 
-export function newsletterWelcome(siteUrl: string, email: string): EmailMessage {
+export function newsletterWelcome(siteUrl: string, email: string, unsubscribeHref: string): EmailMessage {
   const heading = 'Welcome to Grateful';
   const intro = 'Thank you for joining us. We will write when there is something worth sharing — new work, new pieces, and openings in the studio diary.';
   return {
     to: email,
     replyTo: site.email,
     subject: 'Welcome to Grateful',
-    html: layout({ siteUrl, preheader: 'Be bold. Be you. Be different.', heading, intro, cta: { href: `${siteUrl}/work`, label: 'Explore the work' } }),
-    text: text(heading, intro, [], `Explore the work: ${siteUrl}/work\n\nTo unsubscribe, reply with "unsubscribe".`),
+    html: layout({
+      siteUrl,
+      preheader: 'Be bold. Be you. Be different.',
+      heading,
+      intro,
+      cta: { href: `${siteUrl}/work`, label: 'Explore the work' },
+      body: `<p style="margin:0 0 8px;font:12px/1.6 ${sans};color:#6b6b6b">You can <a href="${esc(unsubscribeHref)}" style="color:#6b6b6b">unsubscribe</a> at any time.</p>`,
+    }),
+    text: text(heading, intro, [], `Explore the work: ${siteUrl}/work\n\nUnsubscribe: ${unsubscribeHref}`),
   };
 }

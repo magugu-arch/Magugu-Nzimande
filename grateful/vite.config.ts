@@ -24,11 +24,33 @@ function devApi(): Plugin {
   };
 }
 
+/**
+ * robots.txt and sitemap.xml, written at build time. The sitemap needs the
+ * real domain, so it is only emitted when SITE_URL is set for the build.
+ */
+const ROUTES = ['/', '/work', '/work/garment-study-01', '/work/garment-study-02', '/work/garment-study-03', '/about', '/services', '/booking', '/contact'];
+
+function seoFiles(): Plugin {
+  return {
+    name: 'grateful-seo-files',
+    apply: 'build',
+    generateBundle() {
+      const site = process.env.SITE_URL?.replace(/\/$/, '');
+      const disallow = ['/payment', '/confirmation', '/unsubscribe', '/api/'].map((p) => `Disallow: ${p}`).join('\n');
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: `User-agent: *\n${disallow}\n${site ? `\nSitemap: ${site}/sitemap.xml\n` : ''}` });
+      if (site) {
+        const urls = ROUTES.map((r) => `  <url><loc>${site}${r === '/' ? '/' : r}</loc></url>`).join('\n');
+        this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n` });
+      }
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   // Server-only variables for the dev API. Only VITE_* ever reach the browser bundle.
   Object.assign(process.env, loadEnv(mode, process.cwd(), ''), { ...process.env });
   return {
-    plugins: [react(), tailwindcss(), devApi()],
+    plugins: [react(), tailwindcss(), devApi(), seoFiles()],
     build: { sourcemap: true },
   };
 });

@@ -289,3 +289,36 @@ export async function cancelBooking(id: string): Promise<Booking> {
   }
   return updated!;
 }
+
+/** Admin: list bookings between two dates (YYYY-MM-DD), for the studio's diary. */
+export async function listBookingsForAdmin(from: string, to: string) {
+  const repo = repository();
+  const [bookings, services] = await Promise.all([repo.listBookings(from, to), repo.listServices({ includeInactive: true })]);
+  const names = new Map(services.map((s) => [s.id, s.name]));
+  return bookings.map((b) => ({ ...b, serviceName: names.get(b.serviceId) ?? b.serviceId }));
+}
+
+/**
+ * Admin: move a confirmed booking to a new time and tell the client. The new
+ * time must sit inside the opening hours and must not clash with anything
+ * else; the booking's own current slot does not count against it.
+ */
+export async function rescheduleBooking(id: string, date: string, time: string, now = new Date()): Promise<Booking> {
+  const repo = repository();
+  const booking = await repo.getBooking(id);
+  if (!booking) throw new BookingError('Booking not found.', 404);
+  if (booking.status !== 'confirmed') throw new BookingError('Only confirmed bookings can be rescheduled.', 409);
+  const service = await repo.getService(booking.serviceId);
+  if (!service) throw new BookingError('Service not found.', 404);
+
+  const windows = await repo.listAvailability(date, date);
+  const open = slotsForDate(date, windows, [], { ...rules(service, now), minNoticeMinutes: 0 });
+  if (!open.includes(time)) throw new BookingError('That time is outside the studio’s opening hours.', 400, 'time');
+
+  const moved = await repo.rescheduleBooking(id, date, time, now);
+  if (!moved.ok) throw new BookingError('That time is already booked.', 409, 'time');
+
+  const { siteUrl } = config();
+  await sendSafely([bookingCancelledClient(siteUrl, emailData(moved.booking, service, null), 'rescheduled')]);
+  return moved.booking;
+}

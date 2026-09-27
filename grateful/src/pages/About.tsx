@@ -11,7 +11,7 @@ import { useTitle } from '../lib/useTitle';
 const craft = ['Scissors', 'Tape measure', 'Pattern pieces', 'Cutting fabric', 'Sewing machine', 'Mannequin', 'Technical drawings', 'Needles & tools'];
 
 export default function About() {
-  useTitle('About');
+  useTitle('About', 'Meet Grateful, the fashion design studio of Phindi Britou-Nzimande in Mulbarton, Johannesburg.');
   return (
     <>
       <section className="lg:grid lg:min-h-svh lg:grid-cols-12 lg:pt-20">

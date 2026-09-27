@@ -73,6 +73,13 @@ export interface Repository {
   /** Mark a payment paid and confirm its booking, atomically and idempotently. */
   confirmPayment(reference: string, providerReference: string, now: Date): Promise<ConfirmResult | null>;
 
+  /** Admin: every booking in [from, to], newest first. */
+  listBookings(from: string, to: string): Promise<Booking[]>;
+  /** Move a booking to a new slot only if nothing active overlaps it there (excluding itself). */
+  rescheduleBooking(id: string, date: string, time: string, now: Date): Promise<ReserveResult>;
+
   addSubscriber(email: string, consent: boolean): Promise<{ created: boolean }>;
+  /** Returns false if the address was not subscribed. */
+  unsubscribe(email: string): Promise<boolean>;
   addContactMessage(msg: { name: string; email: string; phone: string; subject: string; message: string }): Promise<void>;
 }

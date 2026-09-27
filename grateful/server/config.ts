@@ -37,6 +37,9 @@ export function config() {
     emailFrom: env('EMAIL_FROM') ?? 'Grateful <bookings@example.com>',
     studioEmail: env('STUDIO_EMAIL') ?? 'gratefulpty@gmail.com',
 
+    /** Signs newsletter unsubscribe links. Required in production. */
+    newsletterSecret: env('NEWSLETTER_SECRET'),
+
     /** Bearer token for /api/admin/*. Unset → admin endpoints are disabled. */
     adminToken: env('ADMIN_TOKEN'),
 

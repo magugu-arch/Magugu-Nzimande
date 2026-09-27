@@ -1,13 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { addDays, todayInSast } from '../shared/format';
-import { setRepository } from './db';
-import { createMemoryRepository } from './db/memory';
-import { setEmailProvider } from './email/providers';
 import type { EmailMessage } from './email/types';
 import { route, type ApiRequest } from './router';
-import { resetRateLimits } from './security';
+import { unsubscribeToken } from './services/forms';
+import { realServices, resetStudio, setupStudio, TEST_DATE as date } from './test/fixtures';
 
-const date = addDays(todayInSast(), 5);
 let sent: EmailMessage[];
 
 const req = (method: string, path: string, body?: unknown, ip = '10.0.0.1'): ApiRequest => {
@@ -18,16 +14,10 @@ const req = (method: string, path: string, body?: unknown, ip = '10.0.0.1'): Api
 const booking = { serviceId: 'consultation', date, time: '10:00', clientName: 'Thandi Mokoena', email: 'Thandi@Example.com', phone: '082 000 0000', elapsedMs: 20_000 };
 
 beforeEach(() => {
-  process.env.MIN_NOTICE_HOURS = '0';
-  setRepository(createMemoryRepository({ availability: [{ date, startTime: '09:00', endTime: '13:00' }] }));
-  sent = [];
-  setEmailProvider({ name: 'test', send: async (m) => void sent.push(m) });
-  resetRateLimits();
+  // The real, unpriced catalogue: what the public site shows today.
+  sent = setupStudio({ services: realServices, hours: { startTime: '09:00', endTime: '13:00' } }).outbox;
 });
-afterEach(() => {
-  setRepository(null);
-  setEmailProvider(null);
-});
+afterEach(resetStudio);
 
 describe('API', () => {
   it('lists services with "quote required" (null) prices, as supplied', async () => {
@@ -93,8 +83,25 @@ describe('API', () => {
     expect(String(ics.body)).toMatch(/DTSTART:\d{8}T080000Z/); // 10:00 SAST = 08:00 UTC
   });
 
+  it('includes a working, address-bound unsubscribe link in the welcome email', async () => {
+    await route(req('POST', '/api/newsletter', { email: 'b@example.com', consent: true, elapsedMs: 5000 }));
+    expect(sent[0]?.text).toContain(`token=${unsubscribeToken('b@example.com')}`);
+    const forged = await route(req('POST', '/api/newsletter/unsubscribe', { email: 'b@example.com', token: unsubscribeToken('c@example.com') }));
+    expect(forged.status).toBe(400);
+    const ok = await route(req('POST', '/api/newsletter/unsubscribe', { email: 'b@example.com', token: unsubscribeToken('b@example.com') }));
+    expect(ok.status).toBe(200);
+  });
+
+  it('lets the studio list bookings with the admin token, and no one else', async () => {
+    process.env.ADMIN_TOKEN = 'studio-secret-token';
+    await route(req('POST', '/api/booking', booking));
+    const denied = await route({ ...req('GET', `/api/admin/bookings?from=${date}&to=${date}`), headers: { authorization: 'Bearer wrong-token-value' } });
+    expect(denied.status).toBe(401);
+    const ok = await route({ ...req('GET', `/api/admin/bookings?from=${date}&to=${date}`), headers: { authorization: 'Bearer studio-secret-token' } });
+    expect((ok.body as { bookings: unknown[] }).bookings).toHaveLength(1);
+  });
+
   it('keeps admin endpoints closed without a token', async () => {
-    delete process.env.ADMIN_TOKEN;
     expect((await route(req('POST', '/api/admin/bookings/00000000-0000-4000-8000-000000000000/cancel'))).status).toBe(401);
   });
 

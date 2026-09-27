@@ -74,7 +74,7 @@ function ContactForm() {
 }
 
 export default function Contact() {
-  useTitle('Contact');
+  useTitle('Contact', 'Contact Grateful: +27 76 081 4788, gratefulpty@gmail.com. Mulbarton, Johannesburg.');
   return (
     <>
       <section className="page-gutter pt-32 pb-16 lg:pt-44 lg:pb-24">

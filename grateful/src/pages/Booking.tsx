@@ -42,7 +42,7 @@ function loadDraft(): Draft | null {
 }
 
 export default function Booking() {
-  useTitle('Book');
+  useTitle('Book', 'Book a consultation or fitting with Grateful online — choose a service, a date and a time.');
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { services, error: servicesError } = useServices();

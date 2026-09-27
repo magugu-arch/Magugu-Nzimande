@@ -180,6 +180,18 @@ export function createSupabaseRepository(url: string, serviceRoleKey: string): R
       if (!b || !p) return null;
       return { outcome: r.outcome as ConfirmResult['outcome'], booking: b, payment: p } as ConfirmResult;
     },
+    async listBookings(from, to) {
+      const rows = must(await db.from('bookings').select('*').gte('date', from).lte('date', to).order('date').order('time'));
+      return (rows ?? []).map(booking);
+    },
+    async rescheduleBooking(id, date, time) {
+      const rows = must(await db.rpc('reschedule_booking', { p_id: id, p_date: date, p_time: time })) as Row[] | null;
+      return rows?.[0] ? { ok: true, booking: booking(rows[0]) } : { ok: false, reason: 'slot_taken' };
+    },
+    async unsubscribe(email) {
+      const rows = must(await db.from('newsletter_subscribers').delete().eq('email', email).select('id'));
+      return !!rows?.length;
+    },
     async addSubscriber(email, consent) {
       const existing = must(await db.from('newsletter_subscribers').select('id').eq('email', email).limit(1));
       must(await db.from('newsletter_subscribers').upsert({ email, consent }, { onConflict: 'email' }));

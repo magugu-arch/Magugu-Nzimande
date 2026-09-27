@@ -78,6 +78,8 @@
     letter-spacing: -0.035em;
     line-height: 0.92;
     text-transform: uppercase;
+    /* A single long word ("DEVELOPMENT") must never push a 320px screen sideways. */
+    overflow-wrap: break-word;
   }
   .editorial-italic {
     font-style: italic;

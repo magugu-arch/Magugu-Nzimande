@@ -1,37 +1,30 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { serviceSeed } from '../../src/data/services';
 import { addDays, todayInSast } from '../../shared/format';
-import type { Service } from '../../shared/types';
 import { setRepository } from '../db';
 import { createMemoryRepository } from '../db/memory';
-import type { Repository } from '../db/types';
-import { setEmailProvider } from '../email/providers';
 import type { EmailMessage } from '../email/types';
-import { setPaymentProvider } from '../payments';
-import { createMockProvider, mockSign } from '../payments/mock';
+import { mockSign } from '../payments/mock';
 import { PaymentVerificationError } from '../payments/types';
-import { availableSlots, BookingError, createBooking, getPublicBooking, handlePaymentNotification, startPayment } from './booking';
+import { client, pricedServices as priced, resetStudio, setupStudio, TEST_DATE as date } from '../test/fixtures';
+import {
+  availableSlots,
+  BookingError,
+  createBooking,
+  getPublicBooking,
+  handlePaymentNotification,
+  listBookingsForAdmin,
+  rescheduleBooking,
+  startPayment,
+} from './booking';
 
-const date = addDays(todayInSast(), 7);
-const priced: Service[] = serviceSeed.map((s) => (s.id === 'custom-design' ? { ...s, priceCents: 200000, depositCents: 50000 } : s));
-const client = { clientName: 'Thandi Mokoena', email: 'thandi@example.com', phone: '+27 82 000 0000', notes: '' };
-
-let repo: Repository;
 let sent: EmailMessage[];
 
 beforeEach(() => {
-  process.env.MIN_NOTICE_HOURS = '0';
-  repo = createMemoryRepository({ services: priced, availability: [{ date, startTime: '09:00', endTime: '17:00' }] });
-  setRepository(repo);
-  setPaymentProvider(createMockProvider());
-  sent = [];
-  setEmailProvider({ name: 'test', send: async (m) => void sent.push(m) });
+  sent = setupStudio().outbox;
 });
 
 afterEach(() => {
-  setRepository(null);
-  setPaymentProvider(null);
-  setEmailProvider(null);
+  resetStudio();
   vi.useRealTimers();
 });
 
@@ -134,7 +127,7 @@ describe('paid services', () => {
     await expect(startPayment(bookingId, 'deposit')).rejects.toMatchObject({ status: 410 });
 
     await createBooking({ serviceId: 'consultation', date, time: '10:00', ...client, email: 'second@example.com' });
-    sent = [];
+    sent.length = 0;
     await notify(reference, 'paid', amount);
     expect((await getPublicBooking(bookingId))?.status).toBe('needs_attention');
     expect(sent.some((m) => m.subject.startsWith('ACTION NEEDED'))).toBe(true);
@@ -147,5 +140,39 @@ describe('paid services', () => {
     vi.setSystemTime(new Date(Date.now() + 25 * 60_000));
     await notify(reference, 'paid', amount);
     expect((await getPublicBooking(bookingId))?.status).toBe('confirmed');
+  });
+});
+
+describe('admin', () => {
+  it('lists bookings in date order with the service name', async () => {
+    await createBooking({ serviceId: 'consultation', date, time: '13:00', ...client });
+    await createBooking({ serviceId: 'fittings', date, time: '09:00', ...client });
+    const list = await listBookingsForAdmin(date, date);
+    expect(list.map((b) => [b.time, b.serviceName])).toEqual([
+      ['09:00', 'Fittings & Alterations'],
+      ['13:00', 'Consultation & Concept Development'],
+    ]);
+  });
+
+  it('reschedules into a free slot, frees the old one and emails the client', async () => {
+    const { result } = await createBooking({ serviceId: 'consultation', date, time: '09:00', ...client });
+    sent.length = 0;
+    const moved = await rescheduleBooking(result.bookingId, date, '15:00');
+    expect(moved.time).toBe('15:00');
+    expect(await availableSlots('consultation', date)).toContain('09:00');
+    expect(await availableSlots('consultation', date)).not.toContain('15:00');
+    expect(sent[0]?.subject).toMatch(/^Rescheduled/);
+  });
+
+  it('may move a booking to overlap its own old slot', async () => {
+    const { result } = await createBooking({ serviceId: 'consultation', date, time: '10:00', ...client });
+    expect((await rescheduleBooking(result.bookingId, date, '10:30')).time).toBe('10:30');
+  });
+
+  it('refuses to reschedule onto another booking or outside opening hours', async () => {
+    const { result } = await createBooking({ serviceId: 'consultation', date, time: '09:00', ...client });
+    await createBooking({ serviceId: 'consultation', date, time: '12:00', ...client });
+    await expect(rescheduleBooking(result.bookingId, date, '12:00')).rejects.toMatchObject({ status: 409 });
+    await expect(rescheduleBooking(result.bookingId, date, '19:00')).rejects.toMatchObject({ status: 400 });
   });
 });
