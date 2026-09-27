@@ -7,6 +7,7 @@ import { ButtonLink } from '../components/ui/Button';
 import { FadeIn, ImageReveal } from '../components/ui/ImageReveal';
 import { Picture } from '../components/ui/Picture';
 import { site } from '../data/site';
+import { IS_DEMO } from '../lib/env';
 import { useBooking } from '../lib/useBooking';
 import { useTitle } from '../lib/useTitle';
 
@@ -165,9 +166,11 @@ export default function Confirmation() {
           </dl>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            {!IS_DEMO && (
             <a href={`/api/booking/${booking.id}/calendar.ics`} className="ui-label inline-flex min-h-11 items-center justify-center gap-3 bg-white px-6 text-black hover:bg-white/85">
               <CalendarPlus aria-hidden className="size-4" /> Add to Calendar
             </a>
+            )}
             <a
               href={googleCalendarUrl(booking)}
               target="_blank"

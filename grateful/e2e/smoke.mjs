@@ -16,7 +16,7 @@ import { createServer } from 'vite';
 process.env.DEMO_PRICING = 'true';
 process.env.MIN_NOTICE_HOURS = '0';
 
-const PAGES = ['/', '/work', '/work/garment-study-01', '/about', '/services', '/booking', '/contact', '/nope'];
+const PAGES = ['/', '/work', '/work/garment-study-01', '/about', '/services', '/booking', '/contact', '/privacy', '/nope'];
 const failures = [];
 const fail = (msg) => {
   failures.push(msg);

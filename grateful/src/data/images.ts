@@ -14,23 +14,25 @@ export type BrandImage = {
   focus: string;
 };
 
+const base = import.meta.env.BASE_URL;
+
 export const images = {
   whiteGarment: {
-    src: '/images/IMG_2438',
+    src: `${base}images/IMG_2438`,
     alt: 'A woman stands facing the camera in a white, oversized Grateful shirt with a dramatic high-low hem that flares out at the sides, worn over black leggings.',
     width: 1536,
     height: 2048,
     focus: '50% 30%',
   },
   styledLook: {
-    src: '/images/IMG_2243',
+    src: `${base}images/IMG_2243`,
     alt: 'A woman poses on a brick garden path between tall hedges, wearing a green off-the-shoulder ruffled top with wide-leg black and white geometric print trousers.',
     width: 1536,
     height: 2048,
     focus: '50% 45%',
   },
   burgundyDetail: {
-    src: '/images/IMG_1411',
+    src: `${base}images/IMG_1411`,
     alt: 'A burgundy Grateful dress on a dress form, with an oversized bow at the neck and full, gathered bell sleeves.',
     width: 1150,
     height: 2048,

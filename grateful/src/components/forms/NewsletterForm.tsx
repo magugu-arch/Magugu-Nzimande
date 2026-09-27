@@ -1,5 +1,6 @@
 import { ArrowRight, LoaderCircle } from 'lucide-react';
 import { useId } from 'react';
+import { Link } from 'react-router';
 import { newsletterSchema } from '../../../shared/validation';
 import { api } from '../../lib/api';
 import { useForm } from '../../lib/useForm';
@@ -68,7 +69,14 @@ export function NewsletterForm({ tone = 'dark', compact = false, heading = 'Lett
           checked={Boolean(f.values.consent)}
           onChange={(e) => f.set('consent', e.target.checked)}
           error={f.errors.consent}
-          label="I’d like to receive occasional emails from Grateful. Unsubscribe at any time."
+          label={
+            <>
+              I’d like to receive occasional emails from Grateful. Unsubscribe at any time.{' '}
+              <Link to="/privacy" className="underline">
+                Privacy
+              </Link>
+            </>
+          }
         />
       </div>
       {f.status === 'error' && !f.errors.email && !f.errors.consent && f.message && (

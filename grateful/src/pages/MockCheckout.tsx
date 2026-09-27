@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { formatRand } from '../../shared/format';
 import { Alert } from '../components/forms/Field';
 import { Button } from '../components/ui/Button';
+import { api } from '../lib/api';
 import { useTitle } from '../lib/useTitle';
 
 /**
@@ -15,6 +16,7 @@ import { useTitle } from '../lib/useTitle';
 export default function MockCheckout() {
   useTitle('Test checkout');
   const [p] = useSearchParams();
+  const navigate = useNavigate();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const reference = p.get('reference') ?? '';
@@ -23,15 +25,15 @@ export default function MockCheckout() {
   async function finish(outcome: 'paid' | 'failed') {
     setBusy(outcome);
     setError(null);
-    const body = new URLSearchParams({ reference, outcome, amount: String(amount), signature: p.get(outcome === 'paid' ? 'sig_paid' : 'sig_failed') ?? '' });
-    const res = await fetch('/api/webhooks/mock', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body }).catch(() => null);
-    if (!res?.ok) {
+    try {
+      await api.mockNotify({ reference, outcome, amount: String(amount), signature: p.get(outcome === 'paid' ? 'sig_paid' : 'sig_failed') ?? '' });
+    } catch {
       setError('The test notification was rejected.');
       setBusy(null);
       return;
     }
     const back = outcome === 'paid' ? p.get('return_url') : p.get('cancel_url');
-    window.location.assign(back ? new URL(back).pathname + new URL(back).search : '/');
+    navigate(back ? new URL(back).pathname + new URL(back).search : '/');
   }
 
   return (

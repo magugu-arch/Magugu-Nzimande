@@ -4,6 +4,11 @@ import { api, RequestError } from './api';
 
 let cache: Promise<Service[]> | null = null;
 
+/** Forget the fetched services (the demo build's sample-price switch). */
+export function resetServicesCache() {
+  cache = null;
+}
+
 /** Services come from the database, so prices and durations change without a deploy. Fetched once per visit. */
 export function useServices() {
   const [services, setServices] = useState<Service[] | null>(null);

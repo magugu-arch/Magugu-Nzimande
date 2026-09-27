@@ -62,6 +62,9 @@ export function Footer() {
             ))}
           </ul>
         </nav>
+        <Link to="/privacy" className="ui-label inline-flex min-h-11 items-center opacity-60 hover:opacity-100">
+          Privacy
+        </Link>
         <p className="ui-label opacity-50">
           © {new Date().getFullYear()} {site.legalName}
         </p>

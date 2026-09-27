@@ -15,13 +15,17 @@ export function EditorialCard({
   sizes,
   mono = false,
   index,
+  headingLevel = 'h3',
 }: {
+  /** h2 where the cards sit directly under the page's h1 (the Work page). */
+  headingLevel?: 'h2' | 'h3';
   item: WorkItem;
   aspect?: string;
   sizes: string;
   mono?: boolean;
   index?: number;
 }) {
+  const Heading = headingLevel;
   return (
     <Link to={`/work/${item.slug}`} className="group block" aria-label={`${item.title} — ${item.category}`}>
       <ImageReveal className={`relative ${aspect}`}>
@@ -37,7 +41,7 @@ export function EditorialCard({
       </ImageReveal>
       <div className="mt-4 flex items-start justify-between gap-4 overflow-hidden">
         <div className="transition-transform duration-700 ease-[var(--ease-editorial)] lg:translate-y-1 lg:group-hover:translate-y-0">
-          <h3 className="font-serif text-2xl leading-tight uppercase">{item.title}</h3>
+          <Heading className="font-serif text-2xl leading-tight uppercase">{item.title}</Heading>
           <p className="ui-label mt-2 opacity-60">
             {item.category}
             {item.year ? ` — ${item.year}` : ''}

@@ -56,7 +56,7 @@ export default function Work() {
             const l = layout[i % layout.length]!;
             return (
               <li key={item.slug} className={`relative col-span-4 ${l.span} ${l.offset}`}>
-                <EditorialCard item={item} aspect={l.aspect} sizes="(min-width: 1024px) 45vw, (min-width: 768px) 60vw, 100vw" />
+                <EditorialCard item={item} headingLevel="h2" aspect={l.aspect} sizes="(min-width: 1024px) 45vw, (min-width: 768px) 60vw, 100vw" />
                 <button
                   type="button"
                   onClick={() => setLightbox(i)}

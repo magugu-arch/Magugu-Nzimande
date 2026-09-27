@@ -1,4 +1,5 @@
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { Link } from 'react-router';
 import { contactSchema } from '../../shared/validation';
 import { Alert, Checkbox, Honeypot, SelectField, TextArea, TextField } from '../components/forms/Field';
 import { Button } from '../components/ui/Button';
@@ -7,6 +8,7 @@ import { SectionHeading } from '../components/ui/SectionHeading';
 import { serviceSeed } from '../data/services';
 import { site } from '../data/site';
 import { api } from '../lib/api';
+import { IS_DEMO } from '../lib/env';
 import { useForm } from '../lib/useForm';
 import { useTitle } from '../lib/useTitle';
 
@@ -62,7 +64,15 @@ function ContactForm() {
         checked={Boolean(f.values.consent)}
         onChange={(e) => f.set('consent', e.target.checked)}
         error={f.errors.consent}
-        label="I agree that Grateful may use these details to reply to my enquiry."
+        label={
+          <>
+            I agree that Grateful may use these details to reply to my enquiry. See the{' '}
+            <Link to="/privacy" className="underline">
+              privacy notice
+            </Link>
+            .
+          </>
+        }
       />
       <Honeypot value={v('company')} onChange={(val) => f.set('company', val)} />
       {f.status === 'error' && f.message && <Alert kind="error">{f.message}</Alert>}
@@ -140,6 +150,12 @@ export default function Contact() {
       </section>
 
       <section aria-label="Map of Mulbarton, Johannesburg" className="border-t border-line">
+        {IS_DEMO ? (
+          <a href={site.mapHref} target="_blank" rel="noopener noreferrer" className="page-gutter flex min-h-32 items-center justify-between py-10 hover:underline">
+            <span className="font-serif text-3xl">Mulbarton, Johannesburg — open in Maps</span>
+            <MapPin aria-hidden className="size-6" />
+          </a>
+        ) : (
         <iframe
           title="Map showing Mulbarton, Johannesburg"
           src={site.mapEmbed}
@@ -147,6 +163,7 @@ export default function Contact() {
           referrerPolicy="no-referrer-when-downgrade"
           className="block h-[50svh] w-full border-0 [filter:grayscale(1)_invert(0.92)_contrast(0.9)]"
         />
+        )}
       </section>
     </>
   );

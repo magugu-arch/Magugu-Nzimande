@@ -48,6 +48,7 @@ The brief forbids making up prices, credentials, clients, dates or project names
 - **Portfolio items** are labelled *Garment Study 01–03*, with `year: null`. The UI hides null fields. Edit `src/data/work.ts`.
 - **Service durations** (60/90/45/90 min) are scheduling estimates. **Opening hours** say "By appointment" and **sample availability** is Tue–Fri 09:00–17:00 and Sat 09:00–13:00. Confirm all of these with the studio.
 - **Social links** are null and hidden until they're added in `src/data/site.ts`.
+- **Privacy notice** (`/privacy`) is a POPIA-shaped template describing what the site actually collects. Items in [brackets] (Information Officer, retention periods, hosting regions, date) must be completed, and the notice reviewed, before launch.
 
 ## Booking and payment rules
 
@@ -74,7 +75,17 @@ Sent through `server/email/providers.ts` (Resend, or console in development). Te
 | Contact enquiry | studio (reply-to = sender) |
 | Newsletter signup (first time only) | subscriber |
 
-An email failure is logged, but it never undoes a booking or a payment, because the database is the record. The cancel/reschedule template is sent by `POST /api/admin/bookings/:id/cancel` with `Authorization: Bearer $ADMIN_TOKEN`.
+An email failure is logged, but it never undoes a booking or a payment, because the database is the record. Every newsletter email carries a signed, one-click unsubscribe link (`/unsubscribe`, signed with `NEWSLETTER_SECRET`).
+
+## Studio admin API
+
+The studio has no dashboard yet. Until it does, the Supabase table editor covers day-to-day viewing, and these endpoints cover the operations that need the booking rules. All of them require `Authorization: Bearer $ADMIN_TOKEN`:
+
+| | |
+| --- | --- |
+| `GET /api/admin/bookings?from=YYYY-MM-DD&to=YYYY-MM-DD` | the diary for a date range |
+| `POST /api/admin/bookings/:id/reschedule` `{ "date", "time" }` | move a confirmed booking (checked against opening hours and clashes; emails the client) |
+| `POST /api/admin/bookings/:id/cancel` | cancel and free the slot (emails the client; issue any refund in PayFast) |
 
 ## Security
 
@@ -89,8 +100,9 @@ An email failure is logged, but it never undoes a booking or a payment, because 
 
 1. **Supabase:** create a project, then run `supabase/migrations/0001_init.sql` and `supabase/seed.sql` (or `supabase db push`). Replace the sample availability with real hours, and set prices where they apply.
 2. **PayFast:** create a merchant account and test on the sandbox first (`PAYFAST_SANDBOX=true`). Set `PAYMENT_PROVIDER=payfast` and the merchant ID, key and passphrase.
-3. **Resend:** verify a sending domain, then set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` and `EMAIL_FROM`.
-4. **Vercel:** import the repo with **root directory `grateful`**, add the variables from `.env.example`, and set `SITE_URL` to the real domain (PayFast's notify URL is built from it).
+3. **Newsletter:** set `NEWSLETTER_SECRET` to a long random string.
+4. **Resend:** verify a sending domain, then set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` and `EMAIL_FROM`.
+5. **Vercel:** import the repo with **root directory `grateful`**, add the variables from `.env.example`, and set `SITE_URL` to the real domain (PayFast's notify URL is built from it).
 
 ## Scripts
 
@@ -98,5 +110,7 @@ An email failure is logged, but it never undoes a booking or a payment, because 
 | --- | --- |
 | `npm run dev` | site + API with hot reload |
 | `npm run build` | typecheck and production build to `dist/` |
-| `npm test` | Vitest: slot rules, double booking, holds, payment verification, PayFast signatures, API routes |
-| `npm run verify` | typecheck, lint, test, build: what CI runs |
+| `npm test` | Vitest: slot rules, double booking, holds, payment verification, PayFast signatures, reschedule, unsubscribe, API routes. Shared fixtures live in `server/test/fixtures.ts` |
+| `npm run smoke` | real browser against the dev server: every page at 320/390/1440px (sideways scroll, console errors, axe), then a free and a paid booking end to end |
+| `npm run verify` | typecheck, lint, test, build: what CI runs (followed by `smoke`) |
+| `npm run build:demo` | static click-through preview in `dist-demo/`, with the API simulated in the browser (`src/lib/demoApi.ts`). Nothing is saved or sent. Never deploy it as the real site |

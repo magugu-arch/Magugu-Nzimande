@@ -194,8 +194,8 @@ export default function Booking() {
                       aria-current={current ? 'step' : undefined}
                       className="group flex w-full min-h-11 flex-col items-start gap-2 text-left disabled:cursor-default"
                     >
-                      <span className={`block h-px w-full ${current || done ? 'bg-white' : 'bg-white/20'}`} />
-                      <span className={`ui-label flex items-center gap-1.5 ${current ? '' : done ? 'opacity-70 group-enabled:group-hover:opacity-100' : 'opacity-35'}`}>
+                      <span className={`block h-px w-full ${current || done ? 'bg-white' : 'bg-white/30'}`} />
+                      <span className={`ui-label flex items-center gap-1.5 ${current ? '' : done ? 'opacity-70 group-enabled:group-hover:opacity-100' : 'opacity-55'}`}>
                         {done ? <Check aria-hidden className="size-3" /> : <span aria-hidden>{String(i + 1).padStart(2, '0')}</span>}
                         <span className="hidden sm:inline">{label}</span>
                         <span className="sr-only sm:hidden">{label}</span>

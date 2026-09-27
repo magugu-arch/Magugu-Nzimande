@@ -89,7 +89,7 @@ export default function About() {
             {craft.map((c, i) => (
               <li key={c} className="font-serif text-4xl leading-tight lg:text-6xl">
                 {i % 2 ? <em>{c}</em> : c}
-                {i < craft.length - 1 && <span className="opacity-30"> /</span>}
+                {i < craft.length - 1 && <span aria-hidden="true" className="opacity-30"> /</span>}
               </li>
             ))}
           </ul>

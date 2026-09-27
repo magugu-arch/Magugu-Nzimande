@@ -1,6 +1,6 @@
 import { Lock } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Navigate, useSearchParams } from 'react-router';
+import { Navigate, useNavigate, useSearchParams } from 'react-router';
 import { formatDuration, formatLongDate, formatRand } from '../../shared/format';
 import type { PaymentOption } from '../../shared/types';
 import { Alert, Checkbox } from '../components/forms/Field';
@@ -31,6 +31,7 @@ function useCountdown(until: string | null) {
 export default function Payment() {
   useTitle('Payment');
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const id = params.get('booking');
   const cancelled = params.get('cancelled') === '1';
   const { booking, error, loading } = useBooking(id);
@@ -77,7 +78,7 @@ export default function Payment() {
     setPayError(null);
     try {
       const checkout = await api.startPayment({ bookingId: booking!.id, option: chosen, acceptTerms: true });
-      submitCheckout(checkout);
+      submitCheckout(checkout, navigate);
     } catch (e) {
       setPayError(e instanceof RequestError ? e.message : 'Payment could not be started. Please try again.');
       setSubmitting(false);

@@ -14,7 +14,8 @@ export class RequestError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(path, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } });
+    const opts = { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } };
+    res = import.meta.env.VITE_DEMO === 'true' ? await import('./demoApi').then((m) => m.demoFetch(path, opts)) : await fetch(path, opts);
   } catch {
     throw new RequestError('We could not reach the studio. Check your connection and try again.', 0);
   }
@@ -37,14 +38,18 @@ export const api = {
   contact: (data: unknown) => post<{ ok: true }>('/api/contact', data),
   newsletter: (data: unknown) => post<{ ok: true }>('/api/newsletter', data),
   unsubscribe: (data: { email: string; token: string }) => post<{ ok: true }>('/api/newsletter/unsubscribe', data),
+  /** Test gateway only: report the outcome of a mock checkout. */
+  mockNotify: (fields: Record<string, string>) =>
+    request<unknown>('/api/webhooks/mock', { method: 'POST', body: new URLSearchParams(fields), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }),
 };
 
-/** Send the browser to a hosted checkout by building and submitting its form. */
-export function submitCheckout(checkout: CheckoutForm) {
+/**
+ * Send the browser to a hosted checkout by building and submitting its form.
+ * A same-site GET checkout (the test gateway) is an in-app navigation.
+ */
+export function submitCheckout(checkout: CheckoutForm, navigate: (to: string) => void) {
   if (checkout.method === 'GET') {
-    const url = new URL(checkout.action, window.location.origin);
-    for (const [k, v] of Object.entries(checkout.fields)) url.searchParams.set(k, v);
-    window.location.assign(url.toString());
+    navigate(`${checkout.action}?${new URLSearchParams(checkout.fields)}`);
     return;
   }
   const form = document.createElement('form');

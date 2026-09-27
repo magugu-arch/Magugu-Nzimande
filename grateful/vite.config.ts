@@ -28,7 +28,7 @@ function devApi(): Plugin {
  * robots.txt and sitemap.xml, written at build time. The sitemap needs the
  * real domain, so it is only emitted when SITE_URL is set for the build.
  */
-const ROUTES = ['/', '/work', '/work/garment-study-01', '/work/garment-study-02', '/work/garment-study-03', '/about', '/services', '/booking', '/contact'];
+const ROUTES = ['/', '/work', '/work/garment-study-01', '/work/garment-study-02', '/work/garment-study-03', '/about', '/services', '/booking', '/contact', '/privacy'];
 
 function seoFiles(): Plugin {
   return {
@@ -51,6 +51,6 @@ export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ''), { ...process.env });
   return {
     plugins: [react(), tailwindcss(), devApi(), seoFiles()],
-    build: { sourcemap: true },
+    build: { sourcemap: mode !== 'demo' },
   };
 });

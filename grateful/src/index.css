@@ -14,8 +14,8 @@
   --color-ink-muted: rgb(0 0 0 / 0.58);
   --color-ink-line: rgb(0 0 0 / 0.14);
 
-  --font-serif: 'Baskervville Variable', 'Baskerville', 'Libre Baskerville', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Inter Variable', Inter, 'Avenir Next', Avenir, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: 'Baskervville Variable', 'Baskervville', 'Baskerville', 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter Variable', 'Inter',  'Avenir Next', Avenir, 'Helvetica Neue', Arial, sans-serif;
 
   --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
 }

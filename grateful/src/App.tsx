@@ -1,45 +1,19 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
-import { Layout } from './components/layout/Layout';
-import Home from './pages/Home';
-import RouteError from './pages/RouteError';
+import { routes } from './routes';
 
-// Home ships in the main bundle; everything else loads when first visited.
-const Work = lazy(() => import('./pages/Work'));
-const WorkDetail = lazy(() => import('./pages/WorkDetail'));
-const About = lazy(() => import('./pages/About'));
-const Services = lazy(() => import('./pages/Services'));
-const Booking = lazy(() => import('./pages/Booking'));
-const Payment = lazy(() => import('./pages/Payment'));
-const MockCheckout = lazy(() => import('./pages/MockCheckout'));
-const Confirmation = lazy(() => import('./pages/Confirmation'));
-const Contact = lazy(() => import('./pages/Contact'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-const Unsubscribe = lazy(() => import('./pages/Unsubscribe'));
-
-const page = (el: ReactNode) => <Suspense fallback={<div className="min-h-dvh" aria-busy="true" />}>{el}</Suspense>;
-
-const router = createBrowserRouter([
-  {
-    element: <Layout />,
-    errorElement: <RouteError />,
-    children: [
-      { path: '/', element: <Home /> },
-      { path: '/work', element: page(<Work />) },
-      { path: '/work/:slug', element: page(<WorkDetail />) },
-      { path: '/about', element: page(<About />) },
-      { path: '/services', element: page(<Services />) },
-      { path: '/booking', element: page(<Booking />) },
-      { path: '/payment', element: page(<Payment />) },
-      { path: '/payment/mock', element: page(<MockCheckout />) },
-      { path: '/confirmation', element: page(<Confirmation />) },
-      { path: '/contact', element: page(<Contact />) },
-      { path: '/unsubscribe', element: page(<Unsubscribe />) },
-      { path: '*', element: page(<NotFound />) },
-    ],
-  },
-]);
+// The static preview's in-browser API and banner load only in that build.
+// Checked inline (not via lib/env) so the bundler can drop the demo chunks from production.
+const DemoApp = import.meta.env.VITE_DEMO === 'true' ? lazy(() => import('./DemoApp')) : null;
+const browserRouter = DemoApp ? null : createBrowserRouter(routes);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  if (DemoApp) {
+    return (
+      <Suspense fallback={null}>
+        <DemoApp />
+      </Suspense>
+    );
+  }
+  return <RouterProvider router={browserRouter!} />;
 }
