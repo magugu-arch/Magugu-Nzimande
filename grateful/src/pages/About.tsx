@@ -11,7 +11,7 @@ import { useTitle } from '../lib/useTitle';
 const craft = ['Scissors', 'Tape measure', 'Pattern pieces', 'Cutting fabric', 'Sewing machine', 'Mannequin', 'Technical drawings', 'Needles & tools'];
 
 export default function About() {
-  useTitle('About', 'Meet Grateful, the fashion design studio of Phindi Britou-Nzimande in Mulbarton, Johannesburg.');
+  useTitle('About', 'Meet Grateful, a fashion design studio in Mulbarton, Johannesburg, making garments around the people who wear them.');
   return (
     <>
       <section className="lg:grid lg:min-h-svh lg:grid-cols-12 lg:pt-20">
@@ -19,7 +19,7 @@ export default function About() {
           <SectionHeading as="h1" size="xl" eyebrow="(About)" lines={['Meet —', <span className="editorial-italic">Grateful.</span>]} />
           <FadeIn delay={0.2} className="mt-12 max-w-xl">
             <p className="font-serif text-2xl leading-snug">
-              Grateful is the fashion design studio of <strong className="font-semibold">{site.designer}</strong>, based in {site.location}.
+              Grateful is a fashion design studio in {site.location}. We design, cut and finish garments made for <em>one person at a time</em>.
             </p>
           </FadeIn>
         </div>
@@ -38,8 +38,8 @@ export default function About() {
               <span className="editorial-italic">person at a time.</span>
             </h2>
             <FadeIn className="mt-12 grid gap-8 text-lg leading-relaxed md:grid-cols-2">
-              <p>Grateful is built on a simple belief: clothing should be shaped around the person wearing it, not the other way around. Every commission starts with who you are, where you are going and how you want to feel when you arrive.</p>
-              <p className="opacity-70">From there it is craft — pattern, cut, construction and fitting — carried out with care and patience until the garment is unmistakably yours. Be bold. Be you. Be different.</p>
+              <p>Grateful is built on one belief: clothing should be shaped around the person wearing it, never the other way round. Every commission starts with who you are, where you are going and how you want to feel when you arrive.</p>
+              <p className="opacity-70">From there, the studio takes over. Pattern, cut, construction and fitting are carried out with care and patience until the garment is unmistakably yours. Be bold. Be you. Be different.</p>
             </FadeIn>
           </div>
         </div>
@@ -58,9 +58,9 @@ export default function About() {
             </h2>
             <dl className="mt-16 grid gap-10 sm:grid-cols-3">
               {[
-                ['Individuality', 'Your proportions, your personality, your occasion — never a template.'],
+                ['Individuality', 'Your proportions, your personality and your occasion. Never a template.'],
                 ['Craft', 'Honest construction and close attention to fit, fabric and finish.'],
-                ['Collaboration', 'You bring the vision; we bring the hands. The piece belongs to both.'],
+                ['Collaboration', 'You bring the vision. The studio brings the hands. The finished piece belongs to both.'],
               ].map(([t, d]) => (
                 <div key={t} className="border-t border-ink-line pt-5">
                   <dt className="font-serif text-2xl italic">{t}</dt>

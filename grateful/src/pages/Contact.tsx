@@ -24,7 +24,7 @@ function ContactForm() {
           <br />
           <span className="editorial-italic">We’ll be in touch.</span>
         </p>
-        <p className="mt-6 max-w-md opacity-70">Your message is with the studio. For anything urgent, call {site.phone}.</p>
+        <p className="mt-6 max-w-md opacity-70">Your message is with the studio, and we will reply as soon as we can. For anything urgent, call {site.phone}.</p>
         <Button variant="secondary" className="mt-10" onClick={f.reset}>
           Send another message
         </Button>

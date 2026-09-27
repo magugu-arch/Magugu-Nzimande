@@ -3,13 +3,17 @@
  * change. Contact details come from the Grateful CI manual (email signature
  * and business card pages). Anything the CI does not state is left null and
  * the UI hides it, rather than guessing.
+ *
+ * Voice: Grateful is presented as a studio. Copy says "we" and "the studio";
+ * no individual is named anywhere on the public site or in emails.
  */
 
 export const site = {
   name: 'Grateful',
   legalName: 'Grateful (Pty) Ltd',
-  designer: 'Phindi Britou-Nzimande',
-  designerRole: 'Fashion Designer',
+  /** How the studio signs off: in the footer and on every email. Grateful speaks as a studio, not as one person. */
+  studioName: 'Grateful Studio',
+  studioLine: 'Fashion design studio',
   phone: '+27 76 081 4788',
   phoneHref: 'tel:+27760814788',
   whatsappHref: 'https://wa.me/27760814788',

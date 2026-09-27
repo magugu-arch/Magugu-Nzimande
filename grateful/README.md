@@ -1,6 +1,6 @@
 # Grateful — website
 
-The website for **Grateful (Pty) Ltd**, the fashion design studio of Phindi Britou-Nzimande in Mulbarton, Johannesburg. It's an editorial, black-and-white, Baskerville-led site with real booking, payment and email flows, built from the *Grateful UI/UX + Claude Code brief* and the *Grateful CI manual*.
+The website for **Grateful (Pty) Ltd**, a fashion design studio in Mulbarton, Johannesburg. The site speaks as the studio throughout; no individual is named. It's an editorial, black-and-white, Baskerville-led site with real booking, payment and email flows, built from the *Grateful UI/UX + Claude Code brief* and the *Grateful CI manual*.
 
 React 19 · TypeScript · Vite · Tailwind CSS 4 · Framer Motion · Lucide · React Router · Supabase · PayFast · Resend
 
@@ -79,7 +79,7 @@ An email failure is logged, but it never undoes a booking or a payment, because 
 
 ## Studio dashboard
 
-**`/studio`**: where Phindi runs the studio day to day. Sign in with the `ADMIN_TOKEN` value. It has:
+**`/studio`**: where the studio team runs bookings day to day. Sign in with the `ADMIN_TOKEN` value. It has:
 
 - **Diary:** the next seven days of bookings, with call/WhatsApp/email links, **reschedule** (only free times are offered) and **cancel** (confirmed on the card before it acts). Both email the client.
 - **Opening hours:** open single days or a weekly pattern, and close, reopen or delete blocks. The booking page follows at once.

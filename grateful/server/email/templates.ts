@@ -50,7 +50,7 @@ function layout(opts: { siteUrl: string; preheader: string; heading: string; int
     }
   </td></tr>
   <tr><td style="padding:24px 32px 40px;border-top:1px solid #000">
-    <p style="margin:0;font:15px/1.6 ${serif};color:#000"><strong>${esc(site.name)}</strong><br>${esc(site.designer)}<br><em>${esc(site.designerRole)}</em></p>
+    <p style="margin:0;font:15px/1.6 ${serif};color:#000"><strong>${esc(site.studioName)}</strong><br><em>${esc(site.studioLine)}</em></p>
     <p style="margin:12px 0 0;font:13px/1.7 ${sans};color:#444">T. ${esc(site.phone)}<br>E. <a href="mailto:${site.email}" style="color:#000">${esc(site.email)}</a><br>${esc(site.location)}<br><a href="${esc(opts.siteUrl)}" style="color:#000">${esc(opts.siteUrl.replace(/^https?:\/\//, ''))}</a></p>
   </td></tr>
 </table></td></tr></table></body></html>`;
@@ -66,9 +66,8 @@ function text(heading: string, intro: string, rows: Row[] = [], extra = '') {
     extra ? `\n${extra}` : '',
     '',
     '—',
-    site.name,
-    site.designer,
-    site.designerRole,
+    site.studioName,
+    site.studioLine,
     `T. ${site.phone}`,
     `E. ${site.email}`,
     site.location,

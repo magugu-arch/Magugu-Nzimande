@@ -21,8 +21,8 @@ export function Footer() {
         <div className="col-span-4 md:col-span-4 lg:col-span-3 lg:col-start-7">
           <p className="ui-label mb-5 opacity-60">Studio</p>
           <address className="space-y-1 not-italic">
-            <p className="font-serif text-lg">{site.designer}</p>
-            <p className="font-serif italic opacity-70">{site.designerRole}</p>
+            <p className="font-serif text-lg">{site.studioName}</p>
+            <p className="font-serif italic opacity-70">{site.studioLine}</p>
             <p className="pt-3">
               <a href={site.phoneHref} className="inline-flex min-h-11 items-center hover:underline">
                 {site.phone}

@@ -20,7 +20,7 @@ const TABS = [
 type Tab = (typeof TABS)[number][0];
 
 /**
- * The studio dashboard. Phindi signs in with the admin token set on the
+ * The studio dashboard. The studio signs in with the admin token set on the
  * server (ADMIN_TOKEN); every call is checked there, so this page shows
  * nothing without it. Not linked from the public site and not indexed.
  */

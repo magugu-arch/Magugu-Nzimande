@@ -28,7 +28,7 @@ export default function Work() {
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeading as="h1" size="xl" lines={['The —', 'Work']} />
           <FadeIn className="max-w-sm lg:pb-4">
-            <p className="text-lg opacity-80">Garments from the Grateful studio, shown in their original colour so the fabric, the styling and the construction speak for themselves.</p>
+            <p className="text-lg opacity-80">Pieces from the Grateful studio, shown in their true colour so the fabric, the styling and the construction can speak for themselves.</p>
           </FadeIn>
         </div>
 

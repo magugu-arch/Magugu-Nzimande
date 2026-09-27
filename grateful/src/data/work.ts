@@ -28,7 +28,7 @@ export const work: WorkItem[] = [
     title: 'Garment Study 01',
     category: 'Tailoring',
     year: null,
-    summary: 'A white shirt reworked with volume — a crisp collar and placket above a dramatic high-low hem that opens like a cape.',
+    summary: 'A white shirt reworked with volume: a crisp collar and placket above a dramatic high-low hem that opens like a cape.',
     image: 'whiteGarment',
     colour: true,
     details: ['Oversized white shirt', 'High-low, flared hem', 'Classic collar and button placket'],

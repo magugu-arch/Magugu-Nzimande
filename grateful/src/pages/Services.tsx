@@ -21,7 +21,7 @@ export default function Services() {
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeading as="h1" size="xl" eyebrow="(Services)" lines={['From idea —', 'to finished', <span className="editorial-italic">garment.</span>]} />
           <FadeIn className="max-w-sm lg:pb-4">
-            <p className="text-lg opacity-80">A considered process from first conversation to final fitting. Choose where you would like to begin.</p>
+            <p className="text-lg opacity-80">Every commission follows the same considered path, from the first conversation to the final fitting. Choose where you would like to begin.</p>
           </FadeIn>
         </div>
       </section>

@@ -1,11 +1,11 @@
 import { FadeIn } from './ui/ImageReveal';
 
 export const processSteps = [
-  { name: 'Discover', text: 'We listen first — to you, the occasion, and how you want to feel wearing it.' },
+  { name: 'Discover', text: 'We listen first: to you, to the occasion and to how you want to feel wearing it.' },
   { name: 'Design', text: 'Sketches, fabric and silhouette come together into a direction that is unmistakably yours.' },
   { name: 'Fit', text: 'The garment is cut and built to your measurements, then fitted on you.' },
   { name: 'Refine', text: 'We adjust, fit again and perfect every detail until it sits exactly right.' },
-  { name: 'Deliver', text: 'Your finished piece, made for one person, ready for its moment.' },
+  { name: 'Deliver', text: 'Your finished piece, made for one person and ready for its moment.' },
 ];
 
 /** Discover → Design → Fit → Refine → Deliver (brief §20.4). */

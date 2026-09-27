@@ -31,7 +31,7 @@ export const serviceSeed: Service[] = [
     slug: 'custom-design',
     name: 'Custom Fashion Design',
     description:
-      'A garment designed and made around you — from sketch and pattern to cut, construction and finish, with fittings along the way.',
+      'A garment designed and made around you, from sketch and pattern to cut, construction and finish, with fittings along the way.',
     durationMinutes: 90,
     priceCents: null,
     depositCents: null,

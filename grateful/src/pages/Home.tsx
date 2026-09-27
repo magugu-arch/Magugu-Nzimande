@@ -101,7 +101,7 @@ function Intro() {
         <p className="ui-label col-span-4 opacity-60 md:col-span-2">(Studio) — {site.location}</p>
         <FadeIn className="col-span-4 md:col-span-6 lg:col-span-9 lg:col-start-4">
           <p className="font-serif text-[1.9rem] leading-[1.15] sm:text-4xl lg:text-[3.4rem] lg:leading-[1.08]">
-            Grateful is a fashion design studio led by {site.designer}. We make considered pieces shaped around the person wearing them — <em>cut, fitted and finished</em> for you, and no one else.
+            Grateful is a fashion design studio in {site.location}. We design and make considered garments around the people who wear them: <em>cut, fitted and finished</em> for you alone.
           </p>
           <Link to="/about" className="ui-label mt-10 inline-flex min-h-11 items-center gap-2 opacity-70 hover:opacity-100">
             Meet Grateful <ArrowUpRight aria-hidden className="size-4" />
@@ -119,7 +119,7 @@ function FeaturedWork() {
       <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
         <SectionHeading id="work-title" lines={['Selected —', 'Work']} />
         <FadeIn className="max-w-xs lg:pb-3 lg:text-right">
-          <p className="ui-label leading-relaxed opacity-60">Garments from the studio — each one made for a person, a body and a moment.</p>
+          <p className="ui-label leading-relaxed opacity-60">Pieces from the studio, each made for one person, one body and one moment.</p>
           <Link to="/work" className="ui-label mt-5 inline-flex min-h-11 items-center gap-2 hover:underline">
             View all work <ArrowUpRight aria-hidden className="size-4" />
           </Link>
@@ -174,9 +174,9 @@ function Philosophy() {
               </FadeIn>
             </h2>
             <FadeIn delay={0.2} className="mt-12 grid gap-8 sm:grid-cols-2">
-              <p className="text-lg leading-relaxed">We create considered fashion pieces shaped around the person wearing them. Not trends, not templates — your proportions, your personality, your occasion.</p>
+              <p className="text-lg leading-relaxed">We design around the person, never the trend. Your proportions, your personality and your occasion set the brief for every piece.</p>
               <p className="text-lg leading-relaxed text-ink-muted">
-                Individuality is the brief. Craft is the method. Confidence is what you walk out with. Every garment is a collaboration between your vision and our hands.
+                Individuality is where we start. Craft is how we work. Confidence is what you leave with. Every garment is a collaboration between your vision and the studio’s hands.
               </p>
             </FadeIn>
           </div>

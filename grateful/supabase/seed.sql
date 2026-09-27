@@ -11,7 +11,7 @@ insert into public.services (id, slug, name, description, duration_minutes, pric
    'A first conversation about you, the occasion and the idea. We talk through silhouette, fabric and how you want to feel, and shape a direction for the piece.',
    60, null, null, 'whiteGarment', 1),
   ('custom-design', 'custom-design', 'Custom Fashion Design',
-   'A garment designed and made around you — from sketch and pattern to cut, construction and finish, with fittings along the way.',
+   'A garment designed and made around you, from sketch and pattern to cut, construction and finish, with fittings along the way.',
    90, null, null, 'styledLook', 2),
   ('fittings', 'fittings', 'Fittings & Alterations',
    'Measured fittings for pieces in progress, and considered alterations that bring an existing garment back to the body it belongs to.',
