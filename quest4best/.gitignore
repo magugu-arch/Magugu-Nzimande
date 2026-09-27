@@ -5,3 +5,4 @@ dist/
 dist-html/
 dist-ssr/
 dist-ssr-html/
+share/*.zip
