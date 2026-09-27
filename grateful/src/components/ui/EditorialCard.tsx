@@ -24,15 +24,18 @@ export function EditorialCard({
 }) {
   const Heading = headingLevel;
   return (
-    <Link to={`/work/${item.slug}`} className="group block" aria-label={`${item.title} — ${item.category}`}>
+    // The link's name is its visible title and category, so voice control ("click Garment Study 01") works;
+    // the photo is described in full on the garment's own page.
+    <Link to={`/work/${item.slug}`} className="group block">
       <ImageReveal className={`relative ${aspect}`}>
         <Picture
           image={item.image}
+          alt=""
           sizes={sizes}
           className="h-full"
           imgClassName="transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-[1.03]"
         />
-        {index !== undefined && <span className="ui-label absolute top-4 left-4 mix-blend-difference">({String(index + 1).padStart(2, '0')})</span>}
+        {index !== undefined && <span aria-hidden="true" className="ui-label absolute top-4 left-4 mix-blend-difference">({String(index + 1).padStart(2, '0')})</span>}
       </ImageReveal>
       <div className="mt-4 flex items-start justify-between gap-4 overflow-hidden">
         <div className="transition-transform duration-700 ease-[var(--ease-editorial)] lg:translate-y-1 lg:group-hover:translate-y-0">

@@ -34,7 +34,7 @@ export default function Services() {
       )}
 
       {loading && (
-        <div className="page-gutter space-y-6 pb-24" aria-busy="true" aria-label="Loading services">
+        <div role="status" className="page-gutter space-y-6 pb-24" aria-busy="true" aria-label="Loading services">
           {[0, 1].map((i) => (
             <div key={i} className="skeleton h-[50vh]" />
           ))}
