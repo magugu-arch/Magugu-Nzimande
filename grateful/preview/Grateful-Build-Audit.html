@@ -135,7 +135,7 @@
       <div class="meter" role="img" aria-label="80 percent complete, 20 percent remaining">
         <span class="done" style="width:80%"></span><span class="left" style="width:20%"></span>
       </div>
-      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
+      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
     </div>
   </div>
 
@@ -172,7 +172,7 @@
         </tr>
         <tr>
           <td class="name"><strong>Quality &amp; compliance</strong><span>Tests, accessibility, SEO, performance, POPIA</span></td>
-          <td class="bar"><div class="track" tabindex="0"><i style="width:91%"></i><span class="tip">68 unit tests (including checks that every photograph exists in all sizes), a browser test covering the dashboard and phone bookings, axe checks, a wrong-key lockout and an automated launch checker. Left: complete and review the privacy notice, test on real phones, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:91%"></i><span class="tip">69 unit tests (including checks that every photograph exists in all sizes and is used), a browser test covering the dashboard and phone bookings, axe checks, a wrong-key lockout and an automated launch checker. Left: complete and review the privacy notice, test on real phones, run Lighthouse on the live domain.</span></div><div class="left-note">Left: privacy review, real-device test</div></td>
           <td class="num mono"><b>91%</b>of 10</td>
         </tr>
         <tr>
@@ -192,12 +192,12 @@
 
   <section aria-labelledby="ev-h">
     <h2 id="ev-h">What was verified</h2>
-    <p class="sub">These were measured on the current code, commit <span class="mono">8e1b5ce</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
+    <p class="sub">These were measured on the current code, commit <span class="mono">b79b286</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
     <div class="facts">
       <div><span class="label">Unit tests</span><b class="mono">69 / 69</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice. Every photograph checked in all three sizes, and none left unused.</p></div>
       <div><span class="label">Browser smoke test</span><b class="mono">3 journeys</b><p>27 page renders at 320, 390 and 1440px; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours, record a phone booking. Runs in CI.</p></div>
       <div><span class="label">Accessibility (axe)</span><b class="mono">0</b><p>Serious or critical issues on every page and the dashboard. The smoke run caught a faint dashboard label, now fixed.</p></div>
-      <div><span class="label">Offline preview</span><b class="mono">2.1 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
+      <div><span class="label">Offline preview</span><b class="mono">1.7 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
     </div>
   </section>
 
@@ -213,7 +213,7 @@
           <li>Confirmed durations and real opening hours<small>Studio → Opening hours; now a sample Tue–Sat diary</small></li>
           <li>Sign-off on the page copy<small>Now written in the studio’s own voice, with no individual named</small></li>
           <li>Portfolio names, and more approved photographs</li>
-          <li>Confirm the rights to use the new gown and white-shirt photographs<small>Both read as professional editorial images: a public site needs the photographer’s permission</small></li>
+          <li>Confirm the rights to use the burgundy gown, white-shirt and emerald gown photographs<small>All three read as professional editorial images: a public site needs the photographer’s permission</small></li>
           <li>Social media links, and privacy notice facts</li>
           <li>A first session using the dashboard on the live site</li>
         </ul>
@@ -222,7 +222,7 @@
         <h3>Accounts &amp; launch</h3>
         <div class="pts mono">≈ 9 points</div>
         <ul>
-          <li>Supabase project; run the two migrations and the seed</li>
+          <li>Supabase project; run the three migrations and the seed</li>
           <li>PayFast merchant account; sandbox test, then live</li>
           <li>Resend account and a verified sending domain</li>
           <li>Vercel deployment, environment variables, domain and DNS<small>Run <code>npm run check:launch</code> until it says “Ready to launch”</small></li>
@@ -243,14 +243,12 @@
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>Philosophy image on the home page replaced with the white-shirt look</li>
-      <li>About’s Philosophy section, which used the same photo, updated to match</li>
-      <li>The burgundy dress stays where it shows construction: Garment Study 03, Fittings, Special Occasion</li>
-      <li>Crop set so the model’s face stays in frame on phones</li>
-      <li>Fixed: “INDIVIDUALITY.” broke mid-word on desktop; the heading now scales to fit</li>
-      <li>New test: every photograph in the catalogue must be used somewhere (69 tests)</li>
-      <li>Fixed: the browser test’s phone-booking step failed late in the day; it now finds a day with free times</li>
-      <li>Earlier this round: the burgundy gown replaced the white-shirt photo site-wide</li>
+      <li>The home page hero now shows the burgundy gown in full colour</li>
+      <li>The green ruffle top on the garden path is replaced everywhere by the emerald gown at sunset</li>
+      <li>Replaced on: the home page closing band, Garment Study 02 (now “Occasion”) and Custom Fashion Design</li>
+      <li>The emerald gown is locked to colour: it is never turned black and white, on any page or in booking</li>
+      <li>Old photo files removed, and a test now fails if they are referenced again</li>
+      <li>69 unit tests and the full browser smoke test pass</li>
       <li>Content changes only, so the percentage holds at 80%</li>
     </ul>
     <div class="links">
@@ -260,7 +258,7 @@
 
   <section style="border-bottom:0">
     <p class="label">How the percentage was worked out</p>
-    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.91 + 10×0.95 + 7×0.78 = 79.7, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.91 + 10×0.95 + 7×0.78 = 79.7, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
   </section>
 </div>
 </body>
