@@ -20,7 +20,7 @@ export default function RouteError() {
         <span className="editorial-italic">Please try again.</span>
       </h1>
       <p className="mt-6 max-w-md opacity-70">
-        If it keeps happening, call {site.phone} or email {site.email} and we will help you directly.
+        If it keeps happening, email {site.email} and we will help you directly.
       </p>
       <div className="mt-10 flex flex-col gap-3 sm:flex-row">
         <button type="button" onClick={() => window.location.reload()} className="ui-label inline-flex min-h-11 items-center justify-center bg-white px-6 text-black">

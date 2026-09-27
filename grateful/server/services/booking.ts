@@ -270,7 +270,7 @@ export function calendarFile(b: PublicBooking, siteUrl: string): string {
     `DTSTART:${stamp(start)}`,
     `DTEND:${stamp(end)}`,
     `SUMMARY:${escape(`Grateful — ${b.serviceName}`)}`,
-    `DESCRIPTION:${escape(`Your appointment with Grateful. To reschedule, call +27 76 081 4788 or email gratefulpty@gmail.com.\n${siteUrl}/confirmation?booking=${b.id}`)}`,
+    `DESCRIPTION:${escape(`Your appointment with Grateful. To reschedule, email gratefulpty@gmail.com.\n${siteUrl}/confirmation?booking=${b.id}`)}`,
     `LOCATION:${escape('Mulbarton, Johannesburg')}`,
     'END:VEVENT',
     'END:VCALENDAR',

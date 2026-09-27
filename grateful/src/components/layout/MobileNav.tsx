@@ -84,9 +84,6 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
 
           <div className="space-y-5">
             <div className="font-sans text-sm leading-relaxed opacity-70">
-              <a href={site.phoneHref} className="block min-h-11 py-2.5">
-                {site.phone}
-              </a>
               <a href={`mailto:${site.email}`} className="block min-h-11 py-2.5">
                 {site.email}
               </a>

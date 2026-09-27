@@ -1,4 +1,4 @@
-import { CalendarPlus, LoaderCircle, Mail, MessageCircle, Phone } from 'lucide-react';
+import { CalendarPlus, LoaderCircle, Mail } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { formatDuration, formatLongDate, formatRand, sastToDate } from '../../shared/format';
 import type { PublicBooking } from '../../shared/types';
@@ -19,7 +19,7 @@ function googleCalendarUrl(b: PublicBooking) {
     action: 'TEMPLATE',
     text: `Grateful — ${b.serviceName}`,
     dates: `${fmt(start)}/${fmt(end)}`,
-    details: `Your appointment with Grateful. To reschedule, call ${site.phone} or email ${site.email}.`,
+    details: `Your appointment with Grateful. To reschedule, email ${site.email}.`,
     location: site.location,
   });
   return `https://calendar.google.com/calendar/render?${q}`;
@@ -104,7 +104,7 @@ export default function Confirmation() {
           <div className="max-w-xl space-y-6">
             <h1 className="editorial-title text-5xl">Payment received — we’ll be in touch</h1>
             <p className="opacity-70">
-              Your payment came through, but the time you chose was taken while checkout was open. The studio will contact you shortly to find a new time or refund you in full. You can also call {site.phone}.
+              Your payment came through, but the time you chose was taken while checkout was open. The studio will contact you shortly to find a new time or refund you in full. You can also email {site.email}.
             </p>
           </div>
         )}
@@ -191,14 +191,8 @@ export default function Confirmation() {
               <li>— To reschedule or cancel, contact us at least 48 hours before your appointment.</li>
             </ul>
             <div className="mt-8 flex flex-col gap-1 font-sans text-sm">
-              <a href={site.phoneHref} className="inline-flex min-h-11 items-center gap-3 hover:underline">
-                <Phone aria-hidden className="size-4" /> {site.phone}
-              </a>
               <a href={`mailto:${site.email}`} className="inline-flex min-h-11 items-center gap-3 hover:underline">
                 <Mail aria-hidden className="size-4" /> {site.email}
-              </a>
-              <a href={site.whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-3 hover:underline">
-                <MessageCircle aria-hidden className="size-4" /> WhatsApp
               </a>
             </div>
           </section>

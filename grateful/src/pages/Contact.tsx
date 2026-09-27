@@ -1,4 +1,4 @@
-import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { Mail, MapPin } from 'lucide-react';
 import { Link } from 'react-router';
 import { contactSchema } from '../../shared/validation';
 import { Alert, Checkbox, Honeypot, SelectField, TextArea, TextField } from '../components/forms/Field';
@@ -24,7 +24,7 @@ function ContactForm() {
           <br />
           <span className="editorial-italic">We’ll be in touch.</span>
         </p>
-        <p className="mt-6 max-w-md opacity-70">Your message is with the studio, and we will reply as soon as we can. For anything urgent, call {site.phone}.</p>
+        <p className="mt-6 max-w-md opacity-70">Your message is with the studio, and we will reply as soon as we can. For anything urgent, email {site.email} directly.</p>
         <Button variant="secondary" className="mt-10" onClick={f.reset}>
           Send another message
         </Button>
@@ -84,7 +84,7 @@ function ContactForm() {
 }
 
 export default function Contact() {
-  useTitle('Contact', 'Contact Grateful: +27 76 081 4788, gratefulpty@gmail.com. Mulbarton, Johannesburg.');
+  useTitle('Contact', 'Contact Grateful by email at gratefulpty@gmail.com, or send a message from this page. Mulbarton, Johannesburg.');
   return (
     <>
       <section className="page-gutter pt-32 pb-16 lg:pt-44 lg:pb-24">
@@ -98,13 +98,6 @@ export default function Contact() {
         <div className="editorial-grid gap-y-16">
           <div className="col-span-4 md:col-span-8 lg:col-span-4">
             <ul className="space-y-8">
-              <li>
-                <p className="ui-label opacity-60">Phone</p>
-                <a href={site.phoneHref} className="mt-2 inline-flex min-h-11 items-center gap-3 font-serif text-3xl hover:underline lg:text-4xl">
-                  <Phone aria-hidden className="size-5 shrink-0" />
-                  {site.phone}
-                </a>
-              </li>
               <li>
                 <p className="ui-label opacity-60">Email</p>
                 <a href={`mailto:${site.email}`} className="mt-2 inline-flex min-h-11 items-center gap-3 font-serif text-2xl break-all hover:underline lg:text-3xl">
@@ -132,15 +125,6 @@ export default function Contact() {
                 </dl>
               </li>
             </ul>
-
-            <a
-              href={site.whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ui-label mt-10 inline-flex min-h-12 w-full items-center justify-center gap-3 border border-white/40 px-6 hover:bg-white hover:text-black lg:w-auto"
-            >
-              <MessageCircle aria-hidden className="size-4" /> Message us on WhatsApp
-            </a>
           </div>
 
           <div className="col-span-4 md:col-span-8 lg:col-span-7 lg:col-start-6">

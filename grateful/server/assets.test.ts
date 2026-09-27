@@ -44,6 +44,13 @@ describe('site photography', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('publishes no studio phone number (or WhatsApp link to it): the studio is reached by email', () => {
+    const offenders = [...files('src'), ...files('server'), 'index.html']
+      .filter((f) => !f.endsWith('assets.test.ts'))
+      .filter((f) => /76\s?081\s?4788|760814788/.test(readFileSync(f, 'utf8')));
+    expect(offenders).toEqual([]);
+  });
+
   it('uses every catalogued image somewhere, so no photograph is left orphaned', () => {
     const source = [...files('src').filter((f) => !f.endsWith('images.ts')), 'supabase/seed.sql'].map((f) => readFileSync(f, 'utf8')).join('\n');
     for (const key of Object.keys(images)) expect(source.includes(key), key).toBe(true);

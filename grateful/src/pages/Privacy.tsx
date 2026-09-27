@@ -15,7 +15,7 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: 'Who we are',
     body: [
-      `${site.legalName} (“Grateful”, “we”) is the responsible party for personal information collected through this website. Contact: ${site.email}, ${site.phone}, ${site.location}.`,
+      `${site.legalName} (“Grateful”, “we”) is the responsible party for personal information collected through this website. Contact: ${site.email}, ${site.location}.`,
       'Information Officer: [name of the Information Officer, as registered with the Information Regulator].',
     ],
   },

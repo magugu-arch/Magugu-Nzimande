@@ -24,11 +24,6 @@ export function Footer() {
             <p className="font-serif text-lg">{site.studioName}</p>
             <p className="font-serif italic opacity-70">{site.studioLine}</p>
             <p className="pt-3">
-              <a href={site.phoneHref} className="inline-flex min-h-11 items-center hover:underline">
-                {site.phone}
-              </a>
-            </p>
-            <p>
               <a href={`mailto:${site.email}`} className="inline-flex min-h-11 items-center break-all hover:underline">
                 {site.email}
               </a>

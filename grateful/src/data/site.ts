@@ -8,15 +8,13 @@
  * no individual is named anywhere on the public site or in emails.
  */
 
+// The studio is reached by email only: no phone number is published, by the studio's request.
 export const site = {
   name: 'Grateful',
   legalName: 'Grateful (Pty) Ltd',
   /** How the studio signs off: in the footer and on every email. Grateful speaks as a studio, not as one person. */
   studioName: 'Grateful Studio',
   studioLine: 'Fashion design studio',
-  phone: '+27 76 081 4788',
-  phoneHref: 'tel:+27760814788',
-  whatsappHref: 'https://wa.me/27760814788',
   email: 'gratefulpty@gmail.com',
   location: 'Mulbarton, Johannesburg',
   // Suburb-level only: the brief asks that no street address is exposed.

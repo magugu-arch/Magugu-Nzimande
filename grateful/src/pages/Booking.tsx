@@ -395,7 +395,7 @@ export default function Booking() {
           <div className="sticky top-28">
             <BookingSummary service={service} date={date} time={time} />
             <p className="mt-8 font-sans text-sm opacity-60">
-              Questions first? Call <a className="underline" href={site.phoneHref}>{site.phone}</a> or <Link className="underline" to="/contact">send a message</Link>.
+              Questions first? Email <a className="underline" href={`mailto:${site.email}`}>{site.email}</a> or <Link className="underline" to="/contact">send a message</Link>.
             </p>
           </div>
         </aside>
