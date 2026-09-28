@@ -23,7 +23,9 @@
     "server:build": "esbuild server/src/main.ts --bundle --platform=node --format=esm --target=node20 --packages=external --tsconfig=tsconfig.json --outfile=server/dist/main.mjs",
     "server:start": "node server/dist/main.mjs",
     "server:dev": "npm run server:build && MABU_DEV_LOG_EMAIL=1 MABU_DIRECT_INVENTORY=1 node server/dist/main.mjs",
-    "server:check": "node scripts/check-server.mjs"
+    "server:check": "node scripts/check-server.mjs",
+    "standalone": "npm run export:web && node scripts/standalone.mjs",
+    "standalone:check": "node scripts/check-standalone.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/allura": "^0.4.2",

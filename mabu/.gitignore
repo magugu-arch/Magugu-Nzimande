@@ -14,3 +14,4 @@ coverage/
 assets/photos/source/
 server/dist/
 data/
+dist-standalone/
