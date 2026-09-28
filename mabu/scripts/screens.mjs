@@ -41,6 +41,10 @@ const PUBLIC = [
   '/private-functions',
   '/sign-in',
   '/vouchers/new',
+  '/legal/privacy',
+  '/legal/terms',
+  '/legal/marketing',
+  '/dish/steak-sirloin',
 ];
 const GUEST = [
   '/profile',

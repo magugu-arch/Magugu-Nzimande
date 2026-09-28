@@ -80,6 +80,11 @@ export default function Profile() {
             label="Contact & help"
             onPress={() => router.push('/support')}
           />
+          <ListRow
+            icon={<Feather name="shield" size={20} color={colors.accent} />}
+            label="Privacy notice"
+            onPress={() => router.push('/legal/privacy')}
+          />
         </View>
       </Screen>
     );
@@ -218,6 +223,16 @@ export default function Profile() {
         icon={<BrandIcon name="contact" size={22} />}
         label="Contact & help"
         onPress={() => router.push('/support')}
+      />
+      <ListRow
+        icon={<Feather name="shield" size={20} color={colors.accent} />}
+        label="Privacy notice"
+        onPress={() => router.push('/legal/privacy')}
+      />
+      <ListRow
+        icon={<Feather name="file-text" size={20} color={colors.accent} />}
+        label="Terms of use"
+        onPress={() => router.push('/legal/terms')}
       />
 
       {isStaff(session.actor) ? (

@@ -43,7 +43,7 @@ const ALL = {
   id: 'all',
   label: 'All',
   tagline: 'Bold flavours, modern technique',
-  heroPhoto: 'fillet-closeup',
+  heroPhoto: 'menu-cover',
   title: 'The Menu',
 };
 
@@ -135,7 +135,7 @@ export default function Menu() {
         {/* Obsidian on the left fading out over the photograph, as in the designs. */}
         <LinearGradient
           colors={[colors.background, 'rgba(11,11,11,0.55)', 'rgba(11,11,11,0)']}
-          locations={[0.22, 0.48, 0.72]}
+          locations={[0.3, 0.5, 0.74]}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
           style={StyleSheet.absoluteFill}

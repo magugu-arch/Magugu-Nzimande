@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
@@ -144,7 +145,15 @@ export default function Preferences() {
               <Text variant="caption" color="textSubtle" style={{ marginTop: spacing.sm }}>
                 {consent?.marketing
                   ? `Consent given ${formatDateWithYear(consent.updatedAt)} (${consent.source.replace('app:', 'in app, ')}). Switch off at any time.`
-                  : 'You have not opted in to news and promotions.'}
+                  : 'You have not opted in to news and promotions.'}{' '}
+                <Text
+                  variant="caption"
+                  color="accent"
+                  accessibilityRole="link"
+                  onPress={() => router.push('/legal/marketing')}
+                >
+                  What this means
+                </Text>
               </Text>
             ) : null}
           </View>

@@ -164,6 +164,28 @@ export default function SignIn() {
         </InlineNotice>
       ) : null}
 
+      <Text variant="caption" color="textSubtle" style={{ marginTop: spacing.lg }}>
+        By continuing you agree to our{' '}
+        <Text
+          variant="caption"
+          color="accent"
+          accessibilityRole="link"
+          onPress={() => router.push('/legal/terms')}
+        >
+          terms of use
+        </Text>{' '}
+        and{' '}
+        <Text
+          variant="caption"
+          color="accent"
+          accessibilityRole="link"
+          onPress={() => router.push('/legal/privacy')}
+        >
+          privacy notice
+        </Text>
+        .
+      </Text>
+
       {config.useMockApi && step === 'email' ? (
         <View style={{ marginTop: spacing.xxl, gap: spacing.sm }}>
           <Text variant="eyebrow" color="textSubtle">

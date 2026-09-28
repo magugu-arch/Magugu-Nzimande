@@ -233,6 +233,13 @@ function DetailsForm({ me }: { me: Guest }) {
         We keep only what we need to host you well. You can remove your account at any time; past
         bookings are kept without your name or contact details.
       </Text>
+      <PremiumButton
+        label="Read our privacy notice"
+        variant="ghost"
+        compact
+        style={{ alignSelf: 'flex-start', marginTop: spacing.xs }}
+        onPress={() => router.push('/legal/privacy')}
+      />
       {confirmDelete ? (
         <Card style={{ marginTop: spacing.md, gap: spacing.md }}>
           <Text variant="body">

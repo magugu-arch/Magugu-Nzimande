@@ -15,6 +15,7 @@ const CAPTIONS: Partial<Record<PhotoKey, string>> = {
   'seafood-linguine': 'Seafood linguine with grilled prawns and mussels',
   'dining-room': 'The main dining room beneath the timber chandeliers',
   'dining-skyline': 'Candlelit tables, the open kitchen and the city beyond',
+  'menu-cover': 'The Mábu menu, bound in leather',
   'steak-plated': 'Aged sirloin with roasted garlic and heirloom tomatoes',
   'signature-steak': 'The Mábu fillet',
   'private-dining': 'A long table set for a private function',

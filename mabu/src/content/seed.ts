@@ -182,6 +182,28 @@ export const SEED_DISHES: Dish[] = [
     category: 'salads',
     allergens: ['soy'],
   }),
+  dish({
+    id: 'salad-tomato-watermelon',
+    name: 'Heirloom Tomato & Watermelon',
+    highlights: ['Heirloom tomato', 'Watermelon', 'Whipped feta'],
+    description: 'Heirloom tomatoes, compressed watermelon, whipped feta, mint and aged balsamic.',
+    priceCents: 12500,
+    category: 'salads',
+    allergens: ['dairy'],
+    dietaryTags: ['vegetarian'],
+    pairingIds: ['wine-mira-rose'],
+  }),
+  dish({
+    id: 'salad-beetroot',
+    name: 'Roasted Beetroot & Goat’s Cheese',
+    highlights: ['Beetroot', 'Chèvre', 'Candied pecans'],
+    description: 'Salt-baked beetroot, whipped chèvre, rocket, candied pecans, orange dressing.',
+    priceCents: 12500,
+    category: 'salads',
+    allergens: ['dairy', 'nuts'],
+    dietaryTags: ['vegetarian', 'gluten-free'],
+    pairingIds: ['wine-delaire-sauvignon'],
+  }),
   // Vegetarian
   dish({
     id: 'veg-roast',
@@ -366,6 +388,25 @@ export const SEED_DISHES: Dish[] = [
     allergens: ['dairy'],
     pairingIds: ['wine-kanonkop'],
   }),
+  dish({
+    id: 'steak-rump',
+    name: 'Rump 300g',
+    highlights: ['Aged rump', 'Chimichurri', 'Hand-cut chips'],
+    description: 'Twenty-one-day aged rump, chimichurri, hand-cut chips and charred tenderstem.',
+    priceCents: 26500,
+    category: 'classic-steaks',
+    pairingIds: ['wine-kanonkop'],
+  }),
+  dish({
+    id: 'steak-t-bone',
+    name: 'T-Bone 500g',
+    highlights: ['On the bone', 'Bone marrow butter', 'Flame-grilled'],
+    description: 'Flame-grilled T-bone, bone marrow butter, roasted garlic and a green salad.',
+    priceCents: 34500,
+    category: 'classic-steaks',
+    allergens: ['dairy'],
+    pairingIds: ['wine-rupert-classique'],
+  }),
   // Poultry & game
   dish({
     id: 'pg-springbok',
@@ -386,6 +427,16 @@ export const SEED_DISHES: Dish[] = [
     category: 'poultry-game',
     allergens: ['dairy'],
     spiceLevel: 1,
+  }),
+  dish({
+    id: 'pg-duck',
+    name: 'Roast Duck Breast',
+    highlights: ['Duck', 'Cherry jus', 'Parsnip'],
+    description: 'Roast duck breast, cherry and rooibos jus, parsnip purée, charred baby leeks.',
+    priceCents: 31500,
+    category: 'poultry-game',
+    allergens: ['dairy'],
+    pairingIds: ['wine-meerlust-pinot'],
   }),
   // Fish
   dish({
@@ -505,6 +556,17 @@ export const SEED_DISHES: Dish[] = [
     pairingIds: ['wine-mullineux-white'],
     spiceLevel: 2,
   }),
+  dish({
+    id: 'pasta-truffle',
+    name: 'Truffle & Wild Mushroom Tagliatelle',
+    highlights: ['Truffle', 'Wild mushroom', 'Parmesan'],
+    description: 'Hand-cut tagliatelle, wild mushrooms, truffle butter, aged parmesan.',
+    priceCents: 22500,
+    category: 'pasta',
+    allergens: ['gluten', 'dairy', 'egg'],
+    dietaryTags: ['vegetarian'],
+    pairingIds: ['wine-hamilton-russell'],
+  }),
   // Slow cooked
   dish({
     id: 'sc-oxtail',
@@ -524,6 +586,16 @@ export const SEED_DISHES: Dish[] = [
     category: 'slow-cooked',
     allergens: ['dairy'],
     available: false,
+  }),
+  dish({
+    id: 'sc-short-rib',
+    name: 'Slow-Braised Short Rib',
+    highlights: ['Short rib', 'Red wine', 'Pap croquettes'],
+    description: 'Twelve-hour short rib, red-wine glaze, pap croquettes and glazed carrots.',
+    priceCents: 31500,
+    category: 'slow-cooked',
+    allergens: ['dairy', 'gluten'],
+    pairingIds: ['wine-rubicon'],
   }),
   // Sides
   dish({

@@ -195,6 +195,12 @@ export const photoRegistry = {
     height: 166,
     origin: 'crop',
   },
+  'menu-cover': {
+    source: require('../../assets/photos/menu-cover.jpg'),
+    width: 1536,
+    height: 1024,
+    origin: 'photograph',
+  },
   'menu-crispy-calamari': {
     source: require('../../assets/photos/menu-crispy-calamari.jpg'),
     width: 332,
