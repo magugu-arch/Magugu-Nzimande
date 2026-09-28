@@ -67,7 +67,7 @@ export const MENU_CATEGORIES: MenuCategory[] = [
     section: 'food',
     order: 5,
     tagline: 'Aged, seasoned, over the flame',
-    heroPhoto: 'dish-signature-mains',
+    heroPhoto: 'steak-plated',
   },
   {
     id: 'poultry-game',
@@ -127,11 +127,11 @@ export const MENU_CATEGORIES: MenuCategory[] = [
   },
   {
     id: 'wine',
-    label: 'Wine',
+    label: 'Wines',
     section: 'wine',
     order: 13,
-    tagline: 'Curated selection, perfect pairings',
-    heroPhoto: 'dish-wines',
+    tagline: 'Curated selections for every occasion',
+    heroPhoto: 'hero-wines',
   },
 ];
 
@@ -196,6 +196,8 @@ export interface WineItem {
   bottlePriceCents: number;
   tastingNotes: string;
   pairingTags: string[];
+  /** Photo registry key: the bottle and a poured glass. */
+  photo?: string;
   available: boolean;
   isSample: boolean;
   updatedAt: string;
@@ -211,6 +213,15 @@ export interface MenuCollection {
   seasonalStart?: string;
   seasonalEnd?: string;
 }
+
+/** The eyebrow on a wine card and the style tabs, as in the wine-list design. */
+export const WINE_STYLE_SHORT: Record<WineStyle, { card: string; tab: string }> = {
+  red: { card: 'Red wine', tab: 'Red wines' },
+  white: { card: 'White wine', tab: 'White wines' },
+  rose: { card: 'Rosé', tab: 'Rosé' },
+  sparkling: { card: 'Sparkling', tab: 'Sparkling' },
+  'dessert-fortified': { card: 'Dessert wine', tab: 'Dessert wines' },
+};
 
 export const WINE_STYLE_LABEL: Record<WineStyle, string> = {
   sparkling: 'Méthode Cap Classique & Sparkling',

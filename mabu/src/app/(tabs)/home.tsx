@@ -165,8 +165,8 @@ export default function Home() {
                 style={styles.wine}
               >
                 <Photo
-                  photo="dish-wines"
-                  label="Red wine being poured into a glass"
+                  photo={wineSpotlight.photo ?? 'dish-wines'}
+                  label={`A bottle of ${wineSpotlight.producer} ${wineSpotlight.name}`}
                   style={styles.winePhoto}
                 />
                 <View style={{ flex: 1, gap: spacing.xs, padding: spacing.lg }}>

@@ -13,7 +13,7 @@ import { seedDemo } from './demoSeed';
  * for the server until one is deployed (EXPO_PUBLIC_USE_MOCK_API=0).
  */
 // Bumped when seed content changes, so demo installs pick it up.
-const STORAGE_KEY = 'mabu.mockdb.v4';
+const STORAGE_KEY = 'mabu.mockdb.v5';
 
 let ready: Promise<{ backend: Backend; handlers: Handlers }> | null = null;
 const pushListeners = new Set<(entry: OutboxEntry) => void>();

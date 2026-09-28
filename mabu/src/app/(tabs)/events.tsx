@@ -1,18 +1,18 @@
-import { RefreshControl, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { EventCard } from '@/components/mabu/Cards';
 import {
   EmptyState,
   ErrorState,
   LoadingBlock,
-  PremiumButton,
+  Photo,
   Screen,
   SectionTitle,
   Text,
 } from '@/components/ui';
 import { errorMessage } from '@/services/api';
 import { useRpc } from '@/services/queries';
-import { colors, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 /** §11 Events & experiences — a first-class commercial section, not a news feed. */
 export default function Events() {
@@ -56,16 +56,36 @@ export default function Events() {
         />
       )}
       <SectionTitle eyebrow="Private functions" title="Your own occasion" />
-      <Text variant="body" color="textMuted">
-        From intimate celebrations to long-table feasts, our events team will compose an evening
-        around you.
-      </Text>
-      <PremiumButton
-        label="Enquire about private functions"
-        variant="secondary"
-        style={{ marginTop: spacing.lg }}
+      <Pressable
         onPress={() => router.push('/private-functions')}
-      />
+        accessibilityRole="button"
+        accessibilityLabel="Private functions. Private dining, corporate events, celebrations, weddings and exclusive venue hire. Enquire."
+        style={({ pressed }) => [styles.functions, pressed && { opacity: 0.85 }]}
+      >
+        <Photo photo="hero-events" label="" style={StyleSheet.absoluteFill} scrim="bottom" />
+        <View style={{ padding: spacing.lg, gap: spacing.xs }}>
+          <Text variant="eyebrow" color="accent" style={{ letterSpacing: 3 }}>
+            Unforgettable
+          </Text>
+          <Text variant="h1">Events</Text>
+          <Text variant="bodySmall" color="textMuted">
+            Private dining · corporate · celebrations · weddings · venue hire
+          </Text>
+          <Text variant="button" color="accent" style={{ marginTop: spacing.sm }}>
+            Enquire →
+          </Text>
+        </View>
+      </Pressable>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  functions: {
+    height: 260,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    marginBottom: spacing.xl,
+  },
+});

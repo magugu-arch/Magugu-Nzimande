@@ -198,11 +198,13 @@ replaces the directions card.
   placeholders, all editable in admin.
 - The public phone number is unknown, so it is `null` and every *Call* action is hidden until it is set.
 - Logo: the wordmark is set in Playfair Display from the board until vector logo files are supplied.
-- Photography: thirteen supplied photographs are used full-size (fillet, sliced wagyu, kingklip, black-rice
-  seafood, seafood linguine, chocolate fondant, cocktails, chef plating, the Mábu wine pour, the Private Functions
-  welcome, and three interiors). The supplied menu designs (Starters, Signature Cuts, Vegetarian, Fish & Seafood)
-  set the menu screen's layout and the sample dishes and prices; their category hero photographs and 20 dish
-  thumbnails are cut from the design files (`COMPOSITES` in `scripts/derive-photos.mjs`) and used at card size.
+- Photography: fifteen supplied photographs are used full-size (fillet, sliced wagyu, plated sirloin, kingklip,
+  black-rice seafood, seafood linguine, chocolate fondant, cocktails, chef plating, the Mábu wine pour, the Private
+  Functions welcome, and four interiors). The supplied menu designs (Starters, Signature Cuts, Vegetarian, Fish &
+  Seafood, Wines) set the menu screen's layout and the sample dishes, wines and prices; their category hero
+  photographs, 20 dish thumbnails and 6 bottle shots are cut from the design files (`COMPOSITES` in
+  `scripts/derive-photos.mjs`) and used at card size. The Events and Gift Vouchers banners supply the Private
+  Functions hero and its five occasion tiles, and the Gift Mábu hero and its four tiles.
   The remaining dish tiles and textures are
   cut from the brand board and used only at card and thumbnail sizes. The Mábu-labelled bottle is kept off pages
   about another producer's wine. Drop higher-resolution files into

@@ -10,7 +10,6 @@ import {
   MenuItemCard,
   SampleContentNote,
   WineCard,
-  wineStyleLabel,
 } from '@/components/mabu/Menu';
 import {
   Chip,
@@ -24,7 +23,7 @@ import {
 } from '@/components/ui';
 import type { DietaryTag } from '@/domain/guests/types';
 import { filterDishes, filterWines } from '@/domain/menu/search';
-import type { WineItem } from '@/domain/menu/types';
+import { WINE_STYLE_SHORT, type WineItem } from '@/domain/menu/types';
 import { errorMessage } from '@/services/api';
 import { useRpc } from '@/services/queries';
 import { colors, fontFamily, radius, spacing } from '@/theme';
@@ -37,7 +36,8 @@ const DIETARY: { tag: DietaryTag; label: string }[] = [
   { tag: 'halal', label: 'Halal' },
 ];
 
-const WINE_ORDER: WineItem['style'][] = ['sparkling', 'white', 'rose', 'red', 'dessert-fortified'];
+/** The wine-list design's order: reds first, then white, rosé, sparkling, dessert. */
+const WINE_ORDER: WineItem['style'][] = ['red', 'white', 'rose', 'sparkling', 'dessert-fortified'];
 
 const ALL = {
   id: 'all',
@@ -71,6 +71,7 @@ export default function Menu() {
   const [query, setQuery] = useState('');
   const [dietary, setDietary] = useState<DietaryTag[]>([]);
   const [signatureOnly, setSignatureOnly] = useState(params.signature === '1');
+  const [wineStyle, setWineStyle] = useState<WineItem['style'] | 'all'>('all');
 
   useEffect(() => track('menu_viewed', { category }), [category]);
 
@@ -98,7 +99,17 @@ export default function Menu() {
       signatureOnly,
     });
   }, [data, isWine, category, query, dietary, signatureOnly]);
-  const wines = useMemo(() => (data ? filterWines(data.wines, query) : []), [data, query]);
+  const wines = useMemo(
+    () =>
+      data
+        ? filterWines(data.wines, query).sort(
+            (a, b) => WINE_ORDER.indexOf(a.style) - WINE_ORDER.indexOf(b.style),
+          )
+        : [],
+    [data, query],
+  );
+  const wineStyles = WINE_ORDER.filter((st) => data?.wines.some((w) => w.style === st));
+  const shownWines = wineStyle === 'all' ? wines : wines.filter((w) => w.style === wineStyle);
 
   const grouped =
     category === 'all' && !query
@@ -222,7 +233,23 @@ export default function Menu() {
             />
           ))}
         </View>
-      ) : null}
+      ) : (
+        <View style={[styles.pad, styles.filters]}>
+          <Chip
+            label="All wines"
+            selected={wineStyle === 'all'}
+            onPress={() => setWineStyle('all')}
+          />
+          {wineStyles.map((st) => (
+            <Chip
+              key={st}
+              label={WINE_STYLE_SHORT[st].tab}
+              selected={wineStyle === st}
+              onPress={() => setWineStyle(st)}
+            />
+          ))}
+        </View>
+      )}
 
       <View style={styles.pad}>
         {menu.isPending ? (
@@ -230,20 +257,11 @@ export default function Menu() {
         ) : menu.isError ? (
           <ErrorState message={errorMessage(menu.error)} onRetry={() => void menu.refetch()} />
         ) : isWine ? (
-          WINE_ORDER.map((style) => {
-            const list = wines.filter((w) => w.style === style);
-            if (!list.length) return null;
-            return (
-              <View key={style} style={{ marginTop: spacing.lg }}>
-                <Text variant="eyebrow" color="accent" accessibilityRole="header">
-                  {wineStyleLabel(style)}
-                </Text>
-                {list.map((w) => (
-                  <WineCard key={w.id} wine={w} />
-                ))}
-              </View>
-            );
-          })
+          <View style={{ marginTop: spacing.md }}>
+            {shownWines.map((w) => (
+              <WineCard key={w.id} wine={w} />
+            ))}
+          </View>
         ) : dishes.length || (query && wines.length) ? (
           <>
             {grouped.map((g) => (

@@ -4,7 +4,7 @@ import Feather from '@expo/vector-icons/Feather';
 import Svg, { Path } from 'react-native-svg';
 import { router } from 'expo-router';
 import type { Dish, WineItem } from '@/domain/menu/types';
-import { WINE_STYLE_LABEL } from '@/domain/menu/types';
+import { WINE_STYLE_LABEL, WINE_STYLE_SHORT } from '@/domain/menu/types';
 import { formatRand } from '@/domain/shared/format';
 import { colors, fontFamily, HIT_SLOP, radius, spacing } from '@/theme';
 import { haptic } from '@/utils/haptics';
@@ -205,38 +205,73 @@ export function DishFeatureCard({ dish, width = 220 }: { dish: Dish; width?: num
   );
 }
 
-/** §25 WineCard. */
+/**
+ * §25 WineCard, after the supplied wine-list design: bottle and glass on the
+ * left, the style in brass capitals, the wine in Playfair, varietal and
+ * region in tracked capitals, a tasting note, the bottle price in brass, and
+ * the same round + as dishes. Wines without a photograph keep the layout
+ * without the picture.
+ */
 export function WineCard({ wine, onPress }: { wine: WineItem; onPress?: () => void }) {
+  const fav = useFavourite('wine', wine.id);
+  const title = `${wine.producer} ${wine.name}${wine.vintage ? ` ${wine.vintage}` : ''}`;
   return (
-    <Pressable
-      onPress={onPress ?? (() => router.push(`/wine/${wine.id}`))}
-      accessibilityRole="button"
-      accessibilityLabel={`${wine.producer} ${wine.name}, bottle ${formatRand(wine.bottlePriceCents)}${wine.glassPriceCents ? `, glass ${formatRand(wine.glassPriceCents)}` : ''}`}
-      style={({ pressed }) => [styles.wine, pressed && styles.pressed]}
-    >
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text variant="eyebrow" color="textMuted">
-          {wine.producer}
-        </Text>
-        <Text variant="h3">
-          {wine.name}
-          {wine.vintage ? ` ${wine.vintage}` : ''}
-        </Text>
-        <Text variant="bodySmall" color="textMuted">
-          {wine.varietal} · {wine.region}
-        </Text>
-      </View>
-      <View style={styles.winePrices}>
-        {wine.glassPriceCents ? (
-          <Text variant="bodySmall" color="textMuted">
-            Glass {formatRand(wine.glassPriceCents)}
-          </Text>
+    <View style={[styles.card, !wine.available && styles.soldOut]}>
+      <Pressable
+        onPress={onPress ?? (() => router.push(`/wine/${wine.id}`))}
+        accessibilityRole="button"
+        accessibilityLabel={`${title}, bottle ${formatRand(wine.bottlePriceCents)}${wine.glassPriceCents ? `, glass ${formatRand(wine.glassPriceCents)}` : ''}${wine.available ? '' : ', unavailable'}`}
+        accessibilityHint="Opens the wine"
+        style={({ pressed }) => [styles.cardMain, pressed && styles.pressed]}
+      >
+        {wine.photo ? (
+          <Photo photo={wine.photo} label="" style={[styles.cardPhoto, styles.winePhoto]} />
         ) : null}
-        <Text variant="price" color="accent">
-          {formatRand(wine.bottlePriceCents)}
-        </Text>
-      </View>
-    </Pressable>
+        <View style={[styles.cardBody, !wine.photo && { paddingLeft: spacing.lg }]}>
+          <Text variant="eyebrow" color="accent" style={styles.highlights}>
+            {WINE_STYLE_SHORT[wine.style].card}
+          </Text>
+          <Text variant="h3" numberOfLines={3}>
+            {title}
+          </Text>
+          <Text variant="eyebrow" color="textMuted" numberOfLines={1} style={styles.highlights}>
+            {[...wine.varietal.split(/,\s*/), wine.region].join('  |  ')}
+          </Text>
+          <Text variant="bodySmall" color="textMuted" numberOfLines={2}>
+            {wine.tastingNotes}
+          </Text>
+          <View style={styles.winePrices}>
+            <Text variant="price" color="accent" style={styles.cardPrice}>
+              {formatRand(wine.bottlePriceCents)}
+            </Text>
+            {wine.glassPriceCents ? (
+              <Text variant="caption" color="textMuted">
+                Glass {formatRand(wine.glassPriceCents)}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+      </Pressable>
+      <Pressable
+        onPress={() => {
+          haptic.select();
+          fav.toggle();
+        }}
+        hitSlop={HIT_SLOP}
+        accessibilityRole="button"
+        accessibilityLabel={
+          fav.saved ? `Remove ${title} from favourites` : `Save ${title} to favourites`
+        }
+        aria-pressed={fav.saved}
+        style={[styles.plus, fav.saved && styles.plusOn]}
+      >
+        <Feather
+          name={fav.saved ? 'check' : 'plus'}
+          size={20}
+          color={fav.saved ? colors.textOnAccent : colors.accent}
+        />
+      </Pressable>
+    </View>
   );
 }
 
@@ -344,14 +379,9 @@ const styles = StyleSheet.create({
   soldOut: { opacity: 0.55 },
   pressed: { opacity: 0.75 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: 2 },
-  wine: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    paddingVertical: spacing.lg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  winePrices: { alignItems: 'flex-end', gap: 2 },
+  // Bottle-and-glass shots are landscape: a wider column keeps the label in view.
+  winePhoto: { width: '40%' },
+  winePrices: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.md, marginTop: 2 },
   fav: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   sample: {
     flexDirection: 'row',

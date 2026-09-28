@@ -39,6 +39,12 @@ export const photoRegistry = {
     height: 1402,
     origin: 'photograph',
   },
+  'dining-skyline': {
+    source: require('../../assets/photos/dining-skyline.jpg'),
+    width: 1536,
+    height: 1024,
+    origin: 'photograph',
+  },
   'dish-cocktails': {
     source: require('../../assets/photos/dish-cocktails.jpg'),
     width: 1312,
@@ -75,6 +81,36 @@ export const photoRegistry = {
     height: 205,
     origin: 'crop',
   },
+  'event-celebrations': {
+    source: require('../../assets/photos/event-celebrations.jpg'),
+    width: 282,
+    height: 200,
+    origin: 'crop',
+  },
+  'event-corporate': {
+    source: require('../../assets/photos/event-corporate.jpg'),
+    width: 292,
+    height: 200,
+    origin: 'crop',
+  },
+  'event-private-dining': {
+    source: require('../../assets/photos/event-private-dining.jpg'),
+    width: 292,
+    height: 200,
+    origin: 'crop',
+  },
+  'event-venue-hire': {
+    source: require('../../assets/photos/event-venue-hire.jpg'),
+    width: 293,
+    height: 200,
+    origin: 'crop',
+  },
+  'event-weddings': {
+    source: require('../../assets/photos/event-weddings.jpg'),
+    width: 292,
+    height: 200,
+    origin: 'crop',
+  },
   'fillet-closeup': {
     source: require('../../assets/photos/fillet-closeup.jpg'),
     width: 1122,
@@ -91,6 +127,12 @@ export const photoRegistry = {
     source: require('../../assets/photos/floor-pattern.jpg'),
     width: 366,
     height: 288,
+    origin: 'crop',
+  },
+  'hero-events': {
+    source: require('../../assets/photos/hero-events.jpg'),
+    width: 1072,
+    height: 600,
     origin: 'crop',
   },
   'hero-seafood': {
@@ -114,6 +156,18 @@ export const photoRegistry = {
   'hero-vegetarian': {
     source: require('../../assets/photos/hero-vegetarian.jpg'),
     width: 547,
+    height: 420,
+    origin: 'crop',
+  },
+  'hero-vouchers': {
+    source: require('../../assets/photos/hero-vouchers.jpg'),
+    width: 982,
+    height: 520,
+    origin: 'crop',
+  },
+  'hero-wines': {
+    source: require('../../assets/photos/hero-wines.jpg'),
+    width: 537,
     height: 420,
     origin: 'crop',
   },
@@ -237,6 +291,42 @@ export const photoRegistry = {
     height: 164,
     origin: 'crop',
   },
+  'menu-wine-delaire': {
+    source: require('../../assets/photos/menu-wine-delaire.jpg'),
+    width: 314,
+    height: 148,
+    origin: 'crop',
+  },
+  'menu-wine-graham-beck': {
+    source: require('../../assets/photos/menu-wine-graham-beck.jpg'),
+    width: 314,
+    height: 150,
+    origin: 'crop',
+  },
+  'menu-wine-hamilton': {
+    source: require('../../assets/photos/menu-wine-hamilton.jpg'),
+    width: 314,
+    height: 147,
+    origin: 'crop',
+  },
+  'menu-wine-mira': {
+    source: require('../../assets/photos/menu-wine-mira.jpg'),
+    width: 314,
+    height: 148,
+    origin: 'crop',
+  },
+  'menu-wine-rubicon': {
+    source: require('../../assets/photos/menu-wine-rubicon.jpg'),
+    width: 314,
+    height: 148,
+    origin: 'crop',
+  },
+  'menu-wine-rupert': {
+    source: require('../../assets/photos/menu-wine-rupert.jpg'),
+    width: 314,
+    height: 146,
+    origin: 'crop',
+  },
   'private-dining': {
     source: require('../../assets/photos/private-dining.jpg'),
     width: 1122,
@@ -267,6 +357,12 @@ export const photoRegistry = {
     height: 1402,
     origin: 'photograph',
   },
+  'steak-plated': {
+    source: require('../../assets/photos/steak-plated.jpg'),
+    width: 1138,
+    height: 1382,
+    origin: 'photograph',
+  },
   'table-setting': {
     source: require('../../assets/photos/table-setting.jpg'),
     width: 285,
@@ -289,6 +385,30 @@ export const photoRegistry = {
     source: require('../../assets/photos/texture-timber.jpg'),
     width: 150,
     height: 95,
+    origin: 'crop',
+  },
+  'voucher-dining': {
+    source: require('../../assets/photos/voucher-dining.jpg'),
+    width: 380,
+    height: 210,
+    origin: 'crop',
+  },
+  'voucher-gift': {
+    source: require('../../assets/photos/voucher-gift.jpg'),
+    width: 381,
+    height: 210,
+    origin: 'crop',
+  },
+  'voucher-occasions': {
+    source: require('../../assets/photos/voucher-occasions.jpg'),
+    width: 363,
+    height: 210,
+    origin: 'crop',
+  },
+  'voucher-private': {
+    source: require('../../assets/photos/voucher-private.jpg'),
+    width: 349,
+    height: 210,
     origin: 'crop',
   },
   'wagyu-sliced': {

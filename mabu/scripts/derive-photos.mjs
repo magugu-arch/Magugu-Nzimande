@@ -49,6 +49,8 @@ if (fs.existsSync(sourceDir)) {
  */
 /** A dish thumbnail in a 957×1643 menu comp: inset from the card's rounded edge. */
 const thumb = (top, bottom, left = 52) => [left, top + 8, 384 - left, bottom - top - 16];
+/** A bottle-and-glass thumbnail in the wine list comp. */
+const bottle = (top, bottom) => [46, top + 5, 314, bottom - top - 10];
 
 const COMPOSITES = {
   // The home-screen concept is kept as a design reference; nothing is cut from it.
@@ -99,6 +101,32 @@ const COMPOSITES = {
     'menu-line-fish': thumb(1006, 1185, 54),
     'menu-calamari': thumb(1199, 1379, 54),
     'menu-seafood-platter': thumb(1397, 1579, 54),
+  },
+  'mockup-wines': {
+    'hero-wines': [420, 110, 537, 420],
+    'menu-wine-rupert': bottle(592, 748),
+    'menu-wine-rubicon': bottle(760, 918),
+    'menu-wine-hamilton': bottle(929, 1086),
+    'menu-wine-delaire': bottle(1098, 1256),
+    'menu-wine-mira': bottle(1267, 1425),
+    'menu-wine-graham-beck': bottle(1437, 1597),
+  },
+  // 1672×941 banners: the photograph to the right of the headline, and each
+  // tile above its caption (the app sets captions in its own type).
+  'mockup-events': {
+    'hero-events': [600, 0, 1072, 600],
+    'event-private-dining': [59, 610, 292, 200],
+    'event-corporate': [377, 610, 292, 200],
+    'event-celebrations': [695, 610, 282, 200],
+    'event-weddings': [1002, 610, 292, 200],
+    'event-venue-hire': [1319, 610, 293, 200],
+  },
+  'mockup-vouchers': {
+    'hero-vouchers': [690, 60, 982, 520],
+    'voucher-dining': [66, 590, 380, 210],
+    'voucher-occasions': [469, 590, 363, 210],
+    'voucher-private': [855, 590, 349, 210],
+    'voucher-gift': [1227, 590, 381, 210],
   },
 };
 

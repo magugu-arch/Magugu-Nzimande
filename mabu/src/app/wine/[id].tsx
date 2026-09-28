@@ -54,7 +54,15 @@ export default function WineDetail() {
         />
       }
     >
-      <Photo photo="dish-wines" label="Red wine poured at the table" style={styles.photo} />
+      <Photo
+        photo={wine.photo ?? 'dish-wines'}
+        label={
+          wine.photo
+            ? `A bottle of ${wine.producer} ${wine.name} beside a poured glass`
+            : 'Red wine poured at the table'
+        }
+        style={styles.photo}
+      />
       <View style={{ gap: spacing.sm, marginTop: spacing.xl }}>
         <Text variant="eyebrow" color="accent">
           {wineStyleLabel(wine.style)}

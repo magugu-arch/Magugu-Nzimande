@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { DEFAULT_TEST_TOKEN, PaymentChoice } from '@/components/mabu/PaymentChoice';
 import {
@@ -20,11 +20,19 @@ import { isEmail } from '@/domain/shared/validation';
 import { errorMessage } from '@/services/api';
 import { ACCOUNT_QUERIES, useRpc, useRpcMutation } from '@/services/queries';
 import { useSession } from '@/store/session';
-import { radius, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 import { track } from '@/utils/analytics';
 import { haptic } from '@/utils/haptics';
 
 const OCCASIONS = ['Birthday', 'Anniversary', 'Thank you', 'Celebration', 'Just because'];
+
+/** The four tiles of the supplied Gift Vouchers design. */
+const MOMENTS = [
+  { label: 'Dining experiences', photo: 'voucher-dining' },
+  { label: 'Special occasions', photo: 'voucher-occasions' },
+  { label: 'Private events', photo: 'voucher-private' },
+  { label: 'A gift to remember', photo: 'voucher-gift' },
+];
 
 /** §12 Gift Mábu: value, recipient, message, delivery, secure payment. */
 export default function NewVoucher() {
@@ -106,17 +114,38 @@ export default function NewVoucher() {
       }
     >
       <Photo
-        photo="table-setting"
-        label=""
-        style={{ height: 150, borderRadius: radius.md, marginTop: spacing.md }}
-        scrim="full"
+        photo="hero-vouchers"
+        label="A black and gold Mábu gift voucher tied with a satin ribbon"
+        style={styles.hero}
       />
-      <Text variant="h1" style={{ marginTop: spacing.xl }} accessibilityRole="header">
+      <Text variant="eyebrow" color="accent" style={[styles.tracked, { marginTop: spacing.xl }]}>
+        Gift vouchers
+      </Text>
+      <Text variant="h1" style={{ marginTop: spacing.xs }} accessibilityRole="header">
         Give the gift of Mábu.
       </Text>
-      <Text variant="body" color="textMuted" style={{ marginTop: spacing.sm }}>
+      <View style={styles.rule} />
+      <Text variant="eyebrow" color="textMuted" style={styles.tracked}>
+        Unforgettable experiences.{'\n'}The perfect gift.
+      </Text>
+      <Text variant="body" color="textMuted" style={{ marginTop: spacing.md }}>
         A digital voucher for an evening to remember, delivered by email in moments.
       </Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.momentsRail}
+        contentContainerStyle={styles.moments}
+      >
+        {MOMENTS.map((m) => (
+          <View key={m.label} style={styles.moment}>
+            <Photo photo={m.photo} label="" style={styles.momentPhoto} />
+            <Text variant="eyebrow" style={styles.momentLabel} numberOfLines={1}>
+              {m.label}
+            </Text>
+          </View>
+        ))}
+      </ScrollView>
 
       <SectionTitle eyebrow="Value" title="Choose an amount" />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
@@ -224,3 +253,27 @@ export default function NewVoucher() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  hero: { height: 200, borderRadius: radius.lg, marginTop: spacing.md },
+  tracked: { letterSpacing: 2.6 },
+  rule: { width: 44, height: 2, backgroundColor: colors.accent, marginVertical: spacing.md },
+  // Bleeds to the screen edges so the rail scrolls under the gutter.
+  momentsRail: { marginHorizontal: -spacing.gutter, marginTop: spacing.lg },
+  moments: { gap: spacing.sm, paddingHorizontal: spacing.gutter },
+  moment: {
+    width: 170,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderStrong,
+  },
+  momentPhoto: { height: 94 },
+  momentLabel: {
+    fontSize: 10,
+    letterSpacing: 1.6,
+    textAlign: 'center',
+    paddingVertical: spacing.sm,
+  },
+});

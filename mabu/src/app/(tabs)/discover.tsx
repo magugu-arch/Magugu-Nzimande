@@ -168,7 +168,7 @@ export default function Discover() {
               accessibilityLabel="Open the gallery"
               style={styles.gallery}
             >
-              <Photo photo="dining-room" label="" style={StyleSheet.absoluteFill} scrim="full" />
+              <Photo photo="dining-skyline" label="" style={StyleSheet.absoluteFill} scrim="full" />
               <View style={{ alignItems: 'center', gap: spacing.sm }}>
                 <BrandIcon name="gallery" size={30} />
                 <Text variant="eyebrow">Gallery</Text>
