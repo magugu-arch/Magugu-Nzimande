@@ -10,7 +10,7 @@
 
 // The studio is reached by email. Its phone number appears only in the booking
 // flow (Book, Payment, Confirmation), by the studio's request: see BookingHelp.
-import content from './studio-content.json';
+import content from './studio-content.json' with { type: 'json' };
 
 export const site = {
   name: 'Grateful',

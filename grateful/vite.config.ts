@@ -5,8 +5,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import { indexablePages, pageSeo, withPageHead } from './src/data/seo';
-import { work } from './src/data/work';
+import { indexablePages, pageSeo, withPageHead } from './src/data/seo.ts';
+import { work } from './src/data/work.ts';
 
 /**
  * In development the API runs inside the Vite server, through the same

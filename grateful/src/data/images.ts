@@ -14,7 +14,7 @@ export type BrandImage = {
   focus: string;
 };
 
-import content from './studio-content.json';
+import content from './studio-content.json' with { type: 'json' };
 
 const base = import.meta.env.BASE_URL;
 

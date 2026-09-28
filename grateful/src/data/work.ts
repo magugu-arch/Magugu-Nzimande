@@ -1,5 +1,5 @@
-import type { ImageKey } from './images';
-import content from './studio-content.json';
+import type { ImageKey } from './images.ts';
+import content from './studio-content.json' with { type: 'json' };
 
 /**
  * The portfolio. The three supplied photographs are the first entries, under

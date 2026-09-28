@@ -1,4 +1,4 @@
-import type { WorkItem } from './work';
+import type { WorkItem } from './work.ts';
 
 /**
  * Search titles and descriptions for every public page, in one place. The

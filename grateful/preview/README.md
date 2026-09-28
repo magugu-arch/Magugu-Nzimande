@@ -16,3 +16,5 @@ No internet or server is needed.
 In the website preview, bookings, payments and messages are simulated inside the page, and nothing is saved or sent. Use the **Preview** box (bottom corner) to switch on sample prices or open the **studio dashboard** (any key works in the preview).
 
 Regenerate it with `npm run build:single`, then copy `dist-single/index.html` here.
+
+Rebuild all three files in order with `npm run build:previews` (set `PW_CHROMIUM` to use a local Chromium for the screenshots). Refresh the audit and costing pages first if they changed.
