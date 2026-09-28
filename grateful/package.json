@@ -14,6 +14,7 @@
     "smoke": "node e2e/smoke.mjs",
     "build:demo": "vite build --mode demo --base ./ --outDir dist-demo",
     "build:single": "vite build --mode single",
+    "build:handover": "node scripts/build-handover.mjs",
     "check:launch": "node scripts/check-launch.mjs",
     "apply:intake": "node scripts/apply-intake.mjs"
   },
