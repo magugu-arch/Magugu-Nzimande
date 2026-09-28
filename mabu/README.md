@@ -174,7 +174,7 @@ See *Commands* above. CI runs `verify`, the iOS and Android bundles, the screen 
 
 ### 5. Tests added and results
 
-- **86 Jest tests** — reservations (21), rewards (12), notifications (14), vouchers / events / commerce / flags /
+- **86 Jest tests** — reservations (21), rewards (12), notifications (16), vouchers / events / commerce / flags /
   jobs (14), API surface & schema parity (7), accessibility of stateful components (5), API server incl. email and PayFast (11). All pass. They cover every
   §48 gate, including exactly-once visit rewards, one-time redemption, expiry that cannot go negative,
   retry-safe dedupe, marketing blocked without consent, and services working while analytics fails.
