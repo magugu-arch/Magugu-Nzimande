@@ -2,7 +2,8 @@
 
 export type NotificationChannel = 'push' | 'email' | 'sms' | 'whatsapp' | 'in-app';
 
-export type NotificationCategory = 'booking' | 'event' | 'rewards' | 'voucher' | 'service' | 'marketing';
+export type NotificationCategory =
+  'booking' | 'event' | 'rewards' | 'voucher' | 'service' | 'marketing';
 
 export const NOTIFICATION_CATEGORIES: NotificationCategory[] = [
   'booking',
@@ -39,13 +40,7 @@ export interface NotificationPreference {
 }
 
 export type NotificationStatus =
-  | 'scheduled'
-  | 'queued'
-  | 'sent'
-  | 'partially_sent'
-  | 'failed'
-  | 'cancelled'
-  | 'suppressed';
+  'scheduled' | 'queued' | 'sent' | 'partially_sent' | 'failed' | 'cancelled' | 'suppressed';
 
 export interface NotificationMessage {
   id: string;

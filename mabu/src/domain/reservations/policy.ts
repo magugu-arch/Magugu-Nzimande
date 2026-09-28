@@ -97,7 +97,11 @@ export const DEFAULT_BOOKING_POLICY: BookingPolicy = {
   closedDates: [],
   seatingAreas: [
     { id: 'main', label: 'Main Dining Room', description: 'Beneath the timber chandeliers.' },
-    { id: 'banquette', label: 'Velvet Banquette', description: 'Forest-green booths, more intimate.' },
+    {
+      id: 'banquette',
+      label: 'Velvet Banquette',
+      description: 'Forest-green booths, more intimate.',
+    },
     { id: 'bar', label: 'Bar Lounge', description: 'Relaxed seating by the bar.' },
     { id: 'terrace', label: 'Terrace', description: 'Outdoor, weather permitting.' },
   ],
@@ -115,11 +119,7 @@ export function tableDurationFor(policy: BookingPolicy, partySize: number): numb
     : policy.tableDurationMinutes;
 }
 
-export function depositFor(
-  policy: BookingPolicy,
-  partySize: number,
-  depositFlag: boolean,
-): number {
+export function depositFor(policy: BookingPolicy, partySize: number, depositFlag: boolean): number {
   if (!depositFlag || !policy.deposit.enabled) return 0;
   if (partySize < policy.deposit.appliesFromPartySize) return 0;
   return policy.deposit.perPersonCents * partySize;

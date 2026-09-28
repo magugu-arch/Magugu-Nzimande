@@ -18,9 +18,15 @@ export class GuestsService {
    * Finds or creates the guest for a verified email. Only the auth layer calls
    * this, after the one-time code has been checked.
    */
-  findOrCreate(input: { email: string; name?: string; phone?: string; referralCode?: string }): Guest {
+  findOrCreate(input: {
+    email: string;
+    name?: string;
+    phone?: string;
+    referralCode?: string;
+  }): Guest {
     const email = input.email.trim().toLowerCase();
-    if (!isEmail(email)) throw new DomainError('VALIDATION', 'Please enter a valid email address.', 'email');
+    if (!isEmail(email))
+      throw new DomainError('VALIDATION', 'Please enter a valid email address.', 'email');
     const existing = this.ctx.db.guests.find((g) => g.email === email);
     if (existing) return existing;
     const referrer = input.referralCode
@@ -54,7 +60,8 @@ export class GuestsService {
     }
     if (patch.phone !== undefined) {
       const phone = normalisePhone(patch.phone);
-      if (!phone) throw new DomainError('VALIDATION', 'Please enter a valid mobile number.', 'phone');
+      if (!phone)
+        throw new DomainError('VALIDATION', 'Please enter a valid mobile number.', 'phone');
       next.phone = phone;
     }
     if (patch.preferences) {
@@ -67,7 +74,11 @@ export class GuestsService {
     return this.ctx.db.guests.update(guestId, next);
   }
 
-  saveOccasion(guestId: string, occasion: Omit<GuestOccasion, 'id'> & { id?: string }, actor: Actor): Guest {
+  saveOccasion(
+    guestId: string,
+    occasion: Omit<GuestOccasion, 'id'> & { id?: string },
+    actor: Actor,
+  ): Guest {
     requireOwnerOrStaff(actor, guestId);
     if (!/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(occasion.date)) {
       throw new DomainError('VALIDATION', 'Please choose the day and month.', 'date');
@@ -75,7 +86,12 @@ export class GuestsService {
     const guest = this.ctx.db.guests.require(guestId);
     const id = occasion.id ?? this.ctx.ids.id('occ');
     const occasions = (guest.occasions ?? []).filter((o) => o.id !== id);
-    occasions.push({ id, kind: occasion.kind, label: occasion.label.trim() || occasion.kind, date: occasion.date });
+    occasions.push({
+      id,
+      kind: occasion.kind,
+      label: occasion.label.trim() || occasion.kind,
+      date: occasion.date,
+    });
     return this.ctx.db.guests.update(guestId, { occasions });
   }
 
@@ -91,9 +107,14 @@ export class GuestsService {
   deleteAccount(guestId: string, actor: Actor): void {
     requireOwnerOrStaff(actor, guestId);
     for (const r of this.ctx.db.reservations.filter((x) => x.guestId === guestId)) {
-      this.ctx.db.reservations.update(r.id, { guestName: 'Removed guest', guestEmail: '', guestPhone: '' });
+      this.ctx.db.reservations.update(r.id, {
+        guestName: 'Removed guest',
+        guestEmail: '',
+        guestPhone: '',
+      });
     }
-    for (const f of this.ctx.db.favourites.filter((x) => x.guestId === guestId)) this.ctx.db.favourites.delete(f.id);
+    for (const f of this.ctx.db.favourites.filter((x) => x.guestId === guestId))
+      this.ctx.db.favourites.delete(f.id);
     for (const p of this.ctx.db.notificationPreferences.filter((x) => x.guestId === guestId)) {
       this.ctx.db.notificationPreferences.delete(p.id);
     }
@@ -127,14 +148,18 @@ export class GuestsService {
     const q = term.trim().toLowerCase();
     const now = this.ctx.clock.now().toISOString();
     return this.ctx.db.guests
-      .filter((g) => g.role === 'guest' && (!q || g.name.toLowerCase().includes(q) || g.email.includes(q)))
+      .filter(
+        (g) =>
+          g.role === 'guest' && (!q || g.name.toLowerCase().includes(q) || g.email.includes(q)),
+      )
       .map((g) => {
         const res = this.ctx.db.reservations.filter((r) => r.guestId === g.id);
         return {
           ...g,
           visits: res.filter((r) => r.status === 'completed').length,
-          upcoming: res.filter((r) => r.startsAt > now && ['confirmed', 'rescheduled', 'requested'].includes(r.status))
-            .length,
+          upcoming: res.filter(
+            (r) => r.startsAt > now && ['confirmed', 'rescheduled', 'requested'].includes(r.status),
+          ).length,
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));

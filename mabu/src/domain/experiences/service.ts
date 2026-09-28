@@ -57,7 +57,11 @@ export class ExperiencesService {
       nowIso(this.ctx),
       async () => {
         const event = this.get(input.eventId);
-        if (!Number.isInteger(input.seats) || input.seats < 1 || input.seats > event.maxSeatsPerBooking) {
+        if (
+          !Number.isInteger(input.seats) ||
+          input.seats < 1 ||
+          input.seats > event.maxSeatsPerBooking
+        ) {
           throw new DomainError(
             'VALIDATION',
             `Please choose between 1 and ${event.maxSeatsPerBooking} places.`,
@@ -132,7 +136,8 @@ export class ExperiencesService {
             'declined',
           );
         }
-        if (intent.status === 'succeeded') await this.confirm(this.ctx.db.experienceBookings.require(booking.id));
+        if (intent.status === 'succeeded')
+          await this.confirm(this.ctx.db.experienceBookings.require(booking.id));
         return booking.id;
       },
     );
@@ -141,7 +146,10 @@ export class ExperiencesService {
 
   private async confirm(booking: ExperienceBooking): Promise<void> {
     const event = this.ctx.db.experiences.require(booking.eventId);
-    this.ctx.db.experienceBookings.update(booking.id, { status: 'confirmed', updatedAt: nowIso(this.ctx) });
+    this.ctx.db.experienceBookings.update(booking.id, {
+      status: 'confirmed',
+      updatedAt: nowIso(this.ctx),
+    });
     this.ctx.analytics.track('event_booking_completed', { seats: booking.seats });
     await this.ctx.bus.publish({
       type: 'event.booked',
@@ -154,7 +162,9 @@ export class ExperiencesService {
 
   private release(booking: ExperienceBooking, status: 'cancelled'): void {
     const event = this.ctx.db.experiences.require(booking.eventId);
-    this.ctx.db.experiences.update(event.id, { seatsBooked: Math.max(0, event.seatsBooked - booking.seats) });
+    this.ctx.db.experiences.update(event.id, {
+      seatsBooked: Math.max(0, event.seatsBooked - booking.seats),
+    });
     this.ctx.db.experienceBookings.update(booking.id, { status, updatedAt: nowIso(this.ctx) });
   }
 
@@ -172,13 +182,24 @@ export class ExperiencesService {
     if (booking.status === 'cancelled') return booking;
     const event = this.ctx.db.experiences.require(booking.eventId);
     if (booking.status === 'waitlisted') {
-      return this.ctx.db.experienceBookings.update(booking.id, { status: 'cancelled', updatedAt: nowIso(this.ctx) });
+      return this.ctx.db.experienceBookings.update(booking.id, {
+        status: 'cancelled',
+        updatedAt: nowIso(this.ctx),
+      });
     }
     if (booking.status !== 'confirmed' && booking.status !== 'pending_payment') {
-      throw new DomainError('POLICY_VIOLATION', 'This booking can no longer be cancelled.', booking.status);
+      throw new DomainError(
+        'POLICY_VIOLATION',
+        'This booking can no longer be cancelled.',
+        booking.status,
+      );
     }
     const cutoff = new Date(event.startsAt).getTime() - EVENT_REFUND_CUTOFF_HOURS * 3_600_000;
-    if (actor.role === 'guest' && this.ctx.clock.now().getTime() > cutoff && booking.amountCents > 0) {
+    if (
+      actor.role === 'guest' &&
+      this.ctx.clock.now().getTime() > cutoff &&
+      booking.amountCents > 0
+    ) {
       throw new DomainError(
         'POLICY_VIOLATION',
         `Event bookings can be cancelled in the app until ${EVENT_REFUND_CUTOFF_HOURS} hours before. Please contact us.`,
@@ -187,7 +208,8 @@ export class ExperiencesService {
     }
     if (booking.paymentId) await this.payments.refund(booking.paymentId);
     this.release(booking, 'cancelled');
-    if (actor.role !== 'guest') audit(this.ctx, actor, 'event_booking.cancelled', 'event_booking', booking.id);
+    if (actor.role !== 'guest')
+      audit(this.ctx, actor, 'event_booking.cancelled', 'event_booking', booking.id);
     return this.ctx.db.experienceBookings.require(booking.id);
   }
 
@@ -197,7 +219,11 @@ export class ExperiencesService {
     const booking = this.ctx.db.experienceBookings.require(bookingId, 'event booking');
     if (booking.status === 'attended') return booking;
     if (booking.status !== 'confirmed') {
-      throw new DomainError('POLICY_VIOLATION', `A ${booking.status} booking cannot be checked in.`, booking.status);
+      throw new DomainError(
+        'POLICY_VIOLATION',
+        `A ${booking.status} booking cannot be checked in.`,
+        booking.status,
+      );
     }
     const updated = this.ctx.db.experienceBookings.update(booking.id, {
       status: 'attended',
@@ -217,12 +243,17 @@ export class ExperiencesService {
 
   save(experience: Experience, actor: Actor): Experience {
     requireRole(actor, 'admin');
-    if (!experience.title.trim()) throw new DomainError('VALIDATION', 'An event needs a title.', 'title');
+    if (!experience.title.trim())
+      throw new DomainError('VALIDATION', 'An event needs a title.', 'title');
     if (experience.endsAt <= experience.startsAt) {
       throw new DomainError('VALIDATION', 'The event must end after it starts.', 'times');
     }
     if (experience.capacity < experience.seatsBooked) {
-      throw new DomainError('VALIDATION', 'Capacity cannot be below places already booked.', 'capacity');
+      throw new DomainError(
+        'VALIDATION',
+        'Capacity cannot be below places already booked.',
+        'capacity',
+      );
     }
     const saved = this.ctx.db.experiences.upsert({ ...experience, updatedAt: nowIso(this.ctx) });
     audit(this.ctx, actor, 'event.saved', 'event', saved.id, { published: saved.published });

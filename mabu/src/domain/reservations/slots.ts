@@ -64,7 +64,11 @@ export function isOpenOn(policy: BookingPolicy, date: string): boolean {
 }
 
 /** Throws a guest-readable VALIDATION error when a query breaks the policy. */
-export function assertQueryAllowed(policy: BookingPolicy, query: AvailabilityQuery, now: Date): void {
+export function assertQueryAllowed(
+  policy: BookingPolicy,
+  query: AvailabilityQuery,
+  now: Date,
+): void {
   if (!Number.isInteger(query.partySize) || query.partySize < policy.minPartySize) {
     throw new DomainError('VALIDATION', 'Please choose how many guests are joining.', 'party size');
   }

@@ -54,7 +54,10 @@ export class NotificationsService implements NotificationService {
 
   /* ── Preferences (§39) ──────────────────────────────────────────────── */
 
-  private defaultPreference(guestId: string, category: NotificationCategory): NotificationPreference {
+  private defaultPreference(
+    guestId: string,
+    category: NotificationCategory,
+  ): NotificationPreference {
     const guest = this.ctx.db.guests.get(guestId);
     return {
       id: `${guestId}:${category}`,
@@ -68,7 +71,9 @@ export class NotificationsService implements NotificationService {
 
   async getGuestPreferences(guestId: string): Promise<NotificationPreference[]> {
     return NOTIFICATION_CATEGORIES.map(
-      (c) => this.ctx.db.notificationPreferences.get(`${guestId}:${c}`) ?? this.defaultPreference(guestId, c),
+      (c) =>
+        this.ctx.db.notificationPreferences.get(`${guestId}:${c}`) ??
+        this.defaultPreference(guestId, c),
     );
   }
 
@@ -114,7 +119,10 @@ export class NotificationsService implements NotificationService {
   /** Quiet hours are set once and apply to every category. null clears them. */
   async setQuietHours(guestId: string, quietHours: QuietHours | null, actor: Actor): Promise<void> {
     requireOwnerOrStaff(actor, guestId);
-    if (quietHours && (!/^\d{2}:\d{2}$/.test(quietHours.start) || !/^\d{2}:\d{2}$/.test(quietHours.end))) {
+    if (
+      quietHours &&
+      (!/^\d{2}:\d{2}$/.test(quietHours.start) || !/^\d{2}:\d{2}$/.test(quietHours.end))
+    ) {
       throw new DomainError('VALIDATION', 'Please choose quiet hours again.', 'quiet hours');
     }
     for (const pref of await this.getGuestPreferences(guestId)) {
@@ -165,7 +173,10 @@ export class NotificationsService implements NotificationService {
       for (const d of this.ctx.db.notificationDeliveries.filter(
         (x) => x.notificationId === m.id && x.status === 'pending',
       )) {
-        this.ctx.db.notificationDeliveries.update(d.id, { status: 'skipped', lastError: 'cancelled' });
+        this.ctx.db.notificationDeliveries.update(d.id, {
+          status: 'skipped',
+          lastError: 'cancelled',
+        });
       }
     }
   }
@@ -214,7 +225,10 @@ export class NotificationsService implements NotificationService {
             ? 'guest opted out'
             : undefined;
       if (reason) {
-        this.ctx.db.notificationMessages.update(message.id, { status: 'suppressed', suppressedReason: reason });
+        this.ctx.db.notificationMessages.update(message.id, {
+          status: 'suppressed',
+          suppressedReason: reason,
+        });
         return;
       }
     } else if (!pref.enabled && !TRANSACTIONAL_CATEGORIES.includes(message.category)) {
@@ -227,7 +241,8 @@ export class NotificationsService implements NotificationService {
 
     const channels = this.channelsFor(message, pref.channels);
     const now = this.ctx.clock.now();
-    const quietUntil = !message.urgent && pref.quietHours ? quietHoursEnd(pref.quietHours, now) : null;
+    const quietUntil =
+      !message.urgent && pref.quietHours ? quietHoursEnd(pref.quietHours, now) : null;
 
     for (const channel of channels) {
       const deliveryId = `${message.id}:${channel}`;
@@ -245,7 +260,9 @@ export class NotificationsService implements NotificationService {
 
       // Quiet hours hold interruptive channels only; in-app and email wait silently anyway.
       if (quietUntil && (channel === 'push' || channel === 'sms' || channel === 'whatsapp')) {
-        this.ctx.db.notificationDeliveries.update(delivery.id, { nextAttemptAt: quietUntil.toISOString() });
+        this.ctx.db.notificationDeliveries.update(delivery.id, {
+          nextAttemptAt: quietUntil.toISOString(),
+        });
         continue;
       }
 
@@ -263,7 +280,10 @@ export class NotificationsService implements NotificationService {
       try {
         result = await provider.send(message, rendered);
       } catch (error) {
-        result = { accepted: false, reason: error instanceof Error ? error.message : 'send failed' };
+        result = {
+          accepted: false,
+          reason: error instanceof Error ? error.message : 'send failed',
+        };
       }
       const attempts = delivery.attempts + 1;
       if (result.accepted) {
@@ -298,7 +318,10 @@ export class NotificationsService implements NotificationService {
     this.refreshStatus(message.id);
   }
 
-  private channelsFor(message: NotificationMessage, preferred: NotificationChannel[]): NotificationChannel[] {
+  private channelsFor(
+    message: NotificationMessage,
+    preferred: NotificationChannel[],
+  ): NotificationChannel[] {
     const f = this.ctx.flags;
     const allowed: Record<NotificationChannel, boolean> = {
       push: f.pushEnabled,
@@ -308,13 +331,17 @@ export class NotificationsService implements NotificationService {
       'in-app': true,
     };
     const set = message.channels.filter(
-      (c) => allowed[c] && (preferred.includes(c) || (c === 'in-app' && message.category !== 'marketing')),
+      (c) =>
+        allowed[c] &&
+        (preferred.includes(c) || (c === 'in-app' && message.category !== 'marketing')),
     );
     return [...new Set(set)];
   }
 
   private refreshStatus(messageId: string): void {
-    const deliveries = this.ctx.db.notificationDeliveries.filter((d) => d.notificationId === messageId);
+    const deliveries = this.ctx.db.notificationDeliveries.filter(
+      (d) => d.notificationId === messageId,
+    );
     const sent = deliveries.filter((d) => d.status === 'sent').length;
     const pending = deliveries.filter((d) => d.status === 'pending').length;
     const failed = deliveries.filter((d) => d.status === 'failed').length;
@@ -341,7 +368,10 @@ export class NotificationsService implements NotificationService {
       this.ctx.db.notificationTemplates
         .filter((t) => t.key === key && t.channel === c && t.active)
         .sort((a, b) => b.version - a.version)[0];
-    const t = pick(channel) ?? (channel === 'sms' || channel === 'whatsapp' ? pick('push') : undefined) ?? pick('in-app');
+    const t =
+      pick(channel) ??
+      (channel === 'sms' || channel === 'whatsapp' ? pick('push') : undefined) ??
+      pick('in-app');
     if (!t) throw new DomainError('NOT_FOUND', 'Message template missing.', `${key}:${channel}`);
     return t;
   }
@@ -349,7 +379,10 @@ export class NotificationsService implements NotificationService {
   templates(): NotificationTemplate[] {
     return this.ctx.db.notificationTemplates
       .list()
-      .sort((a, b) => a.key.localeCompare(b.key) || a.channel.localeCompare(b.channel) || b.version - a.version);
+      .sort(
+        (a, b) =>
+          a.key.localeCompare(b.key) || a.channel.localeCompare(b.channel) || b.version - a.version,
+      );
   }
 
   /** Saves a new version; the previous one is kept, inactive, for the record. */
@@ -363,9 +396,12 @@ export class NotificationsService implements NotificationService {
     requireRole(actor, 'admin');
     if (!body.trim()) throw new DomainError('VALIDATION', 'The message body is empty.', 'body');
     assertTemplateSafe({ channel, subject, body });
-    const previous = this.ctx.db.notificationTemplates.filter((t) => t.key === key && t.channel === channel);
+    const previous = this.ctx.db.notificationTemplates.filter(
+      (t) => t.key === key && t.channel === channel,
+    );
     const version = Math.max(0, ...previous.map((t) => t.version)) + 1;
-    for (const t of previous) if (t.active) this.ctx.db.notificationTemplates.update(t.id, { active: false });
+    for (const t of previous)
+      if (t.active) this.ctx.db.notificationTemplates.update(t.id, { active: false });
     const saved = this.ctx.db.notificationTemplates.insert({
       id: `${key}:${channel}:v${version}`,
       key,
@@ -377,7 +413,9 @@ export class NotificationsService implements NotificationService {
       updatedAt: nowIso(this.ctx),
       updatedBy: actor.id,
     });
-    audit(this.ctx, actor, 'notification_template.saved', 'notification_template', saved.id, { version });
+    audit(this.ctx, actor, 'notification_template.saved', 'notification_template', saved.id, {
+      version,
+    });
     return saved;
   }
 
@@ -427,7 +465,9 @@ export class NotificationsService implements NotificationService {
       createdBy: actor.id,
       createdAt: nowIso(this.ctx),
     });
-    audit(this.ctx, actor, 'campaign.scheduled', 'campaign', campaign.id, { scheduledFor: input.scheduledFor });
+    audit(this.ctx, actor, 'campaign.scheduled', 'campaign', campaign.id, {
+      scheduledFor: input.scheduledFor,
+    });
     return campaign;
   }
 
@@ -449,7 +489,11 @@ export class NotificationsService implements NotificationService {
       let blocked = 0;
       for (const g of this.ctx.db.guests.filter((x) => x.role === 'guest')) {
         const pref = this.preference(g.id, 'marketing');
-        if (!this.ctx.flags.marketingNotificationsEnabled || g.consent?.marketing !== true || !pref.enabled) {
+        if (
+          !this.ctx.flags.marketingNotificationsEnabled ||
+          g.consent?.marketing !== true ||
+          !pref.enabled
+        ) {
           blocked += 1;
           continue;
         }

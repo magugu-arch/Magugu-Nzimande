@@ -40,7 +40,8 @@ export class MabuDirectReservationAdapter implements ReservationProvider {
     return candidateTimes(policy, query.date, query.partySize, query.servicePeriod)
       .filter((c) => new Date(c.startsAt).getTime() >= leadCutoff)
       .map((c) => {
-        const taken = this.coversTaken(query.date, c.time) + otherChannelDemand(policy, query.date, c.time);
+        const taken =
+          this.coversTaken(query.date, c.time) + otherChannelDemand(policy, query.date, c.time);
         const available = taken + query.partySize <= policy.coversPerSlot;
         return {
           slotId: slotIdOf(query.venueId, query.date, c.time),
@@ -60,7 +61,10 @@ export class MabuDirectReservationAdapter implements ReservationProvider {
   ): Promise<{ externalReservationId: string; status: 'confirmed' | 'requested' }> {
     if (this.mode === 'live') throw notConfigured(this.id);
     void request;
-    return { externalReservationId: `md_${slot.slotId.replace(/\W/g, '')}_${this.ctx.ids.code(6)}`, status: 'confirmed' };
+    return {
+      externalReservationId: `md_${slot.slotId.replace(/\W/g, '')}_${this.ctx.ids.code(6)}`,
+      status: 'confirmed',
+    };
   }
 
   async reschedule(): Promise<void> {

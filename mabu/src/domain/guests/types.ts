@@ -7,7 +7,8 @@ export interface Actor {
   role: Role;
 }
 
-export type DietaryTag = 'vegetarian' | 'vegan' | 'gluten-free' | 'halal' | 'dairy-free' | 'nut-free';
+export type DietaryTag =
+  'vegetarian' | 'vegan' | 'gluten-free' | 'halal' | 'dairy-free' | 'nut-free';
 
 export interface GuestOccasion {
   id: string;

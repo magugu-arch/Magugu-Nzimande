@@ -27,7 +27,9 @@ export function variablesIn(text: string): string[] {
   return [...text.matchAll(/\{\{\s*(\w+)\s*\}\}/g)].map((m) => m[1]!);
 }
 
-export function assertTemplateSafe(template: Pick<NotificationTemplate, 'channel' | 'body' | 'subject'>): void {
+export function assertTemplateSafe(
+  template: Pick<NotificationTemplate, 'channel' | 'body' | 'subject'>,
+): void {
   if (!PREVIEW_CHANNELS.includes(template.channel)) return;
   const unsafe = variablesIn(`${template.subject ?? ''} ${template.body}`).filter(
     (v) => !PREVIEW_SAFE_VARIABLES.has(v),
@@ -47,13 +49,16 @@ export function render(
 ): RenderedMessage {
   const fill = (text: string) =>
     text.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key: string) => {
-      if (PREVIEW_CHANNELS.includes(template.channel) && !PREVIEW_SAFE_VARIABLES.has(key)) return '';
+      if (PREVIEW_CHANNELS.includes(template.channel) && !PREVIEW_SAFE_VARIABLES.has(key))
+        return '';
       const value = data[key];
       return value === undefined || value === null ? '' : String(value);
     });
   return {
     subject: fill(template.subject ?? ''),
-    body: fill(template.body).replace(/\s{2,}/g, ' ').trim(),
+    body: fill(template.body)
+      .replace(/\s{2,}/g, ' ')
+      .trim(),
     templateVersion: template.version,
   };
 }
@@ -128,7 +133,7 @@ const SEEDS: Seed[] = [
   {
     key: 'rewards.earned',
     subject: 'Points earned',
-    push: 'You have earned {{points}} MÁBU Rewards points. Thank you for your visit.',
+    push: 'You have earned {{points}} MÁBU Rewards points. Thank you for choosing Mábu.',
   },
   {
     key: 'rewards.tier',
@@ -174,7 +179,8 @@ const SEEDS: Seed[] = [
     key: 'marketing.campaign',
     subject: '{{headline}}',
     push: '{{headline}}',
-    email: '{{headline}}\n\n{{body}}\n\nTo stop receiving news from Mábu, update your preferences in the app.',
+    email:
+      '{{headline}}\n\n{{body}}\n\nTo stop receiving news from Mábu, update your preferences in the app.',
   },
 ];
 
@@ -197,7 +203,9 @@ export function defaultTemplates(now: string): NotificationTemplate[] {
       key: s.key,
       channel: 'push',
       // A lock-screen title may not carry an unsafe variable; fall back to the brand.
-      subject: variablesIn(s.subject).every((v) => PREVIEW_SAFE_VARIABLES.has(v)) ? s.subject : 'Mábu',
+      subject: variablesIn(s.subject).every((v) => PREVIEW_SAFE_VARIABLES.has(v))
+        ? s.subject
+        : 'Mábu',
       body: s.push,
       version: 1,
       active: true,

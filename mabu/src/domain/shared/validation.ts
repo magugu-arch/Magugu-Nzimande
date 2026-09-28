@@ -52,11 +52,14 @@ export function assertContact(contact: GuestContact): GuestContact {
 /** Free-text notes: trimmed, length-capped, control characters stripped. */
 export function cleanNote(value: string | undefined, max = 500): string | undefined {
   if (value === undefined) return undefined;
-  // eslint-disable-next-line no-control-regex
   const cleaned = value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim();
   if (!cleaned) return undefined;
   if (cleaned.length > max) {
-    throw new DomainError('VALIDATION', `Please keep notes under ${max} characters.`, 'note too long');
+    throw new DomainError(
+      'VALIDATION',
+      `Please keep notes under ${max} characters.`,
+      'note too long',
+    );
   }
   return cleaned;
 }

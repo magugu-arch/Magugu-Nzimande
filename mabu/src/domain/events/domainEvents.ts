@@ -21,7 +21,13 @@ export type DomainEvent =
   | { type: 'reservation.completed'; reservationId: string; guestId: string }
   | { type: 'reservation.no_show'; reservationId: string; guestId: string }
   | { type: 'reservation.cancelled'; reservationId: string; guestId: string; startsAt: string }
-  | { type: 'waitlist.matched'; waitlistId: string; guestId: string; slotId: string; startsAt: string }
+  | {
+      type: 'waitlist.matched';
+      waitlistId: string;
+      guestId: string;
+      slotId: string;
+      startsAt: string;
+    }
   | { type: 'event.booked'; bookingId: string; eventId: string; guestId: string; startsAt: string }
   | { type: 'event.attended'; eventId: string; guestId: string; bookingId: string }
   | { type: 'voucher.purchased'; voucherId: string; guestId: string; amountCents: number }

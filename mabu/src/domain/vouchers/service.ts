@@ -5,7 +5,12 @@ import type { PaymentsService } from '../payments/service';
 import { DomainError } from '../shared/errors';
 import { idempotent } from '../shared/idempotency';
 import { cleanNote, isEmail } from '../shared/validation';
-import { DEFAULT_VOUCHER_POLICY, type Voucher, type VoucherPolicy, type VoucherRedemption } from './types';
+import {
+  DEFAULT_VOUCHER_POLICY,
+  type Voucher,
+  type VoucherPolicy,
+  type VoucherRedemption,
+} from './types';
 
 export interface VoucherPurchaseInput {
   amountCents: number;
@@ -48,7 +53,12 @@ export class VouchersService {
 
   updatePolicy(patch: Partial<Omit<VoucherPolicy, 'id'>>, actor: Actor): VoucherPolicy {
     requireRole(actor, 'admin');
-    const next = { ...this.policy(), ...patch, id: 'voucher-policy' as const, updatedAt: nowIso(this.ctx) };
+    const next = {
+      ...this.policy(),
+      ...patch,
+      id: 'voucher-policy' as const,
+      updatedAt: nowIso(this.ctx),
+    };
     if (next.expiryMonths < 36) {
       throw new DomainError(
         'VALIDATION',
@@ -93,10 +103,17 @@ export class VouchersService {
         this.validateAmount(input.amountCents);
         const purchaser = this.ctx.db.guests.require(actor.id, 'guest');
         const recipientName = input.forSelf ? purchaser.name : input.recipientName.trim();
-        const recipientEmail = (input.forSelf ? purchaser.email : input.recipientEmail).trim().toLowerCase();
-        if (!recipientName) throw new DomainError('VALIDATION', 'Who is the voucher for?', 'recipient');
+        const recipientEmail = (input.forSelf ? purchaser.email : input.recipientEmail)
+          .trim()
+          .toLowerCase();
+        if (!recipientName)
+          throw new DomainError('VALIDATION', 'Who is the voucher for?', 'recipient');
         if (!isEmail(recipientEmail)) {
-          throw new DomainError('VALIDATION', "Please enter the recipient's email address.", 'email');
+          throw new DomainError(
+            'VALIDATION',
+            "Please enter the recipient's email address.",
+            'email',
+          );
         }
         this.ctx.analytics.track('voucher_purchase_started', { amountCents: input.amountCents });
         const now = nowIso(this.ctx);
@@ -107,7 +124,9 @@ export class VouchersService {
           remainingCents: input.amountCents,
           status: 'pending_payment',
           purchaserGuestId: purchaser.id,
-          issuedTo: input.forSelf ? purchaser.id : this.ctx.db.guests.find((g) => g.email === recipientEmail)?.id,
+          issuedTo: input.forSelf
+            ? purchaser.id
+            : this.ctx.db.guests.find((g) => g.email === recipientEmail)?.id,
           recipientName,
           recipientEmail,
           forSelf: input.forSelf,
@@ -127,7 +146,10 @@ export class VouchersService {
         });
         this.ctx.db.vouchers.update(voucher.id, { paymentId: intent.id });
         if (intent.status === 'failed') {
-          this.ctx.db.vouchers.update(voucher.id, { status: 'cancelled', updatedAt: nowIso(this.ctx) });
+          this.ctx.db.vouchers.update(voucher.id, {
+            status: 'cancelled',
+            updatedAt: nowIso(this.ctx),
+          });
           throw new DomainError(
             'PAYMENT_DECLINED',
             intent.failureReason ?? 'The payment did not go through. No money was taken.',
@@ -135,7 +157,8 @@ export class VouchersService {
           );
         }
         // §23: payment taken but not yet confirmed → stay pending and reconcile.
-        if (intent.status === 'succeeded') await this.activate(this.ctx.db.vouchers.require(voucher.id));
+        if (intent.status === 'succeeded')
+          await this.activate(this.ctx.db.vouchers.require(voucher.id));
         return voucher.id;
       },
     );
@@ -165,16 +188,18 @@ export class VouchersService {
   listForGuest(guestId: string, actor: Actor): Voucher[] {
     requireOwnerOrStaff(actor, guestId);
     const guest = this.ctx.db.guests.get(guestId);
-    return this.ctx.db.vouchers
-      // A purchase whose payment was declined never became a voucher; hide it.
-      .filter((v) => !(v.status === 'cancelled' && !v.issuedAt))
-      .filter(
-        (v) =>
-          v.purchaserGuestId === guestId ||
-          v.issuedTo === guestId ||
-          (!!guest && v.recipientEmail === guest.email && v.status !== 'pending_payment'),
-      )
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return (
+      this.ctx.db.vouchers
+        // A purchase whose payment was declined never became a voucher; hide it.
+        .filter((v) => !(v.status === 'cancelled' && !v.issuedAt))
+        .filter(
+          (v) =>
+            v.purchaserGuestId === guestId ||
+            v.issuedTo === guestId ||
+            (!!guest && v.recipientEmail === guest.email && v.status !== 'pending_payment'),
+        )
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    );
   }
 
   get(voucherId: string, actor: Actor): Voucher {
@@ -195,9 +220,13 @@ export class VouchersService {
 
   lookup(code: string, actor: Actor): { voucher: Voucher; redemptions: VoucherRedemption[] } {
     requireRole(actor, 'staff', 'admin');
-    const normalised = code.trim().toUpperCase().replace(/^MABU:VOUCHER:/, '');
+    const normalised = code
+      .trim()
+      .toUpperCase()
+      .replace(/^MABU:VOUCHER:/, '');
     const voucher = this.ctx.db.vouchers.find((v) => v.code === normalised);
-    if (!voucher) throw new DomainError('NOT_FOUND', 'That voucher code was not recognised.', normalised);
+    if (!voucher)
+      throw new DomainError('NOT_FOUND', 'That voucher code was not recognised.', normalised);
     return {
       voucher,
       redemptions: this.ctx.db.voucherRedemptions.filter((r) => r.voucherId === voucher.id),
@@ -224,7 +253,8 @@ export class VouchersService {
         if (v.status === 'redeemed') {
           throw new DomainError('ALREADY_REDEEMED', 'This voucher has been fully used.', v.id);
         }
-        if (v.status !== 'active') throw new DomainError('EXPIRED', `This voucher is ${v.status.replace('_', ' ')}.`, v.id);
+        if (v.status !== 'active')
+          throw new DomainError('EXPIRED', `This voucher is ${v.status.replace('_', ' ')}.`, v.id);
         if (v.expiresAt && new Date(v.expiresAt) <= this.ctx.clock.now()) {
           this.ctx.db.vouchers.update(v.id, { status: 'expired' });
           throw new DomainError('EXPIRED', 'This voucher has expired.', v.id);
@@ -254,7 +284,10 @@ export class VouchersService {
           note: cleanNote(note, 200),
           at: nowIso(this.ctx),
         });
-        audit(this.ctx, actor, 'voucher.redeemed', 'voucher', v.id, { amountCents, remainingCents });
+        audit(this.ctx, actor, 'voucher.redeemed', 'voucher', v.id, {
+          amountCents,
+          remainingCents,
+        });
         await this.ctx.bus.publish({
           type: 'voucher.redeemed',
           voucherId: v.id,
@@ -275,7 +308,10 @@ export class VouchersService {
       throw new DomainError('CONFLICT', 'A part-used voucher cannot be cancelled.', v.id);
     }
     if (v.paymentId) await this.payments.refund(v.paymentId);
-    const updated = this.ctx.db.vouchers.update(v.id, { status: 'cancelled', updatedAt: nowIso(this.ctx) });
+    const updated = this.ctx.db.vouchers.update(v.id, {
+      status: 'cancelled',
+      updatedAt: nowIso(this.ctx),
+    });
     audit(this.ctx, actor, 'voucher.cancelled', 'voucher', v.id, { reason });
     return updated;
   }
@@ -300,7 +336,9 @@ export class VouchersService {
     return {
       soldCount: sold.length,
       soldCents: sold.reduce((s, v) => s + v.amountCents, 0),
-      outstandingCents: sold.filter((v) => v.status === 'active').reduce((s, v) => s + v.remainingCents, 0),
+      outstandingCents: sold
+        .filter((v) => v.status === 'active')
+        .reduce((s, v) => s + v.remainingCents, 0),
       redeemedCents: this.ctx.db.voucherRedemptions.list().reduce((s, r) => s + r.amountCents, 0),
       pending: all.filter((v) => v.status === 'pending_payment').length,
     };

@@ -3,10 +3,7 @@ import type { Dish, WineItem } from './types';
 
 /** Case- and accent-insensitive: "mabu" finds "Mábu", "creme" finds "crème". */
 export function fold(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
 export interface DishFilter {
@@ -40,12 +37,18 @@ export function filterDishes(dishes: Dish[], f: DishFilter): Dish[] {
   });
 }
 
-export function filterWines(wines: WineItem[], query: string, style?: WineItem['style']): WineItem[] {
+export function filterWines(
+  wines: WineItem[],
+  query: string,
+  style?: WineItem['style'],
+): WineItem[] {
   const terms = fold(query).split(/\s+/).filter(Boolean);
   return wines.filter((w) => {
     if (style && w.style !== style) return false;
     if (!terms.length) return true;
-    const haystack = fold([w.name, w.producer, w.region, w.varietal, w.tastingNotes, ...w.pairingTags].join(' '));
+    const haystack = fold(
+      [w.name, w.producer, w.region, w.varietal, w.tastingNotes, ...w.pairingTags].join(' '),
+    );
     return terms.every((t) => haystack.includes(t));
   });
 }

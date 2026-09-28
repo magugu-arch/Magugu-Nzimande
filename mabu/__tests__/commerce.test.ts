@@ -34,10 +34,15 @@ describe('vouchers', () => {
     const b = makeBackend();
     const guest = addGuest(b);
     const input = purchase();
-    const [a, c] = await Promise.all([b.vouchers.purchase(input, guest), b.vouchers.purchase(input, guest)]);
+    const [a, c] = await Promise.all([
+      b.vouchers.purchase(input, guest),
+      b.vouchers.purchase(input, guest),
+    ]);
     expect(a.id).toBe(c.id);
     expect(b.db.payments.count()).toBe(1);
-    await expect(b.vouchers.purchase(purchase({ methodToken: 'tok_mock_decline' }), guest)).rejects.toThrow(/declined/);
+    await expect(
+      b.vouchers.purchase(purchase({ methodToken: 'tok_mock_decline' }), guest),
+    ).rejects.toThrow(/declined/);
     expect(b.vouchers.listForGuest(guest.id, guest)).toHaveLength(1);
   });
 
@@ -55,8 +60,12 @@ describe('vouchers', () => {
   it('validates amounts against the policy', async () => {
     const b = makeBackend();
     const guest = addGuest(b);
-    await expect(b.vouchers.purchase(purchase({ amountCents: 10000 }), guest)).rejects.toThrow(/R250 to R10000/);
-    await expect(b.vouchers.purchase(purchase({ amountCents: 30050 }), guest)).rejects.toThrow(/whole rand/);
+    await expect(b.vouchers.purchase(purchase({ amountCents: 10000 }), guest)).rejects.toThrow(
+      /R250 to R10000/,
+    );
+    await expect(b.vouchers.purchase(purchase({ amountCents: 30050 }), guest)).rejects.toThrow(
+      /whole rand/,
+    );
     expect(() => b.vouchers.updatePolicy({ expiryMonths: 12 }, ADMIN)).toThrow(/36 months/);
   });
 
@@ -68,10 +77,14 @@ describe('vouchers', () => {
     await b.vouchers.redeem(v.code, 60000, key, STAFF);
     await b.vouchers.redeem(voucherQrPayload(v.code), 60000, key, STAFF); // replay via QR
     expect(b.db.vouchers.require(v.id).remainingCents).toBe(40000);
-    await expect(b.vouchers.redeem(v.code, 50000, newIdempotencyKey(), STAFF)).rejects.toThrow(/Only R400.00/);
+    await expect(b.vouchers.redeem(v.code, 50000, newIdempotencyKey(), STAFF)).rejects.toThrow(
+      /Only R400.00/,
+    );
     const done = await b.vouchers.redeem(v.code, 40000, newIdempotencyKey(), STAFF);
     expect(done.status).toBe('redeemed');
-    await expect(b.vouchers.redeem(v.code, 100, newIdempotencyKey(), STAFF)).rejects.toThrow(/fully used/);
+    await expect(b.vouchers.redeem(v.code, 100, newIdempotencyKey(), STAFF)).rejects.toThrow(
+      /fully used/,
+    );
     expect(b.db.audit.count((a) => a.action === 'voucher.redeemed')).toBe(2);
     await expect(b.vouchers.redeem(v.code, 100, newIdempotencyKey(), guest)).rejects.toThrow();
   });
@@ -92,14 +105,19 @@ describe('events', () => {
     const guest = addGuest(b);
     b.rewards.optIn(guest.id, guest);
     const booking = await b.experiences.book(
-      { eventId: 'evt-meerlust-2026-10-27', seats: 2, methodToken: 'tok_mock_success', idempotencyKey: newIdempotencyKey() },
+      {
+        eventId: 'evt-meerlust-2026-10-27',
+        seats: 2,
+        methodToken: 'tok_mock_success',
+        idempotencyKey: newIdempotencyKey(),
+      },
       guest,
     );
     expect(booking).toMatchObject({ status: 'confirmed', amountCents: 180000 });
     expect(b.db.experiences.require('evt-meerlust-2026-10-27').seatsBooked).toBe(33);
-    expect(b.db.notificationMessages.find((m) => m.templateKey === 'event.reminder')?.scheduledFor).toBe(
-      '2026-10-26T16:30:00.000Z',
-    );
+    expect(
+      b.db.notificationMessages.find((m) => m.templateKey === 'event.reminder')?.scheduledFor,
+    ).toBe('2026-10-26T16:30:00.000Z');
     await b.experiences.markAttended(booking.id, STAFF);
     await b.experiences.markAttended(booking.id, STAFF);
     expect(b.db.rewardAccounts.list()[0]?.balancePoints).toBe(400);
@@ -109,7 +127,12 @@ describe('events', () => {
     const b = makeBackend();
     const guest = addGuest(b);
     const booking = await b.experiences.book(
-      { eventId: 'evt-chefs-table-2026-11', seats: 2, methodToken: 'tok_mock_success', idempotencyKey: newIdempotencyKey() },
+      {
+        eventId: 'evt-chefs-table-2026-11',
+        seats: 2,
+        methodToken: 'tok_mock_success',
+        idempotencyKey: newIdempotencyKey(),
+      },
       guest,
     );
     expect(booking.status).toBe('waitlisted');
@@ -121,7 +144,12 @@ describe('events', () => {
     const guest = addGuest(b);
     await expect(
       b.experiences.book(
-        { eventId: 'evt-meerlust-2026-10-27', seats: 2, methodToken: 'tok_mock_decline', idempotencyKey: newIdempotencyKey() },
+        {
+          eventId: 'evt-meerlust-2026-10-27',
+          seats: 2,
+          methodToken: 'tok_mock_decline',
+          idempotencyKey: newIdempotencyKey(),
+        },
         guest,
       ),
     ).rejects.toThrow(/declined/);
@@ -132,7 +160,12 @@ describe('events', () => {
     const b = makeBackend();
     const guest = addGuest(b);
     const booking = await b.experiences.book(
-      { eventId: 'evt-meerlust-2026-10-27', seats: 1, methodToken: 'tok_mock_success', idempotencyKey: newIdempotencyKey() },
+      {
+        eventId: 'evt-meerlust-2026-10-27',
+        seats: 1,
+        methodToken: 'tok_mock_success',
+        idempotencyKey: newIdempotencyKey(),
+      },
       guest,
     );
     await b.experiences.cancelBooking(booking.id, guest);
@@ -145,11 +178,17 @@ describe('optional commerce', () => {
   it('offers no provider by default and never pretends an unconfigured one works', async () => {
     const registry = new CommerceRegistry(DEFAULT_FLAGS);
     expect(registry.enabled()).toEqual([]);
-    await expect(new UberEatsAdapter().quote()).rejects.toMatchObject({ detail: 'UBER_EATS_NOT_CONFIGURED' });
-    await expect(new MrDAdapter().createOrder()).rejects.toMatchObject({ detail: 'MR_D_NOT_CONFIGURED' });
+    await expect(new UberEatsAdapter().quote()).rejects.toMatchObject({
+      detail: 'UBER_EATS_NOT_CONFIGURED',
+    });
+    await expect(new MrDAdapter().createOrder()).rejects.toMatchObject({
+      detail: 'MR_D_NOT_CONFIGURED',
+    });
     const on = new CommerceRegistry({ ...DEFAULT_FLAGS, uberEatsEnabled: true });
     expect(on.enabled()).toEqual(['uber-eats']);
-    await expect(on.provider('uber-eats').quote({} as never)).rejects.toMatchObject({ code: 'NOT_CONFIGURED' });
+    await expect(on.provider('uber-eats').quote({} as never)).rejects.toMatchObject({
+      code: 'NOT_CONFIGURED',
+    });
   });
 });
 
@@ -160,16 +199,26 @@ describe('feature flags', () => {
       EXPO_PUBLIC_MABU_SMS_ENABLED: 'true',
       MABU_REWARDS_ENABLED: 'false',
     });
-    expect(flags).toMatchObject({ bookingProvider: 'dineplan', smsEnabled: true, rewardsEnabled: false });
+    expect(flags).toMatchObject({
+      bookingProvider: 'dineplan',
+      smsEnabled: true,
+      rewardsEnabled: false,
+    });
     expect(flagsFromEnv({}).bookingProvider).toBe('mabu-direct');
   });
 
   it('switches features off server-side, not only in the UI', async () => {
     const b = makeBackend({ vouchersEnabled: false, bookingEnabled: false });
     const guest = addGuest(b);
-    await expect(b.vouchers.purchase(purchase(), guest)).rejects.toMatchObject({ code: 'FEATURE_DISABLED' });
+    await expect(b.vouchers.purchase(purchase(), guest)).rejects.toMatchObject({
+      code: 'FEATURE_DISABLED',
+    });
     await expect(
-      b.reservations.searchAvailability({ venueId: 'mabu-waterfall', date: '2026-10-06', partySize: 2 }),
+      b.reservations.searchAvailability({
+        venueId: 'mabu-waterfall',
+        date: '2026-10-06',
+        partySize: 2,
+      }),
     ).rejects.toMatchObject({ code: 'FEATURE_DISABLED' });
   });
 });
@@ -191,7 +240,9 @@ describe('scheduled jobs', () => {
     b.clock.set('2026-10-05T19:05:00+02:00');
     await b.runJobs();
     await b.runJobs();
-    const reminders = b.notifications.inbox(guest.id, guest).filter((i) => i.title === 'We look forward to seeing you');
+    const reminders = b.notifications
+      .inbox(guest.id, guest)
+      .filter((i) => i.title === 'We look forward to seeing you');
     expect(reminders).toHaveLength(1);
   });
 });

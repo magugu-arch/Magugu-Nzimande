@@ -88,7 +88,10 @@ export const SEED_HOME: HomeContent = {
   updatedAt: T,
 };
 
-type DishSeed = Omit<Dish, 'currency' | 'isSample' | 'updatedAt' | 'available' | 'allergens' | 'dietaryTags' | 'spiceLevel'> &
+type DishSeed = Omit<
+  Dish,
+  'currency' | 'isSample' | 'updatedAt' | 'available' | 'allergens' | 'dietaryTags' | 'spiceLevel'
+> &
   Partial<Pick<Dish, 'available' | 'allergens' | 'dietaryTags' | 'spiceLevel'>>;
 
 const dish = (d: DishSeed): Dish => ({
@@ -107,7 +110,8 @@ export const SEED_DISHES: Dish[] = [
   dish({
     id: 'start-prawns',
     name: 'Peri-Peri Tiger Prawns',
-    description: 'Flame-grilled tiger prawns, bird’s-eye chilli butter, charred lemon, micro coriander.',
+    description:
+      'Flame-grilled tiger prawns, bird’s-eye chilli butter, charred lemon, micro coriander.',
     priceCents: 19500,
     category: 'starters',
     photo: 'dish-seafood',
@@ -119,7 +123,8 @@ export const SEED_DISHES: Dish[] = [
   dish({
     id: 'start-tartare',
     name: 'Beef Tartare, Umami Dressing',
-    description: 'Hand-cut fillet, soy and sesame dressing, pickled shimeji, crisp cassava, cured yolk.',
+    description:
+      'Hand-cut fillet, soy and sesame dressing, pickled shimeji, crisp cassava, cured yolk.',
     priceCents: 17500,
     category: 'starters',
     allergens: ['egg', 'soy', 'sesame'],
@@ -139,7 +144,8 @@ export const SEED_DISHES: Dish[] = [
   dish({
     id: 'salad-heirloom',
     name: 'Heirloom Tomato & Burrata',
-    description: 'Heirloom tomatoes, burrata, baobab vinaigrette, basil oil, toasted pumpkin seeds.',
+    description:
+      'Heirloom tomatoes, burrata, baobab vinaigrette, basil oil, toasted pumpkin seeds.',
     priceCents: 13500,
     category: 'salads',
     allergens: ['dairy'],
@@ -278,7 +284,8 @@ export const SEED_DISHES: Dish[] = [
   dish({
     id: 'fish-kingklip',
     name: 'Kingklip, Black Rice & Mussels',
-    description: 'Pan-roasted kingklip, squid-ink black rice, West Coast mussels, salmon roe, sea herbs.',
+    description:
+      'Pan-roasted kingklip, squid-ink black rice, West Coast mussels, salmon roe, sea herbs.',
     priceCents: 32500,
     category: 'fish',
     photo: 'dish-seafood',
@@ -420,7 +427,9 @@ export const SEED_DISHES: Dish[] = [
   }),
 ];
 
-const wine = (w: Omit<WineItem, 'isSample' | 'updatedAt' | 'available'> & { available?: boolean }): WineItem => ({
+const wine = (
+  w: Omit<WineItem, 'isSample' | 'updatedAt' | 'available'> & { available?: boolean },
+): WineItem => ({
   available: true,
   ...w,
   isSample: true,
@@ -618,7 +627,8 @@ export const SEED_EXPERIENCES: Experience[] = [
     seatsBooked: 12,
     maxSeatsPerBooking: 8,
     waitlistEnabled: false,
-    description: 'A festive tasting menu with MCC on arrival, for the season of long tables and good company.',
+    description:
+      'A festive tasting menu with MCC on arrival, for the season of long tables and good company.',
     dressCode: 'Festive elegant',
     heroPhoto: 'private-dining',
     bookingRequired: true,
@@ -649,13 +659,31 @@ export const SEED_TIERS: RewardTier[] = [
     name: 'Privé',
     minLifetimePoints: 4000,
     order: 3,
-    benefits: ['Invitation-only chef evenings', 'Preferred table on request', 'All Signature benefits'],
+    benefits: [
+      'Invitation-only chef evenings',
+      'Preferred table on request',
+      'All Signature benefits',
+    ],
   },
 ];
 
 export const SEED_RULES: RewardRule[] = [
-  { id: 'rule-visit', name: 'Dining visit', trigger: 'completed_visit', points: 250, active: true, updatedAt: T },
-  { id: 'rule-event', name: 'Event attended', trigger: 'event_attendance', points: 400, active: true, updatedAt: T },
+  {
+    id: 'rule-visit',
+    name: 'Dining visit',
+    trigger: 'completed_visit',
+    points: 250,
+    active: true,
+    updatedAt: T,
+  },
+  {
+    id: 'rule-event',
+    name: 'Event attended',
+    trigger: 'event_attendance',
+    points: 400,
+    active: true,
+    updatedAt: T,
+  },
   {
     id: 'rule-voucher',
     name: 'Gift voucher purchase',
@@ -665,9 +693,30 @@ export const SEED_RULES: RewardRule[] = [
     active: true,
     updatedAt: T,
   },
-  { id: 'rule-referral', name: 'Friend’s first visit', trigger: 'referral', points: 300, active: true, updatedAt: T },
-  { id: 'rule-birthday', name: 'Birthday gift', trigger: 'birthday', points: 200, active: true, updatedAt: T },
-  { id: 'rule-campaign', name: 'Campaign bonus', trigger: 'campaign', points: 100, active: false, updatedAt: T },
+  {
+    id: 'rule-referral',
+    name: 'Friend’s first visit',
+    trigger: 'referral',
+    points: 300,
+    active: true,
+    updatedAt: T,
+  },
+  {
+    id: 'rule-birthday',
+    name: 'Birthday gift',
+    trigger: 'birthday',
+    points: 200,
+    active: true,
+    updatedAt: T,
+  },
+  {
+    id: 'rule-campaign',
+    name: 'Campaign bonus',
+    trigger: 'campaign',
+    points: 100,
+    active: false,
+    updatedAt: T,
+  },
 ];
 
 export const SEED_REWARDS: Reward[] = [

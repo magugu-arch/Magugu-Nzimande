@@ -19,10 +19,18 @@ import { ExperiencesService } from './experiences/service';
 import { DEFAULT_FLAGS, type FeatureFlags } from './flags';
 import { GuestsService } from './guests/service';
 import { ContentService } from './menu/service';
-import { InAppProvider, MockChannelProvider, UnconfiguredChannelProvider } from './notifications/providers';
+import {
+  InAppProvider,
+  MockChannelProvider,
+  UnconfiguredChannelProvider,
+} from './notifications/providers';
 import { NotificationsService } from './notifications/service';
 import { defaultTemplates } from './notifications/templates';
-import { MockPaymentProvider, PaymentsService, UnconfiguredPaymentProvider } from './payments/service';
+import {
+  MockPaymentProvider,
+  PaymentsService,
+  UnconfiguredPaymentProvider,
+} from './payments/service';
 import { DEFAULT_BOOKING_POLICY, type BookingPolicy } from './reservations/policy';
 import { DineplanReservationAdapter } from './reservations/providers/DineplanReservationAdapter';
 import { MabuDirectReservationAdapter } from './reservations/providers/MabuDirectReservationAdapter';
@@ -67,7 +75,11 @@ export function createBackend(options: BackendOptions = {}) {
   const reservations: ReservationsService = new ReservationsService(
     ctx,
     {
-      'mabu-direct': new MabuDirectReservationAdapter(ctx, (): BookingPolicy => reservations.policy(), mode),
+      'mabu-direct': new MabuDirectReservationAdapter(
+        ctx,
+        (): BookingPolicy => reservations.policy(),
+        mode,
+      ),
       dineplan: new DineplanReservationAdapter(),
     },
     payments,
@@ -122,7 +134,8 @@ export function seedConfiguration(backend: Backend): void {
   if (!db.home.has('home')) db.home.upsert(SEED_HOME);
   if (!db.bookingPolicy.has('booking-policy')) db.bookingPolicy.upsert(DEFAULT_BOOKING_POLICY);
   if (!db.voucherPolicy.has('voucher-policy')) db.voucherPolicy.upsert(DEFAULT_VOUCHER_POLICY);
-  if (!db.rewardsSettings.has('rewards-settings')) db.rewardsSettings.upsert(DEFAULT_REWARDS_SETTINGS);
+  if (!db.rewardsSettings.has('rewards-settings'))
+    db.rewardsSettings.upsert(DEFAULT_REWARDS_SETTINGS);
   if (db.dishes.count() === 0) SEED_DISHES.forEach((d) => db.dishes.upsert(d));
   if (db.wines.count() === 0) SEED_WINES.forEach((w) => db.wines.upsert(w));
   if (db.collections.count() === 0) SEED_COLLECTIONS.forEach((c) => db.collections.upsert(c));
@@ -130,5 +143,6 @@ export function seedConfiguration(backend: Backend): void {
   if (db.rewardTiers.count() === 0) SEED_TIERS.forEach((t) => db.rewardTiers.upsert(t));
   if (db.rewardRules.count() === 0) SEED_RULES.forEach((r) => db.rewardRules.upsert(r));
   if (db.rewards.count() === 0) SEED_REWARDS.forEach((r) => db.rewards.upsert(r));
-  if (db.notificationTemplates.count() === 0) defaultTemplates(now).forEach((t) => db.notificationTemplates.upsert(t));
+  if (db.notificationTemplates.count() === 0)
+    defaultTemplates(now).forEach((t) => db.notificationTemplates.upsert(t));
 }

@@ -18,7 +18,8 @@ export class Table<T extends { id: string }> {
 
   require(id: string, what = this.name): T {
     const row = this.get(id);
-    if (!row) throw new DomainError('NOT_FOUND', `We could not find that ${what}.`, `${this.name}:${id}`);
+    if (!row)
+      throw new DomainError('NOT_FOUND', `We could not find that ${what}.`, `${this.name}:${id}`);
     return row;
   }
 

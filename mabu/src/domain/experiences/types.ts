@@ -3,11 +3,7 @@
  * never confused with domain events on the bus.
  */
 export type ExperienceKind =
-  | 'wine-pairing'
-  | 'chef-evening'
-  | 'tasting-menu'
-  | 'special-occasion'
-  | 'private-function';
+  'wine-pairing' | 'chef-evening' | 'tasting-menu' | 'special-occasion' | 'private-function';
 
 export interface Experience {
   id: string;
@@ -37,12 +33,7 @@ export interface Experience {
 }
 
 export type ExperienceBookingStatus =
-  | 'pending_payment'
-  | 'confirmed'
-  | 'waitlisted'
-  | 'cancelled'
-  | 'attended'
-  | 'no-show';
+  'pending_payment' | 'confirmed' | 'waitlisted' | 'cancelled' | 'attended' | 'no-show';
 
 export interface ExperienceBooking {
   id: string;

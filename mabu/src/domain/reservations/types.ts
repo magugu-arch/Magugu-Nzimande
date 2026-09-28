@@ -40,12 +40,7 @@ export interface ReservationSlot {
 }
 
 export type Occasion =
-  | 'birthday'
-  | 'anniversary'
-  | 'business'
-  | 'date-night'
-  | 'celebration'
-  | 'other';
+  'birthday' | 'anniversary' | 'business' | 'date-night' | 'celebration' | 'other';
 
 export interface ReservationCreateRequest {
   venueId: string;
@@ -68,14 +63,12 @@ export interface ReservationCreateRequest {
   idempotencyKey: string;
 }
 
-export type DepositStatus = 'not_required' | 'pending' | 'paid' | 'failed' | 'refunded' | 'forfeited';
+export type DepositStatus =
+  'not_required' | 'pending' | 'paid' | 'failed' | 'refunded' | 'forfeited';
 
 /** The outcome of a cancellation or no-show under the policy in force at the time. */
 export type PolicyOutcome =
-  | 'cancelled_in_time'
-  | 'late_cancellation'
-  | 'no_show'
-  | 'cancelled_by_restaurant';
+  'cancelled_in_time' | 'late_cancellation' | 'no_show' | 'cancelled_by_restaurant';
 
 export interface ReservationRecord {
   id: string;
@@ -186,7 +179,11 @@ export interface ReservationProvider {
     externalReservationId: string;
     status: 'confirmed' | 'requested';
   }>;
-  reschedule(externalReservationId: string, slot: ReservationSlot, partySize: number): Promise<void>;
+  reschedule(
+    externalReservationId: string,
+    slot: ReservationSlot,
+    partySize: number,
+  ): Promise<void>;
   cancel(externalReservationId: string): Promise<void>;
 }
 

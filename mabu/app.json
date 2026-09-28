@@ -50,6 +50,14 @@
           "defaultChannel": "booking"
         }
       ],
+      [
+        "expo-calendar",
+        {
+          "writeOnlyAccess": true,
+          "writeOnlyCalendarPermission": "Mábu adds your booking to your calendar when you ask it to.",
+          "remindersPermission": false
+        }
+      ],
       "expo-font"
     ],
     "experiments": {

@@ -8,7 +8,9 @@ export interface Clock {
 
 export const systemClock: Clock = { now: () => new Date() };
 
-export function fixedClock(iso: string): Clock & { set(iso: string): void; advance(ms: number): void } {
+export function fixedClock(
+  iso: string,
+): Clock & { set(iso: string): void; advance(ms: number): void } {
   let current = new Date(iso);
   return {
     now: () => new Date(current.getTime()),

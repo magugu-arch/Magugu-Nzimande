@@ -16,7 +16,9 @@
     "verify": "npm run typecheck && npm run lint && npm run format:check && npm test",
     "assets:photos": "node scripts/derive-photos.mjs",
     "export:web": "expo export --platform web --output-dir dist-web",
-    "shots": "node scripts/screens.mjs"
+    "shots": "node scripts/screens.mjs",
+    "e2e": "node scripts/journeys.mjs",
+    "verify:web": "npm run export:web && npm run shots && npm run e2e"
   },
   "dependencies": {
     "@expo-google-fonts/allura": "^0.4.2",
@@ -27,6 +29,7 @@
     "@tanstack/react-query": "^5.104.0",
     "expo": "~57.0.15",
     "expo-asset": "~57.0.13",
+    "expo-calendar": "~57.0.5",
     "expo-clipboard": "~57.0.1",
     "expo-constants": "~57.0.13",
     "expo-font": "~57.0.1",

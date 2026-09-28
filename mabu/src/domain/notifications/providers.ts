@@ -62,8 +62,14 @@ export class MockChannelProvider implements NotificationProvider {
     }
     const guest = this.ctx.db.guests.get(message.guestId);
     const to =
-      (typeof message.data.toEmail === 'string' && this.channel === 'email' && message.data.toEmail) ||
-      (this.channel === 'email' ? guest?.email : this.channel === 'push' ? `device:${message.guestId}` : guest?.phone) ||
+      (typeof message.data.toEmail === 'string' &&
+        this.channel === 'email' &&
+        message.data.toEmail) ||
+      (this.channel === 'email'
+        ? guest?.email
+        : this.channel === 'push'
+          ? `device:${message.guestId}`
+          : guest?.phone) ||
       'unknown';
     const entry: OutboxEntry = {
       channel: this.channel,

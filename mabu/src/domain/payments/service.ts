@@ -23,7 +23,11 @@ export class MockPaymentProvider implements PaymentProvider {
     const providerRef = `mockpay_${Date.now().toString(36)}_${this.n}`;
     switch (request.methodToken) {
       case MOCK_PAYMENT_TOKENS.decline:
-        return { status: 'failed' as const, providerRef, reason: 'The card was declined by the bank.' };
+        return {
+          status: 'failed' as const,
+          providerRef,
+          reason: 'The card was declined by the bank.',
+        };
       case MOCK_PAYMENT_TOKENS.pending:
         return { status: 'pending' as const, providerRef };
       default:
@@ -73,7 +77,11 @@ export class PaymentsService {
     idempotencyKey: string;
   }): Promise<PaymentIntent> {
     if (!Number.isInteger(input.amountCents) || input.amountCents <= 0) {
-      throw new DomainError('VALIDATION', 'That amount is not valid.', `amount ${input.amountCents}`);
+      throw new DomainError(
+        'VALIDATION',
+        'That amount is not valid.',
+        `amount ${input.amountCents}`,
+      );
     }
     return idempotent(
       this.ctx.db,
@@ -140,7 +148,10 @@ export class PaymentsService {
     const intent = this.ctx.db.payments.require(intentId, 'payment');
     if (intent.status !== 'succeeded') return intent;
     if (intent.providerRef) await this.provider.refund(intent.providerRef, intent.amountCents);
-    return this.ctx.db.payments.update(intentId, { status: 'refunded', updatedAt: nowIso(this.ctx) });
+    return this.ctx.db.payments.update(intentId, {
+      status: 'refunded',
+      updatedAt: nowIso(this.ctx),
+    });
   }
 
   pending(): PaymentIntent[] {

@@ -38,14 +38,18 @@ export class ContentService {
   collections(): MenuCollection[] {
     const today = this.ctx.clock.now().toISOString().slice(0, 10);
     return this.ctx.db.collections.filter(
-      (c) => (!c.seasonalStart || c.seasonalStart <= today) && (!c.seasonalEnd || c.seasonalEnd >= today),
+      (c) =>
+        (!c.seasonalStart || c.seasonalStart <= today) &&
+        (!c.seasonalEnd || c.seasonalEnd >= today),
     );
   }
 
   /** Wines that pair with a dish, and dishes that pair with a wine. */
   pairingsForDish(dishId: string): WineItem[] {
     const d = this.dish(dishId);
-    return (d.pairingIds ?? []).map((id) => this.ctx.db.wines.get(id)).filter((w): w is WineItem => !!w);
+    return (d.pairingIds ?? [])
+      .map((id) => this.ctx.db.wines.get(id))
+      .filter((w): w is WineItem => !!w);
   }
 
   pairingsForWine(wineId: string): Dish[] {

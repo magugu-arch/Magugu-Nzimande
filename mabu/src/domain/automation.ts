@@ -25,7 +25,10 @@ interface Services {
  */
 export function wireAutomation(ctx: ServiceContext, s: Services): void {
   const bus = ctx.bus;
-  const msg = (m: Omit<NotificationMessage, 'id'>): NotificationMessage => ({ ...m, id: ctx.ids.id('ntf') });
+  const msg = (m: Omit<NotificationMessage, 'id'>): NotificationMessage => ({
+    ...m,
+    id: ctx.ids.id('ntf'),
+  });
 
   const bookingData = (reservationId: string) => {
     const r = ctx.db.reservations.require(reservationId);
@@ -241,7 +244,11 @@ export function wireAutomation(ctx: ServiceContext, s: Services): void {
 
   bus.subscribe('event.booked', async (e) => {
     const event = ctx.db.experiences.require(e.eventId);
-    const data = { eventTitle: event.title, date: formatDateLong(event.startsAt), time: formatTime(event.startsAt) };
+    const data = {
+      eventTitle: event.title,
+      date: formatDateLong(event.startsAt),
+      time: formatTime(event.startsAt),
+    };
     await s.notifications.sendNow(
       msg({
         guestId: e.guestId,
@@ -341,7 +348,9 @@ export async function runJobs(ctx: ServiceContext, s: Services): Promise<Record<
   let notices = 0;
   for (const account of ctx.db.rewardAccounts.list()) {
     for (const lot of s.rewards.expiringSoon(account.id)) {
-      const daysLeft = Math.ceil((new Date(lot.expiresAt).getTime() - ctx.clock.now().getTime()) / 86_400_000);
+      const daysLeft = Math.ceil(
+        (new Date(lot.expiresAt).getTime() - ctx.clock.now().getTime()) / 86_400_000,
+      );
       await s.notifications.queue({
         id: ctx.ids.id('ntf'),
         guestId: account.guestId,
@@ -360,8 +369,11 @@ export async function runJobs(ctx: ServiceContext, s: Services): Promise<Record<
   // Offer freed tables for the coming week to anyone waiting.
   let matched = 0;
   const today = new Date(ctx.clock.now().getTime() + 2 * 3_600_000).toISOString().slice(0, 10);
-  const dates = new Set(ctx.db.waitlist.filter((w) => w.status === 'waiting').map((w) => w.query.date));
-  for (const date of dates) if (date >= today) matched += (await s.reservations.matchWaitlist(date)).length;
+  const dates = new Set(
+    ctx.db.waitlist.filter((w) => w.status === 'waiting').map((w) => w.query.date),
+  );
+  for (const date of dates)
+    if (date >= today) matched += (await s.reservations.matchWaitlist(date)).length;
   out.waitlistMatched = matched;
   return out;
 }

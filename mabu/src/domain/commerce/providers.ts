@@ -80,7 +80,8 @@ export class CommerceRegistry {
   }
 
   provider(id: ProviderId): CommerceProvider {
-    if (!this.enabled().includes(id)) unconfigured(`${id.toUpperCase().replace('-', '_')}_DISABLED`);
+    if (!this.enabled().includes(id))
+      unconfigured(`${id.toUpperCase().replace('-', '_')}_DISABLED`);
     return this.all[id];
   }
 

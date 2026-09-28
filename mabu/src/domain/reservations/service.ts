@@ -116,7 +116,11 @@ export class ReservationsService {
    * been asked and said no to every seating — a closed day is known from
    * policy alone and never costs a provider call.
    */
-  async dayStates(from: string, days: number, partySize: number): Promise<Record<string, DayState>> {
+  async dayStates(
+    from: string,
+    days: number,
+    partySize: number,
+  ): Promise<Record<string, DayState>> {
     const policy = this.policy();
     const out: Record<string, DayState> = {};
     for (let i = 0; i < days; i++) {
@@ -203,7 +207,11 @@ export class ReservationsService {
     const external = await provider.create(request, slot);
 
     const guestId = actor.role === 'guest' ? actor.id : `walkin_${contact.email}`;
-    const depositCents = depositFor(policy, request.partySize, this.ctx.flags.bookingDepositEnabled);
+    const depositCents = depositFor(
+      policy,
+      request.partySize,
+      this.ctx.flags.bookingDepositEnabled,
+    );
     const now = nowIso(this.ctx);
     const status = depositCents > 0 ? 'requested' : external.status;
 
@@ -300,7 +308,10 @@ export class ReservationsService {
     return this.applyDepositOutcome(r, intent.status === 'succeeded');
   }
 
-  private async applyDepositOutcome(r: ReservationRecord, paid: boolean): Promise<ReservationRecord> {
+  private async applyDepositOutcome(
+    r: ReservationRecord,
+    paid: boolean,
+  ): Promise<ReservationRecord> {
     const actor = { id: 'system', role: 'admin' as const };
     if (!paid) {
       this.log(r.id, 'deposit-failed', actor, {});
@@ -397,21 +408,32 @@ export class ReservationsService {
     idempotencyKey: string,
   ): Promise<ReservationRecord> {
     const r = this.get(reservationId, actor);
-    await idempotent(this.ctx.db, `reservation.amend:${r.id}`, idempotencyKey, patch, nowIso(this.ctx), async () => {
-      this.assertGuestMayChange(r, actor);
-      const clean: AmendPatch = {
-        occasion: patch.occasion,
-        occasionNote: cleanNote(patch.occasionNote, 200),
-        seatingPreference: patch.seatingPreference,
-        dietaryNotes: cleanNote(patch.dietaryNotes),
-        accessibilityNotes: cleanNote(patch.accessibilityNotes),
-        specialRequest: cleanNote(patch.specialRequest),
-      };
-      this.ctx.db.reservations.update(r.id, { ...clean, updatedAt: nowIso(this.ctx) });
-      this.log(r.id, 'amended', actor, { fields: Object.keys(patch) });
-      await this.ctx.bus.publish({ type: 'reservation.amended', reservationId: r.id, guestId: r.guestId });
-      return r.id;
-    });
+    await idempotent(
+      this.ctx.db,
+      `reservation.amend:${r.id}`,
+      idempotencyKey,
+      patch,
+      nowIso(this.ctx),
+      async () => {
+        this.assertGuestMayChange(r, actor);
+        const clean: AmendPatch = {
+          occasion: patch.occasion,
+          occasionNote: cleanNote(patch.occasionNote, 200),
+          seatingPreference: patch.seatingPreference,
+          dietaryNotes: cleanNote(patch.dietaryNotes),
+          accessibilityNotes: cleanNote(patch.accessibilityNotes),
+          specialRequest: cleanNote(patch.specialRequest),
+        };
+        this.ctx.db.reservations.update(r.id, { ...clean, updatedAt: nowIso(this.ctx) });
+        this.log(r.id, 'amended', actor, { fields: Object.keys(patch) });
+        await this.ctx.bus.publish({
+          type: 'reservation.amended',
+          reservationId: r.id,
+          guestId: r.guestId,
+        });
+        return r.id;
+      },
+    );
     return this.ctx.db.reservations.require(r.id);
   }
 
@@ -446,7 +468,11 @@ export class ReservationsService {
           status: r.status === 'requested' ? 'requested' : 'rescheduled',
           updatedAt: nowIso(this.ctx),
         });
-        this.log(r.id, 'rescheduled', actor, { from: previous, to: slot.startsAt, partySize: size });
+        this.log(r.id, 'rescheduled', actor, {
+          from: previous,
+          to: slot.startsAt,
+          partySize: size,
+        });
         this.ctx.analytics.track('booking_rescheduled', { partySize: size });
         await this.ctx.bus.publish({
           type: 'reservation.rescheduled',
@@ -471,55 +497,62 @@ export class ReservationsService {
     reason?: string,
   ): Promise<ReservationRecord> {
     const r = this.get(reservationId, actor);
-    await idempotent(this.ctx.db, `reservation.cancel:${r.id}`, idempotencyKey, {}, nowIso(this.ctx), async () => {
-      if (!isActive(r)) {
-        throw new DomainError('POLICY_VIOLATION', 'This booking is already closed.', r.status);
-      }
-      const cutoff =
-        new Date(r.startsAt).getTime() - this.policy().cancellationCutoffHours * 3_600_000;
-      const outcome: PolicyOutcome =
-        actor.role !== 'guest'
-          ? 'cancelled_by_restaurant'
-          : this.ctx.clock.now().getTime() <= cutoff
-            ? 'cancelled_in_time'
-            : 'late_cancellation';
-      if (r.externalReservationId) {
-        await this.providers[r.provider].cancel(r.externalReservationId);
-      }
-      let depositStatus = r.depositStatus;
-      if (r.depositStatus === 'paid') {
-        depositStatus = outcome === 'late_cancellation' ? 'forfeited' : 'refunded';
-        if (depositStatus === 'refunded') {
-          const intent = this.ctx.db.payments.find(
-            (p) => p.referenceId === r.id && p.status === 'succeeded',
-          );
-          if (intent) await this.payments.refund(intent.id);
+    await idempotent(
+      this.ctx.db,
+      `reservation.cancel:${r.id}`,
+      idempotencyKey,
+      {},
+      nowIso(this.ctx),
+      async () => {
+        if (!isActive(r)) {
+          throw new DomainError('POLICY_VIOLATION', 'This booking is already closed.', r.status);
         }
-      } else if (r.depositStatus === 'pending') {
-        depositStatus = 'not_required';
-      }
-      this.ctx.db.reservations.update(r.id, {
-        status: 'cancelled',
-        cancellationReason: cleanNote(reason, 200),
-        policyOutcome: outcome,
-        depositStatus,
-        updatedAt: nowIso(this.ctx),
-      });
-      this.log(r.id, 'cancelled', actor, { outcome, reason: reason ? 'given' : 'none' });
-      if (actor.role !== 'guest') {
-        audit(this.ctx, actor, 'reservation.cancelled', 'reservation', r.id, { outcome });
-      }
-      this.ctx.analytics.track('reservation_cancelled', { outcome });
-      this.ctx.analytics.track('booking_cancelled', { outcome });
-      await this.ctx.bus.publish({
-        type: 'reservation.cancelled',
-        reservationId: r.id,
-        guestId: r.guestId,
-        startsAt: r.startsAt,
-      });
-      await this.matchWaitlist(parseSlotId(r.slotId).date);
-      return r.id;
-    });
+        const cutoff =
+          new Date(r.startsAt).getTime() - this.policy().cancellationCutoffHours * 3_600_000;
+        const outcome: PolicyOutcome =
+          actor.role !== 'guest'
+            ? 'cancelled_by_restaurant'
+            : this.ctx.clock.now().getTime() <= cutoff
+              ? 'cancelled_in_time'
+              : 'late_cancellation';
+        if (r.externalReservationId) {
+          await this.providers[r.provider].cancel(r.externalReservationId);
+        }
+        let depositStatus = r.depositStatus;
+        if (r.depositStatus === 'paid') {
+          depositStatus = outcome === 'late_cancellation' ? 'forfeited' : 'refunded';
+          if (depositStatus === 'refunded') {
+            const intent = this.ctx.db.payments.find(
+              (p) => p.referenceId === r.id && p.status === 'succeeded',
+            );
+            if (intent) await this.payments.refund(intent.id);
+          }
+        } else if (r.depositStatus === 'pending') {
+          depositStatus = 'not_required';
+        }
+        this.ctx.db.reservations.update(r.id, {
+          status: 'cancelled',
+          cancellationReason: cleanNote(reason, 200),
+          policyOutcome: outcome,
+          depositStatus,
+          updatedAt: nowIso(this.ctx),
+        });
+        this.log(r.id, 'cancelled', actor, { outcome, reason: reason ? 'given' : 'none' });
+        if (actor.role !== 'guest') {
+          audit(this.ctx, actor, 'reservation.cancelled', 'reservation', r.id, { outcome });
+        }
+        this.ctx.analytics.track('reservation_cancelled', { outcome });
+        this.ctx.analytics.track('booking_cancelled', { outcome });
+        await this.ctx.bus.publish({
+          type: 'reservation.cancelled',
+          reservationId: r.id,
+          guestId: r.guestId,
+          startsAt: r.startsAt,
+        });
+        await this.matchWaitlist(parseSlotId(r.slotId).date);
+        return r.id;
+      },
+    );
     return this.ctx.db.reservations.require(r.id);
   }
 
@@ -529,7 +562,11 @@ export class ReservationsService {
     const r = this.ctx.db.reservations.require(reservationId, 'booking');
     if (r.status === 'completed') return r; // exactly once, however often staff tap it
     if (!isActive(r)) {
-      throw new DomainError('POLICY_VIOLATION', `A ${r.status} booking cannot be completed.`, r.status);
+      throw new DomainError(
+        'POLICY_VIOLATION',
+        `A ${r.status} booking cannot be completed.`,
+        r.status,
+      );
     }
     if (new Date(r.startsAt).getTime() > this.ctx.clock.now().getTime()) {
       throw new DomainError('POLICY_VIOLATION', 'This booking has not started yet.', 'future');
@@ -541,7 +578,11 @@ export class ReservationsService {
     this.log(r.id, 'completed', actor, {});
     audit(this.ctx, actor, 'reservation.completed', 'reservation', r.id);
     this.ctx.analytics.track('visit_completed', { partySize: r.partySize });
-    await this.ctx.bus.publish({ type: 'reservation.completed', reservationId: r.id, guestId: r.guestId });
+    await this.ctx.bus.publish({
+      type: 'reservation.completed',
+      reservationId: r.id,
+      guestId: r.guestId,
+    });
     return updated;
   }
 
@@ -550,7 +591,11 @@ export class ReservationsService {
     const r = this.ctx.db.reservations.require(reservationId, 'booking');
     if (r.status === 'no-show') return r;
     if (!isActive(r)) {
-      throw new DomainError('POLICY_VIOLATION', `A ${r.status} booking cannot be marked missed.`, r.status);
+      throw new DomainError(
+        'POLICY_VIOLATION',
+        `A ${r.status} booking cannot be marked missed.`,
+        r.status,
+      );
     }
     if (new Date(r.startsAt).getTime() > this.ctx.clock.now().getTime()) {
       throw new DomainError('POLICY_VIOLATION', 'This booking has not started yet.', 'future');
@@ -563,7 +608,11 @@ export class ReservationsService {
     });
     this.log(r.id, 'no-show', actor, {});
     audit(this.ctx, actor, 'reservation.no_show', 'reservation', r.id);
-    await this.ctx.bus.publish({ type: 'reservation.no_show', reservationId: r.id, guestId: r.guestId });
+    await this.ctx.bus.publish({
+      type: 'reservation.no_show',
+      reservationId: r.id,
+      guestId: r.guestId,
+    });
     return updated;
   }
 
@@ -700,7 +749,8 @@ export class ReservationsService {
       payload,
       receivedAt: nowIso(this.ctx),
     });
-    const externalId = typeof payload.externalReservationId === 'string' ? payload.externalReservationId : undefined;
+    const externalId =
+      typeof payload.externalReservationId === 'string' ? payload.externalReservationId : undefined;
     const r = externalId
       ? this.ctx.db.reservations.find((x) => x.externalReservationId === externalId)
       : undefined;

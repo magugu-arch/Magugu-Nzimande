@@ -76,14 +76,21 @@ export class RewardsEngine {
       current,
       next,
       pointsToNext: next.minLifetimePoints - account.lifetimePoints,
-      fraction: Math.min(1, Math.max(0, (account.lifetimePoints - current.minLifetimePoints) / span)),
+      fraction: Math.min(
+        1,
+        Math.max(0, (account.lifetimePoints - current.minLifetimePoints) / span),
+      ),
     };
   }
 
   upsertRule(rule: RewardRule, actor: Actor): RewardRule {
     requireRole(actor, 'admin');
     if (!Number.isInteger(rule.points) || rule.points < 0 || rule.points > 100_000) {
-      throw new DomainError('VALIDATION', 'Points must be a whole number between 0 and 100 000.', 'points');
+      throw new DomainError(
+        'VALIDATION',
+        'Points must be a whole number between 0 and 100 000.',
+        'points',
+      );
     }
     const saved = this.ctx.db.rewardRules.upsert({ ...rule, updatedAt: nowIso(this.ctx) });
     audit(this.ctx, actor, 'reward_rule.saved', 'reward_rule', rule.id, {
@@ -105,7 +112,12 @@ export class RewardsEngine {
 
   updateSettings(patch: Partial<Omit<RewardsSettings, 'id'>>, actor: Actor): RewardsSettings {
     requireRole(actor, 'admin');
-    const next = { ...this.settings(), ...patch, id: 'rewards-settings' as const, updatedAt: nowIso(this.ctx) };
+    const next = {
+      ...this.settings(),
+      ...patch,
+      id: 'rewards-settings' as const,
+      updatedAt: nowIso(this.ctx),
+    };
     this.ctx.db.rewardsSettings.upsert(next);
     audit(this.ctx, actor, 'rewards_settings.updated', 'rewards_settings', next.id, patch);
     return next;
@@ -185,9 +197,16 @@ export class RewardsEngine {
     referenceType: RewardReferenceType,
     options: { description?: string; idempotencyKey?: string; actor?: Actor } = {},
   ): Promise<RewardTransaction> {
-    requireFlag(this.ctx.flags.rewardsEnabled && this.ctx.flags.rewardsEarningEnabled, 'rewards earning');
+    requireFlag(
+      this.ctx.flags.rewardsEnabled && this.ctx.flags.rewardsEarningEnabled,
+      'rewards earning',
+    );
     if (!Number.isInteger(points) || points <= 0) {
-      throw new DomainError('VALIDATION', 'Points must be a positive whole number.', `points ${points}`);
+      throw new DomainError(
+        'VALIDATION',
+        'Points must be a positive whole number.',
+        `points ${points}`,
+      );
     }
     const key = options.idempotencyKey ?? `earn:${referenceType}:${referenceId}`;
     const existing = this.ctx.db.rewardTransactions.find(
@@ -213,7 +232,12 @@ export class RewardsEngine {
     });
     await this.applyBalance(account, points, points);
     this.ctx.analytics.track('reward_points_earned', { points, referenceType });
-    await this.ctx.bus.publish({ type: 'reward.earned', guestId: account.guestId, points, referenceId });
+    await this.ctx.bus.publish({
+      type: 'reward.earned',
+      guestId: account.guestId,
+      points,
+      referenceId,
+    });
     return tx;
   }
 
@@ -271,7 +295,9 @@ export class RewardsEngine {
     const monthStart = nowIso(this.ctx).slice(0, 7);
     const thisMonth = this.ctx.db.rewardTransactions.count(
       (t) =>
-        t.accountId === account.id && t.referenceType === 'referral' && t.createdAt.startsWith(monthStart),
+        t.accountId === account.id &&
+        t.referenceType === 'referral' &&
+        t.createdAt.startsWith(monthStart),
     );
     if (thisMonth >= this.settings().referralMonthlyCap) return [];
     return this.applyTrigger('referral', referrer.id, 'referral', referred.id);
@@ -325,11 +351,19 @@ export class RewardsEngine {
         const reward = this.ctx.db.rewards.require(rewardId, 'reward');
         const now = this.ctx.clock.now();
         if (!reward.active || (reward.expiresAt && new Date(reward.expiresAt) <= now)) {
-          throw new DomainError('EXPIRED', 'This reward is no longer available.', 'reward inactive');
+          throw new DomainError(
+            'EXPIRED',
+            'This reward is no longer available.',
+            'reward inactive',
+          );
         }
         const tier = this.tierFor(fresh.lifetimePoints);
         if (reward.tierIds?.length && !reward.tierIds.includes(tier.id)) {
-          throw new DomainError('NOT_ELIGIBLE', 'This reward is reserved for a higher tier.', 'tier');
+          throw new DomainError(
+            'NOT_ELIGIBLE',
+            'This reward is reserved for a higher tier.',
+            'tier',
+          );
         }
         if (fresh.balancePoints < reward.pointsCost) {
           throw new DomainError(
@@ -363,7 +397,9 @@ export class RewardsEngine {
           status: 'issued',
           transactionId: tx.id,
           createdAt: at,
-          expiresAt: new Date(now.getTime() + reward.redemptionValidDays * 86_400_000).toISOString(),
+          expiresAt: new Date(
+            now.getTime() + reward.redemptionValidDays * 86_400_000,
+          ).toISOString(),
         });
         this.ctx.analytics.track('reward_redeemed', { points: reward.pointsCost });
         await this.ctx.bus.publish({
@@ -388,7 +424,11 @@ export class RewardsEngine {
     const r = this.ctx.db.rewardRedemptions.find((x) => x.code === code.trim().toUpperCase());
     if (!r) throw new DomainError('NOT_FOUND', 'That reward code was not recognised.', code);
     if (r.status === 'used') {
-      throw new DomainError('ALREADY_REDEEMED', `This reward was already used on ${r.usedAt?.slice(0, 10)}.`, r.id);
+      throw new DomainError(
+        'ALREADY_REDEEMED',
+        `This reward was already used on ${r.usedAt?.slice(0, 10)}.`,
+        r.id,
+      );
     }
     if (r.status !== 'issued') {
       throw new DomainError('EXPIRED', `This reward is ${r.status}.`, r.id);
@@ -409,7 +449,12 @@ export class RewardsEngine {
   /* ── Admin corrections ──────────────────────────────────────────────── */
 
   /** Manual issue (+) or deduction (−). A deduction can never take a balance below zero. */
-  async adjust(accountId: string, points: number, reason: string, actor: Actor): Promise<RewardTransaction> {
+  async adjust(
+    accountId: string,
+    points: number,
+    reason: string,
+    actor: Actor,
+  ): Promise<RewardTransaction> {
     requireRole(actor, 'admin');
     if (!Number.isInteger(points) || points === 0) {
       throw new DomainError('VALIDATION', 'Enter a non-zero whole number of points.', 'points');
@@ -443,7 +488,12 @@ export class RewardsEngine {
     await this.applyBalance(account, points, points > 0 ? points : 0);
     audit(this.ctx, actor, 'reward.adjusted', 'reward_account', accountId, { points, reason });
     if (points > 0) {
-      await this.ctx.bus.publish({ type: 'reward.earned', guestId: account.guestId, points, referenceId: tx.id });
+      await this.ctx.bus.publish({
+        type: 'reward.earned',
+        guestId: account.guestId,
+        points,
+        referenceId: tx.id,
+      });
     }
     return tx;
   }
@@ -460,7 +510,11 @@ export class RewardsEngine {
     requireRole(actor, 'admin');
     const original = this.ctx.db.rewardTransactions.require(transactionId, 'transaction');
     if (this.ctx.db.rewardTransactions.find((t) => t.reversesTransactionId === transactionId)) {
-      throw new DomainError('CONFLICT', 'That transaction has already been reversed.', transactionId);
+      throw new DomainError(
+        'CONFLICT',
+        'That transaction has already been reversed.',
+        transactionId,
+      );
     }
     const account = this.ctx.db.rewardAccounts.require(original.accountId);
     const now = nowIso(this.ctx);
@@ -475,14 +529,25 @@ export class RewardsEngine {
     } else if (original.type === 'redeem') {
       const redemption = this.ctx.db.rewardRedemptions.find((r) => r.transactionId === original.id);
       if (redemption?.status === 'used') {
-        throw new DomainError('CONFLICT', 'That reward has already been used and cannot be reversed.', original.id);
+        throw new DomainError(
+          'CONFLICT',
+          'That reward has already been used and cannot be reversed.',
+          original.id,
+        );
       }
       if (redemption) this.ctx.db.rewardRedemptions.update(redemption.id, { status: 'cancelled' });
       points = -original.points;
       lifetimeDelta = 0;
-      lot = { expiresAt: addMonths(now, this.settings().pointsExpiryMonths), remainingPoints: points };
+      lot = {
+        expiresAt: addMonths(now, this.settings().pointsExpiryMonths),
+        remainingPoints: points,
+      };
     } else {
-      throw new DomainError('VALIDATION', `A ${original.type} line cannot be reversed.`, original.type);
+      throw new DomainError(
+        'VALIDATION',
+        `A ${original.type} line cannot be reversed.`,
+        original.type,
+      );
     }
 
     const tx = this.ctx.db.rewardTransactions.insert({
@@ -500,7 +565,10 @@ export class RewardsEngine {
       ...lot,
     });
     await this.applyBalance(account, points, lifetimeDelta);
-    audit(this.ctx, actor, 'reward.reversed', 'reward_transaction', original.id, { points, reason });
+    audit(this.ctx, actor, 'reward.reversed', 'reward_transaction', original.id, {
+      points,
+      reason,
+    });
     return tx;
   }
 
@@ -511,7 +579,8 @@ export class RewardsEngine {
     const now = this.ctx.clock.now().getTime();
     const out: RewardTransaction[] = [];
     const lots = this.ctx.db.rewardTransactions.filter(
-      (t) => (t.remainingPoints ?? 0) > 0 && !!t.expiresAt && new Date(t.expiresAt).getTime() <= now,
+      (t) =>
+        (t.remainingPoints ?? 0) > 0 && !!t.expiresAt && new Date(t.expiresAt).getTime() <= now,
     );
     for (const lot of lots) {
       const account = this.ctx.db.rewardAccounts.require(lot.accountId);
@@ -584,23 +653,41 @@ export class RewardsEngine {
     let left = points;
     const lots = this.ctx.db.rewardTransactions
       .filter((t) => t.accountId === accountId && (t.remainingPoints ?? 0) > 0)
-      .sort((a, b) => (a.expiresAt ?? '').localeCompare(b.expiresAt ?? '') || a.createdAt.localeCompare(b.createdAt));
+      .sort(
+        (a, b) =>
+          (a.expiresAt ?? '').localeCompare(b.expiresAt ?? '') ||
+          a.createdAt.localeCompare(b.createdAt),
+      );
     for (const lot of lots) {
       if (left <= 0) break;
       const take = Math.min(left, lot.remainingPoints ?? 0);
-      this.ctx.db.rewardTransactions.update(lot.id, { remainingPoints: (lot.remainingPoints ?? 0) - take });
+      this.ctx.db.rewardTransactions.update(lot.id, {
+        remainingPoints: (lot.remainingPoints ?? 0) - take,
+      });
       left -= take;
     }
     if (left > 0) {
-      throw new DomainError('INSUFFICIENT_POINTS', 'There are not enough points.', `short by ${left}`);
+      throw new DomainError(
+        'INSUFFICIENT_POINTS',
+        'There are not enough points.',
+        `short by ${left}`,
+      );
     }
   }
 
-  private async applyBalance(account: RewardAccount, delta: number, lifetimeDelta: number): Promise<void> {
+  private async applyBalance(
+    account: RewardAccount,
+    delta: number,
+    lifetimeDelta: number,
+  ): Promise<void> {
     const fresh = this.ctx.db.rewardAccounts.require(account.id);
     const balancePoints = fresh.balancePoints + delta;
     if (balancePoints < 0) {
-      throw new DomainError('INSUFFICIENT_POINTS', 'There are not enough points.', 'negative balance');
+      throw new DomainError(
+        'INSUFFICIENT_POINTS',
+        'There are not enough points.',
+        'negative balance',
+      );
     }
     const lifetimePoints = Math.max(0, fresh.lifetimePoints + lifetimeDelta);
     const before = this.tierFor(fresh.lifetimePoints);

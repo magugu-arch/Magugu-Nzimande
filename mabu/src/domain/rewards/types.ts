@@ -3,12 +3,7 @@
 export type RewardTransactionType = 'earn' | 'redeem' | 'adjust' | 'expire' | 'reverse';
 
 export type RewardTrigger =
-  | 'completed_visit'
-  | 'event_attendance'
-  | 'purchase'
-  | 'referral'
-  | 'birthday'
-  | 'campaign';
+  'completed_visit' | 'event_attendance' | 'purchase' | 'referral' | 'birthday' | 'campaign';
 
 export interface RewardAccount {
   id: string;

@@ -1,6 +1,10 @@
 import type { TextStyle } from 'react-native';
 
 /**
+ * Playfair's ascenders stand tall: display line heights are ~1.3× the size so
+ * a wrapped heading never rises into the line above it (the web renders
+ * overflow above the box, not clipped).
+ *
  * The board's TYPOGRAPHY panel names three faces:
  *   Playfair Display — headings
  *   Montserrat       — body text (and the wide-tracked uppercase labels)
@@ -18,10 +22,10 @@ export const fontFamily = {
 } as const;
 
 export const typography = {
-  hero: { fontFamily: fontFamily.display, fontSize: 40, lineHeight: 46 },
-  h1: { fontFamily: fontFamily.display, fontSize: 32, lineHeight: 38 },
-  h2: { fontFamily: fontFamily.display, fontSize: 25, lineHeight: 31 },
-  h3: { fontFamily: fontFamily.display, fontSize: 20, lineHeight: 26 },
+  hero: { fontFamily: fontFamily.display, fontSize: 40, lineHeight: 52 },
+  h1: { fontFamily: fontFamily.display, fontSize: 32, lineHeight: 42 },
+  h2: { fontFamily: fontFamily.display, fontSize: 25, lineHeight: 33 },
+  h3: { fontFamily: fontFamily.display, fontSize: 20, lineHeight: 27 },
   title: { fontFamily: fontFamily.bodyMedium, fontSize: 16, lineHeight: 22 },
   body: { fontFamily: fontFamily.body, fontSize: 15, lineHeight: 23 },
   bodySmall: { fontFamily: fontFamily.body, fontSize: 13, lineHeight: 19 },
