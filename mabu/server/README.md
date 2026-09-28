@@ -10,6 +10,12 @@ npm run server:start    # production start (set the variables below)
 npm run server:check    # end-to-end check on PostgreSQL (PGlite) over HTTP
 ```
 
+Docker (PostgreSQL + API on one machine):
+
+```bash
+docker compose -f server/docker-compose.yml up --build     # from mabu/
+```
+
 Point the app at it with `EXPO_PUBLIC_USE_MOCK_API=0` and `EXPO_PUBLIC_API_BASE_URL=https://…`.
 
 ## What it does
@@ -19,8 +25,8 @@ Point the app at it with `EXPO_PUBLIC_USE_MOCK_API=0` and `EXPO_PUBLIC_API_BASE_
   are limited to 5 per address per 15 minutes and 20 per IP per hour. With no email provider configured,
   sign-in refuses with `NOT_CONFIGURED` rather than pretending.
 - **Identity:** the actor for every call comes from the session, never from the request body.
-- **Persistence:** PostgreSQL when `DATABASE_URL` is set (apply `migrations/001` and `002`), otherwise a JSON
-  file. Calls run one at a time; each call's changed rows are written in one transaction before it answers.
+- **Persistence:** PostgreSQL when `DATABASE_URL` is set, otherwise a JSON file. Pending migrations are applied
+  at start, each once, in a transaction, with a checksum so an edited migration stops the start-up. Calls run one at a time; each call's changed rows are written in one transaction before it answers.
 - **Jobs:** reminders, expiry, retries and waitlist matching every minute.
 - **Push:** devices register through `devices.register`; delivery goes through Expo's push service (APNs and
   FCM). Devices Expo reports as unregistered are forgotten.
@@ -40,13 +46,16 @@ Point the app at it with `EXPO_PUBLIC_USE_MOCK_API=0` and `EXPO_PUBLIC_API_BASE_
 | `MABU_DIRECT_INVENTORY` | `1` to take bookings against Mábu's own pacing |
 | `EXPO_ACCESS_TOKEN` | optional, Expo enhanced push security |
 | `MABU_PUSH_ENABLED` | `false` turns push delivery off |
+| `MABU_SMTP_URL` | `smtps://user:password@host:465` — sign-in codes and notification email |
+| `MABU_EMAIL_FROM` | sender, e.g. `Mábu Restaurant <reservations@maburestaurant.com>` |
+| `MABU_AUTO_MIGRATE` | `0` skips applying migrations at start |
 | `MABU_DEV_LOG_EMAIL` | `1` prints emails (sign-in codes included) to the log; refused when `NODE_ENV=production` |
 | `MABU_*` flags | the §22 / §45 flags from `.env.example`, without `EXPO_PUBLIC_` |
 
 ## Still to connect
 
-- **An email provider.** Implement `EmailSender` (`src/auth.ts`, one `send(to, subject, text)` method) for the
-  provider Mábu chooses and pass it in `src/main.ts`. Until then sign-in works only with `MABU_DEV_LOG_EMAIL`.
+- **An email account.** Email goes out over SMTP (`src/email.ts`); any provider works. It needs the provider's
+  SMTP address and a verified sender on Mábu's domain. Until then sign-in works only with `MABU_DEV_LOG_EMAIL`.
 - **Payments.** The payment provider is unconfigured in live mode; vouchers, paid events and deposits refuse
   until a South African gateway's hosted checkout and webhook are added.
 - **Relational tables.** Rows are kept as documents in `server_row`. They already match the shapes in

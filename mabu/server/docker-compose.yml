@@ -1,0 +1,35 @@
+# Local or single-VM stack: PostgreSQL and the API.
+#   cd mabu && docker compose -f server/docker-compose.yml up --build
+# Sign-in codes are printed to the API log until MABU_SMTP_URL is set.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: mabu
+      POSTGRES_USER: mabu
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - mabu-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U mabu -d mabu']
+      interval: 5s
+      retries: 10
+  api:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://mabu:${POSTGRES_PASSWORD:-change-me}@db:5432/mabu
+      NODE_ENV: ${NODE_ENV:-development}
+      MABU_DEV_LOG_EMAIL: ${MABU_DEV_LOG_EMAIL:-1}
+      MABU_SMTP_URL: ${MABU_SMTP_URL:-}
+      MABU_EMAIL_FROM: ${MABU_EMAIL_FROM:-}
+      MABU_DIRECT_INVENTORY: ${MABU_DIRECT_INVENTORY:-0}
+      MABU_ALLOWED_ORIGINS: ${MABU_ALLOWED_ORIGINS:-http://localhost:8081}
+    ports:
+      - '8787:8787'
+volumes:
+  mabu-db:

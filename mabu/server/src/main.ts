@@ -1,8 +1,9 @@
 /**
  * Starts the Mábu API.
  *
- *   DATABASE_URL            PostgreSQL (migrations 001 + 002 applied). Without
- *                           it, MABU_DATA_FILE (default ./data/mabu.json) is used.
+ *   DATABASE_URL            PostgreSQL; pending migrations are applied at start
+ *                           (MABU_AUTO_MIGRATE=0 to skip). Without it,
+ *                           MABU_DATA_FILE (default ./data/mabu.json) is used.
  *   PORT                    default 8787
  *   MABU_ALLOWED_ORIGINS    comma-separated web origins allowed to call the API
  *   MABU_DIRECT_INVENTORY   1 = take bookings against Mábu's own pacing (only
@@ -22,6 +23,7 @@ import { flagsFromEnv } from '../../src/domain/flags';
 import { createServer } from './app';
 import type { EmailSender } from './auth';
 import { SmtpEmailSender } from './email';
+import { migrate } from './migrate';
 import { FileStore, SqlStore, type ServerStore } from './store';
 
 async function openStore(): Promise<ServerStore> {
@@ -30,6 +32,13 @@ async function openStore(): Promise<ServerStore> {
     const { default: pg } = await import('pg');
     const client = new pg.Client({ connectionString: url });
     await client.connect();
+    if (process.env.MABU_AUTO_MIGRATE !== '0') {
+      await migrate(
+        client,
+        process.env.MABU_MIGRATIONS_DIR ?? path.resolve('server/migrations'),
+        (l) => console.log(l),
+      );
+    }
     const store = new SqlStore(client);
     store.close = () => client.end();
     return store;

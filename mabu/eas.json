@@ -1,0 +1,29 @@
+{
+  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": { "EXPO_PUBLIC_USE_MOCK_API": "1" }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "env": { "EXPO_PUBLIC_USE_MOCK_API": "1" }
+    },
+    "production": {
+      "channel": "production",
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_USE_MOCK_API": "0",
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.maburestaurant.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": { "ascAppId": "SET_AFTER_APP_STORE_CONNECT_RECORD_IS_CREATED" },
+      "android": { "track": "internal" }
+    }
+  }
+}

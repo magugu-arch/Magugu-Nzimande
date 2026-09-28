@@ -20,6 +20,7 @@ await build({
   stdin: {
     contents: `export { createServer } from './server/src/app';
 export { SqlStore } from './server/src/store';
+export { migrate } from './server/src/migrate';
 export { flagsFromEnv } from './src/domain/flags';`,
     resolveDir: root,
     loader: 'ts',
@@ -30,15 +31,12 @@ export { flagsFromEnv } from './src/domain/flags';`,
   outfile: out,
   logLevel: 'error',
 });
-const { createServer, SqlStore, flagsFromEnv } = await import(pathToFileURL(out).href);
+const { createServer, SqlStore, flagsFromEnv, migrate } = await import(pathToFileURL(out).href);
 
 const db = new PGlite({ extensions: { citext } });
 const dir = path.join(root, 'server/migrations');
-for (const f of fs
-  .readdirSync(dir)
-  .filter((f) => f.endsWith('.sql'))
-  .sort())
-  await db.exec(fs.readFileSync(path.join(dir, f), 'utf8'));
+const firstRun = await migrate(db, dir);
+const secondRun = await migrate(db, dir);
 
 let failures = 0;
 const check = (label, ok, detail = '') => {
@@ -72,6 +70,17 @@ async function start() {
   };
   return { server, base, rpc, stop: () => new Promise((r) => httpServer.close(r)) };
 }
+
+check(
+  'migrations applied in order',
+  firstRun.join() ===
+    fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort()
+      .join(),
+);
+check('migrations applied once', secondRun.length === 0);
 
 let api = await start();
 check('health', (await (await fetch(`${api.base}/health`)).json()).ok === true);

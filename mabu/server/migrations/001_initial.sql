@@ -15,8 +15,7 @@
 --   * event bookings never exceed capacity
 --
 -- Money is integer cents (ZAR). Times are timestamptz; the venue is SAST (+02:00).
-
-BEGIN;
+-- The migration runner (server/src/migrate.ts) wraps each file in a transaction.
 
 CREATE EXTENSION IF NOT EXISTS citext;
 
@@ -487,5 +486,3 @@ CREATE TABLE provider_order (
   updated_at         timestamptz NOT NULL DEFAULT now(),
   UNIQUE (provider, external_order_id)
 );
-
-COMMIT;

@@ -46,6 +46,8 @@ jobs:
       # The API server on PostgreSQL over HTTP: sign-in, booking, restart.
       - name: API server end to end
         run: npm run server:check && npm run server:build
+      - name: API server image builds
+        run: docker build -f server/Dockerfile -t mabu-api:ci .
       - name: Bundle for iOS and Android
         run: |
           npx expo export --platform ios --output-dir /tmp/mabu-ios
