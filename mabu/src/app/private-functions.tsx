@@ -57,8 +57,8 @@ export default function PrivateFunctions() {
       }
     >
       <Photo
-        photo="private-dining"
-        label="A long table dressed for a private function"
+        photo="private-welcome"
+        label="A host welcoming guests at the Mábu Private Functions entrance"
         style={{ height: 240, borderRadius: radius.md, marginTop: spacing.md }}
       />
       <Text variant="eyebrow" color="accent" style={{ marginTop: spacing.xl }}>

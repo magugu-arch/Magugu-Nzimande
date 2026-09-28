@@ -63,6 +63,12 @@ export const photoRegistry = {
     height: 205,
     origin: 'brand-board',
   },
+  'fillet-closeup': {
+    source: require('../../assets/photos/fillet-closeup.jpg'),
+    width: 1122,
+    height: 1402,
+    origin: 'photograph',
+  },
   'floor-pattern': {
     source: require('../../assets/photos/floor-pattern.jpg'),
     width: 366,
@@ -73,6 +79,18 @@ export const photoRegistry = {
     source: require('../../assets/photos/private-dining.jpg'),
     width: 1122,
     height: 1402,
+    origin: 'photograph',
+  },
+  'private-welcome': {
+    source: require('../../assets/photos/private-welcome.jpg'),
+    width: 1536,
+    height: 1024,
+    origin: 'photograph',
+  },
+  'seafood-pan': {
+    source: require('../../assets/photos/seafood-pan.jpg'),
+    width: 1312,
+    height: 1199,
     origin: 'photograph',
   },
   'signature-steak': {
@@ -104,6 +122,18 @@ export const photoRegistry = {
     width: 150,
     height: 95,
     origin: 'brand-board',
+  },
+  'wagyu-sliced': {
+    source: require('../../assets/photos/wagyu-sliced.jpg'),
+    width: 1122,
+    height: 1402,
+    origin: 'photograph',
+  },
+  'wine-pour': {
+    source: require('../../assets/photos/wine-pour.jpg'),
+    width: 1312,
+    height: 1199,
+    origin: 'photograph',
   },
 } as const satisfies Record<string, PhotoEntry>;
 

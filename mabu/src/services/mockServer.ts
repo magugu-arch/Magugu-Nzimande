@@ -12,7 +12,8 @@ import { seedDemo } from './demoSeed';
  * snapshotted to device storage so bookings survive a restart. It stands in
  * for the server until one is deployed (EXPO_PUBLIC_USE_MOCK_API=0).
  */
-const STORAGE_KEY = 'mabu.mockdb.v1';
+// Bumped when seed content changes, so demo installs pick it up.
+const STORAGE_KEY = 'mabu.mockdb.v2';
 
 let ready: Promise<{ backend: Backend; handlers: Handlers }> | null = null;
 const pushListeners = new Set<(entry: OutboxEntry) => void>();

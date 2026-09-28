@@ -4,6 +4,11 @@ import { photoRegistry, type PhotoKey } from '@/content/photoRegistry';
 import { spacing, radius } from '@/theme';
 
 const CAPTIONS: Partial<Record<PhotoKey, string>> = {
+  'private-welcome': 'Welcome to Private Functions',
+  'fillet-closeup': 'The Mábu fillet, charred carrots and tenderstem',
+  'wagyu-sliced': 'Wagyu rump cap with wild mushrooms',
+  'seafood-pan': 'Black rice with prawns, scallops, octopus and mussels',
+  'wine-pour': 'A Mábu red, poured with the cheese board',
   'dining-room': 'The main dining room beneath the timber chandeliers',
   'signature-steak': 'The Mábu fillet',
   'private-dining': 'A long table set for a private function',

@@ -14,7 +14,7 @@ const SECTIONS: { key: string; label: string; icon: BrandIconName; photo: string
       key: 'food',
       label: 'Food',
       icon: 'menu',
-      photo: 'dish-signature-mains',
+      photo: 'fillet-closeup',
       href: '/menu?section=food',
     },
     {
@@ -24,7 +24,7 @@ const SECTIONS: { key: string; label: string; icon: BrandIconName; photo: string
       photo: 'dish-desserts',
       href: '/menu?section=dessert',
     },
-    { key: 'wine', label: 'Wine', icon: 'wine', photo: 'dish-wines', href: '/menu?section=wine' },
+    { key: 'wine', label: 'Wine', icon: 'wine', photo: 'wine-pour', href: '/menu?section=wine' },
   ];
 
 /** §4 Discover — explore the Mábu world: food, desserts, wine, collections and stories. */

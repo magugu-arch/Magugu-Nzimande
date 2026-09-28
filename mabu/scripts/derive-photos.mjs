@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
-import { parse as parseFont } from 'opentype.js';
+import opentypeModule from 'opentype.js';
 import { Buffer } from 'node:buffer';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -122,6 +122,9 @@ const fontFile = fs.readFileSync(
     'node_modules/@expo-google-fonts/playfair-display/400Regular/PlayfairDisplay_400Regular.ttf',
   ),
 );
+// CommonJS package: take `parse` off the default export (not the default's own member).
+// eslint-disable-next-line import/no-named-as-default-member
+const { parse: parseFont } = opentypeModule;
 const font = parseFont(
   fontFile.buffer.slice(fontFile.byteOffset, fontFile.byteOffset + fontFile.byteLength),
 );
