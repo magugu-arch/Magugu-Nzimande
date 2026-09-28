@@ -1,6 +1,8 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // Keeps react-native-worklets off its native module under Jest (shipped by worklets).
+  resolver: 'react-native-worklets/jest/resolver',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@assets/(.*)$': '<rootDir>/assets/$1',

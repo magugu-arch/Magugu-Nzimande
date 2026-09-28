@@ -83,7 +83,8 @@ await journey('Double-tapping confirm books one table', async (page) => {
   // RN Web's Pressable adopts a new onPress one frame after the render that
   // enables it; no person taps inside that frame, but Playwright can.
   await page.waitForTimeout(250);
-  await Promise.all([confirm.click(), confirm.click({ force: true }).catch(() => undefined)]);
+  // A genuine double-click: two presses in quick succession on the same button.
+  await confirm.dblclick();
   await page.getByText('Your table at Mábu is reserved.').waitFor({ timeout: 10_000 });
   await page.goto(`${base}/profile/bookings`, { waitUntil: 'networkidle' });
   const count = await page.getByText('Table for 2').count();

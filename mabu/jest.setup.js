@@ -28,3 +28,6 @@ const stubIcon = (family) => {
   return Icon;
 };
 jest.mock('@expo/vector-icons/Feather', () => ({ __esModule: true, default: stubIcon('feather') }));
+
+// Reanimated ships its own Jest mock; the native worklet runtime does not exist here.
+jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));

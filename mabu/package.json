@@ -13,12 +13,13 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\"",
     "test": "jest --passWithNoTests",
-    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run db:check",
     "assets:photos": "node scripts/derive-photos.mjs",
     "export:web": "expo export --platform web --output-dir dist-web",
     "shots": "node scripts/screens.mjs",
     "e2e": "node scripts/journeys.mjs",
-    "verify:web": "npm run export:web && npm run shots && npm run e2e"
+    "verify:web": "npm run export:web && npm run shots && npm run e2e",
+    "db:check": "node scripts/check-migrations.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/allura": "^0.4.2",
@@ -62,6 +63,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
+    "@electric-sql/pglite": "^0.5.8",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^29.5.14",
     "@types/qrcode": "^1.5.6",

@@ -1,0 +1,81 @@
+name: Mábu
+
+# The Mábu app lives in mabu/ with its own dependencies and checks; the
+# bb.q workflow (verify.yml) covers the repository root and ignores mabu/.
+on:
+  push:
+    branches: ['**']
+    paths: ['mabu/**', '.github/workflows/mabu.yml']
+  pull_request:
+    paths: ['mabu/**', '.github/workflows/mabu.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: mabu
+
+jobs:
+  verify:
+    name: Typecheck, lint, test and schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mabu/package-lock.json
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Check formatting
+        run: npm run format:check
+      - name: Unit, integration and component tests
+        run: npm test -- --ci
+      # The migration is applied to a real PostgreSQL (PGlite, WASM) and each
+      # invariant it promises is attacked.
+      - name: Apply the schema and try to break it
+        run: npm run db:check
+      - name: Bundle for iOS and Android
+        run: |
+          npx expo export --platform ios --output-dir /tmp/mabu-ios
+          npx expo export --platform android --output-dir /tmp/mabu-android
+
+  web:
+    name: Render every screen and run the journeys
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mabu/package-lock.json
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Export the web build
+        run: npm run export:web
+      # 80 route × width × role combinations: overflow, blank screens,
+      # console errors and unnamed buttons.
+      - name: Sweep the screens
+        run: npm run shots
+      # Booking, double-tap idempotency, vouchers (incl. a decline), events,
+      # waitlist, rewards, preferences and staff lookup, through the real UI.
+      - name: Run the end-to-end journeys
+        run: npm run e2e
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mabu-screens
+          path: mabu/.shots
+          if-no-files-found: ignore

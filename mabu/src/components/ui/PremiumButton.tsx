@@ -55,6 +55,7 @@ export function PremiumButton({
     <Pressable
       testID={testID}
       onPress={inert ? undefined : onPress}
+      disabled={!!inert}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
