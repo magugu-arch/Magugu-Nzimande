@@ -21,8 +21,12 @@ import { ACTIVE_STATUSES } from '../status';
  * Saturday prime time genuinely full so the waitlist and "no availability"
  * paths are reachable in a demo and in tests.
  *
- * In `live` mode it must call Mábu's reservation back end, which does not
- * exist yet — so it refuses with NOT_CONFIGURED rather than inventing one.
+ * In `direct` mode — the Mábu server with MABU_DIRECT_INVENTORY on — the
+ * database is the whole inventory: pacing less real bookings, no fixture. That
+ * is only truthful when staff enter phone and walk-in bookings here too.
+ *
+ * In `live` mode without that switch there is no inventory to consult, so it
+ * refuses with NOT_CONFIGURED rather than inventing availability.
  */
 export class MabuDirectReservationAdapter implements ReservationProvider {
   readonly id = 'mabu-direct' as const;
@@ -30,7 +34,7 @@ export class MabuDirectReservationAdapter implements ReservationProvider {
   constructor(
     private readonly ctx: ServiceContext,
     private readonly policy: () => BookingPolicy,
-    private readonly mode: 'mock' | 'live',
+    private readonly mode: 'mock' | 'direct' | 'live',
   ) {}
 
   async search(query: AvailabilityQuery): Promise<ReservationSlot[]> {
@@ -41,7 +45,8 @@ export class MabuDirectReservationAdapter implements ReservationProvider {
       .filter((c) => new Date(c.startsAt).getTime() >= leadCutoff)
       .map((c) => {
         const taken =
-          this.coversTaken(query.date, c.time) + otherChannelDemand(policy, query.date, c.time);
+          this.coversTaken(query.date, c.time) +
+          (this.mode === 'mock' ? otherChannelDemand(policy, query.date, c.time) : 0);
         const available = taken + query.partySize <= policy.coversPerSlot;
         return {
           slotId: slotIdOf(query.venueId, query.date, c.time),

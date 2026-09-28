@@ -74,3 +74,12 @@ export function errorMessage(error: unknown): string {
 export function errorCode(error: unknown): string | undefined {
   return error instanceof ApiError ? error.code : undefined;
 }
+
+/**
+ * Signing out on the device also ends the session on the server, so a
+ * copied token stops working. Best effort: the device forgets it regardless.
+ */
+useSession.subscribe((state, previous) => {
+  if (config.useMockApi || !previous.token || state.token) return;
+  void httpCall('auth.signOut', {}, previous.token).catch(() => undefined);
+});

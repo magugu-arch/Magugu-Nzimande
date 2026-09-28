@@ -43,6 +43,9 @@ jobs:
       # invariant it promises is attacked.
       - name: Apply the schema and try to break it
         run: npm run db:check
+      # The API server on PostgreSQL over HTTP: sign-in, booking, restart.
+      - name: API server end to end
+        run: npm run server:check && npm run server:build
       - name: Bundle for iOS and Android
         run: |
           npx expo export --platform ios --output-dir /tmp/mabu-ios

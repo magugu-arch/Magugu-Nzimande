@@ -25,6 +25,7 @@ import {
   UnconfiguredChannelProvider,
 } from './notifications/providers';
 import { NotificationsService } from './notifications/service';
+import type { NotificationProvider } from './notifications/types';
 import { defaultTemplates } from './notifications/templates';
 import {
   MockPaymentProvider,
@@ -48,6 +49,18 @@ export interface BackendOptions {
   /** 'mock' runs every provider against in-process fixtures. */
   mode?: 'mock' | 'live';
   db?: Database;
+  /**
+   * Live delivery channels (e.g. Expo push, a transactional email provider).
+   * In live mode a channel with no provider refuses; in mock mode the outbox
+   * records it.
+   */
+  channelProviders?: Partial<Record<'push' | 'email', NotificationProvider>>;
+  /**
+   * Live mode only: take bookings against Mábu's own inventory (the pacing in
+   * the booking policy, less bookings in this database). Only safe when every
+   * booking — phone and walk-in included — is entered through this system.
+   */
+  directInventory?: boolean;
 }
 
 /**
@@ -78,7 +91,7 @@ export function createBackend(options: BackendOptions = {}) {
       'mabu-direct': new MabuDirectReservationAdapter(
         ctx,
         (): BookingPolicy => reservations.policy(),
-        mode,
+        mode === 'mock' ? 'mock' : options.directInventory ? 'direct' : 'live',
       ),
       dineplan: new DineplanReservationAdapter(),
     },
@@ -91,8 +104,12 @@ export function createBackend(options: BackendOptions = {}) {
   };
   const notifications = new NotificationsService(ctx, {
     'in-app': new InAppProvider(ctx),
-    push: channels.push,
-    email: channels.email,
+    push:
+      options.channelProviders?.push ??
+      (mode === 'mock' ? channels.push : new UnconfiguredChannelProvider('push')),
+    email:
+      options.channelProviders?.email ??
+      (mode === 'mock' ? channels.email : new UnconfiguredChannelProvider('email')),
     sms: new UnconfiguredChannelProvider('sms'),
     whatsapp: new UnconfiguredChannelProvider('whatsapp'),
   });

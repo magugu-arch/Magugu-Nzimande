@@ -1,5 +1,5 @@
 import { Table } from './shared/table';
-import type { AuditEntry, Favourite, Guest } from './guests/types';
+import type { AuditEntry, Favourite, Guest, PushToken } from './guests/types';
 import type {
   ProviderWebhookEvent,
   ReservationEvent,
@@ -49,6 +49,7 @@ export interface IdempotencyRecord {
 export class Database {
   guests = new Table<Guest>('guest');
   favourites = new Table<Favourite>('favourite');
+  pushTokens = new Table<PushToken>('push_token');
   audit = new Table<AuditEntry>('audit_entry');
   idempotency = new Table<IdempotencyRecord>('idempotency_record');
 
@@ -98,6 +99,16 @@ export class Database {
   snapshot(): Record<string, unknown[]> {
     const out: Record<string, unknown[]> = {};
     for (const t of this.tables()) out[t.name] = t.toJSON();
+    return out;
+  }
+
+  /** Every table's writes since the last drain, keyed by table name. */
+  drainChanges(): Record<string, { upserts: { id: string }[]; deletes: string[] }> {
+    const out: Record<string, { upserts: { id: string }[]; deletes: string[] }> = {};
+    for (const t of this.tables()) {
+      const c = t.drainChanges();
+      if (c.upserts.length || c.deletes.length) out[t.name] = c;
+    }
     return out;
   }
 

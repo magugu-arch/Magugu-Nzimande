@@ -12,3 +12,5 @@ coverage/
 /android
 *.tsbuildinfo
 assets/photos/source/
+server/dist/
+data/

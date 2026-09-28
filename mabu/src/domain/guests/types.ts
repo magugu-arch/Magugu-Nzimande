@@ -54,6 +54,15 @@ export interface Favourite {
   createdAt: string;
 }
 
+/** §37 A device registered for push. The id is the Expo push token itself. */
+export interface PushToken {
+  id: string;
+  guestId: string;
+  platform: 'ios' | 'android' | 'web';
+  createdAt: string;
+  lastSeenAt: string;
+}
+
 export interface AuditEntry {
   id: string;
   actorId: string;

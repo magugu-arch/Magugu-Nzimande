@@ -31,6 +31,7 @@ import { availabilityOf } from './experiences/types';
 import { DomainError } from './shared/errors';
 import { venueDate } from './shared/time';
 import { isUpcoming } from './reservations/status';
+import { isExpoPushToken } from './notifications/expoPush';
 
 /** Mock mode's one-time code. The sign-in screen says so on screen. */
 export const MOCK_OTP = '123456';
@@ -317,6 +318,35 @@ export function createHandlers(b: Backend) {
     ) => {
       const me = signedIn(actor);
       return { saved: b.guests.toggleFavourite(me.id, a.kind, a.itemId, me) };
+    },
+
+    /* ── Devices (§37 push) ─────────────────────────────────────────── */
+
+    'devices.register': async (
+      actor: Actor | null,
+      a: { token: string; platform: 'ios' | 'android' | 'web' },
+    ) => {
+      const me = signedIn(actor);
+      if (!isExpoPushToken(a.token) || !['ios', 'android', 'web'].includes(a.platform)) {
+        throw new DomainError('VALIDATION', 'That device could not be registered.', 'push token');
+      }
+      const now = b.ctx.clock.now().toISOString();
+      const existing = b.db.pushTokens.get(a.token);
+      // A token moves with the device: the latest signed-in guest owns it.
+      b.db.pushTokens.upsert({
+        id: a.token,
+        guestId: me.id,
+        platform: a.platform,
+        createdAt: existing?.guestId === me.id ? existing.createdAt : now,
+        lastSeenAt: now,
+      });
+      return { registered: true };
+    },
+    'devices.unregister': async (actor: Actor | null, a: { token: string }) => {
+      const me = signedIn(actor);
+      const existing = b.db.pushTokens.get(a.token);
+      if (existing && existing.guestId === me.id) b.db.pushTokens.delete(a.token);
+      return { registered: false };
     },
 
     /* ── Notifications ────────────────────────────────────────────── */

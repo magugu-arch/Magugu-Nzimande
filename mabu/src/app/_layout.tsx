@@ -1,3 +1,4 @@
+import { usePushRegistration } from '@/features/usePushRegistration';
 import { useEffect } from 'react';
 import { AppState, Platform } from 'react-native';
 import { router, Stack } from 'expo-router';
@@ -75,6 +76,7 @@ function Shell() {
   const reduce = useReduceMotion();
   useBackgroundServices();
   useNotificationRouting();
+  usePushRegistration();
 
   return (
     <Stack

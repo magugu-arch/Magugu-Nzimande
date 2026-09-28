@@ -7,11 +7,17 @@ import { addGuest, ADMIN, makeBackend, STAFF } from './support/backend';
 
 describe('schema parity', () => {
   it('has a PostgreSQL table for every table the services use, and no strays', () => {
-    const sql = fs.readFileSync(
-      path.join(__dirname, '../server/migrations/001_initial.sql'),
-      'utf8',
-    );
-    const created = [...sql.matchAll(/CREATE TABLE (\w+)/g)].map((m) => m[1]).sort();
+    const dir = path.join(__dirname, '../server/migrations');
+    const sql = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith('.sql'))
+      .map((f) => fs.readFileSync(path.join(dir, f), 'utf8'))
+      .join('\n');
+    // server_* tables belong to the API server's runtime, not the services.
+    const created = [...sql.matchAll(/CREATE TABLE (\w+)/g)]
+      .map((m) => m[1])
+      .filter((t) => !t!.startsWith('server_'))
+      .sort();
     const used = new Database()
       .tables()
       .map((t) => t.name)

@@ -6,9 +6,9 @@ const prettierConfig = require('eslint-config-prettier');
 module.exports = defineConfig([
   expoConfig,
   prettierConfig,
-  { ignores: ['dist/*', 'dist-web/*', 'node_modules/*', '.expo/*', 'coverage/*', '.shots/*'] },
+  { ignores: ['dist/*', 'dist-web/*', 'node_modules/*', '.expo/*', 'coverage/*', '.shots/*', 'server/dist/*', 'data/*', 'dist-standalone/*'] },
   { rules: { 'no-console': ['warn', { allow: ['warn', 'error'] }] } },
-  { files: ['scripts/**/*.mjs'], rules: { 'no-console': 'off' } },
+  { files: ['scripts/**/*.mjs', 'server/src/**/*.ts'], rules: { 'no-console': 'off' } },
   {
     files: ['jest.setup.js', '__tests__/**/*.{ts,tsx,js}'],
     languageOptions: {

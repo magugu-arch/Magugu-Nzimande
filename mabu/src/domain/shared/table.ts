@@ -8,6 +8,8 @@ import { DomainError } from './errors';
  */
 export class Table<T extends { id: string }> {
   private rows = new Map<string, T>();
+  /** Ids written since the last `drainChanges()` — what a server must persist. */
+  private changed = new Set<string>();
 
   constructor(readonly name: string) {}
 
@@ -32,11 +34,13 @@ export class Table<T extends { id: string }> {
       throw new DomainError('CONFLICT', 'That record already exists.', `${this.name}:${row.id}`);
     }
     this.rows.set(row.id, clone(row));
+    this.changed.add(row.id);
     return clone(row);
   }
 
   upsert(row: T): T {
     this.rows.set(row.id, clone(row));
+    this.changed.add(row.id);
     return clone(row);
   }
 
@@ -44,11 +48,13 @@ export class Table<T extends { id: string }> {
     const current = this.require(id);
     const next = typeof patch === 'function' ? patch(current) : { ...current, ...patch };
     this.rows.set(id, clone({ ...next, id }));
+    this.changed.add(id);
     return clone(next);
   }
 
   delete(id: string): void {
     this.rows.delete(id);
+    this.changed.add(id);
   }
 
   list(): T[] {
@@ -75,8 +81,23 @@ export class Table<T extends { id: string }> {
     return [...this.rows.values()];
   }
 
+  /** Replaces the contents; a load is the persisted state, so nothing is marked changed. */
   load(rows: T[]): void {
     this.rows = new Map(rows.map((r) => [r.id, clone(r)]));
+    this.changed.clear();
+  }
+
+  /** Rows written and ids deleted since the last drain, then forgets them. */
+  drainChanges(): { upserts: T[]; deletes: string[] } {
+    const upserts: T[] = [];
+    const deletes: string[] = [];
+    for (const id of this.changed) {
+      const row = this.rows.get(id);
+      if (row) upserts.push(clone(row));
+      else deletes.push(id);
+    }
+    this.changed.clear();
+    return { upserts, deletes };
   }
 }
 
