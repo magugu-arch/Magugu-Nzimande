@@ -13,74 +13,10 @@
  * Run `npm run build:single` and refresh the audit and costing first.
  * Screenshots need Chromium (set PW_CHROMIUM to use a local browser).
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
-const dir = new URL('../preview/', import.meta.url);
-const read = (f) => readFileSync(new URL(f, dir), 'utf8');
-const font = (pkg, file) => readFileSync(new URL(`../node_modules/@fontsource-variable/${pkg}/files/${file}`, import.meta.url)).toString('base64');
-
-const PREVIEW_URL = 'https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN';
-const CHECKLIST_URL = 'https://claude.ai/artifact/8Min81Y6Tcq4Tg2XbQ3eN6';
-
-/** Prefix every selector in a stylesheet with `scope`, so a page's styles only reach its own section. */
-function scopeCss(css, scope) {
-  css = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  let out = '';
-  let i = 0;
-  while (i < css.length) {
-    const open = css.indexOf('{', i);
-    if (open === -1) break;
-    const head = css.slice(i, open).trim();
-    // Find the matching close brace (blocks nest one level, in @media).
-    let depth = 1;
-    let j = open + 1;
-    while (j < css.length && depth) {
-      if (css[j] === '{') depth++;
-      else if (css[j] === '}') depth--;
-      j++;
-    }
-    const body = css.slice(open + 1, j - 1);
-    if (head.startsWith('@media') || head.startsWith('@supports')) out += `${head}{${scopeCss(body, scope)}}`;
-    else if (head.startsWith('@')) out += `${head}{${body}}`;
-    else {
-      const sel = head
-        .split(',')
-        .map((s) => s.trim())
-        .map((s) => {
-          if (s === 'body' || s === 'html' || s === ':root') return scope;
-          if (s.startsWith(':root')) return `${s} ${scope}`;
-          return `${scope} ${s}`;
-        })
-        .join(', ');
-      out += `${sel}{${body}}`;
-    }
-    i = j;
-  }
-  return out;
-}
-
-/** The styles and the visible page (the .wrap block) of one of the report pages. */
-function page(file, scope) {
-  const html = read(file);
-  const style = html.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
-  const start = html.indexOf('<div class="wrap">');
-  const end = html.lastIndexOf('</div>');
-  if (start === -1 || end === -1) throw new Error(`${file}: no .wrap block found`);
-  return { css: scopeCss(style, scope), body: html.slice(start, end + 6) };
-}
-
-const b64 = (path) => readFileSync(new URL(path, import.meta.url)).toString('base64');
-const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-// The photographs, with the alt text from the image catalogue (read as text: the module needs Vite).
-const catalogue = readFileSync(new URL('../src/data/images.ts', import.meta.url), 'utf8');
-const photos = [...catalogue.matchAll(/(\w+): \{\s*src: `\$\{base\}images\/([^`]+)`,\s*alt: '([^']+)'/g)].map(([, key, file, alt]) => ({
-  key,
-  alt,
-  src: `data:image/webp;base64,${b64(`../public/images/${file}-640.webp`)}`,
-}));
-const photoCaption = { burgundyGown: 'Burgundy satin gown · home page, Garment Study 01', greenGown: 'Emerald gown · Garment Study 02, Custom Fashion Design', navyDress: 'Navy bow dress · Garment Study 03', whiteShirtLook: 'White shirt look · Philosophy, Home and About', burgundyDetail: 'Burgundy dress on the form · Fittings, Special Occasion' };
+import { CHECKLIST_URL, DESCRIPTION, dir, esc, fontFaces, icon, page, photoCaption, photos, PREVIEW_URL, read, touchIcon } from './lib/handover-shared.mjs';
 
 // Screenshots of the offline preview, taken fresh so they always match the current site.
 async function screenshots() {
@@ -108,10 +44,6 @@ async function screenshots() {
   return shots;
 }
 const shots = await screenshots();
-const icon = `data:image/svg+xml,${encodeURIComponent(readFileSync(new URL('../public/favicon.svg', import.meta.url), 'utf8'))}`;
-const touchIcon = `data:image/png;base64,${b64('../public/apple-touch-icon.png')}`;
-const DESCRIPTION = 'The Grateful website (a fashion design studio in Mulbarton, Johannesburg), with its completion audit and costing, in one file.';
-
 const audit = page('Grateful-Build-Audit.html', '#audit');
 const costing = page('Grateful-Website-Costing.html', '#costing');
 const site = read('Grateful-Website-Preview.html').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
@@ -137,9 +69,7 @@ const html = `<!doctype html>
 <link rel="icon" type="image/svg+xml" href="${icon}">
 <link rel="apple-touch-icon" href="${touchIcon}">
 <style>
-@font-face { font-family: 'Baskervville'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(data:font/woff2;base64,${font('baskervville', 'baskervville-latin-wght-normal.woff2')}) format('woff2'); }
-@font-face { font-family: 'Baskervville'; font-style: italic; font-weight: 400 700; font-display: swap; src: url(data:font/woff2;base64,${font('baskervville', 'baskervville-latin-wght-italic.woff2')}) format('woff2'); }
-@font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url(data:font/woff2;base64,${font('inter', 'inter-latin-wght-normal.woff2')}) format('woff2'); }
+${fontFaces}
 :root { --hub-ink: #0b0b0b; --hub-paper: #ffffff; --hub-rule: #dcdcdc; --hub-muted: #5a5a5a; --hub-soft: #f5f5f4; color-scheme: light; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --hub-ink: #f4f4f4; --hub-paper: #0a0a0a; --hub-rule: #2c2c2c; --hub-muted: #a8a8a8; --hub-soft: #151515; color-scheme: dark; } }
 :root[data-theme="dark"] { --hub-ink: #f4f4f4; --hub-paper: #0a0a0a; --hub-rule: #2c2c2c; --hub-muted: #a8a8a8; --hub-soft: #151515; color-scheme: dark; }

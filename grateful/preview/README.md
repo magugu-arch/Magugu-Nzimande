@@ -1,5 +1,7 @@
 # Grateful website: offline preview
 
+**Grateful-iPhone-WhatsApp.html** is the edition to send on WhatsApp or open on an iPhone. It has no code at all, because iPhone WhatsApp and Files only show a preview that can't run code: every page of the website is shown as a full-length phone screenshot, with the studio dashboard, the photographs, the audit and the costing. Rebuild with `npm run build:whatsapp`.
+
 **Grateful-Handover.html** is everything in one file: the interactive website, screenshots of it, the five photographs, the completion audit and the costing, with the fonts, icon and page details built in. On a Mac, double-click it. On Android, open it from Files with Chrome. On an iPhone or iPad the Files app previews it without running the interactive website, so the screenshots, photographs, audit and costing show but the interactive frame stays blank: open the online preview link (inside the file) in Safari for the website. Rebuild with `npm run build:single` then `npm run build:handover`.
 
 **Grateful-Website-Preview.html** is the whole website in one file. Download it and:
