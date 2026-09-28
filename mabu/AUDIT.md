@@ -1,20 +1,19 @@
 # Mábu app: completion audit
 
-Audited 28 September 2026 against the brief (*Mabu Premium Restaurant App — Booking, Rewards, Notifications*).
+Audited 28 September 2026 (second pass, same day) against the brief (*Mabu Premium Restaurant App — Booking,
+Rewards, Notifications*). Costings are in `COSTINGS.md`.
 
 ## Summary
 
-**About 72% complete, 28% to go.**
+**About 77% complete, 23% to go** (up from 72% this morning).
 
-Everything the brief asks for is built and works in demo mode: the guest app, bookings, rewards, notifications,
-events, vouchers, admin, and now a real API server with sign-in and PostgreSQL. Most of what remains is
-connecting live services (they need accounts only Mábu can open), loading Mábu's real content, and releasing
-to hosting and the app stores. Of the remaining 28%:
+Everything the brief asks for is built and works in demo mode. Since the first audit: email delivery over SMTP,
+PayFast payments, campaign audiences with a weekly marketing cap, automatic database migrations, a Docker setup,
+EAS build profiles and a store listing draft. What remains is mostly accounts only Mábu can open, Mábu's real
+content, and release work. Of the remaining 23%:
 
-- **about 11 points** need something from Mábu first: real menu and prices, opening hours and policies, legal
-  sign-off, high-resolution photographs, three design decisions, and provider accounts;
-- **about 17 points** are engineering that starts as soon as those accounts exist: payment gateway, email
-  provider, Dineplan, moving the database onto its relational tables, hosting, and store builds.
+- **about 11 points** need something from Mábu first (content, decisions, accounts);
+- **about 12 points** are engineering, most of which starts once those accounts exist.
 
 The percentages are weighted estimates of effort, not a count of screens.
 
@@ -23,19 +22,19 @@ The percentages are weighted estimates of effort, not a count of screens.
 | Workstream | Weight | Done | Status |
 | --- | ---: | ---: | --- |
 | Guest app: screens, navigation, design | 18 | 95% | All brief screens built in the supplied designs. Waits on three design decisions. |
-| Booking engine (§29–33) | 12 | 80% | Search, hold, create, amend, reschedule, cancel, waitlist, idempotency, policy. The Dineplan adapter refuses until there is an API contract. |
-| MÁBU Rewards (§34–36) | 8 | 95% | Earning, tiers, FIFO expiry, redemption, reversal, admin adjustments. Programme rules are placeholders. |
-| Notifications (§37–42) | 8 | 75% | In-app inbox, Expo push (server side and device registration), templates, quiet hours, retries, consent. No email provider yet; SMS and WhatsApp off by design. |
-| Events, vouchers, payments | 8 | 65% | Full flows in demo mode. Live payments refuse until a gateway's hosted checkout and webhook are added. |
-| Admin and CMS | 7 | 90% | 14 admin screens: reservations, policy, rewards, templates, campaigns, vouchers, menu, events, messages, guests, payments, audit. |
-| API server and data | 12 | 65% | Server built and tested on PostgreSQL. Still to do: relational tables, hosting, backups, monitoring. |
-| Content | 8 | 40% | Brand, categories, venue and the Meerlust event are real. Dishes, wines, prices, hours and policies are labelled samples. Photos cut from design files are card-size only. |
-| Security and POPIA | 5 | 60% | Hashed codes and sessions, rate limits, role checks, audit log, account deletion, draft legal pages. Needs legal review and a security review before launch. |
-| Testing | 5 | 90% | 81 unit tests, schema check, server check, 92-screen sweep, 9 journeys, single-file check. |
-| Release | 9 | 15% | Single-file demo and web export work. Still to do: EAS project, signing, TestFlight / Play testing, store listings, domain and hosting. |
-| **Total** | **100** | **≈ 72%** | |
+| Booking engine (§29–33) | 12 | 80% | Complete in the app and server. The Dineplan adapter waits on an API contract (or use Mábu's own inventory). |
+| MÁBU Rewards (§34–36) | 8 | 95% | Earning, tiers, FIFO expiry, redemption, reversal, adjustments. Programme rules are placeholders. |
+| Notifications (§37–42) | 8 | 90% | In-app, push (Expo) and email (SMTP) built; audiences and a weekly cap on marketing. Needs an email account. |
+| Events, vouchers, payments | 8 | 85% | PayFast hosted checkout built and tested locally. Needs a PayFast account and one sandbox payment. |
+| Admin and CMS | 7 | 92% | 14 admin screens, now with campaign audiences and reach preview. |
+| API server and data | 12 | 75% | Server, migrations and Docker ready. Still to do: relational tables, hosting, backups, monitoring. |
+| Content | 8 | 40% | Brand, categories, venue and the Meerlust event are real. Dishes, wines, prices, hours and policies are samples. |
+| Security and POPIA | 5 | 65% | Hashed codes and sessions, rate limits, role checks, audit log, verified payment notifications, draft legal pages. Needs legal and security review. |
+| Testing | 5 | 92% | 86 unit tests, schema check, server check on PostgreSQL, 92-screen sweep, 9 journeys, single-file check. |
+| Release | 9 | 30% | EAS profiles, store copy, Docker image and single-file demo ready. Still to do: accounts, signing, store review, hosting. |
+| **Total** | **100** | **≈ 77%** | |
 
-## Done in this round
+## Done in the first pass
 
 - **API server** (`server/`): emailed six-digit codes (hashed, expire after 10 minutes, 5 attempts, rate-limited),
   bearer sessions (hashed, 60 days), PostgreSQL or file storage written through after every call, scheduled
@@ -49,6 +48,18 @@ The percentages are weighted estimates of effort, not a count of screens.
 - **Single-file app:** the whole app in one HTML file that opens from disk on a Mac, or from Files on Android,
   and as a hosted page. `npm run standalone:check` books a table through it.
 
+## Done in the second pass
+
+- **Email:** sign-in codes and notification email go out over SMTP, so any provider works; branded HTML part,
+  header injection refused.
+- **Payments:** PayFast hosted checkout: signed checkout form, notifications accepted only after signature,
+  merchant, PayFast's own confirmation and amount all check out. The app opens the checkout after a voucher,
+  ticket or deposit, and updates when the payment lands.
+- **Marketing:** campaigns can target everyone, regulars, lapsed guests, Rewards members or birthdays this
+  month, with a live reach count; no guest gets more than two marketing messages in seven days.
+- **Deployment:** migrations apply automatically at start-up (once each, checksummed); Dockerfile and compose
+  file for the API and PostgreSQL; EAS build profiles; a store listing draft with privacy answers.
+
 ## What is left
 
 ### Needs Mábu first
@@ -60,19 +71,19 @@ The percentages are weighted estimates of effort, not a count of screens.
 5. High-resolution originals of the dish photographs that are currently cut from the design files.
 6. Three design decisions: the bag and **+** (ordering or favourites?), "MÁBU Private Functions" branding, and
    the home headline and tab bar in the home concept.
-7. Accounts: a payment gateway (Peach, PayFast, Yoco or Stitch), an email provider, Dineplan API access (or a
-   decision to use Mábu's own inventory), an Expo/EAS account, Apple Developer and Google Play accounts, and a
-   public phone number.
+7. Accounts: PayFast merchant (or another gateway), an email account with SMTP, Dineplan API access (or a
+   decision to use Mábu's own inventory), an Expo account, Apple Developer and Google Play accounts, hosting,
+   and a public phone number.
 
 ### Engineering once those exist
 
-1. **Payment gateway:** hosted checkout, webhook, refunds; switch vouchers, events and deposits to live.
-2. **Email provider:** one `EmailSender` implementation, used for sign-in codes and notifications.
+1. **PayFast go-live:** one sandbox payment, then live credentials (refunds via the dashboard or its API).
+2. **Email go-live:** SMTP credentials and a verified sender domain (SPF/DKIM).
 3. **Dineplan adapter**, if Dineplan stays the booking system of record.
 4. **Relational database:** move the rows from `server_row` onto the tables in `001_initial.sql`, then allow
    more than one server instance.
-5. **Hosting:** API server, PostgreSQL with backups, the web build on Mábu's domain, error monitoring and uptime
-   checks.
+5. **Hosting:** run the Docker image and PostgreSQL with backups, the web build on Mábu's domain, error
+   monitoring and uptime checks.
 6. **Store release:** EAS project, signing, TestFlight and Play internal testing, store listings and screenshots.
 7. **Security review** before launch.
 

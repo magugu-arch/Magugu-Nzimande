@@ -174,8 +174,8 @@ See *Commands* above. CI runs `verify`, the iOS and Android bundles, the screen 
 
 ### 5. Tests added and results
 
-- **81 Jest tests** — reservations (21), rewards (12), notifications (14), vouchers / events / commerce / flags /
-  jobs (14), API surface & schema parity (7), accessibility of stateful components (5), API server (8). All pass. They cover every
+- **86 Jest tests** — reservations (21), rewards (12), notifications (14), vouchers / events / commerce / flags /
+  jobs (14), API surface & schema parity (7), accessibility of stateful components (5), API server incl. email and PayFast (11). All pass. They cover every
   §48 gate, including exactly-once visit rewards, one-time redemption, expiry that cannot go negative,
   retry-safe dedupe, marketing blocked without consent, and services working while analytics fails.
 - **Schema check** — both migrations applied to PostgreSQL, 19 checks, all pass.
@@ -218,7 +218,7 @@ replaces the directions card.
 
 ### 8. Remaining technical blockers
 
-See `AUDIT.md` for the full completion audit.
+See `AUDIT.md` for the full completion audit and `COSTINGS.md` for market costings.
 
 - **Deployment.** The API server (`server/`, see `server/README.md`) runs sign-in, sessions, PostgreSQL and push,
   and passes `npm run server:check`, but is not yet hosted. It keeps rows as documents in `server_row`; moving
