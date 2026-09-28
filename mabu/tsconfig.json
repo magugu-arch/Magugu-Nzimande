@@ -7,7 +7,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": false,
     "forceConsistentCasingInFileNames": true,
     "types": ["jest", "node"],
     "paths": {
@@ -16,5 +15,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "exclude": ["node_modules", "dist", ".expo", "mabu"]
+  "exclude": ["node_modules", "dist", "dist-web", ".expo"]
 }

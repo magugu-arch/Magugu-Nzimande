@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // A separate Expo project with its own config, lint and tests.
+      'mabu/**',
     ],
   },
   {

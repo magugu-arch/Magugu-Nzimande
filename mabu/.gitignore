@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+dist/
+dist-web/
+web-build/
+expo-env.d.ts
+coverage/
+.shots/
+.env
+.env*.local
+/ios
+/android
+*.tsbuildinfo
+assets/photos/source/

@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Mábu",
+    "slug": "mabu-restaurant",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "mabu",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0B0B",
+    "primaryColor": "#C9A35B",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.maburestaurant.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.maburestaurant.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0B0B",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#0B0B0B",
+          "imageWidth": 220
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#C9A35B",
+          "defaultChannel": "booking"
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "venue": "Mábu Restaurant, Waterfall Wilds"
+    }
+  }
+}
