@@ -12,6 +12,8 @@
  *   MABU_PUSH_ENABLED       false turns push delivery off
  *   MABU_SMTP_URL           smtps://user:pass@host:465 — email delivery
  *   MABU_EMAIL_FROM         "Mábu Restaurant <reservations@…>"
+ *   MABU_PAYFAST_MERCHANT_ID / _MERCHANT_KEY / _PASSPHRASE, MABU_PAYFAST_SANDBOX=1
+ *   MABU_PUBLIC_URL         this server's public https origin (PayFast returns here)
  *   MABU_DEV_LOG_EMAIL      1 = print emails (sign-in codes included) to the
  *                           log instead of sending. Development only.
  *   MABU_* feature flags    as in .env.example, without EXPO_PUBLIC_
@@ -24,6 +26,7 @@ import { createServer } from './app';
 import type { EmailSender } from './auth';
 import { SmtpEmailSender } from './email';
 import { migrate } from './migrate';
+import { PayFastProvider, payfastValidate } from './payfast';
 import { FileStore, SqlStore, type ServerStore } from './store';
 
 async function openStore(): Promise<ServerStore> {
@@ -67,6 +70,26 @@ function emailSender(): EmailSender | null {
   return null;
 }
 
+function payfastConfig() {
+  const merchantId = process.env.MABU_PAYFAST_MERCHANT_ID;
+  const merchantKey = process.env.MABU_PAYFAST_MERCHANT_KEY;
+  if (!merchantId || !merchantKey) return undefined;
+  const publicUrl = process.env.MABU_PUBLIC_URL;
+  if (!publicUrl?.startsWith('https://') && process.env.NODE_ENV === 'production') {
+    throw new Error('MABU_PUBLIC_URL (https) is required for PayFast');
+  }
+  return {
+    provider: new PayFastProvider({
+      merchantId,
+      merchantKey,
+      passphrase: process.env.MABU_PAYFAST_PASSPHRASE,
+      sandbox: process.env.MABU_PAYFAST_SANDBOX === '1',
+      publicUrl: (publicUrl ?? `http://localhost:${process.env.PORT ?? 8787}`).replace(/\/$/, ''),
+    }),
+    validate: payfastValidate,
+  };
+}
+
 async function main() {
   const store = await openStore();
   const flags = flagsFromEnv(process.env);
@@ -81,6 +104,7 @@ async function main() {
         ? undefined
         : { fetch, accessToken: process.env.EXPO_ACCESS_TOKEN },
     directInventory: process.env.MABU_DIRECT_INVENTORY === '1',
+    payfast: payfastConfig(),
     allowedOrigins: (process.env.MABU_ALLOWED_ORIGINS ?? '')
       .split(',')
       .map((o) => o.trim())

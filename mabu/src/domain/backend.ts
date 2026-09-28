@@ -26,6 +26,7 @@ import {
 } from './notifications/providers';
 import { NotificationsService } from './notifications/service';
 import type { NotificationProvider } from './notifications/types';
+import type { PaymentProvider } from './payments/types';
 import { defaultTemplates } from './notifications/templates';
 import {
   MockPaymentProvider,
@@ -61,6 +62,8 @@ export interface BackendOptions {
    * booking — phone and walk-in included — is entered through this system.
    */
   directInventory?: boolean;
+  /** Live mode: the merchant's payment gateway. Without one, payments refuse. */
+  paymentProvider?: PaymentProvider;
 }
 
 /**
@@ -82,7 +85,9 @@ export function createBackend(options: BackendOptions = {}) {
 
   const payments = new PaymentsService(
     ctx,
-    mode === 'mock' ? new MockPaymentProvider() : new UnconfiguredPaymentProvider(),
+    mode === 'mock'
+      ? new MockPaymentProvider()
+      : (options.paymentProvider ?? new UnconfiguredPaymentProvider()),
   );
 
   const reservations: ReservationsService = new ReservationsService(

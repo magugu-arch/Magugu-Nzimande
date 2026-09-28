@@ -2,6 +2,7 @@ import { createServer } from '../server/src/app';
 import type { EmailSender } from '../server/src/auth';
 import { MemoryStore } from '../server/src/store';
 import { SmtpEmailSender } from '../server/src/email';
+import { PayFastProvider, payfastSignature, phpUrlencode } from '../server/src/payfast';
 import nodemailer from 'nodemailer';
 import { DEFAULT_FLAGS } from '@/domain/flags';
 import { fixedClock } from '@/domain/shared/clock';
@@ -210,5 +211,105 @@ describe('SMTP email', () => {
     expect(msg.html).toContain('MÁBU');
     await expect(sender.send('a@example.com, b@example.com', 'x', 'y')).rejects.toThrow();
     await expect(sender.send('a@example.com', 'x\r\nBcc: evil@example.com', 'y')).rejects.toThrow();
+  });
+});
+
+describe('PayFast hosted checkout', () => {
+  const config = {
+    merchantId: '10000100',
+    merchantKey: '46f0cd694581a',
+    passphrase: 'jt7NOE43FZPn',
+    sandbox: true,
+    publicUrl: 'https://api.example.com',
+  };
+
+  it('encodes like PHP urlencode and signs the fields in order', () => {
+    expect(phpUrlencode("a b!'()*~@/")).toBe('a+b%21%27%28%29%2A%7E%40%2F');
+    const fields: [string, string][] = [
+      ['merchant_id', '10000100'],
+      ['amount', '100.00'],
+      ['item_name', 'Mábu gift voucher'],
+    ];
+    const sig = payfastSignature(fields, 'jt7NOE43FZPn');
+    expect(sig).toMatch(/^[0-9a-f]{32}$/);
+    // Order matters, and empty fields are left out.
+    expect(payfastSignature([...fields].reverse(), 'jt7NOE43FZPn')).not.toBe(sig);
+    expect(payfastSignature([...fields, ['name_first', '']], 'jt7NOE43FZPn')).toBe(sig);
+  });
+
+  it('sends the guest to PayFast and issues the voucher only on a verified notification', async () => {
+    const provider = new PayFastProvider(config);
+    let confirm = true;
+    const { server, mail } = await boot(new MemoryStore(), {
+      payfast: { provider, validate: async () => confirm },
+    });
+    const token = await signIn(server, mail);
+    const buy = await server.call(
+      'vouchers.purchase',
+      {
+        amountCents: 100000,
+        forSelf: true,
+        delivery: 'in-app',
+        methodToken: 'hosted',
+        idempotencyKey: 'payfast-test-1',
+      },
+      token,
+    );
+    expect(buy.status).toBe(200);
+    const voucher = buy.body as { id: string; status: string; paymentId: string };
+    expect(voucher.status).toBe('pending_payment');
+
+    const checkout = await server.call('payments.checkout', { id: voucher.paymentId }, token);
+    expect(checkout.body).toMatchObject({
+      status: 'pending',
+      checkoutUrl: `https://api.example.com/pay/${voucher.paymentId}`,
+    });
+    const other = await (async () => {
+      await server.call('auth.requestCode', { email: 'someone@example.com' });
+      const r = await server.call('auth.verifyCode', {
+        email: 'someone@example.com',
+        code: mail.lastCode(),
+      });
+      return (r.body as { token: string }).token;
+    })();
+    expect((await server.call('payments.checkout', { id: voucher.paymentId }, other)).status).toBe(
+      404,
+    );
+
+    const page = await server.payfast.page(voucher.paymentId);
+    expect(page.html).toContain('https://sandbox.payfast.co.za/eng/process');
+    expect(page.html).toContain('name="amount" value="1000.00"');
+    expect(page.html).toContain(`name="m_payment_id" value="${voucher.paymentId}"`);
+
+    const itn = (over: Record<string, string> = {}) => {
+      const f: [string, string][] = Object.entries({
+        m_payment_id: voucher.paymentId,
+        pf_payment_id: '1089250',
+        payment_status: 'COMPLETE',
+        item_name: 'Mábu gift voucher',
+        amount_gross: '1000.00',
+        amount_fee: '-23.00',
+        amount_net: '977.00',
+        merchant_id: '10000100',
+        ...over,
+      });
+      f.push(['signature', payfastSignature(f, config.passphrase)]);
+      // The ITN signature covers empty fields too; none here.
+      return new URLSearchParams(f).toString();
+    };
+
+    // Tampered, wrong amount, unconfirmed: all refused, voucher still pending.
+    expect(await server.payfast.notify(itn().replace('1000.00', '1.00'))).toBe(400);
+    expect(await server.payfast.notify(itn({ amount_gross: '1.00' }))).toBe(400);
+    confirm = false;
+    expect(await server.payfast.notify(itn())).toBe(400);
+    const still = await server.call('vouchers.get', { id: voucher.id }, token);
+    expect((still.body as { status: string }).status).toBe('pending_payment');
+
+    confirm = true;
+    expect(await server.payfast.notify(itn())).toBe(200);
+    expect(await server.payfast.notify(itn())).toBe(200); // PayFast retries: harmless
+    const done = await server.call('vouchers.get', { id: voucher.id }, token);
+    expect((done.body as { status: string }).status).toBe('active');
   });
 });

@@ -19,6 +19,8 @@ export interface PaymentIntent {
   status: PaymentStatus;
   provider: string;
   providerRef?: string;
+  /** Hosted checkout page the guest is sent to, when the gateway uses one. */
+  checkoutUrl?: string;
   failureReason?: string;
   idempotencyKey: string;
   createdAt: string;
@@ -26,6 +28,8 @@ export interface PaymentIntent {
 }
 
 export interface ChargeRequest {
+  /** The payment intent's id — the gateway's merchant reference. */
+  reference: string;
   amountCents: number;
   currency: 'ZAR';
   description: string;
@@ -39,6 +43,8 @@ export interface PaymentProvider {
     status: 'succeeded' | 'failed' | 'pending';
     providerRef?: string;
     reason?: string;
+    /** Redirect gateways answer `pending` with the page to send the guest to. */
+    checkoutUrl?: string;
   }>;
   refund(providerRef: string, amountCents: number): Promise<void>;
 }

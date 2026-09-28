@@ -1,3 +1,4 @@
+import { CompletePayment } from '@/components/mabu/CompletePayment';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { VoucherCard } from '@/components/mabu/Cards';
@@ -57,10 +58,18 @@ export default function VoucherScreen() {
         </InlineNotice>
       ) : null}
       {v.status === 'pending_payment' ? (
-        <InlineNotice tone="info" style={{ marginTop: spacing.md }}>
-          Your payment is being confirmed by the bank. The voucher is issued — and emailed — the
-          moment it lands.
-        </InlineNotice>
+        <View style={{ marginTop: spacing.md, gap: spacing.md }}>
+          <CompletePayment
+            purpose="voucher"
+            referenceId={v.id}
+            autoOpen={!!isNew}
+            refresh={['vouchers.get', 'vouchers.mine']}
+          />
+          <InlineNotice tone="info">
+            Your payment is being confirmed. The voucher is issued — and emailed — the moment it
+            lands.
+          </InlineNotice>
+        </View>
       ) : null}
       <View style={{ marginTop: spacing.lg }}>
         <VoucherCard voucher={v} onPress={() => undefined} />

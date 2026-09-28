@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type Query,
+  type QueryKey,
+} from '@tanstack/react-query';
 import type { RpcArgs, RpcName, RpcResult } from '@/domain/rpc';
 import { useSession } from '@/store/session';
 import { rpc } from './api';
@@ -11,14 +17,17 @@ import { rpc } from './api';
 export function useRpc<K extends RpcName>(
   name: K,
   args?: RpcArgs<K>,
-  options: { enabled?: boolean; refetchInterval?: number } = {},
+  options: {
+    enabled?: boolean;
+    refetchInterval?: number | false | ((query: Query<RpcResult<K>>) => number | false);
+  } = {},
 ) {
   const who = useSession((s) => s.actor?.id ?? 'anon');
   return useQuery<RpcResult<K>>({
     queryKey: [name, who, args ?? null] as QueryKey,
     queryFn: () => (rpc as (n: K, a?: RpcArgs<K>) => Promise<RpcResult<K>>)(name, args),
     enabled: options.enabled ?? true,
-    refetchInterval: options.refetchInterval,
+    refetchInterval: options.refetchInterval as never,
   });
 }
 

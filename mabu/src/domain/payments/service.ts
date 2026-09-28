@@ -106,6 +106,7 @@ export class PaymentsService {
         let outcome: Awaited<ReturnType<PaymentProvider['charge']>>;
         try {
           outcome = await this.provider.charge({
+            reference: intent.id,
             amountCents: input.amountCents,
             currency: 'ZAR',
             description: input.description,
@@ -124,12 +125,44 @@ export class PaymentsService {
         const updated = this.ctx.db.payments.update(intent.id, {
           status: outcome.status,
           providerRef: outcome.providerRef,
+          checkoutUrl: outcome.checkoutUrl,
           failureReason: outcome.reason,
           updatedAt: nowIso(this.ctx),
         });
         return updated;
       },
     );
+  }
+
+  /**
+   * A gateway's notification of the result (§23), after the caller has
+   * verified it came from the gateway. The amount must match the intent;
+   * anything else is refused and left pending for a person to look at.
+   */
+  async settleFromGateway(
+    intentId: string,
+    outcome: { status: 'succeeded' | 'failed'; amountCents: number; providerRef?: string },
+  ): Promise<PaymentIntent> {
+    const intent = this.ctx.db.payments.require(intentId, 'payment');
+    if (outcome.status === 'succeeded' && outcome.amountCents !== intent.amountCents) {
+      throw new DomainError(
+        'VALIDATION',
+        'The payment amount does not match.',
+        `amount ${outcome.amountCents} != ${intent.amountCents}`,
+      );
+    }
+    if (outcome.providerRef && !intent.providerRef)
+      this.ctx.db.payments.update(intentId, { providerRef: outcome.providerRef });
+    return this.settle(intentId, outcome.status);
+  }
+
+  /** Who a payment belongs to, so only its payer may reopen its checkout. */
+  payerOf(intent: PaymentIntent): string | undefined {
+    if (intent.purpose === 'voucher')
+      return this.ctx.db.vouchers.get(intent.referenceId)?.purchaserGuestId;
+    if (intent.purpose === 'event')
+      return this.ctx.db.experienceBookings.get(intent.referenceId)?.guestId;
+    return this.ctx.db.reservations.get(intent.referenceId)?.guestId;
   }
 
   /**

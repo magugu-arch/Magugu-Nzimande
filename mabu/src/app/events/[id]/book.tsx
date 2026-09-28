@@ -1,3 +1,4 @@
+import { CompletePayment } from '@/components/mabu/CompletePayment';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -85,6 +86,14 @@ export default function BookEvent() {
             {body}
           </Text>
         </View>
+        {result.status === 'pending_payment' ? (
+          <CompletePayment
+            purpose="event"
+            referenceId={result.id}
+            autoOpen
+            refresh={['events.mine', 'events.get']}
+          />
+        ) : null}
         {result.status === 'confirmed' ? (
           <PremiumButton
             label="Add to calendar"

@@ -322,6 +322,30 @@ export function createHandlers(b: Backend) {
       return { saved: b.guests.toggleFavourite(me.id, a.kind, a.itemId, me) };
     },
 
+    /* ── Payments ─────────────────────────────────────────────────────── */
+
+    /** The hosted checkout for a payment still waiting on the guest. */
+    'payments.checkout': async (
+      actor: Actor | null,
+      a: { id?: string; purpose?: 'voucher' | 'event' | 'deposit'; referenceId?: string },
+    ) => {
+      const me = signedIn(actor);
+      const intent = a.id
+        ? b.db.payments.get(a.id)
+        : b.db.payments
+            .filter((p) => p.purpose === a.purpose && p.referenceId === a.referenceId)
+            .sort((x, y) => y.createdAt.localeCompare(x.createdAt))[0];
+      if (!intent || (me.role === 'guest' && b.payments.payerOf(intent) !== me.id)) {
+        throw new DomainError('NOT_FOUND', 'We could not find that payment.', 'payment owner');
+      }
+      return {
+        id: intent.id,
+        status: intent.status,
+        checkoutUrl: intent.status === 'pending' ? (intent.checkoutUrl ?? null) : null,
+        amountCents: intent.amountCents,
+      };
+    },
+
     /* ── Devices (§37 push) ─────────────────────────────────────────── */
 
     'devices.register': async (

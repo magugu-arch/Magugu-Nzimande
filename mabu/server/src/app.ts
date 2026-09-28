@@ -17,6 +17,7 @@ import { createHandlers, type Handlers } from '../../src/domain/rpc';
 import { DomainError, GENERIC_FAILURE, isDomainError } from '../../src/domain/shared/errors';
 import type { Clock } from '../../src/domain/shared/clock';
 import { Auth, type EmailSender } from './auth';
+import type { PayFastProvider } from './payfast';
 import type { ServerStore } from './store';
 
 export interface ServerOptions {
@@ -27,6 +28,11 @@ export interface ServerOptions {
   /** Expo push; omit to leave push unconfigured. */
   push?: { fetch: typeof fetch; accessToken?: string };
   directInventory?: boolean;
+  /** PayFast hosted checkout; `validate` asks PayFast to confirm an ITN. */
+  payfast?: {
+    provider: PayFastProvider;
+    validate: (host: string, body: string) => Promise<boolean>;
+  };
   allowedOrigins?: string[];
   clock?: Clock;
   log?: (line: string) => void;
@@ -70,6 +76,11 @@ export interface MabuServer {
   ): Promise<{ status: number; body: unknown }>;
   runJobs(): Promise<void>;
   handle(req: IncomingMessage, res: ServerResponse): void;
+  /** The PayFast pages and webhook, without HTTP (tests). */
+  payfast: {
+    page(intentId: string, outcome?: string): Promise<{ status: number; html: string }>;
+    notify(raw: string): Promise<number>;
+  };
 }
 
 export async function createServer(options: ServerOptions): Promise<MabuServer> {
@@ -94,6 +105,7 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
     mode: 'live',
     clock: options.clock,
     directInventory: options.directInventory,
+    paymentProvider: options.payfast?.provider,
     channelProviders: { push: forward('push'), email: forward('email') },
   });
   if (options.push) {
@@ -240,6 +252,110 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
     res.end(JSON.stringify(body));
   }
 
+  function sendHtml(res: ServerResponse, status: number, html: string) {
+    res.writeHead(status, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'no-referrer',
+    });
+    res.end(html);
+  }
+
+  function readBody(req: IncomingMessage, res: ServerResponse, done: (raw: string) => void) {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    req.on('data', (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > MAX_BODY) {
+        res.writeHead(413);
+        res.end();
+        req.destroy();
+      } else chunks.push(chunk);
+    });
+    req.on('end', () => {
+      if (size <= MAX_BODY) done(Buffer.concat(chunks).toString('utf8'));
+    });
+  }
+
+  const notice = (title: string, body: string) =>
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mábu · ${title}</title></head>
+<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0B0B0B;color:#E8E1D6;font-family:Helvetica,Arial,sans-serif;text-align:center;padding:24px">
+<div><div style="font-family:Georgia,serif;letter-spacing:6px;color:#C9A35B;font-size:24px">MÁBU</div><h1 style="font-family:Georgia,serif;font-weight:normal">${title}</h1><p style="max-width:420px">${body}</p>
+<a href="mabu://profile" style="display:inline-block;margin-top:16px;background:#C9A35B;color:#0B0B0B;border-radius:999px;padding:14px 28px;text-decoration:none;font-weight:600">Back to the Mábu app</a></div></body></html>`;
+
+  /** The page that hands the guest to PayFast, and the pages they come back to. */
+  async function payPage(intentId: string, outcome?: string) {
+    const payfast = options.payfast;
+    const intent = backend.db.payments.get(intentId);
+    if (!payfast || !intent) {
+      return {
+        status: 404,
+        html: notice('Payment not found', 'Please return to the app and try again.'),
+      };
+    }
+    if (outcome === 'done') {
+      return {
+        status: 200,
+        html: notice(
+          'Thank you',
+          'Your payment is being confirmed. The app updates the moment it is — usually within a minute.',
+        ),
+      };
+    }
+    if (outcome === 'cancelled') {
+      return { status: 200, html: notice('Payment cancelled', 'Nothing was charged.') };
+    }
+    if (intent.status !== 'pending') {
+      return { status: 200, html: notice('Already settled', 'This payment is already complete.') };
+    }
+    const payerId = backend.payments.payerOf(intent);
+    const payer = payerId ? backend.db.guests.get(payerId) : undefined;
+    const itemName =
+      intent.purpose === 'voucher'
+        ? 'Mábu gift voucher'
+        : intent.purpose === 'event'
+          ? 'Mábu event ticket'
+          : 'Mábu booking deposit';
+    const fields = payfast.provider.checkoutFields({
+      intentId,
+      amountCents: intent.amountCents,
+      itemName,
+      email: payer?.email,
+      firstName: payer?.name?.split(' ')[0],
+    });
+    return { status: 200, html: payfast.provider.checkoutPage(fields) };
+  }
+
+  /** PayFast's ITN: verified, then settled through the one queue. Always answers quickly. */
+  async function payfastNotification(raw: string): Promise<number> {
+    const payfast = options.payfast;
+    if (!payfast) return 404;
+    const fields = [...new URLSearchParams(raw).entries()] as [string, string][];
+    const verdict = await payfast.provider.verifyNotification(fields, payfast.validate);
+    if (!verdict.ok) {
+      log(`[payfast] ITN refused: ${verdict.reason}`);
+      return 400;
+    }
+    if (verdict.status === 'pending') return 200;
+    const status = verdict.status;
+    return exclusive(async () => {
+      try {
+        await backend.payments.settleFromGateway(verdict.intentId, {
+          status,
+          amountCents: verdict.amountCents,
+          providerRef: verdict.providerRef,
+        });
+        return 200;
+      } catch (error) {
+        log(`[payfast] ITN for ${verdict.intentId} not settled: ${String(error)}`);
+        return 400;
+      } finally {
+        await persist().catch((e) => log(`[store] write failed: ${String(e)}`));
+      }
+    });
+  }
+
   function handle(req: IncomingMessage, res: ServerResponse) {
     cors(req, res);
     const url = new URL(req.url ?? '/', 'http://localhost');
@@ -250,6 +366,20 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
     }
     if (req.method === 'GET' && url.pathname === '/health') {
       send(res, 200, { ok: true, service: 'mabu-api' });
+      return;
+    }
+    const pay = /^\/pay\/([\w-]+)(?:\/(done|cancelled))?$/.exec(url.pathname);
+    if (req.method === 'GET' && pay) {
+      void payPage(pay[1]!, pay[2]).then(({ status, html }) => sendHtml(res, status, html));
+      return;
+    }
+    if (req.method === 'POST' && url.pathname === '/webhooks/payfast') {
+      readBody(req, res, (raw) => {
+        void payfastNotification(raw).then((status) => {
+          res.writeHead(status);
+          res.end();
+        });
+      });
       return;
     }
     const match = /^\/rpc\/([a-zA-Z0-9.]+)$/.exec(url.pathname);
@@ -299,6 +429,7 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
     auth,
     call,
     handle,
+    payfast: { page: payPage, notify: payfastNotification },
     runJobs: () =>
       exclusive(async () => {
         try {

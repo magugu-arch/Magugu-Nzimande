@@ -1,3 +1,4 @@
+import { CompletePayment } from '@/components/mabu/CompletePayment';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -162,6 +163,12 @@ export default function BookingScreen() {
           {pay.isError ? (
             <InlineNotice tone="danger">{errorMessage(pay.error)}</InlineNotice>
           ) : null}
+          <CompletePayment
+            purpose="deposit"
+            referenceId={r.id}
+            autoOpen={!!pay.data}
+            refresh={['booking.get', 'booking.mine']}
+          />
           {pay.data?.depositStatus === 'pending' ? (
             <InlineNotice tone="info">
               Your payment is being confirmed by the bank. We will let you know as soon as it lands.

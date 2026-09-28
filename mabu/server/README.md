@@ -48,6 +48,9 @@ Point the app at it with `EXPO_PUBLIC_USE_MOCK_API=0` and `EXPO_PUBLIC_API_BASE_
 | `MABU_PUSH_ENABLED` | `false` turns push delivery off |
 | `MABU_SMTP_URL` | `smtps://user:password@host:465` — sign-in codes and notification email |
 | `MABU_EMAIL_FROM` | sender, e.g. `Mábu Restaurant <reservations@maburestaurant.com>` |
+| `MABU_PAYFAST_MERCHANT_ID`, `MABU_PAYFAST_MERCHANT_KEY`, `MABU_PAYFAST_PASSPHRASE` | PayFast credentials (server only) |
+| `MABU_PAYFAST_SANDBOX` | `1` to use PayFast's sandbox |
+| `MABU_PUBLIC_URL` | this server's public https origin; PayFast returns and notifies here |
 | `MABU_AUTO_MIGRATE` | `0` skips applying migrations at start |
 | `MABU_DEV_LOG_EMAIL` | `1` prints emails (sign-in codes included) to the log; refused when `NODE_ENV=production` |
 | `MABU_*` flags | the §22 / §45 flags from `.env.example`, without `EXPO_PUBLIC_` |
@@ -56,8 +59,12 @@ Point the app at it with `EXPO_PUBLIC_USE_MOCK_API=0` and `EXPO_PUBLIC_API_BASE_
 
 - **An email account.** Email goes out over SMTP (`src/email.ts`); any provider works. It needs the provider's
   SMTP address and a verified sender on Mábu's domain. Until then sign-in works only with `MABU_DEV_LOG_EMAIL`.
-- **Payments.** The payment provider is unconfigured in live mode; vouchers, paid events and deposits refuse
-  until a South African gateway's hosted checkout and webhook are added.
+- **PayFast account.** PayFast hosted checkout is built (`src/payfast.ts`): the app opens `/pay/<id>`, which
+  posts a signed form to PayFast; the ITN at `/webhooks/payfast` is accepted only with a valid signature, our
+  merchant id, PayFast's own confirmation and the right amount. It is written to PayFast's published
+  specification but could not reach PayFast from the build environment: run one sandbox payment
+  (`MABU_PAYFAST_SANDBOX=1`) before going live. Refunds are made in the PayFast dashboard. Another gateway is a
+  new `PaymentProvider` of the same shape.
 - **Relational tables.** Rows are kept as documents in `server_row`. They already match the shapes in
   `001_initial.sql`; moving each table onto its columns is the step before reporting at scale.
 - **One instance.** Calls are serialised in one process. Run a single instance until the relational move.
