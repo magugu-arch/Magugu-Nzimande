@@ -17,11 +17,12 @@ import type {
   ServicePeriod,
 } from './reservations/types';
 import type { BookingPolicy } from './reservations/policy';
-import { MARKETING_WEEKLY_CAP, type CampaignAudience } from './notifications/types';
-import type {
-  NotificationChannel,
-  NotificationPreference,
-  QuietHours,
+import {
+  MARKETING_WEEKLY_CAP,
+  type CampaignAudience,
+  type NotificationChannel,
+  type NotificationPreference,
+  type QuietHours,
 } from './notifications/types';
 import type { Reward, RewardRule, RewardsSettings } from './rewards/types';
 import type { Dish, WineItem } from './menu/types';
