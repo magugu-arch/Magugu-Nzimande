@@ -21,7 +21,7 @@ const SECTIONS: { key: string; label: string; icon: BrandIconName; photo: string
       key: 'dessert',
       label: 'Desserts',
       icon: 'vouchers',
-      photo: 'dish-desserts',
+      photo: 'chocolate-fondant',
       href: '/menu?section=dessert',
     },
     { key: 'wine', label: 'Wine', icon: 'wine', photo: 'wine-pour', href: '/menu?section=wine' },

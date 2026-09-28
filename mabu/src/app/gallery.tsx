@@ -9,6 +9,10 @@ const CAPTIONS: Partial<Record<PhotoKey, string>> = {
   'wagyu-sliced': 'Wagyu rump cap with wild mushrooms',
   'seafood-pan': 'Black rice with prawns, scallops, octopus and mussels',
   'wine-pour': 'A Mábu red, poured with the cheese board',
+  'chef-plating': 'Finishing a plate at the pass',
+  'fish-fillet': 'Pan-roasted kingklip with charred lemon',
+  'chocolate-fondant': 'Dark chocolate fondant with berries',
+  'seafood-linguine': 'Seafood linguine with grilled prawns and mussels',
   'dining-room': 'The main dining room beneath the timber chandeliers',
   'signature-steak': 'The Mábu fillet',
   'private-dining': 'A long table set for a private function',
@@ -18,7 +22,7 @@ const CAPTIONS: Partial<Record<PhotoKey, string>> = {
   'table-setting': 'Brass, marble and candlelight at the table',
   'dish-seafood': 'Kingklip, black rice and mussels',
   'dish-desserts': 'Dark chocolate and coconut',
-  'dish-cocktails': 'A classic martini',
+  'dish-cocktails': 'Cocktails at the bar',
   'dish-wines': 'A glass of red, poured at the table',
   'dish-private-functions': 'Glassware set for an occasion',
 };
@@ -47,7 +51,11 @@ export default function Gallery() {
             <Photo
               photo={k}
               label={CAPTIONS[k]!}
-              style={{ width: full, height: full * 1.25, borderRadius: radius.md }}
+              style={{
+                width: full,
+                height: full * (photoRegistry[k].height / photoRegistry[k].width),
+                borderRadius: radius.md,
+              }}
             />
             <Text variant="caption" color="textMuted">
               {CAPTIONS[k]}

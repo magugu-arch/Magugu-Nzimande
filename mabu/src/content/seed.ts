@@ -64,7 +64,7 @@ export const SEED_HOME: HomeContent = {
       eyebrow: 'Fire & Flavour',
       title: 'Where heritage meets the flame',
       body: 'Our signature cuts are aged, seasoned with African spice and finished over open fire — bold flavours, modern technique.',
-      photo: 'fillet-closeup',
+      photo: 'chef-plating',
     },
     {
       id: 'story-room',
@@ -285,15 +285,27 @@ export const SEED_DISHES: Dish[] = [
   // Fish
   dish({
     id: 'fish-kingklip',
-    name: 'Kingklip, Black Rice & Mussels',
+    name: 'Pan-Roasted Kingklip',
     description:
-      'Pan-roasted kingklip, squid-ink black rice, West Coast mussels, salmon roe, sea herbs.',
+      'Crisp-skinned kingklip, crushed baby potatoes, charred tenderstem, salsa verde, cauliflower velouté, charred lemon.',
     priceCents: 32500,
     category: 'fish',
-    photo: 'seafood-pan',
-    allergens: ['fish', 'molluscs'],
+    photo: 'fish-fillet',
+    allergens: ['fish', 'dairy'],
     signature: true,
     pairingIds: ['wine-hamilton-russell', 'wine-mullineux-white'],
+  }),
+  dish({
+    id: 'fish-black-rice',
+    name: 'Black Rice Seafood Pan',
+    description:
+      'Squid-ink rice with flame-grilled prawns, scallops, octopus and West Coast mussels, charred lemon, aioli. For two.',
+    priceCents: 69500,
+    category: 'fish',
+    photo: 'seafood-pan',
+    allergens: ['crustaceans', 'molluscs', 'egg'],
+    chefSelected: true,
+    pairingIds: ['wine-graham-beck', 'wine-mullineux-white'],
   }),
   dish({
     id: 'fish-salmon',
@@ -315,11 +327,14 @@ export const SEED_DISHES: Dish[] = [
   }),
   dish({
     id: 'pasta-prawn',
-    name: 'Prawn Linguine, Chilli & Lime',
-    description: 'Linguine, prawns, chilli, lime leaf, coconut cream.',
-    priceCents: 23500,
+    name: 'Seafood Linguine, Chilli & Lime',
+    description:
+      'Linguine, flame-grilled prawns, mussels and calamari in a chilli, lime and tomato bisque.',
+    priceCents: 26500,
     category: 'pasta',
-    allergens: ['gluten', 'crustaceans'],
+    photo: 'seafood-linguine',
+    allergens: ['gluten', 'crustaceans', 'molluscs'],
+    pairingIds: ['wine-mullineux-white'],
     spiceLevel: 2,
   }),
   // Slow cooked
@@ -398,11 +413,12 @@ export const SEED_DISHES: Dish[] = [
   // Desserts
   dish({
     id: 'des-chocolate',
-    name: 'Dark Chocolate & Coconut',
-    description: 'Dark chocolate délice, coconut sphere, salted caramel, cocoa soil.',
+    name: 'Dark Chocolate Fondant',
+    description:
+      'Molten dark chocolate fondant, vanilla bean ice cream, fresh berries, hazelnut tuile, cocoa soil.',
     priceCents: 12500,
     category: 'desserts',
-    photo: 'dish-desserts',
+    photo: 'chocolate-fondant',
     allergens: ['dairy', 'gluten', 'egg'],
     dietaryTags: ['vegetarian'],
     signature: true,
@@ -548,13 +564,13 @@ export const SEED_COLLECTIONS: MenuCollection[] = [
     name: 'Ocean to Our Table',
     description: 'Refined and fresh — from the West Coast to your plate.',
     photo: 'seafood-pan',
-    itemIds: ['start-prawns', 'fish-kingklip', 'fish-salmon', 'pasta-prawn'],
+    itemIds: ['fish-black-rice', 'fish-kingklip', 'pasta-prawn', 'start-prawns', 'fish-salmon'],
   },
   {
     id: 'col-sweet',
     name: 'A Sweet Taste of the Extraordinary',
     description: 'Desserts to linger over, with the perfect glass.',
-    photo: 'dish-desserts',
+    photo: 'chocolate-fondant',
     itemIds: ['des-chocolate', 'des-malva', 'des-yuzu'],
   },
 ];
@@ -581,7 +597,7 @@ export const SEED_EXPERIENCES: Experience[] = [
       'Beef tartare, umami dressing',
       'Springbok loin, amarula jus',
       'The Mábu fillet',
-      'Dark chocolate & coconut',
+      'Dark chocolate fondant',
     ],
     winePartner: 'Meerlust Estate',
     dressCode: 'Smart elegant',

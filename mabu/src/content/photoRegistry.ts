@@ -21,6 +21,18 @@ export const photoRegistry = {
     height: 288,
     origin: 'brand-board',
   },
+  'chef-plating': {
+    source: require('../../assets/photos/chef-plating.jpg'),
+    width: 1312,
+    height: 1199,
+    origin: 'photograph',
+  },
+  'chocolate-fondant': {
+    source: require('../../assets/photos/chocolate-fondant.jpg'),
+    width: 1122,
+    height: 1402,
+    origin: 'photograph',
+  },
   'dining-room': {
     source: require('../../assets/photos/dining-room.jpg'),
     width: 1122,
@@ -29,9 +41,9 @@ export const photoRegistry = {
   },
   'dish-cocktails': {
     source: require('../../assets/photos/dish-cocktails.jpg'),
-    width: 163,
-    height: 205,
-    origin: 'brand-board',
+    width: 1312,
+    height: 1199,
+    origin: 'photograph',
   },
   'dish-desserts': {
     source: require('../../assets/photos/dish-desserts.jpg'),
@@ -69,6 +81,12 @@ export const photoRegistry = {
     height: 1402,
     origin: 'photograph',
   },
+  'fish-fillet': {
+    source: require('../../assets/photos/fish-fillet.jpg'),
+    width: 1122,
+    height: 1402,
+    origin: 'photograph',
+  },
   'floor-pattern': {
     source: require('../../assets/photos/floor-pattern.jpg'),
     width: 366,
@@ -85,6 +103,12 @@ export const photoRegistry = {
     source: require('../../assets/photos/private-welcome.jpg'),
     width: 1536,
     height: 1024,
+    origin: 'photograph',
+  },
+  'seafood-linguine': {
+    source: require('../../assets/photos/seafood-linguine.jpg'),
+    width: 1122,
+    height: 1402,
     origin: 'photograph',
   },
   'seafood-pan': {

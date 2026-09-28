@@ -198,8 +198,10 @@ replaces the directions card.
   placeholders, all editable in admin.
 - The public phone number is unknown, so it is `null` and every *Call* action is hidden until it is set.
 - Logo: the wordmark is set in Playfair Display from the board until vector logo files are supplied.
-- Photography: eight supplied photographs are used full-size (the fillet, sliced wagyu, black-rice seafood, the
-  Mábu wine pour, the Private Functions welcome, and three interiors); the remaining dish tiles and textures are
+- Photography: thirteen supplied photographs are used full-size (fillet, sliced wagyu, kingklip, black-rice
+  seafood, seafood linguine, chocolate fondant, cocktails, chef plating, the Mábu wine pour, the Private Functions
+  welcome, and three interiors). Sample dish descriptions were written to match their photographs. The remaining
+  dish tiles and textures are
   cut from the brand board and used only at card and thumbnail sizes. The Mábu-labelled bottle is kept off pages
   about another producer's wine. Drop higher-resolution files into
   `assets/photos/masters/` with the same names and run `npm run assets:photos`.
