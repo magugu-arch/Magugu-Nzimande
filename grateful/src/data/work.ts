@@ -1,4 +1,5 @@
 import type { ImageKey } from './images';
+import content from './studio-content.json';
 
 /**
  * The portfolio. The three supplied photographs are the first entries, under
@@ -20,7 +21,7 @@ export type WorkItem = {
   details: string[];
 };
 
-export const work: WorkItem[] = [
+const defaults: WorkItem[] = [
   {
     slug: 'garment-study-01',
     title: 'Garment Study 01',
@@ -49,5 +50,9 @@ export const work: WorkItem[] = [
     details: ['Sculpted bow at the neck', 'Full sleeves gathered at the wrist', 'Darted, fitted bodice', 'Flared skirt'],
   },
 ];
+
+/** The studio's own names and years, from the launch checklist, over the neutral defaults. */
+const named = content.work as Record<string, { title: string | null; year: number | null }>;
+export const work: WorkItem[] = defaults.map((w) => ({ ...w, title: named[w.slug]?.title ?? w.title, year: named[w.slug]?.year ?? w.year }));
 
 export const workCategories = ['All', ...new Set(work.map((w) => w.category))];

@@ -10,6 +10,8 @@
 
 // The studio is reached by email. Its phone number appears only in the booking
 // flow (Book, Payment, Confirmation), by the studio's request: see BookingHelp.
+import content from './studio-content.json';
+
 export const site = {
   name: 'Grateful',
   legalName: 'Grateful (Pty) Ltd',
@@ -32,12 +34,11 @@ export const site = {
    */
   hours: [{ days: 'Consultations & fittings', time: 'By appointment' }] as { days: string; time: string }[],
 
-  /** Social profiles have not been supplied. Add URLs here and they appear in the footer. */
-  social: {
-    instagram: null as string | null,
-    facebook: null as string | null,
-    tiktok: null as string | null,
-  },
+  /** From the launch checklist (studio-content.json). Only supplied profiles appear in the footer. */
+  social: content.social as Record<'instagram' | 'facebook' | 'tiktok' | 'other', string | null>,
+
+  /** For the privacy notice (POPIA), from the launch checklist. null → still to be supplied. */
+  privacy: content.privacy as { officer: string | null; email: string | null; retention: string | null },
 
   /** Terms shown before checkout. Edit once the studio has settled its policy. */
   paymentTerms: [

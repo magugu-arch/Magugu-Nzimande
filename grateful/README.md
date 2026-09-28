@@ -110,6 +110,17 @@ Under the dashboard sits the admin API. Every call needs `Authorization: Bearer 
 - **`GET /api/health`** returns 200 when the environment is ready for real bookings and 503 otherwise, with pass/fail per check and never a value. Point an uptime monitor at it.
 - **`npm run check:launch [-- --env-file=.env.production]`** prints every launch setting with ✓/✗ and the fix. It exits 1 while anything required is missing.
 
+## The studio's content (launch checklist)
+
+The studio fills in the **Grateful Launch Checklist** page: portfolio names and years, photo permission and credits, social links, hours and prices, privacy-notice details, wording sign-off and accounts. Its answers are saved in that page's shared store. To bring them into the site:
+
+1. Export the answers (the `intake/studio` document) as JSON.
+2. `npm run apply:intake -- path/to/studio.json` writes `src/data/studio-content.json`. The Work page names and years, photo credits, footer social links and the privacy notice read from it. Anything it can't use (a year that isn't a year, a link that isn't `https`) is listed and left out.
+3. The command also lists what belongs elsewhere: hours and prices go in the dashboard, and wording notes and the domain are for a person to act on.
+4. `npm run verify`, then rebuild and publish.
+
+An empty value in `studio-content.json` means "not supplied yet", and the site keeps its neutral default.
+
 ## Search (SEO)
 
 Every public page has its own title, description, canonical address and social-preview tags, kept in one file: **`src/data/seo.ts`**. The page sets them in the browser, and the build writes them into a separate HTML file per page (`about.html`, `work/garment-study-01.html` and so on), so Google and WhatsApp/Facebook previews see the right page without running JavaScript. The main heading of each page carries its target search, in the small label above the display type.

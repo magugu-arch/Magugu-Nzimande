@@ -14,6 +14,8 @@ export type BrandImage = {
   focus: string;
 };
 
+import content from './studio-content.json';
+
 const base = import.meta.env.BASE_URL;
 
 export const images = {
@@ -55,3 +57,8 @@ export const images = {
 } satisfies Record<string, BrandImage>;
 
 export type ImageKey = keyof typeof images;
+
+/** The photographer's credit for an image, from the launch checklist, or null. */
+export function photoCredit(key: ImageKey): string | null {
+  return (content.credits as Record<string, string | null>)[key] ?? null;
+}

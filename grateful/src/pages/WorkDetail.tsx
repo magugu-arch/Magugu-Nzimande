@@ -7,6 +7,7 @@ import { pageSeo, workSeo } from '../data/seo';
 import { work } from '../data/work';
 import { useSeo } from '../lib/useTitle';
 import NotFound from './NotFound';
+import { photoCredit } from '../data/images';
 
 export default function WorkDetail() {
   const { slug } = useParams();
@@ -41,6 +42,7 @@ export default function WorkDetail() {
                   </li>
                 ))}
               </ul>
+              {photoCredit(item.image) && <p className="mt-4 font-sans text-xs opacity-60">Photograph: {photoCredit(item.image)}</p>}
             </FadeIn>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">

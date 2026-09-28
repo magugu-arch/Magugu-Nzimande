@@ -51,7 +51,7 @@ export function Footer() {
             {socials.map(([name, href]) => (
               <li key={name}>
                 <a href={href} rel="noopener noreferrer" target="_blank" className="ui-label inline-flex min-h-11 items-center capitalize opacity-70 hover:opacity-100">
-                  {name}
+                  {name === 'other' ? new URL(href).hostname.replace(/^www\./, '') : name}
                 </a>
               </li>
             ))}

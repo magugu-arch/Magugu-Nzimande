@@ -16,8 +16,10 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: 'Who we are',
     body: [
-      `${site.legalName} (“Grateful”, “we”) is the responsible party for personal information collected through this website. Contact: ${site.email}, ${site.location}.`,
-      'Information Officer: [name of the Information Officer, as registered with the Information Regulator].',
+      `${site.legalName} (“Grateful”, “we”) is the responsible party for personal information collected through this website. Contact: ${site.privacy.email ?? site.email}, ${site.location}.`,
+      site.privacy.officer
+        ? `Information Officer: ${site.privacy.officer}.`
+        : 'Information Officer: [name of the Information Officer, as registered with the Information Regulator].',
     ],
   },
   {
@@ -46,7 +48,11 @@ const sections: { title: string; body: string[] }[] = [
   },
   {
     title: 'How long we keep it',
-    body: ['[Booking and payment records: e.g. five years, for tax purposes. Enquiries: e.g. twelve months. Newsletter: until you unsubscribe.]'],
+    body: [
+      site.privacy.retention
+        ? `${site.privacy.retention.replace(/\.?$/, '.')} Newsletter: until you unsubscribe.`
+        : '[Booking and payment records: e.g. five years, for tax purposes. Enquiries: e.g. twelve months. Newsletter: until you unsubscribe.]',
+    ],
   },
   {
     title: 'Your rights',

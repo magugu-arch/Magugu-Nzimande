@@ -1,0 +1,34 @@
+{
+  "work": {
+    "garment-study-01": {
+      "title": null,
+      "year": null
+    },
+    "garment-study-02": {
+      "title": null,
+      "year": null
+    },
+    "garment-study-03": {
+      "title": null,
+      "year": null
+    }
+  },
+  "credits": {
+    "burgundyGown": null,
+    "whiteShirtLook": null,
+    "greenGown": null,
+    "navyDress": null,
+    "burgundyDetail": null
+  },
+  "social": {
+    "instagram": null,
+    "facebook": null,
+    "tiktok": null,
+    "other": null
+  },
+  "privacy": {
+    "officer": null,
+    "email": null,
+    "retention": null
+  }
+}
