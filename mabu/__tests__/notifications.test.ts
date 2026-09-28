@@ -260,3 +260,71 @@ describe('resilience', () => {
     expect(b.db.reservations.require(r.id).status).toBe('confirmed');
   });
 });
+
+describe('campaign audiences and the weekly cap (§41)', () => {
+  const optIn = async (b: ReturnType<typeof makeBackend>, g: { id: string; role: 'guest' }) => {
+    const marketing = (await b.notifications.getGuestPreferences(g.id)).find(
+      (p) => p.category === 'marketing',
+    )!;
+    await b.notifications.updateGuestPreference({ ...marketing, enabled: true }, g as never);
+  };
+  const visit = (b: ReturnType<typeof makeBackend>, guestId: string, iso: string, n: number) =>
+    b.db.reservations.insert({
+      id: `res_visit_${guestId}_${n}`,
+      guestId,
+      status: 'completed',
+      startsAt: iso,
+    } as never);
+
+  it('sends only to the audience, still only with consent', async () => {
+    const b = makeBackend({ marketingNotificationsEnabled: true });
+    const regular = addGuest(b, 'regular@example.com', 'Regular');
+    const lapsed = addGuest(b, 'lapsed@example.com', 'Lapsed');
+    const fresh = addGuest(b, 'fresh@example.com', 'Fresh');
+    for (const g of [regular, lapsed, fresh]) await optIn(b, g as never);
+    ['2026-09-01', '2026-09-12', '2026-09-25'].forEach((d, i) =>
+      visit(b, regular.id, `${d}T19:00:00+02:00`, i),
+    );
+    visit(b, lapsed.id, '2026-06-20T19:00:00+02:00', 0);
+
+    expect(b.notifications.inAudience(regular.id, 'regulars')).toBe(true);
+    expect(b.notifications.inAudience(lapsed.id, 'regulars')).toBe(false);
+    expect(b.notifications.inAudience(lapsed.id, 'lapsed')).toBe(true);
+    expect(b.notifications.inAudience(fresh.id, 'lapsed')).toBe(false);
+    expect(b.notifications.audienceSize('regulars')).toEqual({ inAudience: 1, reachable: 1 });
+
+    b.notifications.scheduleCampaign(
+      {
+        name: 'Come back',
+        audience: 'lapsed',
+        data: { headline: 'We have missed you', body: '…' },
+        scheduledFor: '2026-10-01T06:00:00Z',
+      },
+      ADMIN,
+    );
+    const [sent] = await b.notifications.runCampaigns();
+    expect(sent).toMatchObject({ recipients: 1, blockedNoConsent: 0, heldByCap: 0 });
+    expect(b.notifications.inbox(lapsed.id, lapsed)).toHaveLength(1);
+    expect(b.notifications.inbox(regular.id, regular)).toHaveLength(0);
+  });
+
+  it('holds back a guest who has had this week’s marketing already', async () => {
+    const b = makeBackend({ marketingNotificationsEnabled: true });
+    const guest = addGuest(b);
+    await optIn(b, guest as never);
+    for (let i = 0; i < 3; i += 1) {
+      b.notifications.scheduleCampaign(
+        {
+          name: `News ${i}`,
+          data: { headline: `News ${i}`, body: '…' },
+          scheduledFor: '2026-10-01T06:00:00Z',
+        },
+        ADMIN,
+      );
+    }
+    const results = await b.notifications.runCampaigns();
+    expect(results.map((c) => c.recipients)).toEqual([1, 1, 0]);
+    expect(results[2]).toMatchObject({ heldByCap: 1 });
+    expect(b.notifications.marketingThisWeek(guest.id)).toBe(2);
+  });
+});

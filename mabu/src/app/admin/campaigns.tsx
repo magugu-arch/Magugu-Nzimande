@@ -11,6 +11,7 @@ import {
   Text,
   TextField,
 } from '@/components/ui';
+import { CAMPAIGN_AUDIENCES, type CampaignAudience } from '@/domain/notifications/types';
 import { formatDateShort, formatTime } from '@/domain/shared/format';
 import { errorMessage } from '@/services/api';
 import { useRpc, useRpcMutation } from '@/services/queries';
@@ -32,6 +33,8 @@ export default function AdminCampaigns() {
   const [headline, setHeadline] = useState('');
   const [body, setBody] = useState('');
   const [when, setWhen] = useState(0);
+  const [audience, setAudience] = useState<CampaignAudience>('all');
+  const size = useRpc('admin.campaign.audience', { audience });
 
   const scheduledFor = () => {
     const now = new Date();
@@ -54,7 +57,8 @@ export default function AdminCampaigns() {
             </InlineNotice>
           ) : null}
           <Text variant="bodySmall" color="textMuted" style={{ marginTop: spacing.lg }}>
-            {q.data.consenting} guest(s) have opted in to news and promotions.
+            {q.data.consenting} guest(s) have opted in to news and promotions. Nobody receives more
+            than {q.data.weeklyCap} marketing messages in any seven days.
           </Text>
 
           <SectionTitle eyebrow="New" title="Schedule a campaign" />
@@ -66,6 +70,29 @@ export default function AdminCampaigns() {
             hint="Shown as the push title — keep it short."
           />
           <TextField label="Body (email & in-app)" value={body} onChangeText={setBody} multiline />
+          <Text variant="eyebrow" color="accent" style={{ marginBottom: spacing.sm }}>
+            Audience
+          </Text>
+          <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
+            {CAMPAIGN_AUDIENCES.map((a) => (
+              <Chip
+                key={a.id}
+                label={a.label}
+                selected={audience === a.id}
+                onPress={() => setAudience(a.id)}
+              />
+            ))}
+          </View>
+          <Text
+            variant="caption"
+            color="textMuted"
+            style={{ marginTop: spacing.sm, marginBottom: spacing.lg }}
+          >
+            {CAMPAIGN_AUDIENCES.find((a) => a.id === audience)?.description}
+            {size.data
+              ? ` · ${size.data.inAudience} guest(s), ${size.data.reachable} opted in today`
+              : ''}
+          </Text>
           <View
             style={{
               flexDirection: 'row',
@@ -93,7 +120,7 @@ export default function AdminCampaigns() {
             loading={schedule.isPending}
             onPress={() =>
               schedule.mutate(
-                { name, headline, body, scheduledFor: scheduledFor() },
+                { name, headline, body, scheduledFor: scheduledFor(), audience },
                 {
                   onSuccess: () => {
                     setName('');
@@ -109,10 +136,13 @@ export default function AdminCampaigns() {
           {q.data.campaigns.map((c) => (
             <Card key={c.id} style={{ marginBottom: spacing.sm, gap: spacing.xs }}>
               <Text variant="title">{c.name}</Text>
+              <Text variant="caption" color="accent">
+                {CAMPAIGN_AUDIENCES.find((a) => a.id === (c.audience ?? 'all'))?.label}
+              </Text>
               <Text variant="caption" color="textMuted">
                 {c.status} · {formatDateShort(c.scheduledFor)} {formatTime(c.scheduledFor)}
                 {c.status === 'sent'
-                  ? ` · ${c.recipients} sent, ${c.blockedNoConsent} held back (no consent)`
+                  ? ` · ${c.recipients} sent, ${c.blockedNoConsent} held back (no consent)${c.heldByCap ? `, ${c.heldByCap} at the weekly limit` : ''}`
                   : ''}
               </Text>
               {c.status === 'scheduled' ? (

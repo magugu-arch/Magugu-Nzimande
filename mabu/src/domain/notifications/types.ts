@@ -124,9 +124,32 @@ export interface NotificationService {
 }
 
 /** A marketing campaign scheduled by admin (§44). */
+/** §41 who a campaign is for. Every audience is still limited to consenting guests. */
+export type CampaignAudience = 'all' | 'regulars' | 'lapsed' | 'members' | 'birthday-month';
+
+export const CAMPAIGN_AUDIENCES: { id: CampaignAudience; label: string; description: string }[] = [
+  { id: 'all', label: 'Everyone', description: 'Every guest who opted in' },
+  { id: 'regulars', label: 'Regulars', description: 'Three or more visits in ninety days' },
+  {
+    id: 'lapsed',
+    label: 'Lapsed',
+    description: 'Sixty days since their last visit, nothing booked',
+  },
+  { id: 'members', label: 'Rewards members', description: 'Guests in MÁBU Rewards' },
+  {
+    id: 'birthday-month',
+    label: 'Birthday this month',
+    description: 'A birthday saved for this month',
+  },
+];
+
+/** At most this many marketing messages reach one guest in any seven days. */
+export const MARKETING_WEEKLY_CAP = 2;
+
 export interface Campaign {
   id: string;
   name: string;
+  audience?: CampaignAudience;
   templateKey: string;
   data: Record<string, unknown>;
   deepLink?: string;
@@ -137,4 +160,6 @@ export interface Campaign {
   sentAt?: string;
   recipients?: number;
   blockedNoConsent?: number;
+  /** Consenting guests left out because they had already had this week's messages. */
+  heldByCap?: number;
 }

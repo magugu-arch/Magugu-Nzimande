@@ -2,12 +2,15 @@ import type { ServiceContext } from '../context';
 import { audit, nowIso, requireOwnerOrStaff, requireRole } from '../context';
 import type { Actor } from '../guests/types';
 import { DomainError } from '../shared/errors';
-import { minutesOf, venueTime } from '../shared/time';
+import { minutesOf, venueDate, venueTime } from '../shared/time';
+import { isUpcoming } from '../reservations/status';
 import { assertTemplateSafe, render } from './templates';
 import {
+  MARKETING_WEEKLY_CAP,
   NOTIFICATION_CATEGORIES,
   TRANSACTIONAL_CATEGORIES,
   type Campaign,
+  type CampaignAudience,
   type InboxItem,
   type NotificationCategory,
   type NotificationChannel,
@@ -447,7 +450,7 @@ export class NotificationsService implements NotificationService {
   /* ── Campaigns ──────────────────────────────────────────────────────── */
 
   scheduleCampaign(
-    input: Pick<Campaign, 'name' | 'data' | 'deepLink' | 'scheduledFor'>,
+    input: Pick<Campaign, 'name' | 'data' | 'deepLink' | 'scheduledFor' | 'audience'>,
     actor: Actor,
   ): Campaign {
     requireRole(actor, 'admin');
@@ -458,6 +461,7 @@ export class NotificationsService implements NotificationService {
       id: this.ctx.ids.id('cmp'),
       name: input.name.trim() || String(input.data.headline),
       templateKey: 'marketing.campaign',
+      audience: input.audience ?? 'all',
       data: input.data,
       deepLink: input.deepLink,
       scheduledFor: input.scheduledFor,
@@ -467,6 +471,7 @@ export class NotificationsService implements NotificationService {
     });
     audit(this.ctx, actor, 'campaign.scheduled', 'campaign', campaign.id, {
       scheduledFor: input.scheduledFor,
+      audience: campaign.audience,
     });
     return campaign;
   }
@@ -478,7 +483,58 @@ export class NotificationsService implements NotificationService {
     audit(this.ctx, actor, 'campaign.cancelled', 'campaign', c.id);
   }
 
-  /** Job: sends campaigns that have come due, to consenting guests only. */
+  /** Whether a guest belongs to a campaign audience, judged at send time. */
+  inAudience(guestId: string, audience: CampaignAudience = 'all'): boolean {
+    if (audience === 'all') return true;
+    const guest = this.ctx.db.guests.get(guestId);
+    if (!guest) return false;
+    const now = this.ctx.clock.now().getTime();
+    const DAY = 86_400_000;
+    if (audience === 'members') return guest.rewardsOptIn === true;
+    if (audience === 'birthday-month') {
+      const month = venueDate(this.ctx.clock.now()).slice(5, 7);
+      return !!guest.occasions?.some((o) => o.kind === 'birthday' && o.date.slice(0, 2) === month);
+    }
+    const mine = this.ctx.db.reservations.filter((r) => r.guestId === guestId);
+    const visits = mine
+      .filter((r) => r.status === 'completed')
+      .map((r) => new Date(r.startsAt).getTime());
+    if (audience === 'regulars') return visits.filter((t) => now - t <= 90 * DAY).length >= 3;
+    // lapsed: has visited, not in sixty days, and nothing booked ahead
+    if (!visits.length || now - Math.max(...visits) < 60 * DAY) return false;
+    return !mine.some((r) => isUpcoming(r, this.ctx.clock.now()));
+  }
+
+  /** Marketing messages this guest has been sent in the last seven days. */
+  marketingThisWeek(guestId: string): number {
+    const since = this.ctx.clock.now().getTime() - 7 * 86_400_000;
+    return this.ctx.db.notificationMessages.count(
+      (m) =>
+        m.guestId === guestId &&
+        m.category === 'marketing' &&
+        m.status !== 'suppressed' &&
+        m.status !== 'cancelled' &&
+        new Date(m.createdAt ?? 0).getTime() >= since,
+    );
+  }
+
+  /** Admin preview: how many guests an audience reaches today. */
+  audienceSize(audience: CampaignAudience): { inAudience: number; reachable: number } {
+    let inAudience = 0;
+    let reachable = 0;
+    for (const g of this.ctx.db.guests.filter((x) => x.role === 'guest')) {
+      if (!this.inAudience(g.id, audience)) continue;
+      inAudience += 1;
+      if (g.consent?.marketing === true && this.preference(g.id, 'marketing').enabled)
+        reachable += 1;
+    }
+    return { inAudience, reachable };
+  }
+
+  /**
+   * Job: sends campaigns that have come due — to guests in the audience who
+   * consented, and who have not already had this week's marketing (§41, §42).
+   */
   async runCampaigns(): Promise<Campaign[]> {
     const now = this.ctx.clock.now();
     const out: Campaign[] = [];
@@ -487,7 +543,9 @@ export class NotificationsService implements NotificationService {
     )) {
       let recipients = 0;
       let blocked = 0;
+      let capped = 0;
       for (const g of this.ctx.db.guests.filter((x) => x.role === 'guest')) {
+        if (!this.inAudience(g.id, c.audience)) continue;
         const pref = this.preference(g.id, 'marketing');
         if (
           !this.ctx.flags.marketingNotificationsEnabled ||
@@ -495,6 +553,10 @@ export class NotificationsService implements NotificationService {
           !pref.enabled
         ) {
           blocked += 1;
+          continue;
+        }
+        if (this.marketingThisWeek(g.id) >= MARKETING_WEEKLY_CAP) {
+          capped += 1;
           continue;
         }
         await this.queue({
@@ -515,6 +577,7 @@ export class NotificationsService implements NotificationService {
           sentAt: nowIso(this.ctx),
           recipients,
           blockedNoConsent: blocked,
+          heldByCap: capped,
         }),
       );
     }

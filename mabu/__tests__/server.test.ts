@@ -1,6 +1,8 @@
 import { createServer } from '../server/src/app';
 import type { EmailSender } from '../server/src/auth';
 import { MemoryStore } from '../server/src/store';
+import { SmtpEmailSender } from '../server/src/email';
+import nodemailer from 'nodemailer';
 import { DEFAULT_FLAGS } from '@/domain/flags';
 import { fixedClock } from '@/domain/shared/clock';
 import { newIdempotencyKey } from '@/domain/shared/ids';
@@ -183,5 +185,30 @@ describe('Mábu API server', () => {
     } as never);
     expect(calls).toHaveLength(1);
     expect(server.backend.db.pushTokens.count()).toBe(0);
+  });
+});
+
+describe('SMTP email', () => {
+  it('sends a text and branded HTML message, and refuses header injection', async () => {
+    const transport = nodemailer.createTransport({ jsonTransport: true });
+    const sent: string[] = [];
+    const orig = transport.sendMail.bind(transport);
+    transport.sendMail = (async (m: Parameters<typeof orig>[0]) => {
+      const info = await orig(m);
+      sent.push(String(info.message));
+      return info;
+    }) as typeof transport.sendMail;
+    const sender = new SmtpEmailSender(transport, 'Mábu <reservations@example.com>');
+    await sender.send(
+      'guest@example.com',
+      'Your Mábu sign-in code',
+      'Your code is 123456.\n\nThanks.',
+    );
+    const msg = JSON.parse(sent[0]!);
+    expect(msg.to).toEqual([{ address: 'guest@example.com', name: '' }]);
+    expect(msg.text).toContain('123456');
+    expect(msg.html).toContain('MÁBU');
+    await expect(sender.send('a@example.com, b@example.com', 'x', 'y')).rejects.toThrow();
+    await expect(sender.send('a@example.com', 'x\r\nBcc: evil@example.com', 'y')).rejects.toThrow();
   });
 });

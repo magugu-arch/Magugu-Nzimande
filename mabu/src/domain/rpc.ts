@@ -17,6 +17,7 @@ import type {
   ServicePeriod,
 } from './reservations/types';
 import type { BookingPolicy } from './reservations/policy';
+import { MARKETING_WEEKLY_CAP, type CampaignAudience } from './notifications/types';
 import type {
   NotificationChannel,
   NotificationPreference,
@@ -505,15 +506,29 @@ export function createHandlers(b: Backend) {
         campaigns: b.db.campaigns.list().sort((x, y) => y.createdAt.localeCompare(x.createdAt)),
         marketingEnabled: b.ctx.flags.marketingNotificationsEnabled,
         consenting: b.db.guests.count((g) => g.consent?.marketing === true),
+        weeklyCap: MARKETING_WEEKLY_CAP,
       };
+    },
+    'admin.campaign.audience': async (actor: Actor | null, a: { audience: CampaignAudience }) => {
+      const me = signedIn(actor);
+      if (me.role !== 'admin') throw new DomainError('FORBIDDEN', 'Admin only.', 'role');
+      return b.notifications.audienceSize(a.audience);
     },
     'admin.campaign.schedule': async (
       actor: Actor | null,
-      a: { name: string; headline: string; body: string; deepLink?: string; scheduledFor: string },
+      a: {
+        name: string;
+        headline: string;
+        body: string;
+        deepLink?: string;
+        scheduledFor: string;
+        audience?: CampaignAudience;
+      },
     ) =>
       b.notifications.scheduleCampaign(
         {
           name: a.name,
+          audience: a.audience,
           data: { headline: a.headline, body: a.body },
           deepLink: a.deepLink,
           scheduledFor: a.scheduledFor,

@@ -9,17 +9,19 @@
  *                           when every booking is entered in this system)
  *   EXPO_ACCESS_TOKEN       optional, Expo enhanced push security
  *   MABU_PUSH_ENABLED       false turns push delivery off
+ *   MABU_SMTP_URL           smtps://user:pass@host:465 — email delivery
+ *   MABU_EMAIL_FROM         "Mábu Restaurant <reservations@…>"
  *   MABU_DEV_LOG_EMAIL      1 = print emails (sign-in codes included) to the
  *                           log instead of sending. Development only.
  *   MABU_* feature flags    as in .env.example, without EXPO_PUBLIC_
  *
- * A production email provider plugs in as an `EmailSender` (server/src/auth.ts).
  */
 import http from 'node:http';
 import path from 'node:path';
 import { flagsFromEnv } from '../../src/domain/flags';
 import { createServer } from './app';
 import type { EmailSender } from './auth';
+import { SmtpEmailSender } from './email';
 import { FileStore, SqlStore, type ServerStore } from './store';
 
 async function openStore(): Promise<ServerStore> {
@@ -38,6 +40,11 @@ async function openStore(): Promise<ServerStore> {
 }
 
 function emailSender(): EmailSender | null {
+  if (process.env.MABU_SMTP_URL) {
+    const from = process.env.MABU_EMAIL_FROM;
+    if (!from) throw new Error('MABU_EMAIL_FROM is required with MABU_SMTP_URL');
+    return SmtpEmailSender.fromUrl(process.env.MABU_SMTP_URL, from);
+  }
   if (process.env.MABU_DEV_LOG_EMAIL === '1') {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('MABU_DEV_LOG_EMAIL must not be set in production: it logs sign-in codes.');
