@@ -68,6 +68,8 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Export the web build
+        # Also writes sitemap.xml and robots.txt, and fails on a page with no
+        # title, no description or one that competes with another page.
         run: npm run export:web
       # 80 route × width × role combinations: overflow, blank screens,
       # console errors and unnamed buttons.

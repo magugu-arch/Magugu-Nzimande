@@ -41,6 +41,9 @@ Admin › *Reset demo data* starts again.
 | `npm run db:check` | Applies `server/migrations` to real PostgreSQL (PGlite) and attacks each invariant |
 | `npm run server:dev` | Runs the API server locally; sign-in codes are printed to the log |
 | `npm run server:check` | The API server on PostgreSQL over HTTP: sign-in, booking, restart |
+| `npm run export:web` | The website: a page per route, plus sitemap.xml, robots.txt and the SEO checks |
+| `npm run seo` | Rewrites the sitemap and robots, and checks every page's title, description and canonical |
+| `npm run content:snapshot` | Rebuilds the public content that ships inside the website's HTML |
 | `npm run standalone` | The whole app as one HTML file in `dist-standalone/` (opens from disk) |
 | `npm run standalone:check` | Opens that file from disk and books a table through it |
 | `npm run export:web` | Web build into `dist-web/` |
@@ -218,7 +221,8 @@ replaces the directions card.
 
 ### 8. Remaining technical blockers
 
-See `AUDIT.md` for the full completion audit and `COSTINGS.md` for market costings.
+See `AUDIT.md` for the full completion audit, `COSTINGS.md` for market costings and `SEO.md` for how the
+website is set up to be found.
 
 - **Deployment.** The API server (`server/`, see `server/README.md`) runs sign-in, sessions, PostgreSQL and push,
   and passes `npm run server:check`, but is not yet hosted. It keeps rows as documents in `server_row`; moving
