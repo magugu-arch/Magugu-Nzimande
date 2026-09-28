@@ -104,6 +104,7 @@ await browser.close();
 
 const audit = reportPage('Grateful-Build-Audit.html', '#audit');
 const costing = reportPage('Grateful-Website-Costing.html', '#costing');
+const golive = reportPage('Grateful-Go-Live-Guide.html', '#golive');
 const DESCRIPTION = 'The Grateful website, as pictures of every page, with its photographs, completion audit and costing. Made to open anywhere, including inside WhatsApp on an iPhone.';
 
 const html = `<!doctype html>
@@ -156,6 +157,7 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
 @media (min-width: 900px) { .photos { grid-template-columns: repeat(5, minmax(0, 1fr)); } .pages { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
 ${audit.css}
 ${costing.css}
+${golive.css}
 </style>
 </head>
 <body>
@@ -163,7 +165,7 @@ ${costing.css}
 <main>
 <div class="w">
   <h1>The Grateful website, <em>page by page.</em></h1>
-  <p class="muted">A fashion design studio in Mulbarton, Johannesburg. This edition is made to open anywhere, including inside WhatsApp on an iPhone: every page of the website is shown as a picture, followed by the photographs, the completion audit and the costing.</p>
+  <p class="muted">A fashion design studio in Mulbarton, Johannesburg. This edition is made to open anywhere, including inside WhatsApp on an iPhone: every page of the website is shown as a picture, followed by the photographs, the completion audit, the costing and the go-live guide.</p>
   <p class="note"><b>To click through the working website,</b> open this link in Safari: <a href="${PREVIEW_URL}">${PREVIEW_URL}</a></p>
   <ul class="toc">
     <li><a href="#pages">The website, page by page</a></li>
@@ -171,6 +173,7 @@ ${costing.css}
     <li><a href="#photos">The photographs</a></li>
     <li><a href="#audit">Completion audit: 80% complete</a></li>
     <li><a href="#costing">Costing</a></li>
+    <li><a href="#golive">Go-live guide: the ten steps to switch the site on</a></li>
     <li><a href="#checklist">Launch checklist</a></li>
   </ul>
 </div>
@@ -207,6 +210,10 @@ ${audit.body}
 
 <section id="costing" class="sec" style="padding:0">
 ${costing.body}
+</section>
+
+<section id="golive" class="sec" style="padding:0">
+${golive.body}
 </section>
 
 <section id="checklist" class="sec" style="border-bottom:0"><div class="w" style="padding-bottom:40px">

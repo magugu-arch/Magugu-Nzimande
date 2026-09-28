@@ -18,7 +18,9 @@
     "build:whatsapp": "node scripts/build-whatsapp.mjs",
     "build:previews": "npm run build:single && cp dist-single/index.html preview/Grateful-Website-Preview.html && npm run build:handover && npm run build:whatsapp",
     "check:launch": "node scripts/check-launch.mjs",
-    "apply:intake": "node scripts/apply-intake.mjs"
+    "apply:intake": "node scripts/apply-intake.mjs",
+    "build:setup-sql": "node scripts/build-setup-sql.mjs",
+    "gen:secrets": "node scripts/gen-secrets.mjs"
   },
   "dependencies": {
     "@fontsource-variable/baskervville": "^5.3.0",

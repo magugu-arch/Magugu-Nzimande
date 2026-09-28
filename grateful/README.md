@@ -159,10 +159,12 @@ Keywords `<meta>` tags are not used: Google ignores them. What ranks a local stu
 
 ## Going live
 
-1. **Supabase:** create a project, then run every file in `supabase/migrations` in order (`0001`–`0003`), then `supabase/seed.sql` (or `supabase db push`). Replace the sample availability with real hours, and set prices where they apply.
-2. **Reminders:** set `CRON_SECRET` (16+ random characters).
+A plain-language, step-by-step version for the studio is in `preview/Grateful-Go-Live-Guide.html`.
+
+1. **Supabase:** create a project, open **SQL Editor → New query**, paste the whole of `supabase/setup-all.sql` and run it once (it is every migration in order, then the seed; `npm run build:setup-sql` regenerates it). Or run the migrations and `seed.sql` yourself, or `supabase db push`. Replace the sample availability with real hours, and set prices where they apply.
+2. **Secrets:** `npm run gen:secrets` prints fresh `ADMIN_TOKEN` (the studio key), `NEWSLETTER_SECRET` and `CRON_SECRET` values. Paste them straight into Vercel; keep the studio key in a password manager.
 3. **PayFast:** create a merchant account and test on the sandbox first (`PAYFAST_SANDBOX=true`). Set `PAYMENT_PROVIDER=payfast` and the merchant ID, key and passphrase.
-4. **Newsletter:** set `NEWSLETTER_SECRET` to a long random string.
+4. **Newsletter:** `NEWSLETTER_SECRET` comes from step 2.
 5. **Resend:** verify a sending domain, then set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` and `EMAIL_FROM`.
 6. **Vercel:** import the repo with **root directory `grateful`**, add the variables from `.env.example`, and set `SITE_URL` to the real domain (PayFast's notify URL, the sitemap and canonical addresses are built from it). Then run `npm run check:launch` against those values: it should print "Ready to launch."
 7. **Google:** set up Search Console (see [Search](#search-seo)) and a Google Business Profile.
@@ -173,6 +175,8 @@ Keywords `<meta>` tags are not used: Google ignores them. What ranks a local stu
 | --- | --- |
 | `npm run dev` | site + API with hot reload |
 | `npm run build` | typecheck and production build to `dist/` |
+| `npm run build:setup-sql` | regenerate `supabase/setup-all.sql` (all migrations, then the seed) |
+| `npm run gen:secrets` | print fresh studio key, newsletter and reminder secrets |
 | `npm test` | Vitest: slot rules, double booking, holds, payment verification, PayFast signatures, reschedule, unsubscribe, API routes. Shared fixtures live in `server/test/fixtures.ts` |
 | `npm run smoke` | real browser against the dev server: every page at 320/390/1440px (sideways scroll, console errors, axe), then a free and a paid booking end to end, then the studio dashboard (sign in, find the booking, reschedule, set a price, open hours) |
 | `npm run check:launch` | lists every setting the live site needs, with ✓/✗ and how to fix it; exits 1 until ready |

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grateful Go-Live Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400..700;1,400..700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #ffffff;
+    --ink: #0b0b0b;
+    --ink-2: #4a4a4a;
+    --ink-3: #6e6e6e;
+    --rule: #dcdcdc;
+    --soft: #f5f5f4;
+    --warn-bg: #fbf3e6;
+    --warn-ink: #6b4a12;
+    --serif: 'Baskervville', Baskerville, 'Libre Baskerville', Georgia, serif;
+    --sans: 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
+      --rule: #2c2c2c; --soft: #151515; --warn-bg: #2a2114; --warn-ink: #f0d3a0;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
+    --rule: #2c2c2c; --soft: #151515; --warn-bg: #2a2114; --warn-ink: #f0d3a0;
+  }
+
+  body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--serif); }
+  .wrap { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; }
+  .label { font: 600 11px/1.4 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+  a { color: inherit; text-underline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  code { font: .86em/1.4 var(--mono); background: var(--soft); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }
+
+  header.mast { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--ink); padding-bottom: 12px; }
+  header.mast .who { font: 600 12px/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; }
+
+  .intro { padding-block: 44px 28px; border-bottom: 1px solid var(--rule); }
+  .intro h1 { margin: 0; font-weight: 400; font-size: clamp(2.3rem, 5.5vw, 3.6rem); line-height: 1.02; letter-spacing: -.02em; text-wrap: balance; }
+  .intro h1 em { font-style: italic; }
+  .intro p { margin: 16px 0 0; max-width: 38em; color: var(--ink-2); }
+
+  .rules { margin-top: 24px; background: var(--warn-bg); color: var(--warn-ink); padding: 16px 18px; border-radius: 4px; font: 14px/1.6 var(--sans); }
+  .rules strong { display: block; margin-bottom: 6px; font-weight: 600; }
+  .rules ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+
+  .order { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  .step { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 16px; padding-block: 32px; border-bottom: 1px solid var(--rule); counter-increment: step; }
+  .step::before { content: counter(step, decimal-leading-zero); font: 400 2rem/1 var(--serif); color: var(--ink-3); font-variant-numeric: tabular-nums; padding-top: 4px; }
+  .step h2 { margin: 0; font-weight: 400; font-size: 1.65rem; line-height: 1.15; text-wrap: balance; }
+  .step .where { margin: 6px 0 0; font: 13px/1.5 var(--sans); color: var(--ink-3); }
+  .step ol, .step ul { margin: 14px 0 0; padding-left: 20px; display: grid; gap: 6px; }
+  .step li { line-height: 1.5; }
+  .keeps { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: baseline; font: 13px/1.5 var(--sans); color: var(--ink-2); }
+  .keeps code { font-size: 12.5px; }
+  .done { margin-top: 14px; font: 13.5px/1.55 var(--sans); color: var(--ink-2); border-left: 2px solid var(--ink); padding-left: 12px; }
+  .done b { color: var(--ink); font-weight: 600; }
+  .note { margin-top: 12px; font: 13.5px/1.55 var(--sans); color: var(--ink-2); }
+
+  section.vars { padding-block: 40px; border-bottom: 1px solid var(--rule); }
+  section.vars h2 { margin: 0 0 6px; font-weight: 400; font-size: 1.9rem; }
+  section.vars .sub { margin: 0 0 20px; color: var(--ink-2); max-width: 40em; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font: 14px/1.45 var(--sans); min-width: 520px; }
+  th { text-align: left; font: 600 11px/1.4 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); padding: 0 12px 10px 0; border-bottom: 1px solid var(--ink); }
+  td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  td:first-child { white-space: nowrap; }
+
+  .foot { padding-top: 32px; font: 13px/1.6 var(--sans); color: var(--ink-2); max-width: 60em; }
+
+  @media (max-width: 560px) {
+    .step { grid-template-columns: 1fr; }
+    .step::before { font-size: 1.4rem; margin-bottom: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="mast">
+    <span class="who">Grateful (Pty) Ltd · Website</span>
+    <span class="label">Go-live guide · September 2026</span>
+  </header>
+
+  <div class="intro">
+    <p class="label" style="margin:0 0 10px">From finished build to live website</p>
+    <h1>Ten steps to switch the site on. <em>In this order.</em></h1>
+    <p>The website is built and tested. To take real bookings it needs its own accounts: a domain, a database, email, payments and hosting. This guide goes through them one at a time, in the order that avoids waiting. Each step says where to go, what to do, and how you know it worked. Together these steps are the “accounts and launch” part of the audit, about 9 of the 20 points still open.</p>
+    <p>Running costs are in the costing (about R744 a month, plus PayFast’s fee on each payment). Check each provider’s pricing page when you sign up, because prices change.</p>
+    <div class="rules" role="note">
+      <strong>Keep the keys safe</strong>
+      <ul>
+        <li>Passwords and keys go into Vercel only (step 5). Never paste them into email, WhatsApp, a chat or the launch checklist.</li>
+        <li>Keep the database password and the studio key in a password manager. They can’t be recovered, only replaced.</li>
+        <li>If a key is ever exposed, make a new one with the provider, put it in Vercel, and delete the old one.</li>
+      </ul>
+    </div>
+  </div>
+
+  <ol class="order">
+    <li class="step">
+      <div>
+        <h2>Register the domain</h2>
+        <p class="where">Any .co.za registrar</p>
+        <ul>
+          <li>Choose the address the studio will use, for example <code>grateful.co.za</code> if it is free.</li>
+          <li>Register it in the company’s name, and keep the registrar login in the password manager.</li>
+          <li>Find the registrar’s <b>DNS settings</b> page. Steps 3 and 5 add records there.</li>
+        </ul>
+        <p class="done"><b>Done when</b> the studio owns the domain and can open its DNS settings.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Create the database</h2>
+        <p class="where"><a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a></p>
+        <ol>
+          <li>Sign up and create a <b>New project</b> called <code>grateful</code>. Pick the region closest to Johannesburg that is offered. Save the database password in the password manager.</li>
+          <li>Open <b>SQL Editor → New query</b>. Paste the whole of the file <code>supabase/setup-all.sql</code> from the project and press <b>Run</b>. It creates the tables, the double-booking guard and the four services, with no prices.</li>
+          <li>Open <b>Project Settings → API</b>. You need the <b>Project URL</b> and the <b>service_role</b> key (newer projects call it the <b>secret</b> key). Leave this tab open for step 5.</li>
+        </ol>
+        <p class="keeps">For Vercel: <code>SUPABASE_URL</code> <code>SUPABASE_SERVICE_ROLE_KEY</code></p>
+        <p class="note">If the SQL Editor says a table “already exists”, the file has already been run. Nothing is changed or lost.</p>
+        <p class="done"><b>Done when</b> the Table Editor lists six tables (bookings, services, availability, payments, contact messages, newsletter subscribers) and services has four rows.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Set up email</h2>
+        <p class="where"><a href="https://resend.com" target="_blank" rel="noopener">resend.com</a></p>
+        <ol>
+          <li>Sign up, open <b>Domains → Add domain</b> and enter the domain from step 1.</li>
+          <li>Resend shows a few DNS records. Add each one on the registrar’s DNS page exactly as shown, then wait for Resend to mark the domain <b>Verified</b>. This can take from minutes to a day.</li>
+          <li>Open <b>API Keys → Create API key</b> with sending access.</li>
+          <li>Choose the sending address, for example <code>Grateful &lt;bookings@grateful.co.za&gt;</code>. Replies still reach the studio’s Gmail.</li>
+        </ol>
+        <p class="keeps">For Vercel: <code>RESEND_API_KEY</code> <code>EMAIL_FROM</code></p>
+        <p class="done"><b>Done when</b> the domain shows Verified in Resend.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Open PayFast, and its test sandbox</h2>
+        <p class="where"><a href="https://payfast.io" target="_blank" rel="noopener">payfast.io</a> and <a href="https://sandbox.payfast.co.za" target="_blank" rel="noopener">sandbox.payfast.co.za</a></p>
+        <ol>
+          <li>Apply for a merchant account in the company’s name. PayFast asks for the business details and the bank account payouts go to.</li>
+          <li>While that is approved, open the <b>sandbox</b>. It has its own test merchant ID, merchant key and passphrase, and no real money moves.</li>
+          <li>Use the sandbox values first. The live values come from the live account’s <b>Settings → Developer settings</b>, where you also set its passphrase. You swap them in at step 7.</li>
+        </ol>
+        <p class="keeps">For Vercel: <code>PAYFAST_MERCHANT_ID</code> <code>PAYFAST_MERCHANT_KEY</code> <code>PAYFAST_PASSPHRASE</code></p>
+        <p class="note">Card details never touch the website. PayFast’s own page takes the payment and tells the site when it has cleared.</p>
+        <p class="done"><b>Done when</b> you have the sandbox ID, key and passphrase to hand.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Put the site online</h2>
+        <p class="where"><a href="https://vercel.com" target="_blank" rel="noopener">vercel.com</a></p>
+        <ol>
+          <li>Sign up with the GitHub account that holds the website’s code. The costing assumes the Pro plan: Vercel’s free plan is for personal, non-commercial sites.</li>
+          <li><b>Add New → Project</b>, import the repository, and set <b>Root Directory</b> to <code>grateful</code>.</li>
+          <li>Under <b>Environment Variables</b>, add every row of the table below. For the three secrets the site makes itself, a developer runs <code>npm run gen:secrets</code> and pastes the values straight in.</li>
+          <li>Press <b>Deploy</b>. Then open <b>Settings → Domains</b>, add the domain, and add the DNS records Vercel shows at the registrar.</li>
+        </ol>
+        <p class="done"><b>Done when</b> the site opens on the studio’s own https address.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Check it is ready</h2>
+        <p class="where">The site itself</p>
+        <ul>
+          <li>Open <code>https://your-domain/api/health</code>. It lists each check as passing or failing, and never shows a key.</li>
+          <li>For the full list with how to fix each item, a developer runs <code>npm run check:launch</code> against the Vercel values. It ends with “Ready to launch.”</li>
+          <li>Two items may still show as not done at this point, and that is expected: PayFast live mode (step 7) and Search Console (step 8).</li>
+        </ul>
+        <p class="done"><b>Done when</b> every required check passes.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Make a test booking, then go live</h2>
+        <p class="where">The website and the studio dashboard</p>
+        <ol>
+          <li>Sign in to the dashboard at <code>/studio</code> with the studio key. Set the real opening hours, and the real price and deposit for any service that takes payment.</li>
+          <li>Book that service on the site as a client would, and pay on PayFast’s sandbox page.</li>
+          <li>Check that the booking shows as confirmed and paid in the dashboard, and that the confirmation email arrives in a Gmail and an Outlook inbox (look in spam too).</li>
+          <li>Book a free consultation as well, and send a message from the Contact page.</li>
+          <li>When all of that works: replace the three PayFast values in Vercel with the live ones, set <code>PAYFAST_SANDBOX</code> to <code>false</code>, and redeploy.</li>
+        </ol>
+        <p class="done"><b>Done when</b> a real, small payment goes through and the booking appears in the dashboard. Cancel or refund it afterwards.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Tell Google the site exists</h2>
+        <p class="where"><a href="https://search.google.com/search-console" target="_blank" rel="noopener">search.google.com/search-console</a></p>
+        <ol>
+          <li>Add a <b>URL-prefix</b> property for the live address and choose the <b>HTML tag</b> method.</li>
+          <li>Copy only the <code>content="…"</code> value into <code>GOOGLE_SITE_VERIFICATION</code> in Vercel, redeploy, then press <b>Verify</b>.</li>
+          <li>Under <b>Sitemaps</b>, submit <code>sitemap.xml</code>. Then inspect the home page address and press <b>Request indexing</b>.</li>
+        </ol>
+        <p class="done"><b>Done when</b> Search Console says the sitemap was read. Pages usually appear in Google within days.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Claim the Google Business Profile</h2>
+        <p class="where"><a href="https://business.google.com" target="_blank" rel="noopener">business.google.com</a></p>
+        <ul>
+          <li>Add the studio in Mulbarton with the website address, opening hours and category.</li>
+          <li>Add the approved photographs, and ask recent clients to leave a review.</li>
+          <li>For a local studio this does more for search than anything on the website itself.</li>
+        </ul>
+        <p class="done"><b>Done when</b> Google has verified the profile and it shows on Maps.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Try it on real phones</h2>
+        <p class="where">An iPhone with Safari and an Android phone with Chrome</p>
+        <ul>
+          <li>Open every page, make a booking, send a message, and sign in to the dashboard.</li>
+          <li>Note anything that looks wrong, with the page and phone, and send it for fixing.</li>
+        </ul>
+        <p class="done"><b>Done when</b> both phones work end to end. The site is live.</p>
+      </div>
+    </li>
+  </ol>
+
+  <section class="vars" aria-labelledby="vars-h">
+    <h2 id="vars-h">What goes into Vercel</h2>
+    <p class="sub">Every setting for step 5, and where it comes from. Rows marked “type as shown” are plain values, not secrets.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Setting</th><th>Value</th><th>From</th></tr></thead>
+        <tbody>
+          <tr><td><code>SITE_URL</code></td><td>The live https address, e.g. https://grateful.co.za</td><td>Step 1</td></tr>
+          <tr><td><code>SUPABASE_URL</code></td><td>Project URL</td><td>Step 2</td></tr>
+          <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>service_role (secret) key</td><td>Step 2</td></tr>
+          <tr><td><code>EMAIL_PROVIDER</code></td><td><code>resend</code> (type as shown)</td><td>—</td></tr>
+          <tr><td><code>RESEND_API_KEY</code></td><td>API key</td><td>Step 3</td></tr>
+          <tr><td><code>EMAIL_FROM</code></td><td>Sending address on the verified domain</td><td>Step 3</td></tr>
+          <tr><td><code>STUDIO_EMAIL</code></td><td><code>gratefulpty@gmail.com</code>, where enquiries and booking notices go</td><td>—</td></tr>
+          <tr><td><code>PAYMENT_PROVIDER</code></td><td><code>payfast</code> (type as shown)</td><td>—</td></tr>
+          <tr><td><code>PAYFAST_MERCHANT_ID</code></td><td>Merchant ID (sandbox first, then live)</td><td>Step 4</td></tr>
+          <tr><td><code>PAYFAST_MERCHANT_KEY</code></td><td>Merchant key (sandbox first, then live)</td><td>Step 4</td></tr>
+          <tr><td><code>PAYFAST_PASSPHRASE</code></td><td>Passphrase (sandbox first, then live)</td><td>Step 4</td></tr>
+          <tr><td><code>PAYFAST_SANDBOX</code></td><td><code>true</code> while testing, <code>false</code> to go live</td><td>Step 7</td></tr>
+          <tr><td><code>ADMIN_TOKEN</code></td><td>The studio key for the dashboard</td><td><code>npm run gen:secrets</code></td></tr>
+          <tr><td><code>NEWSLETTER_SECRET</code></td><td>Signs unsubscribe links</td><td><code>npm run gen:secrets</code></td></tr>
+          <tr><td><code>CRON_SECRET</code></td><td>Switches on day-before reminder emails</td><td><code>npm run gen:secrets</code></td></tr>
+          <tr><td><code>GOOGLE_SITE_VERIFICATION</code></td><td>The content value of Google’s HTML tag</td><td>Step 8</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="foot">Screen names at each provider can move slightly over time; the steps stay the same. The developer version of this guide is in the project’s README, under “Going live”. The studio’s own details (prices, hours, portfolio names, photo permissions) go into the launch checklist and the dashboard, not here.</p>
+</div>
+</body>
+</html>

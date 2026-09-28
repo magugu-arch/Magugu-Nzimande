@@ -4,13 +4,13 @@
  * One file with everything in it: preview/Grateful-Handover.html. It holds
  *   - the interactive website preview (in a frame, built from
  *     preview/Grateful-Website-Preview.html),
- *   - the completion audit and the costing, as plain pages that read even
+ *   - the completion audit, the costing and the go-live guide, as plain pages that read even
  *     where scripts can't run (the iPhone Files preview),
  *   - the fonts, so nothing is fetched from the internet.
  *   - screenshots of the website and the photographs, as plain images, so
  *     the iPhone Files preview shows what the site looks like,
  *   - page details: title, description, icon, theme colour, share tags.
- * Run `npm run build:single` and refresh the audit and costing first.
+ * Run `npm run build:single` and refresh the audit, costing and guide first.
  * Screenshots need Chromium (set PW_CHROMIUM to use a local browser).
  */
 import { writeFileSync } from 'node:fs';
@@ -46,6 +46,7 @@ async function screenshots() {
 const shots = await screenshots();
 const audit = page('Grateful-Build-Audit.html', '#audit');
 const costing = page('Grateful-Website-Costing.html', '#costing');
+const golive = page('Grateful-Go-Live-Guide.html', '#golive');
 const site = read('Grateful-Website-Preview.html').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
 const html = `<!doctype html>
@@ -101,13 +102,14 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
 .hub-frame iframe { display: block; width: 100%; height: min(86vh, 980px); min-height: 560px; border: 1px solid var(--hub-rule); border-radius: 4px; background: #000; }
 ${audit.css}
 ${costing.css}
+${golive.css}
 </style>
 </head>
 <body>
 <header class="hub-top"><div class="in">
   <span class="hub-brand">Grateful · Website handover</span>
   <nav class="hub-nav" aria-label="Sections">
-    <a href="#website">Website</a><a href="#photos">Photos</a><a href="#audit">Audit</a><a href="#costing">Costing</a><a href="#checklist">Checklist</a>
+    <a href="#website">Website</a><a href="#photos">Photos</a><a href="#audit">Audit</a><a href="#costing">Costing</a><a href="#golive">Go live</a><a href="#checklist">Checklist</a>
   </nav>
 </div></header>
 
@@ -142,6 +144,10 @@ ${audit.body}
 
 <section id="costing" class="hub-sec" aria-label="Costing">
 ${costing.body}
+</section>
+
+<section id="golive" class="hub-sec" aria-label="Go-live guide">
+${golive.body}
 </section>
 
 <section id="checklist" class="hub-sec" aria-labelledby="checklist-h" style="border-bottom:0">
