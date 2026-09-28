@@ -48,6 +48,7 @@ export default function RewardDetail() {
 
   return (
     <Screen
+      meta={{ title: 'Reward', noindex: true }}
       header={<Header title="Reward" />}
       footer={
         !account ? (

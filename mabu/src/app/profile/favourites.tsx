@@ -25,7 +25,10 @@ export default function Favourites() {
     ) ?? [];
 
   return (
-    <Screen header={<Header title="Favourites" />}>
+    <Screen
+      meta={{ title: 'Your favourites', noindex: true }}
+      header={<Header title="Favourites" />}
+    >
       {!dishes.length && !wines.length ? (
         <EmptyState
           icon="heart"

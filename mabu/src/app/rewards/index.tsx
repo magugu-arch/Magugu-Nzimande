@@ -46,13 +46,29 @@ export default function RewardsWallet() {
 
   if (wallet.isPending)
     return (
-      <Screen header={<Header title="MÁBU Rewards" />}>
+      <Screen
+        meta={{
+          title: 'MÁBU Rewards',
+          description:
+            'Earn with every visit and experience at Mábu in Waterfall City, Midrand. Privileges rather than discounts — join free.',
+          path: '/rewards',
+        }}
+        header={<Header title="MÁBU Rewards" />}
+      >
         <LoadingBlock />
       </Screen>
     );
   if (wallet.isError)
     return (
-      <Screen header={<Header title="MÁBU Rewards" />}>
+      <Screen
+        meta={{
+          title: 'MÁBU Rewards',
+          description:
+            'Earn with every visit and experience at Mábu in Waterfall City, Midrand. Privileges rather than discounts — join free.',
+          path: '/rewards',
+        }}
+        header={<Header title="MÁBU Rewards" />}
+      >
         <ErrorState message={errorMessage(wallet.error)} onRetry={() => void wallet.refetch()} />
       </Screen>
     );
@@ -60,7 +76,15 @@ export default function RewardsWallet() {
   const w = wallet.data;
   if (!w.account) {
     return (
-      <Screen header={<Header title="MÁBU Rewards" />}>
+      <Screen
+        meta={{
+          title: 'MÁBU Rewards',
+          description:
+            'Earn with every visit and experience at Mábu in Waterfall City, Midrand. Privileges rather than discounts — join free.',
+          path: '/rewards',
+        }}
+        header={<Header title="MÁBU Rewards" />}
+      >
         <Photo photo="chandeliers" label="" style={styles.joinPhoto} scrim="bottom" />
         <Text variant="h1" style={{ marginTop: spacing.xl }} accessibilityRole="header">
           Privileges, not discounts.
@@ -109,7 +133,10 @@ export default function RewardsWallet() {
   const issued = redemptions?.filter((r) => r.status === 'issued') ?? [];
 
   return (
-    <Screen header={<Header title="MÁBU Rewards" />}>
+    <Screen
+      meta={{ title: 'Your rewards', noindex: true }}
+      header={<Header title="MÁBU Rewards" />}
+    >
       <View style={styles.card}>
         <Photo photo="texture-timber" label="" style={StyleSheet.absoluteFill} scrim="full" />
         <View style={{ padding: spacing.xl, gap: spacing.sm }}>

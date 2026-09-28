@@ -21,8 +21,10 @@ import {
   Text,
 } from '@/components/ui';
 import { formatRand } from '@/domain/shared/format';
+import { breadcrumbSchema, dishSchema } from '@/seo/structured';
 import { errorMessage } from '@/services/api';
 import { useRpc } from '@/services/queries';
+import { snapshotIds } from '@/seo/staticParams';
 import { useFavourite } from '@/features/useFavourite';
 import { colors, radius, spacing } from '@/theme';
 import { track } from '@/utils/analytics';
@@ -31,6 +33,11 @@ import { shareText } from '@/utils/linking';
 const SPICE = ['', 'Mild heat', 'Medium heat', 'Hot'];
 
 /** §25 MenuItemDetailSheet — presented as a modal over the menu. */
+/** One page per item in the web export (see src/seo/staticParams.ts). */
+export function generateStaticParams(): { id: string }[] {
+  return snapshotIds('content.dish');
+}
+
 export default function DishDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
@@ -57,6 +64,19 @@ export default function DishDetail() {
 
   return (
     <Screen
+      meta={{
+        title: dish.name,
+        description: `${dish.description} On the menu at Mábu, Waterfall City, Midrand.`,
+        path: `/dish/${dish.id}`,
+        type: 'article',
+        schema: [
+          dishSchema(dish),
+          breadcrumbSchema([
+            { name: 'Menu', path: '/menu' },
+            { name: dish.name, path: `/dish/${dish.id}` },
+          ]),
+        ],
+      }}
       padded={false}
       topInset={false}
       header={

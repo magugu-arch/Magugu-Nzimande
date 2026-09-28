@@ -43,6 +43,7 @@ export default function VoucherScreen() {
 
   return (
     <Screen
+      meta={{ title: 'Your voucher', noindex: true }}
       header={
         <Header
           title="Gift voucher"

@@ -97,6 +97,12 @@ export default function Book() {
 
   return (
     <Screen
+      meta={{
+        title: 'Book a Table',
+        description:
+          'Reserve a table at Mábu in Waterfall Wilds, Waterfall City, Midrand. Choose your date, time and party size, and tell us about the occasion.',
+        path: '/book',
+      }}
       footer={
         draft.slot ? (
           <PremiumButton

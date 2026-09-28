@@ -28,6 +28,7 @@ import { errorMessage } from '@/services/api';
 import { useRpc } from '@/services/queries';
 import { colors, fontFamily, radius, spacing } from '@/theme';
 import { track } from '@/utils/analytics';
+import { enter } from '@/utils/motion';
 
 const DIETARY: { tag: DietaryTag; label: string }[] = [
   { tag: 'vegetarian', label: 'Vegetarian' },
@@ -122,12 +123,21 @@ export default function Menu() {
   const heroHeight = Math.min(360, width * 0.82);
 
   return (
-    <Screen padded={false} topInset={false}>
+    <Screen
+      meta={{
+        title: 'Menu & Wine List',
+        description:
+          'The Mábu menu: signature cuts finished over open fire, seafood, vegetarian dishes, desserts and a curated South African wine list, in Waterfall City, Midrand.',
+        path: '/menu',
+      }}
+      padded={false}
+      topInset={false}
+    >
       {/* Category hero */}
       <View style={{ height: heroHeight + insets.top }}>
         <Animated.View
           key={hero.photo}
-          entering={FadeIn.duration(400).reduceMotion(ReduceMotion.System)}
+          entering={enter(FadeIn.duration(400).reduceMotion(ReduceMotion.System))}
           style={styles.heroPhotoWrap}
         >
           <Photo photo={hero.photo} label="" style={StyleSheet.absoluteFill} />

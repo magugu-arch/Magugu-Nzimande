@@ -1,0 +1,7 @@
+dist-web/
+dist-standalone/
+server/dist/
+.shots/
+src/content/snapshot.generated.ts
+src/content/photoRegistry.ts
+proposal/

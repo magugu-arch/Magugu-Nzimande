@@ -33,6 +33,7 @@ import { colors, spacing } from '@/theme';
 import { addToCalendar } from '@/utils/calendar';
 import { haptic } from '@/utils/haptics';
 import { shareText } from '@/utils/linking';
+import { enter } from '@/utils/motion';
 
 const EVENT_LABEL: Record<string, string> = {
   created: 'Booking made',
@@ -91,6 +92,7 @@ export default function BookingScreen() {
 
   return (
     <Screen
+      meta={{ title: 'Your booking', noindex: true }}
       header={
         <Header
           title={isNew ? 'Confirmed' : 'Your booking'}
@@ -101,13 +103,13 @@ export default function BookingScreen() {
       {isNew && r.status === 'confirmed' ? (
         <View style={styles.confirmed}>
           <Animated.View
-            entering={ZoomIn.springify().damping(14).reduceMotion(ReduceMotion.System)}
+            entering={enter(ZoomIn.springify().damping(14).reduceMotion(ReduceMotion.System))}
             style={styles.tick}
           >
             <Feather name="check" size={34} color={colors.textOnAccent} />
           </Animated.View>
           <Animated.View
-            entering={FadeIn.delay(250).duration(600).reduceMotion(ReduceMotion.System)}
+            entering={enter(FadeIn.delay(250).duration(600).reduceMotion(ReduceMotion.System))}
             style={{ gap: spacing.sm }}
           >
             <Text variant="h1" align="center" accessibilityRole="header">

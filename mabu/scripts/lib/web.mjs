@@ -26,10 +26,18 @@ export async function startWeb() {
   }
   const server = http.createServer((req, res) => {
     const url = decodeURIComponent((req.url ?? '/').split('?')[0]);
-    let file = path.join(dist, url);
-    if (!file.startsWith(dist) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      file = path.join(dist, 'index.html');
-    }
+    // The export writes a page per route: /menu is menu.html, /events/x is
+    // events/x/index.html. Hosting must resolve both, as this does.
+    const candidates = [
+      path.join(dist, url),
+      path.join(dist, `${url}.html`),
+      path.join(dist, url, 'index.html'),
+      path.join(dist, 'index.html'),
+    ];
+    const file =
+      candidates.find(
+        (c) => c.startsWith(dist) && fs.existsSync(c) && !fs.statSync(c).isDirectory(),
+      ) ?? path.join(dist, 'index.html');
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
     fs.createReadStream(file).pipe(res);
   });

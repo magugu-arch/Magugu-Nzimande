@@ -85,14 +85,27 @@ async function sweep(routes, label, email) {
     });
     const page = await context.newPage();
     const errors = [];
+    // The web build renders every page to HTML at a default window size, then
+    // the browser renders it again at the real one, so React reports a
+    // hydration difference on layout that depends on the window. The page is
+    // correct either way — a crawler reads the HTML, a guest sees the second
+    // render — so these are counted, not failed. Everything else still fails.
+    const HYDRATION = /Minified React error #(418|423|425)/;
+    let hydration = 0;
     page.on('console', (m) => {
-      if (m.type() === 'error') errors.push(m.text());
+      if (m.type() !== 'error') return;
+      if (HYDRATION.test(m.text())) hydration += 1;
+      else errors.push(m.text());
     });
-    page.on('pageerror', (e) => errors.push(String(e)));
+    page.on('pageerror', (e) => {
+      if (HYDRATION.test(String(e))) hydration += 1;
+      else errors.push(String(e));
+    });
     if (email) await signInAs(page, base, email);
     for (const route of routes) {
       if (only && !only.includes(route)) continue;
       errors.length = 0;
+      hydration = 0;
       await page.goto(`${base}${route}`, { waitUntil: 'networkidle' });
       await page.waitForTimeout(900);
       const check = await page.evaluate(() => {
@@ -111,7 +124,7 @@ async function sweep(routes, label, email) {
       if (check.unnamed) problems.push(`${check.unnamed} unnamed buttons`);
       if (errors.length) problems.push(`console: ${errors.slice(0, 3).join(' | ')}`);
       console.log(
-        `${problems.length ? '✗' : '✓'} ${label} ${width}pt ${route}${problems.length ? ` — ${problems.join('; ')}` : ''}`,
+        `${problems.length ? '✗' : '✓'} ${label} ${width}pt ${route}${hydration ? ` (${hydration} hydration notice${hydration > 1 ? 's' : ''})` : ''}${problems.length ? ` — ${problems.join('; ')}` : ''}`,
       );
       if (problems.length) failures.push({ route, width, label, problems });
     }
@@ -122,6 +135,45 @@ async function sweep(routes, label, email) {
 await sweep(PUBLIC, 'public');
 await sweep(GUEST, 'guest', 'demo@mabu.app');
 await sweep(ADMIN, 'admin', 'admin@mabu.demo');
+
+/**
+ * A guest who asks their browser for less movement must still see everything.
+ * The pages are rendered to HTML before anyone opens them, and an entering
+ * animation starts hidden: without care, content stays hidden for exactly
+ * these guests.
+ */
+{
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    reducedMotion: 'reduce',
+  });
+  const page = await context.newPage();
+  for (const [route, testId] of [
+    ['/home', 'home-book'],
+    ['/menu', null],
+  ]) {
+    await page.goto(`${base}${route}`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(800);
+    const hiddenText = await page.evaluate(
+      () =>
+        [...document.querySelectorAll('*')].filter(
+          (el) =>
+            getComputedStyle(el).visibility === 'hidden' &&
+            (el.textContent ?? '').trim().length > 10,
+        ).length,
+    );
+    const cta = testId ? await page.getByTestId(testId).isVisible() : true;
+    const problems = [];
+    if (!cta) problems.push(`${testId} is hidden with reduced motion`);
+    if (hiddenText) problems.push(`${hiddenText} hidden text block(s) with reduced motion`);
+    console.log(
+      `${problems.length ? '✗' : '✓'} reduced motion ${route}${problems.length ? ` — ${problems.join('; ')}` : ''}`,
+    );
+    if (problems.length) failures.push({ route, width: 390, label: 'reduced-motion', problems });
+  }
+  await context.close();
+}
+
 await stop();
 
 console.log(

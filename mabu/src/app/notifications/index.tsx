@@ -34,6 +34,7 @@ export default function NotificationCentre() {
 
   return (
     <Screen
+      meta={{ title: 'Notifications', noindex: true }}
       header={
         <Header
           title="Notifications"

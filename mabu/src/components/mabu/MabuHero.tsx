@@ -3,6 +3,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
 import { spacing } from '@/theme';
 import { Photo, Text } from '../ui';
+import { enter } from '@/utils/motion';
 
 /**
  * §25 MabuHero — full-bleed cinematic photograph fading into obsidian, with
@@ -40,7 +41,7 @@ export function MabuHero({
         priority="high"
       />
       <Animated.View
-        entering={FadeInDown.duration(700).delay(150).reduceMotion(ReduceMotion.System)}
+        entering={enter(FadeInDown.duration(700).delay(150).reduceMotion(ReduceMotion.System))}
         style={styles.copy}
       >
         {eyebrow ? (

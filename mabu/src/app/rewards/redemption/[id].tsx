@@ -18,7 +18,10 @@ export default function Redemption() {
     );
 
   return (
-    <Screen header={<Header title="Your reward" onBack={() => router.replace('/rewards')} />}>
+    <Screen
+      meta={{ title: 'Redemption', noindex: true }}
+      header={<Header title="Your reward" onBack={() => router.replace('/rewards')} />}
+    >
       <Text variant="eyebrow" color="accent" style={{ marginTop: spacing.xl }} align="center">
         Ready to enjoy
       </Text>

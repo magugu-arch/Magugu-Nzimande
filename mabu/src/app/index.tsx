@@ -1,3 +1,5 @@
+import { PageMeta } from '@/seo/PageMeta';
+import { restaurantSchema } from '@/seo/structured';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
@@ -8,6 +10,7 @@ import { mockBackend } from '@/services/mockServer';
 import { config } from '@/services/config';
 import { colors, spacing } from '@/theme';
 import { useReduceMotion } from '@/utils/useReduceMotion';
+import { enter } from '@/utils/motion';
 
 /**
  * §4 Splash: logo, subtle motion, short brand statement — then Home. Held
@@ -27,20 +30,22 @@ export default function Splash() {
 
   return (
     <View style={styles.root}>
+      {/* The address people share; the home screen it opens is the canonical page. */}
+      <PageMeta path="/home" type="restaurant.restaurant" schema={[restaurantSchema()]} />
       <Animated.View
-        entering={FadeIn.duration(1200).reduceMotion(ReduceMotion.System)}
+        entering={enter(FadeIn.duration(1200).reduceMotion(ReduceMotion.System))}
         style={StyleSheet.absoluteFill}
       >
         <Photo photo="chandeliers" label="" style={StyleSheet.absoluteFill} scrim="full" />
       </Animated.View>
       <View style={styles.centre}>
         <Animated.View
-          entering={FadeInUp.duration(900).delay(200).reduceMotion(ReduceMotion.System)}
+          entering={enter(FadeInUp.duration(900).delay(200).reduceMotion(ReduceMotion.System))}
         >
           <Wordmark size={60} />
         </Animated.View>
         <Animated.View
-          entering={FadeIn.duration(900).delay(900).reduceMotion(ReduceMotion.System)}
+          entering={enter(FadeIn.duration(900).delay(900).reduceMotion(ReduceMotion.System))}
           style={{ marginTop: spacing.xl }}
         >
           <Text variant="quote" align="center" color="text">

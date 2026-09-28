@@ -33,6 +33,7 @@ export default function BookingDetails() {
 
   return (
     <Screen
+      meta={{ title: 'Your booking details', noindex: true }}
       header={<Header title="Your occasion" />}
       footer={
         <PremiumButton

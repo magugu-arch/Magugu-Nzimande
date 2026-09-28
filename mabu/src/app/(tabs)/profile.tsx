@@ -94,7 +94,7 @@ export default function Profile() {
   const account = wallet.data?.account;
 
   return (
-    <Screen>
+    <Screen meta={{ title: 'Your profile', noindex: true }}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Text variant="eyebrow" color="accent">

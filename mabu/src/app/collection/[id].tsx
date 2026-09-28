@@ -4,10 +4,17 @@ import { MenuItemCard } from '@/components/mabu/Menu';
 import { ErrorState, Header, IconButton, LoadingBlock, Photo, Screen, Text } from '@/components/ui';
 import { errorMessage } from '@/services/api';
 import { useRpc } from '@/services/queries';
+import { snapshotIds } from '@/seo/staticParams';
+import { breadcrumbSchema } from '@/seo/structured';
 import { spacing } from '@/theme';
 import { shareText } from '@/utils/linking';
 
 /** §8 Collection — a curated set of dishes, shareable (§10). */
+/** One page per item in the web export (see src/seo/staticParams.ts). */
+export function generateStaticParams(): { id: string }[] {
+  return snapshotIds('content.collection');
+}
+
 export default function Collection() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
@@ -29,6 +36,17 @@ export default function Collection() {
 
   return (
     <Screen
+      meta={{
+        title: collection.name,
+        description: `${collection.description} At Mábu, Waterfall City, Midrand.`,
+        path: `/collection/${collection.id}`,
+        schema: [
+          breadcrumbSchema([
+            { name: 'Discover', path: '/discover' },
+            { name: collection.name, path: `/collection/${collection.id}` },
+          ]),
+        ],
+      }}
       padded={false}
       topInset={false}
       header={

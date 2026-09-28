@@ -5,6 +5,7 @@ import {
   type Query,
   type QueryKey,
 } from '@tanstack/react-query';
+import { contentSnapshot, snapshotKey } from '@/content/snapshot.generated';
 import type { RpcArgs, RpcName, RpcResult } from '@/domain/rpc';
 import { useSession } from '@/store/session';
 import { rpc } from './api';
@@ -23,9 +24,15 @@ export function useRpc<K extends RpcName>(
   } = {},
 ) {
   const who = useSession((s) => s.actor?.id ?? 'anon');
+  // Public content ships inside the page, so a web page carries its menu and
+  // events before JavaScript runs. It is replaced by the live answer at once.
+  const initialData = contentSnapshot[snapshotKey(name, args)] as RpcResult<K> | undefined;
   return useQuery<RpcResult<K>>({
     queryKey: [name, who, args ?? null] as QueryKey,
     queryFn: () => (rpc as (n: K, a?: RpcArgs<K>) => Promise<RpcResult<K>>)(name, args),
+    initialData,
+    // Treat the snapshot as already stale, so the live answer is fetched at once.
+    initialDataUpdatedAt: initialData ? 0 : undefined,
     enabled: options.enabled ?? true,
     refetchInterval: options.refetchInterval as never,
   });

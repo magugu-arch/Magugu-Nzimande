@@ -65,6 +65,7 @@ export default function Reschedule() {
 
   return (
     <Screen
+      meta={{ title: 'Change your booking', noindex: true }}
       header={<Header title="Change booking" />}
       footer={
         slot ? (

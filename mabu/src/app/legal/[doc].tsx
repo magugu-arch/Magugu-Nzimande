@@ -6,6 +6,11 @@ import { formatDateLong } from '@/domain/shared/format';
 import { spacing } from '@/theme';
 
 /** Privacy notice, terms and marketing consent (§19, §38). */
+/** One page per document in the web export. */
+export function generateStaticParams(): { doc: string }[] {
+  return Object.keys(LEGAL).map((doc) => ({ doc }));
+}
+
 export default function LegalPage() {
   const { doc } = useLocalSearchParams<{ doc: string }>();
   const page = LEGAL[doc as LegalDocId];
@@ -17,7 +22,14 @@ export default function LegalPage() {
     );
   }
   return (
-    <Screen header={<Header title={page.title} />}>
+    <Screen
+      meta={{
+        title: page.title,
+        description: `${page.title} for the Mábu Restaurant app and website, Waterfall City, Midrand.`,
+        path: `/legal/${page.id}`,
+      }}
+      header={<Header title={page.title} />}
+    >
       {!page.reviewed ? (
         <InlineNotice tone="warning" style={{ marginTop: spacing.lg }}>
           Draft for Mábu’s legal review. Not yet the final wording.

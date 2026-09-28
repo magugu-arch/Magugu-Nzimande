@@ -15,7 +15,7 @@
     "test": "jest --passWithNoTests",
     "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run db:check && npm run server:check",
     "assets:photos": "node scripts/derive-photos.mjs",
-    "export:web": "expo export --platform web --output-dir dist-web",
+    "export:web": "npm run content:snapshot && expo export --platform web --output-dir dist-web && npm run seo",
     "shots": "node scripts/screens.mjs",
     "e2e": "node scripts/journeys.mjs",
     "verify:web": "npm run export:web && npm run shots && npm run e2e",
@@ -25,7 +25,9 @@
     "server:dev": "npm run server:build && MABU_DEV_LOG_EMAIL=1 MABU_DIRECT_INVENTORY=1 node server/dist/main.mjs",
     "server:check": "node scripts/check-server.mjs",
     "standalone": "npm run export:web && node scripts/standalone.mjs",
-    "standalone:check": "node scripts/check-standalone.mjs"
+    "standalone:check": "node scripts/check-standalone.mjs",
+    "content:snapshot": "node scripts/content-snapshot.mjs",
+    "seo": "node scripts/seo.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/allura": "^0.4.2",

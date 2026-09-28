@@ -56,6 +56,12 @@ export default function PrivateFunctions() {
 
   return (
     <Screen
+      meta={{
+        title: 'Private Functions & Events Venue',
+        description:
+          'Private dining, corporate events, celebrations, weddings and exclusive venue hire at Mábu, Waterfall City, Midrand. Send an enquiry to our events team.',
+        path: '/private-functions',
+      }}
       header={<Header title="Private functions" />}
       footer={
         <PremiumButton

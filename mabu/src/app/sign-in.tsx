@@ -79,7 +79,7 @@ export default function SignIn() {
   };
 
   return (
-    <Screen header={<Header title="Sign in" />}>
+    <Screen meta={{ title: 'Sign in', noindex: true }} header={<Header title="Sign in" />}>
       <View style={{ alignItems: 'center', marginVertical: spacing.xxl }}>
         <Wordmark size={40} />
       </View>

@@ -21,6 +21,7 @@ import { Allura_400Regular } from '@expo-google-fonts/allura/400Regular';
 import { config } from '@/services/config';
 import { mockBackend, mockTick, onMockPush } from '@/services/mockServer';
 import { useSession } from '@/store/session';
+import { PageMeta } from '@/seo/PageMeta';
 import { colors } from '@/theme';
 import { useReduceMotion } from '@/utils/useReduceMotion';
 
@@ -62,6 +63,8 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* A page is kept out of search unless it names itself (see src/seo). */}
+      <PageMeta noindex />
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" />

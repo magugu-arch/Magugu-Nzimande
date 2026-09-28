@@ -22,6 +22,8 @@ import { formatRand } from '@/domain/shared/format';
 import { venueWeekday, venueDate } from '@/domain/shared/time';
 import { errorMessage } from '@/services/api';
 import { useRpc } from '@/services/queries';
+import { PageMeta } from '@/seo/PageMeta';
+import { restaurantSchema } from '@/seo/structured';
 import { useSession } from '@/store/session';
 import { colors, radius, spacing } from '@/theme';
 import { track } from '@/utils/analytics';
@@ -67,6 +69,12 @@ export default function Home() {
 
   return (
     <View style={styles.root}>
+      <PageMeta
+        description={`${content.essenceTitle} Book a table at Mábu, Waterfall Wilds, Waterfall City, Midrand.`}
+        path="/home"
+        type="restaurant.restaurant"
+        schema={[restaurantSchema(venue)]}
+      />
       <ScrollView
         contentContainerStyle={{ paddingBottom: spacing.xxxl }}
         showsVerticalScrollIndicator={false}

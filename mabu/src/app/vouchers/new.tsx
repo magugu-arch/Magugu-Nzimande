@@ -103,6 +103,12 @@ export default function NewVoucher() {
 
   return (
     <Screen
+      meta={{
+        title: 'Gift Vouchers',
+        description:
+          'Give an evening at Mábu. Digital gift vouchers for fine dining in Waterfall City, Midrand, delivered by email in moments.',
+        path: '/vouchers/new',
+      }}
       header={<Header title="Gift Mábu" />}
       footer={
         <PremiumButton

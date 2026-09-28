@@ -18,6 +18,7 @@ export default function MyVouchers() {
   const q = useRpc('vouchers.mine');
   return (
     <Screen
+      meta={{ title: 'Your vouchers', noindex: true }}
       header={<Header title="My vouchers" />}
       footer={
         <PremiumButton

@@ -34,7 +34,15 @@ export default function Discover() {
   const home = useRpc('content.home');
 
   return (
-    <Screen padded={false}>
+    <Screen
+      meta={{
+        title: 'Discover Mábu',
+        description:
+          'Signature dishes, the cellar, our rooms and the stories behind the fire at Mábu, Waterfall City, Midrand.',
+        path: '/discover',
+      }}
+      padded={false}
+    >
       <View style={styles.pad}>
         <View style={{ marginTop: spacing.xl, gap: spacing.xs }}>
           <Text variant="eyebrow" color="accent">

@@ -24,6 +24,7 @@ import { useSession } from '@/store/session';
 import { colors, spacing } from '@/theme';
 import { addToCalendar } from '@/utils/calendar';
 import { haptic } from '@/utils/haptics';
+import { enter } from '@/utils/motion';
 
 /** §11 Booking: reserve event places, pay, or join the waitlist when full. */
 export default function BookEvent() {
@@ -70,7 +71,7 @@ export default function BookEvent() {
       <Screen header={<Header title="Reserved" />}>
         <View style={styles.done}>
           <Animated.View
-            entering={ZoomIn.springify().damping(14).reduceMotion(ReduceMotion.System)}
+            entering={enter(ZoomIn.springify().damping(14).reduceMotion(ReduceMotion.System))}
             style={styles.tick}
           >
             <Feather
@@ -144,6 +145,7 @@ export default function BookEvent() {
 
   return (
     <Screen
+      meta={{ title: 'Reserve your place', noindex: true }}
       header={<Header title="Reserve" />}
       footer={
         <PremiumButton

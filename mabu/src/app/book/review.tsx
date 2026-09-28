@@ -114,6 +114,7 @@ export default function BookingReview() {
 
   return (
     <Screen
+      meta={{ title: 'Review your booking', noindex: true }}
       header={<Header title="Review" />}
       footer={
         <PremiumButton

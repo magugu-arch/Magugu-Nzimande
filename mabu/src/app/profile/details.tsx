@@ -68,7 +68,10 @@ function DetailsForm({ me }: { me: Guest }) {
   const occasionDate = `${occMonth.padStart(2, '0')}-${occDay.padStart(2, '0')}`;
 
   return (
-    <Screen header={<Header title="Details & preferences" />}>
+    <Screen
+      meta={{ title: 'Your details', noindex: true }}
+      header={<Header title="Details & preferences" />}
+    >
       <SectionTitle eyebrow="You" title="Contact details" />
       <TextField label="Name" value={name} onChangeText={setName} autoComplete="name" />
       <TextField

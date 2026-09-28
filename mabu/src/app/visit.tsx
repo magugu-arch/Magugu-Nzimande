@@ -34,7 +34,15 @@ export default function Visit() {
   const order = [1, 2, 3, 4, 5, 6, 0];
 
   return (
-    <Screen header={<Header title="Visit" />}>
+    <Screen
+      meta={{
+        title: 'Find Us in Waterfall City, Midrand',
+        description:
+          'Directions, parking, opening hours and contact details for Mábu at Waterfall Wilds, Waterfall City, Midrand.',
+        path: '/visit',
+      }}
+      header={<Header title="Visit" />}
+    >
       <Text variant="h1" style={{ marginTop: spacing.md }} accessibilityRole="header">
         Find your way to Mábu
       </Text>

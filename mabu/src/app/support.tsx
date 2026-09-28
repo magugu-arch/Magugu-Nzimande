@@ -57,7 +57,15 @@ export default function Support() {
     );
 
   return (
-    <Screen header={<Header title="Contact & help" />}>
+    <Screen
+      meta={{
+        title: 'Contact & Help',
+        description:
+          'Contact the Mábu reservations team in Waterfall City, Midrand about bookings, private functions, gift vouchers and accessibility.',
+        path: '/support',
+      }}
+      header={<Header title="Contact & help" />}
+    >
       <Text variant="h1" style={{ marginTop: spacing.md }} accessibilityRole="header">
         We are here to help
       </Text>

@@ -24,7 +24,11 @@ export function AdminScreen({
   const role = useSession((s) => s.actor?.role);
   const allowed = adminOnly ? role === 'admin' : role === 'admin' || role === 'staff';
   return (
-    <Screen header={<Header title={title} />} footer={allowed ? footer : undefined}>
+    <Screen
+      meta={{ title, noindex: true }}
+      header={<Header title={title} />}
+      footer={allowed ? footer : undefined}
+    >
       {allowed ? (
         children
       ) : (

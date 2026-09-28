@@ -44,7 +44,15 @@ export default function Gallery() {
   const half = (full - spacing.md) / 2;
 
   return (
-    <Screen header={<Header title="Gallery" />}>
+    <Screen
+      meta={{
+        title: 'Gallery',
+        description:
+          'Inside Mábu: the dining room beneath the timber chandeliers, the open fire, the plates and the private rooms at Waterfall Wilds, Midrand.',
+        path: '/gallery',
+      }}
+      header={<Header title="Gallery" />}
+    >
       <Text variant="h1" style={{ marginTop: spacing.md }} accessibilityRole="header">
         Timber, brass and stone
       </Text>

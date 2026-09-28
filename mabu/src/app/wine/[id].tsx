@@ -21,9 +21,16 @@ import {
 import { formatRand } from '@/domain/shared/format';
 import { errorMessage } from '@/services/api';
 import { useRpc } from '@/services/queries';
+import { snapshotIds } from '@/seo/staticParams';
+import { breadcrumbSchema } from '@/seo/structured';
 import { useFavourite } from '@/features/useFavourite';
 import { radius, spacing } from '@/theme';
 import { track } from '@/utils/analytics';
+
+/** One page per item in the web export (see src/seo/staticParams.ts). */
+export function generateStaticParams(): { id: string }[] {
+  return snapshotIds('content.wine');
+}
 
 export default function WineDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,6 +54,18 @@ export default function WineDetail() {
 
   return (
     <Screen
+      meta={{
+        title: `${wine.producer} ${wine.name}`,
+        description: `${wine.tastingNotes} On the wine list at Mábu, Waterfall City, Midrand.`,
+        path: `/wine/${wine.id}`,
+        type: 'article',
+        schema: [
+          breadcrumbSchema([
+            { name: 'Wine list', path: '/menu?section=wine' },
+            { name: `${wine.producer} ${wine.name}`, path: `/wine/${wine.id}` },
+          ]),
+        ],
+      }}
       header={
         <Header
           title="Wine"

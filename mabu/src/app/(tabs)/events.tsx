@@ -19,6 +19,12 @@ export default function Events() {
   const q = useRpc('events.list');
   return (
     <Screen
+      meta={{
+        title: 'Events & Experiences',
+        description:
+          'Wine pairing dinners, chef’s evenings and tasting menus at Mábu in Waterfall City, Midrand. Reserve your place in a few taps.',
+        path: '/events',
+      }}
       refreshControl={
         <RefreshControl
           refreshing={q.isRefetching}

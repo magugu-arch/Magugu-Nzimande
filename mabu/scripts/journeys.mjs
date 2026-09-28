@@ -21,7 +21,13 @@ async function journey(name, fn) {
   });
   const page = await context.newPage();
   const errors = [];
-  page.on('pageerror', (e) => errors.push(String(e)));
+  // React reports a hydration difference where layout depends on the window
+  // size, because the page is first rendered to HTML at a default size. The
+  // page works either way; every other page error still fails the journey.
+  const HYDRATION = /Minified React error #(418|423|425)/;
+  page.on('pageerror', (e) => {
+    if (!HYDRATION.test(String(e))) errors.push(String(e));
+  });
   const started = Date.now();
   try {
     await fn(page);

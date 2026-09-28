@@ -3,7 +3,7 @@ import { EmptyState, Screen } from '@/components/ui';
 
 export default function NotFound() {
   return (
-    <Screen>
+    <Screen meta={{ title: 'Page not found', noindex: true }}>
       <EmptyState
         icon="compass"
         title="This page has moved on"

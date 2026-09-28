@@ -29,7 +29,10 @@ export default function MyBookings() {
   const cancelEvent = useRpcMutation('events.cancel', ['events.mine', 'events.list']);
 
   return (
-    <Screen header={<Header title="My bookings" />}>
+    <Screen
+      meta={{ title: 'Your bookings', noindex: true }}
+      header={<Header title="My bookings" />}
+    >
       <View style={{ marginTop: spacing.md }}>
         <Segmented
           value={tab}

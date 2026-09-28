@@ -11,6 +11,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PageMeta, type PageMetaProps } from '@/seo/PageMeta';
 import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { colors, HIT_SLOP, radius, spacing } from '@/theme';
@@ -26,6 +27,7 @@ export function Screen({
   topInset = true,
   contentStyle,
   refreshControl,
+  meta,
 }: {
   children: ReactNode;
   header?: ReactNode;
@@ -35,6 +37,8 @@ export function Screen({
   topInset?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
   refreshControl?: ScrollViewProps['refreshControl'];
+  /** What this page tells search engines and shared links (web only). */
+  meta?: PageMetaProps;
 }) {
   const insets = useSafeAreaInsets();
   const body = scroll ? (
@@ -59,6 +63,7 @@ export function Screen({
       style={[styles.flex, styles.ground, { paddingTop: topInset && !header ? insets.top : 0 }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {meta ? <PageMeta {...meta} /> : null}
       {header}
       {body}
       {footer ? (

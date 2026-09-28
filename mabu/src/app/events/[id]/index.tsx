@@ -19,12 +19,19 @@ import {
 import { formatDateLong, formatRand, formatTime } from '@/domain/shared/format';
 import { errorMessage } from '@/services/api';
 import { useRpc } from '@/services/queries';
+import { snapshotIds } from '@/seo/staticParams';
+import { breadcrumbSchema, eventSchema } from '@/seo/structured';
 import { colors, spacing } from '@/theme';
 import { track } from '@/utils/analytics';
 import { addToCalendar } from '@/utils/calendar';
 import { shareText } from '@/utils/linking';
 
 /** §11 Event detail: hero, when, where, price, availability, experience, share and calendar. */
+/** One page per item in the web export (see src/seo/staticParams.ts). */
+export function generateStaticParams(): { id: string }[] {
+  return snapshotIds('events.get');
+}
+
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
@@ -51,6 +58,19 @@ export default function EventDetail() {
 
   return (
     <Screen
+      meta={{
+        title: e.title,
+        description: `${e.subtitle} · ${formatDateLong(e.startsAt)} at Mábu, Waterfall City, Midrand.`,
+        path: `/events/${e.id}`,
+        type: 'article',
+        schema: [
+          eventSchema(e),
+          breadcrumbSchema([
+            { name: 'Events', path: '/events' },
+            { name: e.title, path: `/events/${e.id}` },
+          ]),
+        ],
+      }}
       padded={false}
       topInset={false}
       header={

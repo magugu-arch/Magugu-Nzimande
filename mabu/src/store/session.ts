@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+import { deviceStorage } from './storage';
 import type { Actor } from '@/domain/guests/types';
 
 interface SessionState {
@@ -34,7 +34,7 @@ export const useSession = create<SessionState>()(
     }),
     {
       name: 'mabu.session.v1',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: deviceStorage,
       partialize: ({ token, actor, name, email }) => ({ token, actor, name, email }),
       onRehydrateStorage: () => () => useSession.setState({ hydrated: true }),
     },

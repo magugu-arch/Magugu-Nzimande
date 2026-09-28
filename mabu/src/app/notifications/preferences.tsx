@@ -84,7 +84,10 @@ export default function Preferences() {
     update.mutate({ ...pref, ...patch });
 
   return (
-    <Screen header={<Header title="Notification preferences" />}>
+    <Screen
+      meta={{ title: 'Notification preferences', noindex: true }}
+      header={<Header title="Notification preferences" />}
+    >
       {osGranted === false ? (
         <Card style={{ marginTop: spacing.lg, gap: spacing.md }}>
           <Text variant="body">
