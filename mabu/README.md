@@ -39,6 +39,10 @@ Admin › *Reset demo data* starts again.
 | `npm run verify` | typecheck → lint → format check → Jest → schema check |
 | `npm test` | 73 unit, integration and component tests |
 | `npm run db:check` | Applies `server/migrations` to real PostgreSQL (PGlite) and attacks each invariant |
+| `npm run server:dev` | Runs the API server locally; sign-in codes are printed to the log |
+| `npm run server:check` | The API server on PostgreSQL over HTTP: sign-in, booking, restart |
+| `npm run standalone` | The whole app as one HTML file in `dist-standalone/` (opens from disk) |
+| `npm run standalone:check` | Opens that file from disk and books a table through it |
 | `npm run export:web` | Web build into `dist-web/` |
 | `npm run shots` | Renders 40 routes × 2 widths × 3 roles; fails on overflow, blank screens, console errors, unnamed buttons |
 | `npm run e2e` | Nine journeys through the real UI (booking, double-tap, vouchers incl. decline, events, waitlist, rewards, preferences, staff) |
@@ -170,13 +174,15 @@ See *Commands* above. CI runs `verify`, the iOS and Android bundles, the screen 
 
 ### 5. Tests added and results
 
-- **73 Jest tests** — reservations (21), rewards (12), notifications (14), vouchers / events / commerce / flags /
-  jobs (14), API surface & schema parity (7), accessibility of stateful components (5). All pass. They cover every
+- **81 Jest tests** — reservations (21), rewards (12), notifications (14), vouchers / events / commerce / flags /
+  jobs (14), API surface & schema parity (7), accessibility of stateful components (5), API server (8). All pass. They cover every
   §48 gate, including exactly-once visit rewards, one-time redemption, expiry that cannot go negative,
   retry-safe dedupe, marketing blocked without consent, and services working while analytics fails.
-- **Schema check** — the migration applied to PostgreSQL, 19 checks, all pass.
-- **Screen sweep** — 80 renders, all clean.
+- **Schema check** — both migrations applied to PostgreSQL, 19 checks, all pass.
+- **API server check** — 15 checks on PostgreSQL over HTTP (codes, sessions, booking, restart), all pass.
+- **Screen sweep** — 92 renders, all clean.
 - **E2E journeys** — 9 of 9 pass.
+- **Single-file app** — opened from disk: tabs, deep link, dish and back, full booking — 4 of 4 pass.
 
 ### 6. Provider / API credentials still required
 
@@ -212,10 +218,12 @@ replaces the directions card.
 
 ### 8. Remaining technical blockers
 
-- **The HTTP server.** The API is defined and typed (`rpc.ts`) and the schema exists, but no deployed Node service
-  yet mounts the handlers over PostgreSQL (a `Database` implementation backed by `pg` is the missing piece), with
-  OTP email delivery, sessions and rate limiting on sign-in. Until then the app runs in mock mode.
-- Live provider adapters (Dineplan, payments, push / email / SMS) wait on the credentials in §6.
-- Push registration to a server-side token store is not wired, since there is no server yet; on a device, mock
-  pushes appear as local notifications.
-- Legal copy (privacy policy, terms, POPIA consent wording) is to be supplied by Mábu.
+See `AUDIT.md` for the full completion audit.
+
+- **Deployment.** The API server (`server/`, see `server/README.md`) runs sign-in, sessions, PostgreSQL and push,
+  and passes `npm run server:check`, but is not yet hosted. It keeps rows as documents in `server_row`; moving
+  them onto the relational tables in `001_initial.sql` comes before running more than one instance.
+- **Providers waiting on accounts (§6):** an email provider (`EmailSender`), a payment gateway (hosted checkout +
+  webhook), Dineplan (or `MABU_DIRECT_INVENTORY=1` if every booking is entered in this system), an EAS project
+  for push and store builds.
+- **Legal copy** is drafted in `src/content/legal.ts` for Mábu's attorneys; each page says so until approved.
