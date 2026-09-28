@@ -11,6 +11,8 @@
 
 No internet or server is needed.
 
+**Grateful-Go-Live-Guide.html** is the plain-language guide to the ten account steps (domain, Supabase, Resend, PayFast, Vercel, checks, a test booking, Google) that switch the site on. It opens the same way and is also inside both handover editions.
+
 **Grateful-Build-Audit.html** is the latest completion audit (how far along the site is, and what is left), and opens the same way. **Grateful-Website-Costing.html** is the costing: what a site like this costs to build in South Africa in 2026, and what it costs to run each month.
 
 In the website preview, bookings, payments and messages are simulated inside the page, and nothing is saved or sent. Use the **Preview** box (bottom corner) to switch on sample prices or open the **studio dashboard** (any key works in the preview).

@@ -171,7 +171,7 @@ ${golive.css}
     <li><a href="#pages">The website, page by page</a></li>
     <li><a href="#dashboard">The studio dashboard</a></li>
     <li><a href="#photos">The photographs</a></li>
-    <li><a href="#audit">Completion audit: 80% complete</a></li>
+    <li><a href="#audit">Completion audit: 81% complete</a></li>
     <li><a href="#costing">Costing</a></li>
     <li><a href="#golive">Go-live guide: the ten steps to switch the site on</a></li>
     <li><a href="#checklist">Launch checklist</a></li>

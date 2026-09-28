@@ -82,6 +82,27 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
     --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
     --rule: #2c2c2c; --track: #262626; --fill: #f4f4f4; --soft: #151515;
   }#costing{ background: var(--paper); color: var(--ink); font: 16px/1.6 var(--serif); }#costing .wrap{ max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; }#costing .label{ font: 600 11px/1.4 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }#costing .num, #costing .mono{ font-variant-numeric: tabular-nums; }#costing a{ color: inherit; }#costing :focus-visible{ outline: 2px solid var(--ink); outline-offset: 3px; }#costing header.mast{ display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--ink); padding-bottom: 12px; }#costing header.mast .who{ font: 600 12px/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; }#costing .hero{ display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 40px; align-items: end; padding-block: 48px 36px; border-bottom: 1px solid var(--rule); }#costing .hero h1{ margin: 0; font-weight: 400; font-size: clamp(2.3rem, 5.2vw, 3.8rem); line-height: 1.02; letter-spacing: -.02em; text-wrap: balance; }#costing .hero h1 em{ font-style: italic; }#costing .hero p{ margin: 16px 0 0; max-width: 34em; color: var(--ink-2); }#costing .price{ font-size: clamp(3.6rem, 10vw, 6.4rem); line-height: .9; letter-spacing: -.03em; }#costing section{ padding-block: 40px; border-bottom: 1px solid var(--rule); }#costing h2{ margin: 0 0 6px; font-weight: 400; font-size: 1.9rem; line-height: 1.1; text-wrap: balance; }#costing h2 + .sub{ margin: 0 0 24px; color: var(--ink-2); max-width: 46em; }#costing .quotes{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }#costing .quotes > div{ background: var(--paper); padding: 22px 20px; display: flex; flex-direction: column; gap: 6px; }#costing .quotes .pick{ background: var(--ink); color: var(--paper); }#costing .quotes .pick .label, #costing .quotes .pick p{ color: inherit; opacity: .75; }#costing .quotes h3{ margin: 0; font-weight: 400; font-style: italic; font-size: 1.35rem; }#costing .quotes .amt{ font-size: 2rem; line-height: 1.1; margin-top: 6px; }#costing .quotes .rate{ font: 600 12px/1.4 var(--sans); letter-spacing: .06em; }#costing .quotes p{ margin: 6px 0 0; font: 13px/1.55 var(--sans); color: var(--ink-2); }#costing .scroll{ overflow-x: auto; }#costing table.t{ width: 100%; border-collapse: collapse; min-width: 560px; }#costing .t th{ text-align: left; padding: 0 12px 10px 0; border-bottom: 1px solid var(--ink); }#costing .t th.r, #costing .t td.r{ text-align: right; padding-right: 0; padding-left: 12px; white-space: nowrap; }#costing .t td{ padding: 13px 12px 13px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }#costing .t td strong{ display: block; font-weight: 400; font-size: 1.08rem; line-height: 1.3; }#costing .t td span{ display: block; margin-top: 3px; font: 13px/1.5 var(--sans); color: var(--ink-3); }#costing .t td.r{ font: 14px/1.5 var(--sans); }#costing .t tfoot td{ border-bottom: 0; border-top: 1px solid var(--ink); font: 600 14px/1.5 var(--sans); }#costing .hbar{ height: 6px; background: var(--track); border-radius: 3px; margin-top: 8px; position: relative; max-width: 240px; }#costing .hbar i{ position: absolute; top: 0; bottom: 0; background: var(--fill); border-radius: 3px 0 0 3px; }#costing .hbar i.hi{ opacity: .35; border-radius: 0 3px 3px 0; }#costing .cols{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }#costing .cols h3{ margin: 0 0 10px; font-weight: 400; font-style: italic; font-size: 1.35rem; }#costing .list{ margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }#costing .list li{ padding: 10px 0; border-bottom: 1px solid var(--rule); line-height: 1.45; display: flex; justify-content: space-between; gap: 16px; }#costing .list li small{ display: block; font: 12.5px/1.45 var(--sans); color: var(--ink-3); margin-top: 2px; }#costing .list li .r{ font: 14px/1.5 var(--sans); white-space: nowrap; text-align: right; }#costing .note{ background: var(--soft); padding: 18px 20px; font: 14px/1.6 var(--sans); color: var(--ink-2); max-width: 60em; }#costing .note b{ color: var(--ink); }#costing .method{ font: 13px/1.6 var(--sans); color: var(--ink-2); max-width: 62em; }#costing .sources{ font: 13px/1.7 var(--sans); color: var(--ink-2); margin: 8px 0 0; padding-left: 18px; }@media (max-width: 760px){#costing .hero{ grid-template-columns: 1fr; gap: 20px; padding-block: 32px 28px; }#costing .quotes, #costing .cols{ grid-template-columns: 1fr; }}
+#golive{
+    --paper: #ffffff;
+    --ink: #0b0b0b;
+    --ink-2: #4a4a4a;
+    --ink-3: #6e6e6e;
+    --rule: #dcdcdc;
+    --soft: #f5f5f4;
+    --warn-bg: #fbf3e6;
+    --warn-ink: #6b4a12;
+    --serif: 'Baskervville', Baskerville, 'Libre Baskerville', Georgia, serif;
+    --sans: 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #golive{
+      color-scheme: dark;
+      --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
+      --rule: #2c2c2c; --soft: #151515; --warn-bg: #2a2114; --warn-ink: #f0d3a0;
+    }}:root[data-theme="dark"] #golive{
+    color-scheme: dark;
+    --paper: #0a0a0a; --ink: #f4f4f4; --ink-2: #bdbdbd; --ink-3: #9a9a9a;
+    --rule: #2c2c2c; --soft: #151515; --warn-bg: #2a2114; --warn-ink: #f0d3a0;
+  }#golive{ background: var(--paper); color: var(--ink); font: 16px/1.6 var(--serif); }#golive .wrap{ max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; }#golive .label{ font: 600 11px/1.4 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }#golive a{ color: inherit; text-underline-offset: 3px; }#golive :focus-visible{ outline: 2px solid var(--ink); outline-offset: 3px; }#golive code{ font: .86em/1.4 var(--mono); background: var(--soft); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }#golive header.mast{ display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--ink); padding-bottom: 12px; }#golive header.mast .who{ font: 600 12px/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; }#golive .intro{ padding-block: 44px 28px; border-bottom: 1px solid var(--rule); }#golive .intro h1{ margin: 0; font-weight: 400; font-size: clamp(2.3rem, 5.5vw, 3.6rem); line-height: 1.02; letter-spacing: -.02em; text-wrap: balance; }#golive .intro h1 em{ font-style: italic; }#golive .intro p{ margin: 16px 0 0; max-width: 38em; color: var(--ink-2); }#golive .rules{ margin-top: 24px; background: var(--warn-bg); color: var(--warn-ink); padding: 16px 18px; border-radius: 4px; font: 14px/1.6 var(--sans); }#golive .rules strong{ display: block; margin-bottom: 6px; font-weight: 600; }#golive .rules ul{ margin: 0; padding-left: 18px; display: grid; gap: 4px; }#golive .order{ margin: 0; padding: 0; list-style: none; counter-reset: step; }#golive .step{ display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 16px; padding-block: 32px; border-bottom: 1px solid var(--rule); counter-increment: step; }#golive .step::before{ content: counter(step, decimal-leading-zero); font: 400 2rem/1 var(--serif); color: var(--ink-3); font-variant-numeric: tabular-nums; padding-top: 4px; }#golive .step h2{ margin: 0; font-weight: 400; font-size: 1.65rem; line-height: 1.15; text-wrap: balance; }#golive .step .where{ margin: 6px 0 0; font: 13px/1.5 var(--sans); color: var(--ink-3); }#golive .step ol, #golive .step ul{ margin: 14px 0 0; padding-left: 20px; display: grid; gap: 6px; }#golive .step li{ line-height: 1.5; }#golive .keeps{ margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: baseline; font: 13px/1.5 var(--sans); color: var(--ink-2); }#golive .keeps code{ font-size: 12.5px; }#golive .done{ margin-top: 14px; font: 13.5px/1.55 var(--sans); color: var(--ink-2); border-left: 2px solid var(--ink); padding-left: 12px; }#golive .done b{ color: var(--ink); font-weight: 600; }#golive .note{ margin-top: 12px; font: 13.5px/1.55 var(--sans); color: var(--ink-2); }#golive section.vars{ padding-block: 40px; border-bottom: 1px solid var(--rule); }#golive section.vars h2{ margin: 0 0 6px; font-weight: 400; font-size: 1.9rem; }#golive section.vars .sub{ margin: 0 0 20px; color: var(--ink-2); max-width: 40em; }#golive .scroll{ overflow-x: auto; }#golive table{ width: 100%; border-collapse: collapse; font: 14px/1.45 var(--sans); min-width: 520px; }#golive th{ text-align: left; font: 600 11px/1.4 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); padding: 0 12px 10px 0; border-bottom: 1px solid var(--ink); }#golive td{ padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }#golive td:first-child{ white-space: nowrap; }#golive .foot{ padding-top: 32px; font: 13px/1.6 var(--sans); color: var(--ink-2); max-width: 60em; }@media (max-width: 560px){#golive .step{ grid-template-columns: 1fr; }#golive .step::before{ font-size: 1.4rem; margin-bottom: 6px; }}
 </style>
 </head>
 <body>
@@ -89,14 +110,15 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
 <main>
 <div class="w">
   <h1>The Grateful website, <em>page by page.</em></h1>
-  <p class="muted">A fashion design studio in Mulbarton, Johannesburg. This edition is made to open anywhere, including inside WhatsApp on an iPhone: every page of the website is shown as a picture, followed by the photographs, the completion audit and the costing.</p>
+  <p class="muted">A fashion design studio in Mulbarton, Johannesburg. This edition is made to open anywhere, including inside WhatsApp on an iPhone: every page of the website is shown as a picture, followed by the photographs, the completion audit, the costing and the go-live guide.</p>
   <p class="note"><b>To click through the working website,</b> open this link in Safari: <a href="https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN">https://claude.ai/artifact/UxjQRoLaGToJwxH5sEnHKN</a></p>
   <ul class="toc">
     <li><a href="#pages">The website, page by page</a></li>
     <li><a href="#dashboard">The studio dashboard</a></li>
     <li><a href="#photos">The photographs</a></li>
-    <li><a href="#audit">Completion audit: 80% complete</a></li>
+    <li><a href="#audit">Completion audit: 81% complete</a></li>
     <li><a href="#costing">Costing</a></li>
+    <li><a href="#golive">Go-live guide: the ten steps to switch the site on</a></li>
     <li><a href="#checklist">Launch checklist</a></li>
   </ul>
 </div>
@@ -149,16 +171,16 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
       <p>Every page, the booking engine, payments, email, the database layer and now the studio dashboard are written and tested. Almost everything left is outside the code: facts only the studio can supply, which it can now enter itself in the dashboard, and the Supabase, PayFast, Resend and hosting accounts that switch the site on.</p>
     </div>
     <div>
-      <div class="big mono">80<small>%</small></div>
-      <div class="meter" role="img" aria-label="80 percent complete, 20 percent remaining">
-        <span class="done" style="width:80%"></span><span class="left" style="width:20%"></span>
+      <div class="big mono">81<small>%</small></div>
+      <div class="meter" role="img" aria-label="81 percent complete, 19 percent remaining">
+        <span class="done" style="width:81%"></span><span class="left" style="width:19%"></span>
       </div>
-      <div class="meter-key mono"><span>80% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80%)</span><span>20% remaining</span></div>
+      <div class="meter-key mono"><span>81% complete (72% → 77% → 78% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 80% → 81%)</span><span>19% remaining</span></div>
     </div>
   </div>
 
   <section aria-labelledby="ws-h">
-    <h2 id="ws-h">Where the 80% comes from</h2>
+    <h2 id="ws-h">Where the 81% comes from</h2>
     <p class="sub">The build is split into eight workstreams, each weighted by how much of a finished, live website it represents. A workstream counts as done only when it is verified, not just when its code is written. Hover over a bar to see what is left in that workstream.</p>
     <table class="ws">
       <thead><tr><th class="label">Workstream</th><th class="label">Progress</th><th class="label" style="text-align:right">Done · weight</th></tr></thead>
@@ -185,8 +207,8 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
         </tr>
         <tr>
           <td class="name"><strong>Database &amp; hosting</strong><span>Supabase schema, migrations, seed; Vercel config</span></td>
-          <td class="bar"><div class="track" tabindex="0"><i style="width:65%"></i><span class="tip">Schema, three migrations, deploy config, the daily reminder schedule, a health endpoint and a launch checker that lists every missing setting. Left: create the Supabase project, deploy to Vercel, point the domain.</span></div><div class="left-note">Left: create accounts, deploy, domain</div></td>
-          <td class="num mono"><b>65%</b>of 10</td>
+          <td class="bar"><div class="track" tabindex="0"><i style="width:70%"></i><span class="tip">Schema, three migrations, deploy config, the daily reminder schedule, a health endpoint and a launch checker. The whole database now sets up from one file, proven on a real Postgres 16 database: six tables locked to the public, overlapping bookings refused. Left: create the Supabase project, deploy to Vercel, point the domain.</span></div><div class="left-note">Up from 65%. Left: create accounts, deploy, domain</div></td>
+          <td class="num mono"><b>70%</b>of 10</td>
         </tr>
         <tr>
           <td class="name"><strong>Quality &amp; compliance</strong><span>Tests, accessibility, SEO, performance, POPIA</span></td>
@@ -204,15 +226,15 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
           <td class="num mono"><b>78%</b>of 7</td>
         </tr>
       </tbody>
-      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">80.4 of 100</td></tr></tfoot>
+      <tfoot><tr><td class="name">Weighted total</td><td class="bar"></td><td class="num mono">80.9 of 100</td></tr></tfoot>
     </table>
   </section>
 
   <section aria-labelledby="ev-h">
     <h2 id="ev-h">What was verified</h2>
-    <p class="sub">These were measured on the current code, commit <span class="mono">8b1d14b</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
+    <p class="sub">These were measured on the current code, commit <span class="mono">8980d55</span> on branch <span class="mono">claude/grateful-design-briefing-2svp4w</span>.</p>
     <div class="facts">
-      <div><span class="label">Unit tests</span><b class="mono">87 / 87</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice. Every photograph checked in all three sizes, none left unused, none turned black and white.</p></div>
+      <div><span class="label">Unit tests</span><b class="mono">92 / 92</b><p>Double booking, holds, forged payments, PayFast signatures, reschedule, prices, hours, phone bookings, reminders, key lockout, launch checks, studio voice, the one-file database setup and the generated secrets. Every photograph checked in all three sizes, none left unused, none turned black and white.</p></div>
       <div><span class="label">Browser smoke test</span><b class="mono">5 journeys</b><p>27 page renders at 320, 390 and 1440px; page titles and noindex; the Back and Back to top buttons; a free and a paid booking; then the dashboard: sign in, reschedule, set a price, open hours, record a phone booking. Runs in CI.</p></div>
       <div><span class="label">Lighthouse (mobile)</span><b class="mono">100 · 100 · 100</b><p>Accessibility, good practice and search on all seven public pages, measured on a production build with the live security headers. Speed 84–89 on simulated slow 4G (home page 88 in three repeat runs). axe: 0 serious issues.</p></div>
       <div><span class="label">Offline preview</span><b class="mono">1.8 MB</b><p>The whole site in one HTML file. Opened from disk (file://) at desktop and phone size with no errors.</p></div>
@@ -220,8 +242,8 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
   </section>
 
   <section aria-labelledby="left-h">
-    <h2 id="left-h">The remaining 20%</h2>
-    <p class="sub">The studio’s part can now be filled in on the <a href="https://claude.ai/artifact/8Min81Y6Tcq4Tg2XbQ3eN6" target="_blank" rel="noopener">launch checklist</a>. Grouped by who has to act. None of it is new code: it is content, accounts, and changes from the studio’s review.</p>
+    <h2 id="left-h">The remaining 19%</h2>
+    <p class="sub">The studio’s part can now be filled in on the <a href="https://claude.ai/artifact/8Min81Y6Tcq4Tg2XbQ3eN6" target="_blank" rel="noopener">launch checklist</a>. Grouped by who has to act. None of it is new code: it is content, accounts, and changes from the studio’s review. The accounts now have a step-by-step <a href="https://claude.ai/artifact/AnfFfz1xW8qsX29nMirY2m" target="_blank" rel="noopener">go-live guide</a>.</p>
     <div class="cols">
       <div>
         <h3>From the studio</h3>
@@ -238,7 +260,7 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
       </div>
       <div>
         <h3>Accounts &amp; launch</h3>
-        <div class="pts mono">≈ 9 points</div>
+        <div class="pts mono">≈ 8 points</div>
         <ul>
           <li>Supabase project; run the three migrations and the seed</li>
           <li>PayFast merchant account; sandbox test, then live</li>
@@ -263,13 +285,13 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
   <section aria-labelledby="done-h">
     <h2 id="done-h">Finished in this round</h2>
     <ul class="done-list">
-      <li>The studio’s checklist answers now go into the site with one command: <code>npm run apply:intake</code></li>
-      <li>The site is ready for them: garment names and years, a photo credit on each garment page, social links in the footer, and the privacy officer and record-keeping periods</li>
-      <li>Answers are checked on the way in: years must be real years, links must be secure web addresses, emails must look like emails; anything unusable is listed, not published</li>
-      <li>Rehearsed end to end with sample answers: every one appeared in the right place, then the site was reset to empty</li>
-      <li>Checked the real checklist: opened, no answers yet</li>
-      <li>Corrected an earlier slip: one progress bar (Visual design) was drawn at 96% while its figure and the total used 95%</li>
-      <li>Five new tests (87 in total); the browser test passes. Studio operations moves to 97%</li>
+      <li>A plain-language go-live guide: the ten account steps in order, with where to click, what to copy into Vercel and how to tell each step worked</li>
+      <li>The whole database now sets up by pasting one file into Supabase (<code>supabase/setup-all.sql</code>), kept in step with the migrations by a test</li>
+      <li>That file was run on a real Postgres 16 database: six tables, all locked to the public key; four services with no prices; a second booking for the same or an overlapping time refused</li>
+      <li><code>npm run gen:secrets</code> makes the studio key and the two other secrets the site needs, each long enough to pass the launch checks</li>
+      <li>The guide is also inside the handover and WhatsApp editions, so the studio has it offline</li>
+      <li>Rechecked the launch checklist: still no answers from the studio</li>
+      <li>Five new tests (92 in total); the browser test passes. Database &amp; hosting moves to 70%</li>
     </ul>
     <div class="links" style="margin-top:14px"><a class="btn solid" href="https://claude.ai/artifact/8Min81Y6Tcq4Tg2XbQ3eN6" target="_blank" rel="noopener">Open the launch checklist</a></div>
     <div class="links">
@@ -279,7 +301,7 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
 
   <section style="border-bottom:0">
     <p class="label">How the percentage was worked out</p>
-    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.65 + 10×0.96 + 10×0.97 + 7×0.78 = 80.4, shown as 80%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
+    <p class="method">Each workstream's weight reflects its share of a launched, usable website. Its progress is the share of its checklist that is done and verified. Code counts only once tested, and anything that needs an outside account counts as not done. The total is the weighted sum: 22×0.95 + 14×1.00 + 12×0.75 + 15×0.35 + 10×0.70 + 10×0.96 + 10×0.97 + 7×0.78 = 80.9, shown as 81%. Earlier audits: 72%, 77%, 78%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%, 80%. The weights are a judgement; the verified facts above are measurements.</p>
   </section>
 </div>
 </section>
@@ -433,6 +455,200 @@ figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; col
       <li><a href="https://tradingeconomics.com/south-africa/currency" target="_blank" rel="noopener">USD/ZAR exchange rate (Trading Economics)</a></li>
     </ol>
   </section>
+</div>
+</section>
+
+<section id="golive" class="sec" style="padding:0">
+<div class="wrap">
+  <header class="mast">
+    <span class="who">Grateful (Pty) Ltd · Website</span>
+    <span class="label">Go-live guide · September 2026</span>
+  </header>
+
+  <div class="intro">
+    <p class="label" style="margin:0 0 10px">From finished build to live website</p>
+    <h1>Ten steps to switch the site on. <em>In this order.</em></h1>
+    <p>The website is built and tested. To take real bookings it needs its own accounts: a domain, a database, email, payments and hosting. This guide goes through them one at a time, in the order that avoids waiting. Each step says where to go, what to do, and how you know it worked. Together these steps are the “accounts and launch” part of the audit, about 8 of the 19 points still open.</p>
+    <p>Running costs are in the costing (about R744 a month, plus PayFast’s fee on each payment). Check each provider’s pricing page when you sign up, because prices change.</p>
+    <div class="rules" role="note">
+      <strong>Keep the keys safe</strong>
+      <ul>
+        <li>Passwords and keys go into Vercel only (step 5). Never paste them into email, WhatsApp, a chat or the launch checklist.</li>
+        <li>Keep the database password and the studio key in a password manager. They can’t be recovered, only replaced.</li>
+        <li>If a key is ever exposed, make a new one with the provider, put it in Vercel, and delete the old one.</li>
+      </ul>
+    </div>
+  </div>
+
+  <ol class="order">
+    <li class="step">
+      <div>
+        <h2>Register the domain</h2>
+        <p class="where">Any .co.za registrar</p>
+        <ul>
+          <li>Choose the address the studio will use, for example <code>grateful.co.za</code> if it is free.</li>
+          <li>Register it in the company’s name, and keep the registrar login in the password manager.</li>
+          <li>Find the registrar’s <b>DNS settings</b> page. Steps 3 and 5 add records there.</li>
+        </ul>
+        <p class="done"><b>Done when</b> the studio owns the domain and can open its DNS settings.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Create the database</h2>
+        <p class="where"><a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a></p>
+        <ol>
+          <li>Sign up and create a <b>New project</b> called <code>grateful</code>. Pick the region closest to Johannesburg that is offered. Save the database password in the password manager.</li>
+          <li>Open <b>SQL Editor → New query</b>. Paste the whole of the file <code>supabase/setup-all.sql</code> from the project and press <b>Run</b>. It creates the tables, the double-booking guard and the four services, with no prices.</li>
+          <li>Open <b>Project Settings → API</b>. You need the <b>Project URL</b> and the <b>service_role</b> key (newer projects call it the <b>secret</b> key). Leave this tab open for step 5.</li>
+        </ol>
+        <p class="keeps">For Vercel: <code>SUPABASE_URL</code> <code>SUPABASE_SERVICE_ROLE_KEY</code></p>
+        <p class="note">If the SQL Editor says a table “already exists”, the file has already been run. Nothing is changed or lost.</p>
+        <p class="done"><b>Done when</b> the Table Editor lists six tables (bookings, services, availability, payments, contact messages, newsletter subscribers) and services has four rows.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Set up email</h2>
+        <p class="where"><a href="https://resend.com" target="_blank" rel="noopener">resend.com</a></p>
+        <ol>
+          <li>Sign up, open <b>Domains → Add domain</b> and enter the domain from step 1.</li>
+          <li>Resend shows a few DNS records. Add each one on the registrar’s DNS page exactly as shown, then wait for Resend to mark the domain <b>Verified</b>. This can take from minutes to a day.</li>
+          <li>Open <b>API Keys → Create API key</b> with sending access.</li>
+          <li>Choose the sending address, for example <code>Grateful &lt;bookings@grateful.co.za&gt;</code>. Replies still reach the studio’s Gmail.</li>
+        </ol>
+        <p class="keeps">For Vercel: <code>RESEND_API_KEY</code> <code>EMAIL_FROM</code></p>
+        <p class="done"><b>Done when</b> the domain shows Verified in Resend.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Open PayFast, and its test sandbox</h2>
+        <p class="where"><a href="https://payfast.io" target="_blank" rel="noopener">payfast.io</a> and <a href="https://sandbox.payfast.co.za" target="_blank" rel="noopener">sandbox.payfast.co.za</a></p>
+        <ol>
+          <li>Apply for a merchant account in the company’s name. PayFast asks for the business details and the bank account payouts go to.</li>
+          <li>While that is approved, open the <b>sandbox</b>. It has its own test merchant ID, merchant key and passphrase, and no real money moves.</li>
+          <li>Use the sandbox values first. The live values come from the live account’s <b>Settings → Developer settings</b>, where you also set its passphrase. You swap them in at step 7.</li>
+        </ol>
+        <p class="keeps">For Vercel: <code>PAYFAST_MERCHANT_ID</code> <code>PAYFAST_MERCHANT_KEY</code> <code>PAYFAST_PASSPHRASE</code></p>
+        <p class="note">Card details never touch the website. PayFast’s own page takes the payment and tells the site when it has cleared.</p>
+        <p class="done"><b>Done when</b> you have the sandbox ID, key and passphrase to hand.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Put the site online</h2>
+        <p class="where"><a href="https://vercel.com" target="_blank" rel="noopener">vercel.com</a></p>
+        <ol>
+          <li>Sign up with the GitHub account that holds the website’s code. The costing assumes the Pro plan: Vercel’s free plan is for personal, non-commercial sites.</li>
+          <li><b>Add New → Project</b>, import the repository, and set <b>Root Directory</b> to <code>grateful</code>.</li>
+          <li>Under <b>Environment Variables</b>, add every row of the table below. For the three secrets the site makes itself, a developer runs <code>npm run gen:secrets</code> and pastes the values straight in.</li>
+          <li>Press <b>Deploy</b>. Then open <b>Settings → Domains</b>, add the domain, and add the DNS records Vercel shows at the registrar.</li>
+        </ol>
+        <p class="done"><b>Done when</b> the site opens on the studio’s own https address.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Check it is ready</h2>
+        <p class="where">The site itself</p>
+        <ul>
+          <li>Open <code>https://your-domain/api/health</code>. It lists each check as passing or failing, and never shows a key.</li>
+          <li>For the full list with how to fix each item, a developer runs <code>npm run check:launch</code> against the Vercel values. It ends with “Ready to launch.”</li>
+          <li>Two items may still show as not done at this point, and that is expected: PayFast live mode (step 7) and Search Console (step 8).</li>
+        </ul>
+        <p class="done"><b>Done when</b> every required check passes.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Make a test booking, then go live</h2>
+        <p class="where">The website and the studio dashboard</p>
+        <ol>
+          <li>Sign in to the dashboard at <code>/studio</code> with the studio key. Set the real opening hours, and the real price and deposit for any service that takes payment.</li>
+          <li>Book that service on the site as a client would, and pay on PayFast’s sandbox page.</li>
+          <li>Check that the booking shows as confirmed and paid in the dashboard, and that the confirmation email arrives in a Gmail and an Outlook inbox (look in spam too).</li>
+          <li>Book a free consultation as well, and send a message from the Contact page.</li>
+          <li>When all of that works: replace the three PayFast values in Vercel with the live ones, set <code>PAYFAST_SANDBOX</code> to <code>false</code>, and redeploy.</li>
+        </ol>
+        <p class="done"><b>Done when</b> a real, small payment goes through and the booking appears in the dashboard. Cancel or refund it afterwards.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Tell Google the site exists</h2>
+        <p class="where"><a href="https://search.google.com/search-console" target="_blank" rel="noopener">search.google.com/search-console</a></p>
+        <ol>
+          <li>Add a <b>URL-prefix</b> property for the live address and choose the <b>HTML tag</b> method.</li>
+          <li>Copy only the <code>content="…"</code> value into <code>GOOGLE_SITE_VERIFICATION</code> in Vercel, redeploy, then press <b>Verify</b>.</li>
+          <li>Under <b>Sitemaps</b>, submit <code>sitemap.xml</code>. Then inspect the home page address and press <b>Request indexing</b>.</li>
+        </ol>
+        <p class="done"><b>Done when</b> Search Console says the sitemap was read. Pages usually appear in Google within days.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Claim the Google Business Profile</h2>
+        <p class="where"><a href="https://business.google.com" target="_blank" rel="noopener">business.google.com</a></p>
+        <ul>
+          <li>Add the studio in Mulbarton with the website address, opening hours and category.</li>
+          <li>Add the approved photographs, and ask recent clients to leave a review.</li>
+          <li>For a local studio this does more for search than anything on the website itself.</li>
+        </ul>
+        <p class="done"><b>Done when</b> Google has verified the profile and it shows on Maps.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2>Try it on real phones</h2>
+        <p class="where">An iPhone with Safari and an Android phone with Chrome</p>
+        <ul>
+          <li>Open every page, make a booking, send a message, and sign in to the dashboard.</li>
+          <li>Note anything that looks wrong, with the page and phone, and send it for fixing.</li>
+        </ul>
+        <p class="done"><b>Done when</b> both phones work end to end. The site is live.</p>
+      </div>
+    </li>
+  </ol>
+
+  <section class="vars" aria-labelledby="vars-h">
+    <h2 id="vars-h">What goes into Vercel</h2>
+    <p class="sub">Every setting for step 5, and where it comes from. Rows marked “type as shown” are plain values, not secrets.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Setting</th><th>Value</th><th>From</th></tr></thead>
+        <tbody>
+          <tr><td><code>SITE_URL</code></td><td>The live https address, e.g. https://grateful.co.za</td><td>Step 1</td></tr>
+          <tr><td><code>SUPABASE_URL</code></td><td>Project URL</td><td>Step 2</td></tr>
+          <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>service_role (secret) key</td><td>Step 2</td></tr>
+          <tr><td><code>EMAIL_PROVIDER</code></td><td><code>resend</code> (type as shown)</td><td>—</td></tr>
+          <tr><td><code>RESEND_API_KEY</code></td><td>API key</td><td>Step 3</td></tr>
+          <tr><td><code>EMAIL_FROM</code></td><td>Sending address on the verified domain</td><td>Step 3</td></tr>
+          <tr><td><code>STUDIO_EMAIL</code></td><td><code>gratefulpty@gmail.com</code>, where enquiries and booking notices go</td><td>—</td></tr>
+          <tr><td><code>PAYMENT_PROVIDER</code></td><td><code>payfast</code> (type as shown)</td><td>—</td></tr>
+          <tr><td><code>PAYFAST_MERCHANT_ID</code></td><td>Merchant ID (sandbox first, then live)</td><td>Step 4</td></tr>
+          <tr><td><code>PAYFAST_MERCHANT_KEY</code></td><td>Merchant key (sandbox first, then live)</td><td>Step 4</td></tr>
+          <tr><td><code>PAYFAST_PASSPHRASE</code></td><td>Passphrase (sandbox first, then live)</td><td>Step 4</td></tr>
+          <tr><td><code>PAYFAST_SANDBOX</code></td><td><code>true</code> while testing, <code>false</code> to go live</td><td>Step 7</td></tr>
+          <tr><td><code>ADMIN_TOKEN</code></td><td>The studio key for the dashboard</td><td><code>npm run gen:secrets</code></td></tr>
+          <tr><td><code>NEWSLETTER_SECRET</code></td><td>Signs unsubscribe links</td><td><code>npm run gen:secrets</code></td></tr>
+          <tr><td><code>CRON_SECRET</code></td><td>Switches on day-before reminder emails</td><td><code>npm run gen:secrets</code></td></tr>
+          <tr><td><code>GOOGLE_SITE_VERIFICATION</code></td><td>The content value of Google’s HTML tag</td><td>Step 8</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="foot">Screen names at each provider can move slightly over time; the steps stay the same. The developer version of this guide is in the project’s README, under “Going live”. The studio’s own details (prices, hours, portfolio names, photo permissions) go into the launch checklist and the dashboard, not here.</p>
 </div>
 </section>
 
