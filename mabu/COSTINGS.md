@@ -51,10 +51,15 @@ still to do:
 | Hosting, backups, monitoring | 20 – 30 |
 | Store builds, submission, review fixes | 20 – 30 |
 | Security review and fixes | 20 – 30 |
+| Website hosting and launch (publish, Search Console, listings) | 6 – 10 |
 | Loading real content, final QA | 10 – 20 |
-| **Total** | **180 – 280** |
+| **Total** | **186 – 290** |
 
-At a blended R850 an hour that is **about R155 000 – R240 000** of remaining engineering at market rates.
+At a blended R850 an hour that is **about R160 000 – R245 000** of remaining engineering at market rates.
+
+A website of this kind — about 80 pages, search-ready, fed from the same content as the app — is quoted
+separately in South Africa at roughly R45 000 – R120 000. Here it comes out of the same build: the pages are
+the app's own screens.
 
 ## Running costs once live
 

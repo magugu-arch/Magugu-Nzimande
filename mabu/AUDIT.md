@@ -1,21 +1,20 @@
-# Mábu app: completion audit
+# Mábu app and website: completion audit
 
-Audited 28 September 2026 (second pass, same day) against the brief (*Mabu Premium Restaurant App — Booking,
-Rewards, Notifications*). Costings are in `COSTINGS.md`.
+Audited 28 September 2026 (third pass, same day) against the brief (*Mabu Premium Restaurant App — Booking,
+Rewards, Notifications*). Costings are in `COSTINGS.md`; the search plan is in `SEO.md`.
 
 ## Summary
 
-**About 77% complete, 23% to go** (up from 72% this morning).
+| | Complete | Left |
+| --- | ---: | ---: |
+| **The app** (iPhone, Android and the service behind them) | **≈ 79%** | 21% |
+| **The website** (the same product as a public site) | **≈ 62%** | 38% |
 
-Everything the brief asks for is built and works in demo mode. Since the first audit: email delivery over SMTP,
-PayFast payments, campaign audiences with a weekly marketing cap, automatic database migrations, a Docker setup,
-EAS build profiles and a store listing draft. What remains is mostly accounts only Mábu can open, Mábu's real
-content, and release work. Of the remaining 23%:
+Everything the brief asks for is built and works in demo mode. The website is now a real set of pages: 78
+addresses, each with its own content, title, description and structured data, plus a sitemap and robots file.
+What remains is mostly Mábu's own content, accounts nobody else can open, and putting it online.
 
-- **about 11 points** need something from Mábu first (content, decisions, accounts);
-- **about 12 points** are engineering, most of which starts once those accounts exist.
-
-The percentages are weighted estimates of effort, not a count of screens.
+The percentages are weighted estimates of effort, not a count of screens or pages.
 
 ## By workstream
 
@@ -30,9 +29,37 @@ The percentages are weighted estimates of effort, not a count of screens.
 | API server and data | 12 | 75% | Server, migrations and Docker ready. Still to do: relational tables, hosting, backups, monitoring. |
 | Content | 8 | 40% | Brand, categories, venue and the Meerlust event are real. Dishes, wines, prices, hours and policies are samples. |
 | Security and POPIA | 5 | 65% | Hashed codes and sessions, rate limits, role checks, audit log, verified payment notifications, draft legal pages. Needs legal and security review. |
-| Testing | 5 | 92% | 86 unit tests, schema check, server check on PostgreSQL, 92-screen sweep, 9 journeys, single-file check. |
-| Release | 9 | 30% | EAS profiles, store copy, Docker image and single-file demo ready. Still to do: accounts, signing, store review, hosting. |
-| **Total** | **100** | **≈ 77%** | |
+| Testing | 5 | 93% | 86 unit tests, schema check, server check on PostgreSQL, 92-screen sweep with a reduced-motion check, 9 journeys, single-file check, SEO check. |
+| Release | 9 | 40% | Website build, EAS profiles, store copy, Docker image and single-file demo ready. Still to do: accounts, signing, store review, hosting. |
+| **Total** | **100** | **≈ 79%** | |
+
+## The website
+
+The same product served as a public website, `dist-web/`: 78 pages a search engine can read, 23 private pages
+kept out of search.
+
+| Part | Weight | Done | Status |
+| --- | ---: | ---: | --- |
+| Pages, design, accessibility | 30 | 95% | Every route is its own page; checked at 320 and 390pt, and with reduced motion. |
+| Content: real menu, prices, hours, photography | 22 | 40% | Sample menu and prices; photos for cards are cut from the design files. |
+| Search setup in the build | 14 | 95% | Titles, descriptions, canonicals, Open Graph, schema.org, sitemap.xml, robots.txt, share image, and a check that fails the build. |
+| Bookings, vouchers and events working on the live site | 14 | 65% | They work against the demo back end; live needs the API hosted and PayFast and email connected. |
+| Hosting, domain, https, backups | 8 | 0% | Nothing is online yet. |
+| Search Console, Bing, Business Profile, directory links | 6 | 0% | About an hour's work once the domain is live (steps in `SEO.md`). |
+| Legal pages approved, public phone number | 6 | 40% | Drafts written and linked; awaiting Mábu's attorneys and the number to publish. |
+| **Total** | **100** | **≈ 62%** | |
+
+## Done in the third pass
+
+- **The website became real pages.** Every route renders to its own HTML file at build time, with the menu,
+  events and venue written into the page, so a search engine reads them without running JavaScript.
+- **Search setup:** per-page titles and descriptions aimed at local searches, canonical addresses, social
+  cards, schema.org (`Restaurant` with opening hours, `MenuItem` with price, `FoodEvent` with date and price,
+  breadcrumbs), `sitemap.xml`, `robots.txt`, a share image, and a build that fails on a missing or duplicated
+  title or description. Private pages are kept out of search by default.
+- **A real bug found and fixed:** on the pre-rendered pages, a guest who asks their browser for less movement
+  was left with hidden content (including the "Book your table" button). Entering animations are now
+  native-only, and the screen sweep checks for hidden content with reduced motion.
 
 ## Done in the first pass
 
@@ -73,7 +100,9 @@ The percentages are weighted estimates of effort, not a count of screens.
    the home headline and tab bar in the home concept.
 7. Accounts: PayFast merchant (or another gateway), an email account with SMTP, Dineplan API access (or a
    decision to use Mábu's own inventory), an Expo account, Apple Developer and Google Play accounts, hosting,
-   and a public phone number.
+   a domain, and a public phone number.
+8. The website's own launch: publish `dist-web/`, then Search Console, Bing and Google Business Profile — about
+   an hour, steps in `SEO.md`.
 
 ### Engineering once those exist
 
