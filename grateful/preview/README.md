@@ -1,6 +1,6 @@
 # Grateful website: offline preview
 
-**Grateful-Handover.html** is everything in one file: the interactive website, the completion audit and the costing, with the fonts built in. On a Mac, double-click it. On Android, open it from Files with Chrome. On an iPhone or iPad the Files app previews it without running the interactive website, so the audit and costing show but the website frame stays blank: open the online preview link (inside the file) in Safari for the website. Rebuild with `npm run build:single` then `npm run build:handover`.
+**Grateful-Handover.html** is everything in one file: the interactive website, screenshots of it, the five photographs, the completion audit and the costing, with the fonts, icon and page details built in. On a Mac, double-click it. On Android, open it from Files with Chrome. On an iPhone or iPad the Files app previews it without running the interactive website, so the screenshots, photographs, audit and costing show but the interactive frame stays blank: open the online preview link (inside the file) in Safari for the website. Rebuild with `npm run build:single` then `npm run build:handover`.
 
 **Grateful-Website-Preview.html** is the whole website in one file. Download it and:
 

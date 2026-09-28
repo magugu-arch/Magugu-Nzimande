@@ -7,9 +7,14 @@
  *   - the completion audit and the costing, as plain pages that read even
  *     where scripts can't run (the iPhone Files preview),
  *   - the fonts, so nothing is fetched from the internet.
+ *   - screenshots of the website and the photographs, as plain images, so
+ *     the iPhone Files preview shows what the site looks like,
+ *   - page details: title, description, icon, theme colour, share tags.
  * Run `npm run build:single` and refresh the audit and costing first.
+ * Screenshots need Chromium (set PW_CHROMIUM to use a local browser).
  */
 import { readFileSync, writeFileSync } from 'node:fs';
+import { chromium } from 'playwright';
 
 const dir = new URL('../preview/', import.meta.url);
 const read = (f) => readFileSync(new URL(f, dir), 'utf8');
@@ -65,6 +70,48 @@ function page(file, scope) {
   return { css: scopeCss(style, scope), body: html.slice(start, end + 6) };
 }
 
+const b64 = (path) => readFileSync(new URL(path, import.meta.url)).toString('base64');
+const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// The photographs, with the alt text from the image catalogue (read as text: the module needs Vite).
+const catalogue = readFileSync(new URL('../src/data/images.ts', import.meta.url), 'utf8');
+const photos = [...catalogue.matchAll(/(\w+): \{\s*src: `\$\{base\}images\/([^`]+)`,\s*alt: '([^']+)'/g)].map(([, key, file, alt]) => ({
+  key,
+  alt,
+  src: `data:image/webp;base64,${b64(`../public/images/${file}-640.webp`)}`,
+}));
+const photoCaption = { burgundyGown: 'Burgundy satin gown · home page, Garment Study 01', greenGown: 'Emerald gown · Garment Study 02, Custom Fashion Design', navyDress: 'Navy bow dress · Garment Study 03', whiteShirtLook: 'White shirt look · Philosophy, Home and About', burgundyDetail: 'Burgundy dress on the form · Fittings, Special Occasion' };
+
+// Screenshots of the offline preview, taken fresh so they always match the current site.
+async function screenshots() {
+  const browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
+  const file = new URL('Grateful-Website-Preview.html', dir).href;
+  const shots = [];
+  for (const [label, width, height, scale, route, clickText] of [
+    ['Home page · computer', 1440, 900, 1, null, null],
+    ['Home page · phone', 390, 844, 2, null, null],
+    ['Work page · computer', 1440, 900, 1, 'Work', null],
+    ['Booking · phone', 390, 844, 2, null, 'Book a Consultation'],
+  ]) {
+    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
+    await page.goto(file);
+    await page.addStyleTag({ content: '[aria-label="Preview notice"]{display:none!important}' });
+    await page.waitForTimeout(1500);
+    if (route) await page.getByRole('navigation', { name: /main/i }).getByRole('link', { name: route }).click();
+    if (clickText) await page.getByRole('link', { name: clickText }).first().click();
+    if (route || clickText) await page.waitForTimeout(1500);
+    const jpg = await page.screenshot({ type: 'jpeg', quality: 70 });
+    shots.push({ label, phone: width < 600, src: `data:image/jpeg;base64,${jpg.toString('base64')}` });
+    await page.close();
+  }
+  await browser.close();
+  return shots;
+}
+const shots = await screenshots();
+const icon = `data:image/svg+xml,${encodeURIComponent(readFileSync(new URL('../public/favicon.svg', import.meta.url), 'utf8'))}`;
+const touchIcon = `data:image/png;base64,${b64('../public/apple-touch-icon.png')}`;
+const DESCRIPTION = 'The Grateful website (a fashion design studio in Mulbarton, Johannesburg), with its completion audit and costing, in one file.';
+
 const audit = page('Grateful-Build-Audit.html', '#audit');
 const costing = page('Grateful-Website-Costing.html', '#costing');
 const site = read('Grateful-Website-Preview.html').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
@@ -75,6 +122,20 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Grateful — Website Handover</title>
+<meta name="description" content="${esc(DESCRIPTION)}">
+<meta name="author" content="Grateful (Pty) Ltd">
+<meta name="application-name" content="Grateful Website Handover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Grateful">
+<meta property="og:title" content="Grateful — Website Handover">
+<meta property="og:description" content="${esc(DESCRIPTION)}">
+<meta property="og:url" content="${PREVIEW_URL}">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="${icon}">
+<link rel="apple-touch-icon" href="${touchIcon}">
 <style>
 @font-face { font-family: 'Baskervville'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(data:font/woff2;base64,${font('baskervville', 'baskervville-latin-wght-normal.woff2')}) format('woff2'); }
 @font-face { font-family: 'Baskervville'; font-style: italic; font-weight: 400 700; font-display: swap; src: url(data:font/woff2;base64,${font('baskervville', 'baskervville-latin-wght-italic.woff2')}) format('woff2'); }
@@ -99,6 +160,13 @@ body { margin: 0; background: var(--hub-paper); color: var(--hub-ink); font: 16p
 .hub-note { margin-top: 16px; background: var(--hub-soft); padding: 12px 14px; border-radius: 4px; font: 14px/1.55 'Inter', 'Helvetica Neue', Arial, sans-serif; color: var(--hub-muted); }
 .hub-note b { color: var(--hub-ink); }
 .hub-note a, .hub-intro a { color: inherit; word-break: break-all; }
+.hub-glance { max-width: 1280px; margin: 0 auto; padding: 0 16px 32px; display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.hub-glance figure, .hub-photos figure { margin: 0; display: grid; gap: 8px; }
+.hub-glance img, .hub-photos img { display: block; width: 100%; height: auto; border: 1px solid var(--hub-rule); border-radius: 4px; background: #000; }
+figcaption { font: 12.5px/1.45 'Inter', 'Helvetica Neue', Arial, sans-serif; color: var(--hub-muted); }
+.hub-photos { max-width: 1280px; margin: 0 auto; padding: 0 16px 40px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.hub-photos img { aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 25%; }
+@media (max-width: 760px) { .hub-glance { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hub-glance .wide { grid-column: 1 / -1; } .hub-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .hub-frame { max-width: 1280px; margin: 0 auto; padding: 0 16px 32px; }
 .hub-frame iframe { display: block; width: 100%; height: min(86vh, 980px); min-height: 560px; border: 1px solid var(--hub-rule); border-radius: 4px; background: #000; }
 ${audit.css}
@@ -109,7 +177,7 @@ ${costing.css}
 <header class="hub-top"><div class="in">
   <span class="hub-brand">Grateful · Website handover</span>
   <nav class="hub-nav" aria-label="Sections">
-    <a href="#website">Website</a><a href="#audit">Audit</a><a href="#costing">Costing</a><a href="#checklist">Checklist</a>
+    <a href="#website">Website</a><a href="#photos">Photos</a><a href="#audit">Audit</a><a href="#costing">Costing</a><a href="#checklist">Checklist</a>
   </nav>
 </div></header>
 
@@ -120,8 +188,21 @@ ${costing.css}
     <p>Everything is inside this file: no internet needed. Try the website below. Bookings, payments and messages are simulated, and nothing is saved or sent. Use the Preview box in its corner to open the studio dashboard.</p>
     <p class="hub-note"><b>On an iPhone or iPad:</b> the Files app shows a preview that can’t run the interactive website, so the frame below may stay blank there. Open the online version in Safari instead: <a href="${PREVIEW_URL}">${PREVIEW_URL}</a>. The audit and costing further down read normally.</p>
   </div>
+  <div class="hub-glance" aria-label="Screenshots">
+    ${shots
+      .map((s) => `<figure class="${s.phone ? '' : 'wide'}"><img src="${s.src}" alt="Screenshot of the Grateful website: ${esc(s.label)}"><figcaption>${esc(s.label)}</figcaption></figure>`)
+      .join('\n    ')}
+  </div>
+  <div class="hub-intro" style="padding-top:0"><p><b style="color:var(--hub-ink)">Try it:</b> the working website is below. Click around, book a test appointment, or open the studio dashboard from the Preview box.</p></div>
   <div class="hub-frame">
     <iframe title="Grateful website preview" loading="eager" srcdoc="${site}"></iframe>
+  </div>
+</section>
+
+<section id="photos" class="hub-sec" aria-labelledby="photos-h">
+  <div class="hub-intro"><h1 id="photos-h" style="font-size:clamp(1.6rem,4vw,2.2rem)">The photographs</h1><p>The five photographs the website uses, in full colour, with where each appears.</p></div>
+  <div class="hub-photos">
+    ${photos.map((p) => `<figure><img src="${p.src}" alt="${esc(p.alt)}"><figcaption>${esc(photoCaption[p.key] ?? p.key)}</figcaption></figure>`).join('\n    ')}
   </div>
 </section>
 
