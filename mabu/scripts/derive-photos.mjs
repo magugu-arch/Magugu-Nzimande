@@ -40,21 +40,66 @@ if (fs.existsSync(sourceDir)) {
   }
 }
 
-/** Rectangles on the 1536×1024 brand board: [left, top, width, height]. */
-const BOARD_CROPS = {
-  'bar-lounge': [420, 0, 368, 457],
-  'dish-signature-mains': [288, 459, 219, 205],
-  'dish-seafood': [509, 459, 226, 205],
-  'dish-desserts': [737, 459, 218, 205],
-  'dish-cocktails': [957, 459, 163, 205],
-  'dish-wines': [1122, 459, 198, 205],
-  'dish-private-functions': [1322, 459, 214, 205],
-  'table-setting': [0, 600, 285, 424],
-  chandeliers: [288, 736, 509, 288],
-  'floor-pattern': [800, 736, 366, 288],
-  'texture-pattern': [1367, 48, 150, 104],
-  'texture-timber': [1367, 199, 150, 95],
-  'texture-marble': [1367, 344, 150, 63],
+/**
+ * Composites: images that hold several pictures — the brand board, and the
+ * menu design comps supplied later. Each lists rectangles to cut out,
+ * [left, top, width, height] in the composite's own pixels. Crops are small
+ * (the comps' dish thumbnails are ~330px wide), so they are used for cards
+ * and thumbnails; a real photograph with the same key always wins.
+ */
+/** A dish thumbnail in a 957×1643 menu comp: inset from the card's rounded edge. */
+const thumb = (top, bottom, left = 52) => [left, top + 8, 384 - left, bottom - top - 16];
+
+const COMPOSITES = {
+  // The home-screen concept is kept as a design reference; nothing is cut from it.
+  'mockup-home': {},
+  'brand-board': {
+    'bar-lounge': [420, 0, 368, 457],
+    'dish-signature-mains': [288, 459, 219, 205],
+    'dish-seafood': [509, 459, 226, 205],
+    'dish-desserts': [737, 459, 218, 205],
+    'dish-cocktails': [957, 459, 163, 205],
+    'dish-wines': [1122, 459, 198, 205],
+    'dish-private-functions': [1322, 459, 214, 205],
+    'table-setting': [0, 600, 285, 424],
+    chandeliers: [288, 736, 509, 288],
+    'floor-pattern': [800, 736, 366, 288],
+    'texture-pattern': [1367, 48, 150, 104],
+    'texture-timber': [1367, 199, 150, 95],
+    'texture-marble': [1367, 344, 150, 63],
+  },
+  'mockup-starters': {
+    'hero-starters': [330, 115, 627, 405],
+    'menu-tiger-prawns': thumb(612, 795),
+    'menu-scallops': thumb(814, 997),
+    'menu-carpaccio': thumb(1016, 1200),
+    'menu-burrata': thumb(1219, 1403),
+    'menu-crispy-calamari': thumb(1423, 1607),
+  },
+  'mockup-signature': {
+    'hero-signature': [455, 110, 502, 440],
+    'menu-ribeye-bone': thumb(641, 822),
+    'menu-fillet-mignon': thumb(837, 1016),
+    'menu-tomahawk': thumb(1030, 1210),
+    'menu-lamb-rack': thumb(1224, 1402),
+    'menu-wagyu-striploin': thumb(1417, 1597),
+  },
+  'mockup-vegetarian': {
+    'hero-vegetarian': [410, 110, 547, 420],
+    'menu-roast-vegetables': thumb(616, 797, 54),
+    'menu-mushroom-risotto': thumb(811, 990, 54),
+    'menu-quinoa-butternut': thumb(1004, 1183, 54),
+    'menu-halloumi': thumb(1197, 1377, 54),
+    'menu-cauliflower-curry': thumb(1395, 1577, 54),
+  },
+  'mockup-seafood': {
+    'hero-seafood': [380, 110, 577, 425],
+    'menu-king-prawns': thumb(618, 797, 54),
+    'menu-salmon': thumb(813, 992, 54),
+    'menu-line-fish': thumb(1006, 1185, 54),
+    'menu-calamari': thumb(1199, 1379, 54),
+    'menu-seafood-platter': thumb(1397, 1579, 54),
+  },
 };
 
 /** Longest edge the app ever needs; a 3x phone is ~1290px wide. */
@@ -65,7 +110,7 @@ const registry = [];
 for (const file of fs.readdirSync(masters).sort()) {
   if (!file.endsWith('.jpg')) continue;
   const key = file.replace(/\.jpg$/, '');
-  if (key === 'brand-board') continue;
+  if (key in COMPOSITES) continue;
   const meta = await sharp(path.join(masters, file)).metadata();
   await sharp(path.join(masters, file))
     .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
@@ -74,15 +119,16 @@ for (const file of fs.readdirSync(masters).sort()) {
   registry.push({ key, width: meta.width, height: meta.height, source: 'photograph' });
 }
 
-const board = path.join(masters, 'brand-board.jpg');
-if (fs.existsSync(board)) {
-  for (const [key, [left, top, width, height]] of Object.entries(BOARD_CROPS)) {
+for (const [composite, crops] of Object.entries(COMPOSITES)) {
+  const file = path.join(masters, `${composite}.jpg`);
+  if (!fs.existsSync(file)) continue;
+  for (const [key, [left, top, width, height]] of Object.entries(crops)) {
     if (registry.some((r) => r.key === key)) continue; // a real photograph wins
-    await sharp(board)
+    await sharp(file)
       .extract({ left, top, width, height })
       .jpeg({ quality: 88, mozjpeg: true })
       .toFile(path.join(out, `${key}.jpg`));
-    registry.push({ key, width, height, source: 'brand-board' });
+    registry.push({ key, width, height, source: 'crop' });
   }
 }
 
@@ -99,8 +145,8 @@ export interface PhotoEntry {
   source: number;
   width: number;
   height: number;
-  /** 'brand-board' crops are low resolution: cards and thumbnails only. */
-  origin: 'photograph' | 'brand-board';
+  /** 'crop' is cut from a composite (brand board, design comp): cards and thumbnails only. */
+  origin: 'photograph' | 'crop';
 }
 
 export const photoRegistry = {

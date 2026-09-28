@@ -200,8 +200,10 @@ replaces the directions card.
 - Logo: the wordmark is set in Playfair Display from the board until vector logo files are supplied.
 - Photography: thirteen supplied photographs are used full-size (fillet, sliced wagyu, kingklip, black-rice
   seafood, seafood linguine, chocolate fondant, cocktails, chef plating, the Mábu wine pour, the Private Functions
-  welcome, and three interiors). Sample dish descriptions were written to match their photographs. The remaining
-  dish tiles and textures are
+  welcome, and three interiors). The supplied menu designs (Starters, Signature Cuts, Vegetarian, Fish & Seafood)
+  set the menu screen's layout and the sample dishes and prices; their category hero photographs and 20 dish
+  thumbnails are cut from the design files (`COMPOSITES` in `scripts/derive-photos.mjs`) and used at card size.
+  The remaining dish tiles and textures are
   cut from the brand board and used only at card and thumbnail sizes. The Mábu-labelled bottle is kept off pages
   about another producer's wine. Drop higher-resolution files into
   `assets/photos/masters/` with the same names and run `npm run assets:photos`.

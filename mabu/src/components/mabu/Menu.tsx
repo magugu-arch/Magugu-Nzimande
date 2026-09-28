@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import Svg, { Path } from 'react-native-svg';
@@ -6,11 +6,15 @@ import { router } from 'expo-router';
 import type { Dish, WineItem } from '@/domain/menu/types';
 import { WINE_STYLE_LABEL } from '@/domain/menu/types';
 import { formatRand } from '@/domain/shared/format';
-import { colors, HIT_SLOP, radius, spacing } from '@/theme';
+import { colors, fontFamily, HIT_SLOP, radius, spacing } from '@/theme';
 import { haptic } from '@/utils/haptics';
+import { useFavourite } from '@/features/useFavourite';
 import { Photo, Text } from '../ui';
 
-/** §25 MenuCategoryTabs — a horizontal rail; the active tab is underlined in brass. */
+/**
+ * §25 MenuCategoryTabs — a rail of pills; the active one is filled brass, as
+ * in the supplied menu designs. Scrolls the active pill into view.
+ */
 export function MenuCategoryTabs({
   categories,
   active,
@@ -21,6 +25,12 @@ export function MenuCategoryTabs({
   onChange: (id: string) => void;
 }) {
   const ref = useRef<ScrollView>(null);
+  const offsets = useRef<Record<string, number>>({});
+  useEffect(() => {
+    const x = offsets.current[active];
+    if (x !== undefined)
+      ref.current?.scrollTo({ x: Math.max(0, x - spacing.gutter), animated: true });
+  }, [active]);
   return (
     <ScrollView
       ref={ref}
@@ -34,6 +44,16 @@ export function MenuCategoryTabs({
         return (
           <Pressable
             key={c.id}
+            onLayout={(e) => {
+              offsets.current[c.id] = e.nativeEvent.layout.x;
+              // Measured after the first render: bring the initial selection into view.
+              if (selected) {
+                ref.current?.scrollTo({
+                  x: Math.max(0, e.nativeEvent.layout.x - spacing.gutter),
+                  animated: false,
+                });
+              }
+            }}
             onPress={() => {
               haptic.select();
               onChange(c.id);
@@ -41,12 +61,14 @@ export function MenuCategoryTabs({
             accessibilityRole="tab"
             aria-selected={selected}
             accessibilityLabel={c.label}
-            style={styles.tab}
+            style={[styles.tab, selected && styles.tabActive]}
           >
-            <Text variant="eyebrow" style={{ color: selected ? colors.accent : colors.textMuted }}>
+            <Text
+              variant="eyebrow"
+              style={{ color: selected ? colors.textOnAccent : colors.text, letterSpacing: 1.6 }}
+            >
               {c.label}
             </Text>
-            <View style={[styles.tabLine, selected && styles.tabLineActive]} />
           </Pressable>
         );
       })}
@@ -86,47 +108,76 @@ export function dishBadges(d: Dish): { label: string; tone: 'brass' | 'muted' | 
   return out;
 }
 
-/** §25 MenuItemCard — an editorial row: photograph (or texture), name, copy, price. */
+/**
+ * §25 MenuItemCard, after the supplied menu designs: a rounded card with the
+ * photograph on the left, the name in Playfair, key ingredients in tracked
+ * capitals, a short description, the price in brass, and a round + that saves
+ * the dish to Favourites. The dish area and the + are sibling buttons — one
+ * button never sits inside another.
+ */
 export function MenuItemCard({ dish, onPress }: { dish: Dish; onPress?: () => void }) {
-  const badges = dishBadges(dish);
+  // Cards stay as quiet as the designs: only sold-out and dietary marks here;
+  // Signature and Chef's selection show on the dish itself.
+  const badges = dishBadges(dish).filter((b) => b.tone !== 'brass');
+  const fav = useFavourite('dish', dish.id);
   return (
-    <Pressable
-      onPress={onPress ?? (() => router.push(`/dish/${dish.id}`))}
-      accessibilityRole="button"
-      accessibilityLabel={`${dish.name}, ${formatRand(dish.priceCents)}${dish.available ? '' : ', sold out'}`}
-      accessibilityHint="Opens the dish"
-      style={({ pressed }) => [
-        styles.item,
-        pressed && styles.pressed,
-        !dish.available && styles.soldOut,
-      ]}
-    >
-      <Photo
-        photo={dish.photo ?? 'texture-marble'}
-        label={dish.photo ? dish.name : ''}
-        style={styles.thumb}
-      />
-      <View style={styles.itemBody}>
-        <View style={styles.itemTop}>
-          <Text variant="title" style={{ flex: 1 }} numberOfLines={2}>
+    <View style={[styles.card, !dish.available && styles.soldOut]}>
+      <Pressable
+        onPress={onPress ?? (() => router.push(`/dish/${dish.id}`))}
+        accessibilityRole="button"
+        accessibilityLabel={`${dish.name}, ${formatRand(dish.priceCents)}${dish.available ? '' : ', sold out'}`}
+        accessibilityHint="Opens the dish"
+        style={({ pressed }) => [styles.cardMain, pressed && styles.pressed]}
+      >
+        <Photo
+          photo={dish.photo ?? 'texture-marble'}
+          label={dish.photo ? dish.name : ''}
+          style={styles.cardPhoto}
+        />
+        <View style={styles.cardBody}>
+          <Text variant="h3" numberOfLines={2}>
             {dish.name}
           </Text>
-          <Text variant="price" color="accent">
+          {dish.highlights?.length ? (
+            <Text variant="eyebrow" color="textMuted" numberOfLines={1} style={styles.highlights}>
+              {dish.highlights.join('  |  ')}
+            </Text>
+          ) : null}
+          <Text variant="bodySmall" color="textMuted" numberOfLines={2}>
+            {dish.description}
+          </Text>
+          {badges.length ? (
+            <View style={styles.badges}>
+              {badges.map((b) => (
+                <ExperienceBadge key={b.label} label={b.label} tone={b.tone} />
+              ))}
+            </View>
+          ) : null}
+          <Text variant="price" color="accent" style={styles.cardPrice}>
             {formatRand(dish.priceCents)}
           </Text>
         </View>
-        <Text variant="bodySmall" color="textMuted" numberOfLines={2}>
-          {dish.description}
-        </Text>
-        {badges.length ? (
-          <View style={styles.badges}>
-            {badges.map((b) => (
-              <ExperienceBadge key={b.label} label={b.label} tone={b.tone} />
-            ))}
-          </View>
-        ) : null}
-      </View>
-    </Pressable>
+      </Pressable>
+      <Pressable
+        onPress={() => {
+          haptic.select();
+          fav.toggle();
+        }}
+        hitSlop={HIT_SLOP}
+        accessibilityRole="button"
+        accessibilityLabel={
+          fav.saved ? `Remove ${dish.name} from favourites` : `Save ${dish.name} to favourites`
+        }
+        aria-pressed={fav.saved}
+        style={[styles.plus, fav.saved && styles.plusOn]}
+      >
+        <Feather
+          name={fav.saved ? 'check' : 'plus'}
+          size={20}
+          color={fav.saved ? colors.textOnAccent : colors.accent}
+        />
+      </Pressable>
+    </View>
   );
 }
 
@@ -242,10 +293,47 @@ export function SampleContentNote({ what = 'menu' }: { what?: string }) {
 }
 
 const styles = StyleSheet.create({
-  tabs: { gap: spacing.xl, paddingHorizontal: spacing.gutter },
-  tab: { paddingVertical: spacing.md, minHeight: 44, justifyContent: 'center' },
-  tabLine: { height: 1, marginTop: spacing.sm, backgroundColor: 'transparent' },
-  tabLineActive: { backgroundColor: colors.accent },
+  tabs: { gap: spacing.xs, paddingHorizontal: spacing.gutter, paddingVertical: spacing.sm },
+  tab: {
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.pill,
+    justifyContent: 'center',
+  },
+  tabActive: { backgroundColor: colors.accent },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg + 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderStrong,
+    overflow: 'hidden',
+  },
+  cardMain: { flex: 1, flexDirection: 'row', alignSelf: 'stretch' },
+  cardPhoto: { width: '34%', minHeight: 140, alignSelf: 'stretch' },
+  cardBody: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
+    gap: 4,
+  },
+  highlights: { fontSize: 9, lineHeight: 13, letterSpacing: 1.4 },
+  cardPrice: { marginTop: 2, fontFamily: fontFamily.bodySemiBold },
+  plus: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.2,
+    borderColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+    marginLeft: spacing.xs,
+  },
+  plusOn: { backgroundColor: colors.accent },
   badge: {
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radius.sm,
@@ -253,18 +341,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     alignSelf: 'flex-start',
   },
-  item: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    paddingVertical: spacing.lg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
   soldOut: { opacity: 0.55 },
   pressed: { opacity: 0.75 },
-  thumb: { width: 84, height: 84, borderRadius: radius.md },
-  itemBody: { flex: 1, gap: spacing.xs },
-  itemTop: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: 2 },
   wine: {
     flexDirection: 'row',

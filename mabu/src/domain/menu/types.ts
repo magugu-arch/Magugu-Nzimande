@@ -21,23 +21,118 @@ export interface MenuCategory {
   label: string;
   section: 'food' | 'dessert' | 'wine';
   order: number;
+  /** Tracked capitals under the category title on the menu screen. */
+  tagline: string;
+  /** Photo registry key for the category hero. */
+  heroPhoto: string;
 }
 
 /** §9, in the brief's order. */
 export const MENU_CATEGORIES: MenuCategory[] = [
-  { id: 'starters', label: 'Starters', section: 'food', order: 1 },
-  { id: 'salads', label: 'Salads', section: 'food', order: 2 },
-  { id: 'vegetarian', label: 'Vegetarian', section: 'food', order: 3 },
-  { id: 'signature-cuts', label: 'Signature Cuts', section: 'food', order: 4 },
-  { id: 'classic-steaks', label: 'Classic Steaks', section: 'food', order: 5 },
-  { id: 'poultry-game', label: 'Poultry & Game', section: 'food', order: 6 },
-  { id: 'fish', label: 'Fish', section: 'food', order: 7 },
-  { id: 'pasta', label: 'Pasta', section: 'food', order: 8 },
-  { id: 'slow-cooked', label: 'Slow Cooked', section: 'food', order: 9 },
-  { id: 'sides', label: 'Sides', section: 'food', order: 10 },
-  { id: 'sauces', label: 'Sauces', section: 'food', order: 11 },
-  { id: 'desserts', label: 'Desserts', section: 'dessert', order: 12 },
-  { id: 'wine', label: 'Wine', section: 'wine', order: 13 },
+  {
+    id: 'starters',
+    label: 'Starters',
+    section: 'food',
+    order: 1,
+    tagline: 'Small plates, big impressions',
+    heroPhoto: 'hero-starters',
+  },
+  {
+    id: 'salads',
+    label: 'Salads',
+    section: 'food',
+    order: 2,
+    tagline: 'Fresh, bright and seasonal',
+    heroPhoto: 'menu-burrata',
+  },
+  {
+    id: 'vegetarian',
+    label: 'Vegetarian',
+    section: 'food',
+    order: 3,
+    tagline: 'Fresh ingredients, bold flavours',
+    heroPhoto: 'hero-vegetarian',
+  },
+  {
+    id: 'signature-cuts',
+    label: 'Signature Cuts',
+    section: 'food',
+    order: 4,
+    tagline: 'Exceptional meats, unforgettable flavours',
+    heroPhoto: 'hero-signature',
+  },
+  {
+    id: 'classic-steaks',
+    label: 'Classic Steaks',
+    section: 'food',
+    order: 5,
+    tagline: 'Aged, seasoned, over the flame',
+    heroPhoto: 'dish-signature-mains',
+  },
+  {
+    id: 'poultry-game',
+    label: 'Poultry & Game',
+    section: 'food',
+    order: 6,
+    tagline: 'From the Karoo and beyond',
+    heroPhoto: 'signature-steak',
+  },
+  {
+    id: 'fish',
+    label: 'Fish & Seafood',
+    section: 'food',
+    order: 7,
+    tagline: 'From the ocean, refined',
+    heroPhoto: 'hero-seafood',
+  },
+  {
+    id: 'pasta',
+    label: 'Pasta',
+    section: 'food',
+    order: 8,
+    tagline: 'Hand-rolled, generously dressed',
+    heroPhoto: 'seafood-linguine',
+  },
+  {
+    id: 'slow-cooked',
+    label: 'Slow Cooked',
+    section: 'food',
+    order: 9,
+    tagline: 'Patience, heritage and depth',
+    heroPhoto: 'chef-plating',
+  },
+  {
+    id: 'sides',
+    label: 'Sides',
+    section: 'food',
+    order: 10,
+    tagline: 'To share around the table',
+    heroPhoto: 'menu-roast-vegetables',
+  },
+  {
+    id: 'sauces',
+    label: 'Sauces',
+    section: 'food',
+    order: 11,
+    tagline: 'The finishing touch',
+    heroPhoto: 'fillet-closeup',
+  },
+  {
+    id: 'desserts',
+    label: 'Desserts',
+    section: 'dessert',
+    order: 12,
+    tagline: 'A sweet taste of the extraordinary',
+    heroPhoto: 'chocolate-fondant',
+  },
+  {
+    id: 'wine',
+    label: 'Wine',
+    section: 'wine',
+    order: 13,
+    tagline: 'Curated selection, perfect pairings',
+    heroPhoto: 'dish-wines',
+  },
 ];
 
 export interface ModifierOption {
@@ -78,6 +173,8 @@ export interface Dish {
   preparation?: string;
   signature?: boolean;
   chefSelected?: boolean;
+  /** Three or four key ingredients, shown in tracked capitals: CHILLI | GARLIC | LEMON BUTTER. */
+  highlights?: string[];
   pairingIds?: string[];
   modifiers?: ModifierGroup[];
   isSample: boolean;

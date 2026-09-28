@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeIn, ReduceMotion } from 'react-native-reanimated';
 import Feather from '@expo/vector-icons/Feather';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   MenuCategoryTabs,
   MenuItemCard,
@@ -13,10 +16,10 @@ import {
   Chip,
   EmptyState,
   ErrorState,
-  Header,
+  IconButton,
   LoadingBlock,
+  Photo,
   Screen,
-  Segmented,
   Text,
 } from '@/components/ui';
 import type { DietaryTag } from '@/domain/guests/types';
@@ -27,8 +30,6 @@ import { useRpc } from '@/services/queries';
 import { colors, fontFamily, radius, spacing } from '@/theme';
 import { track } from '@/utils/analytics';
 
-type Section = 'food' | 'dessert' | 'wine';
-
 const DIETARY: { tag: DietaryTag; label: string }[] = [
   { tag: 'vegetarian', label: 'Vegetarian' },
   { tag: 'vegan', label: 'Vegan' },
@@ -38,101 +39,167 @@ const DIETARY: { tag: DietaryTag; label: string }[] = [
 
 const WINE_ORDER: WineItem['style'][] = ['sparkling', 'white', 'rose', 'red', 'dessert-fortified'];
 
+const ALL = {
+  id: 'all',
+  label: 'All',
+  tagline: 'Bold flavours, modern technique',
+  heroPhoto: 'fillet-closeup',
+  title: 'The Menu',
+};
+
 /**
- * §8–10 Menu as editorial content: categories, search by name or ingredient,
- * verified dietary filters, signature highlights, sold-out states. Never a PDF.
+ * §8–10 Menu as editorial content, in the layout of the supplied menu
+ * designs: a hero per category, a rail of pill tabs, photographic dish
+ * cards. Search covers names, ingredients and highlights across the whole
+ * menu; dietary filters show only verified tags. Never a PDF.
  */
 export default function Menu() {
-  const params = useLocalSearchParams<{ section?: Section; focus?: string; signature?: string }>();
+  const params = useLocalSearchParams<{
+    section?: 'food' | 'dessert' | 'wine';
+    category?: string;
+    focus?: string;
+    signature?: string;
+  }>();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const menu = useRpc('content.menu');
-  const [section, setSection] = useState<Section>(params.section ?? 'food');
-  const [category, setCategory] = useState<string>('all');
+  const [category, setCategory] = useState<string>(
+    params.category ??
+      (params.section === 'wine' ? 'wine' : params.section === 'dessert' ? 'desserts' : 'all'),
+  );
+  const [searching, setSearching] = useState(params.focus === '1');
   const [query, setQuery] = useState('');
   const [dietary, setDietary] = useState<DietaryTag[]>([]);
   const [signatureOnly, setSignatureOnly] = useState(params.signature === '1');
 
-  useEffect(() => track('menu_viewed', { section }), [section]);
+  useEffect(() => track('menu_viewed', { category }), [category]);
 
   const data = menu.data;
-  const foodCategories = useMemo(
-    () => [
-      { id: 'all', label: 'All' },
-      ...(data?.categories.filter((c) => c.section === 'food') ?? []),
-    ],
+  const tabs = useMemo(
+    () => [{ id: ALL.id, label: ALL.label }, ...(data?.categories ?? [])],
     [data],
   );
-  // Only offer dietary filters Mábu has actually verified on at least one dish (§10).
+  const meta = data?.categories.find((c) => c.id === category);
+  const hero = meta
+    ? { title: meta.label, tagline: meta.tagline, photo: meta.heroPhoto }
+    : { title: ALL.title, tagline: ALL.tagline, photo: ALL.heroPhoto };
+  const isWine = category === 'wine' && !query;
   const offeredDietary = DIETARY.filter((d) =>
     data?.dishes.some((x) => x.dietaryTags.includes(d.tag)),
   );
 
   const dishes = useMemo(() => {
-    if (!data || section === 'wine') return [];
-    const pool = data.dishes.filter((d) =>
-      section === 'dessert' ? d.category === 'desserts' : d.category !== 'desserts',
-    );
-    return filterDishes(pool, {
+    if (!data || isWine) return [];
+    return filterDishes(data.dishes, {
       query,
-      category: section === 'food' && category !== 'all' ? (category as never) : undefined,
+      // A search spans the whole menu; a category only narrows browsing.
+      category: query || category === 'all' ? undefined : (category as never),
       dietary,
       signatureOnly,
     });
-  }, [data, section, category, query, dietary, signatureOnly]);
+  }, [data, isWine, category, query, dietary, signatureOnly]);
+  const wines = useMemo(() => (data ? filterWines(data.wines, query) : []), [data, query]);
 
-  const wines = useMemo(
-    () => (data && section === 'wine' ? filterWines(data.wines, query) : []),
-    [data, section, query],
-  );
-
-  // With no category chosen, food reads as a menu: grouped under category headings.
   const grouped =
-    section === 'food' && category === 'all'
-      ? foodCategories
-          .filter((c) => c.id !== 'all')
+    category === 'all' && !query
+      ? (data?.categories ?? [])
+          .filter((c) => c.id !== 'wine')
           .map((c) => ({ label: c.label, items: dishes.filter((d) => d.category === c.id) }))
           .filter((g) => g.items.length)
       : [{ label: '', items: dishes }];
 
+  const heroHeight = Math.min(360, width * 0.82);
+
   return (
-    <Screen header={<Header title="Menu" />} padded={false}>
-      <View style={styles.pad}>
-        <View style={styles.search}>
-          <Feather name="search" size={18} color={colors.textMuted} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            autoFocus={params.focus === '1'}
-            placeholder={section === 'wine' ? 'Wine, grape, region…' : 'Dish or ingredient…'}
-            placeholderTextColor={colors.textSubtle}
-            style={styles.searchInput}
-            accessibilityLabel="Search the menu"
-            returnKeyType="search"
-            clearButtonMode="while-editing"
+    <Screen padded={false} topInset={false}>
+      {/* Category hero */}
+      <View style={{ height: heroHeight + insets.top }}>
+        <Animated.View
+          key={hero.photo}
+          entering={FadeIn.duration(400).reduceMotion(ReduceMotion.System)}
+          style={styles.heroPhotoWrap}
+        >
+          <Photo photo={hero.photo} label="" style={StyleSheet.absoluteFill} />
+        </Animated.View>
+        {/* Obsidian on the left fading out over the photograph, as in the designs. */}
+        <LinearGradient
+          colors={[colors.background, 'rgba(11,11,11,0.55)', 'rgba(11,11,11,0)']}
+          locations={[0.22, 0.48, 0.72]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <LinearGradient
+          colors={['rgba(11,11,11,0)', colors.background]}
+          locations={[0.7, 1]}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <View style={[styles.heroChrome, { top: insets.top + spacing.sm }]}>
+          <IconButton
+            icon="arrow-left"
+            label="Back"
+            onPhoto
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/discover'))}
+          />
+          <Text variant="eyebrow" color="accent" style={styles.heroMark}>
+            MÁBU
+          </Text>
+          <IconButton
+            icon={searching ? 'x' : 'search'}
+            label={searching ? 'Close search' : 'Search the menu'}
+            onPhoto
+            onPress={() => {
+              if (searching) setQuery('');
+              setSearching(!searching);
+            }}
           />
         </View>
-        <View style={{ marginTop: spacing.lg }}>
-          <Segmented
-            value={section}
-            onChange={(s) => {
-              setSection(s);
-              setCategory('all');
-            }}
-            options={[
-              { value: 'food', label: 'Food' },
-              { value: 'dessert', label: 'Desserts' },
-              { value: 'wine', label: 'Wine' },
-            ]}
-          />
+        <View style={styles.heroCopy}>
+          <View style={styles.heroRule} />
+          <Text
+            style={[styles.heroTitle, width < 360 && { fontSize: 40, lineHeight: 48 }]}
+            accessibilityRole="header"
+            maxFontSizeMultiplier={1.2}
+          >
+            {query ? 'Search' : hero.title}
+          </Text>
+          <Text variant="eyebrow" color="accent" style={styles.heroTagline}>
+            {query ? `Results for “${query}”` : hero.tagline}
+          </Text>
         </View>
       </View>
 
-      {section === 'food' ? (
-        <View style={{ marginTop: spacing.sm }}>
-          <MenuCategoryTabs categories={foodCategories} active={category} onChange={setCategory} />
+      {searching ? (
+        <View style={[styles.pad, styles.searchWrap]}>
+          <View style={styles.search}>
+            <Feather name="search" size={18} color={colors.textMuted} />
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              autoFocus
+              placeholder="Dish, ingredient or wine…"
+              placeholderTextColor={colors.textSubtle}
+              style={styles.searchInput}
+              accessibilityLabel="Search the menu"
+              returnKeyType="search"
+              clearButtonMode="while-editing"
+            />
+          </View>
         </View>
       ) : null}
 
-      {section !== 'wine' ? (
+      <MenuCategoryTabs
+        categories={tabs}
+        active={category}
+        onChange={(id) => {
+          setCategory(id);
+          setQuery('');
+        }}
+      />
+
+      {!isWine ? (
         <View style={[styles.pad, styles.filters]}>
           <Chip
             label="Signature"
@@ -162,47 +229,51 @@ export default function Menu() {
           <LoadingBlock />
         ) : menu.isError ? (
           <ErrorState message={errorMessage(menu.error)} onRetry={() => void menu.refetch()} />
-        ) : section === 'wine' ? (
-          wines.length ? (
-            WINE_ORDER.map((style) => {
-              const list = wines.filter((w) => w.style === style);
-              if (!list.length) return null;
-              return (
-                <View key={style} style={{ marginTop: spacing.xl }}>
-                  <Text variant="eyebrow" color="accent" accessibilityRole="header">
-                    {wineStyleLabel(style)}
-                  </Text>
-                  {list.map((w) => (
-                    <WineCard key={w.id} wine={w} />
-                  ))}
-                </View>
-              );
-            })
-          ) : (
-            <EmptyState
-              icon="search"
-              title="No wines match"
-              body="Try a grape, a region or a producer."
-            />
-          )
-        ) : dishes.length ? (
-          grouped.map((g) => (
-            <View key={g.label || 'list'} style={{ marginTop: spacing.lg }}>
-              {g.label ? (
-                <Text
-                  variant="eyebrow"
-                  color="accent"
-                  accessibilityRole="header"
-                  style={{ marginTop: spacing.md }}
-                >
-                  {g.label}
+        ) : isWine ? (
+          WINE_ORDER.map((style) => {
+            const list = wines.filter((w) => w.style === style);
+            if (!list.length) return null;
+            return (
+              <View key={style} style={{ marginTop: spacing.lg }}>
+                <Text variant="eyebrow" color="accent" accessibilityRole="header">
+                  {wineStyleLabel(style)}
                 </Text>
-              ) : null}
-              {g.items.map((d) => (
-                <MenuItemCard key={d.id} dish={d} />
-              ))}
-            </View>
-          ))
+                {list.map((w) => (
+                  <WineCard key={w.id} wine={w} />
+                ))}
+              </View>
+            );
+          })
+        ) : dishes.length || (query && wines.length) ? (
+          <>
+            {grouped.map((g) => (
+              <View key={g.label || 'list'} style={{ marginTop: spacing.md }}>
+                {g.label ? (
+                  <Text
+                    variant="eyebrow"
+                    color="accent"
+                    accessibilityRole="header"
+                    style={styles.group}
+                  >
+                    {g.label}
+                  </Text>
+                ) : null}
+                {g.items.map((d) => (
+                  <MenuItemCard key={d.id} dish={d} />
+                ))}
+              </View>
+            ))}
+            {query && wines.length ? (
+              <View style={{ marginTop: spacing.lg }}>
+                <Text variant="eyebrow" color="accent" accessibilityRole="header">
+                  Wines
+                </Text>
+                {wines.map((w) => (
+                  <WineCard key={w.id} wine={w} />
+                ))}
+              </View>
+            ) : null}
+          </>
         ) : (
           <EmptyState
             icon="search"
@@ -220,10 +291,10 @@ export default function Menu() {
             <SampleContentNote />
           </View>
         ) : null}
-        {section !== 'wine' ? (
+        {!isWine ? (
           <Text variant="caption" color="textSubtle" style={{ marginTop: spacing.sm }}>
             Dietary labels show only what our kitchen has verified. Please tell us about any allergy
-            when you book or order.
+            when you book.
           </Text>
         ) : null}
       </View>
@@ -233,17 +304,48 @@ export default function Menu() {
 
 const styles = StyleSheet.create({
   pad: { paddingHorizontal: spacing.gutter },
+  heroPhotoWrap: { position: 'absolute', top: 0, bottom: 0, right: 0, left: '28%' },
+  heroChrome: {
+    position: 'absolute',
+    left: spacing.md,
+    right: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  heroMark: { fontSize: 18, letterSpacing: 6, lineHeight: 24 },
+  heroCopy: {
+    position: 'absolute',
+    left: spacing.gutter,
+    right: spacing.gutter,
+    bottom: spacing.xl,
+  },
+  heroRule: { width: 44, height: 2, backgroundColor: colors.accent, marginBottom: spacing.md },
+  heroTitle: {
+    fontFamily: fontFamily.display,
+    fontSize: 48,
+    lineHeight: 58,
+    color: colors.text,
+    maxWidth: '75%',
+  },
+  heroTagline: {
+    letterSpacing: 3.2,
+    fontSize: 12,
+    lineHeight: 18,
+    maxWidth: '80%',
+    marginTop: spacing.xs,
+  },
+  searchWrap: { marginBottom: spacing.xs },
   search: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    marginTop: spacing.sm,
     minHeight: 50,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: radius.sm,
+    borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
   },
   searchInput: {
     flex: 1,
@@ -252,5 +354,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 48,
   },
-  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
+  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xs },
+  group: { marginTop: spacing.md, marginBottom: spacing.md },
 });

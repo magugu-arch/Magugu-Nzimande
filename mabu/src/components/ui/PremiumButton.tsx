@@ -91,7 +91,8 @@ const styles = StyleSheet.create({
   base: {
     minHeight: 52,
     paddingHorizontal: spacing.xl,
-    borderRadius: radius.sm,
+    // Pill, as in the supplied designs.
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },

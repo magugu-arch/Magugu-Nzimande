@@ -37,7 +37,7 @@ export default function Gallery() {
   const full = width - spacing.gutter * 2;
   const keys = Object.keys(CAPTIONS) as PhotoKey[];
   const large = keys.filter((k) => photoRegistry[k].origin === 'photograph');
-  const small = keys.filter((k) => photoRegistry[k].origin === 'brand-board');
+  const small = keys.filter((k) => photoRegistry[k].origin === 'crop');
   const half = (full - spacing.md) / 2;
 
   return (

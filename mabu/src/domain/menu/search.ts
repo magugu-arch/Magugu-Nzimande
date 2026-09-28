@@ -31,7 +31,14 @@ export function filterDishes(dishes: Dish[], f: DishFilter): Dish[] {
     if (f.dietary?.length && !f.dietary.every((t) => d.dietaryTags.includes(t))) return false;
     if (!terms.length) return true;
     const haystack = fold(
-      [d.name, d.description, d.provenance ?? '', d.preparation ?? '', ...d.allergens].join(' '),
+      [
+        d.name,
+        d.description,
+        d.provenance ?? '',
+        d.preparation ?? '',
+        ...(d.highlights ?? []),
+        ...d.allergens,
+      ].join(' '),
     );
     return terms.every((t) => haystack.includes(t));
   });

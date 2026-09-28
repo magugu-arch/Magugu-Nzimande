@@ -4,8 +4,8 @@ export interface PhotoEntry {
   source: number;
   width: number;
   height: number;
-  /** 'brand-board' crops are low resolution: cards and thumbnails only. */
-  origin: 'photograph' | 'brand-board';
+  /** 'crop' is cut from a composite (brand board, design comp): cards and thumbnails only. */
+  origin: 'photograph' | 'crop';
 }
 
 export const photoRegistry = {
@@ -13,13 +13,13 @@ export const photoRegistry = {
     source: require('../../assets/photos/bar-lounge.jpg'),
     width: 368,
     height: 457,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   chandeliers: {
     source: require('../../assets/photos/chandeliers.jpg'),
     width: 509,
     height: 288,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'chef-plating': {
     source: require('../../assets/photos/chef-plating.jpg'),
@@ -49,31 +49,31 @@ export const photoRegistry = {
     source: require('../../assets/photos/dish-desserts.jpg'),
     width: 218,
     height: 205,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'dish-private-functions': {
     source: require('../../assets/photos/dish-private-functions.jpg'),
     width: 214,
     height: 205,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'dish-seafood': {
     source: require('../../assets/photos/dish-seafood.jpg'),
     width: 226,
     height: 205,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'dish-signature-mains': {
     source: require('../../assets/photos/dish-signature-mains.jpg'),
     width: 219,
     height: 205,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'dish-wines': {
     source: require('../../assets/photos/dish-wines.jpg'),
     width: 198,
     height: 205,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'fillet-closeup': {
     source: require('../../assets/photos/fillet-closeup.jpg'),
@@ -91,7 +91,151 @@ export const photoRegistry = {
     source: require('../../assets/photos/floor-pattern.jpg'),
     width: 366,
     height: 288,
-    origin: 'brand-board',
+    origin: 'crop',
+  },
+  'hero-seafood': {
+    source: require('../../assets/photos/hero-seafood.jpg'),
+    width: 577,
+    height: 425,
+    origin: 'crop',
+  },
+  'hero-signature': {
+    source: require('../../assets/photos/hero-signature.jpg'),
+    width: 502,
+    height: 440,
+    origin: 'crop',
+  },
+  'hero-starters': {
+    source: require('../../assets/photos/hero-starters.jpg'),
+    width: 627,
+    height: 405,
+    origin: 'crop',
+  },
+  'hero-vegetarian': {
+    source: require('../../assets/photos/hero-vegetarian.jpg'),
+    width: 547,
+    height: 420,
+    origin: 'crop',
+  },
+  'menu-burrata': {
+    source: require('../../assets/photos/menu-burrata.jpg'),
+    width: 332,
+    height: 168,
+    origin: 'crop',
+  },
+  'menu-calamari': {
+    source: require('../../assets/photos/menu-calamari.jpg'),
+    width: 330,
+    height: 164,
+    origin: 'crop',
+  },
+  'menu-carpaccio': {
+    source: require('../../assets/photos/menu-carpaccio.jpg'),
+    width: 332,
+    height: 168,
+    origin: 'crop',
+  },
+  'menu-cauliflower-curry': {
+    source: require('../../assets/photos/menu-cauliflower-curry.jpg'),
+    width: 330,
+    height: 166,
+    origin: 'crop',
+  },
+  'menu-crispy-calamari': {
+    source: require('../../assets/photos/menu-crispy-calamari.jpg'),
+    width: 332,
+    height: 168,
+    origin: 'crop',
+  },
+  'menu-fillet-mignon': {
+    source: require('../../assets/photos/menu-fillet-mignon.jpg'),
+    width: 332,
+    height: 163,
+    origin: 'crop',
+  },
+  'menu-halloumi': {
+    source: require('../../assets/photos/menu-halloumi.jpg'),
+    width: 330,
+    height: 164,
+    origin: 'crop',
+  },
+  'menu-king-prawns': {
+    source: require('../../assets/photos/menu-king-prawns.jpg'),
+    width: 330,
+    height: 163,
+    origin: 'crop',
+  },
+  'menu-lamb-rack': {
+    source: require('../../assets/photos/menu-lamb-rack.jpg'),
+    width: 332,
+    height: 162,
+    origin: 'crop',
+  },
+  'menu-line-fish': {
+    source: require('../../assets/photos/menu-line-fish.jpg'),
+    width: 330,
+    height: 163,
+    origin: 'crop',
+  },
+  'menu-mushroom-risotto': {
+    source: require('../../assets/photos/menu-mushroom-risotto.jpg'),
+    width: 330,
+    height: 163,
+    origin: 'crop',
+  },
+  'menu-quinoa-butternut': {
+    source: require('../../assets/photos/menu-quinoa-butternut.jpg'),
+    width: 330,
+    height: 163,
+    origin: 'crop',
+  },
+  'menu-ribeye-bone': {
+    source: require('../../assets/photos/menu-ribeye-bone.jpg'),
+    width: 332,
+    height: 165,
+    origin: 'crop',
+  },
+  'menu-roast-vegetables': {
+    source: require('../../assets/photos/menu-roast-vegetables.jpg'),
+    width: 330,
+    height: 165,
+    origin: 'crop',
+  },
+  'menu-salmon': {
+    source: require('../../assets/photos/menu-salmon.jpg'),
+    width: 330,
+    height: 163,
+    origin: 'crop',
+  },
+  'menu-scallops': {
+    source: require('../../assets/photos/menu-scallops.jpg'),
+    width: 332,
+    height: 167,
+    origin: 'crop',
+  },
+  'menu-seafood-platter': {
+    source: require('../../assets/photos/menu-seafood-platter.jpg'),
+    width: 330,
+    height: 166,
+    origin: 'crop',
+  },
+  'menu-tiger-prawns': {
+    source: require('../../assets/photos/menu-tiger-prawns.jpg'),
+    width: 332,
+    height: 167,
+    origin: 'crop',
+  },
+  'menu-tomahawk': {
+    source: require('../../assets/photos/menu-tomahawk.jpg'),
+    width: 332,
+    height: 164,
+    origin: 'crop',
+  },
+  'menu-wagyu-striploin': {
+    source: require('../../assets/photos/menu-wagyu-striploin.jpg'),
+    width: 332,
+    height: 164,
+    origin: 'crop',
   },
   'private-dining': {
     source: require('../../assets/photos/private-dining.jpg'),
@@ -127,25 +271,25 @@ export const photoRegistry = {
     source: require('../../assets/photos/table-setting.jpg'),
     width: 285,
     height: 424,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'texture-marble': {
     source: require('../../assets/photos/texture-marble.jpg'),
     width: 150,
     height: 63,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'texture-pattern': {
     source: require('../../assets/photos/texture-pattern.jpg'),
     width: 150,
     height: 104,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'texture-timber': {
     source: require('../../assets/photos/texture-timber.jpg'),
     width: 150,
     height: 95,
-    origin: 'brand-board',
+    origin: 'crop',
   },
   'wagyu-sliced': {
     source: require('../../assets/photos/wagyu-sliced.jpg'),
