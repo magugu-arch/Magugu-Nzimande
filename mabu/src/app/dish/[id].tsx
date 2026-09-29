@@ -124,7 +124,7 @@ export default function DishDetail() {
           {dish.description}
         </Text>
         {!dish.available ? (
-          <Text variant="bodySmall" color="copper">
+          <Text variant="bodySmall" color="copperText">
             Sold out today — please ask your server about tonight&apos;s alternatives.
           </Text>
         ) : null}
@@ -182,7 +182,7 @@ export default function DishDetail() {
             Please tell us about any allergy — our kitchen will guide you.
           </Text>
           {dish.spiceLevel ? (
-            <Text variant="bodySmall" color="copper">
+            <Text variant="bodySmall" color="copperText">
               {SPICE[dish.spiceLevel]}
             </Text>
           ) : null}

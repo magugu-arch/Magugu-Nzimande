@@ -86,8 +86,14 @@ Email **reservations@maburestaurant.com**. The website serves the same address a
 - Dietary and accessibility notes can reveal health or religion. They are shown only to the team serving that
   table and are never used for marketing.
 - Marketing goes only to guests who opted in, never more than twice in seven days, and never during quiet hours.
+- A guest can **read back everything we hold** about them — Profile → Your details → "See what we hold about
+  you" — and keep a copy. Staff notes about a guest are not part of it.
 - A guest can delete their account in the app: name and contact details go at once; bookings and financial
   records are kept without them for as long as tax law requires.
+- **Funnel events** (which screens are opened, which bookings are started and finished) are kept for 90 days
+  with an opaque guest id. Every property is a primitive the app chose from a fixed list: there is no field for
+  a name, an email, a phone number or an address, an unknown event name is dropped, and a device can send at
+  most 50 events in a call.
 - The privacy notice, terms and marketing consent are drafted in the app and await Mábu's attorneys.
 
 ## The review of this layer
@@ -112,7 +118,7 @@ all evening, and it needs the guest's own code. Cancelling one is, because that 
 
 `npm run verify` and CI run, on every push:
 
-- 98 tests, of which 23 cover the server: strict headers, the body guard, the limiter, code attempt limits,
+- 101 tests, of which 23 cover the server: strict headers, the body guard, the limiter, code attempt limits,
   session listing and revocation, the new-device email, the fresh-sign-in rule (including that it names only
   real handlers), session lifetimes under a role change, the staff-only booking policy, and the PayFast
   notification (tampered, wrong amount and unconfirmed are all refused).

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageMeta, type PageMetaProps } from '@/seo/PageMeta';
+import { scrollableByKeyboard } from '@/utils/a11y';
 import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { colors, HIT_SLOP, radius, spacing } from '@/theme';
@@ -52,11 +53,20 @@ export function Screen({
       keyboardShouldPersistTaps="handled"
       refreshControl={refreshControl}
       showsVerticalScrollIndicator={false}
+      // A page of pictures or of prose has nothing to tab to, so on the web the
+      // scrolling area itself takes focus: somebody using only a keyboard can
+      // still read to the end of it.
+      {...scrollableByKeyboard}
+      // The body of the page is its main region, which is how a screen reader
+      // offers "skip to the content".
+      role="main"
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.flex, padded && styles.padded, contentStyle]}>{children}</View>
+    <View style={[styles.flex, padded && styles.padded, contentStyle]} role="main">
+      {children}
+    </View>
   );
   return (
     <KeyboardAvoidingView
@@ -91,6 +101,7 @@ export function Header({
   const back = onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/home')));
   return (
     <View
+      role="banner"
       style={[
         styles.header,
         { paddingTop: insets.top + spacing.xs },

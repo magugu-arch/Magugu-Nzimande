@@ -43,9 +43,11 @@ export default function TabsLayout() {
                 haptic.select();
                 props.onPress?.(e);
               }}
-              accessibilityRole="button"
+              // A tab, like its neighbours: the bar around it is a tablist,
+              // and "selected" only means anything on a tab.
+              accessibilityRole="tab"
               accessibilityLabel="Book a table"
-              aria-selected={props['aria-selected'] ?? undefined}
+              aria-selected={props['aria-selected'] ?? false}
               style={styles.bookWrap}
             >
               <View style={styles.book}>

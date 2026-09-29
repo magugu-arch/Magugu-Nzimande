@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TimeSlotGrid, AvailabilityChip } from '@/components/mabu/TimeSlotGrid';
 import { PremiumButton } from '@/components/ui/PremiumButton';
-import { Stepper } from '@/components/ui/Controls';
+import { Chip, Stepper } from '@/components/ui/Controls';
+import { Photo } from '@/components/ui/Photo';
 import { BookingDatePicker } from '@/components/mabu/BookingDatePicker';
 import type { ReservationSlot } from '@/domain/reservations/types';
 
@@ -80,6 +81,28 @@ describe('BookingDatePicker', () => {
     expect(onSelect).not.toHaveBeenCalled();
     fireEvent.press(screen.getByLabelText('Tuesday 6 October, tables available'));
     expect(onSelect).toHaveBeenCalledWith('2026-10-06');
+  });
+});
+
+describe('Photo', () => {
+  it('announces a photograph once, and a decorative texture not at all', () => {
+    const { rerender, UNSAFE_root } = render(
+      <Photo photo="hero-signature" label="A fillet on a black stone plate" />,
+    );
+    expect(screen.getByLabelText('A fillet on a black stone plate')).toBeTruthy();
+    // The image inside the frame must not announce itself as well.
+    expect(screen.getAllByLabelText('A fillet on a black stone plate')).toHaveLength(1);
+    rerender(<Photo photo="texture-marble" label="" />);
+    expect(UNSAFE_root.findAllByProps({ 'aria-hidden': true }).length).toBeGreaterThan(0);
+  });
+});
+
+describe('Chip', () => {
+  it('is a toggle button, not a selected tab', () => {
+    render(<Chip label="Vegetarian" selected onPress={() => undefined} />);
+    const chip = screen.getByLabelText('Vegetarian');
+    expect(chip.props['aria-pressed']).toBe(true);
+    expect(chip.props['aria-selected']).toBeUndefined();
   });
 });
 

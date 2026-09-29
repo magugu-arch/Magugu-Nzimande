@@ -67,7 +67,7 @@ export function ErrorState({
   return (
     <View style={styles.state} accessibilityLiveRegion="polite">
       <View style={[styles.stateIcon, { borderColor: colors.copper }]}>
-        <Feather name="alert-circle" size={22} color={colors.copper} />
+        <Feather name="alert-circle" size={22} color={colors.copperText} />
       </View>
       <Text variant="body" align="center">
         {message}

@@ -155,6 +155,8 @@ export default function RewardsWallet() {
               <View
                 style={styles.track}
                 accessibilityRole="progressbar"
+                accessibilityLabel={`Progress to ${progress.next.name}`}
+                aria-label={`Progress to ${progress.next.name}`}
                 accessibilityValue={{ min: 0, max: 100, now: Math.round(progress.fraction * 100) }}
               >
                 <View style={[styles.fill, { width: `${Math.round(progress.fraction * 100)}%` }]} />
@@ -303,13 +305,16 @@ function RewardRow({
       onPress={() => router.push(`/rewards/${reward.id}`)}
       accessibilityRole="button"
       accessibilityLabel={`${reward.name}, ${reward.pointsCost} points${eligible ? '' : ', higher tier'}`}
-      style={({ pressed }) => [
-        styles.reward,
-        pressed && { opacity: 0.8 },
-        !eligible && { opacity: 0.6 },
-      ]}
+      style={({ pressed }) => [styles.reward, pressed && { opacity: 0.8 }]}
     >
-      <Photo photo={reward.photo} label="" style={styles.rewardPhoto} />
+      {/* A reward above the guest's tier is shown by a quieter photograph and
+          its badge. Fading the whole row took the points and the badge below
+          the contrast somebody with low vision needs. */}
+      <Photo
+        photo={reward.photo}
+        label=""
+        style={[styles.rewardPhoto, !eligible && { opacity: 0.55 }]}
+      />
       <View style={{ flex: 1, gap: 4 }}>
         <Text variant="title">{reward.name}</Text>
         <Text variant="price" color="accent">

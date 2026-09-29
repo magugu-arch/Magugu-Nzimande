@@ -31,17 +31,31 @@ export function Photo({
 }) {
   const reduce = useReduceMotion();
   const key: PhotoKey = isPhotoKey(photo) ? photo : 'texture-pattern';
+  /**
+   * The frame carries the picture's name, and the image inside it is hidden
+   * from assistive technology: one announcement per photograph, and a
+   * decorative texture is announced not at all. On the web that also gives
+   * every <img> the empty alt a decorative image is supposed to have.
+   */
+  const described = label
+    ? ({
+        accessible: true,
+        accessibilityRole: 'image',
+        accessibilityLabel: label,
+        'aria-label': label,
+      } as const)
+    : ({ accessible: false, 'aria-hidden': true } as const);
   return (
-    <View style={[styles.frame, style as StyleProp<ViewStyle>]}>
+    <View style={[styles.frame, style as StyleProp<ViewStyle>]} {...described}>
       <Image
         source={photoRegistry[key].source}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
         contentPosition={contentPosition}
         transition={reduce ? 0 : 400}
-        accessibilityLabel={label || undefined}
-        accessible={!!label}
-        accessibilityRole={label ? 'image' : undefined}
+        accessibilityLabel=""
+        accessible={false}
+        aria-hidden
         priority={priority}
       />
       {scrim === 'bottom' ? (

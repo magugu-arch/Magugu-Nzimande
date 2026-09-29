@@ -21,6 +21,7 @@ import { errorMessage } from '@/services/api';
 import { ACCOUNT_QUERIES, useRpc, useRpcMutation } from '@/services/queries';
 import { useSession } from '@/store/session';
 import { colors, radius, spacing } from '@/theme';
+import { scrollableByKeyboard } from '@/utils/a11y';
 import { track } from '@/utils/analytics';
 import { haptic } from '@/utils/haptics';
 
@@ -142,6 +143,8 @@ export default function NewVoucher() {
         showsHorizontalScrollIndicator={false}
         style={styles.momentsRail}
         contentContainerStyle={styles.moments}
+        accessibilityLabel="Occasions"
+        {...scrollableByKeyboard}
       >
         {MOMENTS.map((m) => (
           <View key={m.label} style={styles.moment}>

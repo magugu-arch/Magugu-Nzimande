@@ -39,8 +39,8 @@ A realistic agency quote for this scope is **about R1.0 – R1.6 million** and 6
 
 ## What is left to finish (from the audit)
 
-About 23% of the work remains; roughly half of it waits on Mábu (content, decisions, accounts). The engineering
-still to do:
+About 20% of the work remains, and none of it can be done from here: it waits on Mábu's content, decisions and
+accounts, or follows from them. The engineering still to do:
 
 | Work | Hours |
 | --- | ---: |
@@ -50,14 +50,16 @@ still to do:
 | Relational database move | 60 – 90 |
 | Hosting, backups, monitoring | 20 – 30 |
 | Store builds, submission, review fixes | 20 – 30 |
-| Security review and fixes | 20 – 30 |
+| External penetration test (a firm, not our own review) | 20 – 40 |
+| Assistive-technology testing (VoiceOver, TalkBack) and fixes | 8 – 16 |
 | Website hosting and launch (publish, Search Console, listings) | 6 – 10 |
 | Loading real content, final QA | 10 – 20 |
-| **Total** | **186 – 290** |
+| **Total** | **196 – 316** |
 
-At a blended R850 an hour that is **about R160 000 – R245 000** of remaining engineering at market rates.
+At a blended R850 an hour that is **about R165 000 – R270 000** of remaining work at market rates, of which the
+penetration test is usually quoted as a fixed engagement (R35 000 – R80 000 in South Africa) rather than hourly.
 
-A website of this kind — about 80 pages, search-ready, fed from the same content as the app — is quoted
+A website of this kind — over 120 pages, search-ready, WCAG AA, fed from the same content as the app — is quoted
 separately in South Africa at roughly R45 000 – R120 000. Here it comes out of the same build: the pages are
 the app's own screens.
 

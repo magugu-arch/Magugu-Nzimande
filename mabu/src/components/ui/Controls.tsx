@@ -67,13 +67,17 @@ export function Chip({
             }
       }
       accessibilityRole={onPress ? 'button' : 'text'}
-      aria-selected={!!selected}
+      // A chip that filters is a toggle button: pressed or not. "Selected"
+      // belongs to a tab or an option in a list, and reads wrongly here.
+      {...(onPress ? { 'aria-pressed': !!selected } : {})}
       aria-disabled={!!disabled}
       accessibilityLabel={label}
       style={({ pressed }) => [
         styles.chip,
         selected && styles.chipSelected,
-        disabled && styles.chipDisabled,
+        // A chip that is on and fixed ("In app" for booking messages) keeps its
+        // brass, so its label keeps the contrast brass gives it.
+        disabled && !selected && styles.chipDisabled,
         pressed && styles.pressed,
       ]}
     >
@@ -234,6 +238,12 @@ export function Stepper({
       accessibilityRole="adjustable"
       accessibilityLabel={label}
       accessibilityValue={{ min, max, now: value, text: format(value) }}
+      // React Native for Web gives this the slider role but not the values a
+      // slider must publish, so they are set here as well.
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuenow={value}
+      aria-valuetext={format(value)}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={(e) => step(e.nativeEvent.actionName === 'increment' ? 1 : -1)}
     >
@@ -289,7 +299,9 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
   },
   chipSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipDisabled: { opacity: 0.4 },
+  // Dimming the whole chip took its label under 2:1. A chip that cannot be
+  // changed is shown by a quieter surface instead, and stays readable.
+  chipDisabled: { borderColor: colors.border, backgroundColor: colors.surface },
   pressed: { opacity: 0.7 },
   toggleRow: {
     flexDirection: 'row',

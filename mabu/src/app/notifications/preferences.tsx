@@ -153,6 +153,7 @@ export default function Preferences() {
                   variant="caption"
                   color="accent"
                   accessibilityRole="link"
+                  style={{ textDecorationLine: 'underline' }}
                   onPress={() => router.push('/legal/marketing')}
                 >
                   What this means

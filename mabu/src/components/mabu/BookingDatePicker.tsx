@@ -120,7 +120,7 @@ export function BookingDatePicker({
               disabled={disabled}
               accessibilityRole="button"
               accessibilityLabel={`${formatCalendarDate(date)}${stateText ? `, ${stateText}` : ''}`}
-              aria-selected={isSelected}
+              aria-pressed={isSelected}
               aria-disabled={disabled}
               style={styles.cell}
             >

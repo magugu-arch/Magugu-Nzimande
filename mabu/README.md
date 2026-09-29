@@ -50,8 +50,9 @@ Admin › *Reset demo data* starts again.
 | `npm run standalone:check` | Opens that file from disk and books a table through it |
 | `npm run export:web` | Web build into `dist-web/` |
 | `npm run shots` | Renders 40 routes × 2 widths × 3 roles; fails on overflow, blank screens, console errors, unnamed buttons |
+| `npm run a11y` | axe-core over a page of each kind, signed out, as a guest and as staff; fails on a serious or critical finding |
 | `npm run e2e` | Nine journeys through the real UI (booking, double-tap, vouchers incl. decline, events, waitlist, rewards, preferences, staff) |
-| `npm run verify:web` | `export:web` + `shots` + `e2e` |
+| `npm run verify:web` | `export:web` + `shots` + `a11y` + `e2e` |
 | `npm run assets:photos` | Rebuilds photos, the photo registry, icon, splash and favicon from `assets/photos/masters` |
 
 ---
@@ -224,7 +225,8 @@ replaces the directions card.
 ### 8. Remaining technical blockers
 
 See `AUDIT.md` for the full completion audit, `COSTINGS.md` for market costings, `SEO.md` for how the website
-is set up to be found, and `SECURITY.md` for how accounts and data are protected.
+is set up to be found, `SECURITY.md` for how accounts and data are protected, and `ACCESSIBILITY.md` for what
+the app does for guests who use a screen reader, a keyboard or larger text.
 
 - **Deployment.** The API server (`server/`, see `server/README.md`) runs sign-in, sessions, PostgreSQL and push,
   and passes `npm run server:check`, but is not yet hosted. It keeps rows as documents in `server_row`; moving

@@ -1,6 +1,6 @@
 # Mábu app and website: completion audit
 
-Audited 28 September 2026 (third pass, same day) against the brief (*Mabu Premium Restaurant App — Booking,
+Audited 29 September 2026 (fifth pass) against the brief (*Mabu Premium Restaurant App — Booking,
 Rewards, Notifications*). Costings are in `COSTINGS.md`; the search plan is in `SEO.md`.
 
 ## Summary
@@ -8,11 +8,20 @@ Rewards, Notifications*). Costings are in `COSTINGS.md`; the search plan is in `
 | | Complete | Left |
 | --- | ---: | ---: |
 | **The app** (iPhone, Android and the service behind them) | **≈ 80%** | 20% |
-| **The website** (the same product as a public site) | **≈ 62%** | 38% |
+| **The website** (the same product as a public site) | **≈ 63%** | 37% |
 
-Everything the brief asks for is built and works in demo mode. The website is now a real set of pages: 78
+Everything the brief asks for is built and works in demo mode. The website is a real set of pages: 123
 addresses, each with its own content, title, description and structured data, plus a sitemap and robots file.
 What remains is mostly Mábu's own content, accounts nobody else can open, and putting it online.
+
+The weighted total is where it was after the fourth pass. That is not a stalled round: this pass closed a
+promise the privacy notice had already made, made the restaurant's own numbers durable, and fixed eighteen
+screens' worth of accessibility problems — all inside workstreams that were already near their ceiling. The
+ceiling is what is left.
+
+**Nothing on the remaining 20% can be finished from here.** It is Mábu's content, Mábu's accounts and Mábu's
+legal sign-off, plus the hosting, store submission and outside testing that follow from them. The engineering
+that does not depend on somebody else is done.
 
 The percentages are weighted estimates of effort, not a count of screens or pages.
 
@@ -25,29 +34,47 @@ The percentages are weighted estimates of effort, not a count of screens or page
 | MÁBU Rewards (§34–36) | 8 | 95% | Earning, tiers, FIFO expiry, redemption, reversal, adjustments. Programme rules are placeholders. |
 | Notifications (§37–42) | 8 | 90% | In-app, push (Expo) and email (SMTP) built; audiences and a weekly cap on marketing. Needs an email account. |
 | Events, vouchers, payments | 8 | 85% | PayFast hosted checkout built and tested locally. Needs a PayFast account and one sandbox payment. |
-| Admin and CMS | 7 | 92% | 14 admin screens, now with campaign audiences and reach preview. |
+| Admin and CMS | 7 | 93% | 14 admin screens, campaign audiences with a reach preview, and conversion counts that survive a restart. |
 | API server and data | 12 | 75% | Server, migrations and Docker ready. Still to do: relational tables, hosting, backups, monitoring. |
 | Content | 8 | 40% | Brand, categories, venue and the Meerlust event are real. Dishes, wines, prices, hours and policies are samples. |
-| Security and POPIA | 5 | 85% | Hashed codes and sessions with hard expiry, device list and revocation, new-device alerts, fresh-sign-in rule for money and policy, strict headers and body limits, verified payment notifications, website content policy, dependency gate. Needs legal sign-off and an external penetration test. |
-| Testing | 5 | 95% | 86 unit tests, schema check, server check on PostgreSQL, 92-screen sweep with a reduced-motion check, 9 journeys, single-file check, SEO check. |
+| Security and POPIA | 5 | 92% | Hashed codes and sessions with hard expiry, device list and revocation, new-device alerts, fresh-sign-in rule for money and policy, strict headers and body limits, verified payment notifications, website content policy, dependency gate. A guest can read back everything we hold about them. Needs legal sign-off and an external penetration test. |
+| Testing | 5 | 97% | 101 unit and integration tests, schema check, server check on PostgreSQL, 122-screen sweep with a reduced-motion check, an axe-core accessibility gate, 9 journeys, single-file check, SEO check. |
 | Release | 9 | 40% | Website build, EAS profiles, store copy, Docker image and single-file demo ready. Still to do: accounts, signing, store review, hosting. |
 | **Total** | **100** | **≈ 80%** | |
 
 ## The website
 
-The same product served as a public website, `dist-web/`: 78 pages a search engine can read, 23 private pages
-kept out of search.
+The same product served as a public website, `dist-web/`: 123 pages, of which the public ones a search engine
+can read and the personal ones are kept out of search.
 
 | Part | Weight | Done | Status |
 | --- | ---: | ---: | --- |
-| Pages, design, accessibility | 30 | 95% | Every route is its own page; checked at 320 and 390pt, and with reduced motion. |
+| Pages, design, accessibility | 30 | 98% | Every route is its own page; checked at 320 and 390pt, with reduced motion, and with axe-core — no serious or critical findings (`ACCESSIBILITY.md`). |
 | Content: real menu, prices, hours, photography | 22 | 40% | Sample menu and prices; photos for cards are cut from the design files. |
 | Search setup in the build | 14 | 95% | Titles, descriptions, canonicals, Open Graph, schema.org, sitemap.xml, robots.txt, share image, and a check that fails the build. |
 | Bookings, vouchers and events working on the live site | 14 | 65% | They work against the demo back end; live needs the API hosted and PayFast and email connected. |
 | Hosting, domain, https, backups | 8 | 0% | Nothing is online yet. |
 | Search Console, Bing, Business Profile, directory links | 6 | 0% | About an hour's work once the domain is live (steps in `SEO.md`). |
 | Legal pages approved, public phone number | 6 | 40% | Drafts written and linked; awaiting Mábu's attorneys and the number to publish. |
-| **Total** | **100** | **≈ 62%** | |
+| **Total** | **100** | **≈ 63%** | |
+
+## Done in the fifth pass
+
+- **A guest can read back everything we hold about them** (POPIA §23): Profile → Your details → "See what we
+  hold about you" shows their details, bookings, event bookings, vouchers, rewards with the full points ledger,
+  favourites, notification choices and devices, in plain language and with a share action to keep a copy. Staff
+  notes about a guest are not part of it. Asking for somebody else's record is refused.
+- **The restaurant's conversion counts are real.** Funnel events are kept in the database rather than in one
+  process's memory, so they survive a restart; the app batches events and sends them to the server; an unknown
+  event name or a property that is not a plain primitive is dropped; nothing in an event can carry contact
+  details; events are pruned after 90 days. The dashboard counts the last 30 days and shows how many events
+  came from guests' devices.
+- **An accessibility pass with axe-core** (`ACCESSIBILITY.md`), now a step in CI. It found 18 screens with
+  serious problems; all are fixed: photographs announced once and decorative ones not at all, roles that match
+  behaviour (a filter chip is a toggle, not a "selected" tab), a stepper that publishes its values, a named
+  progress bar, `main` and `banner` landmarks, keyboard-reachable scrolling areas, underlined links inside
+  sentences, and two real contrast failures — the board's copper as text (3.4:1) and a disabled control faded
+  to 1.5:1.
 
 ## Done in the fourth pass
 

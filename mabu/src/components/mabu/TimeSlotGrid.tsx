@@ -46,7 +46,7 @@ export function TimeSlotGrid({
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={`${time}${s.available ? '' : ', unavailable'}`}
-                  aria-selected={selected}
+                  aria-pressed={selected}
                   aria-disabled={!s.available}
                   style={({ pressed }) => [
                     styles.slot,
@@ -88,7 +88,7 @@ export function AvailabilityChip({
     available: { label: 'Places available', color: colors.success },
     limited: { label: 'Few places left', color: colors.warning },
     'sold-out': { label: 'Sold out', color: colors.textSubtle },
-    waitlist: { label: 'Waitlist open', color: colors.copper },
+    waitlist: { label: 'Waitlist open', color: colors.copperText },
     past: { label: 'Ended', color: colors.textSubtle },
   }[state];
   return (

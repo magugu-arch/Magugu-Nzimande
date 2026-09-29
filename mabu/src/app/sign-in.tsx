@@ -170,6 +170,9 @@ export default function SignIn() {
           variant="caption"
           color="accent"
           accessibilityRole="link"
+          // Underlined, not brass alone: a link inside a sentence must be
+          // recognisable without seeing colour.
+          style={{ textDecorationLine: 'underline' }}
           onPress={() => router.push('/legal/terms')}
         >
           terms of use
@@ -179,6 +182,7 @@ export default function SignIn() {
           variant="caption"
           color="accent"
           accessibilityRole="link"
+          style={{ textDecorationLine: 'underline' }}
           onPress={() => router.push('/legal/privacy')}
         >
           privacy notice

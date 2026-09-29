@@ -42,6 +42,12 @@ export const colors = {
   accent: palette.brass,
   accentPressed: '#B08C47',
   copper: palette.copper,
+  /**
+   * Copper as it must be when it carries words: the board's copper reads at
+   * only 3.4:1 on charcoal, which is below what somebody with low vision can
+   * make out. Lightened to 5.7:1, and used wherever copper is text.
+   */
+  copperText: '#CB8158',
   terracotta: palette.terracotta,
   wood: palette.warmWood,
 

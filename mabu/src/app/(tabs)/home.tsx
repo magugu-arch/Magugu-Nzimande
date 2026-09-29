@@ -78,6 +78,7 @@ export default function Home() {
       <ScrollView
         contentContainerStyle={{ paddingBottom: spacing.xxxl }}
         showsVerticalScrollIndicator={false}
+        role="main"
       >
         <MabuHero
           photo={content.heroPhoto}
@@ -301,7 +302,11 @@ export default function Home() {
       </ScrollView>
 
       {/* Floating chrome over the hero. */}
-      <View style={[styles.chrome, { top: insets.top + spacing.md }]} pointerEvents="box-none">
+      <View
+        role="banner"
+        style={[styles.chrome, { top: insets.top + spacing.md }]}
+        pointerEvents="box-none"
+      >
         <Text variant="eyebrow" color="accent" style={styles.chromeMark}>
           MÁBU
         </Text>

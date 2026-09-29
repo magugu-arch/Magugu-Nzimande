@@ -85,7 +85,7 @@ export function ExperienceBadge({
   tone?: 'brass' | 'muted' | 'copper';
 }) {
   const color =
-    tone === 'brass' ? colors.accent : tone === 'copper' ? colors.copper : colors.textMuted;
+    tone === 'brass' ? colors.accent : tone === 'copper' ? colors.copperText : colors.textMuted;
   return (
     <View style={[styles.badge, { borderColor: color }]}>
       <Text variant="eyebrow" style={{ color, fontSize: 9, lineHeight: 12, letterSpacing: 1.6 }}>
