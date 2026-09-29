@@ -56,6 +56,12 @@ export class Auth {
     private readonly now: () => Date,
     /** Salts the stored address hash, so the hashes cannot be looked up. */
     private readonly ipSalt: string = randomBytes(16).toString('hex'),
+    /**
+     * The role the guest holds now. A session's life follows it, so promoting
+     * someone to staff shortens their existing sessions at once rather than
+     * leaving them with a guest's sixty days.
+     */
+    private readonly roleOf?: (guestId: string) => string,
   ) {}
 
   hashIp(ip: string): string {
@@ -167,19 +173,24 @@ export class Auth {
     const session = await this.store.getSession(hash);
     if (!session) return null;
     const t = this.now().getTime();
-    const absolute = session.absoluteExpiresAt
-      ? new Date(session.absoluteExpiresAt).getTime()
-      : Infinity;
-    if (new Date(session.expiresAt).getTime() <= t || absolute <= t) {
+    const role = this.roleOf?.(session.guestId) ?? session.role ?? 'guest';
+    const life = SESSION_LIFE[role as keyof typeof SESSION_LIFE] ?? SESSION_LIFE.guest;
+    // Both limits are measured against the role held now, so a guest session
+    // that became a staff session is held to the staff limits from that moment.
+    const absolute = Math.min(
+      session.absoluteExpiresAt ? new Date(session.absoluteExpiresAt).getTime() : Infinity,
+      new Date(session.createdAt).getTime() + life.absoluteMs,
+    );
+    const idleDeadline = new Date(session.lastSeenAt).getTime() + life.idleMs;
+    if (Math.min(new Date(session.expiresAt).getTime(), idleDeadline) <= t || absolute <= t) {
       await this.store.deleteSession(hash);
       return null;
     }
-    const life =
-      SESSION_LIFE[(session.role as keyof typeof SESSION_LIFE) ?? 'guest'] ?? SESSION_LIFE.guest;
     // Renew at most hourly, so reads do not write on every call.
     if (t - new Date(session.lastSeenAt).getTime() > 60 * 60_000) {
       await this.store.putSession({
         ...session,
+        role,
         lastSeenAt: new Date(t).toISOString(),
         expiresAt: new Date(Math.min(t + life.idleMs, absolute)).toISOString(),
       });

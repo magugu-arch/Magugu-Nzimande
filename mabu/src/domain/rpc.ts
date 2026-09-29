@@ -9,6 +9,7 @@
  * rule is enforced in the services underneath.
  */
 import type { Backend } from './backend';
+import { requireRole } from './context';
 import type { Actor, DietaryTag, FavouriteKind, GuestOccasion } from './guests/types';
 import type { AmendPatch } from './reservations/service';
 import type {
@@ -495,7 +496,8 @@ export function createHandlers(b: Backend) {
     'admin.addNote': async (actor: Actor | null, a: { id: string; body: string }) =>
       b.reservations.addStaffNote(a.id, a.body, signedIn(actor)),
     'admin.policy': async (actor: Actor | null) => {
-      signedIn(actor);
+      // The full policy carries pacing: staff only. Guests get publicPolicy.
+      requireRole(signedIn(actor), 'staff', 'admin');
       return b.reservations.policy();
     },
     'admin.policy.update': async (

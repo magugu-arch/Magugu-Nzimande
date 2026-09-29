@@ -157,6 +157,9 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
     options.email,
     () => backend.ctx.clock.now(),
     options.ipSalt,
+    // A session's life follows the role the guest holds now, not the one they
+    // held when they signed in: promoting someone to staff shortens it at once.
+    (guestId) => backend.db.guests.get(guestId)?.role ?? 'guest',
   );
 
   /**
@@ -194,19 +197,33 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
   /**
    * Changing money, policy or someone else's points needs a sign-in from the
    * last half hour, so an unattended staff device cannot be used to do it.
+   *
+   * Redeeming a voucher is deliberately not here: front of house does it at
+   * the table all evening, and it needs the guest's own code. Cancelling one
+   * is here, because that refunds the purchaser and needs no code.
    */
   const NEEDS_FRESH_SIGN_IN = new Set([
     'admin.policy.update',
     'admin.adjust',
-    'admin.rewards.save',
-    'admin.rewards.settings',
-    'admin.vouchers.issue',
-    'admin.vouchers.adjust',
+    'admin.reverse',
+    'admin.rule.save',
+    'admin.reward.save',
+    'admin.rewardsSettings.save',
+    'admin.template.save',
+    'admin.vouchers.cancel',
+    'admin.vouchers.policy',
     'admin.payments.settle',
     'admin.campaign.schedule',
     'admin.menu.saveDish',
     'admin.menu.saveWine',
   ]);
+  // A name that does not exist can never be dispatched, so a typo here would
+  // silently switch the rule off. Refuse to start instead.
+  for (const name of NEEDS_FRESH_SIGN_IN) {
+    if (!Object.prototype.hasOwnProperty.call(handlers, name)) {
+      throw new Error(`NEEDS_FRESH_SIGN_IN names a handler that does not exist: ${name}`);
+    }
+  }
 
   async function dispatch(
     name: string,

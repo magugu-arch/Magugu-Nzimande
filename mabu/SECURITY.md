@@ -90,13 +90,32 @@ Email **reservations@maburestaurant.com**. The website serves the same address a
   records are kept without them for as long as tax law requires.
 - The privacy notice, terms and marketing consent are drafted in the app and await Mábu's attorneys.
 
+## The review of this layer
+
+An independent review of the new code found three things, all fixed and covered by tests:
+
+1. **The fresh-sign-in rule named four handlers that do not exist**, so it never applied to reversing points,
+   saving reward rules and settings, cancelling a voucher (which refunds the purchaser) or changing voucher
+   policy. The names are corrected, the list is wider, and the server now **refuses to start** if the list names
+   a handler that does not exist, so the same typo cannot switch the rule off again.
+2. **A session kept the lifetime of the role it was opened with.** Staff are promoted from an existing guest
+   account, so a promoted person carried a 60-day guest session with staff powers. A session's life is now
+   measured against the role held *now*: promoting someone applies the 12-hour staff limit to their existing
+   sessions at once.
+3. **The full booking policy, including pacing, was readable by any signed-in guest** through the staff
+   handler. It now requires a staff role; guests still get the public policy, which carries no pacing.
+
+Redeeming a voucher is deliberately *not* behind the fresh-sign-in rule: front of house does it at the table
+all evening, and it needs the guest's own code. Cancelling one is, because that refunds money and needs no code.
+
 ## What is checked automatically
 
 `npm run verify` and CI run, on every push:
 
-- 94 tests, of which 19 cover the server: strict headers, the body guard, the limiter, code attempt limits,
-  session listing and revocation, the new-device email, the fresh-sign-in rule, session lifetimes, and the
-  PayFast notification (tampered, wrong amount and unconfirmed are all refused).
+- 98 tests, of which 23 cover the server: strict headers, the body guard, the limiter, code attempt limits,
+  session listing and revocation, the new-device email, the fresh-sign-in rule (including that it names only
+  real handlers), session lifetimes under a role change, the staff-only booking policy, and the PayFast
+  notification (tampered, wrong amount and unconfirmed are all refused).
 - `npm run server:check` repeats the important ones against real PostgreSQL over real HTTP.
 - `npm run db:check` applies the schema and tries to break each invariant.
 - `npm run audit:deps` fails the build on a dependency with a **high** severity advisory.
@@ -112,7 +131,7 @@ Email **reservations@maburestaurant.com**. The website serves the same address a
   instance; when a second instance is added, the limiter and the session store both need to be shared.
 - **PayFast is unverified against the real gateway.** Written to the published specification, but the build
   environment cannot reach PayFast: run one sandbox payment before going live.
-- **No penetration test yet.** This is a code-level review, not an external test. Worth commissioning one before
+- **No penetration test yet.** The code-level review above is done; this is not an external test. Worth commissioning one before
   launch.
 
 ## Before launch

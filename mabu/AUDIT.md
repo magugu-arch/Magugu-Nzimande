@@ -55,6 +55,9 @@ kept out of search.
   bodies, sessions with a hard expiry and a device list a guest can revoke, an email when a new device signs in,
   and a fresh-sign-in rule before any staff change to money or policy. The website ships its own content
   security policy, checked in a browser and enforced by the build. CI fails on a high-severity advisory.
+  An independent review of the new code found three real gaps — a step-up rule that named four handlers that do
+  not exist, sessions keeping the lifetime of the role they were opened with, and the full booking policy
+  readable by any signed-in guest — all fixed and covered by tests (`SECURITY.md`).
 
 ## Done in the third pass
 

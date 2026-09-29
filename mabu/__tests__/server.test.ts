@@ -1,6 +1,7 @@
 import { createServer } from '../server/src/app';
 import type { EmailSender } from '../server/src/auth';
 import { MemoryStore } from '../server/src/store';
+import { createHandlers } from '@/domain/rpc';
 import { SmtpEmailSender } from '../server/src/email';
 import { PayFastProvider, payfastSignature, phpUrlencode } from '../server/src/payfast';
 import { guardJson } from '../server/src/security';
@@ -468,5 +469,79 @@ describe('the security layer', () => {
     expect((await halfWeek.server.call('me.get', {}, staff)).status).toBe(401);
     expect((await halfWeek.server.call('me.get', {}, guestToken)).status).toBe(200);
     void staffToken;
+  });
+});
+
+describe('what the security review found', () => {
+  it('names only real handlers in the fresh-sign-in rule', async () => {
+    // A name that does not exist can never be dispatched, so a typo would
+    // switch the rule off silently. The server refuses to start instead.
+    const { server } = await boot();
+    const names = Object.keys(createHandlers(server.backend));
+    for (const guarded of [
+      'admin.policy.update',
+      'admin.adjust',
+      'admin.reverse',
+      'admin.rule.save',
+      'admin.reward.save',
+      'admin.rewardsSettings.save',
+      'admin.template.save',
+      'admin.vouchers.cancel',
+      'admin.vouchers.policy',
+      'admin.payments.settle',
+      'admin.campaign.schedule',
+      'admin.menu.saveDish',
+      'admin.menu.saveWine',
+    ]) {
+      expect(names).toContain(guarded);
+    }
+  });
+
+  it('asks for a fresh sign-in before reversing points or cancelling a voucher', async () => {
+    const store = new MemoryStore();
+    const { server, mail } = await boot(store);
+    const token = await signIn(server, mail, 'manager@example.com');
+    server.backend.db.guests.update(server.backend.db.guests.list()[0]!.id, { role: 'admin' });
+    const later = await boot(store, { clock: fixedClock('2026-10-01T11:00:00+02:00') });
+    for (const call of [
+      ['admin.reverse', { transactionId: 'x', reason: 'test' }],
+      ['admin.vouchers.cancel', { id: 'x', reason: 'test' }],
+      ['admin.reward.save', { id: 'x' }],
+      ['admin.rewardsSettings.save', { id: 'rewards-settings' }],
+    ] as const) {
+      const res = await later.server.call(call[0], call[1], token);
+      expect(res).toMatchObject({ status: 403, body: { code: 'REAUTH_REQUIRED' } });
+    }
+  });
+
+  it('holds a promoted guest’s session to the staff limits at once', async () => {
+    const store = new MemoryStore();
+    const { server, mail } = await boot(store);
+    const staffToBe = await signIn(server, mail, 'promoted@example.com');
+    const promotedId = server.backend.db.guests.list()[0]!.id;
+    const plainGuest = await signIn(server, mail, 'ordinary@example.com');
+
+    // A day later both sessions are good: a guest session lasts sixty days.
+    const nextDay = await boot(store, { clock: fixedClock('2026-10-02T09:00:00+02:00') });
+    expect((await nextDay.server.call('me.get', {}, staffToBe)).status).toBe(200);
+    nextDay.server.backend.db.guests.update(promotedId, { role: 'staff' });
+    // Any call writes the changed rows through to the store.
+    await nextDay.server.call('me.get', {}, plainGuest);
+
+    // Thirteen hours after that, the promoted session is past the staff idle
+    // limit of twelve hours, while the guest's own session is untouched.
+    const evening = await boot(store, { clock: fixedClock('2026-10-02T22:30:00+02:00') });
+    expect((await evening.server.call('me.get', {}, staffToBe)).status).toBe(401);
+    expect((await evening.server.call('me.get', {}, plainGuest)).status).toBe(200);
+  });
+
+  it('keeps the full booking policy, with its pacing, to staff', async () => {
+    const { server, mail } = await boot();
+    const token = await signIn(server, mail, 'nosy@example.com');
+    const asGuest = await server.call('admin.policy', {}, token);
+    expect(asGuest.status).toBe(403);
+    // The public policy a guest may read carries no pacing numbers.
+    const publicPolicy = await server.call('booking.policy', {});
+    expect(JSON.stringify(publicPolicy.body)).not.toContain('coversPerSlot');
   });
 });
