@@ -43,10 +43,11 @@ jobs:
       # invariant it promises is attacked.
       - name: Apply the schema and try to break it
         run: npm run db:check
-      # The API server on PostgreSQL over HTTP: sign-in, booking, restart.
       # Dependencies with a known high-severity advisory fail the build.
       - name: Dependency audit
         run: npm run audit:deps
+      # The API server on PostgreSQL over HTTP: sign-in, booking, restart,
+      # headers, body limits and session listing.
       - name: API server end to end
         run: npm run server:check && npm run server:build
       - name: API server image builds
