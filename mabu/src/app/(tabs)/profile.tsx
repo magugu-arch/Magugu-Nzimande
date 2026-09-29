@@ -225,6 +225,11 @@ export default function Profile() {
         onPress={() => router.push('/support')}
       />
       <ListRow
+        icon={<Feather name="smartphone" size={20} color={colors.accent} />}
+        label="Sign-ins and devices"
+        onPress={() => router.push('/profile/security')}
+      />
+      <ListRow
         icon={<Feather name="shield" size={20} color={colors.accent} />}
         label="Privacy notice"
         onPress={() => router.push('/legal/privacy')}

@@ -26,8 +26,17 @@ export interface SessionRecord {
   tokenHash: string;
   guestId: string;
   createdAt: string;
+  /** Idle expiry: extended while the session is used. */
   expiresAt: string;
   lastSeenAt: string;
+  /** Hard expiry: never extended, so a stolen token cannot live forever. */
+  absoluteExpiresAt?: string;
+  /** The role this session was opened for; staff sessions are short-lived. */
+  role?: string;
+  /** "Mábu app on iPhone" — for the guest's own list of sign-ins. */
+  label?: string;
+  /** A salted hash of the address it was opened from. The address is not kept. */
+  ipHash?: string;
 }
 
 export interface ServerStore {
@@ -39,6 +48,10 @@ export interface ServerStore {
   getSession(tokenHash: string): Promise<SessionRecord | undefined>;
   putSession(record: SessionRecord): Promise<void>;
   deleteSession(tokenHash: string): Promise<void>;
+  /** Every live session for one guest, for the sign-ins list. */
+  listSessions(guestId: string): Promise<SessionRecord[]>;
+  /** Ends every session for a guest, optionally sparing the one in hand. */
+  deleteSessionsFor(guestId: string, exceptTokenHash?: string): Promise<number>;
   close?(): Promise<void>;
 }
 
@@ -79,6 +92,18 @@ export class MemoryStore implements ServerStore {
   }
   async deleteSession(tokenHash: string) {
     this.sessions.delete(tokenHash);
+  }
+  async listSessions(guestId: string) {
+    return [...this.sessions.values()].filter((s) => s.guestId === guestId);
+  }
+  async deleteSessionsFor(guestId: string, exceptTokenHash?: string) {
+    let removed = 0;
+    for (const [hash, s] of this.sessions) {
+      if (s.guestId !== guestId || hash === exceptTokenHash) continue;
+      this.sessions.delete(hash);
+      removed += 1;
+    }
+    return removed;
   }
 }
 
@@ -134,6 +159,11 @@ export class FileStore extends MemoryStore {
   override async deleteSession(tokenHash: string) {
     await super.deleteSession(tokenHash);
     this.flush();
+  }
+  override async deleteSessionsFor(guestId: string, exceptTokenHash?: string) {
+    const removed = await super.deleteSessionsFor(guestId, exceptTokenHash);
+    if (removed) this.flush();
+    return removed;
   }
 }
 
@@ -218,27 +248,57 @@ export class SqlStore implements ServerStore {
     const { rows } = await this.sql.query('SELECT * FROM server_session WHERE token_hash = $1', [
       tokenHash,
     ]);
-    const r = rows[0];
-    return r
-      ? {
-          tokenHash: String(r.token_hash),
-          guestId: String(r.guest_id),
-          createdAt: iso(r.created_at),
-          expiresAt: iso(r.expires_at),
-          lastSeenAt: iso(r.last_seen_at),
-        }
-      : undefined;
+    return rows[0] ? sessionOf(rows[0]) : undefined;
   }
   async putSession(s: SessionRecord) {
     await this.sql.query(
-      `INSERT INTO server_session (token_hash, guest_id, created_at, expires_at, last_seen_at)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO server_session (token_hash, guest_id, created_at, expires_at, last_seen_at,
+         absolute_expires_at, role, label, ip_hash)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (token_hash) DO UPDATE SET last_seen_at = EXCLUDED.last_seen_at,
          expires_at = EXCLUDED.expires_at`,
-      [s.tokenHash, s.guestId, s.createdAt, s.expiresAt, s.lastSeenAt],
+      [
+        s.tokenHash,
+        s.guestId,
+        s.createdAt,
+        s.expiresAt,
+        s.lastSeenAt,
+        s.absoluteExpiresAt ?? null,
+        s.role ?? null,
+        s.label ?? null,
+        s.ipHash ?? null,
+      ],
     );
   }
   async deleteSession(tokenHash: string) {
     await this.sql.query('DELETE FROM server_session WHERE token_hash = $1', [tokenHash]);
   }
+  async listSessions(guestId: string) {
+    const { rows } = await this.sql.query('SELECT * FROM server_session WHERE guest_id = $1', [
+      guestId,
+    ]);
+    return rows.map(sessionOf);
+  }
+  async deleteSessionsFor(guestId: string, exceptTokenHash?: string) {
+    const { rows } = await this.sql.query(
+      `DELETE FROM server_session WHERE guest_id = $1 AND token_hash <> COALESCE($2, '')
+       RETURNING token_hash`,
+      [guestId, exceptTokenHash ?? null],
+    );
+    return rows.length;
+  }
+}
+
+function sessionOf(r: Record<string, unknown>): SessionRecord {
+  return {
+    tokenHash: String(r.token_hash),
+    guestId: String(r.guest_id),
+    createdAt: iso(r.created_at),
+    expiresAt: iso(r.expires_at),
+    lastSeenAt: iso(r.last_seen_at),
+    absoluteExpiresAt: r.absolute_expires_at ? iso(r.absolute_expires_at) : undefined,
+    role: r.role ? String(r.role) : undefined,
+    label: r.label ? String(r.label) : undefined,
+    ipHash: r.ip_hash ? String(r.ip_hash) : undefined,
+  };
 }

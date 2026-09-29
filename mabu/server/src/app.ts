@@ -16,9 +16,18 @@ import type { NotificationProvider } from '../../src/domain/notifications/types'
 import { createHandlers, type Handlers } from '../../src/domain/rpc';
 import { DomainError, GENERIC_FAILURE, isDomainError } from '../../src/domain/shared/errors';
 import type { Clock } from '../../src/domain/shared/clock';
-import { Auth, type EmailSender } from './auth';
+import { Auth, FRESH_SESSION_MS, type EmailSender } from './auth';
+import {
+  clientIp,
+  deviceLabel,
+  guardJson,
+  MAX_BODY_BYTES,
+  RateLimiter,
+  requestId,
+  securityHeaders,
+} from './security';
 import type { PayFastProvider } from './payfast';
-import type { ServerStore } from './store';
+import type { ServerStore, SessionRecord } from './store';
 
 export interface ServerOptions {
   store: ServerStore;
@@ -34,6 +43,11 @@ export interface ServerOptions {
     validate: (host: string, body: string) => Promise<boolean>;
   };
   allowedOrigins?: string[];
+  /** This server's public origin; https turns on HSTS. */
+  publicUrl?: string;
+  /** Salt for the address hash kept with a session. Set it to survive restarts. */
+  ipSalt?: string;
+  rateLimit?: { perIpPerMinute?: number; perSessionPerMinute?: number };
   clock?: Clock;
   log?: (line: string) => void;
 }
@@ -48,6 +62,7 @@ const STATUS: Partial<Record<string, number>> = {
   INSUFFICIENT_POINTS: 400,
   CONSENT_REQUIRED: 400,
   FORBIDDEN: 403,
+  REAUTH_REQUIRED: 403,
   NOT_FOUND: 404,
   CONFLICT: 409,
   SLOT_UNAVAILABLE: 409,
@@ -62,7 +77,7 @@ const STATUS: Partial<Record<string, number>> = {
   PROVIDER_UNAVAILABLE: 503,
 };
 
-const MAX_BODY = 100_000;
+const MAX_BODY = MAX_BODY_BYTES;
 
 export interface MabuServer {
   backend: Backend;
@@ -72,8 +87,8 @@ export interface MabuServer {
     name: string,
     args: unknown,
     token?: string,
-    meta?: { ip?: string; idempotencyKey?: string },
-  ): Promise<{ status: number; body: unknown }>;
+    meta?: { ip?: string; idempotencyKey?: string; label?: string },
+  ): Promise<{ status: number; body: unknown; retryAfter?: number }>;
   runJobs(): Promise<void>;
   handle(req: IncomingMessage, res: ServerResponse): void;
   /** The PayFast pages and webhook, without HTTP (tests). */
@@ -137,7 +152,19 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
   await options.store.saveChanges(backend.db.drainChanges());
 
   const handlers: Handlers = createHandlers(backend);
-  const auth = new Auth(options.store, options.email, () => backend.ctx.clock.now());
+  const auth = new Auth(
+    options.store,
+    options.email,
+    () => backend.ctx.clock.now(),
+    options.ipSalt,
+  );
+
+  /**
+   * How much any one caller may ask for. Sign-in has its own tighter limits
+   * (see Auth); this stops a script from hammering everything else.
+   */
+  const perIp = new RateLimiter(options.rateLimit?.perIpPerMinute ?? 240, 60_000);
+  const perSession = new RateLimiter(options.rateLimit?.perSessionPerMinute ?? 120, 60_000);
 
   // One call at a time: the service layer assumes it owns the data.
   let queue: Promise<unknown> = Promise.resolve();
@@ -152,25 +179,48 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
     await options.store.saveChanges(changes);
   };
 
-  async function actorFor(token?: string): Promise<Actor | null> {
-    const guestId = await auth.resolve(token);
-    if (!guestId) return null;
-    const guest = backend.db.guests.get(guestId);
-    return guest ? { id: guest.id, role: guest.role } : null;
+  async function actorFor(
+    token?: string,
+  ): Promise<{ actor: Actor; session: SessionRecord } | null> {
+    const session = await auth.resolve(token);
+    if (!session) return null;
+    const guest = backend.db.guests.get(session.guestId);
+    if (!guest) return null;
+    // The role comes from the guest record now, not from what the session was
+    // opened with: a role taken away takes effect on the next call.
+    return { actor: { id: guest.id, role: guest.role }, session };
   }
+
+  /**
+   * Changing money, policy or someone else's points needs a sign-in from the
+   * last half hour, so an unattended staff device cannot be used to do it.
+   */
+  const NEEDS_FRESH_SIGN_IN = new Set([
+    'admin.policy.update',
+    'admin.adjust',
+    'admin.rewards.save',
+    'admin.rewards.settings',
+    'admin.vouchers.issue',
+    'admin.vouchers.adjust',
+    'admin.payments.settle',
+    'admin.campaign.schedule',
+    'admin.menu.saveDish',
+    'admin.menu.saveWine',
+  ]);
 
   async function dispatch(
     name: string,
     args: Record<string, unknown>,
     token: string | undefined,
     ip: string,
+    label: string,
   ): Promise<unknown> {
     if (name === 'auth.requestCode') {
       await auth.requestCode(String(args.email ?? ''), ip);
       return { sent: true };
     }
     if (name === 'auth.verifyCode') {
-      await auth.verifyCode(String(args.email ?? ''), String(args.code ?? ''));
+      await auth.verifyCode(String(args.email ?? ''), String(args.code ?? ''), ip);
       const guest = backend.guests.findOrCreate({
         email: String(args.email).trim(),
         name: typeof args.name === 'string' ? args.name : undefined,
@@ -180,37 +230,88 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
       if (typeof args.name === 'string' && args.name.trim() && !guest.name)
         backend.db.guests.update(guest.id, { name: args.name.trim() });
       const fresh = backend.db.guests.require(guest.id);
-      const session = await auth.createSession(fresh.id);
-      return { guest: fresh, token: session, actor: { id: fresh.id, role: fresh.role } };
+      const { token: issued, newDevice } = await auth.createSession(fresh.id, {
+        role: fresh.role,
+        label,
+        ip,
+      });
+      if (newDevice) await auth.alertNewSignIn(fresh.email, label, backend.ctx.clock.now());
+      return { guest: fresh, token: issued, actor: { id: fresh.id, role: fresh.role } };
     }
     if (name === 'auth.signOut') {
       await auth.endSession(token);
       return { signedOut: true };
     }
+    if (name === 'auth.sessions') {
+      const me = await actorFor(token);
+      if (!me) throw new DomainError('FORBIDDEN', 'Please sign in to continue.', 'anonymous');
+      return { sessions: await auth.sessions(me.actor.id, token) };
+    }
+    if (name === 'auth.signOutOthers' || name === 'auth.signOutAll') {
+      const me = await actorFor(token);
+      if (!me) throw new DomainError('FORBIDDEN', 'Please sign in to continue.', 'anonymous');
+      const keep = name === 'auth.signOutOthers' ? token : undefined;
+      const revoked = await auth.revoke(me.actor.id, keep);
+      backend.db.audit.insert({
+        id: backend.ctx.ids.id('aud'),
+        actorId: me.actor.id,
+        actorRole: me.actor.role,
+        action: name === 'auth.signOutOthers' ? 'session.revoked-others' : 'session.revoked-all',
+        entityType: 'guest',
+        entityId: me.actor.id,
+        at: backend.ctx.clock.now().toISOString(),
+        detail: { revoked },
+      });
+      return { revoked };
+    }
     if (MOCK_ONLY.has(name) || !Object.prototype.hasOwnProperty.call(handlers, name)) {
       throw new DomainError('NOT_FOUND', 'We could not find that.', `rpc ${name}`);
     }
-    const actor = await actorFor(token);
+    const me = await actorFor(token);
+    if (me && NEEDS_FRESH_SIGN_IN.has(name)) {
+      const age = backend.ctx.clock.now().getTime() - new Date(me.session.createdAt).getTime();
+      if (age > FRESH_SESSION_MS) {
+        throw new DomainError(
+          'REAUTH_REQUIRED',
+          'Please sign in again to make this change.',
+          `stale session for ${name}`,
+        );
+      }
+    }
     const handler = handlers[name as keyof Handlers] as (
       actor: Actor | null,
       args: unknown,
     ) => Promise<unknown>;
-    return handler(actor, args);
+    return handler(me?.actor ?? null, args);
   }
 
   async function call(
     name: string,
     rawArgs: unknown,
     token?: string,
-    meta: { ip?: string; idempotencyKey?: string } = {},
-  ): Promise<{ status: number; body: unknown }> {
+    meta: { ip?: string; idempotencyKey?: string; label?: string } = {},
+  ): Promise<{ status: number; body: unknown; retryAfter?: number }> {
+    const ip = meta.ip ?? 'unknown';
+    const label = meta.label ?? 'Unknown device';
+    const at = Date.now();
+    const wait = perIp.check(ip, at) ?? (token ? perSession.check(token.slice(0, 24), at) : null);
+    if (wait !== null) {
+      return {
+        status: 429,
+        retryAfter: wait,
+        body: {
+          code: 'RATE_LIMITED',
+          message: 'That is a lot of requests. Please wait a moment and try again.',
+        },
+      };
+    }
     const args: Record<string, unknown> =
       rawArgs && typeof rawArgs === 'object' ? { ...(rawArgs as Record<string, unknown>) } : {};
     if (meta.idempotencyKey && args.idempotencyKey === undefined)
       args.idempotencyKey = meta.idempotencyKey;
     return exclusive(async () => {
       try {
-        const result = await dispatch(name, args, token, meta.ip ?? 'unknown');
+        const result = await dispatch(name, args, token, ip, label);
         return { status: 200, body: result ?? {} };
       } catch (error) {
         if (isDomainError(error)) {
@@ -243,11 +344,13 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
     }
   }
 
-  function send(res: ServerResponse, status: number, body: unknown) {
+  const https = (options.publicUrl ?? '').startsWith('https://');
+
+  function send(res: ServerResponse, status: number, body: unknown, retryAfter?: number) {
     res.writeHead(status, {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'X-Content-Type-Options': 'nosniff',
+      ...securityHeaders({ https, kind: 'json' }),
+      ...(retryAfter ? { 'Retry-After': String(retryAfter) } : {}),
     });
     res.end(JSON.stringify(body));
   }
@@ -255,9 +358,12 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
   function sendHtml(res: ServerResponse, status: number, html: string) {
     res.writeHead(status, {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'X-Content-Type-Options': 'nosniff',
-      'Referrer-Policy': 'no-referrer',
+      ...securityHeaders({
+        https,
+        kind: 'page',
+        // The payment page posts to PayFast and nowhere else.
+        formAction: options.payfast ? [options.payfast.provider.host] : [],
+      }),
     });
     res.end(html);
   }
@@ -357,6 +463,8 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
   }
 
   function handle(req: IncomingMessage, res: ServerResponse) {
+    // A short id ties a log line to one request without naming the caller.
+    res.setHeader('X-Request-Id', requestId());
     cors(req, res);
     const url = new URL(req.url ?? '/', 'http://localhost');
     if (req.method === 'OPTIONS') {
@@ -403,24 +511,22 @@ export async function createServer(options: ServerOptions): Promise<MabuServer> 
       let args: unknown = {};
       try {
         const raw = Buffer.concat(chunks).toString('utf8');
-        args = raw ? JSON.parse(raw) : {};
+        // Legal JSON can still be hostile: nested, huge, or carrying
+        // __proto__. The guard refuses it before anything else sees it.
+        args = raw ? guardJson(JSON.parse(raw)) : {};
       } catch {
         send(res, 400, { code: 'VALIDATION', message: 'That request could not be read.' });
         return;
       }
-      const auth = req.headers.authorization;
-      const token = auth?.startsWith('Bearer ') ? auth.slice(7).trim() : undefined;
+      const header = req.headers.authorization;
+      const token = header?.startsWith('Bearer ') ? header.slice(7).trim() : undefined;
       const key = req.headers['idempotency-key'];
-      const ip =
-        (typeof req.headers['x-forwarded-for'] === 'string'
-          ? req.headers['x-forwarded-for'].split(',')[0]?.trim()
-          : undefined) ??
-        req.socket.remoteAddress ??
-        'unknown';
+      const ip = clientIp(req.headers, req.socket.remoteAddress);
       void call(match[1]!, args, token, {
         ip,
+        label: deviceLabel(req.headers['user-agent']),
         idempotencyKey: typeof key === 'string' ? key : undefined,
-      }).then(({ status, body }) => send(res, status, body));
+      }).then(({ status, body, retryAfter }) => send(res, status, body, retryAfter));
     });
   }
 

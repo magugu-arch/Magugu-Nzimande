@@ -145,6 +145,36 @@ check(
   'mock-only tool hidden',
   (await api.rpc('admin.simulateFailure', { channel: 'push', count: 1 }, token)).status === 404,
 );
+
+/* ── The security layer, over real HTTP ───────────────────────────────── */
+
+const head = await fetch(`${api.base}/health`);
+check(
+  'strict headers on every answer',
+  head.headers.get('content-security-policy')?.includes("frame-ancestors 'none'") === true &&
+    head.headers.get('x-content-type-options') === 'nosniff' &&
+    head.headers.get('x-frame-options') === 'DENY' &&
+    head.headers.get('cache-control') === 'no-store' &&
+    /^[0-9a-f]{16}$/.test(head.headers.get('x-request-id') ?? ''),
+);
+
+const big = await fetch(`${api.base}/rpc/content.menu`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ note: 'x'.repeat(200_000) }),
+});
+check('oversized body refused', big.status === 413 || big.status === 400, String(big.status));
+
+const nested = await api.rpc('content.menu', JSON.parse('[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]'));
+check('deeply nested body refused', nested.status === 400);
+
+const mySignIns = await api.rpc('auth.sessions', {}, token);
+check(
+  'the guest can see their own sign-ins',
+  mySignIns.status === 200 && mySignIns.body.sessions.length >= 1,
+  JSON.stringify(mySignIns.body).slice(0, 120),
+);
+check('another guest cannot', (await api.rpc('auth.sessions', {})).status === 401);
 await api.stop();
 
 if (failures) {

@@ -44,6 +44,9 @@ jobs:
       - name: Apply the schema and try to break it
         run: npm run db:check
       # The API server on PostgreSQL over HTTP: sign-in, booking, restart.
+      # Dependencies with a known high-severity advisory fail the build.
+      - name: Dependency audit
+        run: npm run audit:deps
       - name: API server end to end
         run: npm run server:check && npm run server:build
       - name: API server image builds

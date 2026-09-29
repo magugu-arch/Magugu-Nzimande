@@ -13,9 +13,9 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \"server/src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \"server/src/**/*.ts\"",
     "test": "jest --passWithNoTests",
-    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run db:check && npm run server:check",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run db:check && npm run server:check && npm run audit:deps",
     "assets:photos": "node scripts/derive-photos.mjs",
-    "export:web": "npm run content:snapshot && expo export --platform web --output-dir dist-web && npm run seo",
+    "export:web": "npm run content:snapshot && expo export --platform web --output-dir dist-web && npm run seo && npm run harden",
     "shots": "node scripts/screens.mjs",
     "e2e": "node scripts/journeys.mjs",
     "verify:web": "npm run export:web && npm run shots && npm run e2e",
@@ -27,7 +27,9 @@
     "standalone": "npm run export:web && node scripts/standalone.mjs",
     "standalone:check": "node scripts/check-standalone.mjs",
     "content:snapshot": "node scripts/content-snapshot.mjs",
-    "seo": "node scripts/seo.mjs"
+    "seo": "node scripts/seo.mjs",
+    "harden": "node scripts/harden-site.mjs",
+    "audit:deps": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
     "@expo-google-fonts/allura": "^0.4.2",

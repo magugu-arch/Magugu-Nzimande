@@ -14,6 +14,8 @@
  *   MABU_EMAIL_FROM         "Mábu Restaurant <reservations@…>"
  *   MABU_PAYFAST_MERCHANT_ID / _MERCHANT_KEY / _PASSPHRASE, MABU_PAYFAST_SANDBOX=1
  *   MABU_PUBLIC_URL         this server's public https origin (PayFast returns here)
+ *   MABU_SESSION_SALT       secret; salts the address hash kept with a session
+ *   MABU_RATE_LIMIT_IP / _SESSION   requests a minute (default 240 / 120)
  *   MABU_DEV_LOG_EMAIL      1 = print emails (sign-in codes included) to the
  *                           log instead of sending. Development only.
  *   MABU_* feature flags    as in .env.example, without EXPO_PUBLIC_
@@ -105,6 +107,14 @@ async function main() {
         : { fetch, accessToken: process.env.EXPO_ACCESS_TOKEN },
     directInventory: process.env.MABU_DIRECT_INVENTORY === '1',
     payfast: payfastConfig(),
+    publicUrl: process.env.MABU_PUBLIC_URL,
+    // Keeps session address hashes stable across restarts. Without it a new
+    // salt is made at start-up, and every device looks new once.
+    ipSalt: process.env.MABU_SESSION_SALT,
+    rateLimit: {
+      perIpPerMinute: Number(process.env.MABU_RATE_LIMIT_IP ?? 240),
+      perSessionPerMinute: Number(process.env.MABU_RATE_LIMIT_SESSION ?? 120),
+    },
     allowedOrigins: (process.env.MABU_ALLOWED_ORIGINS ?? '')
       .split(',')
       .map((o) => o.trim())

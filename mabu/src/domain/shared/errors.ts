@@ -19,6 +19,7 @@ export type DomainErrorCode =
   | 'PAYMENT_DECLINED'
   | 'PAYMENT_PENDING'
   | 'FORBIDDEN'
+  | 'REAUTH_REQUIRED'
   | 'RATE_LIMITED'
   | 'CONSENT_REQUIRED'
   | 'FEATURE_DISABLED';

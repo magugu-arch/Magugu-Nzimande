@@ -52,6 +52,7 @@ const GUEST = [
   '/profile/vouchers',
   '/profile/favourites',
   '/profile/details',
+  '/profile/security',
   '/rewards',
   '/rewards/rw-amuse',
   '/notifications',

@@ -133,6 +133,38 @@ export function createHandlers(b: Backend) {
       return { guest: fresh, token: fresh.id, actor: { id: fresh.id, role: fresh.role } as Actor };
     },
 
+    /* ── Sessions (§19) ───────────────────────────────────────────── */
+
+    /**
+     * The live server answers these itself, against real sessions. In the
+     * in-app demo there is only ever this one device, and signing out
+     * everywhere is what the sign-out button already does.
+     */
+    'auth.sessions': async (actor: Actor | null) => {
+      const me = signedIn(actor);
+      const guest = b.db.guests.require(me.id);
+      return {
+        sessions: [
+          {
+            id: 'this-device',
+            label: 'This device',
+            createdAt: guest.createdAt,
+            lastSeenAt: b.ctx.clock.now().toISOString(),
+            expiresAt: b.ctx.clock.now().toISOString(),
+            current: true,
+          },
+        ],
+      };
+    },
+    'auth.signOutOthers': async (actor: Actor | null) => {
+      signedIn(actor);
+      return { revoked: 0 };
+    },
+    'auth.signOutAll': async (actor: Actor | null) => {
+      signedIn(actor);
+      return { revoked: 0 };
+    },
+
     /* ── Me ───────────────────────────────────────────────────────── */
 
     'me.get': async (actor: Actor | null) => {

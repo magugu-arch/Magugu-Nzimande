@@ -60,6 +60,11 @@ export class PayFastProvider implements PaymentProvider {
   readonly id = 'payfast';
   constructor(private readonly config: PayFastConfig) {}
 
+  /** Where its checkout lives, so a page policy can allow posting there. */
+  get host(): string {
+    return payfastHost(this.config.sandbox);
+  }
+
   async charge(request: ChargeRequest) {
     // Nothing is taken here: the guest pays on PayFast's page, and the ITN settles it.
     return {

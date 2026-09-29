@@ -3,6 +3,8 @@ import type { EmailSender } from '../server/src/auth';
 import { MemoryStore } from '../server/src/store';
 import { SmtpEmailSender } from '../server/src/email';
 import { PayFastProvider, payfastSignature, phpUrlencode } from '../server/src/payfast';
+import { guardJson } from '../server/src/security';
+import http from 'node:http';
 import nodemailer from 'nodemailer';
 import { DEFAULT_FLAGS } from '@/domain/flags';
 import { fixedClock } from '@/domain/shared/clock';
@@ -311,5 +313,160 @@ describe('PayFast hosted checkout', () => {
     expect(await server.payfast.notify(itn())).toBe(200); // PayFast retries: harmless
     const done = await server.call('vouchers.get', { id: voucher.id }, token);
     expect((done.body as { status: string }).status).toBe('active');
+  });
+});
+
+describe('the security layer', () => {
+  it('sets a strict policy on every answer, and never caches one', async () => {
+    const { server } = await boot();
+    const res = await new Promise<{ status: number; headers: Record<string, string> }>(
+      (resolve) => {
+        const httpServer = http.createServer(server.handle);
+        httpServer.listen(0, () => {
+          const port = (httpServer.address() as { port: number }).port;
+          http.get(`http://127.0.0.1:${port}/health`, (r) => {
+            r.resume();
+            resolve({
+              status: r.statusCode ?? 0,
+              headers: r.headers as unknown as Record<string, string>,
+            });
+            httpServer.close();
+          });
+        });
+      },
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers['content-security-policy']).toContain("frame-ancestors 'none'");
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-frame-options']).toBe('DENY');
+    expect(res.headers['referrer-policy']).toBe('no-referrer');
+    expect(res.headers['cache-control']).toBe('no-store');
+    expect(res.headers['x-request-id']).toMatch(/^[0-9a-f]{16}$/);
+  });
+
+  it('refuses a body that is legal JSON but expensive', () => {
+    expect(() => guardJson(JSON.parse(`{"a":"${'x'.repeat(9000)}"}`))).toThrow();
+    let deep = '1';
+    for (let i = 0; i < 20; i += 1) deep = `[${deep}]`;
+    expect(() => guardJson(JSON.parse(deep))).toThrow();
+    const clean = guardJson(JSON.parse('{"__proto__":{"admin":true},"name":"Thandi"}')) as Record<
+      string,
+      unknown
+    >;
+    expect(clean).toEqual({ name: 'Thandi' });
+    expect(({} as { admin?: boolean }).admin).toBeUndefined();
+  });
+
+  it('slows down a caller that hammers the API, and says for how long', async () => {
+    const { server } = await boot(new MemoryStore(), {
+      rateLimit: { perIpPerMinute: 5, perSessionPerMinute: 5 },
+    });
+    for (let i = 0; i < 5; i += 1) {
+      expect((await server.call('content.menu', {}, undefined, { ip: '9.9.9.9' })).status).toBe(
+        200,
+      );
+    }
+    const stopped = await server.call('content.menu', {}, undefined, { ip: '9.9.9.9' });
+    expect(stopped.status).toBe(429);
+    expect(stopped.retryAfter).toBeGreaterThan(0);
+    // Another caller is unaffected.
+    expect((await server.call('content.menu', {}, undefined, { ip: '8.8.8.8' })).status).toBe(200);
+  });
+
+  it('limits how many codes one address may try', async () => {
+    const { server, mail } = await boot();
+    await server.call('auth.requestCode', { email: 'many@example.com' }, undefined, {
+      ip: '2.2.2.2',
+    });
+    const wrong = mail.lastCode() === '000000' ? '111111' : '000000';
+    let refusals = 0;
+    for (let i = 0; i < 25; i += 1) {
+      const res = await server.call(
+        'auth.verifyCode',
+        { email: `guess${i}@example.com`, code: wrong },
+        undefined,
+        { ip: '2.2.2.2' },
+      );
+      if (res.status === 429) refusals += 1;
+    }
+    expect(refusals).toBeGreaterThan(0);
+  });
+
+  it('lists a guest’s sign-ins and ends the others', async () => {
+    const { server, mail } = await boot();
+    const first = await signIn(server, mail, 'devices@example.com');
+    const second = await signIn(server, mail, 'devices@example.com');
+    const list = await server.call('auth.sessions', {}, second);
+    const sessions = (list.body as { sessions: { current: boolean; label: string }[] }).sessions;
+    expect(sessions).toHaveLength(2);
+    expect(sessions.filter((s) => s.current)).toHaveLength(1);
+
+    const revoked = await server.call('auth.signOutOthers', {}, second);
+    expect(revoked.body).toEqual({ revoked: 1 });
+    expect((await server.call('me.get', {}, first)).status).toBe(401);
+    expect((await server.call('me.get', {}, second)).status).toBe(200);
+  });
+
+  it('warns the guest by email when a new device signs in, but not on the same one', async () => {
+    const { server, mail } = await boot();
+    const openOn = async (label: string, ip: string) => {
+      await server.call('auth.requestCode', { email: 'alert@example.com' }, undefined, { ip });
+      await server.call(
+        'auth.verifyCode',
+        { email: 'alert@example.com', code: mail.lastCode() },
+        undefined,
+        { ip, label },
+      );
+    };
+    await openOn('Mábu app on iPhone', '1.1.1.1');
+    const afterFirst = mail.sent.length;
+    await openOn('Mábu app on iPhone', '1.1.1.1');
+    expect(
+      mail.sent.slice(afterFirst).filter((m) => m.subject.includes('new sign-in')),
+    ).toHaveLength(0);
+    const before = mail.sent.length;
+    await openOn('Browser on Windows', '5.5.5.5');
+    const alerts = mail.sent.slice(before).filter((m) => m.subject.includes('new sign-in'));
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]!.to).toBe('alert@example.com');
+    expect(alerts[0]!.text).not.toMatch(/\d{6}/);
+  });
+
+  it('asks a staff member to sign in again before changing policy', async () => {
+    const store = new MemoryStore();
+    const { server, mail } = await boot(store);
+    const token = await signIn(server, mail, 'boss@example.com');
+    const guest = server.backend.db.guests.list()[0]!;
+    server.backend.db.guests.update(guest.id, { role: 'admin' });
+
+    const fresh = await server.call('admin.policy.update', { maxPartySize: 12 }, token);
+    expect(fresh.status).toBe(200);
+
+    // The same session, an hour later: money and policy need a fresh sign-in.
+    const later = await boot(store, { clock: fixedClock('2026-10-01T11:00:00+02:00') });
+    const stale = await later.server.call('admin.policy.update', { maxPartySize: 14 }, token);
+    expect(stale).toMatchObject({ status: 403, body: { code: 'REAUTH_REQUIRED' } });
+    // Reading the day's bookings still works: only changes need the fresh sign-in.
+    expect(
+      (await later.server.call('admin.reservations', { date: '2026-10-01' }, token)).status,
+    ).toBe(200);
+  });
+
+  it('ends a staff session after twelve idle hours, and a guest session after sixty days', async () => {
+    const store = new MemoryStore();
+    const { server, mail } = await boot(store);
+    const staffToken = await signIn(server, mail, 'floor@example.com');
+    server.backend.db.guests.update(server.backend.db.guests.list()[0]!.id, { role: 'staff' });
+    const guestToken = await signIn(server, mail, 'guest@example.com');
+
+    const nextDay = await boot(store, { clock: fixedClock('2026-10-02T09:00:00+02:00') });
+    // The staff session was opened as a guest session before the role changed,
+    // so re-open it as staff to check the staff life.
+    expect((await nextDay.server.call('me.get', {}, guestToken)).status).toBe(200);
+    const staff = await signIn(nextDay.server, nextDay.mail, 'floor@example.com');
+    const halfWeek = await boot(store, { clock: fixedClock('2026-10-03T09:00:00+02:00') });
+    expect((await halfWeek.server.call('me.get', {}, staff)).status).toBe(401);
+    expect((await halfWeek.server.call('me.get', {}, guestToken)).status).toBe(200);
+    void staffToken;
   });
 });
