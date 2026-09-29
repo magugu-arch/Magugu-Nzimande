@@ -30,6 +30,7 @@ import type { Voucher, VoucherPolicy, VoucherRedemption } from './vouchers/types
 import type { PaymentIntent } from './payments/types';
 import type { Dish, MenuCollection, WineItem } from './menu/types';
 import type { ProviderOrder } from './commerce/types';
+import type { AnalyticsEvent } from './analytics';
 import type { VenueContent, HomeContent } from '../content/types';
 
 export interface IdempotencyRecord {
@@ -91,6 +92,9 @@ export class Database {
   home = new Table<HomeContent>('home_content');
 
   providerOrders = new Table<ProviderOrder>('provider_order');
+
+  /** Funnel events, kept so the counts survive a restart (§27). */
+  analyticsEvents = new Table<AnalyticsEvent>('analytics_event');
 
   tables(): Table<{ id: string }>[] {
     return Object.values(this).filter((v): v is Table<{ id: string }> => v instanceof Table);

@@ -23,6 +23,7 @@ import { mockBackend, mockTick, onMockPush } from '@/services/mockServer';
 import { useSession } from '@/store/session';
 import { PageMeta } from '@/seo/PageMeta';
 import { colors } from '@/theme';
+import { flushAnalytics } from '@/utils/analytics';
 import { useReduceMotion } from '@/utils/useReduceMotion';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -114,6 +115,20 @@ function Shell() {
  */
 function useBackgroundServices() {
   const actorId = useSession((s) => s.actor?.id);
+  // Against a live server, send whatever analytics is holding before the app
+  // is put away — a batch that is never flushed is a count never counted.
+  useEffect(() => {
+    if (config.useMockApi) return;
+    const sub = AppState.addEventListener('change', (s) => {
+      focusManager.setFocused(s === 'active');
+      if (s !== 'active') flushAnalytics();
+    });
+    return () => {
+      flushAnalytics();
+      sub.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (!config.useMockApi) return;
     void mockBackend();

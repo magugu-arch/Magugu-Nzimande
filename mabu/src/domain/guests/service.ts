@@ -103,6 +103,98 @@ export class GuestsService {
     });
   }
 
+  /**
+   * POPIA §23: everything Mábu holds about one guest, in one answer, so they
+   * can see it and keep a copy. Only what belongs to them — never another
+   * guest's record, and never a staff note, which is written about service
+   * rather than to the guest.
+   */
+  exportAccount(guestId: string, actor: Actor) {
+    requireOwnerOrStaff(actor, guestId);
+    const guest = this.ctx.db.guests.require(guestId);
+    const mine = <T extends { guestId?: string }>(rows: T[]) =>
+      rows.filter((r) => r.guestId === guestId);
+    const bookings = this.ctx.db.reservations.filter((r) => r.guestId === guestId);
+    const accounts = this.ctx.db.rewardAccounts.filter((a) => a.guestId === guestId);
+    return {
+      exportedAt: nowIso(this.ctx),
+      about:
+        'Everything Mábu holds about you. Bookings and payments are kept for tax and accounting even if you delete your account, but without your name or contact details.',
+      you: {
+        name: guest.name,
+        email: guest.email,
+        phone: guest.phone,
+        joined: guest.createdAt,
+        preferences: guest.preferences,
+        occasions: guest.occasions,
+        consent: guest.consent,
+        rewardsMember: guest.rewardsOptIn === true,
+        referralCode: guest.referralCode,
+      },
+      bookings: bookings.map((r) => ({
+        reference: r.reference,
+        startsAt: r.startsAt,
+        partySize: r.partySize,
+        status: r.status,
+        occasion: r.occasionNote,
+        dietaryNotes: r.dietaryNotes,
+        accessibilityNotes: r.accessibilityNotes,
+        specialRequest: r.specialRequest,
+        createdAt: r.createdAt,
+      })),
+      events: mine(this.ctx.db.experienceBookings.list()).map((b) => ({
+        event: this.ctx.db.experiences.get(b.eventId)?.title ?? b.eventId,
+        seats: b.seats,
+        status: b.status,
+        reference: b.reference,
+        createdAt: b.createdAt,
+      })),
+      vouchers: this.ctx.db.vouchers
+        .filter((v) => v.purchaserGuestId === guestId || v.issuedTo === guestId)
+        .map((v) => ({
+          code: v.code,
+          amountCents: v.amountCents,
+          remainingCents: v.remainingCents,
+          status: v.status,
+          createdAt: v.createdAt,
+        })),
+      rewards: accounts.map((a) => ({
+        balancePoints: a.balancePoints,
+        lifetimePoints: a.lifetimePoints,
+        tier: a.tierId,
+        joinedAt: a.createdAt,
+        ledger: this.ctx.db.rewardTransactions
+          .filter((t) => t.accountId === a.id)
+          .map((t) => ({
+            at: t.createdAt,
+            points: t.points,
+            type: t.type,
+            description: t.description,
+          })),
+      })),
+      favourites: mine(this.ctx.db.favourites.list()).map((f) => ({
+        kind: f.kind,
+        itemId: f.itemId,
+        savedAt: f.createdAt,
+      })),
+      notifications: {
+        preferences: mine(this.ctx.db.notificationPreferences.list()).map((p) => ({
+          category: p.category,
+          enabled: p.enabled,
+          channels: p.channels,
+          quietHours: p.quietHours,
+        })),
+        messages: this.ctx.db.notificationMessages
+          .filter((m) => m.guestId === guestId)
+          .map((m) => ({ at: m.createdAt, about: m.templateKey, status: m.status })),
+      },
+      devices: mine(this.ctx.db.pushTokens.list()).map((t) => ({
+        platform: t.platform,
+        registeredAt: t.createdAt,
+      })),
+    };
+  }
+
   /** POPIA: a guest can remove their personal data. Bookings keep a redacted record. */
   deleteAccount(guestId: string, actor: Actor): void {
     requireOwnerOrStaff(actor, guestId);

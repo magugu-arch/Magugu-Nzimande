@@ -9,7 +9,7 @@ import {
   SEED_VENUE,
   SEED_WINES,
 } from '../content/seed';
-import { Analytics } from './analytics';
+import { Analytics, type AnalyticsProps, type MabuEvent } from './analytics';
 import { runJobs, wireAutomation } from './automation';
 import { CommerceRegistry } from './commerce/providers';
 import type { ServiceContext } from './context';
@@ -82,6 +82,30 @@ export function createBackend(options: BackendOptions = {}) {
     flags: { ...DEFAULT_FLAGS, ...options.flags },
     analytics: new Analytics(),
   };
+
+  /**
+   * Funnel events are kept in the database, so the counts the restaurant sees
+   * survive a restart, and so a device's batch and the server's own events end
+   * up in one place. Ninety days is enough to read a season; older rows go.
+   */
+  const RETAIN_DAYS = 90;
+  ctx.analytics.addSink({
+    send(event: MabuEvent, props: AnalyticsProps, at: string) {
+      ctx.db.analyticsEvents.insert({
+        id: ctx.ids.id('evt'),
+        event,
+        props,
+        at,
+        platform: 'server',
+      });
+      if (ctx.db.analyticsEvents.count() % 500 === 0) {
+        const cutoff = new Date(ctx.clock.now().getTime() - RETAIN_DAYS * 86_400_000).toISOString();
+        for (const row of ctx.db.analyticsEvents.filter((r) => r.at < cutoff)) {
+          ctx.db.analyticsEvents.delete(row.id);
+        }
+      }
+    },
+  });
 
   const payments = new PaymentsService(
     ctx,

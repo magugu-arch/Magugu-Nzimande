@@ -103,7 +103,7 @@ export default function AdminHome() {
             </View>
           ))}
 
-          <SectionTitle eyebrow="This session" title="Conversion" />
+          <SectionTitle eyebrow="Last 30 days" title="Conversion" />
           <TileRow>
             <Tile label="Bookings started" value={d.conversion.bookingStarted} />
             <Tile label="Availability checks" value={d.conversion.availabilityChecked} />
@@ -116,6 +116,7 @@ export default function AdminHome() {
               label="Event checkouts"
               value={`${d.conversion.eventCompleted}/${d.conversion.eventStarted}`}
             />
+            <Tile label="Sent from guests' devices" value={d.conversion.fromDevices} />
           </TileRow>
         </>
       )}

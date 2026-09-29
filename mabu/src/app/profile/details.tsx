@@ -237,6 +237,13 @@ function DetailsForm({ me }: { me: Guest }) {
         bookings are kept without your name or contact details.
       </Text>
       <PremiumButton
+        label="See what we hold about you"
+        variant="secondary"
+        compact
+        style={{ alignSelf: 'flex-start', marginTop: spacing.md }}
+        onPress={() => router.push('/profile/data')}
+      />
+      <PremiumButton
         label="Read our privacy notice"
         variant="ghost"
         compact

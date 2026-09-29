@@ -175,6 +175,29 @@ check(
   JSON.stringify(mySignIns.body).slice(0, 120),
 );
 check('another guest cannot', (await api.rpc('auth.sessions', {})).status === 401);
+
+// Funnel events from a device: written through to PostgreSQL, so the counts
+// the restaurant reads are not lost when the server restarts.
+const batch = await api.rpc(
+  'analytics.collect',
+  { platform: 'ios', events: [{ event: 'booking_started' }, { event: 'not_an_event' }] },
+  token,
+);
+check(
+  "a device's events are accepted and the unknown one dropped",
+  batch.status === 200 && batch.body.accepted === 1,
+  JSON.stringify(batch.body),
+);
+const kept = (
+  await db.query(`select document from server_row where table_name = 'analytics_event'`)
+).rows.map((r) => (typeof r.document === 'string' ? JSON.parse(r.document) : r.document));
+check(
+  'the event is in PostgreSQL, tagged with the device and nothing personal',
+  kept.some((e) => e.event === 'booking_started' && e.platform === 'ios') &&
+    !JSON.stringify(kept).includes(email),
+  JSON.stringify(kept).slice(0, 160),
+);
+
 await api.stop();
 
 if (failures) {

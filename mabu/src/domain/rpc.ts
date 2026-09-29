@@ -10,6 +10,7 @@
  */
 import type { Backend } from './backend';
 import { requireRole } from './context';
+import { isMabuEvent, type AnalyticsProps } from './analytics';
 import type { Actor, DietaryTag, FavouriteKind, GuestOccasion } from './guests/types';
 import type { AmendPatch } from './reservations/service';
 import type {
@@ -197,6 +198,39 @@ export function createHandlers(b: Backend) {
     'me.removeOccasion': async (actor: Actor | null, a: { id: string }) => {
       const me = signedIn(actor);
       return b.guests.removeOccasion(me.id, a.id, me);
+    },
+    /**
+     * A batch of funnel events from a device (§27). Deliberately forgiving:
+     * an unknown name or an oversized property is dropped rather than failing
+     * a guest's journey, and nothing here can carry contact details.
+     */
+    'analytics.collect': async (
+      actor: Actor | null,
+      a: { events: { event: string; props?: AnalyticsProps; at?: string }[]; platform?: string },
+    ) => {
+      const platform = (['ios', 'android', 'web'] as const).find((p) => p === a.platform);
+      const at = b.ctx.clock.now().toISOString();
+      let accepted = 0;
+      for (const raw of (a.events ?? []).slice(0, MAX_EVENTS_PER_BATCH)) {
+        const event = raw.event;
+        if (!isMabuEvent(event)) continue;
+        b.ctx.db.analyticsEvents.insert({
+          id: b.ctx.ids.id('evt'),
+          event,
+          props: safeProps(raw.props),
+          at: typeof raw.at === 'string' && !Number.isNaN(Date.parse(raw.at)) ? raw.at : at,
+          ...(actor ? { guestId: actor.id } : {}),
+          ...(platform ? { platform } : {}),
+        });
+        accepted += 1;
+      }
+      return { accepted };
+    },
+
+    /** POPIA: everything Mábu holds about the guest asking. */
+    'me.export': async (actor: Actor | null) => {
+      const me = signedIn(actor);
+      return b.guests.exportAccount(me.id, me);
     },
     'me.delete': async (actor: Actor | null) => {
       const me = signedIn(actor);
@@ -735,9 +769,29 @@ function publicPolicy(b: Backend) {
 
 export type PublicBookingPolicy = ReturnType<typeof publicPolicy>;
 
-/** Funnel counts from the in-memory analytics log (mock back end only). */
+const MAX_EVENTS_PER_BATCH = 50;
+const MAX_PROPS = 12;
+
+/**
+ * Keeps a device's properties to primitives and modest sizes, so nothing a
+ * client sends can bloat a row or smuggle in a free-text field.
+ */
+function safeProps(props: AnalyticsProps | undefined): AnalyticsProps {
+  const out: AnalyticsProps = {};
+  for (const [key, value] of Object.entries(props ?? {}).slice(0, MAX_PROPS)) {
+    if (!/^[a-zA-Z][a-zA-Z0-9_]{0,31}$/.test(key)) continue;
+    if (typeof value === 'number' && Number.isFinite(value)) out[key] = value;
+    else if (typeof value === 'boolean') out[key] = value;
+    else if (typeof value === 'string' && value.length <= 120) out[key] = value;
+  }
+  return out;
+}
+
+/** Funnel counts over the last 30 days, from the events the server has kept. */
 function conversion(b: Backend) {
-  const count = (e: string) => b.ctx.analytics.log.filter((l) => l.event === e).length;
+  const since = new Date(b.ctx.clock.now().getTime() - 30 * 86_400_000).toISOString();
+  const rows = b.ctx.db.analyticsEvents.filter((r) => r.at >= since);
+  const count = (e: string) => rows.filter((l) => l.event === e).length;
   return {
     bookingStarted: count('booking_started'),
     availabilityChecked: count('availability_checked'),
@@ -746,5 +800,6 @@ function conversion(b: Backend) {
     voucherCompleted: count('voucher_purchase_completed'),
     eventStarted: count('event_booking_started'),
     eventCompleted: count('event_booking_completed'),
+    fromDevices: rows.filter((r) => r.platform && r.platform !== 'server').length,
   };
 }
