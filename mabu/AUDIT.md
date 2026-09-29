@@ -7,7 +7,7 @@ Rewards, Notifications*). Costings are in `COSTINGS.md`; the search plan is in `
 
 | | Complete | Left |
 | --- | ---: | ---: |
-| **The app** (iPhone, Android and the service behind them) | **≈ 79%** | 21% |
+| **The app** (iPhone, Android and the service behind them) | **≈ 80%** | 20% |
 | **The website** (the same product as a public site) | **≈ 62%** | 38% |
 
 Everything the brief asks for is built and works in demo mode. The website is now a real set of pages: 78
@@ -28,10 +28,10 @@ The percentages are weighted estimates of effort, not a count of screens or page
 | Admin and CMS | 7 | 92% | 14 admin screens, now with campaign audiences and reach preview. |
 | API server and data | 12 | 75% | Server, migrations and Docker ready. Still to do: relational tables, hosting, backups, monitoring. |
 | Content | 8 | 40% | Brand, categories, venue and the Meerlust event are real. Dishes, wines, prices, hours and policies are samples. |
-| Security and POPIA | 5 | 65% | Hashed codes and sessions, rate limits, role checks, audit log, verified payment notifications, draft legal pages. Needs legal and security review. |
-| Testing | 5 | 93% | 86 unit tests, schema check, server check on PostgreSQL, 92-screen sweep with a reduced-motion check, 9 journeys, single-file check, SEO check. |
+| Security and POPIA | 5 | 85% | Hashed codes and sessions with hard expiry, device list and revocation, new-device alerts, fresh-sign-in rule for money and policy, strict headers and body limits, verified payment notifications, website content policy, dependency gate. Needs legal sign-off and an external penetration test. |
+| Testing | 5 | 95% | 86 unit tests, schema check, server check on PostgreSQL, 92-screen sweep with a reduced-motion check, 9 journeys, single-file check, SEO check. |
 | Release | 9 | 40% | Website build, EAS profiles, store copy, Docker image and single-file demo ready. Still to do: accounts, signing, store review, hosting. |
-| **Total** | **100** | **≈ 79%** | |
+| **Total** | **100** | **≈ 80%** | |
 
 ## The website
 
@@ -48,6 +48,13 @@ kept out of search.
 | Search Console, Bing, Business Profile, directory links | 6 | 0% | About an hour's work once the domain is live (steps in `SEO.md`). |
 | Legal pages approved, public phone number | 6 | 40% | Drafts written and linked; awaiting Mábu's attorneys and the number to publish. |
 | **Total** | **100** | **≈ 62%** | |
+
+## Done in the fourth pass
+
+- **A security layer** (`SECURITY.md`): request limits and strict headers on every answer, hardened request
+  bodies, sessions with a hard expiry and a device list a guest can revoke, an email when a new device signs in,
+  and a fresh-sign-in rule before any staff change to money or policy. The website ships its own content
+  security policy, checked in a browser and enforced by the build. CI fails on a high-severity advisory.
 
 ## Done in the third pass
 
@@ -114,7 +121,8 @@ kept out of search.
 5. **Hosting:** run the Docker image and PostgreSQL with backups, the web build on Mábu's domain, error
    monitoring and uptime checks.
 6. **Store release:** EAS project, signing, TestFlight and Play internal testing, store listings and screenshots.
-7. **Security review** before launch.
+7. **An external penetration test** before launch. The code-level review is done and the fixes are in;
+   `SECURITY.md` lists what is protected and what is accepted.
 
 ## How to see it
 

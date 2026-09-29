@@ -42,6 +42,8 @@ Admin › *Reset demo data* starts again.
 | `npm run server:dev` | Runs the API server locally; sign-in codes are printed to the log |
 | `npm run server:check` | The API server on PostgreSQL over HTTP: sign-in, booking, restart |
 | `npm run export:web` | The website: a page per route, plus sitemap.xml, robots.txt and the SEO checks |
+| `npm run harden` | Writes the website's security headers, nginx include and security.txt, and checks the export against them |
+| `npm run audit:deps` | Fails on a dependency with a high-severity advisory |
 | `npm run seo` | Rewrites the sitemap and robots, and checks every page's title, description and canonical |
 | `npm run content:snapshot` | Rebuilds the public content that ships inside the website's HTML |
 | `npm run standalone` | The whole app as one HTML file in `dist-standalone/` (opens from disk) |
@@ -221,8 +223,8 @@ replaces the directions card.
 
 ### 8. Remaining technical blockers
 
-See `AUDIT.md` for the full completion audit, `COSTINGS.md` for market costings and `SEO.md` for how the
-website is set up to be found.
+See `AUDIT.md` for the full completion audit, `COSTINGS.md` for market costings, `SEO.md` for how the website
+is set up to be found, and `SECURITY.md` for how accounts and data are protected.
 
 - **Deployment.** The API server (`server/`, see `server/README.md`) runs sign-in, sessions, PostgreSQL and push,
   and passes `npm run server:check`, but is not yet hosted. It keeps rows as documents in `server_row`; moving
