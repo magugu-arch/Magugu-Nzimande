@@ -1,0 +1,94 @@
+{
+  "expo": {
+    "name": "NMU ONE",
+    "slug": "nmu-one",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "nmuone",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F3F3EE",
+    "primaryColor": "#141C2B",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nmuone.prototype",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "NMU ONE uses your location, only while you are using it, to show where you are on the campus map and to share your position with Campus Protection when you ask it to.",
+        "NSCalendarsUsageDescription": "NMU ONE adds classes, exams and events you choose to your calendar.",
+        "NSCalendarsFullAccessUsageDescription": "NMU ONE adds classes, exams and events you choose to your calendar.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.nmuone.prototype",
+      "adaptiveIcon": {
+        "backgroundColor": "#141C2B",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR"
+      ],
+      "blockedPermissions": [
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#141C2B",
+          "imageWidth": 220
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "NMU ONE uses your location, only while you are using it, to show where you are on the campus map and to share your position with Campus Protection when you ask it to.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#141C2B",
+          "defaultChannel": "campus"
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "NMU ONE adds classes, exams and events you choose to your calendar.",
+          "remindersPermission": false
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
