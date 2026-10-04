@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Animated, StyleSheet, View, type DimensionValue } from 'react-native';
 import type { AdapterError } from '@/core/adapters/errors';
 import { formatAgo, formatTime } from '@/core/time/sast';
@@ -76,15 +76,32 @@ export function StateView({
           {body ?? d.body}
         </Text>
       ) : null}
-      {actionLabel && onAction ? <Button label={actionLabel} onPress={onAction} variant="secondary" size="md" style={styles.center} /> : null}
+      {actionLabel && onAction ? (
+        <Button
+          label={actionLabel}
+          onPress={onAction}
+          variant="secondary"
+          size="md"
+          style={styles.center}
+        />
+      ) : null}
     </View>
   );
 }
 
 /** Skeleton block for a known content region (brief §19). */
-export function Skeleton({ height = 18, width = '100%', radiusSize = radius.sm }: { height?: number; width?: DimensionValue; radiusSize?: number }) {
+export function Skeleton({
+  height = 18,
+  width = '100%',
+  radiusSize = radius.sm,
+}: {
+  height?: number;
+  width?: DimensionValue;
+  radiusSize?: number;
+}) {
   const reduceMotion = useReduceMotion();
-  const pulse = useRef(new Animated.Value(0.55)).current;
+  // useState, not useRef: the value is created once and read during render.
+  const [pulse] = useState(() => new Animated.Value(0.55));
   useEffect(() => {
     if (reduceMotion) return;
     const loop = Animated.loop(
@@ -98,7 +115,13 @@ export function Skeleton({ height = 18, width = '100%', radiusSize = radius.sm }
   }, [pulse, reduceMotion]);
   return (
     <Animated.View
-      style={{ height, width, borderRadius: radiusSize, backgroundColor: colors.surfaceSunken, opacity: reduceMotion ? 0.8 : pulse }}
+      style={{
+        height,
+        width,
+        borderRadius: radiusSize,
+        backgroundColor: colors.surfaceSunken,
+        opacity: reduceMotion ? 0.8 : pulse,
+      }}
     />
   );
 }
@@ -130,7 +153,15 @@ const kindFor = (e: AdapterError): StateKind =>
         ? 'not-configured'
         : 'error';
 
-export function ErrorState({ error, onRetry, what }: { error: AdapterError; onRetry: () => void; what?: string }) {
+export function ErrorState({
+  error,
+  onRetry,
+  what,
+}: {
+  error: AdapterError;
+  onRetry: () => void;
+  what?: string;
+}) {
   const kind = kindFor(error);
   return (
     <StateView
@@ -163,7 +194,11 @@ export function QueryState<T>({
 }) {
   if (query.status === 'loading') return <>{loading ?? <SkeletonCard />}</>;
   if (query.status === 'error' || query.data === undefined) {
-    return query.error ? <ErrorState error={query.error} onRetry={query.refetch} what={what} /> : <SkeletonCard />;
+    return query.error ? (
+      <ErrorState error={query.error} onRetry={query.refetch} what={what} />
+    ) : (
+      <SkeletonCard />
+    );
   }
   const data = query.data;
   const banner = query.fromCache ? (
@@ -175,7 +210,11 @@ export function QueryState<T>({
       testID="offline-copy"
     />
   ) : query.error ? (
-    <Notice tone="warning" title="Couldn’t refresh" body="Showing what loaded earlier. Pull down to try again." />
+    <Notice
+      tone="warning"
+      title="Couldn’t refresh"
+      body="Showing what loaded earlier. Pull down to try again."
+    />
   ) : null;
   if (isEmpty?.(data)) {
     return (
@@ -194,7 +233,12 @@ export function QueryState<T>({
 }
 
 const styles = StyleSheet.create({
-  state: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl, paddingHorizontal: spacing.lg },
+  state: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.lg,
+  },
   stateIcon: {
     width: 64,
     height: 64,
@@ -205,6 +249,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   center: { alignSelf: 'center', marginTop: spacing.md },
-  skeletonCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
+  skeletonCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
   banner: { marginBottom: spacing.md },
 });

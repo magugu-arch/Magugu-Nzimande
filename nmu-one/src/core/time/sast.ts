@@ -114,11 +114,18 @@ export function formatRelativeDay(input: Date | string, now: Date): string {
   return formatDayShort(input);
 }
 
-/** "in 18 min", "in 2 h 5 min", "now", "12 min ago" */
+/** "in 18 min", "in 2 h 5 min", "tomorrow", "in 3 days", "now", "12 min ago" */
 export function formatCountdown(target: Date | string, now: Date): string {
   const mins = minutesBetween(now, target);
   if (mins === 0) return 'now';
   const abs = Math.abs(mins);
+  // Past a day, hours stop meaning much: count calendar days instead.
+  if (abs >= 24 * 60) {
+    const days = sastDayDiff(now, target);
+    if (days === 1) return 'tomorrow';
+    if (days === -1) return 'yesterday';
+    return days > 0 ? `in ${days} days` : `${-days} days ago`;
+  }
   const h = Math.floor(abs / 60);
   const m = abs % 60;
   const span = h > 0 ? (m > 0 ? `${h} h ${m} min` : `${h} h`) : `${m} min`;

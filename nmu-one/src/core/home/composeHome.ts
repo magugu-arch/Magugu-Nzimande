@@ -63,7 +63,14 @@ export const ROLE_DEFAULTS: Record<Role, HomeModuleId[]> = {
     'discover',
   ],
   staff: ['teaching', 'critical-notice', 'quick-actions', 'shuttle', 'lunch', 'discover'],
-  parent: ['linked-student', 'critical-notice', 'key-dates', 'quick-actions', 'support', 'discover'],
+  parent: [
+    'linked-student',
+    'critical-notice',
+    'key-dates',
+    'quick-actions',
+    'support',
+    'discover',
+  ],
   alumni: ['critical-notice', 'mentoring', 'quick-actions', 'giving', 'alumni-events', 'jobs'],
 };
 
@@ -98,7 +105,10 @@ function relevant(id: HomeModuleId, ctx: HomeContext): boolean {
     case 'lunch':
       // Brief §5: transport/utility "when relevant". Lunch is relevant around
       // lunch — or while an order is on its way.
-      return ctx.hasActiveOrder || (ctx.minutesOfDay >= LUNCH_OPENS - 60 && ctx.minutesOfDay < LUNCH_CLOSES);
+      return (
+        ctx.hasActiveOrder ||
+        (ctx.minutesOfDay >= LUNCH_OPENS - 60 && ctx.minutesOfDay < LUNCH_CLOSES)
+      );
     case 'graduation':
       return ctx.graduationEligible;
     default:

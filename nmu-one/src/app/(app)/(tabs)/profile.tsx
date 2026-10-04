@@ -52,11 +52,18 @@ export default function Profile() {
 
   const detail =
     role === 'student' && student.data
-      ? [`Student no. ${student.data.studentNumber}`, student.data.qualification, student.data.faculty]
+      ? [
+          `Student no. ${student.data.studentNumber}`,
+          student.data.qualification,
+          student.data.faculty,
+        ]
       : role === 'staff' && staff.data
         ? [staff.data.title, staff.data.department, `Office ${staff.data.office.code}`]
         : role === 'alumni' && alumni.data
-          ? [`${alumni.data.qualification}, ${alumni.data.graduationYear}`, alumni.data.chapter ?? '']
+          ? [
+              `${alumni.data.qualification}, ${alumni.data.graduationYear}`,
+              alumni.data.chapter ?? '',
+            ]
           : role === 'parent'
             ? ['Linked to one student']
             : [];
@@ -100,11 +107,18 @@ export default function Profile() {
           <SectionHeader title="You are using NMU ONE as" />
           <Row gap={spacing.sm} wrap>
             {user.roles.map((r) => (
-              <Chip key={r} label={ROLE_NAMES[r]} selected={r === role} onPress={() => switchRole(r)} testID={`role-${r}`} />
+              <Chip
+                key={r}
+                label={ROLE_NAMES[r]}
+                selected={r === role}
+                onPress={() => switchRole(r)}
+                testID={`role-${r}`}
+              />
             ))}
           </Row>
           <Text variant="caption" color={colors.textSecondary} style={{ marginTop: spacing.sm }}>
-            One identity, more than one role. Home, services and notifications follow the role you choose.
+            One identity, more than one role. Home, services and notifications follow the role you
+            choose.
           </Text>
         </View>
       ) : null}
@@ -112,7 +126,11 @@ export default function Profile() {
       {canGraduate && student.data?.graduation.eligible && student.data.graduation.ceremony ? (
         <View style={styles.section}>
           <SectionHeader title="Your journey" />
-          <Card onPress={() => router.push('/graduation')} accessibilityLabel={`Graduation on ${formatDayLong(student.data.graduation.ceremony)}. See what changes.`} testID="profile-graduation">
+          <Card
+            onPress={() => router.push('/graduation')}
+            accessibilityLabel={`Graduation on ${formatDayLong(student.data.graduation.ceremony)}. See what changes.`}
+            testID="profile-graduation"
+          >
             <Text variant="overline" color={colors.textSecondary}>
               Graduation · {formatDayLong(student.data.graduation.ceremony)}
             </Text>
@@ -140,15 +158,50 @@ export default function Profile() {
       <View style={styles.section}>
         <SectionHeader title="Settings" />
         <Card padded={false} style={styles.list}>
-          <ListRow icon="lock-closed-outline" title="Privacy & sharing" subtitle="Consents, family sharing and your activity log" onPress={() => router.push('/settings/privacy')} testID="settings-privacy" />
-          <ListRow icon="notifications-outline" title="Notifications" subtitle="Categories and quiet hours" onPress={() => router.push('/settings/notifications')} />
-          <ListRow icon="grid-outline" title="Edit Home" subtitle="Reorder or hide what you see first" onPress={() => router.push('/settings/home')} />
-          <ListRow icon="accessibility-outline" title="Accessibility" subtitle="Text size, motion and screen readers" onPress={() => router.push('/settings/accessibility')} />
-          <ListRow icon="information-circle-outline" title="About NMU ONE" subtitle={isDemoData() ? 'Demo build · synthetic data' : `Live build · ${config.dataMode}`} onPress={() => router.push('/settings/about')} />
+          <ListRow
+            icon="lock-closed-outline"
+            title="Privacy & sharing"
+            subtitle="Consents, family sharing and your activity log"
+            onPress={() => router.push('/settings/privacy')}
+            testID="settings-privacy"
+          />
+          <ListRow
+            icon="notifications-outline"
+            title="Notifications"
+            subtitle="Categories and quiet hours"
+            onPress={() => router.push('/settings/notifications')}
+          />
+          <ListRow
+            icon="grid-outline"
+            title="Edit Home"
+            subtitle="Reorder or hide what you see first"
+            onPress={() => router.push('/settings/home')}
+          />
+          <ListRow
+            icon="accessibility-outline"
+            title="Accessibility"
+            subtitle="Text size, motion and screen readers"
+            onPress={() => router.push('/settings/accessibility')}
+          />
+          <ListRow
+            icon="information-circle-outline"
+            title="About NMU ONE"
+            subtitle={
+              isDemoData() ? 'Demo build · synthetic data' : `Live build · ${config.dataMode}`
+            }
+            onPress={() => router.push('/settings/about')}
+          />
         </Card>
       </View>
 
-      <Button label="Sign out" variant="secondary" icon="log-out-outline" onPress={doSignOut} fullWidth testID="sign-out" />
+      <Button
+        label="Sign out"
+        variant="secondary"
+        icon="log-out-outline"
+        onPress={doSignOut}
+        fullWidth
+        testID="sign-out"
+      />
     </Screen>
   );
 }

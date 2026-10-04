@@ -8,7 +8,15 @@ import { colors } from '../tokens';
  * A QR code drawn as one SVG path, for tickets and pickup codes. The matrix
  * comes from the `qrcode` encoder; nothing is fetched or rasterised.
  */
-export function QRCode({ value, size = 200, label }: { value: string; size?: number; label: string }) {
+export function QRCode({
+  value,
+  size = 200,
+  label,
+}: {
+  value: string;
+  size?: number;
+  label: string;
+}) {
   const { path, count } = useMemo(() => {
     const qr = QR.create(value, { errorCorrectionLevel: 'M' });
     const n = qr.modules.size;

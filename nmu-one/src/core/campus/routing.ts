@@ -8,14 +8,20 @@ export const WALKING_METRES_PER_MINUTE = 75;
  * "EB212" → building code "EB", floor 2. Room codes are building letters then
  * a number whose first digit is the floor. Returns null for anything else.
  */
-export function parseRoomCode(input: string): { buildingCode: string; floor: number; code: string } | null {
+export function parseRoomCode(
+  input: string,
+): { buildingCode: string; floor: number; code: string } | null {
   const match = input
     .toUpperCase()
     .replace(/\s+/g, '')
     .match(/^([A-Z]{1,3})(\d{3})$/);
   if (!match) return null;
   const [, buildingCode, digits] = match;
-  return { buildingCode: buildingCode!, floor: Number(digits![0]), code: `${buildingCode}${digits}` };
+  return {
+    buildingCode: buildingCode!,
+    floor: Number(digits![0]),
+    code: `${buildingCode}${digits}`,
+  };
 }
 
 /** Finds a building by id, code, or a room code inside it. */
@@ -95,7 +101,12 @@ const turn = (from: Heading, to: Heading): 'left' | 'right' | 'straight' | 'back
 };
 
 /** Walking route from a waypoint to a building's entrance, with spoken steps. */
-export function routeTo(map: CampusMap, fromWaypoint: string, building: Building, floor?: number): Route | null {
+export function routeTo(
+  map: CampusMap,
+  fromWaypoint: string,
+  building: Building,
+  floor?: number,
+): Route | null {
   const ids = shortestPath(map, fromWaypoint, building.entrance);
   if (!ids) return null;
   const byId = new Map(map.waypoints.map((w) => [w.id, w]));

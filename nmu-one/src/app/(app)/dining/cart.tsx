@@ -44,7 +44,13 @@ export default function CartScreen() {
   if (cart.lines.length === 0) {
     return (
       <Screen header={<Header title="Your order" fallbackHref="/dining" />}>
-        <StateView kind="empty" title="Your order is empty" body="Add something from a campus vendor first." actionLabel="Browse food" onAction={() => router.replace('/dining')} />
+        <StateView
+          kind="empty"
+          title="Your order is empty"
+          body="Add something from a campus vendor first."
+          actionLabel="Browse food"
+          onAction={() => router.dismissTo('/dining')}
+        />
       </Screen>
     );
   }
@@ -79,7 +85,13 @@ export default function CartScreen() {
           </Text>
         </Row>
       ) : null}
-      {vendor && !vendor.isOpen ? <Notice tone="warning" title={`${vendor.name} has closed`} body="This order can’t be placed until they open again." /> : null}
+      {vendor && !vendor.isOpen ? (
+        <Notice
+          tone="warning"
+          title={`${vendor.name} has closed`}
+          body="This order can’t be placed until they open again."
+        />
+      ) : null}
       {error ? <Notice tone="danger" title="Your order wasn’t placed" body={error} /> : null}
 
       <Card style={{ marginTop: spacing.lg }}>
@@ -93,9 +105,19 @@ export default function CartScreen() {
                   {formatMoney(l.item.price)} each
                 </Text>
               </View>
-              <IconButton icon="remove" label={`Remove one ${l.item.name}`} onPress={() => remove(l.item.id)} tone="filled" />
+              <IconButton
+                icon="remove"
+                label={`Remove one ${l.item.name}`}
+                onPress={() => remove(l.item.id)}
+                tone="filled"
+              />
               <Text variant="bodyStrong">{l.quantity}</Text>
-              <IconButton icon="add" label={`Add another ${l.item.name}`} onPress={() => add(l.item)} tone="filled" />
+              <IconButton
+                icon="add"
+                label={`Add another ${l.item.name}`}
+                onPress={() => add(l.item)}
+                tone="filled"
+              />
               <Text variant="bodyStrong" style={styles.amount}>
                 {formatMoney(multiplyMoney(l.item.price, l.quantity))}
               </Text>

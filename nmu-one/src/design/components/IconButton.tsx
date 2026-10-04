@@ -21,7 +21,14 @@ const TONES = {
   onPhoto: { bg: 'rgba(20,28,43,0.55)', fg: colors.white },
 } as const;
 
-export function IconButton({ icon, label, onPress, tone = 'plain', badge, testID }: IconButtonProps) {
+export function IconButton({
+  icon,
+  label,
+  onPress,
+  tone = 'plain',
+  badge,
+  testID,
+}: IconButtonProps) {
   const t = TONES[tone];
   const a11y = badge ? `${label}, ${badge} unread` : label;
   return (

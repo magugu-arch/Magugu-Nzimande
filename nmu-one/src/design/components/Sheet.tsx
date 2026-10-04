@@ -24,9 +24,20 @@ export function Sheet({
 }) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
       <View style={styles.root}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" accessibilityRole="button" />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
+        />
         <View
           testID={testID}
           style={[styles.sheet, { paddingBottom: insets.bottom + spacing.xl }]}
@@ -44,7 +55,12 @@ export function Sheet({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim, alignItems: 'center' },
+  root: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: colors.scrim,
+    alignItems: 'center',
+  },
   sheet: {
     width: '100%',
     maxWidth: 560,

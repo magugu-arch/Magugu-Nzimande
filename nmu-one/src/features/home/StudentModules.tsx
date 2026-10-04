@@ -4,12 +4,7 @@ import { asPhotoKey } from '@/content/photos';
 import { providers } from '@/core/adapters/registry';
 import type { AppNotification } from '@/core/domain/models';
 import { formatMoney, moneyAccessibilityLabel } from '@/core/domain/money';
-import {
-  formatCountdown,
-  formatDayLong,
-  formatDayShort,
-  formatTime,
-} from '@/core/time/sast';
+import { formatCountdown, formatDayLong, formatDayShort, formatTime } from '@/core/time/sast';
 import {
   useAccount,
   useArrivals,
@@ -85,7 +80,12 @@ export function NextClassModule() {
   const next = nextClass(timetable.data, now);
   if (!next) {
     return (
-      <Card tone="navy" onPress={() => router.push('/academics/timetable')} accessibilityLabel="No more classes today. Open timetable." testID="next-class-none">
+      <Card
+        tone="navy"
+        onPress={() => router.push('/academics/timetable')}
+        accessibilityLabel="No more classes today. Open timetable."
+        testID="next-class-none"
+      >
         <Text variant="overline" color={colors.yellow}>
           Today
         </Text>
@@ -117,14 +117,17 @@ export function NextClassModule() {
         <Text variant="overline" color={colors.yellow}>
           {when}
         </Text>
-        {next.status === 'moved' ? <Pill label="Room changed" tone="yellow" icon="swap-horizontal" /> : null}
+        {next.status === 'moved' ? (
+          <Pill label="Room changed" tone="yellow" icon="swap-horizontal" />
+        ) : null}
       </Row>
       <View style={styles.classTitle}>
         <Text variant="title1" color={colors.white}>
           {next.moduleTitle}
         </Text>
         <Text variant="body" color={colors.textOnDarkMuted}>
-          {next.moduleCode} · {KIND_LABEL[next.kind]} · {formatTime(next.start)}–{formatTime(next.end)}
+          {next.moduleCode} · {KIND_LABEL[next.kind]} · {formatTime(next.start)}–
+          {formatTime(next.end)}
         </Text>
       </View>
       <View style={styles.classRoom}>
@@ -237,7 +240,8 @@ export function ShuttleTile() {
   const arrivals = useArrivals();
   const routes = useShuttleRoutes();
   if (arrivals.status === 'loading' || routes.status === 'loading') return <TileSkeleton />;
-  if (!arrivals.data || !routes.data) return <TileError label="Shuttle" onRetry={arrivals.refetch} />;
+  if (!arrivals.data || !routes.data)
+    return <TileError label="Shuttle" onRetry={arrivals.refetch} />;
   const next = arrivals.data.find((a) => a.live && a.stopId === 'stop-si');
   const route = routes.data.find((r) => r.id === next?.routeId);
   return (
@@ -298,7 +302,12 @@ function TileSkeleton() {
 
 function TileError({ label, onRetry }: { label: string; onRetry: () => void }) {
   return (
-    <Card tone="sunken" style={styles.tile} onPress={onRetry} accessibilityLabel={`${label} didn’t load. Tap to retry.`}>
+    <Card
+      tone="sunken"
+      style={styles.tile}
+      onPress={onRetry}
+      accessibilityLabel={`${label} didn’t load. Tap to retry.`}
+    >
       <Text variant="overline" color={colors.textSecondary}>
         {label}
       </Text>
@@ -323,7 +332,11 @@ export function TodayModule() {
   const rest = timetable.data.filter((e) => new Date(e.end) > now && e.id !== next?.id);
   return (
     <View>
-      <SectionHeader title="Rest of today" action="Week" onAction={() => router.push('/academics/timetable')} />
+      <SectionHeader
+        title="Rest of today"
+        action="Week"
+        onAction={() => router.push('/academics/timetable')}
+      />
       {rest.length === 0 ? (
         <Card tone="sunken">
           <Text variant="body" color={colors.textSecondary}>
@@ -362,7 +375,9 @@ export function TodayModule() {
 export function LunchModule() {
   const router = useRouter();
   const orders = useOrders();
-  const active = orders.data?.find((o) => o.status === 'placed' || o.status === 'preparing' || o.status === 'ready');
+  const active = orders.data?.find(
+    (o) => o.status === 'placed' || o.status === 'preparing' || o.status === 'ready',
+  );
   if (active) {
     const ready = active.status === 'ready';
     return (
@@ -391,7 +406,12 @@ export function LunchModule() {
     );
   }
   return (
-    <Card padded={false} onPress={() => router.push('/dining')} accessibilityLabel="Lunch on campus. Order ahead from Campus Kitchen and skip the queue." testID="lunch-card">
+    <Card
+      padded={false}
+      onPress={() => router.push('/dining')}
+      accessibilityLabel="Lunch on campus. Order ahead from Campus Kitchen and skip the queue."
+      testID="lunch-card"
+    >
       <Photo photo="cafeteria" size="md" rounded={false} style={styles.lunchPhoto} decorative />
       <View style={styles.lunchBody}>
         <Text variant="overline" color={colors.textSecondary}>
@@ -414,7 +434,12 @@ export function GraduationModule() {
   const ceremony = profile.data?.graduation.ceremony;
   if (!ceremony) return null;
   return (
-    <Card padded={false} onPress={() => router.push('/graduation')} accessibilityLabel={`Graduation, ${formatDayLong(ceremony)}. See what changes on the day.`} testID="graduation-card">
+    <Card
+      padded={false}
+      onPress={() => router.push('/graduation')}
+      accessibilityLabel={`Graduation, ${formatDayLong(ceremony)}. See what changes on the day.`}
+      testID="graduation-card"
+    >
       <Photo photo="graduation" size="md" rounded={false} style={styles.gradPhoto} decorative />
       <View style={styles.lunchBody}>
         <Text variant="overline" color={colors.textSecondary}>
@@ -435,14 +460,31 @@ export function DiscoverModule() {
   const router = useRouter();
   const events = useEvents();
   const now = useNow();
-  const next = events.data?.find((e) => new Date(e.start) > now && e.ticketing !== 'open-entry') ?? events.data?.[0];
+  const next =
+    events.data?.find((e) => new Date(e.start) > now && e.ticketing !== 'open-entry') ??
+    events.data?.[0];
   if (events.status === 'loading') return <TileSkeleton />;
   if (!next) return null;
   return (
     <View>
-      <SectionHeader title="Happening on campus" action="All events" onAction={() => router.push('/events')} />
-      <Card padded={false} onPress={() => router.push(`/events/${next.id}`)} accessibilityLabel={`${next.title}. ${formatDayLong(next.start)} at ${formatTime(next.start)}, ${next.venue}.`} testID="discover-event">
-        <Photo photo={asPhotoKey(next.photo, 'events')} size="md" rounded={false} style={styles.eventPhoto} decorative />
+      <SectionHeader
+        title="Happening on campus"
+        action="All events"
+        onAction={() => router.push('/events')}
+      />
+      <Card
+        padded={false}
+        onPress={() => router.push(`/events/${next.id}`)}
+        accessibilityLabel={`${next.title}. ${formatDayLong(next.start)} at ${formatTime(next.start)}, ${next.venue}.`}
+        testID="discover-event"
+      >
+        <Photo
+          photo={asPhotoKey(next.photo, 'events')}
+          size="md"
+          rounded={false}
+          style={styles.eventPhoto}
+          decorative
+        />
         <View style={styles.lunchBody}>
           <Text variant="overline" color={colors.textSecondary}>
             {formatDayShort(next.start)} · {formatTime(next.start)} · {next.venue}
@@ -478,7 +520,14 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.lg + 4,
     overflow: 'hidden',
   },
-  noticeBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, backgroundColor: colors.yellow },
+  noticeBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 5,
+    backgroundColor: colors.yellow,
+  },
   noticeIcon: {
     width: 40,
     height: 40,
@@ -488,10 +537,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tile: { flex: 1, minHeight: 150 },
-  todayRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  todayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
   todayDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   todayTime: { width: 52, fontVariant: ['tabular-nums'] },
-  lunchIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(20,28,43,0.08)', alignItems: 'center', justifyContent: 'center' },
+  lunchIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(20,28,43,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   lunchPhoto: { height: 150, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
   gradPhoto: { height: 170, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
   eventPhoto: { height: 170, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },

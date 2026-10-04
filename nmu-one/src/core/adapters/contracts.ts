@@ -138,7 +138,11 @@ export interface FinanceProvider {
 export interface LibraryProvider {
   search(query: string): Promise<LibraryResource[]>;
   getStudySpaces(day: string): Promise<StudySpace[]>;
-  bookStudySpace(input: { spaceId: string; start: string; end: string }): Promise<StudySpaceBooking>;
+  bookStudySpace(input: {
+    spaceId: string;
+    start: string;
+    end: string;
+  }): Promise<StudySpaceBooking>;
   getBookings(): Promise<StudySpaceBooking[]>;
   cancelBooking(id: string): Promise<StudySpaceBooking>;
 }

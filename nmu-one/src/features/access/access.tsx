@@ -50,7 +50,13 @@ const SCOPE_LABELS: Record<SharingScope, string> = {
 };
 
 /** The permission-denied / unavailable state, worded for the reason. */
-export function AccessDenied({ decision, capability }: { decision: Exclude<Decision, { allowed: true }>; capability: Capability }) {
+export function AccessDenied({
+  decision,
+  capability,
+}: {
+  decision: Exclude<Decision, { allowed: true }>;
+  capability: Capability;
+}) {
   const router = useRouter();
   const label = CAPABILITY_LABELS[capability];
   if (decision.reason === 'pending-approval') {
@@ -60,7 +66,7 @@ export function AccessDenied({ decision, capability }: { decision: Exclude<Decis
         title={`${label} is coming`}
         body="The architecture is ready, but this switches on only once NMU approves it and connects the infrastructure behind it."
         actionLabel="Back to Home"
-        onAction={() => router.replace('/home')}
+        onAction={() => router.dismissTo('/home')}
       />
     );
   }
@@ -81,7 +87,7 @@ export function AccessDenied({ decision, capability }: { decision: Exclude<Decis
       kind="denied"
       body={`${label} isn't part of NMU ONE for your role.`}
       actionLabel="Back to Home"
-      onAction={() => router.replace('/home')}
+      onAction={() => router.dismissTo('/home')}
     />
   );
 }

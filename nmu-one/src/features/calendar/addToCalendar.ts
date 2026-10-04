@@ -59,7 +59,9 @@ export async function addToCalendar(item: CalendarItem): Promise<CalendarResult>
     const calendar =
       Platform.OS === 'ios'
         ? await Calendar.getDefaultCalendarAsync()
-        : (await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)).find((c) => c.allowsModifications);
+        : (await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)).find(
+            (c) => c.allowsModifications,
+          );
     if (!calendar) return 'failed';
     await Calendar.createEventAsync(calendar.id, {
       title: item.title,

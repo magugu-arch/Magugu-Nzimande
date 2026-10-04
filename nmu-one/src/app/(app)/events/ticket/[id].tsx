@@ -30,15 +30,33 @@ export default function TicketScreen() {
       <QueryState query={tickets} what="your ticket">
         {(list) => {
           const t = list.find((x) => x.id === id);
-          if (!t) return <StateView kind="empty" title="Ticket not found" actionLabel="Events" onAction={() => router.replace('/events')} />;
+          if (!t)
+            return (
+              <StateView
+                kind="empty"
+                title="Ticket not found"
+                actionLabel="Events"
+                onAction={() => router.replace('/events')}
+              />
+            );
           return (
             <View style={{ gap: spacing.xl }}>
               <Card tone="navy" style={styles.ticket} testID="ticket-card">
                 <Row justify="space-between">
                   <BrandInline tone="onDark" />
-                  <Pill label={t.status === 'valid' ? 'Valid' : t.status === 'used' ? 'Used' : 'Cancelled'} tone={t.status === 'valid' ? 'yellow' : 'onDark'} />
+                  <Pill
+                    label={
+                      t.status === 'valid' ? 'Valid' : t.status === 'used' ? 'Used' : 'Cancelled'
+                    }
+                    tone={t.status === 'valid' ? 'yellow' : 'onDark'}
+                  />
                 </Row>
-                <Text variant="title1" color={colors.white} style={{ marginTop: spacing.lg }} accessibilityRole="header">
+                <Text
+                  variant="title1"
+                  color={colors.white}
+                  style={{ marginTop: spacing.lg }}
+                  accessibilityRole="header"
+                >
                   {t.eventTitle}
                 </Text>
                 <Text variant="body" color={colors.textOnDarkMuted}>
@@ -48,7 +66,11 @@ export default function TicketScreen() {
                   {t.venue}
                 </Text>
                 <View style={styles.qrWrap}>
-                  <QRCode value={`NMUONE-TICKET:${t.code}`} size={200} label={`Ticket QR code. Ticket number ${t.code}`} />
+                  <QRCode
+                    value={`NMUONE-TICKET:${t.code}`}
+                    size={200}
+                    label={`Ticket QR code. Ticket number ${t.code}`}
+                  />
                 </View>
                 <Divider tone="onDark" />
                 <Row justify="space-between" style={{ marginTop: spacing.md }}>
@@ -73,7 +95,13 @@ export default function TicketScreen() {
               <Text variant="body" color={colors.textSecondary} align="center">
                 Show this code at the entrance. It works offline — no signal needed at the gate.
               </Text>
-              <Button label="Back to events" variant="secondary" fullWidth onPress={() => router.replace('/events')} />
+              <Button
+                label="Done"
+                variant="secondary"
+                fullWidth
+                onPress={() => (router.canGoBack() ? router.back() : router.replace('/events'))}
+                testID="ticket-done"
+              />
             </View>
           );
         }}
@@ -84,5 +112,11 @@ export default function TicketScreen() {
 
 const styles = StyleSheet.create({
   ticket: { padding: spacing.xl },
-  qrWrap: { alignSelf: 'center', marginVertical: spacing.xl, padding: spacing.md, backgroundColor: colors.white, borderRadius: radius.lg },
+  qrWrap: {
+    alignSelf: 'center',
+    marginVertical: spacing.xl,
+    padding: spacing.md,
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+  },
 });

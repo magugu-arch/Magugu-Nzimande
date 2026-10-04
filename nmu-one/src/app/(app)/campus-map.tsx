@@ -67,7 +67,10 @@ export default function CampusMapScreen() {
     if (!map.data || !query.trim()) return [];
     const q = query.trim().toLowerCase();
     return map.data.buildings.filter(
-      (b) => b.code.toLowerCase().startsWith(q.replace(/\d.*$/, '')) || b.name.toLowerCase().includes(q) || b.facilities.some((f) => f.toLowerCase().includes(q)),
+      (b) =>
+        b.code.toLowerCase().startsWith(q.replace(/\d.*$/, '')) ||
+        b.name.toLowerCase().includes(q) ||
+        b.facilities.some((f) => f.toLowerCase().includes(q)),
     );
   }, [map.data, query]);
 
@@ -106,7 +109,14 @@ export default function CampusMapScreen() {
               ) : null}
 
               {!selected && next ? (
-                <Button label={`Take me to my next class · ${next.room.code}`} icon="navigate" variant="accent" fullWidth onPress={() => setSelected(next.room.code)} testID="map-next-class" />
+                <Button
+                  label={`Take me to my next class · ${next.room.code}`}
+                  icon="navigate"
+                  variant="accent"
+                  fullWidth
+                  onPress={() => setSelected(next.room.code)}
+                  testID="map-next-class"
+                />
               ) : null}
 
               <CampusMapView
@@ -116,7 +126,11 @@ export default function CampusMapScreen() {
                 origin={origin}
                 onSelectBuilding={(b) => setSelected(b.code)}
                 height={380}
-                label={building ? `Map of ${m.name} with a route from ${originLabel} to ${building.name}` : `Map of ${m.name}. You are at ${originLabel}.`}
+                label={
+                  building
+                    ? `Map of ${m.name} with a route from ${originLabel} to ${building.name}`
+                    : `Map of ${m.name}. You are at ${originLabel}.`
+                }
               />
 
               <View>
@@ -132,14 +146,34 @@ export default function CampusMapScreen() {
                   ]}
                 />
                 <Row style={{ marginTop: spacing.sm }}>
-                  <Button label={location === 'asking' ? 'Finding you…' : 'Use my location'} icon="locate" variant="ghost" size="md" loading={location === 'asking'} onPress={askLocation} />
+                  <Button
+                    label={location === 'asking' ? 'Finding you…' : 'Use my location'}
+                    icon="locate"
+                    variant="ghost"
+                    size="md"
+                    loading={location === 'asking'}
+                    onPress={askLocation}
+                  />
                 </Row>
                 {location === 'granted' ? (
-                  <Notice tone="info" title="Location found" body="This schematic map can’t place GPS positions yet, so your route starts from the nearest entrance, the Main Gate." />
+                  <Notice
+                    tone="info"
+                    title="Location found"
+                    body="This schematic map can’t place GPS positions yet, so your route starts from the nearest entrance, the Main Gate."
+                  />
                 ) : location === 'denied' ? (
-                  <Notice tone="neutral" icon="lock-closed-outline" title="Location is off" body={`NMU ONE only uses location when you ask. Choose where you’re starting from above${Platform.OS === 'web' ? '' : ', or allow location in Settings'}.`} />
+                  <Notice
+                    tone="neutral"
+                    icon="lock-closed-outline"
+                    title="Location is off"
+                    body={`NMU ONE only uses location when you ask. Choose where you’re starting from above${Platform.OS === 'web' ? '' : ', or allow location in Settings'}.`}
+                  />
                 ) : location === 'unavailable' ? (
-                  <Notice tone="warning" title="Couldn’t find your location" body="Choose where you’re starting from above." />
+                  <Notice
+                    tone="warning"
+                    title="Couldn’t find your location"
+                    body="Choose where you’re starting from above."
+                  />
                 ) : null}
               </View>
 
@@ -180,7 +214,11 @@ export default function CampusMapScreen() {
                       No walking route from here.
                     </Text>
                   )}
-                  <Text variant="caption" color={colors.textSecondary} style={{ marginTop: spacing.md }}>
+                  <Text
+                    variant="caption"
+                    color={colors.textSecondary}
+                    style={{ marginTop: spacing.md }}
+                  >
                     {building.accessibility}
                   </Text>
                 </Card>
@@ -192,14 +230,24 @@ export default function CampusMapScreen() {
                   {[...m.buildings]
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((b) => (
-                      <ListRow key={b.id} icon="business-outline" title={b.name} subtitle={`${b.code} · ${b.facilities.slice(0, 2).join(' · ')}`} onPress={() => setSelected(b.code)} />
+                      <ListRow
+                        key={b.id}
+                        icon="business-outline"
+                        title={b.name}
+                        subtitle={`${b.code} · ${b.facilities.slice(0, 2).join(' · ')}`}
+                        onPress={() => setSelected(b.code)}
+                      />
                     ))}
                 </Card>
-                <Text variant="caption" color={colors.textSecondary} style={{ marginTop: spacing.sm }}>
-                  Schematic map for demonstration. The live service uses NMU’s own building register.
+                <Text
+                  variant="caption"
+                  color={colors.textSecondary}
+                  style={{ marginTop: spacing.sm }}
+                >
+                  Schematic map for demonstration. The live service uses NMU’s own building
+                  register.
                 </Text>
               </View>
-
             </View>
           );
         }}
@@ -211,5 +259,12 @@ export default function CampusMapScreen() {
 const styles = StyleSheet.create({
   body: { gap: spacing.lg },
   list: { paddingHorizontal: spacing.lg },
-  step: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.yellow, alignItems: 'center', justifyContent: 'center' },
+  step: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.yellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

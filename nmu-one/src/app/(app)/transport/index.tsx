@@ -30,7 +30,14 @@ export default function Transport() {
   const disruptions = useDisruptions();
 
   return (
-    <Screen header={<Header title="Shuttle" />} onRefresh={() => { routes.refetch(); arrivals.refetch(); }} testID="transport">
+    <Screen
+      header={<Header title="Shuttle" />}
+      onRefresh={() => {
+        routes.refetch();
+        arrivals.refetch();
+      }}
+      testID="transport"
+    >
       <View style={styles.hero}>
         <Photo photo="shuttle" size="md" style={styles.heroPhoto} decorative />
         <Text variant="title1" accessibilityRole="header">
@@ -44,7 +51,12 @@ export default function Transport() {
       {disruptions.data?.length ? (
         <View style={styles.section}>
           {disruptions.data.map((d) => (
-            <Notice key={d.id} tone={d.severity === 'major' ? 'danger' : 'warning'} title={d.title} body={d.detail} />
+            <Notice
+              key={d.id}
+              tone={d.severity === 'major' ? 'danger' : 'warning'}
+              title={d.title}
+              body={d.detail}
+            />
           ))}
         </View>
       ) : null}
@@ -55,7 +67,9 @@ export default function Transport() {
           {(list) => (
             <View style={{ gap: spacing.md }}>
               {list.map((r) => {
-                const a = arrivals.data?.find((x) => x.routeId === r.id && x.stopId === r.stops[0]?.id);
+                const a = arrivals.data?.find(
+                  (x) => x.routeId === r.id && x.stopId === r.stops[0]?.id,
+                );
                 const running = r.status !== 'not-running';
                 return (
                   <Card
@@ -80,7 +94,9 @@ export default function Transport() {
                           {r.status === 'on-time' ? <Pill label="On time" tone="success" /> : null}
                           {r.status === 'delayed' ? <Pill label="Delayed" tone="warning" /> : null}
                           {r.status === 'not-running' ? <Pill label="Not running now" /> : null}
-                          {a?.live ? <Pill label="Live tracking" tone="info" icon="radio-outline" /> : null}
+                          {a?.live ? (
+                            <Pill label="Live tracking" tone="info" icon="radio-outline" />
+                          ) : null}
                         </Row>
                       </View>
                       {running && a ? (
@@ -95,7 +111,11 @@ export default function Transport() {
                       )}
                     </Row>
                     {r.statusNote && r.status !== 'on-time' ? (
-                      <Text variant="caption" color={colors.textSecondary} style={{ marginTop: spacing.sm }}>
+                      <Text
+                        variant="caption"
+                        color={colors.textSecondary}
+                        style={{ marginTop: spacing.sm }}
+                      >
                         {r.statusNote}
                       </Text>
                     ) : null}
@@ -107,7 +127,12 @@ export default function Transport() {
         </QueryState>
       </View>
 
-      <Card tone="navy" onPress={() => router.push('/safety')} style={styles.section} accessibilityLabel="Travelling late? Safety tools and the late-night loop.">
+      <Card
+        tone="navy"
+        onPress={() => router.push('/safety')}
+        style={styles.section}
+        accessibilityLabel="Travelling late? Safety tools and the late-night loop."
+      >
         <Row gap={spacing.md}>
           <Icon name="moon" size={24} color={colors.yellow} />
           <View style={{ flex: 1 }}>
@@ -115,7 +140,8 @@ export default function Transport() {
               Travelling late?
             </Text>
             <Text variant="caption" color={colors.textOnDarkMuted}>
-              Route N loops to the residences every 30 minutes from 18:00. You can share your location with Campus Protection on the way.
+              Route N loops to the residences every 30 minutes from 18:00. You can share your
+              location with Campus Protection on the way.
             </Text>
           </View>
         </Row>
@@ -128,7 +154,14 @@ const styles = StyleSheet.create({
   hero: { gap: spacing.xs },
   heroPhoto: { height: 150, marginBottom: spacing.md },
   section: { marginTop: spacing.xl, gap: spacing.sm },
-  code: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: colors.yellow, alignItems: 'center', justifyContent: 'center' },
+  code: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.yellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   codeOff: { backgroundColor: colors.surfaceSunken },
   eta: { alignItems: 'center', minWidth: 44 },
 });

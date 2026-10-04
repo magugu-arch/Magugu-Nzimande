@@ -103,7 +103,8 @@ export const mockFinance: FinanceProvider = {
     simulate('finance', () => {
       requireUser('finance');
       if (purpose === 'fees') requireRole('finance', 'student');
-      if (amount.cents <= 0) throw new AdapterError('invalid', 'finance', 'Amount must be positive');
+      if (amount.cents <= 0)
+        throw new AdapterError('invalid', 'finance', 'Amount must be positive');
       const intent = {
         id: nextId('pay'),
         amount,
@@ -121,33 +122,37 @@ export const mockFinance: FinanceProvider = {
    * provider's server-to-server callback before this resolves.
    */
   confirmPayment: (paymentId) =>
-    simulate('finance', () => {
-      requireUser('finance');
-      const intent = state.payments[paymentId];
-      if (!intent) throw new AdapterError('not-found', 'finance');
-      if (intent.status === 'succeeded') {
-        const existing = Object.values(state.receipts).find((r) => r.paymentId === paymentId);
-        if (existing) return existing;
-      }
-      intent.status = 'succeeded';
-      const receipt = {
-        id: nextId('rcpt'),
-        paymentId,
-        amount: intent.amount,
-        method: intent.method,
-        paidAt: clock.now().toISOString(),
-        reference: reference('NMU'),
-        description: {
-          fees: 'Fee payment',
-          order: 'Campus order',
-          ticket: 'Event ticket',
-          donation: 'Donation',
-        }[intent.purpose],
-      };
-      state.receipts[receipt.id] = receipt;
-      if (intent.purpose === 'fees') state.feePaymentsCents += intent.amount.cents;
-      return receipt;
-    }, { latencyMs: 1100 }),
+    simulate(
+      'finance',
+      () => {
+        requireUser('finance');
+        const intent = state.payments[paymentId];
+        if (!intent) throw new AdapterError('not-found', 'finance');
+        if (intent.status === 'succeeded') {
+          const existing = Object.values(state.receipts).find((r) => r.paymentId === paymentId);
+          if (existing) return existing;
+        }
+        intent.status = 'succeeded';
+        const receipt = {
+          id: nextId('rcpt'),
+          paymentId,
+          amount: intent.amount,
+          method: intent.method,
+          paidAt: clock.now().toISOString(),
+          reference: reference('NMU'),
+          description: {
+            fees: 'Fee payment',
+            order: 'Campus order',
+            ticket: 'Event ticket',
+            donation: 'Donation',
+          }[intent.purpose],
+        };
+        state.receipts[receipt.id] = receipt;
+        if (intent.purpose === 'fees') state.feePaymentsCents += intent.amount.cents;
+        return receipt;
+      },
+      { latencyMs: 1100 },
+    ),
 
   getReceipt: (receiptId) =>
     simulate('finance', () => {

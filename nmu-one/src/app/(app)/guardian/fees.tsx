@@ -32,12 +32,18 @@ export default function GuardianFees() {
                   Due {formatDayShort(a.dueDate)}
                 </Text>
               ) : null}
-              <Text variant="caption" color={colors.textOnDarkMuted} style={{ marginTop: spacing.sm }}>
-                From Student Finance · as at {formatTime(a.asAt)} {formatRelativeDay(a.asAt, now).toLowerCase()}
+              <Text
+                variant="caption"
+                color={colors.textOnDarkMuted}
+                style={{ marginTop: spacing.sm }}
+              >
+                From Student Finance · as at {formatTime(a.asAt)}{' '}
+                {formatRelativeDay(a.asAt, now).toLowerCase()}
               </Text>
             </Card>
             <Text variant="body" color={colors.textSecondary}>
-              You can see this because {student?.givenName} shares fee information with you. Payments are made by the student, or with the student account reference at Student Finance.
+              You can see this because {student?.givenName} shares fee information with you.
+              Questions about the account go to Student Finance.
             </Text>
           </View>
         )}

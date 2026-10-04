@@ -44,7 +44,14 @@ export default function Wellbeing() {
 
   return (
     <Screen padded={false} topInset={false} testID="wellbeing">
-      <PhotoHero photo="wellbeing" eyebrow="Wellbeing & support" title="Your wellbeing, our priority." subtitle="Free, confidential support for whatever you’re carrying." height={300} topBar={<HeroBack />} />
+      <PhotoHero
+        photo="wellbeing"
+        eyebrow="Wellbeing & support"
+        title="Support, whenever you need it."
+        subtitle="Free, confidential support for whatever you’re carrying."
+        height={300}
+        topBar={<HeroBack />}
+      />
       <View style={styles.body}>
         <Card tone="navy" testID="crisis-card">
           <Text variant="overline" color={colors.yellow}>
@@ -54,11 +61,23 @@ export default function Wellbeing() {
             You don’t have to wait for an appointment.
           </Text>
           <Text variant="body" color={colors.textOnDarkMuted}>
-            SADAG Suicide Crisis Helpline: 0800 567 567, free, 24 hours. In immediate danger, call 112.
+            SADAG Suicide Crisis Helpline: 0800 567 567, free, 24 hours. In immediate danger, call
+            112.
           </Text>
           <Row gap={spacing.sm} style={{ marginTop: spacing.md }} wrap>
-            <Button label="Call 0800 567 567" icon="call" variant="accent" size="md" onPress={() => void Linking.openURL('tel:0800567567')} />
-            <Button label="Safety" variant="onDark" size="md" onPress={() => router.push('/safety')} />
+            <Button
+              label="Call 0800 567 567"
+              icon="call"
+              variant="accent"
+              size="md"
+              onPress={() => void Linking.openURL('tel:0800567567')}
+            />
+            <Button
+              label="Safety"
+              variant="onDark"
+              size="md"
+              onPress={() => router.push('/safety')}
+            />
           </Row>
         </Card>
 
@@ -84,13 +103,24 @@ export default function Wellbeing() {
                             {s.hours}
                           </Text>
                           {s.bookable && canBook ? (
-                            <Button label="Request an appointment" variant="secondary" size="md" onPress={() => setBooking(s)} style={{ marginTop: spacing.sm }} />
+                            <Button
+                              label="Request an appointment"
+                              variant="secondary"
+                              size="md"
+                              onPress={() => setBooking(s)}
+                              style={{ marginTop: spacing.sm }}
+                            />
                           ) : s.access === 'walk-in' ? (
                             <View style={{ marginTop: spacing.xs }}>
                               <Pill label="Walk in" tone="info" />
                             </View>
                           ) : s.kind === 'wellness' ? (
-                            <Button label="See sessions in Events" variant="ghost" size="md" onPress={() => router.push('/events')} />
+                            <Button
+                              label="See sessions in Events"
+                              variant="ghost"
+                              size="md"
+                              onPress={() => router.push('/events')}
+                            />
                           ) : null}
                         </View>
                       </Row>
@@ -105,13 +135,26 @@ export default function Wellbeing() {
         </Text>
       </View>
 
-      <Sheet visible={!!booking} onClose={() => setBooking(null)} title={booking ? `Request ${booking.name}` : ''}>
+      <Sheet
+        visible={!!booking}
+        onClose={() => setBooking(null)}
+        title={booking ? `Request ${booking.name}` : ''}
+      >
         <Notice
           tone="info"
           title="Appointment booking connects later"
           body="In the live service this opens the wellbeing team’s own booking system, so your request goes straight to them and is never stored in NMU ONE. For now, visit the Health & Wellness Centre or call the crisis line above any time."
         />
-        <Button label="Directions to the centre" icon="navigate" variant="primary" fullWidth onPress={() => { setBooking(null); router.push('/campus-map?to=HW'); }} />
+        <Button
+          label="Directions to the centre"
+          icon="navigate"
+          variant="primary"
+          fullWidth
+          onPress={() => {
+            setBooking(null);
+            router.push('/campus-map?to=HW');
+          }}
+        />
         <Button label="Close" variant="ghost" fullWidth onPress={() => setBooking(null)} />
       </Sheet>
     </Screen>
@@ -120,5 +163,12 @@ export default function Wellbeing() {
 
 const styles = StyleSheet.create({
   body: { padding: spacing.gutter, gap: spacing.xl },
-  icon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.yellow, alignItems: 'center', justifyContent: 'center' },
+  icon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.yellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

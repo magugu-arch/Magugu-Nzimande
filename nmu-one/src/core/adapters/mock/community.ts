@@ -1,6 +1,6 @@
 import type { AppNotification, Role } from '../../domain/models';
 import { addMoney } from '../../domain/money';
-import { alumniProfiles, personas } from '../../fixtures/people';
+import { alumniProfiles } from '../../fixtures/people';
 import {
   campaigns,
   chapters,
@@ -11,7 +11,12 @@ import {
   societies,
   stories,
 } from '../../fixtures/community';
-import { knowledge, safetyContacts, supportRoutes, wellbeingServices } from '../../fixtures/support';
+import {
+  knowledge,
+  safetyContacts,
+  supportRoutes,
+  wellbeingServices,
+} from '../../fixtures/support';
 import { clock } from '../../time/clock';
 import { addDays, addMinutes } from '../../time/sast';
 import type {
@@ -89,7 +94,11 @@ export const mockCommunity: CommunityProvider = {
 
   getSocieties: () =>
     simulate('community', () =>
-      societies.map((s) => ({ ...s, members: s.members + (state.joinedSocieties.has(s.id) ? 1 : 0) })),
+      societies.map((s) => ({
+        ...s,
+        members: s.members + (state.joinedSocieties.has(s.id) ? 1 : 0),
+        joined: state.joinedSocieties.has(s.id),
+      })),
     ),
 
   joinSociety: (id) =>
@@ -103,9 +112,6 @@ export const mockCommunity: CommunityProvider = {
     }),
 };
 
-/** Joined societies, read synchronously by the UI for toggle state. */
-export const isJoined = (id: string) => state.joinedSocieties.has(id);
-
 // ── Notifications ───────────────────────────────────────────────────────────
 
 /** The notification feed for a user, as the delivery service holds it. */
@@ -114,7 +120,9 @@ function feedFor(userId: string): AppNotification[] {
   const persona = personaOf(userId);
   // A graduate's student-era notices are archived; the alumni feed starts fresh.
   const base =
-    persona === 'student' && user?.lifecycle === 'alumni' ? [] : notificationsFor(persona, clock.now());
+    persona === 'student' && user?.lifecycle === 'alumni'
+      ? []
+      : notificationsFor(persona, clock.now());
   return [...(state.delivered[userId] ?? []), ...base]
     .map((n) => ({ ...n, read: n.read || state.readNotifications.has(n.id) }))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -124,14 +132,22 @@ export const mockNotifications: NotificationProvider = {
   list: () => simulate('notifications', () => feedFor(requireUser('notifications'))),
 
   markRead: (id) =>
-    simulate('notifications', () => {
-      state.readNotifications.add(id);
-    }, { latencyMs: 100 }),
+    simulate(
+      'notifications',
+      () => {
+        state.readNotifications.add(id);
+      },
+      { latencyMs: 100 },
+    ),
 
   markAllRead: () =>
-    simulate('notifications', () => {
-      feedFor(requireUser('notifications')).forEach((n) => state.readNotifications.add(n.id));
-    }, { latencyMs: 150 }),
+    simulate(
+      'notifications',
+      () => {
+        feedFor(requireUser('notifications')).forEach((n) => state.readNotifications.add(n.id));
+      },
+      { latencyMs: 150 },
+    ),
 
   subscribe: (listener) => {
     state.listeners.add(listener);
@@ -165,15 +181,21 @@ export const mockSupport: SupportProvider = {
     }),
 
   stopLocationShare: (id) =>
-    simulate('support', () => {
-      const share = state.locationShares[id];
-      if (!share) throw new AdapterError('not-found', 'support');
-      share.status = 'stopped';
-      return share;
-    }, { latencyMs: 150 }),
+    simulate(
+      'support',
+      () => {
+        const share = state.locationShares[id];
+        if (!share) throw new AdapterError('not-found', 'support');
+        share.status = 'stopped';
+        return share;
+      },
+      { latencyMs: 150 },
+    ),
 
   getKnowledge: () =>
-    simulate('support', () => knowledge(addDays(clock.now(), -12).toISOString()), { latencyMs: 80 }),
+    simulate('support', () => knowledge(addDays(clock.now(), -12).toISOString()), {
+      latencyMs: 80,
+    }),
 };
 
 // ── Alumni ──────────────────────────────────────────────────────────────────
@@ -231,7 +253,8 @@ export const mockAlumni: AlumniProvider = {
   pledge: ({ campaignId, amount, frequency, paymentId }) =>
     simulate('alumni', () => {
       requireAlumnus();
-      if (!campaigns.some((c) => c.id === campaignId)) throw new AdapterError('not-found', 'alumni');
+      if (!campaigns.some((c) => c.id === campaignId))
+        throw new AdapterError('not-found', 'alumni');
       const p = state.payments[paymentId];
       if (!p || p.status !== 'succeeded' || p.purpose !== 'donation') {
         throw new AdapterError('invalid', 'alumni', 'Payment not completed');
@@ -252,5 +275,3 @@ export const mockAlumni: AlumniProvider = {
   getStories: () => simulate('alumni', () => stories),
   getChapters: () => simulate('alumni', () => chapters(clock.now())),
 };
-
-export const demoUserIds = Object.values(personas).map((p) => p.id);

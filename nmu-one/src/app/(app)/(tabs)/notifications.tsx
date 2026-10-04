@@ -75,7 +75,11 @@ export default function Notifications() {
   const unread = query.data ? unreadCount(query.data) : 0;
 
   return (
-    <Screen testID="notifications" onRefresh={query.refetch} refreshing={query.isRefreshing && query.status === 'success'}>
+    <Screen
+      testID="notifications"
+      onRefresh={query.refetch}
+      refreshing={query.isRefreshing && query.status === 'success'}
+    >
       <Row justify="space-between" align="flex-end" style={styles.head}>
         <View>
           <Text variant="overline" color={colors.textSecondary}>
@@ -85,7 +89,9 @@ export default function Notifications() {
             Notifications
           </Text>
         </View>
-        {unread > 0 ? <Button label="Mark all read" variant="ghost" size="md" onPress={markAll} /> : null}
+        {unread > 0 ? (
+          <Button label="Mark all read" variant="ghost" size="md" onPress={markAll} />
+        ) : null}
       </Row>
 
       <ChipRow<Filter>
@@ -109,14 +115,22 @@ export default function Notifications() {
           query={query}
           what="your notifications"
           isEmpty={(d) => d.length === 0}
-          empty={<StateView kind="empty" title="No notifications" body="When NMU sends you something, it will be here — with a way to act on it." />}
+          empty={
+            <StateView
+              kind="empty"
+              title="No notifications"
+              body="When NMU sends you something, it will be here — with a way to act on it."
+            />
+          }
         >
           {(list) => {
             const shown = list.filter((n) =>
               filter === 'all' ? true : filter === 'unread' ? !n.read : n.category === filter,
             );
             if (shown.length === 0) {
-              return <StateView kind="empty" title="Nothing in this view" body="Try another filter." />;
+              return (
+                <StateView kind="empty" title="Nothing in this view" body="Try another filter." />
+              );
             }
             return shown.map((n) => (
               <Touchable
@@ -126,7 +140,12 @@ export default function Notifications() {
                 style={[styles.item, !n.read ? styles.unread : null]}
                 testID={`notification-${n.id}`}
               >
-                <View style={[styles.icon, n.priority === 'high' || n.priority === 'emergency' ? styles.iconUrgent : null]}>
+                <View
+                  style={[
+                    styles.icon,
+                    n.priority === 'high' || n.priority === 'emergency' ? styles.iconUrgent : null,
+                  ]}
+                >
                   <Icon name={ICONS[n.category]} size={18} color={colors.navy} />
                 </View>
                 <View style={styles.body}>
@@ -143,10 +162,16 @@ export default function Notifications() {
                     <Text variant="caption" color={colors.textSecondary}>
                       {n.publisher} · {formatAgo(n.createdAt, now)}
                     </Text>
-                    {n.priority === 'high' || n.priority === 'emergency' ? <Pill label="Important" tone="yellow" /> : null}
+                    {n.priority === 'high' || n.priority === 'emergency' ? (
+                      <Pill label="Important" tone="yellow" />
+                    ) : null}
                   </Row>
                   {n.action ? (
-                    <Text variant="captionStrong" color={colors.navy2} style={{ marginTop: spacing.xs }}>
+                    <Text
+                      variant="captionStrong"
+                      color={colors.navy2}
+                      style={{ marginTop: spacing.xs }}
+                    >
                       {n.action.label} →
                     </Text>
                   ) : null}
@@ -171,7 +196,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   unread: { borderWidth: 1.5, borderColor: colors.navy2 },
-  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' },
+  icon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surfaceSunken,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   iconUrgent: { backgroundColor: colors.yellow },
   body: { flex: 1, gap: 2 },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.navy2, marginTop: 6 },

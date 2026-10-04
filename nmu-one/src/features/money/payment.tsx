@@ -28,8 +28,18 @@ import { useSession } from '@/state/session';
 
 const METHODS: { id: PaymentMethod; label: string; detail: string; icon: IconName }[] = [
   { id: 'card', label: 'Card', detail: 'Debit or credit card', icon: 'card-outline' },
-  { id: 'instant-eft', label: 'Instant EFT', detail: 'Pay from your banking app', icon: 'business-outline' },
-  { id: 'campus-wallet', label: 'Campus wallet', detail: 'Where NMU has approved it', icon: 'wallet-outline' },
+  {
+    id: 'instant-eft',
+    label: 'Instant EFT',
+    detail: 'Pay from your banking app',
+    icon: 'business-outline',
+  },
+  {
+    id: 'campus-wallet',
+    label: 'Campus wallet',
+    detail: 'Where NMU has approved it',
+    icon: 'wallet-outline',
+  },
 ];
 
 type Step = 'choose' | 'processing' | 'failed';
@@ -63,7 +73,12 @@ export function PaymentSheet({
     try {
       const intent = await providers.finance.createPayment({ amount, method, purpose });
       const receipt = await providers.finance.confirmPayment(intent.id);
-      if (userId) recordAudit('finance.payment', userId, `${purpose} payment ${formatMoney(amount)} (${receipt.reference})`);
+      if (userId)
+        recordAudit(
+          'finance.payment',
+          userId,
+          `${purpose} payment ${formatMoney(amount)} (${receipt.reference})`,
+        );
       await onPaid(receipt, intent.id);
       setStep('choose');
     } catch (e) {
@@ -86,11 +101,20 @@ export function PaymentSheet({
   };
 
   return (
-    <Sheet visible={visible} onClose={close} title={`Pay ${formatMoney(amount)}`} testID="payment-sheet">
+    <Sheet
+      visible={visible}
+      onClose={close}
+      title={`Pay ${formatMoney(amount)}`}
+      testID="payment-sheet"
+    >
       <Text variant="body" color={colors.textSecondary}>
         {description}
       </Text>
-      <View style={styles.methods} accessibilityRole="radiogroup" accessibilityLabel="Payment method">
+      <View
+        style={styles.methods}
+        accessibilityRole="radiogroup"
+        accessibilityLabel="Payment method"
+      >
         {methods.map((m) => {
           const selected = m.id === method;
           return (
@@ -111,27 +135,42 @@ export function PaymentSheet({
                   {m.detail}
                 </Text>
               </View>
-              <Icon name={selected ? 'radio-button-on' : 'radio-button-off'} size={22} color={colors.navy} />
+              <Icon
+                name={selected ? 'radio-button-on' : 'radio-button-off'}
+                size={22}
+                color={colors.navy}
+              />
             </Touchable>
           );
         })}
       </View>
-      {step === 'failed' && message ? <Notice tone="danger" title="Payment not completed" body={message} /> : null}
+      {step === 'failed' && message ? (
+        <Notice tone="danger" title="Payment not completed" body={message} />
+      ) : null}
       <View style={styles.secure}>
         <Icon name="lock-closed" size={16} color={colors.success} />
         <Text variant="caption" color={colors.textSecondary} style={{ flex: 1 }}>
-          You’ll be handed over to the university’s approved payment provider. NMU ONE never sees your card or banking details.
+          You’ll be handed over to the university’s approved payment provider. NMU ONE never sees
+          your card or banking details.
         </Text>
       </View>
       <Button
-        label={step === 'processing' ? 'Waiting for the payment provider…' : `Pay ${formatMoney(amount)}`}
+        label={
+          step === 'processing' ? 'Waiting for the payment provider…' : `Pay ${formatMoney(amount)}`
+        }
         variant="accent"
         fullWidth
         loading={step === 'processing'}
         onPress={pay}
         testID="pay-confirm"
       />
-      <Button label="Cancel" variant="ghost" fullWidth onPress={close} disabled={step === 'processing'} />
+      <Button
+        label="Cancel"
+        variant="ghost"
+        fullWidth
+        onPress={close}
+        disabled={step === 'processing'}
+      />
     </Sheet>
   );
 }

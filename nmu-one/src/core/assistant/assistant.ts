@@ -88,12 +88,21 @@ export interface AssistantContext {
 
 const INTENT_PATTERNS: [IntentId, RegExp][] = [
   ['crisis', /\b(suicid\w*|kill myself|end my life|self[- ]harm|want to die)\b/i],
-  ['safety', /\b(emergency|unsafe|danger|attack\w*|followed|threat\w*|robbed|assault\w*|security)\b/i],
+  [
+    'safety',
+    /\b(emergency|unsafe|danger|attack\w*|followed|threat\w*|robbed|assault\w*|security)\b/i,
+  ],
   ['funding', /\b(nsfas|funding|allowance|bursary)\b/i],
   ['balance', /\b(owe|balance|outstanding|fees?|how much|statement)\b/i],
-  ['study-space', /\b(study (space|room)s?|group room|silent pod|quiet (place|space)|book (a )?(room|space))\b/i],
+  [
+    'study-space',
+    /\b(study (space|room)s?|group room|silent pod|quiet (place|space)|book (a )?(room|space))\b/i,
+  ],
   ['shuttle', /\b(shuttle|bus|route [abn]\b|transport|lift to)\b/i],
-  ['next-class', /\b(next (class|lecture)|my (class|lecture)|timetable|class today|lectures? today)\b/i],
+  [
+    'next-class',
+    /\b(next (class|lecture)|my (class|lecture)|timetable|class today|lectures? today)\b/i,
+  ],
   ['exams', /\b(exams?|tests?|assessments?|deadlines?|due)\b/i],
   ['locate', /\b(where is|where's|find|directions to|how do i get to|take me to)\b/i],
 ];
@@ -103,7 +112,9 @@ const ROOM_PATTERN = /\b([A-Za-z]{1,3})\s?(\d{3})\b/;
 export function detectIntent(query: string): IntentId {
   if (ROOM_PATTERN.test(query) && parseRoomCode(query.match(ROOM_PATTERN)![0])) {
     // "Where is EB212?" — a room code outranks generic words like "find".
-    const generic = INTENT_PATTERNS.find(([id, re]) => (id === 'crisis' || id === 'safety') && re.test(query));
+    const generic = INTENT_PATTERNS.find(
+      ([id, re]) => (id === 'crisis' || id === 'safety') && re.test(query),
+    );
     return generic ? generic[0] : 'locate';
   }
   for (const [id, re] of INTENT_PATTERNS) if (re.test(query)) return id;
@@ -113,7 +124,9 @@ export function detectIntent(query: string): IntentId {
 const answer = (
   intent: IntentId,
   text: string,
-  extra: Partial<Omit<AssistantAnswer, 'intent' | 'text' | 'kind'>> & { kind?: AssistantAnswer['kind'] } = {},
+  extra: Partial<Omit<AssistantAnswer, 'intent' | 'text' | 'kind'>> & {
+    kind?: AssistantAnswer['kind'];
+  } = {},
 ): AssistantAnswer => ({
   intent,
   kind: extra.kind ?? 'answer',
@@ -123,17 +136,35 @@ const answer = (
   secondary: extra.secondary ?? null,
 });
 
-function denied(intent: IntentId, decision: Decision, what: string, ctx: AssistantContext): AssistantAnswer {
+function denied(
+  intent: IntentId,
+  decision: Decision,
+  what: string,
+  ctx: AssistantContext,
+): AssistantAnswer {
   if (!decision.allowed && decision.reason === 'consent') {
-    return answer(intent, `This hasn't been shared with you. Only the student can share ${what} with you, from their own privacy settings.`, {
-      kind: 'denied',
-      action: { label: 'See what is shared', href: '/guardian' },
-    });
+    return answer(
+      intent,
+      `This hasn't been shared with you. Only the student can share ${what} with you, from their own privacy settings.`,
+      {
+        kind: 'denied',
+        action: { label: 'See what is shared', href: '/guardian' },
+      },
+    );
   }
-  const roleName = { student: 'students', staff: 'staff', parent: 'parents and guardians', alumni: 'alumni' }[ctx.role];
-  return answer(intent, `${what[0]!.toUpperCase()}${what.slice(1)} isn't part of NMU ONE for ${roleName}.`, {
-    kind: 'denied',
-  });
+  const roleName = {
+    student: 'students',
+    staff: 'staff',
+    parent: 'parents and guardians',
+    alumni: 'alumni',
+  }[ctx.role];
+  return answer(
+    intent,
+    `${what[0]!.toUpperCase()}${what.slice(1)} isn't part of NMU ONE for ${roleName}.`,
+    {
+      kind: 'denied',
+    },
+  );
 }
 
 const unavailable = (intent: IntentId, service: string, href: string): AssistantAnswer =>
@@ -151,7 +182,11 @@ const tokens = (s: string) =>
     .filter((t) => t.length > 2);
 
 /** Best approved article for a question, or null below the confidence bar. */
-export function matchArticle(query: string, articles: KnowledgeArticle[], role: Role): KnowledgeArticle | null {
+export function matchArticle(
+  query: string,
+  articles: KnowledgeArticle[],
+  role: Role,
+): KnowledgeArticle | null {
   const q = tokens(query);
   let best: { a: KnowledgeArticle; score: number } | null = null;
   for (const a of articles) {
@@ -183,7 +218,10 @@ async function handoff(ctx: AssistantContext): Promise<AssistantAnswer> {
   );
 }
 
-export async function answerQuestion(query: string, ctx: AssistantContext): Promise<AssistantAnswer> {
+export async function answerQuestion(
+  query: string,
+  ctx: AssistantContext,
+): Promise<AssistantAnswer> {
   const intent = detectIntent(query);
   const trimmed = query.trim();
   if (!trimmed) return handoff(ctx);
@@ -220,7 +258,15 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
       }
       const room = trimmed.match(ROOM_PATTERN)?.[0];
       const parsed = room ? parseRoomCode(room) : null;
-      const subject = (parsed?.code ?? trimmed.replace(/^(where is|where's|find|directions to|how do i get to|take me to)\s+(the\s+)?/i, '').replace(/[?.!]+$/, '')).trim();
+      const subject = (
+        parsed?.code ??
+        trimmed
+          .replace(
+            /^(where is|where's|find|directions to|how do i get to|take me to)\s+(the\s+)?/i,
+            '',
+          )
+          .replace(/[?.!]+$/, '')
+      ).trim();
       const building = findBuilding(map, subject);
       if (!building) return handoff(ctx);
       const route = routeTo(map, map.defaultOrigin, building, parsed?.floor);
@@ -230,7 +276,10 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
       const walk = route ? ` About ${route.walkingMinutes} min on foot from the Main Gate.` : '';
       return answer('locate', `${where}${walk}`, {
         source: { label: 'Campus buildings register', updatedAt: null },
-        action: { label: 'Show me the way', href: `/campus-map?to=${parsed?.code ?? building.code}` },
+        action: {
+          label: 'Show me the way',
+          href: `/campus-map?to=${parsed?.code ?? building.code}`,
+        },
       });
     }
 
@@ -253,7 +302,8 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
           action: { label: 'Open timetable', href: '/academics/timetable' },
         });
       }
-      const when = new Date(next.start) <= ctx.now ? 'is on now' : formatCountdown(next.start, ctx.now);
+      const when =
+        new Date(next.start) <= ctx.now ? 'is on now' : formatCountdown(next.start, ctx.now);
       return answer(
         'next-class',
         `${next.moduleCode} ${next.moduleTitle} — ${formatRelativeDay(next.start, ctx.now).toLowerCase()} at ${formatTime(next.start)} in ${next.room.code} (${when}).${next.note ? ` ${next.note}.` : ''}`,
@@ -266,13 +316,19 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
     }
 
     case 'balance': {
+      if (ctx.role === 'parent') {
+        const g = ctx.decide('guardian.fees');
+        if (!g.allowed) return denied('balance', g, 'fee information', ctx);
+        return answer(
+          'balance',
+          'Your student shares their fee position with you. It’s under Family, as Student Finance reports it.',
+          {
+            action: { label: 'View shared fees', href: '/guardian/fees' },
+          },
+        );
+      }
       const d = ctx.decide('finance.view');
       if (!d.allowed) return denied('balance', d, 'fee information', ctx);
-      if (ctx.role === 'parent') {
-        return answer('balance', 'You can see the fee position that has been shared with you under Family.', {
-          action: { label: 'View shared fees', href: '/guardian/fees' },
-        });
-      }
       let account: FeeAccount;
       try {
         account = await ctx.data.account();
@@ -289,7 +345,8 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
       return answer('balance', text, {
         source: { label: 'Student Finance', updatedAt: account.asAt },
         action: { label: 'View fees', href: '/money' },
-        secondary: account.balance.cents > 0 ? { label: 'Make a payment', href: '/money/pay' } : null,
+        secondary:
+          account.balance.cents > 0 ? { label: 'Make a payment', href: '/money/pay' } : null,
       });
     }
 
@@ -324,10 +381,14 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
         }))
         .filter((x) => x.slot);
       if (afternoon.length === 0) {
-        return answer('study-space', 'Every study room is booked for the rest of today. Tomorrow’s slots open in the Library.', {
-          source: { label: 'Library bookings', updatedAt: ctx.now.toISOString() },
-          action: { label: 'See study spaces', href: '/library?tab=spaces' },
-        });
+        return answer(
+          'study-space',
+          'Every study room is booked for the rest of today. Tomorrow’s slots open in the Library.',
+          {
+            source: { label: 'Library bookings', updatedAt: ctx.now.toISOString() },
+            action: { label: 'See study spaces', href: '/library?tab=spaces' },
+          },
+        );
       }
       const earliest = afternoon.sort((a, b) => a.slot!.start.localeCompare(b.slot!.start))[0]!;
       return answer(
@@ -354,13 +415,19 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
       const next = running[0];
       const delayed = routes.filter((r) => r.status === 'delayed' || r.status === 'disrupted');
       if (!next) {
-        return answer('shuttle', 'No shuttles are running from the Shuttle Interchange right now.', {
-          source: { label: 'Campus Transport', updatedAt: ctx.now.toISOString() },
-          action: { label: 'See shuttle times', href: '/transport' },
-        });
+        return answer(
+          'shuttle',
+          'No shuttles are running from the Shuttle Interchange right now.',
+          {
+            source: { label: 'Campus Transport', updatedAt: ctx.now.toISOString() },
+            action: { label: 'See shuttle times', href: '/transport' },
+          },
+        );
       }
       const route = routes.find((r) => r.id === next.routeId);
-      const note = delayed.length ? ` ${delayed.map((r) => `Route ${r.code}: ${r.statusNote ?? 'delayed'}`).join(' ')}` : '';
+      const note = delayed.length
+        ? ` ${delayed.map((r) => `Route ${r.code}: ${r.statusNote ?? 'delayed'}`).join(' ')}`
+        : '';
       return answer(
         'shuttle',
         `Route ${route?.code} (${route?.name}) leaves the Shuttle Interchange in ${next.etaMinutes} min, at ${formatTime(next.departsAt)}.${note}`,
@@ -380,8 +447,13 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
       } catch {
         return unavailable('exams', 'Examinations', '/academics/exams');
       }
-      const next = list.filter((e) => new Date(e.start) > ctx.now).sort((a, b) => a.start.localeCompare(b.start))[0];
-      if (!next) return answer('exams', 'You have no upcoming assessments published.', { action: { label: 'View assessments', href: '/academics/exams' } });
+      const next = list
+        .filter((e) => new Date(e.start) > ctx.now)
+        .sort((a, b) => a.start.localeCompare(b.start))[0];
+      if (!next)
+        return answer('exams', 'You have no upcoming assessments published.', {
+          action: { label: 'View assessments', href: '/academics/exams' },
+        });
       return answer(
         'exams',
         `Next up: ${next.moduleCode} ${next.kind === 'assignment' ? 'submission' : next.kind} — ${formatDayShort(next.start)} at ${formatTime(next.start)}${next.venue ? ` in ${next.venue.code}` : ''} (${next.weightPercent}% of the module).`,
@@ -411,8 +483,23 @@ export async function answerQuestion(query: string, ctx: AssistantContext): Prom
 }
 
 export const SUGGESTED_QUESTIONS: Record<Role, string[]> = {
-  student: ['Where is EB212?', 'How much do I owe?', 'Book a study space', 'Find my shuttle', 'Who handles residence requests?'],
-  staff: ['Where is EB212?', 'Find my shuttle', 'Book a study space', 'Where is the Student Centre?'],
+  student: [
+    'Where is EB212?',
+    'How much do I owe?',
+    'Book a study space',
+    'Find my shuttle',
+    'Who handles residence requests?',
+  ],
+  staff: [
+    'Where is EB212?',
+    'Find my shuttle',
+    'Book a study space',
+    'Where is the Student Centre?',
+  ],
   parent: ['How much is owed?', 'Where is the Main Hall?', 'I feel unsafe on campus'],
-  alumni: ['Where is the Main Hall?', 'Who handles residence requests?', 'I need to talk to someone'],
+  alumni: [
+    'Where is the Main Hall?',
+    'Who handles residence requests?',
+    'I need to talk to someone',
+  ],
 };

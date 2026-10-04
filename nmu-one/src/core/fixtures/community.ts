@@ -25,7 +25,7 @@ const at = (now: Date, days: number, h: number, m = 0) => {
 /** Next Monday (or the Monday after, if today is Monday). */
 const daysToMonday = (now: Date) => {
   const { weekday } = sastParts(now);
-  return ((8 - weekday) % 7) || 7;
+  return (8 - weekday) % 7 || 7;
 };
 
 export function events(now: Date): CampusEvent[] {
@@ -133,12 +133,54 @@ export function events(now: Date): CampusEvent[] {
 }
 
 export const societies: Society[] = [
-  { id: 'soc-marketing', name: 'Marketing Society', category: 'Academic', members: 412, description: 'Case competitions, agency visits and a portfolio night every term.', meets: 'Wednesdays 17:00, EB212' },
-  { id: 'soc-enactus', name: 'Enactus', category: 'Entrepreneurship', members: 186, description: 'Student-led social enterprise projects with local communities.', meets: 'Mondays 18:00, Innovation Hub' },
-  { id: 'soc-debating', name: 'Debating Union', category: 'Culture', members: 97, description: 'Weekly debates and regional tournaments.', meets: 'Tuesdays 18:00, GB101' },
-  { id: 'soc-coding', name: 'Coding Club', category: 'Technology', members: 264, description: 'Hack nights, app projects and interview practice.', meets: 'Thursdays 17:30, Innovation Hub' },
-  { id: 'soc-hiking', name: 'Hiking Club', category: 'Outdoors', members: 158, description: 'Weekend coastal hikes around the bay.', meets: 'Saturdays, Main Gate 07:00' },
-  { id: 'soc-choir', name: 'Campus Choir', category: 'Music', members: 121, description: 'Rehearsals for graduation and the spring concert.', meets: 'Mondays 17:00, Main Hall' },
+  {
+    id: 'soc-marketing',
+    name: 'Marketing Society',
+    category: 'Academic',
+    members: 412,
+    description: 'Case competitions, agency visits and a portfolio night every term.',
+    meets: 'Wednesdays 17:00, EB212',
+  },
+  {
+    id: 'soc-enactus',
+    name: 'Enactus',
+    category: 'Entrepreneurship',
+    members: 186,
+    description: 'Student-led social enterprise projects with local communities.',
+    meets: 'Mondays 18:00, Innovation Hub',
+  },
+  {
+    id: 'soc-debating',
+    name: 'Debating Union',
+    category: 'Culture',
+    members: 97,
+    description: 'Weekly debates and regional tournaments.',
+    meets: 'Tuesdays 18:00, GB101',
+  },
+  {
+    id: 'soc-coding',
+    name: 'Coding Club',
+    category: 'Technology',
+    members: 264,
+    description: 'Hack nights, app projects and interview practice.',
+    meets: 'Thursdays 17:30, Innovation Hub',
+  },
+  {
+    id: 'soc-hiking',
+    name: 'Hiking Club',
+    category: 'Outdoors',
+    members: 158,
+    description: 'Weekend coastal hikes around the bay.',
+    meets: 'Saturdays, Main Gate 07:00',
+  },
+  {
+    id: 'soc-choir',
+    name: 'Campus Choir',
+    category: 'Music',
+    members: 121,
+    description: 'Rehearsals for graduation and the spring concert.',
+    meets: 'Mondays 17:00, Main Hall',
+  },
 ];
 
 type NotificationSeed = Omit<AppNotification, 'createdAt' | 'expiresAt'> & { minutesAgo: number };
@@ -357,10 +399,38 @@ export function mentoringFor(userId: string): MentoringOpportunity[] {
 }
 
 export const jobs = (now: Date): Job[] => [
-  { id: 'j1', title: 'Graduate Marketing Associate', organisation: 'Algoa Coastal Retail (demo)', location: 'Gqeberha', type: 'graduate-programme', postedAt: addDays(now, -2).toISOString() },
-  { id: 'j2', title: 'Junior Data Analyst', organisation: 'Bayview Analytics (demo)', location: 'Hybrid · Gqeberha', type: 'full-time', postedAt: addDays(now, -5).toISOString() },
-  { id: 'j3', title: 'Brand Coordinator', organisation: 'Umoya Foods (demo)', location: 'Cape Town', type: 'full-time', postedAt: addDays(now, -6).toISOString() },
-  { id: 'j4', title: 'Product Management Intern', organisation: 'Kudu Fintech (demo)', location: 'Johannesburg', type: 'internship', postedAt: addDays(now, -9).toISOString() },
+  {
+    id: 'j1',
+    title: 'Graduate Marketing Associate',
+    organisation: 'Algoa Coastal Retail (demo)',
+    location: 'Gqeberha',
+    type: 'graduate-programme',
+    postedAt: addDays(now, -2).toISOString(),
+  },
+  {
+    id: 'j2',
+    title: 'Junior Data Analyst',
+    organisation: 'Bayview Analytics (demo)',
+    location: 'Hybrid · Gqeberha',
+    type: 'full-time',
+    postedAt: addDays(now, -5).toISOString(),
+  },
+  {
+    id: 'j3',
+    title: 'Brand Coordinator',
+    organisation: 'Umoya Foods (demo)',
+    location: 'Cape Town',
+    type: 'full-time',
+    postedAt: addDays(now, -6).toISOString(),
+  },
+  {
+    id: 'j4',
+    title: 'Product Management Intern',
+    organisation: 'Kudu Fintech (demo)',
+    location: 'Johannesburg',
+    type: 'internship',
+    postedAt: addDays(now, -9).toISOString(),
+  },
 ];
 
 export const campaigns: GivingCampaign[] = [
@@ -391,14 +461,39 @@ export const campaigns: GivingCampaign[] = [
 ];
 
 export const stories: AlumniStory[] = [
-  { id: 's1', name: 'Zanele M.', classOf: 2017, headline: 'From campus marketplace stall to a 40-person agency' },
-  { id: 's2', name: 'Ruan P.', classOf: 2012, headline: 'Building ocean-data tools for coastal cities' },
-  { id: 's3', name: 'Aisha K.', classOf: 2020, headline: 'Mentoring 12 first-generation students this year' },
+  {
+    id: 's1',
+    name: 'Zanele M.',
+    classOf: 2017,
+    headline: 'From campus marketplace stall to a 40-person agency',
+  },
+  {
+    id: 's2',
+    name: 'Ruan P.',
+    classOf: 2012,
+    headline: 'Building ocean-data tools for coastal cities',
+  },
+  {
+    id: 's3',
+    name: 'Aisha K.',
+    classOf: 2020,
+    headline: 'Mentoring 12 first-generation students this year',
+  },
 ];
 
 export const chapters = (now: Date): Chapter[] => [
-  { id: 'ch-nmb', name: 'Nelson Mandela Bay Chapter', members: 4210, nextMeetup: addDays(now, 12).toISOString() },
-  { id: 'ch-gp', name: 'Gauteng Chapter', members: 6120, nextMeetup: addDays(now, 19).toISOString() },
+  {
+    id: 'ch-nmb',
+    name: 'Nelson Mandela Bay Chapter',
+    members: 4210,
+    nextMeetup: addDays(now, 12).toISOString(),
+  },
+  {
+    id: 'ch-gp',
+    name: 'Gauteng Chapter',
+    members: 6120,
+    nextMeetup: addDays(now, 19).toISOString(),
+  },
   { id: 'ch-wc', name: 'Western Cape Chapter', members: 3870, nextMeetup: null },
 ];
 

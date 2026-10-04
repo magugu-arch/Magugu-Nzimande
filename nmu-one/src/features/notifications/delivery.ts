@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { useRouter, type Href } from 'expo-router';
+import { useGlobalSearchParams, usePathname, useRouter, type Href } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { providers } from '@/core/adapters/registry';
 import type { AppNotification } from '@/core/domain/models';
@@ -9,6 +9,7 @@ import { suppressedByQuietHours } from '@/core/notifications/priority';
 import { clock } from '@/core/time/clock';
 import { sastParts } from '@/core/time/sast';
 import { prefsFor } from '@/state/preferences';
+import { useNotificationsQuery } from '@/data/hooks';
 import { useSession } from '@/state/session';
 import { showToast } from '@/state/toasts';
 
@@ -52,7 +53,8 @@ export function useNotificationDelivery() {
     return providers.notifications.subscribe((n) => {
       void queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
       // An order turning "ready" also changes the order screen.
-      if (n.category === 'orders') void queryClient.invalidateQueries({ queryKey: ['order', userId] });
+      if (n.category === 'orders')
+        void queryClient.invalidateQueries({ queryKey: ['order', userId] });
       if (!shouldInterrupt(n, userId)) return;
       showToast({
         id: n.id,
@@ -74,4 +76,42 @@ export function useNotificationDelivery() {
     });
     return () => sub.remove();
   }, [router]);
+}
+
+/**
+ * Visiting the place a notification points to settles it: once someone has
+ * opened their funding status, their ready order or the mentoring request,
+ * the notice stops asking for attention on Home and in the inbox.
+ */
+export function useSettleNotificationsOnVisit() {
+  const pathname = usePathname();
+  const params = useGlobalSearchParams();
+  const queryClient = useQueryClient();
+  const userId = useSession((s) => s.user?.id);
+  const notifications = useNotificationsQuery();
+  const paramsKey = JSON.stringify(params);
+
+  useEffect(() => {
+    if (!userId || !notifications.data) return;
+    const current = JSON.parse(paramsKey) as Record<string, string | string[]>;
+    const due = notifications.data.filter(
+      (n) => n.action && !n.read && visits(n.action.href, pathname, current),
+    );
+    if (!due.length) return;
+    void Promise.allSettled(due.map((n) => providers.notifications.markRead(n.id))).then(() =>
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
+    );
+  }, [pathname, paramsKey, notifications.data, userId, queryClient]);
+}
+
+/** Whether the current route is the notification's destination, query included. */
+export function visits(
+  href: string,
+  pathname: string,
+  params: Record<string, string | string[]>,
+): boolean {
+  const [path, query] = href.split('?');
+  if (path !== pathname) return false;
+  if (!query) return true;
+  return [...new URLSearchParams(query).entries()].every(([k, v]) => String(params[k] ?? '') === v);
 }

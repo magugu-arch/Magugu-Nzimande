@@ -18,7 +18,10 @@ export const multiplyMoney = (m: Money, quantity: number): Money => ({
  * statements and the C.I. imagery use "R4,250.00". The app follows the
  * statement, since that is what a student compares it with.
  */
-export function formatMoney(m: Money, opts: { showCents?: boolean; signed?: boolean } = {}): string {
+export function formatMoney(
+  m: Money,
+  opts: { showCents?: boolean; signed?: boolean } = {},
+): string {
   const { showCents = true, signed = false } = opts;
   const negative = m.cents < 0;
   const abs = Math.abs(m.cents);
@@ -36,7 +39,5 @@ export function moneyAccessibilityLabel(m: Money): string {
   const rands = Math.floor(abs / 100);
   const cents = abs % 100;
   const prefix = m.cents < 0 ? 'minus ' : '';
-  return cents === 0
-    ? `${prefix}${rands} rand`
-    : `${prefix}${rands} rand ${cents} cents`;
+  return cents === 0 ? `${prefix}${rands} rand` : `${prefix}${rands} rand ${cents} cents`;
 }

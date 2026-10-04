@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { config } from '@/core/config';
 import type { AuthSession, PersonaId } from '@/core/adapters/contracts';
@@ -43,9 +44,11 @@ function bind(user: User | null, role: Role | null) {
   providerContext.set({ userId: user?.id ?? null, role });
 }
 
-async function persist(session: AuthSession, user: User, role: Role) {
-  await secureStorage.set(STORAGE_KEY, JSON.stringify({ session, user, role }));
+async function persist(session: AuthSession, user: User, role: Role, persona?: PersonaId) {
+  await secureStorage.set(STORAGE_KEY, JSON.stringify({ session, user, role, persona }));
 }
+
+let lastPersona: PersonaId | undefined;
 
 export const useSession = create<SessionState>((set, get) => ({
   status: 'restoring',
@@ -55,15 +58,33 @@ export const useSession = create<SessionState>((set, get) => ({
   signOutReason: null,
 
   async restore() {
-    // Mock sessions are not restored: the synthetic back end resets on every
-    // launch, so each demo starts from the same story. Live sessions are.
-    const raw = config.dataMode === 'live' ? await secureStorage.get(STORAGE_KEY) : null;
+    // Live sessions are restored from secure storage. Demo sessions restore
+    // only on the web, for the life of the tab (a refresh or deep link keeps
+    // the presenter signed in). The synthetic back end starts fresh each
+    // time, so a demo session signs the same demo identity in again rather
+    // than trusting a saved user it no longer knows.
+    const restorable = config.dataMode === 'live' || Platform.OS === 'web';
+    const raw = restorable ? await secureStorage.get(STORAGE_KEY) : null;
     if (!raw) {
       set({ status: 'signed-out' });
       return;
     }
     try {
-      const saved = JSON.parse(raw) as { session: AuthSession; user: User; role: Role };
+      const saved = JSON.parse(raw) as {
+        session: AuthSession;
+        user: User;
+        role: Role;
+        persona?: PersonaId;
+      };
+      if (config.dataMode === 'mock') {
+        const { session, user } = await providers.auth.signIn(saved.persona);
+        lastPersona = saved.persona;
+        const role = user.roles.includes(saved.role) ? saved.role : (user.roles[0] ?? 'student');
+        bind(user, role);
+        await persist(session, user, role, saved.persona);
+        set({ status: 'signed-in', session, user, role });
+        return;
+      }
       if (new Date(saved.session.expiresAt) <= clock.now()) {
         await secureStorage.remove(STORAGE_KEY);
         set({ status: 'signed-out', signOutReason: 'expired' });
@@ -85,7 +106,8 @@ export const useSession = create<SessionState>((set, get) => ({
       // person with several starts in the first and can switch in Profile.
       const role = user.roles[0] ?? 'student';
       bind(user, role);
-      await persist(session, user, role);
+      lastPersona = persona;
+      await persist(session, user, role, persona);
       set({ status: 'signed-in', session, user, role });
       recordAudit('auth.sign-in', user.id, `Signed in as ${role} via NMU SSO`);
     } catch (e) {
@@ -130,7 +152,7 @@ export const useSession = create<SessionState>((set, get) => ({
     if (!user || !session || !user.roles.includes(role)) return;
     bind(user, role);
     set({ role });
-    void persist(session, user, role);
+    void persist(session, user, role, lastPersona);
     recordAudit('role.switch', user.id, `Switched to ${role}`);
   },
 
@@ -144,7 +166,7 @@ export const useSession = create<SessionState>((set, get) => ({
     const next = await providers.auth.transitionToAlumni(user.id);
     bind(next, 'alumni');
     set({ user: next, role: 'alumni' });
-    await persist(session, next, 'alumni');
+    await persist(session, next, 'alumni', lastPersona);
     recordAudit('lifecycle.transition', user.id, 'Student → Alumni (same identity)');
   },
 

@@ -38,13 +38,31 @@ export function CampusMapView({
       accessible
       accessibilityRole="image"
       accessibilityLabel={label}
-      style={{ height, width: '100%', borderRadius: 20, overflow: 'hidden', backgroundColor: '#E6E5DC' }}
+      style={{
+        height,
+        width: '100%',
+        borderRadius: 20,
+        overflow: 'hidden',
+        backgroundColor: '#E6E5DC',
+      }}
     >
-      <Svg width="100%" height="100%" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} preserveAspectRatio="xMidYMid meet">
+      <Svg
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+        preserveAspectRatio="xMidYMid meet"
+      >
         {/* Grounds */}
         <Rect x={0} y={0} width={VIEW_W} height={VIEW_H} fill="#E6E5DC" />
         <Rect x={300} y={930} width={400} height={170} rx={40} fill="#D5DEC9" />
-        <SvgText x={500} y={1022} fontSize={30} fontFamily={nunito.bold} fill="#7C8A6E" textAnchor="middle">
+        <SvgText
+          x={500}
+          y={1022}
+          fontSize={30}
+          fontFamily={nunito.bold}
+          fill="#7C8A6E"
+          textAnchor="middle"
+        >
           Main Lawn
         </SvgText>
 
@@ -53,14 +71,39 @@ export function CampusMapView({
           const p = waypoints.get(a);
           const q = waypoints.get(b);
           if (!p || !q) return null;
-          return <Line key={`${a}-${b}`} x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke={colors.white} strokeWidth={34} strokeLinecap="round" />;
+          return (
+            <Line
+              key={`${a}-${b}`}
+              x1={p.x}
+              y1={p.y}
+              x2={q.x}
+              y2={q.y}
+              stroke={colors.white}
+              strokeWidth={34}
+              strokeLinecap="round"
+            />
+          );
         })}
 
         {/* Route */}
         {route ? (
           <>
-            <Polyline points={route.points.map((p) => `${p.x},${p.y}`).join(' ')} fill="none" stroke={colors.navy} strokeWidth={26} strokeLinejoin="round" strokeLinecap="round" />
-            <Polyline points={route.points.map((p) => `${p.x},${p.y}`).join(' ')} fill="none" stroke={colors.yellow} strokeWidth={14} strokeLinejoin="round" strokeLinecap="round" />
+            <Polyline
+              points={route.points.map((p) => `${p.x},${p.y}`).join(' ')}
+              fill="none"
+              stroke={colors.navy}
+              strokeWidth={26}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+            <Polyline
+              points={route.points.map((p) => `${p.x},${p.y}`).join(' ')}
+              fill="none"
+              stroke={colors.yellow}
+              strokeWidth={14}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
           </>
         ) : null}
 
@@ -79,7 +122,14 @@ export function CampusMapView({
                 stroke={on ? colors.navy : 'none'}
                 strokeWidth={on ? 8 : 0}
               />
-              <SvgText x={b.position.x} y={b.position.y + 14} fontSize={44} fontFamily={nunito.extrabold} fill={on ? colors.navy : colors.white} textAnchor="middle">
+              <SvgText
+                x={b.position.x}
+                y={b.position.y + 14}
+                fontSize={44}
+                fontFamily={nunito.extrabold}
+                fill={on ? colors.navy : colors.white}
+                textAnchor="middle"
+              >
                 {b.code}
               </SvgText>
             </G>

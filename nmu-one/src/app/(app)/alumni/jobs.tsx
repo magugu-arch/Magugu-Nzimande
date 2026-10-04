@@ -2,7 +2,18 @@ import { View } from 'react-native';
 import { isDemoData } from '@/core/adapters/registry';
 import { formatAgo } from '@/core/time/sast';
 import { useJobs } from '@/data/hooks';
-import { Card, Header, Pill, QueryState, Row, Screen, StateView, Text, colors, spacing } from '@/design';
+import {
+  Card,
+  Header,
+  Pill,
+  QueryState,
+  Row,
+  Screen,
+  StateView,
+  Text,
+  colors,
+  spacing,
+} from '@/design';
 import { useNow } from '@/features/system/useNow';
 
 const TYPE = {
@@ -17,8 +28,23 @@ export default function Jobs() {
   const jobs = useJobs();
   const now = useNow();
   return (
-    <Screen header={<Header title="Careers" largeTitle="Careers & jobs" eyebrow="Alumni" subtitle="Roles shared by alumni and partner employers." />} testID="jobs">
-      <QueryState query={jobs} what="jobs" isEmpty={(j) => j.length === 0} empty={<StateView kind="empty" title="No roles listed right now" />}>
+    <Screen
+      header={
+        <Header
+          title="Careers"
+          largeTitle="Careers & jobs"
+          eyebrow="Alumni"
+          subtitle="Roles shared by alumni and partner employers."
+        />
+      }
+      testID="jobs"
+    >
+      <QueryState
+        query={jobs}
+        what="jobs"
+        isEmpty={(j) => j.length === 0}
+        empty={<StateView kind="empty" title="No roles listed right now" />}
+      >
         {(list) => (
           <View style={{ gap: spacing.md }}>
             {list.map((j) => (
@@ -36,7 +62,8 @@ export default function Jobs() {
               </Card>
             ))}
             <Text variant="caption" color={colors.textSecondary}>
-              Applications are made with the employer.{isDemoData() ? ' Demo listings use fictional organisations.' : ''}
+              Applications are made with the employer.
+              {isDemoData() ? ' Demo listings use fictional organisations.' : ''}
             </Text>
           </View>
         )}

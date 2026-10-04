@@ -49,7 +49,9 @@ export default function Services() {
         <SkeletonCard lines={5} />
       ) : (
         WORLDS.map((world) => {
-          const items = SERVICES.filter((s) => s.world === world.id && decide(subject, s.capability).allowed);
+          const items = SERVICES.filter(
+            (s) => s.world === world.id && decide(subject, s.capability).allowed,
+          );
           if (items.length === 0) return null;
           return (
             <View key={world.id} style={styles.world} testID={`world-${world.id}`}>

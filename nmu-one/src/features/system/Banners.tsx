@@ -20,7 +20,10 @@ export function InAppBanner() {
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => dismiss(toast.id), toast.tone === 'urgent' ? VISIBLE_MS * 2 : VISIBLE_MS);
+    const t = setTimeout(
+      () => dismiss(toast.id),
+      toast.tone === 'urgent' ? VISIBLE_MS * 2 : VISIBLE_MS,
+    );
     return () => clearTimeout(t);
   }, [toast, dismiss]);
 
@@ -47,7 +50,11 @@ export function InAppBanner() {
           feedback="dim"
         >
           <View style={[styles.dot, { backgroundColor: urgent ? colors.yellow : colors.navy2 }]}>
-            <Icon name={urgent ? 'notifications' : 'checkmark'} size={16} color={urgent ? colors.navy : colors.white} />
+            <Icon
+              name={urgent ? 'notifications' : 'checkmark'}
+              size={16}
+              color={urgent ? colors.navy : colors.white}
+            />
           </View>
           <View style={styles.text}>
             <Text variant="bodyStrong" color={colors.white}>
@@ -101,7 +108,13 @@ const styles = StyleSheet.create({
   },
   info: { backgroundColor: colors.navy2 },
   urgent: { backgroundColor: colors.navy },
-  bannerBody: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+  bannerBody: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
   dot: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   text: { flex: 1, gap: 2 },
   offline: {

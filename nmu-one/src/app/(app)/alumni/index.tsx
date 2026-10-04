@@ -28,7 +28,13 @@ export default function AlumniHome() {
 
   return (
     <Screen padded={false} topInset={false} testID="alumni">
-      <PhotoHero photo="nmuCommunity" eyebrow="Alumni" title="Different backgrounds. A shared future." height={300} topBar={<HeroBack />} />
+      <PhotoHero
+        photo="heroCampus"
+        eyebrow="Alumni"
+        title="Your NMU community, for life."
+        height={300}
+        topBar={<HeroBack />}
+      />
       <View style={styles.body}>
         <QueryState query={profile} what="your alumni profile">
           {(p) => (
@@ -45,9 +51,18 @@ export default function AlumniHome() {
                   <Pill key={e} label={e} />
                 ))}
               </Row>
-              <ProgressBar value={p.profileCompleteness} tone="yellow" label={`Profile ${Math.round(p.profileCompleteness * 100)}% complete`} />
-              <Text variant="caption" color={colors.textSecondary} style={{ marginTop: spacing.xs }}>
-                Profile {Math.round(p.profileCompleteness * 100)}% complete · a fuller profile gets better mentoring matches
+              <ProgressBar
+                value={p.profileCompleteness}
+                tone="yellow"
+                label={`Profile ${Math.round(p.profileCompleteness * 100)}% complete`}
+              />
+              <Text
+                variant="caption"
+                color={colors.textSecondary}
+                style={{ marginTop: spacing.xs }}
+              >
+                Profile {Math.round(p.profileCompleteness * 100)}% complete · a fuller profile gets
+                better mentoring matches
               </Text>
             </Card>
           )}
@@ -61,7 +76,12 @@ export default function AlumniHome() {
           <SectionHeader title="Chapters" />
           <Card padded={false} style={styles.list}>
             {chapters.data?.map((c) => (
-              <ListRow key={c.id} icon="globe-outline" title={c.name} subtitle={`${c.members.toLocaleString('en-ZA')} members${c.nextMeetup ? ` · next meet-up ${formatDayShort(c.nextMeetup)}` : ''}`} />
+              <ListRow
+                key={c.id}
+                icon="globe-outline"
+                title={c.name}
+                subtitle={`${c.members.toLocaleString('en-ZA')} members${c.nextMeetup ? ` · next meet-up ${formatDayShort(c.nextMeetup)}` : ''}`}
+              />
             ))}
           </Card>
         </View>
@@ -70,12 +90,22 @@ export default function AlumniHome() {
           <SectionHeader title="Alumni stories" />
           <Card padded={false} style={styles.list}>
             {stories.data?.map((s) => (
-              <ListRow key={s.id} icon="sparkles-outline" title={s.headline} subtitle={`${s.name}, class of ${s.classOf}`} />
+              <ListRow
+                key={s.id}
+                icon="sparkles-outline"
+                title={s.headline}
+                subtitle={`${s.name}, class of ${s.classOf}`}
+              />
             ))}
           </Card>
         </View>
 
-        <ListRow icon="calendar-outline" title="Alumni events" subtitle="Reunions, careers evenings and talks" onPress={() => router.push('/events')} />
+        <ListRow
+          icon="calendar-outline"
+          title="Alumni events"
+          subtitle="Reunions, careers evenings and talks"
+          onPress={() => router.push('/events')}
+        />
       </View>
     </Screen>
   );

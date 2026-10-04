@@ -25,7 +25,9 @@ export function addItem(cart: Cart, item: MenuItem): Cart {
   const base = cart.vendorId && cart.vendorId !== item.vendorId ? emptyCart() : cart;
   const existing = base.lines.find((l) => l.item.id === item.id);
   const lines = existing
-    ? base.lines.map((l) => (l.item.id === item.id ? { ...l, quantity: Math.min(MAX_PER_ITEM, l.quantity + 1) } : l))
+    ? base.lines.map((l) =>
+        l.item.id === item.id ? { ...l, quantity: Math.min(MAX_PER_ITEM, l.quantity + 1) } : l,
+      )
     : [...base.lines, { item, quantity: 1 }];
   return { vendorId: item.vendorId, lines };
 }

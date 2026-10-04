@@ -1,5 +1,12 @@
-import { forwardRef } from 'react';
-import { StyleSheet, Switch, TextInput, View, type TextInputProps } from 'react-native';
+import { forwardRef, useState } from 'react';
+import {
+  Platform,
+  StyleSheet,
+  TextInput,
+  View,
+  type TextInputProps,
+  type TextStyle,
+} from 'react-native';
 import { colors, radius, spacing } from '../tokens';
 import { typography } from '../typography';
 import { Icon } from './Icon';
@@ -49,11 +56,26 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
 export const SearchField = forwardRef<
   TextInput,
   TextInputProps & { onClear?: () => void; label?: string; tone?: 'surface' | 'onDark' }
->(function SearchField({ value, onClear, label = 'Search NMU ONE', tone = 'surface', style, ...rest }, ref) {
+>(function SearchField(
+  { value, onClear, label = 'Search NMU ONE', tone = 'surface', style, onFocus, onBlur, ...rest },
+  ref,
+) {
   const onDark = tone === 'onDark';
+  // The pill shows focus; the input's own square browser outline is removed.
+  const [focused, setFocused] = useState(false);
   return (
-    <View style={[styles.search, onDark ? styles.searchDark : null]}>
-      <Icon name="search" size={20} color={onDark ? colors.textOnDarkMuted : colors.textSecondary} />
+    <View
+      style={[
+        styles.search,
+        onDark ? styles.searchDark : null,
+        focused ? styles.searchFocused : null,
+      ]}
+    >
+      <Icon
+        name="search"
+        size={20}
+        color={onDark ? colors.textOnDarkMuted : colors.textSecondary}
+      />
       <TextInput
         ref={ref}
         value={value}
@@ -62,7 +84,20 @@ export const SearchField = forwardRef<
         placeholderTextColor={onDark ? colors.textOnDarkMuted : colors.textSecondary}
         returnKeyType="search"
         autoCorrect={false}
-        style={[styles.searchInput, { color: onDark ? colors.white : colors.navy }, style]}
+        style={[
+          styles.searchInput,
+          NO_OUTLINE,
+          { color: onDark ? colors.white : colors.navy },
+          style,
+        ]}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
         {...rest}
       />
       {value && onClear ? (
@@ -109,15 +144,15 @@ export function Toggle({
           </Text>
         ) : null}
       </View>
-      <Switch
-        value={value}
-        onValueChange={onChange}
-        disabled={disabled}
-        trackColor={{ false: colors.borderStrong, true: colors.navy2 }}
-        thumbColor={colors.white}
+      {/* Drawn rather than a platform Switch: the row is the one control,
+          and a nested Switch would be a second, unlabelled one on the web. */}
+      <View
+        style={[styles.track, value ? styles.trackOn : null]}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
-      />
+      >
+        <View style={[styles.thumb, value ? styles.thumbOn : null]} />
+      </View>
     </Touchable>
   );
 }
@@ -159,6 +194,8 @@ export function Segmented<T extends string>({
   );
 }
 
+const NO_OUTLINE = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as TextStyle;
+
 const styles = StyleSheet.create({
   field: { gap: spacing.xs },
   input: {
@@ -187,10 +224,27 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   searchDark: { backgroundColor: 'rgba(255,255,255,0.1)', borderColor: colors.borderOnDark },
+  searchFocused: { borderColor: colors.focus, borderWidth: 2 },
   searchInput: { ...typography.body, flex: 1, paddingVertical: spacing.md },
   clear: { alignItems: 'center', justifyContent: 'center' },
-  toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+  toggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
   toggleText: { flex: 1, gap: 2 },
+  track: {
+    width: 50,
+    height: 30,
+    borderRadius: 15,
+    padding: 3,
+    backgroundColor: colors.borderStrong,
+    justifyContent: 'center',
+  },
+  trackOn: { backgroundColor: colors.navy2 },
+  thumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.white },
+  thumbOn: { alignSelf: 'flex-end' },
   segmented: {
     flexDirection: 'row',
     backgroundColor: colors.surface,

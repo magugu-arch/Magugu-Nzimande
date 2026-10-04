@@ -36,7 +36,11 @@ export default function Funding() {
   const funding = useFunding();
 
   return (
-    <Screen header={<Header title="Funding" fallbackHref="/money" />} onRefresh={funding.refetch} testID="funding">
+    <Screen
+      header={<Header title="Funding" fallbackHref="/money" />}
+      onRefresh={funding.refetch}
+      testID="funding"
+    >
       <QueryState query={funding} what="your funding status" loading={<SkeletonCard lines={5} />}>
         {(f) => (
           <View style={styles.body}>
@@ -48,14 +52,19 @@ export default function Funding() {
                 {f.headline}
               </Text>
               <Text variant="caption" color={colors.textSecondary}>
-                Reported by Student Funding · updated {formatAgo(f.updatedAt, now).toLowerCase()} ({formatTime(f.updatedAt)})
+                Reported by Student Funding · updated {formatAgo(f.updatedAt, now).toLowerCase()} (
+                {formatTime(f.updatedAt)})
               </Text>
             </View>
 
             {f.status === 'delayed' ? (
               <Notice
                 tone="warning"
-                title={f.expectedBy ? `Expected by ${formatDayLong(f.expectedBy)}` : 'No new payment date yet'}
+                title={
+                  f.expectedBy
+                    ? `Expected by ${formatDayLong(f.expectedBy)}`
+                    : 'No new payment date yet'
+                }
                 body={f.detail}
               />
             ) : (
@@ -79,8 +88,18 @@ export default function Funding() {
             <View>
               <SectionHeader title="Need help?" />
               <Card padded={false} style={styles.list}>
-                <ListRow icon="people-outline" title="Student Funding office" subtitle="Administration building, weekdays" onPress={() => router.push('/campus-map?to=AD')} />
-                <ListRow icon="restaurant-outline" title="Food support" subtitle="Confidential help while you wait" onPress={() => router.push('/wellbeing')} />
+                <ListRow
+                  icon="people-outline"
+                  title="Student Funding office"
+                  subtitle="Administration building, weekdays"
+                  onPress={() => router.push('/campus-map?to=AD')}
+                />
+                <ListRow
+                  icon="restaurant-outline"
+                  title="Food support"
+                  subtitle="Confidential help while you wait"
+                  onPress={() => router.push('/wellbeing')}
+                />
               </Card>
             </View>
           </View>

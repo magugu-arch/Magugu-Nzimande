@@ -62,7 +62,8 @@ export function ListRow({
           </Text>
         ) : null}
       </View>
-      {trailing ?? (onPress ? <Icon name="chevron-forward" size={18} color={colors.textSecondary} /> : null)}
+      {trailing ??
+        (onPress ? <Icon name="chevron-forward" size={18} color={colors.textSecondary} /> : null)}
     </>
   );
   if (!onPress) {

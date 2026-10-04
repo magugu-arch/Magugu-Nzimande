@@ -22,7 +22,13 @@ export interface PhotoProps {
  * never a file, and the slot's focal point keeps faces in frame however the
  * placement crops it.
  */
-export function Photo({ photo, size = 'md', style, rounded = true, decorative = false }: PhotoProps) {
+export function Photo({
+  photo,
+  size = 'md',
+  style,
+  rounded = true,
+  decorative = false,
+}: PhotoProps) {
   const slot = photoLibrary[photo];
   const reduceMotion = useReduceMotion();
   return (
@@ -67,8 +73,10 @@ export function PhotoHero({
     <View style={[styles.hero, { height: height + insets.top }]}>
       <Photo photo={photo} size="lg" rounded={false} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['rgba(20,28,43,0.35)', 'rgba(20,28,43,0.05)', colors.overlayBottom]}
-        locations={[0, 0.35, 1]}
+        // Several supplied photographs carry their own signage, so the scrim
+        // is deep enough that the editorial line always reads first.
+        colors={['rgba(20,28,43,0.45)', 'rgba(20,28,43,0.25)', 'rgba(20,28,43,0.92)']}
+        locations={[0, 0.4, 1]}
         style={StyleSheet.absoluteFill}
       />
       {topBar ? <View style={[styles.topBar, { paddingTop: insets.top }]}>{topBar}</View> : null}
@@ -96,6 +104,14 @@ const styles = StyleSheet.create({
   fill: { width: '100%', height: '100%' },
   rounded: { borderRadius: radius.lg },
   hero: { width: '100%', justifyContent: 'flex-end', backgroundColor: colors.navy },
-  topBar: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: spacing.sm, flexDirection: 'row', justifyContent: 'space-between' },
+  topBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   heroText: { paddingHorizontal: spacing.gutter, paddingBottom: spacing.xl, gap: spacing.xs },
 });

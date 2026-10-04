@@ -48,14 +48,34 @@ export default function Give() {
       <QueryState query={campaigns} what="this campaign">
         {(list) => {
           const c = list.find((x) => x.id === id);
-          if (!c) return <StateView kind="empty" title="Campaign not found" actionLabel="All campaigns" onAction={() => router.replace('/alumni/giving')} />;
+          if (!c)
+            return (
+              <StateView
+                kind="empty"
+                title="Campaign not found"
+                actionLabel="All campaigns"
+                onAction={() => router.replace('/alumni/giving')}
+              />
+            );
           const pct = c.raised.cents / c.goal.cents;
           const otherCents = parseRands(other);
           const amount: Money | null =
-            choice === 'other' ? (otherCents ? { cents: otherCents, currency: 'ZAR' } : null) : choice !== null ? (c.suggested[choice] ?? null) : null;
+            choice === 'other'
+              ? otherCents
+                ? { cents: otherCents, currency: 'ZAR' }
+                : null
+              : choice !== null
+                ? (c.suggested[choice] ?? null)
+                : null;
           return (
             <>
-              <PhotoHero photo={asPhotoKey(c.photo, 'alumniGiving')} eyebrow="Alumni giving" title={c.title} height={300} topBar={<HeroBack fallbackHref="/alumni/giving" />} />
+              <PhotoHero
+                photo={asPhotoKey(c.photo, 'alumniGiving')}
+                eyebrow="Alumni giving"
+                title={c.title}
+                height={300}
+                topBar={<HeroBack fallbackHref="/alumni/giving" />}
+              />
               <View style={styles.body}>
                 {pledge ? (
                   <View style={{ gap: spacing.lg }} testID="give-thanks">
@@ -75,18 +95,35 @@ export default function Give() {
                         Reference {pledge.reference}. {c.impact}
                       </Text>
                     </Card>
-                    <Button label="Back to alumni home" variant="primary" fullWidth onPress={() => router.replace('/home')} />
+                    <Button
+                      label="Back to alumni home"
+                      variant="primary"
+                      fullWidth
+                      onPress={() => router.dismissTo('/home')}
+                      testID="give-home"
+                    />
                   </View>
                 ) : (
                   <>
                     <Text variant="bodyLarge">{c.summary}</Text>
                     <View style={{ gap: spacing.xs }}>
-                      <ProgressBar value={pct} tone="yellow" label={`${Math.round(pct * 100)}% funded`} />
+                      <ProgressBar
+                        value={pct}
+                        tone="yellow"
+                        label={`${Math.round(pct * 100)}% funded`}
+                      />
                       <Text variant="captionStrong">
-                        {formatMoney(c.raised, { showCents: false })} of {formatMoney(c.goal, { showCents: false })} · {c.donors.toLocaleString('en-ZA')} donors
+                        {formatMoney(c.raised, { showCents: false })} of{' '}
+                        {formatMoney(c.goal, { showCents: false })} ·{' '}
+                        {c.donors.toLocaleString('en-ZA')} donors
                       </Text>
                     </View>
-                    <Notice tone="info" icon="sparkles-outline" title="Your impact" body={c.impact} />
+                    <Notice
+                      tone="info"
+                      icon="sparkles-outline"
+                      title="Your impact"
+                      body={c.impact}
+                    />
 
                     {c.allowsMonthly ? (
                       <Segmented<Pledge['frequency']>
@@ -106,19 +143,46 @@ export default function Give() {
                       </Text>
                       <Row wrap gap={spacing.sm}>
                         {c.suggested.map((m, i) => (
-                          <Chip key={m.cents} label={formatMoney(m, { showCents: false })} selected={choice === i} onPress={() => setChoice(i)} testID={`amount-${m.cents / 100}`} />
+                          <Chip
+                            key={m.cents}
+                            label={formatMoney(m, { showCents: false })}
+                            selected={choice === i}
+                            onPress={() => setChoice(i)}
+                            testID={`amount-${m.cents / 100}`}
+                          />
                         ))}
-                        <Chip label="Other" selected={choice === 'other'} onPress={() => setChoice('other')} />
+                        <Chip
+                          label="Other"
+                          selected={choice === 'other'}
+                          onPress={() => setChoice('other')}
+                        />
                       </Row>
                     </View>
                     {choice === 'other' ? (
-                      <TextField label="Amount in rand" keyboardType="decimal-pad" value={other} onChangeText={setOther} placeholder="e.g. 200" error={other && !otherCents ? 'Enter an amount like 200' : null} />
+                      <TextField
+                        label="Amount in rand"
+                        keyboardType="decimal-pad"
+                        value={other}
+                        onChangeText={setOther}
+                        placeholder="e.g. 200"
+                        error={other && !otherCents ? 'Enter an amount like 200' : null}
+                      />
                     ) : null}
 
-                    {error ? <Notice tone="danger" title="Your gift wasn’t recorded" body="Please try again." /> : null}
+                    {error ? (
+                      <Notice
+                        tone="danger"
+                        title="Your gift wasn’t recorded"
+                        body="Please try again."
+                      />
+                    ) : null}
 
                     <Button
-                      label={amount ? `Give ${formatMoney(amount)}${frequency === 'monthly' ? ' a month' : ''}` : 'Choose an amount'}
+                      label={
+                        amount
+                          ? `Give ${formatMoney(amount)}${frequency === 'monthly' ? ' a month' : ''}`
+                          : 'Choose an amount'
+                      }
                       icon="heart"
                       variant="accent"
                       fullWidth
@@ -135,7 +199,12 @@ export default function Give() {
                         onClose={() => setPaying(false)}
                         onPaid={async (_r, paymentId) => {
                           try {
-                            const p = await providers.alumni.pledge({ campaignId: c.id, amount, frequency, paymentId });
+                            const p = await providers.alumni.pledge({
+                              campaignId: c.id,
+                              amount,
+                              frequency,
+                              paymentId,
+                            });
                             setPaying(false);
                             setPledge(p);
                             void queryClient.invalidateQueries({ queryKey: ['campaigns'] });
@@ -160,5 +229,13 @@ export default function Give() {
 
 const styles = StyleSheet.create({
   body: { padding: spacing.gutter, gap: spacing.lg },
-  thanks: { alignSelf: 'center', width: 72, height: 72, borderRadius: 36, backgroundColor: colors.yellow, alignItems: 'center', justifyContent: 'center' },
+  thanks: {
+    alignSelf: 'center',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.yellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

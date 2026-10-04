@@ -34,13 +34,25 @@ export default function ResidenceScreen() {
 
   return (
     <Screen padded={false} topInset={false} testID="residence">
-      <PhotoHero photo="residence" eyebrow="Residence" title="Home on campus" height={260} topBar={<HeroBack />} />
+      <PhotoHero
+        photo="residence"
+        eyebrow="Residence"
+        title="Home on campus"
+        height={260}
+        topBar={<HeroBack />}
+      />
       <View style={styles.body}>
         <QueryState
           query={residence}
           what="your residence"
           isEmpty={(r) => r === null}
-          empty={<StateView kind="empty" title="No residence allocation" body="You don’t hold a residence place this year. The residence office can help with applications." />}
+          empty={
+            <StateView
+              kind="empty"
+              title="No residence allocation"
+              body="You don’t hold a residence place this year. The residence office can help with applications."
+            />
+          }
         >
           {(r) =>
             r ? (
@@ -56,12 +68,26 @@ export default function ResidenceScreen() {
                     {r.name}
                   </Text>
                   <Row gap={spacing.sm} style={{ marginTop: spacing.md }}>
-                    <Pill label={r.checkIn.status === 'complete' ? `Checked in ${formatDateLong(r.checkIn.date)}` : `Check-in due ${formatDateLong(r.checkIn.date)}`} tone={r.checkIn.status === 'complete' ? 'onDark' : 'yellow'} />
+                    <Pill
+                      label={
+                        r.checkIn.status === 'complete'
+                          ? `Checked in ${formatDateLong(r.checkIn.date)}`
+                          : `Check-in due ${formatDateLong(r.checkIn.date)}`
+                      }
+                      tone={r.checkIn.status === 'complete' ? 'onDark' : 'yellow'}
+                    />
                   </Row>
                 </Card>
 
                 {canRequest ? (
-                  <Button label="Log a request" icon="construct" variant="accent" fullWidth onPress={() => router.push('/residence/request')} testID="residence-new-request" />
+                  <Button
+                    label="Log a request"
+                    icon="construct"
+                    variant="accent"
+                    fullWidth
+                    onPress={() => router.push('/residence/request')}
+                    testID="residence-new-request"
+                  />
                 ) : null}
 
                 <View>
@@ -74,7 +100,9 @@ export default function ResidenceScreen() {
                           icon="construct-outline"
                           title={q.description}
                           subtitle={`${q.reference} · ${formatDateLong(q.createdAt)}`}
-                          trailing={<Pill label={STATUS[q.status].label} tone={STATUS[q.status].tone} />}
+                          trailing={
+                            <Pill label={STATUS[q.status].label} tone={STATUS[q.status].tone} />
+                          }
                         />
                       ))}
                     </Card>
@@ -90,8 +118,18 @@ export default function ResidenceScreen() {
                 <View>
                   <SectionHeader title="Support" />
                   <Card padded={false} style={styles.list}>
-                    <ListRow icon="business-outline" title={r.office.name} subtitle={r.office.hours} onPress={() => router.push('/campus-map?to=RV')} />
-                    <ListRow icon="shield-checkmark-outline" title="Safety after hours" subtitle="Emergency numbers and the late-night shuttle" onPress={() => router.push('/safety')} />
+                    <ListRow
+                      icon="business-outline"
+                      title={r.office.name}
+                      subtitle={r.office.hours}
+                      onPress={() => router.push('/campus-map?to=RV')}
+                    />
+                    <ListRow
+                      icon="shield-checkmark-outline"
+                      title="Safety after hours"
+                      subtitle="Emergency numbers and the late-night shuttle"
+                      onPress={() => router.push('/safety')}
+                    />
                   </Card>
                 </View>
               </View>

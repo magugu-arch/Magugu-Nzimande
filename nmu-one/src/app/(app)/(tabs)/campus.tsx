@@ -53,14 +53,34 @@ export default function Campus() {
 
   return (
     <Screen padded={false} topInset={false} testID="campus">
-      <PhotoHero photo="heroCampus" eyebrow="South Campus · Gqeberha" title="Your campus" subtitle="Find your way, catch the shuttle, book a space, grab lunch." height={260} />
+      <PhotoHero
+        photo="heroCampus"
+        eyebrow="South Campus · Gqeberha"
+        title="Your campus"
+        subtitle="Find your way, catch the shuttle, book a space, grab lunch."
+        height={260}
+      />
 
       <View style={styles.body}>
         <View>
-          <SectionHeader title="Map" action="Open map" onAction={() => router.push('/campus-map')} />
+          <SectionHeader
+            title="Map"
+            action="Open map"
+            onAction={() => router.push('/campus-map')}
+          />
           {map.data ? (
-            <Card padded={false} onPress={() => router.push(next ? `/campus-map?to=${next.room.code}` : '/campus-map')} accessibilityLabel="Open the campus map">
-              <CampusMapView map={map.data} height={190} origin={map.data.defaultOrigin} highlight={next?.room.buildingId ?? null} label="Schematic map of South Campus" />
+            <Card
+              padded={false}
+              onPress={() => router.push(next ? `/campus-map?to=${next.room.code}` : '/campus-map')}
+              accessibilityLabel="Open the campus map"
+            >
+              <CampusMapView
+                map={map.data}
+                height={190}
+                origin={map.data.defaultOrigin}
+                highlight={next?.room.buildingId ?? null}
+                label="Schematic map of South Campus"
+              />
             </Card>
           ) : null}
           {next ? (
@@ -78,10 +98,16 @@ export default function Campus() {
 
         {canShuttle ? (
           <View>
-            <SectionHeader title="Shuttle" action="All routes" onAction={() => router.push('/transport')} />
+            <SectionHeader
+              title="Shuttle"
+              action="All routes"
+              onAction={() => router.push('/transport')}
+            />
             <Card padded={false} style={styles.list}>
               {routes.data?.map((r) => {
-                const a = arrivals.data?.find((x) => x.routeId === r.id && x.stopId === r.stops[0]?.id);
+                const a = arrivals.data?.find(
+                  (x) => x.routeId === r.id && x.stopId === r.stops[0]?.id,
+                );
                 const running = r.status !== 'not-running';
                 return (
                   <ListRow
@@ -89,8 +115,18 @@ export default function Campus() {
                     icon="bus"
                     iconTone={running ? 'navy' : 'sunken'}
                     title={`Route ${r.code} · ${r.name}`}
-                    subtitle={running && a ? `${a.etaMinutes} min · departs ${formatTime(a.departsAt)}` : (r.statusNote ?? 'Not running')}
-                    trailing={r.status === 'delayed' ? <Pill label="Delayed" tone="warning" /> : running ? <Pill label="Live" tone="success" /> : undefined}
+                    subtitle={
+                      running && a
+                        ? `${a.etaMinutes} min · departs ${formatTime(a.departsAt)}`
+                        : (r.statusNote ?? 'Not running')
+                    }
+                    trailing={
+                      r.status === 'delayed' ? (
+                        <Pill label="Delayed" tone="warning" />
+                      ) : running ? (
+                        <Pill label="Live" tone="success" />
+                      ) : undefined
+                    }
                     onPress={() => router.push(`/transport/${r.id}`)}
                   />
                 );
@@ -103,24 +139,65 @@ export default function Campus() {
           <SectionHeader title="Places" />
           <Card padded={false} style={styles.list}>
             {canBook ? (
-              <ListRow icon="book" iconTone="yellow" title="Library study spaces" subtitle={spaces.data ? `${freeRooms} rooms with free slots today` : 'Checking availability…'} onPress={() => router.push('/library?tab=spaces')} />
+              <ListRow
+                icon="book"
+                iconTone="yellow"
+                title="Library study spaces"
+                subtitle={
+                  spaces.data
+                    ? `${freeRooms} rooms with free slots today`
+                    : 'Checking availability…'
+                }
+                onPress={() => router.push('/library?tab=spaces')}
+              />
             ) : null}
             {canDining ? (
-              <ListRow icon="restaurant" iconTone="yellow" title="Food & campus shops" subtitle={vendors.data ? `${openVendors} open now · order ahead` : 'Checking who’s open…'} onPress={() => router.push('/dining')} />
+              <ListRow
+                icon="restaurant"
+                iconTone="yellow"
+                title="Food & campus shops"
+                subtitle={
+                  vendors.data ? `${openVendors} open now · order ahead` : 'Checking who’s open…'
+                }
+                onPress={() => router.push('/dining')}
+              />
             ) : null}
             {canResidence ? (
-              <ListRow icon="home" iconTone="yellow" title="Residence" subtitle="Your room and requests" onPress={() => router.push('/residence')} />
+              <ListRow
+                icon="home"
+                iconTone="yellow"
+                title="Residence"
+                subtitle="Your room and requests"
+                onPress={() => router.push('/residence')}
+              />
             ) : null}
-            <ListRow icon="sparkles" iconTone="yellow" title="Events" subtitle="What’s on this week" onPress={() => router.push('/events')} />
+            <ListRow
+              icon="sparkles"
+              iconTone="yellow"
+              title="Events"
+              subtitle="What’s on this week"
+              onPress={() => router.push('/events')}
+            />
           </Card>
         </View>
 
-        <Card tone="navy" onPress={() => router.push('/safety')} accessibilityLabel="Safety. Emergency numbers, Campus Protection and safe travel." testID="campus-safety">
+        <Card
+          tone="navy"
+          onPress={() => router.push('/safety')}
+          accessibilityLabel="Safety. Emergency numbers, Campus Protection and safe travel."
+          testID="campus-safety"
+        >
           <Row gap={spacing.md}>
             <View style={{ flex: 1 }}>
-              <Text variant="overline" color={colors.yellow}>Safety</Text>
-              <Text variant="title3" color={colors.white}>Emergency help and safe travel</Text>
-              <Text variant="caption" color={colors.textOnDarkMuted}>One tap to emergency numbers. Share your location when you choose.</Text>
+              <Text variant="overline" color={colors.yellow}>
+                Safety
+              </Text>
+              <Text variant="title3" color={colors.white}>
+                Emergency help and safe travel
+              </Text>
+              <Text variant="caption" color={colors.textOnDarkMuted}>
+                One tap to emergency numbers. Share your location when you choose.
+              </Text>
             </View>
           </Row>
         </Card>

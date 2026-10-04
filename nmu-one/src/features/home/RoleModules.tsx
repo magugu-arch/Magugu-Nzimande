@@ -2,7 +2,13 @@ import { StyleSheet, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { formatMoney } from '@/core/domain/money';
 import type { Role } from '@/core/domain/models';
-import { formatCountdown, formatDayLong, formatDayShort, formatRelativeDay, formatTime } from '@/core/time/sast';
+import {
+  formatCountdown,
+  formatDayLong,
+  formatDayShort,
+  formatRelativeDay,
+  formatTime,
+} from '@/core/time/sast';
 import {
   useCampaigns,
   useEvents,
@@ -101,24 +107,46 @@ export function TeachingModule() {
   const router = useRouter();
   const now = useNow();
   const teaching = useTeachingWeek();
-  if (teaching.status === 'loading') return <Card tone="navy"><Text color={colors.white}>Loading your teaching day…</Text></Card>;
-  if (!teaching.data) return <ModuleError what="Your teaching schedule" onRetry={teaching.refetch} />;
+  if (teaching.status === 'loading')
+    return (
+      <Card tone="navy">
+        <Text color={colors.white}>Loading your teaching day…</Text>
+      </Card>
+    );
+  if (!teaching.data)
+    return <ModuleError what="Your teaching schedule" onRetry={teaching.refetch} />;
   const next = nextClass(teaching.data, now);
   if (!next) {
     return (
       <Card tone="navy" onPress={() => router.push('/academics/teaching')}>
-        <Text variant="overline" color={colors.yellow}>Teaching</Text>
-        <Text variant="title2" color={colors.white}>Nothing else to teach this week</Text>
+        <Text variant="overline" color={colors.yellow}>
+          Teaching
+        </Text>
+        <Text variant="title2" color={colors.white}>
+          Nothing else to teach this week
+        </Text>
       </Card>
     );
   }
-  const when = isOnNow(next, now) ? 'Teaching now' : `Teaching ${formatRelativeDay(next.start, now).toLowerCase()} · ${formatCountdown(next.start, now)}`;
+  const when = isOnNow(next, now)
+    ? 'Teaching now'
+    : `Teaching ${formatRelativeDay(next.start, now).toLowerCase()} · ${formatCountdown(next.start, now)}`;
   return (
-    <Card tone="navy" onPress={() => router.push('/academics/teaching')} accessibilityLabel={`${when}. ${next.moduleTitle} at ${formatTime(next.start)} in ${next.room.code}.`} testID="teaching-card">
-      <Text variant="overline" color={colors.yellow}>{when}</Text>
-      <Text variant="title1" color={colors.white} style={{ marginTop: spacing.sm }}>{next.moduleTitle}</Text>
+    <Card
+      tone="navy"
+      onPress={() => router.push('/academics/teaching')}
+      accessibilityLabel={`${when}. ${next.moduleTitle} at ${formatTime(next.start)} in ${next.room.code}.`}
+      testID="teaching-card"
+    >
+      <Text variant="overline" color={colors.yellow}>
+        {when}
+      </Text>
+      <Text variant="title1" color={colors.white} style={{ marginTop: spacing.sm }}>
+        {next.moduleTitle}
+      </Text>
       <Text variant="body" color={colors.textOnDarkMuted}>
-        {next.moduleCode} · {KIND_LABEL[next.kind]} · {formatTime(next.start)}–{formatTime(next.end)} · {next.room.code}
+        {next.moduleCode} · {KIND_LABEL[next.kind]} · {formatTime(next.start)}–
+        {formatTime(next.end)} · {next.room.code}
       </Text>
       {next.note ? (
         <View style={{ marginTop: spacing.md }}>
@@ -126,8 +154,19 @@ export function TeachingModule() {
         </View>
       ) : null}
       <Row gap={spacing.sm} style={{ marginTop: spacing.lg }} wrap>
-        <Button label="Directions" icon="navigate" variant="accent" size="md" onPress={() => router.push(`/campus-map?to=${next.room.code}`)} />
-        <Button label="My week" variant="onDark" size="md" onPress={() => router.push('/academics/teaching')} />
+        <Button
+          label="Directions"
+          icon="navigate"
+          variant="accent"
+          size="md"
+          onPress={() => router.push(`/campus-map?to=${next.room.code}`)}
+        />
+        <Button
+          label="My week"
+          variant="onDark"
+          size="md"
+          onPress={() => router.push('/academics/teaching')}
+        />
       </Row>
     </Card>
   );
@@ -135,21 +174,41 @@ export function TeachingModule() {
 
 // ── Parent / guardian ───────────────────────────────────────────────────────
 
-const SCOPE_NAMES = { 'key-dates': 'Key dates', fees: 'Fees', results: 'Results', residence: 'Residence', 'wellbeing-alerts': 'Wellbeing alerts' } as const;
+const SCOPE_NAMES = {
+  'key-dates': 'Key dates',
+  fees: 'Fees',
+  results: 'Results',
+  residence: 'Residence',
+  'wellbeing-alerts': 'Wellbeing alerts',
+} as const;
 
 export function LinkedStudentModule() {
   const router = useRouter();
   const profile = useGuardianProfile();
-  if (profile.status === 'loading') return <Card><Text>Loading…</Text></Card>;
+  if (profile.status === 'loading')
+    return (
+      <Card>
+        <Text>Loading…</Text>
+      </Card>
+    );
   const student = profile.data?.linkedStudents[0];
   if (!student) return <ModuleError what="Your linked student" onRetry={profile.refetch} />;
   return (
-    <Card padded={false} onPress={() => router.push('/guardian')} accessibilityLabel={`Supporting ${student.givenName}. Shared with you: ${student.sharing.map((s) => SCOPE_NAMES[s]).join(', ')}.`} testID="linked-student">
+    <Card
+      padded={false}
+      onPress={() => router.push('/guardian')}
+      accessibilityLabel={`Supporting ${student.givenName}. Shared with you: ${student.sharing.map((s) => SCOPE_NAMES[s]).join(', ')}.`}
+      testID="linked-student"
+    >
       <Photo photo="parentConnection" size="md" rounded={false} style={styles.photo} decorative />
       <View style={styles.body}>
-        <Text variant="overline" color={colors.textSecondary}>Supporting</Text>
+        <Text variant="overline" color={colors.textSecondary}>
+          Supporting
+        </Text>
         <Text variant="title2">{student.givenName}</Text>
-        <Text variant="caption" color={colors.textSecondary}>{student.qualification} · final year</Text>
+        <Text variant="caption" color={colors.textSecondary}>
+          {student.qualification} · final year
+        </Text>
         <Row wrap gap={spacing.xs} style={{ marginTop: spacing.sm }}>
           {student.sharing.map((s) => (
             <Pill key={s} label={SCOPE_NAMES[s]} tone="success" icon="checkmark" />
@@ -168,16 +227,26 @@ export function KeyDatesModule() {
   const profile = useGuardianProfile();
   const studentId = profile.data?.linkedStudents[0]?.studentId;
   const updates = useGuardianUpdates(studentId);
-  const canSeeDates = useCan('academics.calendar');
+  const canSeeDates = useCan('guardian.key-dates');
   if (!canSeeDates) return null;
   const dates = updates.data?.filter((u) => u.scope === 'key-dates') ?? [];
   if (dates.length === 0) return null;
   return (
     <View>
-      <SectionHeader title="Key dates" action="All updates" onAction={() => router.push('/guardian')} />
+      <SectionHeader
+        title="Key dates"
+        action="All updates"
+        onAction={() => router.push('/guardian')}
+      />
       <Card padded={false} style={{ paddingHorizontal: spacing.lg }}>
         {dates.map((d) => (
-          <ListRow key={d.id} icon="calendar-outline" title={d.title} subtitle={d.body} meta={`${formatDayLong(d.at)} · ${formatTime(d.at)}`} />
+          <ListRow
+            key={d.id}
+            icon="calendar-outline"
+            title={d.title}
+            subtitle={d.body}
+            meta={`${formatDayLong(d.at)} · ${formatTime(d.at)}`}
+          />
         ))}
       </Card>
     </View>
@@ -191,13 +260,29 @@ export function FamilySupportModule() {
     <View>
       <SectionHeader title="Support for families" />
       <Card padded={false} style={{ paddingHorizontal: spacing.lg }}>
-        <ListRow icon="shield-checkmark-outline" title="Safety on campus" subtitle="Emergency numbers and Campus Protection" onPress={() => router.push('/safety')} />
+        <ListRow
+          icon="shield-checkmark-outline"
+          title="Safety on campus"
+          subtitle="Emergency numbers and Campus Protection"
+          onPress={() => router.push('/safety')}
+        />
         {routes.data
           ?.filter((r) => r.id === 'route-helpdesk' || r.id === 'route-finance')
           .map((r) => (
-            <ListRow key={r.id} icon="help-buoy-outline" title={r.name} subtitle={`${r.handles} · ${r.hours}`} onPress={r.href ? () => router.push(r.href as Href) : undefined} />
+            <ListRow
+              key={r.id}
+              icon="help-buoy-outline"
+              title={r.name}
+              subtitle={`${r.handles} · ${r.hours}`}
+              onPress={r.href ? () => router.push(r.href as Href) : undefined}
+            />
           ))}
-        <ListRow icon="heart-outline" title="Wellbeing" subtitle="How students are supported" onPress={() => router.push('/wellbeing')} />
+        <ListRow
+          icon="heart-outline"
+          title="Wellbeing"
+          subtitle="How students are supported"
+          onPress={() => router.push('/wellbeing')}
+        />
       </Card>
     </View>
   );
@@ -210,19 +295,31 @@ export function MentoringModule() {
   const mentoring = useMentoring();
   const open = mentoring.data?.filter((m) => m.status === 'open') ?? [];
   if (mentoring.status === 'loading') return null;
-  if (mentoring.status === 'error') return <ModuleError what="Mentoring" onRetry={mentoring.refetch} />;
+  if (mentoring.status === 'error')
+    return <ModuleError what="Mentoring" onRetry={mentoring.refetch} />;
   const first = open[0];
   return (
-    <Card padded={false} onPress={() => router.push('/alumni/mentoring')} accessibilityLabel={first ? `Mentoring opportunity: ${first.title}` : 'Mentoring. No open requests.'} testID="mentoring-card">
+    <Card
+      padded={false}
+      onPress={() => router.push('/alumni/mentoring')}
+      accessibilityLabel={
+        first ? `Mentoring opportunity: ${first.title}` : 'Mentoring. No open requests.'
+      }
+      testID="mentoring-card"
+    >
       <Photo photo="alumniMentorship" size="md" rounded={false} style={styles.photo} decorative />
       <View style={styles.body}>
         <Row justify="space-between">
-          <Text variant="overline" color={colors.textSecondary}>Mentoring</Text>
+          <Text variant="overline" color={colors.textSecondary}>
+            Mentoring
+          </Text>
           {open.length ? <Pill label={`${open.length} new`} tone="yellow" /> : null}
         </Row>
         <Text variant="title3">{first ? first.title : 'No open requests right now'}</Text>
         <Text variant="caption" color={colors.textSecondary}>
-          {first ? `${first.commitment}` : 'We’ll let you know when a student asks for someone like you.'}
+          {first
+            ? `${first.commitment}`
+            : 'We’ll let you know when a student asks for someone like you.'}
         </Text>
       </View>
     </Card>
@@ -236,15 +333,33 @@ export function GivingModule() {
   if (!c) return null;
   const pct = c.raised.cents / c.goal.cents;
   return (
-    <Card padded={false} onPress={() => router.push(`/alumni/give/${c.id}`)} accessibilityLabel={`${c.title}. ${Math.round(pct * 100)} percent funded. ${c.impact}`} testID="giving-card">
-      <Photo photo={asPhotoKey(c.photo, 'alumniGiving')} size="md" rounded={false} style={styles.photo} decorative />
+    <Card
+      padded={false}
+      onPress={() => router.push(`/alumni/give/${c.id}`)}
+      accessibilityLabel={`${c.title}. ${Math.round(pct * 100)} percent funded. ${c.impact}`}
+      testID="giving-card"
+    >
+      <Photo
+        photo={asPhotoKey(c.photo, 'alumniGiving')}
+        size="md"
+        rounded={false}
+        style={styles.photo}
+        decorative
+      />
       <View style={styles.body}>
-        <Text variant="overline" color={colors.textSecondary}>Give back</Text>
+        <Text variant="overline" color={colors.textSecondary}>
+          Give back
+        </Text>
         <Text variant="title3">{c.title}</Text>
-        <Text variant="caption" color={colors.textSecondary}>{c.impact}</Text>
+        <Text variant="caption" color={colors.textSecondary}>
+          {c.impact}
+        </Text>
         <View style={{ marginTop: spacing.sm, gap: spacing.xs }}>
           <ProgressBar value={pct} tone="yellow" label={`${Math.round(pct * 100)}% funded`} />
-          <Text variant="captionStrong">{formatMoney(c.raised, { showCents: false })} of {formatMoney(c.goal, { showCents: false })} · {c.donors.toLocaleString('en-ZA')} donors</Text>
+          <Text variant="captionStrong">
+            {formatMoney(c.raised, { showCents: false })} of{' '}
+            {formatMoney(c.goal, { showCents: false })} · {c.donors.toLocaleString('en-ZA')} donors
+          </Text>
         </View>
       </View>
     </Card>
@@ -258,10 +373,20 @@ export function AlumniEventsModule() {
   if (list.length === 0) return null;
   return (
     <View>
-      <SectionHeader title="Events for alumni" action="All" onAction={() => router.push('/events')} />
+      <SectionHeader
+        title="Events for alumni"
+        action="All"
+        onAction={() => router.push('/events')}
+      />
       <Card padded={false} style={{ paddingHorizontal: spacing.lg }}>
         {list.map((e) => (
-          <ListRow key={e.id} icon="sparkles-outline" title={e.title} subtitle={`${formatDayShort(e.start)} · ${formatTime(e.start)} · ${e.venue}`} onPress={() => router.push(`/events/${e.id}`)} />
+          <ListRow
+            key={e.id}
+            icon="sparkles-outline"
+            title={e.title}
+            subtitle={`${formatDayShort(e.start)} · ${formatTime(e.start)} · ${e.venue}`}
+            onPress={() => router.push(`/events/${e.id}`)}
+          />
         ))}
       </Card>
     </View>
@@ -275,10 +400,20 @@ export function JobsModule() {
   if (list.length === 0) return null;
   return (
     <View>
-      <SectionHeader title="Careers" action="All jobs" onAction={() => router.push('/alumni/jobs')} />
+      <SectionHeader
+        title="Careers"
+        action="All jobs"
+        onAction={() => router.push('/alumni/jobs')}
+      />
       <Card padded={false} style={{ paddingHorizontal: spacing.lg }}>
         {list.map((j) => (
-          <ListRow key={j.id} icon="briefcase-outline" title={j.title} subtitle={`${j.organisation} · ${j.location}`} onPress={() => router.push('/alumni/jobs')} />
+          <ListRow
+            key={j.id}
+            icon="briefcase-outline"
+            title={j.title}
+            subtitle={`${j.organisation} · ${j.location}`}
+            onPress={() => router.push('/alumni/jobs')}
+          />
         ))}
       </Card>
     </View>

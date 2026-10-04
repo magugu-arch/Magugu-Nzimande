@@ -4,7 +4,10 @@ import { Stack } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { colors, useReduceMotion } from '@/design';
 import { RouteGuard } from '@/features/access/access';
-import { useNotificationDelivery } from '@/features/notifications/delivery';
+import {
+  useNotificationDelivery,
+  useSettleNotificationsOnVisit,
+} from '@/features/notifications/delivery';
 import { useSession } from '@/state/session';
 
 /**
@@ -16,6 +19,7 @@ export default function AppLayout() {
   const role = useSession((s) => s.role);
   const queryClient = useQueryClient();
   useNotificationDelivery();
+  useSettleNotificationsOnVisit();
   useSessionExpiry();
 
   // A role change (graduation, or switching roles) reshapes every screen.
@@ -30,10 +34,15 @@ export default function AppLayout() {
         contentStyle: { backgroundColor: colors.background },
         animation: reduceMotion ? 'fade' : 'default',
       }}
-      screenLayout={({ route, children }) => <RouteGuard routeName={route.name}>{children}</RouteGuard>}
+      screenLayout={({ route, children }) => (
+        <RouteGuard routeName={route.name}>{children}</RouteGuard>
+      )}
     >
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="search" options={{ animation: reduceMotion ? 'fade' : 'slide_from_bottom' }} />
+      <Stack.Screen
+        name="search"
+        options={{ animation: reduceMotion ? 'fade' : 'slide_from_bottom' }}
+      />
       <Stack.Screen name="graduation" options={{ animation: 'fade' }} />
     </Stack>
   );

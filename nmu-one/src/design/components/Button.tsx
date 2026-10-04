@@ -96,5 +96,11 @@ const styles = StyleSheet.create({
   lg: { minHeight: 52, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
   md: { minHeight: 48, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
   full: { alignSelf: 'stretch' },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, flexWrap: 'wrap' },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    flexWrap: 'wrap',
+  },
 });

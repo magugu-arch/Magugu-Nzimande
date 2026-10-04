@@ -97,7 +97,8 @@ export const mockLibrary: LibraryProvider = {
 // ── Transport ───────────────────────────────────────────────────────────────
 
 export const mockTransport: TransportProvider = {
-  getRoutes: () => simulate('transport', () => shuttleRoutes.map((r) => liveStatus(r, clock.now()))),
+  getRoutes: () =>
+    simulate('transport', () => shuttleRoutes.map((r) => liveStatus(r, clock.now()))),
   getArrivals: (stopId) =>
     simulate('transport', () => {
       const now = clock.now();
@@ -219,7 +220,8 @@ export const mockCommerce: CommerceProvider = {
       const userId = requireUser('commerce');
       const vendor = vendors.map(withOpenState).find((v) => v.id === vendorId);
       if (!vendor) throw new AdapterError('not-found', 'commerce');
-      if (!vendor.acceptsOrders) throw new AdapterError('unavailable', 'commerce', `${vendor.name} is closed`);
+      if (!vendor.acceptsOrders)
+        throw new AdapterError('unavailable', 'commerce', `${vendor.name} is closed`);
       const payment = state.payments[paymentId];
       if (!payment || payment.status !== 'succeeded' || payment.purpose !== 'order') {
         throw new AdapterError('invalid', 'commerce', 'Payment not completed');
@@ -227,12 +229,17 @@ export const mockCommerce: CommerceProvider = {
       const menu = menus[vendorId] ?? [];
       const orderLines = lines.map(({ itemId, quantity }) => {
         const item = menu.find((m) => m.id === itemId);
-        if (!item || !item.available) throw new AdapterError('conflict', 'commerce', 'An item is no longer available');
+        if (!item || !item.available)
+          throw new AdapterError('conflict', 'commerce', 'An item is no longer available');
         return { itemId, name: item.name, quantity, unitPrice: item.price };
       });
       const total = addMoney(...orderLines.map((l) => multiplyMoney(l.unitPrice, l.quantity)));
       if (total.cents !== payment.amount.cents) {
-        throw new AdapterError('conflict', 'commerce', 'The total changed — please review your order');
+        throw new AdapterError(
+          'conflict',
+          'commerce',
+          'The total changed — please review your order',
+        );
       }
       const order: Order & { userId: string } = {
         id: nextId('ord'),
@@ -255,11 +262,15 @@ export const mockCommerce: CommerceProvider = {
     }),
 
   getOrder: (id) =>
-    simulate('commerce', () => {
-      const order = state.orders.find((o) => o.id === id);
-      if (!order) throw new AdapterError('not-found', 'commerce');
-      return order;
-    }, { latencyMs: 150 }),
+    simulate(
+      'commerce',
+      () => {
+        const order = state.orders.find((o) => o.id === id);
+        if (!order) throw new AdapterError('not-found', 'commerce');
+        return order;
+      },
+      { latencyMs: 150 },
+    ),
 
   getOrders: () => simulate('commerce', () => state.orders),
 };

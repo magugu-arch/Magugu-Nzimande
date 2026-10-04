@@ -36,6 +36,10 @@ export const CAPABILITIES = [
   'campus.map',
   'directory.view',
   'guardian.linked-student',
+  'guardian.key-dates',
+  'guardian.fees',
+  'guardian.results',
+  'guardian.residence',
   'alumni.profile',
   'alumni.mentoring',
   'alumni.jobs',
@@ -75,6 +79,10 @@ export const CAPABILITY_LABELS: Record<Capability, string> = {
   'campus.map': 'Campus map',
   'directory.view': 'Staff directory',
   'guardian.linked-student': 'Linked student',
+  'guardian.key-dates': 'Shared key dates',
+  'guardian.fees': 'Shared fees',
+  'guardian.results': 'Shared results',
+  'guardian.residence': 'Shared residence details',
   'alumni.profile': 'Alumni profile',
   'alumni.mentoring': 'Mentoring',
   'alumni.jobs': 'Careers & jobs',
@@ -144,11 +152,14 @@ export const ROLE_GRANTS: Record<Role, Partial<Record<Capability, Grant>>> = {
   // Nothing about the student is visible without the student's own grant.
   parent: {
     ...EVERYONE,
+    // The public academic calendar is general information; everything about
+    // the student is a guardian capability that needs the student's grant.
+    'academics.calendar': true,
     'guardian.linked-student': true,
-    'academics.calendar': { consent: 'key-dates' },
-    'finance.view': { consent: 'fees' },
-    'academics.results': { consent: 'results' },
-    'residence.view': { consent: 'residence' },
+    'guardian.key-dates': { consent: 'key-dates' },
+    'guardian.fees': { consent: 'fees' },
+    'guardian.results': { consent: 'results' },
+    'guardian.residence': { consent: 'residence' },
   },
   alumni: {
     ...EVERYONE,
@@ -177,7 +188,11 @@ export interface Subject {
 
 export type Decision =
   | { allowed: true }
-  | { allowed: false; reason: 'role' | 'consent' | 'lifecycle' | 'pending-approval'; scope?: SharingScope };
+  | {
+      allowed: false;
+      reason: 'role' | 'consent' | 'lifecycle' | 'pending-approval';
+      scope?: SharingScope;
+    };
 
 export function decide(subject: Subject, capability: Capability): Decision {
   if (PENDING_APPROVAL.has(capability)) return { allowed: false, reason: 'pending-approval' };
@@ -223,7 +238,7 @@ export const ROUTE_CAPABILITIES: Record<string, Capability> = {
   '/wellbeing': 'wellbeing.view',
   '/campus-map': 'campus.map',
   '/directory': 'directory.view',
-  '/guardian/fees': 'finance.view',
+  '/guardian/fees': 'guardian.fees',
   '/guardian': 'guardian.linked-student',
   '/alumni/mentoring': 'alumni.mentoring',
   '/alumni/giving': 'alumni.giving',

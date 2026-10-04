@@ -26,34 +26,55 @@ const dayKey = () => startOfSastDay(clock.now()).toISOString().slice(0, 10);
 
 export const useStudentProfile = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('auth', ['student-profile', uid], () => providers.auth.getStudentProfile(uid), { enabled });
+  return useDomainQuery(
+    'auth',
+    ['student-profile', uid],
+    () => providers.auth.getStudentProfile(uid),
+    { enabled },
+  );
 };
 
 export const useStaffProfile = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('auth', ['staff-profile', uid], () => providers.auth.getStaffProfile(uid), { enabled });
+  return useDomainQuery('auth', ['staff-profile', uid], () => providers.auth.getStaffProfile(uid), {
+    enabled,
+  });
 };
 
 // ── Academics ───────────────────────────────────────────────────────────────
 
 export const useTimetableToday = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('academic', ['timetable', uid, 'today', dayKey()], () => providers.academic.getTimetable(todayRange()), { enabled });
+  return useDomainQuery(
+    'academic',
+    ['timetable', uid, 'today', dayKey()],
+    () => providers.academic.getTimetable(todayRange()),
+    { enabled },
+  );
 };
 
 export const useTimetableWeek = () => {
   const uid = useUserId();
-  return useDomainQuery('academic', ['timetable', uid, 'week', dayKey()], () => providers.academic.getTimetable(weekRange()));
+  return useDomainQuery('academic', ['timetable', uid, 'week', dayKey()], () =>
+    providers.academic.getTimetable(weekRange()),
+  );
 };
 
 export const useTeachingWeek = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('academic', ['teaching', uid, dayKey()], () => providers.academic.getTeachingTimetable(weekRange()), { enabled });
+  return useDomainQuery(
+    'academic',
+    ['teaching', uid, dayKey()],
+    () => providers.academic.getTeachingTimetable(weekRange()),
+    { enabled },
+  );
 };
 
 export const useExams = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('academic', ['exams', uid], () => providers.academic.getExams(), { enabled });
+  return useDomainQuery('academic', ['exams', uid], () => providers.academic.getExams(), {
+    enabled,
+  });
 };
 
 export const useResults = () => {
@@ -73,27 +94,40 @@ export const useModules = () => {
 
 export const useAcademicCalendar = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('academic', ['calendar', uid], () => providers.academic.getAcademicCalendar(), { enabled });
+  return useDomainQuery(
+    'academic',
+    ['calendar', uid],
+    () => providers.academic.getAcademicCalendar(),
+    { enabled },
+  );
 };
 
 export const useLmsLinks = (moduleCode: string) =>
-  useDomainQuery('learning', ['lms-links', moduleCode], () => providers.learning.getLinks(moduleCode));
+  useDomainQuery('learning', ['lms-links', moduleCode], () =>
+    providers.learning.getLinks(moduleCode),
+  );
 
 // ── Money ───────────────────────────────────────────────────────────────────
 
 export const useAccount = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('finance', ['account', uid], () => providers.finance.getAccount(), { enabled });
+  return useDomainQuery('finance', ['account', uid], () => providers.finance.getAccount(), {
+    enabled,
+  });
 };
 
 export const useTransactions = () => {
   const uid = useUserId();
-  return useDomainQuery('finance', ['transactions', uid], () => providers.finance.getTransactions());
+  return useDomainQuery('finance', ['transactions', uid], () =>
+    providers.finance.getTransactions(),
+  );
 };
 
 export const useFunding = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('finance', ['funding', uid], () => providers.finance.getFunding(), { enabled });
+  return useDomainQuery('finance', ['funding', uid], () => providers.finance.getFunding(), {
+    enabled,
+  });
 };
 
 export const useReceipt = (id: string) => {
@@ -103,7 +137,8 @@ export const useReceipt = (id: string) => {
 
 // ── Campus ──────────────────────────────────────────────────────────────────
 
-export const useCampusMap = () => useDomainQuery('campus', ['campus-map'], () => providers.campus.getMap());
+export const useCampusMap = () =>
+  useDomainQuery('campus', ['campus-map'], () => providers.campus.getMap());
 
 export const useDirectory = () => {
   const uid = useUserId();
@@ -162,7 +197,8 @@ export const useOrder = (id: string) => {
   const uid = useUserId();
   return useDomainQuery('commerce', ['order', uid, id], () => providers.commerce.getOrder(id), {
     refetchInterval: (order) =>
-      order && (order.status === 'ready' || order.status === 'collected' || order.status === 'cancelled')
+      order &&
+      (order.status === 'ready' || order.status === 'collected' || order.status === 'cancelled')
         ? false
         : 2_000,
   });
@@ -170,7 +206,9 @@ export const useOrder = (id: string) => {
 
 export const useOrders = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('commerce', ['orders', uid], () => providers.commerce.getOrders(), { enabled });
+  return useDomainQuery('commerce', ['orders', uid], () => providers.commerce.getOrders(), {
+    enabled,
+  });
 };
 
 // ── Community ───────────────────────────────────────────────────────────────
@@ -189,12 +227,16 @@ export const useTickets = () => {
   return useDomainQuery('community', ['tickets', uid], () => providers.community.getTickets());
 };
 
-export const useSocieties = () =>
-  useDomainQuery('community', ['societies'], () => providers.community.getSocieties());
+export const useSocieties = () => {
+  const uid = useUserId();
+  return useDomainQuery('community', ['societies', uid], () => providers.community.getSocieties());
+};
 
 export const useNotificationsQuery = () => {
   const uid = useUserId();
-  return useDomainQuery('notifications', ['notifications', uid], () => providers.notifications.list());
+  return useDomainQuery('notifications', ['notifications', uid], () =>
+    providers.notifications.list(),
+  );
 };
 
 // ── Support ─────────────────────────────────────────────────────────────────
@@ -212,7 +254,12 @@ export const useSupportRoutes = () =>
 
 export const useGuardianProfile = (enabled = true) => {
   const uid = useUserId();
-  return useDomainQuery('guardian', ['guardian-profile', uid], () => providers.guardian.getProfile(), { enabled });
+  return useDomainQuery(
+    'guardian',
+    ['guardian-profile', uid],
+    () => providers.guardian.getProfile(),
+    { enabled },
+  );
 };
 
 export const useGuardianUpdates = (studentId: string | undefined) => {
@@ -237,7 +284,9 @@ export const useGuardianAccount = (studentId: string | undefined, enabled = true
 
 export const useMyGuardians = () => {
   const uid = useUserId();
-  return useDomainQuery('guardian', ['my-guardians', uid], () => providers.guardian.getMyGuardians());
+  return useDomainQuery('guardian', ['my-guardians', uid], () =>
+    providers.guardian.getMyGuardians(),
+  );
 };
 
 // ── Alumni ──────────────────────────────────────────────────────────────────
@@ -245,13 +294,20 @@ export const useMyGuardians = () => {
 export const useAlumniProfile = (enabled = true) => {
   const uid = useUserId();
   const role = useRole();
-  return useDomainQuery('alumni', ['alumni-profile', uid, role], () => providers.alumni.getProfile(), { enabled });
+  return useDomainQuery(
+    'alumni',
+    ['alumni-profile', uid, role],
+    () => providers.alumni.getProfile(),
+    { enabled },
+  );
 };
 
 export const useMentoring = (enabled = true) => {
   const uid = useUserId();
   const role = useRole();
-  return useDomainQuery('alumni', ['mentoring', uid, role], () => providers.alumni.getMentoring(), { enabled });
+  return useDomainQuery('alumni', ['mentoring', uid, role], () => providers.alumni.getMentoring(), {
+    enabled,
+  });
 };
 
 export const useJobs = (enabled = true) => {
@@ -262,6 +318,8 @@ export const useJobs = (enabled = true) => {
 export const useCampaigns = (enabled = true) =>
   useDomainQuery('alumni', ['campaigns'], () => providers.alumni.getCampaigns(), { enabled });
 
-export const useStories = () => useDomainQuery('alumni', ['stories'], () => providers.alumni.getStories());
+export const useStories = () =>
+  useDomainQuery('alumni', ['stories'], () => providers.alumni.getStories());
 
-export const useChapters = () => useDomainQuery('alumni', ['chapters'], () => providers.alumni.getChapters());
+export const useChapters = () =>
+  useDomainQuery('alumni', ['chapters'], () => providers.alumni.getChapters());

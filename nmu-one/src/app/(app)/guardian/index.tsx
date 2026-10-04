@@ -43,14 +43,33 @@ export default function Guardian() {
   const updates = useGuardianUpdates(student?.studentId);
 
   useEffect(() => {
-    if (userId && student) recordAudit('guardian.view', userId, `Viewed updates shared by ${student.givenName}`);
+    if (userId && student)
+      recordAudit('guardian.view', userId, `Viewed updates shared by ${student.givenName}`);
   }, [userId, student]);
 
   return (
     <Screen padded={false} topInset={false} testID="guardian">
-      <PhotoHero photo="parentConnection" eyebrow="Family" title={student ? `Supporting ${student.givenName}` : 'Your student'} subtitle={student ? `${student.qualification}` : undefined} height={280} topBar={<HeroBack />} />
+      <PhotoHero
+        photo="parentConnection"
+        eyebrow="Family"
+        title={student ? `Supporting ${student.givenName}` : 'Your student'}
+        subtitle={student ? `${student.qualification}` : undefined}
+        height={280}
+        topBar={<HeroBack />}
+      />
       <View style={styles.body}>
-        <QueryState query={profile} what="your linked student" isEmpty={(p) => p.linkedStudents.length === 0} empty={<StateView kind="empty" title="No linked student" body="A student links a parent or guardian from their own NMU ONE." />}>
+        <QueryState
+          query={profile}
+          what="your linked student"
+          isEmpty={(p) => p.linkedStudents.length === 0}
+          empty={
+            <StateView
+              kind="empty"
+              title="No linked student"
+              body="A student links a parent or guardian from their own NMU ONE."
+            />
+          }
+        >
           {(p) => {
             const s = p.linkedStudents[0]!;
             return (
@@ -67,23 +86,43 @@ export default function Guardian() {
                           iconTone={shared ? 'success' : 'sunken'}
                           title={x.label}
                           subtitle={shared ? x.detail : 'Not shared'}
-                          trailing={shared ? <Pill label="Shared" tone="success" /> : <Pill label="Private" />}
-                          onPress={shared && x.scope === 'fees' ? () => router.push('/guardian/fees') : undefined}
+                          trailing={
+                            shared ? (
+                              <Pill label="Shared" tone="success" />
+                            ) : (
+                              <Pill label="Private" />
+                            )
+                          }
+                          onPress={
+                            shared && x.scope === 'fees'
+                              ? () => router.push('/guardian/fees')
+                              : undefined
+                          }
                         />
                       );
                     })}
                   </Card>
                   <Row gap={spacing.sm} align="flex-start" style={{ marginTop: spacing.sm }}>
-                    <Icon name="information-circle-outline" size={18} color={colors.textSecondary} />
+                    <Icon
+                      name="information-circle-outline"
+                      size={18}
+                      color={colors.textSecondary}
+                    />
                     <Text variant="caption" color={colors.textSecondary} style={{ flex: 1 }}>
-                      {s.givenName} chooses what you see, and can change it at any time. Last changed {formatDateLong(s.sharingUpdatedAt)}.
+                      {s.givenName} chooses what you see, and can change it at any time. Last
+                      changed {formatDateLong(s.sharingUpdatedAt)}.
                     </Text>
                   </Row>
                 </View>
 
                 <View>
                   <SectionHeader title="Updates" />
-                  <QueryState query={updates} what="updates" isEmpty={(u) => u.length === 0} empty={<StateView kind="empty" title="No updates yet" />}>
+                  <QueryState
+                    query={updates}
+                    what="updates"
+                    isEmpty={(u) => u.length === 0}
+                    empty={<StateView kind="empty" title="No updates yet" />}
+                  >
                     {(list) => (
                       <Card padded={false} style={styles.list}>
                         {list.map((u) => (
@@ -93,7 +132,11 @@ export default function Guardian() {
                             title={u.title}
                             subtitle={u.body}
                             meta={formatDayLong(u.at)}
-                            onPress={u.href && u.href !== '/guardian' ? () => router.push(u.href as Href) : undefined}
+                            onPress={
+                              u.href && u.href !== '/guardian'
+                                ? () => router.push(u.href as Href)
+                                : undefined
+                            }
                           />
                         ))}
                       </Card>
@@ -104,9 +147,24 @@ export default function Guardian() {
                 <View>
                   <SectionHeader title="Help for families" />
                   <Card padded={false} style={styles.list}>
-                    <ListRow icon="shield-checkmark-outline" title="Safety on campus" subtitle="Emergency numbers and Campus Protection" onPress={() => router.push('/safety')} />
-                    <ListRow icon="heart-outline" title="Student wellbeing" subtitle="How students are supported" onPress={() => router.push('/wellbeing')} />
-                    <ListRow icon="map-outline" title="Visiting campus" subtitle="Map and directions" onPress={() => router.push('/campus-map')} />
+                    <ListRow
+                      icon="shield-checkmark-outline"
+                      title="Safety on campus"
+                      subtitle="Emergency numbers and Campus Protection"
+                      onPress={() => router.push('/safety')}
+                    />
+                    <ListRow
+                      icon="heart-outline"
+                      title="Student wellbeing"
+                      subtitle="How students are supported"
+                      onPress={() => router.push('/wellbeing')}
+                    />
+                    <ListRow
+                      icon="map-outline"
+                      title="Visiting campus"
+                      subtitle="Map and directions"
+                      onPress={() => router.push('/campus-map')}
+                    />
                   </Card>
                 </View>
               </View>

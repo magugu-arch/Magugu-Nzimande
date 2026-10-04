@@ -28,7 +28,17 @@ export interface TouchableProps extends Omit<PressableProps, 'style' | 'children
  * defaults the accessibility role to button.
  */
 export const Touchable = forwardRef<View, TouchableProps>(function Touchable(
-  { children, style, haptic = false, feedback = 'dim', minTarget = true, onPress, accessibilityRole, disabled, ...rest },
+  {
+    children,
+    style,
+    haptic = false,
+    feedback = 'dim',
+    minTarget = true,
+    onPress,
+    accessibilityRole,
+    disabled,
+    ...rest
+  },
   ref,
 ) {
   return (

@@ -59,7 +59,11 @@ export default function EventDetail() {
       setPaying(false);
       router.push(`/events/ticket/${ticket.id}`);
     } catch (e) {
-      setError(isAdapterError(e) && e.kind === 'conflict' ? 'This event has just sold out.' : 'Your ticket wasn’t issued. Please try again.');
+      setError(
+        isAdapterError(e) && e.kind === 'conflict'
+          ? 'This event has just sold out.'
+          : 'Your ticket wasn’t issued. Please try again.',
+      );
     } finally {
       setBooking(false);
     }
@@ -70,7 +74,13 @@ export default function EventDetail() {
       <QueryState query={event} what="this event">
         {(e) => (
           <>
-            <PhotoHero photo={asPhotoKey(e.photo, 'events')} eyebrow={`${formatDayLong(e.start)} · ${formatTime(e.start)}`} title={e.title} height={300} topBar={<HeroBack fallbackHref="/events" />} />
+            <PhotoHero
+              photo={asPhotoKey(e.photo, 'events')}
+              eyebrow={`${formatDayLong(e.start)} · ${formatTime(e.start)}`}
+              title={e.title}
+              height={300}
+              topBar={<HeroBack fallbackHref="/events" />}
+            />
             <View style={styles.body}>
               <Text variant="bodyLarge">{e.description}</Text>
 
@@ -91,21 +101,40 @@ export default function EventDetail() {
                   <Icon name="people-outline" size={20} color={colors.navy2} />
                   <Text variant="body">
                     {e.organiser}
-                    {e.ticketing !== 'open-entry' ? ` · ${e.spotsLeft} of ${e.capacity} places left` : ''}
+                    {e.ticketing !== 'open-entry'
+                      ? ` · ${e.spotsLeft} of ${e.capacity} places left`
+                      : ''}
                   </Text>
                 </Row>
                 <Row gap={spacing.md} style={styles.fact}>
                   <Icon name="ticket-outline" size={20} color={colors.navy2} />
-                  <Text variant="body">{e.ticketing === 'open-entry' ? 'No ticket needed — just arrive' : e.price ? `${formatMoney(e.price)} per ticket` : 'Free, ticket required'}</Text>
+                  <Text variant="body">
+                    {e.ticketing === 'open-entry'
+                      ? 'No ticket needed — just arrive'
+                      : e.price
+                        ? `${formatMoney(e.price)} per ticket`
+                        : 'Free, ticket required'}
+                  </Text>
                 </Row>
               </Card>
 
               {error ? <Notice tone="danger" title="Ticket not issued" body={error} /> : null}
 
               {existing ? (
-                <Button label="View your ticket" icon="ticket" variant="accent" fullWidth onPress={() => router.push(`/events/ticket/${existing.id}`)} testID="view-ticket" />
+                <Button
+                  label="View your ticket"
+                  icon="ticket"
+                  variant="accent"
+                  fullWidth
+                  onPress={() => router.push(`/events/ticket/${existing.id}`)}
+                  testID="view-ticket"
+                />
               ) : e.ticketing === 'open-entry' ? null : !canBook ? (
-                <Notice tone="neutral" title="Tickets aren’t available to you here" body="Ticketing isn’t part of NMU ONE for your role." />
+                <Notice
+                  tone="neutral"
+                  title="Tickets aren’t available to you here"
+                  body="Ticketing isn’t part of NMU ONE for your role."
+                />
               ) : e.spotsLeft <= 0 ? (
                 <Notice tone="neutral" title="Sold out" body="All tickets have been issued." />
               ) : (
@@ -126,7 +155,11 @@ export default function EventDetail() {
                   variant="secondary"
                   size="md"
                   onPress={() => userId && preferences.toggleSavedEvent(userId, e.id)}
-                  accessibilityHint={saved ? 'Removes this event from your saved list' : 'Keeps this event in your saved list'}
+                  accessibilityHint={
+                    saved
+                      ? 'Removes this event from your saved list'
+                      : 'Keeps this event in your saved list'
+                  }
                 />
                 <Button
                   label="Add to calendar"
@@ -134,21 +167,46 @@ export default function EventDetail() {
                   variant="secondary"
                   size="md"
                   onPress={async () => {
-                    const r = await addToCalendar({ title: e.title, start: e.start, end: e.end, location: e.venue, notes: e.summary });
+                    const r = await addToCalendar({
+                      title: e.title,
+                      start: e.start,
+                      end: e.end,
+                      location: e.venue,
+                      notes: e.summary,
+                    });
                     showToast({ title: calendarMessage[r], tone: 'success' });
                   }}
                 />
                 {e.buildingId ? (
-                  <Button label="Map" icon="map-outline" variant="secondary" size="md" onPress={() => router.push(`/campus-map?to=${e.buildingId!.toUpperCase()}`)} />
+                  <Button
+                    label="Map"
+                    icon="map-outline"
+                    variant="secondary"
+                    size="md"
+                    onPress={() => router.push(`/campus-map?to=${e.buildingId!.toUpperCase()}`)}
+                  />
                 ) : null}
               </Row>
             </View>
 
-            <Sheet visible={confirm} onClose={() => setConfirm(false)} title="Get a free ticket?" testID="ticket-sheet">
+            <Sheet
+              visible={confirm}
+              onClose={() => setConfirm(false)}
+              title="Get a free ticket?"
+              testID="ticket-sheet"
+            >
               <Text variant="body">
-                {e.title} · {formatDayLong(e.start)} at {formatTime(e.start)}. One ticket per person; show the QR code at the entrance.
+                {e.title} · {formatDayLong(e.start)} at {formatTime(e.start)}. One ticket per
+                person; show the QR code at the entrance.
               </Text>
-              <Button label="Confirm my ticket" variant="accent" fullWidth loading={booking} onPress={() => issue(null)} testID="confirm-ticket" />
+              <Button
+                label="Confirm my ticket"
+                variant="accent"
+                fullWidth
+                loading={booking}
+                onPress={() => issue(null)}
+                testID="confirm-ticket"
+              />
               <Button label="Cancel" variant="ghost" fullWidth onPress={() => setConfirm(false)} />
             </Sheet>
 

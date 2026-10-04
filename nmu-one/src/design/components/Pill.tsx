@@ -3,7 +3,8 @@ import { colors, radius, spacing } from '../tokens';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
-export type PillTone = 'neutral' | 'navy' | 'yellow' | 'success' | 'warning' | 'danger' | 'info' | 'onDark';
+export type PillTone =
+  'neutral' | 'navy' | 'yellow' | 'success' | 'warning' | 'danger' | 'info' | 'onDark';
 
 const TONES: Record<PillTone, { bg: string; fg: string }> = {
   neutral: { bg: colors.surfaceSunken, fg: colors.textPrimary },
@@ -17,7 +18,15 @@ const TONES: Record<PillTone, { bg: string; fg: string }> = {
 };
 
 /** A status label. Never colour alone — the text always says it. */
-export function Pill({ label, tone = 'neutral', icon }: { label: string; tone?: PillTone; icon?: IconName }) {
+export function Pill({
+  label,
+  tone = 'neutral',
+  icon,
+}: {
+  label: string;
+  tone?: PillTone;
+  icon?: IconName;
+}) {
   const t = TONES[tone];
   return (
     <View style={[styles.pill, { backgroundColor: t.bg }]}>

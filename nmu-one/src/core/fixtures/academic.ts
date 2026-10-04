@@ -123,10 +123,12 @@ function entriesFor(day: Date, slots: Slot[]): TimetableEntry[] {
 
 export function studentTimetable(from: Date, to: Date, now: Date): TimetableEntry[] {
   const out: TimetableEntry[] = [];
-  for (let day = startOfSastDay(from); day <= to; day = addDays(day, 1)) {
+  // `to` is exclusive: a range ending at midnight does not include that day.
+  for (let day = startOfSastDay(from); day < to; day = addDays(day, 1)) {
     const { weekday } = sastParts(day);
     if (weekday === 0 || weekday === 6) continue;
-    const slots = sastDayDiff(now, day) === 0 ? PITCH_DAY : OTHER_DAYS[weekday % OTHER_DAYS.length]!;
+    const slots =
+      sastDayDiff(now, day) === 0 ? PITCH_DAY : OTHER_DAYS[weekday % OTHER_DAYS.length]!;
     out.push(...entriesFor(day, slots));
   }
   return out;
@@ -248,7 +250,12 @@ export function academicCalendar(now: Date): AcademicDate[] {
   const on = (days: number) => startOfSastDay(addDays(now, days)).toISOString();
   return [
     { id: 'c-lectures-end', title: 'Last day of lectures', date: on(18), kind: 'term' },
-    { id: 'c-grad', title: 'Graduation — Business & Economic Sciences', date: on(9), kind: 'ceremony' },
+    {
+      id: 'c-grad',
+      title: 'Graduation — Business & Economic Sciences',
+      date: on(9),
+      kind: 'ceremony',
+    },
     { id: 'c-exams', title: 'Examinations begin', date: on(21), kind: 'exam' },
     { id: 'c-portfolio', title: 'MKT304 portfolio due', date: on(6), kind: 'deadline' },
     { id: 'c-results', title: 'Final results released', date: on(52), kind: 'term' },

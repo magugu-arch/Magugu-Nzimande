@@ -85,9 +85,13 @@ export default function Home() {
       hasCriticalNotice: !!notice,
       moneyNeedsAttention:
         isStudent &&
-        (account.status !== 'success' || (account.data?.balance.cents ?? 0) > 0 || funding.data?.status === 'delayed'),
+        (account.status !== 'success' ||
+          (account.data?.balance.cents ?? 0) > 0 ||
+          funding.data?.status === 'delayed'),
       graduationEligible: isStudent && !!profile.data?.graduation.eligible,
-      hasActiveOrder: !!orders.data?.some((o) => ['placed', 'preparing', 'ready'].includes(o.status)),
+      hasActiveOrder: !!orders.data?.some((o) =>
+        ['placed', 'preparing', 'ready'].includes(o.status),
+      ),
     },
     prefs.homeLayouts[role],
   );
@@ -144,14 +148,14 @@ export default function Home() {
   const isNewAlumnus = role === 'alumni' && alumni.data?.graduationYear === p.year;
 
   return (
-    <Screen
-      testID="home"
-      onRefresh={() => void queryClient.invalidateQueries()}
-      refreshing={false}
-    >
+    <Screen testID="home" onRefresh={() => void queryClient.invalidateQueries()} refreshing={false}>
       <Row justify="space-between" style={styles.topBar}>
         <BrandInline />
-        <Touchable onPress={() => router.push('/profile')} accessibilityLabel="Your profile" style={styles.avatarHit}>
+        <Touchable
+          onPress={() => router.push('/profile')}
+          accessibilityLabel="Your profile"
+          style={styles.avatarHit}
+        >
           <Avatar initials={initials} size={40} tone={role === 'alumni' ? 'navy' : 'yellow'} />
         </Touchable>
       </Row>
@@ -161,7 +165,9 @@ export default function Home() {
           {formatDayLong(now)}
         </Text>
         <Text variant="title1" accessibilityRole="header" testID="home-greeting">
-          {isNewAlumnus ? `Welcome to the alumni community, ${user.givenName}` : `${greetingFor(now)}, ${user.givenName}`}
+          {isNewAlumnus
+            ? `Welcome to the alumni community, ${user.givenName}`
+            : `${greetingFor(now)}, ${user.givenName}`}
         </Text>
       </View>
 
@@ -194,7 +200,13 @@ export default function Home() {
         )}
       </View>
 
-      <Touchable onPress={() => router.push('/settings/home')} accessibilityRole="link" accessibilityLabel="Edit Home" style={styles.edit} testID="edit-home">
+      <Touchable
+        onPress={() => router.push('/settings/home')}
+        accessibilityRole="link"
+        accessibilityLabel="Edit Home"
+        style={styles.edit}
+        testID="edit-home"
+      >
         <Icon name="options-outline" size={18} color={colors.navy2} />
         <Text variant="captionStrong" color={colors.navy2}>
           Edit Home

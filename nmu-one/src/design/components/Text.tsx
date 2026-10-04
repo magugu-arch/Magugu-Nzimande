@@ -25,7 +25,12 @@ export const Text = memo(function Text({
     <RNText
       {...rest}
       maxFontSizeMultiplier={maxFontSizeMultiplier ?? fontScaleCapFor(variant)}
-      style={StyleSheet.flatten([typography[variant], { color }, align ? { textAlign: align } : null, style])}
+      style={StyleSheet.flatten([
+        typography[variant],
+        { color },
+        align ? { textAlign: align } : null,
+        style,
+      ])}
     />
   );
 });

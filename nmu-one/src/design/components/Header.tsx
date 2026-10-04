@@ -36,11 +36,22 @@ export function Header({
   const goBack = () => (router.canGoBack() ? router.back() : router.replace(fallbackHref));
 
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top, backgroundColor: onDark ? colors.navy : colors.background }]}>
+    <View
+      style={[
+        styles.wrap,
+        { paddingTop: insets.top, backgroundColor: onDark ? colors.navy : colors.background },
+      ]}
+    >
       <View style={styles.bar}>
         <View style={styles.side}>
           {back ? (
-            <IconButton icon="chevron-back" label="Back" onPress={goBack} tone={onDark ? 'onDark' : 'plain'} testID="header-back" />
+            <IconButton
+              icon="chevron-back"
+              label="Back"
+              onPress={goBack}
+              tone={onDark ? 'onDark' : 'plain'}
+              testID="header-back"
+            />
           ) : null}
         </View>
         <View style={styles.titleWrap}>

@@ -35,7 +35,12 @@ export default function Mentoring() {
     setBusy(id);
     try {
       await providers.alumni.respondToMentoring(id, accept);
-      showToast({ title: accept ? 'You’re a mentor — thank you' : 'Declined — we won’t ask again for this one', tone: 'success' });
+      showToast({
+        title: accept
+          ? 'You’re a mentor — thank you'
+          : 'Declined — we won’t ask again for this one',
+        tone: 'success',
+      });
       void queryClient.invalidateQueries({ queryKey: ['mentoring', userId, role] });
     } catch {
       showToast({ title: 'That didn’t save — please try again', tone: 'info' });
@@ -51,9 +56,21 @@ export default function Mentoring() {
         An hour a month can change a degree
       </Text>
       <Text variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.lg }}>
-        Students ask for mentors in fields like yours. You decide; nothing is shared until you accept.
+        Students ask for mentors in fields like yours. You decide; nothing is shared until you
+        accept.
       </Text>
-      <QueryState query={mentoring} what="mentoring requests" isEmpty={(m) => m.length === 0} empty={<StateView kind="empty" title="No requests right now" body="We’ll notify you when a student asks for someone with your experience." />}>
+      <QueryState
+        query={mentoring}
+        what="mentoring requests"
+        isEmpty={(m) => m.length === 0}
+        empty={
+          <StateView
+            kind="empty"
+            title="No requests right now"
+            body="We’ll notify you when a student asks for someone with your experience."
+          />
+        }
+      >
         {(list) => (
           <View style={{ gap: spacing.md }}>
             {list.map((m) => (
@@ -62,7 +79,22 @@ export default function Mentoring() {
                   <Text variant="overline" color={colors.textSecondary}>
                     {m.field}
                   </Text>
-                  <Pill label={m.status === 'open' ? 'New request' : m.status === 'accepted' ? 'Accepted' : 'Declined'} tone={m.status === 'open' ? 'yellow' : m.status === 'accepted' ? 'success' : 'neutral'} />
+                  <Pill
+                    label={
+                      m.status === 'open'
+                        ? 'New request'
+                        : m.status === 'accepted'
+                          ? 'Accepted'
+                          : 'Declined'
+                    }
+                    tone={
+                      m.status === 'open'
+                        ? 'yellow'
+                        : m.status === 'accepted'
+                          ? 'success'
+                          : 'neutral'
+                    }
+                  />
                 </Row>
                 <Text variant="title3" style={{ marginTop: spacing.xs }}>
                   {m.title}
@@ -82,11 +114,29 @@ export default function Mentoring() {
                 </View>
                 {m.status === 'open' ? (
                   <Row gap={spacing.sm} wrap>
-                    <Button label="Accept" icon="checkmark" variant="accent" size="md" loading={busy === m.id} onPress={() => respond(m.id, true)} testID="mentoring-accept" />
-                    <Button label="Not now" variant="ghost" size="md" disabled={busy === m.id} onPress={() => respond(m.id, false)} />
+                    <Button
+                      label="Accept"
+                      icon="checkmark"
+                      variant="accent"
+                      size="md"
+                      loading={busy === m.id}
+                      onPress={() => respond(m.id, true)}
+                      testID="mentoring-accept"
+                    />
+                    <Button
+                      label="Not now"
+                      variant="ghost"
+                      size="md"
+                      disabled={busy === m.id}
+                      onPress={() => respond(m.id, false)}
+                    />
                   </Row>
                 ) : m.status === 'accepted' ? (
-                  <Notice tone="success" title="You’re matched" body="Your introduction will arrive in NMU ONE notifications. Thank you for giving your time." />
+                  <Notice
+                    tone="success"
+                    title="You’re matched"
+                    body="Your introduction will arrive in NMU ONE notifications. Thank you for giving your time."
+                  />
                 ) : null}
               </Card>
             ))}
@@ -99,5 +149,11 @@ export default function Mentoring() {
 
 const styles = StyleSheet.create({
   photo: { height: 170, marginBottom: spacing.lg },
-  facts: { gap: spacing.sm, marginVertical: spacing.md, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surfaceSunken },
+  facts: {
+    gap: spacing.sm,
+    marginVertical: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSunken,
+  },
 });

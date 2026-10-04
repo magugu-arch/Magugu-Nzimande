@@ -45,10 +45,20 @@ export default function ResidenceRequestScreen() {
     try {
       const r = await providers.residence.submitRequest({ category, description });
       void queryClient.invalidateQueries({ queryKey: ['residence', userId] });
-      showToast({ title: `Request sent · ${r.reference}`, body: 'The residence office will update it here.', tone: 'success' });
-      router.replace('/residence');
+      showToast({
+        title: `Request sent · ${r.reference}`,
+        body: 'The residence office will update it here.',
+        tone: 'success',
+      });
+      router.dismissTo('/residence');
     } catch (e) {
-      setError(isAdapterError(e) && e.kind === 'offline' ? 'You’re offline. Your request wasn’t sent — try again when connected.' : isAdapterError(e) && e.kind === 'invalid' ? e.message : 'The request didn’t go through. Please try again.');
+      setError(
+        isAdapterError(e) && e.kind === 'offline'
+          ? 'You’re offline. Your request wasn’t sent — try again when connected.'
+          : isAdapterError(e) && e.kind === 'invalid'
+            ? e.message
+            : 'The request didn’t go through. Please try again.',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -57,7 +67,17 @@ export default function ResidenceRequestScreen() {
   return (
     <Screen
       header={<Header title="New request" fallbackHref="/residence" />}
-      footer={<Button label="Send to the residence office" variant="accent" fullWidth loading={submitting} disabled={description.trim().length < 10} onPress={submit} testID="residence-submit" />}
+      footer={
+        <Button
+          label="Send to the residence office"
+          variant="accent"
+          fullWidth
+          loading={submitting}
+          disabled={description.trim().length < 10}
+          onPress={submit}
+          testID="residence-submit"
+        />
+      }
       testID="residence-request"
     >
       <View style={{ gap: spacing.lg }}>
@@ -72,7 +92,13 @@ export default function ResidenceRequestScreen() {
           <ChipRow value={category} onChange={setCategory} options={CATEGORIES} />
         </View>
         {category === 'security' ? (
-          <Notice tone="warning" title="Is someone at risk right now?" body="Don’t wait for a request — call 10111, or use Safety." action="Open Safety" onAction={() => router.push('/safety')} />
+          <Notice
+            tone="warning"
+            title="Is someone at risk right now?"
+            body="Don’t wait for a request — call 10111, or use Safety."
+            action="Open Safety"
+            onAction={() => router.push('/safety')}
+          />
         ) : null}
         <TextField
           label="Describe the problem"

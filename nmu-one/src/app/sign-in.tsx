@@ -7,17 +7,7 @@ import { useRouter } from 'expo-router';
 import type { PersonaId } from '@/core/adapters/contracts';
 import { isDemoData } from '@/core/adapters/registry';
 import { personaDescriptions } from '@/core/fixtures/people';
-import {
-  BrandMark,
-  Button,
-  Chip,
-  Notice,
-  Photo,
-  Row,
-  Text,
-  colors,
-  spacing,
-} from '@/design';
+import { BrandMark, Button, Chip, Notice, Photo, Row, Text, colors, spacing } from '@/design';
 import { useSession } from '@/state/session';
 
 const PERSONAS: { id: PersonaId; label: string }[] = [
@@ -55,14 +45,23 @@ export default function SignIn() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <Photo photo="heroCampus" size="lg" rounded={false} style={StyleSheet.absoluteFill} decorative />
+      <Photo
+        photo="heroCampus"
+        size="lg"
+        rounded={false}
+        style={StyleSheet.absoluteFill}
+        decorative
+      />
       <LinearGradient
         colors={['rgba(20,28,43,0.55)', 'rgba(20,28,43,0.2)', 'rgba(20,28,43,0.92)', colors.navy]}
         locations={[0, 0.3, 0.62, 1]}
         style={StyleSheet.absoluteFill}
       />
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.brand}>
@@ -77,16 +76,25 @@ export default function SignIn() {
             One campus.{'\n'}One sign-in.
           </Text>
           <Text variant="bodyLarge" color={colors.textOnDarkMuted}>
-            Your classes, fees, campus and community — in one place, from your first day to long after graduation.
+            Your classes, fees, campus and community — in one place, from your first day to long
+            after graduation.
           </Text>
         </View>
 
         <View style={styles.actions}>
           {reason === 'expired' ? (
-            <Notice tone="warning" title="Your session ended" body="For your security you were signed out. Sign in again to carry on." />
+            <Notice
+              tone="warning"
+              title="Your session ended"
+              body="For your security you were signed out. Sign in again to carry on."
+            />
           ) : null}
           {failed ? (
-            <Notice tone="danger" title="Sign-in didn’t complete" body="NMU SSO didn’t respond. Check your connection and try again." />
+            <Notice
+              tone="danger"
+              title="Sign-in didn’t complete"
+              body="NMU SSO didn’t respond. Check your connection and try again."
+            />
           ) : null}
 
           <Button
@@ -110,7 +118,13 @@ export default function SignIn() {
               </Text>
               <Row wrap gap={spacing.sm}>
                 {PERSONAS.map((p) => (
-                  <Chip key={p.id} label={p.label} selected={p.id === persona} onPress={() => setPersona(p.id)} testID={`persona-${p.id}`} />
+                  <Chip
+                    key={p.id}
+                    label={p.label}
+                    selected={p.id === persona}
+                    onPress={() => setPersona(p.id)}
+                    testID={`persona-${p.id}`}
+                  />
                 ))}
               </Row>
               <Text variant="caption" color={colors.textOnDarkMuted}>
@@ -126,7 +140,12 @@ export default function SignIn() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.navy },
-  content: { flexGrow: 1, paddingHorizontal: spacing.gutter, justifyContent: 'space-between', gap: spacing.xl },
+  content: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.gutter,
+    justifyContent: 'space-between',
+    gap: spacing.xl,
+  },
   brand: { alignItems: 'flex-start' },
   statement: { gap: spacing.md, marginTop: 'auto' },
   actions: { gap: spacing.md },

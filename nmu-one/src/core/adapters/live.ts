@@ -74,7 +74,8 @@ export function createLiveProviders(): Providers {
       // completed by the BFF (see INTEGRATIONS.md §Identity). The persona
       // argument exists for demos only and is ignored here.
       signIn: () => post('auth', '/v1/auth/session'),
-      refresh: (session) => post('auth', '/v1/auth/refresh', { refreshToken: session.refreshToken }),
+      refresh: (session) =>
+        post('auth', '/v1/auth/refresh', { refreshToken: session.refreshToken }),
       signOut: () => post('auth', '/v1/auth/sign-out'),
       getStudentProfile: () => get('auth', '/v1/me/student'),
       getStaffProfile: () => get('auth', '/v1/me/staff'),
@@ -131,7 +132,8 @@ export function createLiveProviders(): Providers {
     community: {
       getEvents: () => get('community', '/v1/events'),
       getEvent: (id) => get('community', `/v1/events/${enc(id)}`),
-      bookTicket: (eventId, paymentId) => post('community', `/v1/events/${enc(eventId)}/tickets`, { paymentId }),
+      bookTicket: (eventId, paymentId) =>
+        post('community', `/v1/events/${enc(eventId)}/tickets`, { paymentId }),
       getTickets: () => get('community', '/v1/me/tickets'),
       getSocieties: () => get('community', '/v1/societies'),
       joinSociety: (id) => post('community', `/v1/societies/${enc(id)}/membership`),
@@ -157,12 +159,14 @@ export function createLiveProviders(): Providers {
       getUpdates: (id) => get('guardian', `/v1/guardian/students/${enc(id)}/updates`),
       getStudentAccount: (id) => get('guardian', `/v1/guardian/students/${enc(id)}/fees`),
       getMyGuardians: () => get('guardian', '/v1/me/guardians'),
-      setGuardianSharing: (id, sharing) => post('guardian', `/v1/me/guardians/${enc(id)}/sharing`, { sharing }),
+      setGuardianSharing: (id, sharing) =>
+        post('guardian', `/v1/me/guardians/${enc(id)}/sharing`, { sharing }),
     },
     alumni: {
       getProfile: () => get('alumni', '/v1/alumni/profile'),
       getMentoring: () => get('alumni', '/v1/alumni/mentoring'),
-      respondToMentoring: (id, accept) => post('alumni', `/v1/alumni/mentoring/${enc(id)}`, { accept }),
+      respondToMentoring: (id, accept) =>
+        post('alumni', `/v1/alumni/mentoring/${enc(id)}`, { accept }),
       getJobs: () => get('alumni', '/v1/alumni/jobs'),
       getCampaigns: () => get('alumni', '/v1/giving/campaigns'),
       pledge: (input) => post('alumni', '/v1/giving/pledges', input),

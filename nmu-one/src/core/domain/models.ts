@@ -463,18 +463,14 @@ export interface Society {
   members: number;
   description: string;
   meets: string;
+  /** Whether the signed-in person is a member. */
+  joined?: boolean;
 }
 
 // ── Communication ───────────────────────────────────────────────────────────
 
 export type NotificationCategory =
-  | 'safety'
-  | 'academic'
-  | 'money'
-  | 'campus'
-  | 'community'
-  | 'alumni'
-  | 'orders';
+  'safety' | 'academic' | 'money' | 'campus' | 'community' | 'alumni' | 'orders';
 
 export type NotificationPriority = 'emergency' | 'high' | 'normal' | 'low';
 
@@ -618,9 +614,7 @@ export interface Chapter {
 // ── Governance ──────────────────────────────────────────────────────────────
 
 export type ConsentPurpose =
-  | 'location-sharing'
-  | 'push-notifications'
-  | `guardian-sharing:${SharingScope}`;
+  'location-sharing' | 'push-notifications' | `guardian-sharing:${SharingScope}`;
 
 export interface ConsentRecord {
   id: string;

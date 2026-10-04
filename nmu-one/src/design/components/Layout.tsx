@@ -27,7 +27,13 @@ export function SectionHeader({
         {title}
       </Text>
       {action && onAction ? (
-        <Touchable onPress={onAction} accessibilityRole="link" accessibilityLabel={`${action}: ${title}`} style={styles.link} minTarget={false}>
+        <Touchable
+          onPress={onAction}
+          accessibilityRole="link"
+          accessibilityLabel={`${action}: ${title}`}
+          style={styles.link}
+          minTarget={false}
+        >
           <Text variant="captionStrong" color={tone === 'onDark' ? colors.yellow : colors.navy2}>
             {action}
           </Text>
@@ -37,7 +43,13 @@ export function SectionHeader({
   );
 }
 
-export function Divider({ inset = 0, tone = 'default' }: { inset?: number; tone?: 'default' | 'onDark' }) {
+export function Divider({
+  inset = 0,
+  tone = 'default',
+}: {
+  inset?: number;
+  tone?: 'default' | 'onDark';
+}) {
   return (
     <View
       style={{
@@ -79,7 +91,13 @@ export function Row({
   return (
     <View
       style={[
-        { flexDirection: 'row', alignItems: align, justifyContent: justify, gap, flexWrap: wrap ? 'wrap' : 'nowrap' },
+        {
+          flexDirection: 'row',
+          alignItems: align,
+          justifyContent: justify,
+          gap,
+          flexWrap: wrap ? 'wrap' : 'nowrap',
+        },
         style,
       ]}
     >
@@ -118,7 +136,11 @@ export function Notice({
 }) {
   const t = NOTICE[tone];
   return (
-    <View testID={testID} style={[styles.notice, { backgroundColor: t.bg }]} accessibilityRole="summary">
+    <View
+      testID={testID}
+      style={[styles.notice, { backgroundColor: t.bg }]}
+      accessibilityRole="summary"
+    >
       <Icon name={icon ?? t.icon} size={20} color={t.fg} />
       <View style={styles.noticeBody}>
         <Text variant="bodyStrong" color={t.fg}>
@@ -126,7 +148,12 @@ export function Notice({
         </Text>
         {body ? <Text variant="caption">{body}</Text> : null}
         {action && onAction ? (
-          <Touchable onPress={onAction} accessibilityRole="link" minTarget={false} style={styles.noticeAction}>
+          <Touchable
+            onPress={onAction}
+            accessibilityRole="link"
+            minTarget={false}
+            style={styles.noticeAction}
+          >
             <Text variant="captionStrong" color={colors.navy2} style={styles.underline}>
               {action}
             </Text>
@@ -147,7 +174,8 @@ export function ProgressBar({
   label: string;
 }) {
   const pct = Math.max(0, Math.min(1, value));
-  const fill = tone === 'yellow' ? colors.yellow : tone === 'success' ? colors.success : colors.navy;
+  const fill =
+    tone === 'yellow' ? colors.yellow : tone === 'success' ? colors.success : colors.navy;
   return (
     <View
       accessible
@@ -161,7 +189,15 @@ export function ProgressBar({
   );
 }
 
-export function Avatar({ initials, size = 44, tone = 'yellow' }: { initials: string; size?: number; tone?: 'yellow' | 'navy' }) {
+export function Avatar({
+  initials,
+  size = 44,
+  tone = 'yellow',
+}: {
+  initials: string;
+  size?: number;
+  tone?: 'yellow' | 'navy';
+}) {
   return (
     <View
       style={{
@@ -175,7 +211,10 @@ export function Avatar({ initials, size = 44, tone = 'yellow' }: { initials: str
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <Text variant={size > 50 ? 'title3' : 'captionStrong'} color={tone === 'yellow' ? colors.navy : colors.white}>
+      <Text
+        variant={size > 50 ? 'title3' : 'captionStrong'}
+        color={tone === 'yellow' ? colors.navy : colors.white}
+      >
         {initials}
       </Text>
     </View>
@@ -190,11 +229,26 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     minHeight: 24,
   },
-  link: { paddingVertical: spacing.xs, paddingLeft: spacing.md, minHeight: 32, justifyContent: 'center' },
+  link: {
+    paddingVertical: spacing.xs,
+    paddingLeft: spacing.md,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
   notice: { flexDirection: 'row', gap: spacing.md, padding: spacing.lg, borderRadius: radius.md },
   noticeBody: { flex: 1, gap: spacing.xxs },
-  noticeAction: { paddingTop: spacing.xs, minHeight: 32, justifyContent: 'center', alignSelf: 'flex-start' },
+  noticeAction: {
+    paddingTop: spacing.xs,
+    minHeight: 32,
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+  },
   underline: { textDecorationLine: 'underline' },
-  track: { height: 8, borderRadius: radius.pill, backgroundColor: colors.surfaceSunken, overflow: 'hidden' },
+  track: {
+    height: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSunken,
+    overflow: 'hidden',
+  },
   fill: { height: 8, borderRadius: radius.pill },
 });

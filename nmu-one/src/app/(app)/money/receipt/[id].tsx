@@ -3,9 +3,25 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { formatMoney } from '@/core/domain/money';
 import { formatDateLong, formatTime } from '@/core/time/sast';
 import { useReceipt } from '@/data/hooks';
-import { Button, Card, Divider, Header, Icon, QueryState, Row, Screen, Text, colors, spacing } from '@/design';
+import {
+  Button,
+  Card,
+  Divider,
+  Header,
+  Icon,
+  QueryState,
+  Row,
+  Screen,
+  Text,
+  colors,
+  spacing,
+} from '@/design';
 
-const METHOD = { card: 'Card', 'instant-eft': 'Instant EFT', 'campus-wallet': 'Campus wallet' } as const;
+const METHOD = {
+  card: 'Card',
+  'instant-eft': 'Instant EFT',
+  'campus-wallet': 'Campus wallet',
+} as const;
 
 /** Payment confirmation and receipt (brief §8). Calm, no celebration animation (§19). */
 export default function ReceiptScreen() {
@@ -42,14 +58,23 @@ export default function ReceiptScreen() {
                     <Text variant="body" color={colors.textSecondary}>
                       {k}
                     </Text>
-                    <Text variant="bodyStrong" testID={k === 'Reference' ? 'receipt-reference' : undefined}>
+                    <Text
+                      variant="bodyStrong"
+                      testID={k === 'Reference' ? 'receipt-reference' : undefined}
+                    >
                       {v}
                     </Text>
                   </Row>
                 </View>
               ))}
             </Card>
-            <Button label="Back to fees" variant="primary" fullWidth onPress={() => router.replace('/money')} testID="receipt-done" />
+            <Button
+              label="Back to fees"
+              variant="primary"
+              fullWidth
+              onPress={() => router.dismissTo('/money')}
+              testID="receipt-done"
+            />
           </View>
         )}
       </QueryState>
@@ -59,6 +84,14 @@ export default function ReceiptScreen() {
 
 const styles = StyleSheet.create({
   done: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.lg },
-  tick: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.success, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
+  tick: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
   line: { paddingVertical: spacing.md, gap: spacing.lg },
 });

@@ -48,7 +48,9 @@ export interface MockState {
 
 function fresh(): MockState {
   return {
-    users: Object.fromEntries(Object.values(personas).map((u) => [u.id, { ...u, roles: [...u.roles] }])),
+    users: Object.fromEntries(
+      Object.values(personas).map((u) => [u.id, { ...u, roles: [...u.roles] }]),
+    ),
     payments: {},
     receipts: {},
     feePaymentsCents: 0,

@@ -45,7 +45,8 @@ export function useDomainQuery<T>(
     enabled: opts.enabled ?? true,
     refetchInterval:
       typeof opts.refetchInterval === 'function'
-        ? (query) => (opts.refetchInterval as (d: T | undefined) => number | false)(query.state.data)
+        ? (query) =>
+            (opts.refetchInterval as (d: T | undefined) => number | false)(query.state.data)
         : (opts.refetchInterval ?? false),
   });
 
@@ -71,23 +72,52 @@ export function useDomainQuery<T>(
   // Sensitive data is never shown once a refresh has failed offline — not
   // even this session's in-memory copy (brief §25).
   if (q.error && offline && policy === 'never') {
-    return { status: 'error', data: undefined, error: q.error, fromCache: null, isRefreshing: q.isFetching, refetch };
+    return {
+      status: 'error',
+      data: undefined,
+      error: q.error,
+      fromCache: null,
+      isRefreshing: q.isFetching,
+      refetch,
+    };
   }
   if (q.data !== undefined) {
     return {
       status: 'success',
       data: q.data,
       error: q.error,
-      fromCache: offline && q.dataUpdatedAt ? { savedAt: new Date(q.dataUpdatedAt).toISOString() } : null,
+      fromCache:
+        offline && q.dataUpdatedAt ? { savedAt: new Date(q.dataUpdatedAt).toISOString() } : null,
       isRefreshing: q.isFetching,
       refetch,
     };
   }
   if (offline && cached) {
-    return { status: 'success', data: cached.data, error: q.error, fromCache: { savedAt: cached.savedAt }, isRefreshing: q.isFetching, refetch };
+    return {
+      status: 'success',
+      data: cached.data,
+      error: q.error,
+      fromCache: { savedAt: cached.savedAt },
+      isRefreshing: q.isFetching,
+      refetch,
+    };
   }
   if (q.error) {
-    return { status: 'error', data: undefined, error: q.error, fromCache: null, isRefreshing: q.isFetching, refetch };
+    return {
+      status: 'error',
+      data: undefined,
+      error: q.error,
+      fromCache: null,
+      isRefreshing: q.isFetching,
+      refetch,
+    };
   }
-  return { status: 'loading', data: undefined, error: null, fromCache: null, isRefreshing: q.isFetching, refetch };
+  return {
+    status: 'loading',
+    data: undefined,
+    error: null,
+    fromCache: null,
+    isRefreshing: q.isFetching,
+    refetch,
+  };
 }

@@ -38,22 +38,45 @@ export default function ClassDetail() {
   const exams = useExams();
 
   return (
-    <Screen header={<Header title="Class" fallbackHref="/academics/timetable" />} testID="class-detail">
+    <Screen
+      header={<Header title="Class" fallbackHref="/academics/timetable" />}
+      testID="class-detail"
+    >
       <QueryState query={week} what="this class">
         {(entries) => {
           const entry = entries.find((e) => e.id === id);
           if (!entry) {
-            return <StateView kind="empty" title="This class isn’t on your timetable" body="It may have been cancelled or moved to another week." actionLabel="Open timetable" onAction={() => router.replace('/academics/timetable')} />;
+            return (
+              <StateView
+                kind="empty"
+                title="This class isn’t on your timetable"
+                body="It may have been cancelled or moved to another week."
+                actionLabel="Open timetable"
+                onAction={() => router.replace('/academics/timetable')}
+              />
+            );
           }
           const building = map.data?.buildings.find((b) => b.id === entry.room.buildingId);
-          const route = map.data && building ? routeTo(map.data, map.data.defaultOrigin, building, entry.room.floor) : null;
-          const due = exams.data?.filter((e) => e.moduleCode === entry.moduleCode && new Date(e.start) > now) ?? [];
+          const route =
+            map.data && building
+              ? routeTo(map.data, map.data.defaultOrigin, building, entry.room.floor)
+              : null;
+          const due =
+            exams.data?.filter(
+              (e) => e.moduleCode === entry.moduleCode && new Date(e.start) > now,
+            ) ?? [];
           return (
             <View style={styles.body}>
               <View style={{ gap: spacing.xs }}>
                 <Row gap={spacing.sm} wrap>
                   <Pill label={`${entry.moduleCode} · ${KIND_LABEL[entry.kind]}`} tone="navy" />
-                  {isOnNow(entry, now) ? <Pill label="On now" tone="success" /> : new Date(entry.start) > now ? <Pill label={formatCountdown(entry.start, now)} tone="yellow" /> : <Pill label="Finished" />}
+                  {isOnNow(entry, now) ? (
+                    <Pill label="On now" tone="success" />
+                  ) : new Date(entry.start) > now ? (
+                    <Pill label={formatCountdown(entry.start, now)} tone="yellow" />
+                  ) : (
+                    <Pill label="Finished" />
+                  )}
                 </Row>
                 <Text variant="title1" accessibilityRole="header">
                   {entry.moduleTitle}
@@ -67,7 +90,11 @@ export default function ClassDetail() {
               </View>
 
               {entry.status === 'moved' && entry.note ? (
-                <Notice tone="warning" title={`Room changed to ${entry.room.code}`} body={`${entry.note}. The map below goes to the new room.`} />
+                <Notice
+                  tone="warning"
+                  title={`Room changed to ${entry.room.code}`}
+                  body={`${entry.note}. The map below goes to the new room.`}
+                />
               ) : null}
 
               <Card padded={false}>
@@ -99,7 +126,15 @@ export default function ClassDetail() {
                       {building.accessibility}
                     </Text>
                   ) : null}
-                  <Button label="Show me the way" icon="navigate" variant="accent" fullWidth onPress={() => router.push(`/campus-map?to=${entry.room.code}`)} testID="class-directions" style={{ marginTop: spacing.md }} />
+                  <Button
+                    label="Show me the way"
+                    icon="navigate"
+                    variant="accent"
+                    fullWidth
+                    onPress={() => router.push(`/campus-map?to=${entry.room.code}`)}
+                    testID="class-directions"
+                    style={{ marginTop: spacing.md }}
+                  />
                 </View>
               </Card>
 
@@ -108,7 +143,14 @@ export default function ClassDetail() {
                   <SectionHeader title="Coming up in this module" />
                   <Card padded={false} style={styles.list}>
                     {due.map((e) => (
-                      <ListRow key={e.id} icon="alarm-outline" title={`${e.kind === 'assignment' ? 'Submission' : e.kind === 'exam' ? 'Exam' : 'Test'} · ${e.weightPercent}%`} subtitle={`${formatDayLong(e.start)} · ${formatTime(e.start)}`} meta={formatCountdown(e.start, now)} onPress={() => router.push('/academics/exams')} />
+                      <ListRow
+                        key={e.id}
+                        icon="alarm-outline"
+                        title={`${e.kind === 'assignment' ? 'Submission' : e.kind === 'exam' ? 'Exam' : 'Test'} · ${e.weightPercent}%`}
+                        subtitle={`${formatDayLong(e.start)} · ${formatTime(e.start)}`}
+                        meta={formatCountdown(e.start, now)}
+                        onPress={() => router.push('/academics/exams')}
+                      />
                     ))}
                   </Card>
                 </View>
@@ -128,7 +170,10 @@ export default function ClassDetail() {
                     end: entry.end,
                     location: `${entry.room.code}, ${building?.name ?? ''}`,
                   });
-                  showToast({ title: calendarMessage[result], tone: result === 'added' || result === 'downloaded' ? 'success' : 'info' });
+                  showToast({
+                    title: calendarMessage[result],
+                    tone: result === 'added' || result === 'downloaded' ? 'success' : 'info',
+                  });
                 }}
               />
             </View>
@@ -161,7 +206,8 @@ function LmsLinks({ moduleCode }: { moduleCode: string }) {
       </Card>
       {!connected ? (
         <Text variant="caption" color={colors.textSecondary} style={{ marginTop: spacing.sm }}>
-          NMU ONE links into the LMS rather than copying it. These open once the LMS integration is switched on.
+          NMU ONE links into the LMS rather than copying it. These open once the LMS integration is
+          switched on.
         </Text>
       ) : null}
     </View>

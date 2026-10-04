@@ -66,16 +66,23 @@ export async function launch({ width = 390, height = 844 } = {}) {
   return { browser, context, page, errors };
 }
 
-/** Taps the element with this testID (React Native web renders it as data-testid). */
+/**
+ * Taps the visible element with this testID (React Native web renders testID
+ * as data-testid). Screens lower in a stack stay mounted but hidden, so the
+ * first match in the DOM is often not the one on screen.
+ */
 export async function tap(page, testID, opts = {}) {
-  const el = page.getByTestId(testID).first();
+  const el = page.getByTestId(testID).filter({ visible: true }).first();
   await el.waitFor({ state: 'visible', timeout: opts.timeout ?? 15_000 });
   await el.click();
 }
 
 export async function see(page, text, timeout = 15_000) {
-  await page.getByText(text, { exact: false }).first().waitFor({ state: 'visible', timeout });
+  await page.getByText(text, { exact: false }).filter({ visible: true }).first().waitFor({ state: 'visible', timeout });
 }
+
+/** The visible element with this testID. */
+export const visible = (page, testID) => page.getByTestId(testID).filter({ visible: true }).first();
 
 export async function shot(page, dir, name) {
   await page.screenshot({ path: join(dir, `${name}.png`), fullPage: false });

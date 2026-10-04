@@ -17,14 +17,86 @@ import { addDays, sastDate, sastParts } from '../time/sast';
 // ── Library ─────────────────────────────────────────────────────────────────
 
 export const libraryCatalogue: LibraryResource[] = [
-  { id: 'lr1', title: 'Principles of Marketing', authors: ['Demo Editorial Team'], year: 2023, kind: 'book', availability: 'available', location: 'Level 2', callNumber: '658.8 KOT' },
-  { id: 'lr2', title: 'Consumer Behaviour in South Africa', authors: ['Demo Editorial Team'], year: 2022, kind: 'book', availability: 'on-loan', location: 'Level 2', callNumber: '658.834 CON' },
-  { id: 'lr3', title: 'Digital Marketing Strategy', authors: ['Demo Editorial Team'], year: 2022, kind: 'ebook', availability: 'online', location: null, callNumber: null },
-  { id: 'lr4', title: 'Marketing Research Essentials', authors: ['Demo Editorial Team'], year: 2021, kind: 'book', availability: 'available', location: 'Level 3', callNumber: '658.83 MAR' },
-  { id: 'lr5', title: 'Marketing journals collection (online)', authors: [], year: 2026, kind: 'journal', availability: 'online', location: null, callNumber: null },
-  { id: 'lr6', title: 'Business research database (online)', authors: [], year: 2026, kind: 'database', availability: 'online', location: null, callNumber: null },
-  { id: 'lr7', title: 'Brand Management: An African Perspective', authors: ['Demo Editorial Team'], year: 2020, kind: 'book', availability: 'available', location: 'Level 2', callNumber: '658.827 BRA' },
-  { id: 'lr8', title: 'Statistics for Business and Economics', authors: ['Demo Editorial Team'], year: 2019, kind: 'book', availability: 'on-loan', location: 'Level 3', callNumber: '519.5 STA' },
+  {
+    id: 'lr1',
+    title: 'Principles of Marketing',
+    authors: ['Demo Editorial Team'],
+    year: 2023,
+    kind: 'book',
+    availability: 'available',
+    location: 'Level 2',
+    callNumber: '658.8 KOT',
+  },
+  {
+    id: 'lr2',
+    title: 'Consumer Behaviour in South Africa',
+    authors: ['Demo Editorial Team'],
+    year: 2022,
+    kind: 'book',
+    availability: 'on-loan',
+    location: 'Level 2',
+    callNumber: '658.834 CON',
+  },
+  {
+    id: 'lr3',
+    title: 'Digital Marketing Strategy',
+    authors: ['Demo Editorial Team'],
+    year: 2022,
+    kind: 'ebook',
+    availability: 'online',
+    location: null,
+    callNumber: null,
+  },
+  {
+    id: 'lr4',
+    title: 'Marketing Research Essentials',
+    authors: ['Demo Editorial Team'],
+    year: 2021,
+    kind: 'book',
+    availability: 'available',
+    location: 'Level 3',
+    callNumber: '658.83 MAR',
+  },
+  {
+    id: 'lr5',
+    title: 'Marketing journals collection (online)',
+    authors: [],
+    year: 2026,
+    kind: 'journal',
+    availability: 'online',
+    location: null,
+    callNumber: null,
+  },
+  {
+    id: 'lr6',
+    title: 'Business research database (online)',
+    authors: [],
+    year: 2026,
+    kind: 'database',
+    availability: 'online',
+    location: null,
+    callNumber: null,
+  },
+  {
+    id: 'lr7',
+    title: 'Brand Management: An African Perspective',
+    authors: ['Demo Editorial Team'],
+    year: 2020,
+    kind: 'book',
+    availability: 'available',
+    location: 'Level 2',
+    callNumber: '658.827 BRA',
+  },
+  {
+    id: 'lr8',
+    title: 'Statistics for Business and Economics',
+    authors: ['Demo Editorial Team'],
+    year: 2019,
+    kind: 'book',
+    availability: 'on-loan',
+    location: 'Level 3',
+    callNumber: '519.5 STA',
+  },
 ];
 
 /**
@@ -33,11 +105,46 @@ export const libraryCatalogue: LibraryResource[] = [
  */
 export function studySpaces(day: Date, now: Date): StudySpace[] {
   const { year, month, day: d } = sastParts(day);
-  const rooms: { id: string; name: string; floor: number; capacity: number; features: string[]; taken: number[] }[] = [
-    { id: 'gr1', name: 'Group Room 1', floor: 2, capacity: 6, features: ['Screen', 'Whiteboard'], taken: [10, 11, 15] },
-    { id: 'gr2', name: 'Group Room 2', floor: 2, capacity: 4, features: ['Whiteboard'], taken: [10, 12, 13] },
-    { id: 'gr3', name: 'Group Room 3', floor: 3, capacity: 8, features: ['Screen', 'Video calls'], taken: [11, 14, 16, 17] },
-    { id: 'sp1', name: 'Silent Pod 1', floor: 4, capacity: 1, features: ['Silent', 'Power'], taken: [10, 13] },
+  const rooms: {
+    id: string;
+    name: string;
+    floor: number;
+    capacity: number;
+    features: string[];
+    taken: number[];
+  }[] = [
+    {
+      id: 'gr1',
+      name: 'Group Room 1',
+      floor: 2,
+      capacity: 6,
+      features: ['Screen', 'Whiteboard'],
+      taken: [10, 11, 15],
+    },
+    {
+      id: 'gr2',
+      name: 'Group Room 2',
+      floor: 2,
+      capacity: 4,
+      features: ['Whiteboard'],
+      taken: [10, 12, 13],
+    },
+    {
+      id: 'gr3',
+      name: 'Group Room 3',
+      floor: 3,
+      capacity: 8,
+      features: ['Screen', 'Video calls'],
+      taken: [11, 14, 16, 17],
+    },
+    {
+      id: 'sp1',
+      name: 'Silent Pod 1',
+      floor: 4,
+      capacity: 1,
+      features: ['Silent', 'Power'],
+      taken: [10, 13],
+    },
   ];
   return rooms.map((r) => ({
     id: r.id,
@@ -115,7 +222,11 @@ export const stopOffsets: Record<string, number[]> = {
 };
 
 /** Minutes of delay applied to a route's timetable while it is disrupted. */
-export const routeDelayMinutes: Record<string, number> = { 'route-a': 0, 'route-b': 5, 'route-n': 0 };
+export const routeDelayMinutes: Record<string, number> = {
+  'route-a': 0,
+  'route-b': 5,
+  'route-n': 0,
+};
 
 export const disruptions: ServiceDisruption[] = [
   {
@@ -218,30 +329,130 @@ const item = (
   category: string,
   dietary: MenuItem['dietary'] = [],
   available = true,
-): MenuItem => ({ id, vendorId, name, description, price: zar(rands), dietary, available, category });
+): MenuItem => ({
+  id,
+  vendorId,
+  name,
+  description,
+  price: zar(rands),
+  dietary,
+  available,
+  category,
+});
 
 export const menus: Record<string, MenuItem[]> = {
   'campus-kitchen': [
-    item('campus-kitchen', 'ck-bowl-chicken', 'Peri-peri chicken bowl', 'Grilled chicken, spiced rice, charred corn and greens.', 62, 'Bowls', ['halaal']),
-    item('campus-kitchen', 'ck-bowl-veg', 'Roast veg & chickpea bowl', 'Roasted butternut, chickpeas, quinoa and tahini.', 55, 'Bowls', ['vegan', 'gluten-free']),
-    item('campus-kitchen', 'ck-bowl-beef', 'Beef & umngqusho bowl', 'Slow-cooked beef over samp and beans.', 68, 'Bowls', ['halaal']),
-    item('campus-kitchen', 'ck-salad', 'Garden salad', 'Leaves, cucumber, tomato, feta and seeds.', 42, 'Salads', ['vegetarian', 'gluten-free']),
-    item('campus-kitchen', 'ck-juice', 'Fresh orange juice', '330 ml, squeezed this morning.', 24, 'Drinks', ['vegan', 'gluten-free']),
-    item('campus-kitchen', 'ck-water', 'Still water', '500 ml.', 12, 'Drinks', ['vegan', 'gluten-free']),
+    item(
+      'campus-kitchen',
+      'ck-bowl-chicken',
+      'Peri-peri chicken bowl',
+      'Grilled chicken, spiced rice, charred corn and greens.',
+      62,
+      'Bowls',
+      ['halaal'],
+    ),
+    item(
+      'campus-kitchen',
+      'ck-bowl-veg',
+      'Roast veg & chickpea bowl',
+      'Roasted butternut, chickpeas, quinoa and tahini.',
+      55,
+      'Bowls',
+      ['vegan', 'gluten-free'],
+    ),
+    item(
+      'campus-kitchen',
+      'ck-bowl-beef',
+      'Beef & umngqusho bowl',
+      'Slow-cooked beef over samp and beans.',
+      68,
+      'Bowls',
+      ['halaal'],
+    ),
+    item(
+      'campus-kitchen',
+      'ck-salad',
+      'Garden salad',
+      'Leaves, cucumber, tomato, feta and seeds.',
+      42,
+      'Salads',
+      ['vegetarian', 'gluten-free'],
+    ),
+    item(
+      'campus-kitchen',
+      'ck-juice',
+      'Fresh orange juice',
+      '330 ml, squeezed this morning.',
+      24,
+      'Drinks',
+      ['vegan', 'gluten-free'],
+    ),
+    item('campus-kitchen', 'ck-water', 'Still water', '500 ml.', 12, 'Drinks', [
+      'vegan',
+      'gluten-free',
+    ]),
   ],
   'commons-coffee': [
-    item('commons-coffee', 'cc-flat-white', 'Flat white', 'Double shot, steamed milk.', 28, 'Coffee', ['vegetarian']),
-    item('commons-coffee', 'cc-rooibos', 'Rooibos latte', 'Rooibos espresso with steamed milk.', 26, 'Coffee', ['vegetarian']),
-    item('commons-coffee', 'cc-toastie', 'Cheese & tomato toastie', 'On sourdough.', 38, 'Food', ['vegetarian']),
-    item('commons-coffee', 'cc-muffin', 'Bran muffin', 'Baked this morning.', 22, 'Food', ['vegetarian', 'contains-nuts']),
+    item(
+      'commons-coffee',
+      'cc-flat-white',
+      'Flat white',
+      'Double shot, steamed milk.',
+      28,
+      'Coffee',
+      ['vegetarian'],
+    ),
+    item(
+      'commons-coffee',
+      'cc-rooibos',
+      'Rooibos latte',
+      'Rooibos espresso with steamed milk.',
+      26,
+      'Coffee',
+      ['vegetarian'],
+    ),
+    item('commons-coffee', 'cc-toastie', 'Cheese & tomato toastie', 'On sourdough.', 38, 'Food', [
+      'vegetarian',
+    ]),
+    item('commons-coffee', 'cc-muffin', 'Bran muffin', 'Baked this morning.', 22, 'Food', [
+      'vegetarian',
+      'contains-nuts',
+    ]),
   ],
   'bay-grill': [
-    item('bay-grill', 'bg-wrap', 'Grilled chicken wrap', 'Chicken, slaw and garlic sauce.', 58, 'Wraps', ['halaal']),
-    item('bay-grill', 'bg-quarter', 'Quarter chicken & chips', 'Flame-grilled, lemon and herb.', 72, 'Meals', ['halaal', 'gluten-free']),
-    item('bay-grill', 'bg-halloumi', 'Halloumi wrap', 'Grilled halloumi, peppers and hummus.', 61, 'Wraps', ['vegetarian']),
+    item(
+      'bay-grill',
+      'bg-wrap',
+      'Grilled chicken wrap',
+      'Chicken, slaw and garlic sauce.',
+      58,
+      'Wraps',
+      ['halaal'],
+    ),
+    item(
+      'bay-grill',
+      'bg-quarter',
+      'Quarter chicken & chips',
+      'Flame-grilled, lemon and herb.',
+      72,
+      'Meals',
+      ['halaal', 'gluten-free'],
+    ),
+    item(
+      'bay-grill',
+      'bg-halloumi',
+      'Halloumi wrap',
+      'Grilled halloumi, peppers and hummus.',
+      61,
+      'Wraps',
+      ['vegetarian'],
+    ),
     item('bay-grill', 'bg-ribs', 'Rib & chips combo', 'Sold out today.', 89, 'Meals', [], false),
   ],
   'green-corner': [
-    item('green-corner', 'gc-curry', 'Lentil curry', 'With brown rice.', 48, 'Plates', ['vegan', 'gluten-free']),
+    item('green-corner', 'gc-curry', 'Lentil curry', 'With brown rice.', 48, 'Plates', [
+      'vegan',
+      'gluten-free',
+    ]),
   ],
 };

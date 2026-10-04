@@ -2,12 +2,7 @@ import { config } from '../../config';
 import type { FeeAccount } from '../../domain/models';
 import { academicCalendar } from '../../fixtures/academic';
 import { feeAsAt, feeDueDate, feeTransactions } from '../../fixtures/money';
-import {
-  parentProfile,
-  personas,
-  staffProfile,
-  studentProfile,
-} from '../../fixtures/people';
+import { parentProfile, personas, staffProfile, studentProfile } from '../../fixtures/people';
 import { guardianUpdates, mentoringNotification, notificationsFor } from '../../fixtures/community';
 import { clock } from '../../time/clock';
 import { addDays, addMinutes } from '../../time/sast';
@@ -31,10 +26,14 @@ export const ceremonyDate = () =>
 
 export const mockAuth: AuthProvider = {
   signIn: (persona = 'student') =>
-    simulate('auth', () => {
-      const user = state.users[personas[persona].id]!;
-      return { session: newSession(user.id), user };
-    }, { latencyMs: 900 }),
+    simulate(
+      'auth',
+      () => {
+        const user = state.users[personas[persona].id]!;
+        return { session: newSession(user.id), user };
+      },
+      { latencyMs: 900 },
+    ),
 
   refresh: (session) =>
     simulate('auth', () => {
@@ -61,26 +60,32 @@ export const mockAuth: AuthProvider = {
    * graduation." Same user id, same sign-in; the role and lifecycle move on.
    */
   transitionToAlumni: (userId) =>
-    simulate('auth', () => {
-      const user = state.users[userId];
-      if (!user) throw new AdapterError('not-found', 'auth');
-      if (user.lifecycle !== 'student') throw new AdapterError('conflict', 'auth', 'Not a student');
-      user.roles = ['alumni'];
-      user.lifecycle = 'alumni';
-      const now = clock.now();
-      const signedIn = () => providerContext.get().userId;
-      const [welcome] = notificationsFor('graduate', now);
-      if (welcome) deliver(userId, welcome, signedIn());
-      // The mentoring opportunity arrives a little later (brief §26 step 13).
-      later(8_000, () => deliver(userId, mentoringNotification(clock.now()), signedIn()));
-      return user;
-    }, { latencyMs: 1200 }),
+    simulate(
+      'auth',
+      () => {
+        const user = state.users[userId];
+        if (!user) throw new AdapterError('not-found', 'auth');
+        if (user.lifecycle !== 'student')
+          throw new AdapterError('conflict', 'auth', 'Not a student');
+        user.roles = ['alumni'];
+        user.lifecycle = 'alumni';
+        const now = clock.now();
+        const signedIn = () => providerContext.get().userId;
+        const [welcome] = notificationsFor('graduate', now);
+        if (welcome) deliver(userId, welcome, signedIn());
+        // The mentoring opportunity arrives a little later (brief §26 step 13).
+        later(8_000, () => deliver(userId, mentoringNotification(clock.now()), signedIn()));
+        return user;
+      },
+      { latencyMs: 1200 },
+    ),
 };
 
 /** The demo student's fee account, as Student Finance would report it. */
 export function studentFeeAccount(): FeeAccount {
   const now = clock.now();
-  const owed = feeTransactions(now).reduce((sum, t) => sum + t.amount.cents, 0) - state.feePaymentsCents;
+  const owed =
+    feeTransactions(now).reduce((sum, t) => sum + t.amount.cents, 0) - state.feePaymentsCents;
   return {
     accountId: 'fa-0417',
     balance: { cents: owed, currency: 'ZAR' },
@@ -96,7 +101,8 @@ const requireParent = () => {
   return userId;
 };
 
-const profileNow = () => parentProfile(addDays(clock.now(), -30).toISOString(), state.guardianSharing);
+const profileNow = () =>
+  parentProfile(addDays(clock.now(), -30).toISOString(), state.guardianSharing);
 
 const linked = (studentId: string) => {
   const profile = profileNow();
@@ -117,7 +123,9 @@ export const mockGuardian: GuardianProvider = {
       requireParent();
       const student = linked(studentId);
       // Filtered at the source: an ungranted scope never leaves the "server".
-      return guardianUpdates(clock.now(), studentId).filter((u) => student.sharing.includes(u.scope));
+      return guardianUpdates(clock.now(), studentId).filter((u) =>
+        student.sharing.includes(u.scope),
+      );
     }),
 
   getStudentAccount: (studentId) =>
@@ -158,4 +166,3 @@ export const mockGuardian: GuardianProvider = {
       };
     }),
 };
-

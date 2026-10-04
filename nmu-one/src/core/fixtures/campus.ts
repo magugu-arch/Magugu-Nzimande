@@ -101,10 +101,7 @@ export const southCampus: CampusMap = {
       'Bay Grill',
       'Student Help Desk',
     ]),
-    b('mh', 'MH', 'Main Hall', 365, 735, 190, 110, 'w2', 'hall', 1, [
-      'Ceremonies',
-      'Examinations',
-    ]),
+    b('mh', 'MH', 'Main Hall', 365, 735, 190, 110, 'w2', 'hall', 1, ['Ceremonies', 'Examinations']),
     b('hw', 'HW', 'Health & Wellness Centre', 110, 395, 150, 120, 'west3', 'support', 2, [
       'Student Counselling',
       'Campus clinic',

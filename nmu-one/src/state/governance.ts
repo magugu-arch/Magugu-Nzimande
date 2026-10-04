@@ -49,7 +49,13 @@ export const useGovernance = create<GovernanceState>((set, get) => ({
   },
 
   audit_(type, actorId, detail) {
-    const event: AuditEvent = { id: id('audit'), type, at: clock.now().toISOString(), actorId, detail };
+    const event: AuditEvent = {
+      id: id('audit'),
+      type,
+      at: clock.now().toISOString(),
+      actorId,
+      detail,
+    };
     set((s) => ({ audit: [event, ...s.audit].slice(0, MAX_AUDIT) }));
   },
 
