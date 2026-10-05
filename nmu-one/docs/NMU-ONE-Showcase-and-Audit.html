@@ -33,14 +33,14 @@
     --bg:#0F1521; --surface:#1B2433; --surface-2:#222C3D; --border:#2E3A4F;
     --text:#EEF1F6; --text-2:#AEB7C7; --link:#8CB8F2;
     --fill:#3987E5; --track:#1C3A63; --good:#6FCF9A; --good-bg:#153526; --warn:#F2C46B; --warn-bg:#3A2E12;
-    --shadow:none;
+    --shadow:none; color-scheme:dark;
   }
 }
 :root[data-theme="dark"] {
   --bg:#0F1521; --surface:#1B2433; --surface-2:#222C3D; --border:#2E3A4F;
   --text:#EEF1F6; --text-2:#AEB7C7; --link:#8CB8F2;
   --fill:#3987E5; --track:#1C3A63; --good:#6FCF9A; --good-bg:#153526; --warn:#F2C46B; --warn-bg:#3A2E12;
-  --shadow:none;
+  --shadow:none; color-scheme:dark;
 }
 *,*::before,*::after { box-sizing:border-box }
 html { -webkit-text-size-adjust:100% }
@@ -71,6 +71,7 @@ section { padding:40px 0 8px }
 .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px }
 .chip { padding:4px 12px; border-radius:999px; background:rgb(255 255 255 / .12); border:1px solid rgb(255 255 255 / .25); font-size:13px; font-weight:700 }
 .chip.y { background:var(--yellow); color:var(--navy); border-color:var(--yellow) }
+.hero .disclaimer { margin-top:14px; font-size:13px; color:#C3CCDA; max-width:62ch }
 
 /* headline figures */
 .figures { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); margin-top:-26px; position:relative; z-index:2 }
@@ -160,6 +161,7 @@ dialog button { position:fixed; top:12px; right:12px; padding:10px 16px; border-
       <span class="chip">Synthetic data only</span>
       <span class="chip">5 October 2026</span>
     </div>
+    <p class="disclaimer">Independent concept prepared for discussion with Nelson Mandela University. Not an official NMU product or publication; every person and figure in the app is synthetic.</p>
   </div>
 </header>
 
