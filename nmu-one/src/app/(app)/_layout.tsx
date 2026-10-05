@@ -8,6 +8,7 @@ import {
   useNotificationDelivery,
   useSettleNotificationsOnVisit,
 } from '@/features/notifications/delivery';
+import { usePushRegistration } from '@/features/notifications/push';
 import { useSession } from '@/state/session';
 
 /**
@@ -19,6 +20,7 @@ export default function AppLayout() {
   const role = useSession((s) => s.role);
   const queryClient = useQueryClient();
   useNotificationDelivery();
+  usePushRegistration();
   useSettleNotificationsOnVisit();
   useSessionExpiry();
 

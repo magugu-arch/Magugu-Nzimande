@@ -65,6 +65,49 @@ jobs:
           path: nmu-one/.e2e
           if-no-files-found: ignore
 
+  live:
+    name: App — live mode through the reference BFF, native bundles
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: nmu-one
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nmu-one/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # The pitch journey against the BFF: sign-in with code + PKCE through
+      # the development SSO page, payments through the provider page, and
+      # the permission policy enforced on the server.
+      - name: Live mode, end to end
+        run: npm run export:live && npm run e2e:live
+
+      # The JavaScript bundles a phone build would ship.
+      - name: Bundle for iOS and Android
+        run: |
+          npx expo export --platform ios --output-dir /tmp/export-ios --clear
+          npx expo export --platform android --output-dir /tmp/export-android --clear
+
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nmu-one-live-screens
+          path: nmu-one/.e2e/journey-live
+          if-no-files-found: ignore
+
   console:
     name: Console — checks, accessibility and workflow
     runs-on: ubuntu-latest

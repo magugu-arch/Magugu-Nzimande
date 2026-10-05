@@ -20,17 +20,18 @@
  *
  * JOURNEY_URL runs it against something other than the served export, e.g.
  * the single-file build opened from disk (`npm run e2e:single`).
+ *
+ * JOURNEY_LIVE (set by e2e/live.mjs) runs it against the reference BFF: the
+ * sign-in goes through the development NMU SSO page (authorization code +
+ * PKCE) and each payment through the development payment provider's window.
  */
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { launch, root, see, serve, shot, tap, visible } from './lib/web.mjs';
 
 const target = process.env.JOURNEY_URL;
-const out = join(
-  root,
-  '.e2e',
-  target ? 'journey-single' : process.env.JOURNEY_LIVE ? 'journey-live' : 'journey',
-);
+const live = !!process.env.JOURNEY_LIVE;
+const out = join(root, '.e2e', target ? 'journey-single' : live ? 'journey-live' : 'journey');
 mkdirSync(out, { recursive: true });
 
 // JOURNEY_DIST serves a different web build, e.g. the live-mode one (e2e/live.mjs).
@@ -60,6 +61,23 @@ async function check(name, fn) {
 }
 
 const back = () => tap(page, 'header-back');
+
+/** Pays in the sheet; live, the provider's own window opens and is approved there. */
+async function pay() {
+  await tap(page, 'pay-confirm');
+  if (!live) return;
+  await visible(page, 'pay-handoff').waitFor();
+  await shot(page, out, `${current}-handoff`);
+  const [provider] = await Promise.all([
+    page.context().waitForEvent('page'),
+    tap(page, 'pay-handoff'),
+  ]);
+  await provider.locator('[data-action=approve]').waitFor();
+  await shot(provider, out, `${current}-provider`);
+  await provider.locator('[data-action=approve]').click();
+  // The provider returns to /payments/return, which hands the result back here.
+  await provider.waitForEvent('close', { timeout: 20_000 });
+}
 const tab = (name) => tap(page, `tab-${name}`);
 
 try {
@@ -69,6 +87,13 @@ try {
     await see(page, 'One sign-in');
     await keyShot();
     await tap(page, 'sso-sign-in');
+    if (live) {
+      // The development NMU SSO page, then back to /auth/callback with a code.
+      const thandi = page.locator('a[data-persona=student]');
+      await thandi.waitFor();
+      await shot(page, out, `${current}-sso`);
+      await thandi.click();
+    }
     await visible(page, 'home').waitFor();
   });
 
@@ -134,7 +159,7 @@ try {
     await tap(page, 'view-cart');
     await see(page, 'R62.00');
     await tap(page, 'cart-pay');
-    await tap(page, 'pay-confirm');
+    await pay();
     await visible(page, 'order').waitFor({ timeout: 20_000 });
     await visible(page, 'pickup-code').waitFor();
   });
@@ -196,7 +221,7 @@ try {
     await visible(page, 'give').waitFor();
     await tap(page, 'amount-250');
     await tap(page, 'give-continue');
-    await tap(page, 'pay-confirm');
+    await pay();
     await visible(page, 'give-thanks').waitFor({ timeout: 20_000 });
   });
 

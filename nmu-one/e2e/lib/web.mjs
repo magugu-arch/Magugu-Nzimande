@@ -48,7 +48,8 @@ export function serve(dir = distDir, port = 0) {
 export async function launch({ width = 390, height = 844 } = {}) {
   // CHROMIUM_PATH, then a preinstalled Chromium, then Playwright's own download.
   const executablePath =
-    process.env.CHROMIUM_PATH ?? (existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
+    process.env.CHROMIUM_PATH ??
+    (existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
   const browser = await chromium.launch(executablePath ? { executablePath } : {});
   const context = await browser.newContext({
     viewport: { width, height },
@@ -61,7 +62,12 @@ export async function launch({ width = 390, height = 844 } = {}) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(`console: ${m.text()}`);
+    if (m.type() !== 'error') return;
+    // "Failed to load resource" doesn't say which one; the location does.
+    const where = m.location()?.url;
+    errors.push(
+      `console: ${m.text()}${where && /load resource/.test(m.text()) ? ` (${where})` : ''}`,
+    );
   });
   return { browser, context, page, errors };
 }
@@ -78,7 +84,11 @@ export async function tap(page, testID, opts = {}) {
 }
 
 export async function see(page, text, timeout = 15_000) {
-  await page.getByText(text, { exact: false }).filter({ visible: true }).first().waitFor({ state: 'visible', timeout });
+  await page
+    .getByText(text, { exact: false })
+    .filter({ visible: true })
+    .first()
+    .waitFor({ state: 'visible', timeout });
 }
 
 /** The visible element with this testID. */

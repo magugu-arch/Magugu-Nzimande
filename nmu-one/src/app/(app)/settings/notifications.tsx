@@ -14,6 +14,7 @@ import {
   colors,
   spacing,
 } from '@/design';
+import { registerPushDevice } from '@/features/notifications/push';
 import { preferences, usePrefs } from '@/state/preferences';
 import { useGovernance } from '@/state/governance';
 import { useSession } from '@/state/session';
@@ -51,6 +52,7 @@ export default function NotificationSettings() {
     }
     const { granted } = await Notifications.requestPermissionsAsync();
     recordConsent('push-notifications', granted);
+    if (granted) void registerPushDevice();
     showToast({
       title: granted ? 'Push notifications on' : 'Push notifications stay off',
       tone: 'info',

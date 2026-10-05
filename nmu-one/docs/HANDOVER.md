@@ -10,9 +10,10 @@ to production. For running it, start with the [README](../README.md).
 | Mobile app | All primary experiences built for four roles (brief §3–§15). Runs on iOS, Android and web from one codebase. |
 | Pitch journey (§26) | All 14 steps work and are tested end to end in a browser. |
 | Operator console | Dashboard, notifications workflow, approvals, audiences, events, commerce, service directory, help content, moderation, roles, analytics and audit log. |
-| Data | **Synthetic only.** Typed adapters with mock implementations for every system; live BFF clients ready but unconnected. |
-| Accessibility | Built to WCAG 2.2 AA. Console pages pass axe-core automatically; app screens are checked for named controls, contrast tokens and reflow. A manual screen-reader pass on real devices is still due. |
-| Tests | 126 unit tests, the pitch journey, a 184-screen sweep across roles and widths, and the console workflow with accessibility checks. |
+| Data | **Synthetic only.** Typed adapters with mock implementations for every system. |
+| Live mode | A reference BFF (`bff/`) serves the whole contract over the mock connectors, with real sessions, authorization-code + PKCE sign-in, the permission policy enforced on the server, the payment hand-off and an audit log. The live app runs the full pitch journey through it. Not yet connected to any NMU system. |
+| Accessibility | Built to WCAG 2.2 AA. Console pages pass axe-core automatically; app screens are checked for named controls, contrast tokens and reflow, and every line of text on a photograph is measured against the pixels behind it (844 lines, three phone widths). Sheets honour Reduce Motion. A manual screen-reader pass on real devices is still due. |
+| Tests | 149 unit tests (including the BFF's security boundary and PKCE), the pitch journey in demo, single-file and live mode, a 184-screen sweep across roles and widths, the contrast audit, iOS and Android bundle builds, and the console workflow with accessibility checks. |
 
 This lives in the `nmu-one/` folder. The repository root holds a separate,
 unrelated project with its own README, HANDOVER and RUNBOOK; nothing in NMU ONE
@@ -57,7 +58,9 @@ These are deliberately **not** guessed in the code.
 | Real (production-shaped) | Demo only |
 |---|---|
 | Permission policy, consent rules, route guards | Every name, number, balance and timetable |
-| Adapter contracts and live BFF clients | The mock SSO persona picker |
+| Adapter contracts and live BFF clients | The mock SSO persona picker (hidden in live builds) |
+| NMU SSO sign-in (code + PKCE), push registration, payment hand-off | The BFF's development SSO and payment pages |
+| The reference BFF's sessions, server-side policy, ownership checks and audit | The BFF's mock connectors and in-memory stores |
 | Offline policy (no sensitive caching) | The schematic South Campus map |
 | Assistant routing and grounding rules | Shuttle positions, menus, order timings |
 | Notification priority, quiet hours, deep links | Console metrics and audience sizes |
@@ -65,12 +68,15 @@ These are deliberately **not** guessed in the code.
 
 ## Path to production
 
-1. **Identity.** Register an OIDC client with NMU SSO; build the PKCE browser
-   step (see [INTEGRATIONS.md](INTEGRATIONS.md#identity-nmu-sso)); remove the persona picker
-   from live builds.
-2. **BFF.** Build the routes in INTEGRATIONS.md, starting with the pitch-journey
-   systems: timetable, fees and funding, library, transport, commerce, events and
-   notifications. Enforce permissions and consent there.
+1. **Identity.** Register an OIDC client with NMU SSO for the redirect URIs in
+   [INTEGRATIONS.md](INTEGRATIONS.md#identity-nmu-sso), and replace the reference
+   BFF's development sign-in page with the code exchange against NMU SSO. The
+   app side is built.
+2. **BFF.** Take `bff/` to production: replace its mock connectors with
+   connectors to NMU systems, starting with the pitch-journey ones (timetable,
+   fees and funding, library, transport, commerce, events, notifications);
+   move sessions and the audit log to durable stores; run with `BFF_DEV=0`.
+   The permission and consent checks are already there.
 3. **Console backend.** Move the console's store actions to BFF calls, with
    server-side permission checks and audit.
 4. **Security review.** Penetration test, privacy impact assessment (POPIA),
@@ -95,3 +101,8 @@ These are deliberately **not** guessed in the code.
   live in `src/content/photos.ts`.
 - **Expo.** The project tracks SDK 57; read the versioned docs before upgrading
   (see `AGENTS.md`).
+- **Live mode locally.** `npm run e2e:live` builds the BFF, starts it and runs
+  the pitch journey against `dist-live` (build it first with
+  `npm run export:live`). The BFF is plain Node (`bff/tsconfig.json`), and its
+  routes share `src/core` with the app, so a contract change that breaks one
+  breaks the typecheck.

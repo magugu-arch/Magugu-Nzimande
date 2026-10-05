@@ -2,12 +2,14 @@ import type { ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '../tokens';
+import { useReduceMotion } from '../useReduceMotion';
 import { Text } from './Text';
 
 /**
  * A bottom sheet for decisions that need explicit consent or confirmation —
  * location sharing, payment, graduation. Deliberately not animated beyond the
  * platform default: brief §19 keeps motion out of safety, finance and identity.
+ * With Reduce Motion on, it simply appears.
  */
 export function Sheet({
   visible,
@@ -23,11 +25,12 @@ export function Sheet({
   testID?: string;
 }) {
   const insets = useSafeAreaInsets();
+  const reduceMotion = useReduceMotion();
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType={reduceMotion ? 'none' : 'fade'}
       onRequestClose={onClose}
       statusBarTranslucent
     >

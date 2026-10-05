@@ -7,7 +7,7 @@ specialist system, and maps the answers into NMU ONE's domain models.
 
 ```
  NMU ONE app ──HTTPS + bearer──▶ NMU ONE BFF ──▶ NMU SSO (OIDC)
- (src/core/adapters/live.ts)     (to build)  ──▶ Student information system
+ (src/core/adapters/live.ts)     (bff/)      ──▶ Student information system
                                              ──▶ Finance, funding, payment provider
                                              ──▶ LMS, library, transport, residence
  Operator console ──────────────────────────▶ ──▶ Commerce, alumni CRM, push service
@@ -35,6 +35,7 @@ live changes no screen code.
 ### Conventions for every route
 
 - JSON over HTTPS. `Authorization: Bearer <access token>` on every request after sign-in.
+- `X-NMU-Role: <role>` says which of the person's roles the app is acting in (someone can be staff and an alumnus). The BFF refuses a role the person doesn't hold, and applies the policy for the role named.
 - Requests time out after 15 seconds.
 - The BFF answers with NMU ONE's domain models (`src/core/domain/models.ts`): money in integer cents (`{ cents, currency: 'ZAR' }`) and times as ISO 8601 instants.
 - The BFF enforces permissions itself. The app's checks (`src/core/permissions/policy.ts`) shape the experience; they are not the security boundary.
@@ -71,10 +72,25 @@ The person's roles come from SSO claims; NMU ONE never asks someone to pick a
 role they don't hold. Tokens are kept only in the device keychain
 (`expo-secure-store`; `sessionStorage` on web) and in memory.
 
-**Still to build for live sign-in:** the app-side browser step: open the
-issuer's authorize URL with PKCE (for example with `expo-auth-session`), receive
-the code on the `nmuone://` redirect, then call `POST /v1/auth/session`. The
-config variables and the session store are already in place.
+**How live sign-in works** (`src/features/auth/sso.ts`, `src/core/auth/oidc.ts`):
+
+1. The app reads `<EXPO_PUBLIC_OIDC_ISSUER>/.well-known/openid-configuration`
+   and checks the issuer matches and S256 PKCE is supported.
+2. It makes a random 32-byte verifier and state (`expo-crypto`) and opens the
+   authorize URL with `response_type=code`, the S256 challenge and the state.
+   iOS and Android use the system authentication session
+   (`expo-web-browser`); the web build sends the whole tab, keeping the
+   verifier in that tab's `sessionStorage` for ten minutes at most.
+3. NMU SSO returns to `nmuone://auth/callback` (web: `/auth/callback`). The
+   app rejects a response whose state isn't its own, then posts
+   `{ code, codeVerifier, redirectUri }` to `POST /v1/auth/session`.
+4. The BFF exchanges the code with NMU SSO **as a confidential client**,
+   maps the claims to an NMU ONE `User`, and returns its own opaque session.
+   NMU SSO's tokens never reach the device.
+
+The app is a public client and holds no secret; a stolen code is useless
+without the verifier. `src/app/+native-intent.tsx` keeps the router from
+also opening the redirect while the browser session is waiting for it.
 
 ### Academic: student information system
 
@@ -101,13 +117,20 @@ config variables and the session store are already in place.
 | `GET /v1/finance/account` | `FeeAccount`, with an `asAt` time that the app always shows |
 | `GET /v1/finance/transactions` | `FeeTransaction[]` |
 | `GET /v1/finance/funding` | `FundingStatus` (e.g. NSFAS allowance status) |
-| `POST /v1/payments` | Payment intent with the approved payment provider. Body: `{ amount, method, purpose }`. Must be **idempotent**. |
-| `POST /v1/payments/{id}/confirm` | `Receipt`, once the provider confirms |
+| `POST /v1/payments` | `PaymentIntent` with the approved payment provider. Body: `{ amount, method, purpose, returnUrl }`. Must be **idempotent**. When the provider has a hosted page, `redirectUrl` is its address. |
+| `POST /v1/payments/{id}/confirm` | `Receipt`, once the provider confirms. Only the person who started the payment can confirm it. |
 | `GET /v1/payments/receipts/{id}` | `Receipt` |
 
-NMU ONE never sees card details. **Still to build:** the hand-off to the
-provider's hosted page between creating and confirming a payment; the mock
-confirms immediately.
+NMU ONE never sees card details. **The hand-off** (`src/features/money/payment.tsx`):
+when a payment comes back with a `redirectUrl`, the app opens the provider's
+page (the system browser on a phone; a provider window on the web, opened
+from one more tap because browsers block windows that aren't). The provider
+returns to `returnUrl` (`nmuone://payments/return`, or `/payments/return` on
+the web) with `paymentId` and `status`. The app confirms only an `approved`
+return for that payment; a cancel says nothing was charged. The BFF must
+still check with the provider before issuing a receipt: the return URL is a
+convenience, not proof of payment. Without a `redirectUrl` the app confirms
+straight away, as the mocks do.
 
 ### Library
 
@@ -170,12 +193,16 @@ the action `/dining/order/{id}`.
 | `GET /v1/notifications` | `AppNotification[]` for the signed-in person |
 | `POST /v1/notifications/{id}/read` | — |
 | `POST /v1/notifications/read-all` | — |
+| `POST /v1/me/devices` | — Body: `{ token, platform: 'ios' \| 'android' }`. Registers this device's Expo push token for the signed-in person. |
 
-Live delivery is by push (`expo-notifications`). Every notification carries an
-`action.href`: an NMU ONE route such as `/money/funding`. The app opens it when
-tapped, and settles the notice when the person visits that screen. **Still to
-build:** registering the device's push token with the BFF (a `POST /v1/me/devices`
-route would complete the contract).
+Live delivery is by push (`expo-notifications`). Once the person has allowed
+notifications (Settings → Notifications; signing in never prompts), the app
+registers its Expo push token with `POST /v1/me/devices` at each sign-in
+(`src/features/notifications/push.ts`). While open, the live app also checks
+the inbox every `EXPO_PUBLIC_NOTIFICATION_POLL_SECONDS`, so someone who keeps
+push off still sees new notices as banners. Every notification carries an
+`action.href`: an NMU ONE route such as `/money/funding`. The app opens it
+when tapped, and settles the notice when the person visits that screen.
 
 ### Support, safety and help content
 
@@ -215,6 +242,42 @@ must enforce it on every guardian route; the app's checks are a convenience.
 | `GET /v1/giving/campaigns` | `GivingCampaign[]` |
 | `POST /v1/giving/pledges` | A pledge, paid through the approved donations provider |
 
+## The reference BFF
+
+`bff/` is a working BFF for this contract: a dependency-free Node server
+(`bff/src`) that serves every route above from the same mock connectors the
+app uses in demo mode. It exists so the live client, sign-in and the security
+boundary can be proved end to end before NMU's systems are connected, and as
+the starting point for the production BFF.
+
+What it already does, and the production BFF must keep doing:
+
+- **Sessions:** opaque bearer tokens it issues itself, with refresh rotation
+  and sign-out (`bff/src/auth.ts`).
+- **The permission policy on every route** (`bff/src/routes.ts` names each
+  route's capability): the app's own `decide()` from `src/core/permissions`,
+  run server-side for the role in `X-NMU-Role`, the person's lifecycle stage
+  and, for a parent, only what the student shares.
+- **Ownership:** bookings, payments and guardian links belong to one person;
+  nobody can confirm or cancel someone else's.
+- **Sign-in:** authorization code + PKCE; codes are single-use, expire in a
+  minute and are bound to the verifier and the redirect URI.
+- **An audit log** of sensitive reads, payments, lifecycle changes and
+  denials.
+
+What a production BFF replaces: each mock connector with a connector to the
+NMU system (one file per domain in `src/core/adapters/mock` shows the shape);
+the development SSO page with a real code exchange against NMU SSO; the
+development payment page with the provider; the in-memory sessions and audit
+log with durable stores; and it runs with `BFF_DEV=0`. Settings are in
+[ENVIRONMENT.md](ENVIRONMENT.md#reference-bff-bff).
+
+`npm run e2e:live` starts it and runs the full pitch journey against the live
+web build: sign-in through the development SSO page, both payments through
+the development provider page, and the audit log printed at the end.
+`__tests__/bff.test.ts` covers the boundary: sessions, roles, parent consent,
+PKCE and payment ownership.
+
 ## The operator console
 
 The console (`admin/`) shares the domain models and permission policy. Its
@@ -236,10 +299,10 @@ routes too.
 
 ## Checklist for going live
 
-- [ ] NMU registers an OIDC client for NMU ONE; the app-side PKCE browser step is built.
-- [ ] The BFF is built and hosted; `EXPO_PUBLIC_BFF_BASE_URL` points at it.
+- [ ] NMU registers an OIDC client for NMU ONE with the redirect URIs `nmuone://auth/callback` and `https://<web host>/auth/callback`. *(The app side is built.)*
+- [ ] The production BFF: the reference BFF's connectors replaced with NMU systems, a real code exchange, durable sessions and audit log, hosted with `BFF_DEV=0`; `EXPO_PUBLIC_BFF_BASE_URL` points at it.
 - [ ] Each system owner agrees what their adapter may return (minimum necessary data).
-- [ ] Payment and donations providers are chosen and the hand-off pages integrated.
+- [ ] Payment and donations providers are chosen; the BFF returns their hosted page as `redirectUrl` and verifies each payment with them. *(The app's hand-off is built.)*
 - [ ] Protection Services confirms campus numbers; help-article owners approve their articles.
-- [ ] Push notifications: provider credentials, the device-registration route and quiet-hours handling.
+- [ ] Push notifications: an EAS project ID and push credentials, sending from the BFF to the registered tokens, and quiet hours honoured there too. *(Device registration is built.)*
 - [ ] Privacy, security and legal review of safety, location, finance and identity features (brief §33).

@@ -71,6 +71,9 @@ function Shell() {
           }}
         >
           <Stack.Screen name="index" options={{ animation: 'fade' }} />
+          {/* Returns from NMU SSO and the payment provider: reachable either side of sign-in. */}
+          <Stack.Screen name="auth/callback" options={{ animation: 'fade' }} />
+          <Stack.Screen name="payments/return" options={{ animation: 'fade' }} />
           <Stack.Protected guard={signedIn}>
             <Stack.Screen name="(app)" options={{ animation: 'fade' }} />
           </Stack.Protected>

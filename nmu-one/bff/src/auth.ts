@@ -142,7 +142,7 @@ export function authorizePage(query: URLSearchParams): string {
       return `<a class="who" href="/dev-sso/approve?${esc(params.toString())}" data-persona="${id}">${esc(label)}</a>`;
     })
     .join('');
-  return `<!doctype html><html lang="en-ZA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  return `<!doctype html><html lang="en-ZA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,">
 <title>Development sign-in</title>
 <style>
   body{margin:0;min-height:100vh;display:grid;place-items:center;background:#141C2B;color:#fff;font:16px/1.5 system-ui,-apple-system,'Segoe UI',sans-serif}
@@ -162,6 +162,13 @@ ${links}
 // ── Development payment provider ────────────────────────────────────────────
 
 const paymentReturns = new Map<string, { returnUrl: string; approved: boolean }>();
+
+const PURPOSE_WORDS: Record<string, string> = {
+  fees: 'Student fees',
+  order: 'A campus food order',
+  ticket: 'An event ticket',
+  donation: 'A gift to the NMU bursary fund',
+};
 
 export function holdPayment(paymentId: string, returnUrl: string): void {
   paymentReturns.set(paymentId, { returnUrl, approved: false });
@@ -183,18 +190,18 @@ export function decidePayment(paymentId: string, approved: boolean): string {
 }
 
 export function paymentPage(paymentId: string, amount: string, purpose: string): string {
-  return `<!doctype html><html lang="en-ZA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  return `<!doctype html><html lang="en-ZA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,">
 <title>Development payment</title>
 <style>
   body{margin:0;min-height:100vh;display:grid;place-items:center;background:#F3F3EE;color:#141C2B;font:16px/1.5 system-ui,-apple-system,'Segoe UI',sans-serif}
   main{width:min(420px,calc(100vw - 32px));display:grid;gap:12px;padding:24px;border-radius:16px;background:#fff}
-  h1{margin:0;font-size:22px} .amount{font-size:34px;font-weight:800}
+  h1{margin:0;font-size:22px} p{margin:0} .amount{font-size:34px;font-weight:800}
   a{display:block;padding:14px;border-radius:999px;text-align:center;font-weight:800;text-decoration:none}
   .pay{background:#141C2B;color:#fff} .cancel{border:2px solid #141C2B;color:#141C2B}
   small{color:#545B6B}
 </style></head><body><main>
 <h1>Development payment page</h1>
-<span class="amount">${amount}</span><p>For ${purpose}. This page stands in for the university's approved payment provider.</p>
+<span class="amount">${amount}</span><p>${PURPOSE_WORDS[purpose] ?? 'A payment to the university'}.</p><p>This page stands in for the university's approved payment provider.</p>
 <a class="pay" href="/dev-pay/${paymentId}/approve" data-action="approve">Pay ${amount}</a>
 <a class="cancel" href="/dev-pay/${paymentId}/cancel" data-action="cancel">Cancel</a>
 <small>No real money moves. Card details are never seen by NMU ONE.</small>

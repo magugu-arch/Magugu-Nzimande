@@ -16,8 +16,9 @@ All variables are read in one place, `src/core/config.ts`.
 |---|---|---|---|
 | `EXPO_PUBLIC_DATA_MODE` | `mock` | `mock`, `live` | `mock` serves every domain from the synthetic adapters in `src/core/adapters/mock`. `live` uses the BFF clients in `src/core/adapters/live.ts`. Settings → About says which one is running. |
 | `EXPO_PUBLIC_BFF_BASE_URL` | *(empty)* | `https://…` | Base URL of the NMU ONE BFF, e.g. `https://one-api.example.ac.za`. In live mode every request rejects with `not-configured` until this is set, so a live build can never show demo data by accident. |
-| `EXPO_PUBLIC_OIDC_ISSUER` | *(empty)* | URL | NMU SSO's OpenID Connect issuer. Used for authorization-code + PKCE sign-in. |
-| `EXPO_PUBLIC_OIDC_CLIENT_ID` | *(empty)* | string | The public client ID NMU's identity team registers for NMU ONE. Public by design: PKCE needs no client secret. |
+| `EXPO_PUBLIC_OIDC_ISSUER` | *(empty)* | URL | NMU SSO's OpenID Connect issuer. In live mode, once this and the client ID are set, **Continue with NMU Single Sign-On** runs authorization code + PKCE against it (discovery at `<issuer>/.well-known/openid-configuration`). |
+| `EXPO_PUBLIC_OIDC_CLIENT_ID` | *(empty)* | string | The public client ID NMU's identity team registers for NMU ONE. Public by design: PKCE needs no client secret. Register the redirect URIs `nmuone://auth/callback` (iOS, Android) and `https://<web host>/auth/callback` (web). |
+| `EXPO_PUBLIC_NOTIFICATION_POLL_SECONDS` | `20` | seconds ≥ 2 | Live mode: how often the open app checks the inbox for new notifications, so new notices appear even for someone who keeps push off. |
 | `EXPO_PUBLIC_DEMO_CLOCK` | `scenario` | `scenario`, `live` | `scenario` starts the clock at 09:40 SAST on the next weekday (today, unless it's a weekend) and lets it run, so the pitch reads the same at any hour. `live` uses the device clock. Use `live` for anything other than a demo. |
 | `EXPO_PUBLIC_MOCK_LATENCY_MS` | `350` | ms ≥ 0 | Delay added to every mock call, so loading states are visible. `0` for snappy demos. |
 | `EXPO_PUBLIC_MOCK_FAILURES` | *(empty)* | comma-separated domains | Mock domains that should fail, to demonstrate error states. Domains: `auth, academic, learning, finance, library, transport, residence, commerce, community, alumni, notifications, campus, support, guardian`. Example: `finance,transport`. |
@@ -35,7 +36,12 @@ EXPO_PUBLIC_MOCK_LATENCY_MS=0 npm run export:web
 # Show the finance error states
 EXPO_PUBLIC_MOCK_FAILURES=finance npm start
 
-# A live build (fails clearly until the BFF and SSO exist)
+# The live build against the reference BFF on this machine
+npm run bff                 # terminal 1: http://127.0.0.1:8787
+npm run export:live         # terminal 2: web build in dist-live/
+npm run e2e:live            # or: the pitch journey through both
+
+# A live build for NMU's own BFF and SSO
 EXPO_PUBLIC_DATA_MODE=live \
 EXPO_PUBLIC_DEMO_CLOCK=live \
 EXPO_PUBLIC_BFF_BASE_URL=https://one-api.example.ac.za \
@@ -43,6 +49,29 @@ EXPO_PUBLIC_OIDC_ISSUER=https://sso.example.ac.za \
 EXPO_PUBLIC_OIDC_CLIENT_ID=nmu-one \
 npx expo export
 ```
+
+Web exports clear the bundler cache (`--clear`): Metro would otherwise reuse
+a transformed `config.ts` from a build with different `EXPO_PUBLIC_*` values,
+and a demo build could end up pointing at a BFF.
+
+## Reference BFF (`bff/`)
+
+`npm run bff` builds and starts it. It serves the whole contract over the mock
+connectors (see [INTEGRATIONS.md](INTEGRATIONS.md#the-reference-bff)). These
+are server-side variables, never inlined into the app.
+
+| Variable | Default | Effect |
+|---|---|---|
+| `PORT` | `8787` | Port to listen on. |
+| `BFF_PUBLIC_URL` | the request's host | The BFF's own address, used in discovery and payment-page links when it sits behind a proxy. |
+| `BFF_DEV` | on | The development stand-ins: the NMU SSO sign-in page (`/dev-sso/*`), the payment page (`/dev-pay/*`) and persona sign-in without a code. `0` turns them all off, so only a real code exchange signs anyone in. |
+| `BFF_DEV_PERSONA` | `student` | Who a code-less development sign-in returns. |
+| `BFF_PAYMENT_PAGE` | off | `1` hands payments to the development payment page and confirms only what it approved. Off, payments confirm directly, like the mocks. |
+| `BFF_SESSION_MINUTES` | `480` | How long an NMU ONE session lasts. The app reads the expiry from the session and asks the person to sign in again when it passes. |
+| `BFF_ORDER_READY_SECONDS` | `20` | Time until the mock kitchen marks an order ready. |
+| `BFF_CLOCK` | `scenario` | `scenario` or `live`, as `EXPO_PUBLIC_DEMO_CLOCK`. |
+| `BFF_LATENCY_MS` | `0` | Delay added to every mock connector call. |
+| `BFF_LOG` | off | `1` prints each audit-log entry as a JSON line. |
 
 ## Operator console (`admin/`)
 

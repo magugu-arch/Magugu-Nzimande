@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { config } from '@/core/config';
-import type { AuthSession, PersonaId } from '@/core/adapters/contracts';
+import type { AuthSession, PersonaId, SignInResult } from '@/core/adapters/contracts';
 import { isAdapterError } from '@/core/adapters/errors';
 import { setAccessTokenSource, setActiveRoleSource } from '@/core/adapters/live';
 import { providers } from '@/core/adapters/registry';
@@ -34,6 +34,8 @@ interface SessionState {
   signOutReason: 'expired' | 'error' | null;
   restore(): Promise<void>;
   signIn(persona?: PersonaId): Promise<void>;
+  /** Live sign-in: exchanges the code NMU SSO returned, with its PKCE verifier. */
+  signInWithCode(input: { code: string; codeVerifier: string; redirectUri: string }): Promise<void>;
   signOut(reason?: 'user' | 'expired'): Promise<void>;
   switchRole(role: Role): void;
   graduate(): Promise<void>;
@@ -98,23 +100,12 @@ export const useSession = create<SessionState>((set, get) => ({
     }
   },
 
-  async signIn(persona) {
-    set({ status: 'signing-in', signOutReason: null });
-    try {
-      const { session, user } = await providers.auth.signIn(persona);
-      // Brief §4 "role selection or inferred role": one role is inferred; a
-      // person with several starts in the first and can switch in Profile.
-      const role = user.roles[0] ?? 'student';
-      bind(user, role);
-      lastPersona = persona;
-      await persist(session, user, role, persona);
-      set({ status: 'signed-in', session, user, role });
-      recordAudit('auth.sign-in', user.id, `Signed in as ${role} via NMU SSO`);
-    } catch (e) {
-      bind(null, null);
-      set({ status: 'signed-out', signOutReason: 'error' });
-      throw e;
-    }
+  signIn(persona) {
+    return begin(() => providers.auth.signIn(persona), persona);
+  },
+
+  signInWithCode(input) {
+    return begin(() => providers.auth.exchangeCode(input));
   },
 
   async signOut(reason = 'user') {
@@ -177,6 +168,26 @@ export const useSession = create<SessionState>((set, get) => ({
     }
   },
 }));
+
+/** Both ways in end the same: one role inferred, the session kept, the sign-in audited. */
+async function begin(fetchSession: () => Promise<SignInResult>, persona?: PersonaId) {
+  useSession.setState({ status: 'signing-in', signOutReason: null });
+  try {
+    const { session, user } = await fetchSession();
+    // Brief §4 "role selection or inferred role": one role is inferred; a
+    // person with several starts in the first and can switch in Profile.
+    const role = user.roles[0] ?? 'student';
+    bind(user, role);
+    lastPersona = persona;
+    await persist(session, user, role, persona);
+    useSession.setState({ status: 'signed-in', session, user, role });
+    recordAudit('auth.sign-in', user.id, `Signed in as ${role} via NMU SSO`);
+  } catch (e) {
+    bind(null, null);
+    useSession.setState({ status: 'signed-out', signOutReason: 'error' });
+    throw e;
+  }
+}
 
 setAccessTokenSource(() => useSession.getState().session?.accessToken ?? null);
 setActiveRoleSource(() => useSession.getState().role);

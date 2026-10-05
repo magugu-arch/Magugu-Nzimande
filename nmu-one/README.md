@@ -26,6 +26,10 @@ npm start               # press i / a / w, or scan with Expo Go
 # The operator console
 cd admin && npm install
 npm run dev             # http://localhost:3000
+
+# Live mode against the reference BFF
+npm run bff             # http://127.0.0.1:8787
+npm run export:live     # then serve dist-live/, or: npm run e2e:live
 ```
 
 No backend, keys or `.env` file are needed: the defaults run every integration
@@ -80,6 +84,7 @@ src/
     domain/       Models and money
     permissions/  The one permission policy: roles, consent, lifecycle, route guards
     adapters/     Contracts, mock adapters, live BFF clients, registry
+    auth/         OIDC authorization code + PKCE (request and redirect checks)
     fixtures/     Synthetic data, clearly marked
     assistant/    The grounded assistant: intents, approved articles, hand-off
     home/ campus/ transport/ notifications/ offline/ time/
@@ -89,6 +94,8 @@ src/
   data/           TanStack Query hooks and the offline cache
   content/        Photo library, service directory, national emergency numbers
 admin/            The operator console (Next.js)
+bff/              The reference BFF: the whole contract over the mock connectors,
+                  with sessions, PKCE sign-in, server-side policy and audit
 e2e/              Browser journeys against the web build
 __tests__/        Unit tests (app and console rules)
 docs/             Environment, integrations, handover
@@ -115,11 +122,15 @@ docs/             Environment, integrations, handover
 
 | Command | What it runs |
 |---|---|
-| `npm run verify` | Typecheck, lint, Prettier and 126 unit tests (app and console rules) |
+| `npm run verify` | Typecheck, lint, Prettier and 149 unit tests (app and console rules, the BFF's security boundary, PKCE) |
 | `npm run verify:web` | Web export, then the pitch journey and a sweep of every screen for four roles at two widths (184 screen loads: access rules, overflow, unnamed controls, placeholder copy) |
+| `npm run e2e:contrast` | Every line of text on a photograph, measured against the pixels behind it at 320, 360 and 390pt (WCAG AA) |
+| `npm run export:live && npm run e2e:live` | Starts the reference BFF and runs the pitch journey in live mode: sign-in with code + PKCE through its development SSO page, payments through its provider page |
+| `npm run export:single && npm run e2e:single` | Builds the single-file demo app (`dist-single/NMU-ONE-App.html`, opens from disk) and runs the journey in it |
 | `cd admin && npm run verify` | Console typecheck, lint, static build, then axe-core WCAG 2.2 AA on all 15 pages at 1366px and 390px and the full create → approve → deliver → measure workflow |
 
-CI runs all three: [`.github/workflows/nmu-one.yml`](../.github/workflows/nmu-one.yml).
+CI runs all of these except the single-file build, plus iOS and Android
+bundle builds: [`.github/workflows/nmu-one.yml`](../.github/workflows/nmu-one.yml).
 
 ## Documentation
 

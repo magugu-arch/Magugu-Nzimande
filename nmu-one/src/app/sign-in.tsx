@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -8,6 +8,7 @@ import type { PersonaId } from '@/core/adapters/contracts';
 import { isDemoData } from '@/core/adapters/registry';
 import { personaDescriptions } from '@/core/fixtures/people';
 import { BrandMark, Button, Chip, Notice, Photo, Row, Text, colors, spacing } from '@/design';
+import { SignInCancelled, ssoEnabled, startSignIn } from '@/features/auth/sso';
 import { useSession } from '@/state/session';
 
 const PERSONAS: { id: PersonaId; label: string }[] = [
@@ -31,11 +32,25 @@ export default function SignIn() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const signIn = useSession((s) => s.signIn);
+  const signInWithCode = useSession((s) => s.signInWithCode);
   const status = useSession((s) => s.status);
   const reason = useSession((s) => s.signOutReason);
   const [persona, setPersona] = useState<PersonaId>('student');
   const [failed, setFailed] = useState(false);
-  const busy = status === 'signing-in';
+  // Covers the hand-over to NMU SSO, before the session store is involved.
+  const [opening, setOpening] = useState(false);
+  const busy = status === 'signing-in' || opening;
+
+  // Coming back from NMU SSO with the browser's Back button restores this
+  // page as it was left, mid-hand-over; let the button be pressed again.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const reset = (e: PageTransitionEvent) => {
+      if (e.persisted) setOpening(false);
+    };
+    globalThis.addEventListener('pageshow', reset);
+    return () => globalThis.removeEventListener('pageshow', reset);
+  }, []);
   const { height } = useWindowDimensions();
   // The photo takes about a third of the screen, never so much that the
   // sign-in button falls below the fold on a small phone.
@@ -44,10 +59,20 @@ export default function SignIn() {
   const go = async () => {
     setFailed(false);
     try {
-      await signIn(persona);
+      if (ssoEnabled()) {
+        setOpening(true);
+        const result = await startSignIn();
+        // The web build has left for NMU SSO and finishes on /auth/callback.
+        if (result === 'redirecting') return;
+        setOpening(false);
+        await signInWithCode(result);
+      } else {
+        await signIn(persona);
+      }
       router.replace('/home');
-    } catch {
-      setFailed(true);
+    } catch (e) {
+      setOpening(false);
+      if (!(e instanceof SignInCancelled)) setFailed(true);
     }
   };
 

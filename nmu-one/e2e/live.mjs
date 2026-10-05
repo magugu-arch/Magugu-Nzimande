@@ -3,7 +3,9 @@
  * Live mode, end to end: starts the reference BFF (bff/) and runs the pitch
  * journey against the app built in live mode (npm run export:live), so every
  * screen reads and writes through the HTTP contract, with real sessions and
- * the permission policy enforced on the server.
+ * the permission policy enforced on the server. Sign-in is authorization
+ * code + PKCE through the BFF's development SSO page, and payments go
+ * through its development provider page.
  *
  *   npm run export:live && npm run e2e:live
  */
@@ -17,7 +19,14 @@ if (!existsSync(join(root, 'dist-live', 'index.html'))) {
 }
 
 const bff = spawn(process.execPath, [join(root, 'bff/dist/bff/src/server.js')], {
-  env: { ...process.env, PORT: '8787', BFF_ORDER_READY_SECONDS: '5', BFF_LOG: '1' },
+  env: {
+    ...process.env,
+    PORT: '8787',
+    BFF_ORDER_READY_SECONDS: '5',
+    BFF_LOG: '1',
+    // Hand payments to the development provider page, as production would.
+    BFF_PAYMENT_PAGE: '1',
+  },
   stdio: ['ignore', 'pipe', 'inherit'],
 });
 const log = [];
