@@ -35,6 +35,12 @@ export const mockAuth: AuthProvider = {
       { latencyMs: 900 },
     ),
 
+  // The demo signs in by persona; a code exchange needs a real identity provider.
+  exchangeCode: () =>
+    simulate('auth', () => {
+      throw new AdapterError('not-configured', 'auth', 'Code exchange needs NMU SSO (live mode)');
+    }),
+
   refresh: (session) =>
     simulate('auth', () => {
       if (!state.users[session.userId]) throw new AdapterError('unauthorised', 'auth');

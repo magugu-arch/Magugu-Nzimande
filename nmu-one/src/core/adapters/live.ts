@@ -16,10 +16,20 @@ import { connectivity } from './runtime';
  */
 
 let accessToken: () => string | null = () => null;
+let activeRole: () => string | null = () => null;
 
 /** Wired by the session store so requests carry the current bearer token. */
 export function setAccessTokenSource(source: () => string | null): void {
   accessToken = source;
+}
+
+/**
+ * Wired by the session store: the role the person is acting in (a staff
+ * member who is also an alumnus can switch). The BFF checks it is one of the
+ * roles NMU SSO asserted before honouring it.
+ */
+export function setActiveRoleSource(source: () => string | null): void {
+  activeRole = source;
 }
 
 const TIMEOUT_MS = 15_000;
@@ -37,6 +47,7 @@ async function request<T>(
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const token = accessToken();
+    const role = activeRole();
     const res = await fetch(`${config.bffBaseUrl}${path}`, {
       method,
       signal: controller.signal,
@@ -44,6 +55,7 @@ async function request<T>(
         Accept: 'application/json',
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(role ? { 'X-NMU-Role': role } : {}),
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
@@ -74,6 +86,7 @@ export function createLiveProviders(): Providers {
       // completed by the BFF (see INTEGRATIONS.md §Identity). The persona
       // argument exists for demos only and is ignored here.
       signIn: () => post('auth', '/v1/auth/session'),
+      exchangeCode: (input) => post('auth', '/v1/auth/session', input),
       refresh: (session) =>
         post('auth', '/v1/auth/refresh', { refreshToken: session.refreshToken }),
       signOut: () => post('auth', '/v1/auth/sign-out'),
@@ -142,9 +155,35 @@ export function createLiveProviders(): Providers {
       list: () => get('notifications', '/v1/notifications'),
       markRead: (id) => post('notifications', `/v1/notifications/${enc(id)}/read`),
       markAllRead: () => post('notifications', '/v1/notifications/read-all'),
-      // Live delivery arrives by push (expo-notifications) and is merged by
-      // the notification feature; there is no socket to subscribe to here.
-      subscribe: (_listener: (n: AppNotification) => void) => () => undefined,
+      // Live delivery is by push. While the app is open it also checks the
+      // inbox, so a pickup notice never depends on push permission.
+      subscribe: (listener: (n: AppNotification) => void) => {
+        const seen = new Set<string>();
+        let primed = false;
+        let stopped = false;
+        const tick = async () => {
+          if (stopped || !accessToken()) return;
+          try {
+            const list = await get<AppNotification[]>('notifications', '/v1/notifications');
+            for (const n of list) {
+              if (seen.has(n.id)) continue;
+              seen.add(n.id);
+              // The first fetch only learns what is already there.
+              if (primed && !n.read) listener(n);
+            }
+            primed = true;
+          } catch {
+            // Offline or signed out: the next tick tries again.
+          }
+        };
+        void tick();
+        const timer = setInterval(() => void tick(), config.notificationPollSeconds * 1000);
+        return () => {
+          stopped = true;
+          clearInterval(timer);
+        };
+      },
+      registerDevice: (input) => post('notifications', '/v1/me/devices', input),
     },
     support: {
       getSafetyContacts: () => get('support', '/v1/support/safety-contacts'),

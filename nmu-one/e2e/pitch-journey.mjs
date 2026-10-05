@@ -26,10 +26,17 @@ import { join } from 'node:path';
 import { launch, root, see, serve, shot, tap, visible } from './lib/web.mjs';
 
 const target = process.env.JOURNEY_URL;
-const out = join(root, '.e2e', target ? 'journey-single' : 'journey');
+const out = join(
+  root,
+  '.e2e',
+  target ? 'journey-single' : process.env.JOURNEY_LIVE ? 'journey-live' : 'journey',
+);
 mkdirSync(out, { recursive: true });
 
-const server = target ? null : await serve();
+// JOURNEY_DIST serves a different web build, e.g. the live-mode one (e2e/live.mjs).
+const server = target
+  ? null
+  : await serve(process.env.JOURNEY_DIST ? join(root, process.env.JOURNEY_DIST) : undefined);
 const { browser, page, errors } = await launch();
 let step = 0;
 let current = '';

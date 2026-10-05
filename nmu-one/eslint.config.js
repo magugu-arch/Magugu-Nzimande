@@ -11,6 +11,9 @@ module.exports = defineConfig([
     ignores: [
       'dist/*',
       'dist-web/**',
+      'dist-live/**',
+      'dist-single/**',
+      'bff/dist/**',
       'node_modules/*',
       '.expo/*',
       'coverage/*',
@@ -38,7 +41,8 @@ module.exports = defineConfig([
     },
   },
   {
-    files: ['scripts/**/*.mjs', 'e2e/**/*.mjs'],
+    // Command-line tools and the reference server print by design.
+    files: ['scripts/**/*.mjs', 'e2e/**/*.mjs', 'bff/src/**/*.ts'],
     rules: { 'no-console': 'off' },
   },
   {

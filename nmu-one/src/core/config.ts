@@ -35,6 +35,8 @@ export interface AppConfig {
   mockLatencyMs: number;
   mockFailures: ReadonlySet<AdapterDomain>;
   orderReadySeconds: number;
+  /** Live mode: how often the open app checks the inbox for new notifications. */
+  notificationPollSeconds: number;
   /** Signed-in sessions last this long before the user must re-authenticate. */
   sessionMinutes: number;
 }
@@ -63,6 +65,7 @@ export function readConfig(env: Record<string, string | undefined>): AppConfig {
     mockLatencyMs: intOr(env.EXPO_PUBLIC_MOCK_LATENCY_MS, 350),
     mockFailures: new Set(failures),
     orderReadySeconds: intOr(env.EXPO_PUBLIC_MOCK_ORDER_READY_SECONDS, 20),
+    notificationPollSeconds: Math.max(2, intOr(env.EXPO_PUBLIC_NOTIFICATION_POLL_SECONDS, 20)),
     sessionMinutes: 8 * 60,
   };
 }
@@ -76,4 +79,5 @@ export const config: AppConfig = readConfig({
   EXPO_PUBLIC_MOCK_LATENCY_MS: process.env.EXPO_PUBLIC_MOCK_LATENCY_MS,
   EXPO_PUBLIC_MOCK_FAILURES: process.env.EXPO_PUBLIC_MOCK_FAILURES,
   EXPO_PUBLIC_MOCK_ORDER_READY_SECONDS: process.env.EXPO_PUBLIC_MOCK_ORDER_READY_SECONDS,
+  EXPO_PUBLIC_NOTIFICATION_POLL_SECONDS: process.env.EXPO_PUBLIC_NOTIFICATION_POLL_SECONDS,
 });

@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { config } from '@/core/config';
 import type { AuthSession, PersonaId } from '@/core/adapters/contracts';
 import { isAdapterError } from '@/core/adapters/errors';
-import { setAccessTokenSource } from '@/core/adapters/live';
+import { setAccessTokenSource, setActiveRoleSource } from '@/core/adapters/live';
 import { providers } from '@/core/adapters/registry';
 import { providerContext } from '@/core/adapters/runtime';
 import type { Role, User } from '@/core/domain/models';
@@ -179,6 +179,7 @@ export const useSession = create<SessionState>((set, get) => ({
 }));
 
 setAccessTokenSource(() => useSession.getState().session?.accessToken ?? null);
+setActiveRoleSource(() => useSession.getState().role);
 
 /** Resets everything tied to a person, for sign-out and tests. */
 export function clearPersonalState() {

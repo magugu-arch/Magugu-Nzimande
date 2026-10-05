@@ -16,5 +16,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "exclude": ["node_modules", "dist", "dist-web", ".expo", "admin"]
+  "exclude": ["node_modules", "dist", "dist-web", "dist-live", "dist-single", ".expo", "admin", "bff/dist"]
 }

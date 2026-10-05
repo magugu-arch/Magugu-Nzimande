@@ -24,6 +24,10 @@
     "e2e:single": "JOURNEY_URL=file://$PWD/dist-single/NMU-ONE-App.html node e2e/pitch-journey.mjs",
     "e2e:screens": "node e2e/screens.mjs",
     "e2e:contrast": "node e2e/contrast.mjs",
+    "bff:build": "tsc -p bff",
+    "bff": "npm run bff:build && node bff/dist/bff/src/server.js",
+    "export:live": "EXPO_PUBLIC_DATA_MODE=live EXPO_PUBLIC_BFF_BASE_URL=http://127.0.0.1:8787 EXPO_PUBLIC_OIDC_ISSUER=http://127.0.0.1:8787 EXPO_PUBLIC_OIDC_CLIENT_ID=nmu-one-dev EXPO_PUBLIC_NOTIFICATION_POLL_SECONDS=3 expo export --platform web --output-dir dist-live",
+    "e2e:live": "npm run bff:build && node e2e/live.mjs",
     "verify:web": "npm run export:web && npm run e2e && npm run e2e:screens"
   },
   "dependencies": {

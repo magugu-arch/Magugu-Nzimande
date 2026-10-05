@@ -248,6 +248,12 @@ export interface PaymentIntent {
   purpose: 'fees' | 'order' | 'ticket' | 'donation';
   status: 'created' | 'awaiting-handoff' | 'succeeded' | 'failed' | 'cancelled';
   createdAt: string;
+  /**
+   * The approved provider's hosted payment page, when the person must
+   * complete the payment there. NMU ONE opens it and waits for the provider
+   * to send them back; card details never pass through the app.
+   */
+  redirectUrl?: string | null;
 }
 
 export interface Receipt {

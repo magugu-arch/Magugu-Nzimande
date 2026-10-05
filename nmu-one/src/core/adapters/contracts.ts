@@ -89,8 +89,18 @@ export interface SignInResult {
 }
 
 export interface AuthProvider {
-  /** OIDC authorization code + PKCE against NMU SSO (mock: a demo persona). */
+  /** Demo sign-in as a synthetic persona (mock), or a session the BFF already holds (live). */
   signIn(persona?: PersonaId): Promise<SignInResult>;
+  /**
+   * Live sign-in: the authorization code NMU SSO returned to the app, with
+   * the PKCE verifier that proves this app asked for it. The BFF exchanges
+   * it with NMU SSO and returns an NMU ONE session.
+   */
+  exchangeCode(input: {
+    code: string;
+    codeVerifier: string;
+    redirectUri: string;
+  }): Promise<SignInResult>;
   refresh(session: AuthSession): Promise<AuthSession>;
   signOut(session: AuthSession): Promise<void>;
   getStudentProfile(userId: string): Promise<StudentProfile>;
@@ -127,6 +137,8 @@ export interface FinanceProvider {
     amount: Money;
     method: PaymentMethod;
     purpose: PaymentIntent['purpose'];
+    /** Where the provider's page sends the person back to, if one is used. */
+    returnUrl?: string;
   }): Promise<PaymentIntent>;
   /** Completes the hand-off and returns the receipt. */
   confirmPayment(paymentId: string): Promise<Receipt>;
@@ -200,6 +212,8 @@ export interface NotificationProvider {
   markAllRead(): Promise<void>;
   /** Pushes new notifications as they are delivered. Returns an unsubscribe. */
   subscribe(listener: (n: AppNotification) => void): () => void;
+  /** Registers this device's push token so the BFF can deliver notifications. */
+  registerDevice(input: { token: string; platform: 'ios' | 'android' | 'web' }): Promise<void>;
 }
 
 // ── Support and safety ──────────────────────────────────────────────────────

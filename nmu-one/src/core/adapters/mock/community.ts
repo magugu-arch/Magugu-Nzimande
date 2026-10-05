@@ -155,6 +155,9 @@ export const mockNotifications: NotificationProvider = {
       state.listeners.delete(listener);
     };
   },
+
+  // Demo notifications arrive in-app; there is no push service to register with.
+  registerDevice: () => simulate('notifications', () => undefined, { latencyMs: 50 }),
 };
 
 // ── Support and safety ──────────────────────────────────────────────────────

@@ -3,6 +3,8 @@ node_modules/
 dist/
 dist-web/
 dist-single/
+dist-live/
+bff/dist/
 web-build/
 expo-env.d.ts
 .kotlin/
