@@ -1,6 +1,9 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // NMU ONE (nmu-one/) is a separate project with its own tests and CI.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/nmu-one/'],
+  modulePathIgnorePatterns: ['<rootDir>/nmu-one/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@assets/(.*)$': '<rootDir>/assets/$1',

@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // NMU ONE is a separate project with its own lint config and CI.
+      'nmu-one/**',
     ],
   },
   {
