@@ -16,6 +16,8 @@ import type {
 import type { PersonaId } from '../contracts';
 import { personas } from '../../fixtures/people';
 import { providerContext } from '../runtime';
+import { clock } from '../../time/clock';
+import { addDays, sastDate, sastParts } from '../../time/sast';
 
 /**
  * In-memory state behind the mock adapters for one app session — what a real
@@ -29,7 +31,8 @@ export interface MockState {
   /** Payments applied to the fee account this session, in cents. */
   feePaymentsCents: number;
   orders: Order[];
-  bookings: StudySpaceBooking[];
+  /** Study-space bookings, each owned by the person who made it. */
+  bookings: (StudySpaceBooking & { userId: string })[];
   tickets: Ticket[];
   joinedSocieties: Set<string>;
   residenceRequests: ResidenceRequest[];
@@ -46,6 +49,26 @@ export interface MockState {
   sequence: number;
 }
 
+/**
+ * Thandi already has a silent pod booked later in the week, so Library →
+ * My bookings shows a real booking before the pitch journey adds another.
+ */
+function seededBookings(): MockState['bookings'] {
+  const p = sastParts(addDays(clock.now(), 2));
+  return [
+    {
+      id: 'bk-seed-1',
+      userId: personas.student.id,
+      spaceId: 'sp1',
+      spaceName: 'Silent Pod 1',
+      start: sastDate(p.year, p.month, p.day, 16).toISOString(),
+      end: sastDate(p.year, p.month, p.day, 17).toISOString(),
+      status: 'confirmed',
+      reference: 'LIB-48213',
+    },
+  ];
+}
+
 function fresh(): MockState {
   return {
     users: Object.fromEntries(
@@ -55,7 +78,7 @@ function fresh(): MockState {
     receipts: {},
     feePaymentsCents: 0,
     orders: [],
-    bookings: [],
+    bookings: seededBookings(),
     tickets: [],
     joinedSocieties: new Set(),
     residenceRequests: [],

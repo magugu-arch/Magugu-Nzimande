@@ -90,6 +90,32 @@ describe('mock adapters behave like a back end', () => {
     expect(after[0]!.slots.find((s) => s.start === slot.start)!.available).toBe(false);
   });
 
+  it('keeps each person’s bookings their own, while everyone’s count as taken', async () => {
+    resetMockState(); // seed against the pinned clock
+    await signInAs('student');
+    const mine = await p.library.getBookings();
+    expect(mine).toHaveLength(1);
+    expect(mine[0]).toMatchObject({ spaceName: 'Silent Pod 1', status: 'confirmed' });
+    expect(mine[0]!.start).toBe(sastDate(2026, 10, 7, 16).toISOString());
+    expect(mine[0]).not.toHaveProperty('userId');
+
+    await signInAs('staff');
+    expect(await p.library.getBookings()).toEqual([]);
+    const day = await p.library.getStudySpaces(sastDate(2026, 10, 7).toISOString());
+    const pod = day.find((s) => s.id === 'sp1')!;
+    expect(pod.slots.find((s) => s.start === mine[0]!.start)!.available).toBe(false);
+    await expect(p.library.cancelBooking(mine[0]!.id)).rejects.toMatchObject({ kind: 'not-found' });
+  });
+
+  it('matches each alumnus to mentoring that fits their own degree', async () => {
+    await signInAs('staff', 'alumni');
+    const [staffMatch] = await p.alumni.getMentoring();
+    expect(staffMatch?.field).toBe('Research supervision');
+    expect(staffMatch?.matchReason).toContain('MCom in Marketing');
+    await signInAs('alumni');
+    expect((await p.alumni.getMentoring())[0]?.field).toBe('Product management');
+  });
+
   it('moves an order to ready and delivers the pickup notification', async () => {
     jest.useFakeTimers();
     try {

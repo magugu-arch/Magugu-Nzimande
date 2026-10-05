@@ -56,7 +56,7 @@ export const mockLibrary: LibraryProvider = {
 
   bookStudySpace: ({ spaceId, start, end }) =>
     simulate('library', () => {
-      requireUser('library');
+      const userId = requireUser('library');
       const space = studySpaces(new Date(start), clock.now()).find((s) => s.id === spaceId);
       const slot = space?.slots.find((s) => s.start === start);
       if (!space || !slot) throw new AdapterError('not-found', 'library');
@@ -75,22 +75,25 @@ export const mockLibrary: LibraryProvider = {
         status: 'confirmed' as const,
         reference: reference('LIB'),
       };
-      state.bookings.unshift(booking);
+      state.bookings.unshift({ ...booking, userId });
       return booking;
     }),
 
+  // Each person sees only their own bookings; everyone's count as taken.
   getBookings: () =>
     simulate('library', () => {
-      requireUser('library');
-      return state.bookings;
+      const userId = requireUser('library');
+      return state.bookings.filter((b) => b.userId === userId).map(({ userId: _, ...b }) => b);
     }),
 
   cancelBooking: (id) =>
     simulate('library', () => {
-      const booking = state.bookings.find((b) => b.id === id);
+      const userId = requireUser('library');
+      const booking = state.bookings.find((b) => b.id === id && b.userId === userId);
       if (!booking) throw new AdapterError('not-found', 'library');
       booking.status = 'cancelled';
-      return booking;
+      const { userId: _, ...rest } = booking;
+      return rest;
     }),
 };
 

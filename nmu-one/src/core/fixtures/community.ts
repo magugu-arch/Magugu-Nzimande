@@ -372,6 +372,22 @@ export function mentoringNotification(now: Date): AppNotification {
 }
 
 export function mentoringFor(userId: string): MentoringOpportunity[] {
+  // Dr Ndlovu is staff and an alumnus (MCom Marketing, 2009): his match draws
+  // on research supervision, not on a first degree.
+  if (userId === personas.staff.id) {
+    return [
+      {
+        id: 'm-mcom-research',
+        title: 'Guide a master’s student through their first research proposal',
+        menteeSummary:
+          'An MCom Marketing student at another university, planning a study on township retail.',
+        field: 'Research supervision',
+        commitment: 'Three 1-hour calls this term, online',
+        matchReason: 'You hold an MCom in Marketing and list research supervision as expertise.',
+        status: 'open',
+      },
+    ];
+  }
   if (userId === personas.alumni.id) {
     return [
       {
