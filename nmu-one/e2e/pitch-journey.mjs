@@ -17,15 +17,19 @@
  *
  *   npm run export:web   (EXPO_PUBLIC_MOCK_ORDER_READY_SECONDS=5 keeps it quick)
  *   npm run e2e
+ *
+ * JOURNEY_URL runs it against something other than the served export, e.g.
+ * the single-file build opened from disk (`npm run e2e:single`).
  */
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { launch, root, see, serve, shot, tap, visible } from './lib/web.mjs';
 
-const out = join(root, '.e2e', 'journey');
+const target = process.env.JOURNEY_URL;
+const out = join(root, '.e2e', target ? 'journey-single' : 'journey');
 mkdirSync(out, { recursive: true });
 
-const server = await serve();
+const server = target ? null : await serve();
 const { browser, page, errors } = await launch();
 let step = 0;
 let current = '';
@@ -52,7 +56,7 @@ const back = () => tap(page, 'header-back');
 const tab = (name) => tap(page, `tab-${name}`);
 
 try {
-  await page.goto(`${server.url}/`);
+  await page.goto(target ?? `${server.url}/`);
 
   await check('sign-in', async () => {
     await see(page, 'One sign-in');
@@ -197,5 +201,5 @@ try {
   process.exitCode = 1;
 } finally {
   await browser.close();
-  await server.close();
+  await server?.close();
 }
