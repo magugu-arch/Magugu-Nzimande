@@ -1,4 +1,4 @@
-import type { SafetyContact } from '@/core/domain/models';
+import type { SafetyContact } from '../core/domain/models';
 
 /**
  * South Africa's public national emergency numbers, bundled with the app so

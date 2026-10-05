@@ -5,6 +5,8 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@assets/(.*)$': '<rootDir>/assets/$1',
+    // The operator console (admin/) imports the shared core as @core.
+    '^@core/(.*)$': '<rootDir>/src/core/$1',
   },
   // Several Expo/RN packages ship untranspiled ESM and must be transformed
   // rather than skipped — standard-navigation (pulled in by expo-router) among them.

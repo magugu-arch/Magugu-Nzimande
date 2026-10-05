@@ -7,7 +7,7 @@ import { SERVICES } from '@/content/services';
 import { NATIONAL_EMERGENCY } from '@/content/emergency';
 import { CAPABILITIES } from '@/core/permissions/policy';
 import { safetyContacts, knowledge } from '@/core/fixtures/support';
-import { southCampus , directory } from '@/core/fixtures/campus';
+import { southCampus, directory } from '@/core/fixtures/campus';
 import { search } from '@/features/search/searchIndex';
 import { visits } from '@/features/notifications/delivery';
 
