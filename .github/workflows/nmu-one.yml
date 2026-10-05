@@ -53,6 +53,10 @@ jobs:
       - name: Screen sweep
         run: npm run e2e:screens
 
+      # Text over photography, measured in pixels, at 320, 360 and 390pt.
+      - name: Contrast on photo screens
+        run: npm run e2e:contrast
+
       - name: Keep the screenshots
         if: always()
         uses: actions/upload-artifact@v4

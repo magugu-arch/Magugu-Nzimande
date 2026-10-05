@@ -23,6 +23,7 @@
     "export:single": "npm run export:web && node scripts/single-file.mjs",
     "e2e:single": "JOURNEY_URL=file://$PWD/dist-single/NMU-ONE-App.html node e2e/pitch-journey.mjs",
     "e2e:screens": "node e2e/screens.mjs",
+    "e2e:contrast": "node e2e/contrast.mjs",
     "verify:web": "npm run export:web && npm run e2e && npm run e2e:screens"
   },
   "dependencies": {

@@ -55,12 +55,14 @@ export function CampusMapView({
         {/* Grounds */}
         <Rect x={0} y={0} width={VIEW_W} height={VIEW_H} fill="#E6E5DC" />
         <Rect x={300} y={930} width={400} height={170} rx={40} fill="#D5DEC9" />
+        {/* Left of Gate Avenue so the walking route never crosses the label;
+            dark green on the lawn is 6:1. */}
         <SvgText
-          x={500}
-          y={1022}
+          x={395}
+          y={1030}
           fontSize={30}
           fontFamily={nunito.bold}
-          fill="#7C8A6E"
+          fill="#3F5530"
           textAnchor="middle"
         >
           Main Lawn

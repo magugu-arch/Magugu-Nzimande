@@ -48,8 +48,13 @@ export function Photo({
 
 /**
  * Hero imagery for major entry points (brief §18 "hero imagery for
- * onboarding / launch / major feature worlds"): a photograph with a navy
- * scrim and an editorial statement over it.
+ * onboarding / launch / major feature worlds").
+ *
+ * No text is set on the photograph. The photo is a band that dissolves into
+ * solid navy, and the eyebrow, title and subtitle start only where the navy
+ * is opaque, so they read at full contrast whatever the photo contains
+ * (white 16:1, muted 9:1, yellow 11:1; measured by e2e/contrast.mjs). A light
+ * veil at the top keeps the back button clear.
  */
 export function PhotoHero({
   photo,
@@ -64,23 +69,30 @@ export function PhotoHero({
   eyebrow?: string;
   title: string;
   subtitle?: string;
+  /** Overall weight of the hero; the photo band is about three quarters of it. */
   height?: number;
   children?: ReactNode;
   topBar?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
+  const band = Math.round(height * 0.72) + insets.top;
   return (
-    <View style={[styles.hero, { height: height + insets.top }]}>
-      <Photo photo={photo} size="lg" rounded={false} style={StyleSheet.absoluteFill} />
-      <LinearGradient
-        // Several supplied photographs carry their own signage, so the scrim
-        // is deep enough that the editorial line always reads first.
-        colors={['rgba(20,28,43,0.45)', 'rgba(20,28,43,0.25)', 'rgba(20,28,43,0.92)']}
-        locations={[0, 0.4, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-      {topBar ? <View style={[styles.topBar, { paddingTop: insets.top }]}>{topBar}</View> : null}
-      <View style={styles.heroText}>
+    <View style={styles.hero}>
+      <View style={{ height: band }}>
+        <Photo photo={photo} size="lg" rounded={false} style={StyleSheet.absoluteFill} />
+        <LinearGradient
+          colors={[
+            'rgba(20,28,43,0.55)',
+            'rgba(20,28,43,0.06)',
+            'rgba(20,28,43,0.35)',
+            colors.navy,
+          ]}
+          locations={[0, 0.32, 0.62, 0.9]}
+          style={StyleSheet.absoluteFill}
+        />
+        {topBar ? <View style={[styles.topBar, { paddingTop: insets.top }]}>{topBar}</View> : null}
+      </View>
+      <View style={[styles.heroText, { marginTop: -Math.round(band * 0.1) }]}>
         {eyebrow ? (
           <Text variant="overline" color={colors.yellow}>
             {eyebrow}
@@ -103,7 +115,7 @@ export function PhotoHero({
 const styles = StyleSheet.create({
   fill: { width: '100%', height: '100%' },
   rounded: { borderRadius: radius.lg },
-  hero: { width: '100%', justifyContent: 'flex-end', backgroundColor: colors.navy },
+  hero: { width: '100%', backgroundColor: colors.navy },
   topBar: {
     position: 'absolute',
     top: 0,

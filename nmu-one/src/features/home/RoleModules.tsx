@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { formatMoney } from '@/core/domain/money';
 import type { Role } from '@/core/domain/models';
@@ -79,20 +79,29 @@ const QUICK: Record<Role, QuickAction[]> = {
 
 export function QuickActionsModule({ role }: { role: Role }) {
   const router = useRouter();
+  // Four across leaves under 70pt a tile on a small phone, too narrow for
+  // "Mentoring" or "Order food" without breaking the word. Below 360pt the
+  // tiles go two by two, icon beside label.
+  const compact = useWindowDimensions().width < 360;
   return (
-    <View style={styles.quick} accessibilityRole="menu">
+    <View style={[styles.quick, compact && styles.quickCompact]} accessibilityRole="menu">
       {QUICK[role].map((a) => (
         <Touchable
           key={a.label}
           onPress={() => router.push(a.href)}
           accessibilityLabel={a.label}
-          style={styles.quickItem}
+          style={[styles.quickItem, compact && styles.quickItemCompact]}
           testID={`quick-${a.label.toLowerCase().replace(/\s+/g, '-')}`}
         >
           <View style={styles.quickIcon}>
             <Icon name={a.icon} size={22} color={colors.navy} />
           </View>
-          <Text variant="captionStrong" align="center" numberOfLines={2}>
+          <Text
+            variant="captionStrong"
+            align={compact ? 'left' : 'center'}
+            numberOfLines={2}
+            style={compact ? styles.quickLabelCompact : undefined}
+          >
             {a.label}
           </Text>
         </Touchable>
@@ -422,6 +431,17 @@ export function JobsModule() {
 
 const styles = StyleSheet.create({
   quick: { flexDirection: 'row', gap: spacing.sm },
+  quickCompact: { flexWrap: 'wrap' },
+  quickItemCompact: {
+    flexBasis: '45%',
+    flexGrow: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  quickLabelCompact: { flexShrink: 1 },
   quickItem: {
     flex: 1,
     alignItems: 'center',
