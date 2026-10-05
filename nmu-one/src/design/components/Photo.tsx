@@ -53,7 +53,7 @@ export function Photo({
  * No text is set on the photograph. The photo is a band that dissolves into
  * solid navy, and the eyebrow, title and subtitle start only where the navy
  * is opaque, so they read at full contrast whatever the photo contains
- * (white 16:1, muted 9:1, yellow 11:1; measured by e2e/contrast.mjs). A light
+ * (white 17:1, muted 9:1, yellow 11:1; measured by e2e/contrast.mjs). A light
  * veil at the top keeps the back button clear.
  */
 export function PhotoHero({

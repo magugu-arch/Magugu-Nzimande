@@ -25,7 +25,7 @@ const PERSONAS: { id: PersonaId; label: string }[] = [
  *
  * Legibility: no text sits on the photograph. The photo is a band at the top
  * that fades into navy; every word is set on solid navy below it (white
- * 16:1, muted 9:1, yellow 11:1), and the logo sits on its own navy plate.
+ * 17:1, muted 9:1, yellow 11:1), and the logo sits on its own navy plate.
  * Measured by e2e/contrast.mjs at 320–430pt wide.
  */
 export default function SignIn() {
