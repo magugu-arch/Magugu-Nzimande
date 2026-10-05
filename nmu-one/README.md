@@ -127,3 +127,4 @@ CI runs all three: [`.github/workflows/nmu-one.yml`](../.github/workflows/nmu-on
 - [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md): the BFF contract, adapter by adapter, and what each NMU system must provide.
 - [docs/HANDOVER.md](docs/HANDOVER.md): status, open decisions for NMU, and the path to production.
 - [admin/README.md](admin/README.md): the operator console.
+- [docs/NMU-ONE-Showcase-and-Audit.html](docs/NMU-ONE-Showcase-and-Audit.html): a single offline file with the pitch-journey and console screenshots, a completion audit and a cost estimate. Opens on a phone.
