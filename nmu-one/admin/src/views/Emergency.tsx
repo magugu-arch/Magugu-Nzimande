@@ -170,8 +170,8 @@ export function Emergency() {
             <button
               type="button"
               className="btn danger solid"
-              onClick={() => {
-                const r = sendEmergency(form);
+              onClick={async () => {
+                const r = await sendEmergency(form);
                 if (r.ok) {
                   setConfirming(false);
                   router.push('/notifications/');

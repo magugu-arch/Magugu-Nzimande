@@ -280,14 +280,25 @@ PKCE and payment ownership.
 
 ## The operator console
 
-The console (`admin/`) shares the domain models and permission policy. Its
-actions are in `admin/src/lib/store.ts`; in demo mode they write to the browser.
-A live console needs BFF routes for: notification campaigns (create, submit,
-approve or return, schedule, withdraw, metrics), audiences (with reach counts
-only), events, vendors and menus, help articles, moderation reports, operator
-roles, and the audit log. Each must check the operator's permissions on the
-server and write an audit entry. Separation of duties (nobody approves their own
-notice) must be enforced there too.
+The console (`admin/`) shares the domain models and permission policy. Every
+console action is a plain function in `admin/src/lib/actions.ts`: it checks
+the operator's permission, makes the change and writes the audit entry. In demo
+mode the console runs them in the browser. In live mode
+(`NEXT_PUBLIC_CONSOLE_MODE=live`) staff sign in with NMU SSO and the BFF runs
+the same functions, as the operator it signed in:
+
+| Route | Returns | Notes |
+|---|---|---|
+| `POST /v1/console/session` | `{ session, operator }` | Body: `{ code, codeVerifier, redirectUri }` from the console's own OIDC client (`nmu-one-console`). Codes issued to the app are refused, and an app session can't call the console (or the reverse). |
+| `GET /v1/console/state` | `ConsoleData` | Campaigns, audiences, events, vendors, articles, moderation, operators and the audit log. The console refreshes it every five seconds. |
+| `POST /v1/console/actions/{name}` | `{ message, id?, data }` | `name` is one of the actions in `ActionArgs` (`saveCampaign`, `approveCampaign`, `requestChanges`, `deliverNow`, `withdrawCampaign`, `sendEmergency`, `saveSegment`, `createEvent`, `setEventStatus`, `setVendor`, `setItemAvailable`, `updateArticle`, `approveArticle`, `moderate`, `setOperatorRole`). 403 when the role doesn't allow it; 422 with the reason when the rules don't (for example, approving your own notice). |
+
+Scoped publishing, separation of duties (nobody approves their own notice,
+administrators included) and the audit trail are therefore enforced on the
+server, which also sends scheduled notices when they fall due. The reference
+BFF (`bff/src/console.ts`) holds this in memory; a production BFF keeps it in
+a database, takes operators and their roles from NMU's staff directory, and
+hands approved notices to the push service.
 
 ## Offline and caching
 
@@ -305,4 +316,5 @@ routes too.
 - [ ] Payment and donations providers are chosen; the BFF returns their hosted page as `redirectUrl` and verifies each payment with them. *(The app's hand-off is built.)*
 - [ ] Protection Services confirms campus numbers; help-article owners approve their articles.
 - [ ] Push notifications: an EAS project ID and push credentials, sending from the BFF to the registered tokens, and quiet hours honoured there too. *(Device registration is built.)*
+- [ ] Operator console: an OIDC client for staff (`nmu-one-console`), operators and roles from NMU's staff directory, and a database for its data. *(Live sign-in and server-side actions are built.)*
 - [ ] Privacy, security and legal review of safety, location, finance and identity features (brief §33).

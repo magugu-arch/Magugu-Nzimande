@@ -19,6 +19,7 @@ import {
   revoke,
   sessionFor,
 } from './auth';
+import { consoleAction, consoleView, operatorById } from './console';
 import { cors, fail, html, HttpError, readJson, redirect, send } from './http';
 import { describeAmount, providers, ROUTES, userById, type Ctx } from './routes';
 
@@ -32,6 +33,9 @@ import { describeAmount, providers, ROUTES, userById, type Ctx } from './routes'
  * route, consent for parents, an audit log, and development stand-ins for
  * NMU SSO and the payment provider. Point the app at it with
  * EXPO_PUBLIC_DATA_MODE=live and EXPO_PUBLIC_BFF_BASE_URL.
+ *
+ * It is also the operator console's backend (/v1/console/*): staff sign in
+ * with the same SSO and every console action runs here, as them.
  */
 
 // The mock connectors' simulated latency is for the app's demo mode; the
@@ -106,7 +110,7 @@ export function createBff(): Server {
       if (req.method === 'POST' && url.pathname === '/v1/auth/session') {
         const body = (await readJson(req)) as Record<string, unknown>;
         let persona: PersonaId;
-        if (typeof body.code === 'string') persona = exchange(body);
+        if (typeof body.code === 'string') persona = exchange(body, 'app') as PersonaId;
         else if (DEV)
           persona =
             (body.persona as PersonaId) ?? (process.env.BFF_DEV_PERSONA as PersonaId) ?? 'student';
@@ -131,6 +135,61 @@ export function createBff(): Server {
       if (req.method === 'POST' && url.pathname === '/v1/auth/sign-out') {
         revoke(req.headers.authorization);
         return send(res, 204);
+      }
+
+      // ── The operator console ────────────────────────────────────────────
+      if (req.method === 'POST' && url.pathname === '/v1/console/session') {
+        const body = (await readJson(req)) as Record<string, unknown>;
+        let operatorId: string;
+        if (typeof body.code === 'string') operatorId = exchange(body, 'console');
+        else if (DEV && typeof body.operator === 'string') operatorId = body.operator;
+        else throw new HttpError(401, 'unauthorised', 'Sign in with NMU SSO');
+        const operator = operatorById(operatorId);
+        if (!operator) throw new HttpError(403, 'forbidden', 'That account can’t use the console');
+        const session = issueSession(operator.id, 'operator');
+        audit({
+          at: new Date().toISOString(),
+          userId: operator.id,
+          role: operator.role,
+          action: 'console: signed in',
+          route: url.pathname,
+          status: 200,
+        });
+        return send(res, 200, { session, operator });
+      }
+      if (req.method === 'GET' && url.pathname === '/v1/console/state') {
+        const session = sessionFor(req.headers.authorization, 'operator');
+        if (!operatorById(session.userId))
+          throw new HttpError(403, 'forbidden', 'No longer an operator');
+        return send(res, 200, consoleView(session.userId));
+      }
+      const consoleRoute = url.pathname.match(/^\/v1\/console\/actions\/([\w-]+)$/);
+      if (req.method === 'POST' && consoleRoute) {
+        const session = sessionFor(req.headers.authorization, 'operator');
+        const operator = operatorById(session.userId);
+        if (!operator) throw new HttpError(403, 'forbidden', 'No longer an operator');
+        const body = await readJson(req);
+        const entry = { userId: operator.id, role: operator.role, route: url.pathname };
+        try {
+          const r = consoleAction(operator.id, consoleRoute[1]!, body);
+          audit({
+            at: new Date().toISOString(),
+            ...entry,
+            action: `console: ${r.action}`,
+            status: 200,
+          });
+          return send(res, 200, {
+            message: r.message,
+            ...(r.id ? { id: r.id } : {}),
+            data: r.data,
+          });
+        } catch (e) {
+          // A refusal is recorded against the operator who tried.
+          const status = fail(res, e);
+          if (status === 403)
+            audit({ at: new Date().toISOString(), ...entry, action: 'console: refused', status });
+          return;
+        }
       }
 
       // ── The contract ────────────────────────────────────────────────────

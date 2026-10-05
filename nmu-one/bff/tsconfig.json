@@ -10,7 +10,10 @@
     "skipLibCheck": true,
     "types": ["node"],
     "rootDir": "..",
-    "outDir": "dist"
+    "outDir": "dist",
+    // The console's shared modules import the core as @core (admin/tsconfig.json).
+    // tsc keeps the specifier; bff/link-core.mjs makes it resolve at runtime.
+    "paths": { "@core/*": ["../src/core/*"] }
   },
   "include": ["src/**/*.ts"]
 }

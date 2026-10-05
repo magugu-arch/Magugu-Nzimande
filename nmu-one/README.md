@@ -95,7 +95,8 @@ src/
   content/        Photo library, service directory, national emergency numbers
 admin/            The operator console (Next.js)
 bff/              The reference BFF: the whole contract over the mock connectors,
-                  with sessions, PKCE sign-in, server-side policy and audit
+                  with sessions, PKCE sign-in, server-side policy and audit; also
+                  the console's backend
 e2e/              Browser journeys against the web build
 __tests__/        Unit tests (app and console rules)
 docs/             Environment, integrations, handover
@@ -122,10 +123,11 @@ docs/             Environment, integrations, handover
 
 | Command | What it runs |
 |---|---|
-| `npm run verify` | Typecheck, lint, Prettier and 149 unit tests (app and console rules, the BFF's security boundary, PKCE) |
+| `npm run verify` | Typecheck, lint, Prettier and 154 unit tests (app and console rules, the BFF's security boundary, PKCE) |
 | `npm run verify:web` | Web export, then the pitch journey and a sweep of every screen for four roles at two widths (184 screen loads: access rules, overflow, unnamed controls, placeholder copy) |
 | `npm run e2e:contrast` | Every line of text on a photograph, measured against the pixels behind it at 320, 360 and 390pt (WCAG AA) |
 | `npm run export:live && npm run e2e:live` | Starts the reference BFF and runs the pitch journey in live mode: sign-in with code + PKCE through its development SSO page, payments through its provider page |
+| `cd admin && npm run build:live && npm run e2e:live` | The console in live mode against the reference BFF: staff sign-in with code + PKCE, the create → approve workflow run on the server, and the audit trail |
 | `npm run export:single && npm run e2e:single` | Builds the single-file demo app (`dist-single/NMU-ONE-App.html`, opens from disk) and runs the journey in it |
 | `cd admin && npm run verify` | Console typecheck, lint, static build, then axe-core WCAG 2.2 AA on all 15 pages at 1366px and 390px and the full create → approve → deliver → measure workflow |
 

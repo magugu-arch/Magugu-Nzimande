@@ -196,8 +196,8 @@ export function Events() {
             <button
               type="button"
               className="btn primary"
-              onClick={() => {
-                const r = createEvent({ ...form, start: fromLocalInput(form.start) ?? '' });
+              onClick={async () => {
+                const r = await createEvent({ ...form, start: fromLocalInput(form.start) ?? '' });
                 if (r.ok) setOpen(false);
               }}
             >

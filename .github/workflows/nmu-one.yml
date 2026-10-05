@@ -66,7 +66,7 @@ jobs:
           if-no-files-found: ignore
 
   live:
-    name: App — live mode through the reference BFF, native bundles
+    name: Live mode — app and console through the reference BFF, native bundles
     runs-on: ubuntu-latest
     timeout-minutes: 25
     defaults:
@@ -94,6 +94,19 @@ jobs:
       - name: Live mode, end to end
         run: npm run export:live && npm run e2e:live
 
+      # The console pins its own Playwright, so it fetches its own Chromium.
+      - name: Install console dependencies
+        working-directory: nmu-one/admin
+        run: npm ci && npx playwright install chromium
+
+      # Staff sign in with NMU SSO, and the create → approve workflow runs on
+      # the BFF as each operator, with the audit trail to show for it.
+      - name: Console in live mode, end to end
+        working-directory: nmu-one/admin
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: npm run build:live && npm run e2e:live
+
       # The JavaScript bundles a phone build would ship.
       - name: Bundle for iOS and Android
         run: |
@@ -105,7 +118,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nmu-one-live-screens
-          path: nmu-one/.e2e/journey-live
+          path: |
+            nmu-one/.e2e/journey-live
+            nmu-one/admin/.e2e/live
           if-no-files-found: ignore
 
   console:

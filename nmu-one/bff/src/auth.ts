@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import type { AuthSession, PersonaId } from '../../src/core/adapters/contracts';
+import { OPERATORS } from '../../admin/src/lib/seed';
 import { personas } from '../../src/core/fixtures/people';
 import { HttpError } from './http';
 
@@ -15,12 +16,20 @@ import { HttpError } from './http';
  * confidential client. For development this file also contains a stand-in
  * identity provider (/dev-sso/*) whose sign-in page offers the four demo
  * personas, so the whole flow can run end to end on a laptop.
+ *
+ * Two clients sign in here: the app (people: students, staff, parents,
+ * alumni) and the operator console (staff operators). Each session records
+ * which kind it is, so a console session can't read a student's data and an
+ * app session can't run the console.
  */
 
 const SESSION_MINUTES = Number(process.env.BFF_SESSION_MINUTES ?? 8 * 60);
 
+export type SessionKind = 'person' | 'operator';
+
 interface Session {
   userId: string;
+  kind: SessionKind;
   refreshToken: string;
   expiresAt: number;
 }
@@ -30,21 +39,31 @@ const refreshTokens = new Map<string, string>(); // refresh → access
 
 const token = () => randomBytes(32).toString('base64url');
 
-export function issueSession(userId: string): AuthSession {
+export function issueSession(userId: string, kind: SessionKind = 'person'): AuthSession {
   const accessToken = token();
   const refreshToken = token();
   const expiresAt = Date.now() + SESSION_MINUTES * 60_000;
-  sessions.set(accessToken, { userId, refreshToken, expiresAt });
+  sessions.set(accessToken, { userId, kind, refreshToken, expiresAt });
   refreshTokens.set(refreshToken, accessToken);
   return { accessToken, refreshToken, expiresAt: new Date(expiresAt).toISOString(), userId };
 }
 
-export function sessionFor(authorization: string | undefined): Session {
+export function sessionFor(
+  authorization: string | undefined,
+  kind: SessionKind = 'person',
+): Session {
   const bearer = authorization?.match(/^Bearer (.+)$/)?.[1];
   const session = bearer ? sessions.get(bearer) : undefined;
   if (!session || session.expiresAt <= Date.now()) {
     if (bearer) sessions.delete(bearer);
     throw new HttpError(401, 'unauthorised', 'Sign in again');
+  }
+  if (session.kind !== kind) {
+    throw new HttpError(
+      403,
+      'forbidden',
+      kind === 'operator' ? 'Sign in to the console with a staff account' : 'Not an app session',
+    );
   }
   return session;
 }
@@ -55,7 +74,7 @@ export function refresh(refreshToken: unknown): AuthSession {
   if (!access || !old) throw new HttpError(401, 'unauthorised', 'Sign in again');
   sessions.delete(access);
   refreshTokens.delete(refreshToken as string);
-  return issueSession(old.userId);
+  return issueSession(old.userId, old.kind);
 }
 
 export function revoke(authorization: string | undefined): void {
@@ -69,8 +88,13 @@ export function revoke(authorization: string | undefined): void {
 
 // ── Development identity provider ───────────────────────────────────────────
 
+export type SignInClient = 'app' | 'console';
+const CONSOLE_CLIENT = 'nmu-one-console';
+
 interface PendingCode {
-  persona: PersonaId;
+  client: SignInClient;
+  /** A demo persona (app) or an operator id (console). */
+  subject: string;
   challenge: string;
   redirectUri: string;
   expiresAt: number;
@@ -89,18 +113,26 @@ export function discovery(base: string) {
   };
 }
 
+const clientOf = (query: URLSearchParams): SignInClient =>
+  query.get('client_id') === CONSOLE_CLIENT ? 'console' : 'app';
+
 export function approve(query: URLSearchParams): string {
-  const persona = query.get('persona') as PersonaId | null;
+  const client = clientOf(query);
+  const subject = query.get('persona');
   const redirectUri = query.get('redirect_uri');
   const challenge = query.get('code_challenge');
-  if (!persona || !PERSONAS.includes(persona) || !redirectUri || !challenge) {
+  const known =
+    client === 'console'
+      ? OPERATORS.some((o) => o.id === subject)
+      : PERSONAS.includes(subject as PersonaId);
+  if (!subject || !known || !redirectUri || !challenge) {
     throw new HttpError(400, 'invalid', 'Incomplete authorization request');
   }
   if (query.get('code_challenge_method') !== 'S256') {
     throw new HttpError(400, 'invalid', 'PKCE with S256 is required');
   }
   const code = token();
-  codes.set(code, { persona, challenge, redirectUri, expiresAt: Date.now() + 60_000 });
+  codes.set(code, { client, subject, challenge, redirectUri, expiresAt: Date.now() + 60_000 });
   const url = new URL(redirectUri);
   url.searchParams.set('code', code);
   const state = query.get('state');
@@ -108,12 +140,14 @@ export function approve(query: URLSearchParams): string {
   return url.toString();
 }
 
-/** The code exchange: single use, short-lived, bound to the PKCE verifier. */
-export function exchange(body: {
-  code?: unknown;
-  codeVerifier?: unknown;
-  redirectUri?: unknown;
-}): PersonaId {
+/**
+ * The code exchange: single use, short-lived, bound to the PKCE verifier,
+ * the redirect and the client that asked for it.
+ */
+export function exchange(
+  body: { code?: unknown; codeVerifier?: unknown; redirectUri?: unknown },
+  client: SignInClient,
+): string {
   const pending = typeof body.code === 'string' ? codes.get(body.code) : undefined;
   if (typeof body.code === 'string') codes.delete(body.code);
   if (!pending || pending.expiresAt <= Date.now()) {
@@ -121,21 +155,28 @@ export function exchange(body: {
   }
   const verifier = typeof body.codeVerifier === 'string' ? body.codeVerifier : '';
   const challenge = createHash('sha256').update(verifier).digest('base64url');
-  if (challenge !== pending.challenge || body.redirectUri !== pending.redirectUri) {
+  if (
+    challenge !== pending.challenge ||
+    body.redirectUri !== pending.redirectUri ||
+    client !== pending.client
+  ) {
     throw new HttpError(401, 'unauthorised', 'Sign-in code does not match this app');
   }
-  return pending.persona;
+  return pending.subject;
 }
 
 export function authorizePage(query: URLSearchParams): string {
   const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
   const params = new URLSearchParams(query);
-  const people: [PersonaId, string][] = [
-    ['student', 'Thandi Mokoena · student'],
-    ['staff', 'Dr Sipho Ndlovu · staff'],
-    ['parent', 'Nomsa Mokoena · parent'],
-    ['alumni', 'Lwazi Dube · alumni'],
-  ];
+  const forConsole = clientOf(query) === 'console';
+  const people: [string, string][] = forConsole
+    ? OPERATORS.map((o) => [o.id, `${o.name} · ${o.title}`])
+    : [
+        ['student', 'Thandi Mokoena · student'],
+        ['staff', 'Dr Sipho Ndlovu · staff'],
+        ['parent', 'Nomsa Mokoena · parent'],
+        ['alumni', 'Lwazi Dube · alumni'],
+      ];
   const links = people
     .map(([id, label]) => {
       params.set('persona', id);
@@ -153,7 +194,7 @@ export function authorizePage(query: URLSearchParams): string {
   small{color:#C3CCDA}
 </style></head><body><main>
 <h1>Development sign-in</h1>
-<p>This page stands in for NMU SSO on a development BFF. Choose who to sign in as.</p>
+<p>This page stands in for NMU SSO on a development BFF. Choose who to sign in as${forConsole ? ' to the operator console' : ''}.</p>
 ${links}
 <small>Synthetic identities only. Production uses NMU SSO.</small>
 </main></body></html>`;

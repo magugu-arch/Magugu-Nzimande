@@ -77,9 +77,9 @@ describe('publishing is scoped (brief §16)', () => {
 });
 
 describe('create → approve → deliver (brief §11)', () => {
-  it('never lets an author approve their own notice', () => {
+  it('never lets an author approve their own notice', async () => {
     switchOperator('op-ayanda');
-    const saved = saveCampaign(draft(), null, true);
+    const saved = await saveCampaign(draft(), null, true);
     expect(saved.ok).toBe(true);
     const campaign = getData().campaigns.find((c) => c.id === saved.id)!;
     expect(campaign.status).toBe('pending-approval');
@@ -89,38 +89,38 @@ describe('create → approve → deliver (brief §11)', () => {
       ok: false,
       reason: expect.stringMatching(/someone else/),
     });
-    expect(approveCampaign(campaign.id, '').ok).toBe(false);
+    expect((await approveCampaign(campaign.id, '')).ok).toBe(false);
 
     switchOperator('op-lindiwe');
-    expect(approveCampaign(campaign.id, 'Looks good').ok).toBe(true);
+    expect((await approveCampaign(campaign.id, 'Looks good')).ok).toBe(true);
     const sent = getData().campaigns.find((c) => c.id === campaign.id)!;
     expect(sent.status).toBe('sent');
     expect(sent.approverId).toBe('op-lindiwe');
     expect(sent.history.map((h) => h.action)).toEqual(['created', 'submitted', 'approved', 'sent']);
   });
 
-  it('schedules an approved notice with a future send time', () => {
+  it('schedules an approved notice with a future send time', async () => {
     switchOperator('op-ayanda');
     const sendAt = sastDate(2026, 10, 6, 8, 0).toISOString();
-    const { id } = saveCampaign(draft({ sendAt }), null, true);
+    const { id } = await saveCampaign(draft({ sendAt }), null, true);
     switchOperator('op-lindiwe');
-    approveCampaign(id!, '');
+    await approveCampaign(id!, '');
     expect(getData().campaigns.find((c) => c.id === id)!.status).toBe('scheduled');
   });
 
-  it('sends a notice back to its author with a reason', () => {
+  it('sends a notice back to its author with a reason', async () => {
     switchOperator('op-lindiwe');
-    expect(requestChanges('cmp-library-hours', '').ok).toBe(false);
-    expect(requestChanges('cmp-library-hours', 'Confirm the dates, please.').ok).toBe(true);
+    expect((await requestChanges('cmp-library-hours', '')).ok).toBe(false);
+    expect((await requestChanges('cmp-library-hours', 'Confirm the dates, please.')).ok).toBe(true);
     const c = getData().campaigns.find((x) => x.id === 'cmp-library-hours')!;
     expect(c.status).toBe('changes-requested');
     expect(c.history.at(-1)?.note).toBe('Confirm the dates, please.');
   });
 
-  it('audits every change, with who made it', () => {
+  it('audits every change, with who made it', async () => {
     switchOperator('op-ayanda');
     const before = getData().audit.length;
-    saveCampaign(draft(), null, false);
+    await saveCampaign(draft(), null, false);
     const entry = getData().audit[0]!;
     expect(getData().audit.length).toBe(before + 1);
     expect(entry).toMatchObject({ operatorId: 'op-ayanda', action: 'Saved draft' });
@@ -137,23 +137,23 @@ describe('emergency notices and roles', () => {
     reason: 'Fire alarm confirmed',
   };
 
-  it('only lets approvers send them, and flags each one in the audit log', () => {
+  it('only lets approvers send them, and flags each one in the audit log', async () => {
     switchOperator('op-ayanda');
-    expect(sendEmergency(emergency).ok).toBe(false);
+    expect((await sendEmergency(emergency)).ok).toBe(false);
     switchOperator('op-lindiwe');
-    expect(sendEmergency({ ...emergency, reason: '' }).ok).toBe(false);
-    expect(sendEmergency(emergency).ok).toBe(true);
+    expect((await sendEmergency({ ...emergency, reason: '' })).ok).toBe(false);
+    expect((await sendEmergency(emergency)).ok).toBe(true);
     const sent = getData().campaigns[0]!;
     expect(sent).toMatchObject({ priority: 'emergency', status: 'sent', respectQuietHours: false });
     expect(getData().audit[0]!.action).toMatch(/^EMERGENCY/);
   });
 
-  it('stops administrators changing their own role', () => {
+  it('stops administrators changing their own role', async () => {
     switchOperator('op-naledi');
-    expect(setOperatorRole('op-naledi', 'analyst').ok).toBe(false);
-    expect(setOperatorRole('op-kagiso', 'approver').ok).toBe(true);
+    expect((await setOperatorRole('op-naledi', 'analyst')).ok).toBe(false);
+    expect((await setOperatorRole('op-kagiso', 'approver')).ok).toBe(true);
     switchOperator('op-ayanda');
-    expect(setOperatorRole('op-kagiso', 'super-admin').ok).toBe(false);
+    expect((await setOperatorRole('op-kagiso', 'super-admin')).ok).toBe(false);
   });
 });
 

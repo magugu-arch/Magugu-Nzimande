@@ -321,9 +321,11 @@ export function CampaignDetail() {
             <button
               type="button"
               className="btn primary"
-              onClick={() => {
+              onClick={async () => {
                 const r =
-                  dialog === 'approve' ? approveCampaign(c.id, note) : requestChanges(c.id, note);
+                  dialog === 'approve'
+                    ? await approveCampaign(c.id, note)
+                    : await requestChanges(c.id, note);
                 if (r.ok) {
                   setDialog(null);
                   setNote('');

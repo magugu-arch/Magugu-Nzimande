@@ -78,11 +78,15 @@ are server-side variables, never inlined into the app.
 | Variable | Default | Effect |
 |---|---|---|
 | `EXPO_PUBLIC_DEMO_CLOCK` | `scenario` | Passed through `admin/next.config.ts` so the console runs on the same clock as the app. Set at build time. |
+| `NEXT_PUBLIC_CONSOLE_MODE` | *(demo)* | `live` makes the console sign staff in with NMU SSO and keep its data on the BFF. `npm run build:live` sets it. |
+| `NEXT_PUBLIC_BFF_BASE_URL` | *(empty)* | The BFF the live console talks to (`/v1/console/*`). |
+| `NEXT_PUBLIC_OIDC_ISSUER` | *(empty)* | NMU SSO's issuer, for staff sign-in. |
+| `NEXT_PUBLIC_OIDC_CLIENT_ID` | `nmu-one-console` | The console's own OIDC client; register `https://<console host>/auth/callback/` as its redirect. |
 
-The console keeps its demo state in the browser's `localStorage` (one demo per
-demo day; **Reset demo** starts over). It has no live mode yet: the store's
-actions in `admin/src/lib/store.ts` are where BFF calls would go, behind the
-same permission checks.
+`npm run build:live` reads `BFF_URL` (default `http://127.0.0.1:8787`) for the
+last two and writes the build to `out-live/`. In demo mode the console keeps its
+state in the browser's `localStorage` (one demo per demo day; **Reset demo**
+starts over); live, it keeps only the session, for the life of the tab.
 
 ## Tests and tooling
 

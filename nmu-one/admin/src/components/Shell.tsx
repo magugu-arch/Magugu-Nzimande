@@ -6,11 +6,17 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } fro
 import { OPERATOR_ROLE_LABELS } from '@/lib/operators';
 import {
   currentOperator,
+  isLive,
+  liveSession,
+  refreshLive,
   resetDemo,
   runScheduler,
+  signOut,
+  startSignIn,
   switchOperator,
   useAnnouncement,
   useConsole,
+  useLiveStatus,
 } from '@/lib/store';
 
 const NAV: {
@@ -127,6 +133,59 @@ function OperatorPicker() {
   );
 }
 
+/** Live mode: who is signed in comes from NMU SSO, not a picker. */
+function SignedInAs() {
+  const session = liveSession();
+  if (!session) return null;
+  return (
+    <p className="operator-picker" data-testid="signed-in-as">
+      <span>Signed in as</span>
+      <strong>
+        {session.operator.name}, {session.operator.title}
+      </strong>
+    </p>
+  );
+}
+
+function SignInPanel() {
+  const [problem, setProblem] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <section className="stack sign-in" aria-labelledby="sign-in-h" data-testid="console-sign-in">
+      <h1 id="sign-in-h">Sign in to the operator console</h1>
+      <p className="muted">
+        Use your NMU staff account. What you can do here depends on the role NMU has given you, and
+        the server checks it on every action.
+      </p>
+      {problem ? (
+        <p className="notice tone-danger" role="alert">
+          {problem}
+        </p>
+      ) : null}
+      <div>
+        <button
+          type="button"
+          className="btn primary"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setProblem(null);
+            try {
+              await startSignIn();
+            } catch (e) {
+              setBusy(false);
+              setProblem(e instanceof Error ? e.message : 'Sign-in didn’t start. Try again.');
+            }
+          }}
+          data-testid="console-sso"
+        >
+          {busy ? 'Opening NMU SSO…' : 'Sign in with NMU SSO'}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function Announcer() {
   const { id, text } = useAnnouncement();
   const [visible, setVisible] = useState<number | null>(null);
@@ -159,10 +218,24 @@ export function Shell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
+  const liveStatus = useLiveStatus();
+  // The sign-in callback renders before there is a session.
+  const callback = normalise(pathname ?? '/') === '/auth/callback/';
+  const ready = hydrated && (!isLive || liveStatus === 'ready');
 
-  // Scheduled notices go out when their time comes, while the console is open.
+  // Live mode: load what the server holds, and keep it fresh so operators see
+  // each other's work (an approval, a new submission) within seconds.
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isLive || callback) return;
+    void refreshLive();
+    const t = setInterval(() => void refreshLive(), 5_000);
+    return () => clearInterval(t);
+  }, [hydrated, callback]);
+
+  // Scheduled notices go out when their time comes, while the console is open
+  // (in live mode the server sends them).
+  useEffect(() => {
+    if (!hydrated || isLive) return;
     runScheduler();
     const t = setInterval(runScheduler, 15_000);
     return () => clearInterval(t);
@@ -208,18 +281,29 @@ export function Shell({ children }: { children: ReactNode }) {
             </button>
           </div>
           <nav id="console-nav" aria-label="Console" className="nav-sections" data-open={menuOpen}>
-            {hydrated ? <Nav onNavigate={() => setMenuOpen(false)} /> : null}
+            {ready ? <Nav onNavigate={() => setMenuOpen(false)} /> : null}
           </nav>
           <p className="sidebar-foot">
-            Demo data only. Every action is permission-checked and written to the audit log.
+            {isLive
+              ? 'Every action is checked by the server against your role and written to the audit log.'
+              : 'Demo data only. Every action is permission-checked and written to the audit log.'}
           </p>
         </aside>
         <div className="main-col">
           <div className="topbar">
-            <div className="topbar-left">{hydrated ? <OperatorPicker /> : null}</div>
+            <div className="topbar-left">
+              {ready ? isLive ? <SignedInAs /> : <OperatorPicker /> : null}
+            </div>
             <div className="topbar-right">
-              <span className="badge tone-warning">Demo data</span>
-              {hydrated ? (
+              <span className={`badge ${isLive ? 'tone-info' : 'tone-warning'}`}>
+                {isLive ? 'Live' : 'Demo data'}
+              </span>
+              {ready && isLive ? (
+                <button type="button" className="btn small" onClick={() => void signOut()}>
+                  Sign out
+                </button>
+              ) : null}
+              {hydrated && !isLive ? (
                 <button
                   type="button"
                   className="btn small"
@@ -233,8 +317,20 @@ export function Shell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <main id="main" ref={mainRef} tabIndex={-1}>
-            {hydrated ? (
+            {ready || (hydrated && callback) ? (
               children
+            ) : hydrated && liveStatus === 'signed-out' ? (
+              <SignInPanel />
+            ) : hydrated && liveStatus === 'unavailable' ? (
+              <section className="stack" role="alert">
+                <h1>The console service isn’t answering</h1>
+                <p className="muted">Nothing has changed. Try again in a moment.</p>
+                <div>
+                  <button type="button" className="btn" onClick={() => void refreshLive()}>
+                    Try again
+                  </button>
+                </div>
+              </section>
             ) : (
               <div className="loading" aria-busy="true" aria-label="Loading the console">
                 <div className="skeleton" style={{ width: '30%', height: 28 }} />

@@ -9,11 +9,11 @@ to production. For running it, start with the [README](../README.md).
 |---|---|
 | Mobile app | All primary experiences built for four roles (brief §3–§15). Runs on iOS, Android and web from one codebase. |
 | Pitch journey (§26) | All 14 steps work and are tested end to end in a browser. |
-| Operator console | Dashboard, notifications workflow, approvals, audiences, events, commerce, service directory, help content, moderation, roles, analytics and audit log. |
+| Operator console | Dashboard, notifications workflow, approvals, audiences, events, commerce, service directory, help content, moderation, roles, analytics and audit log. In live mode staff sign in with NMU SSO and every action runs on the BFF, as them. |
 | Data | **Synthetic only.** Typed adapters with mock implementations for every system. |
-| Live mode | A reference BFF (`bff/`) serves the whole contract over the mock connectors, with real sessions, authorization-code + PKCE sign-in, the permission policy enforced on the server, the payment hand-off and an audit log. The live app runs the full pitch journey through it. Not yet connected to any NMU system. |
+| Live mode | A reference BFF (`bff/`) serves the whole contract over the mock connectors, with real sessions, authorization-code + PKCE sign-in, the permission policy enforced on the server, the payment hand-off and an audit log. It is also the console's backend. The live app runs the full pitch journey through it, and the live console the create → approve workflow. Not yet connected to any NMU system. |
 | Accessibility | Built to WCAG 2.2 AA. Console pages pass axe-core automatically; app screens are checked for named controls, contrast tokens and reflow, and every line of text on a photograph is measured against the pixels behind it (844 lines, three phone widths). Sheets honour Reduce Motion. A manual screen-reader pass on real devices is still due. |
-| Tests | 149 unit tests (including the BFF's security boundary and PKCE), the pitch journey in demo, single-file and live mode, a 184-screen sweep across roles and widths, the contrast audit, iOS and Android bundle builds, and the console workflow with accessibility checks. |
+| Tests | 154 unit tests (including the BFF's security boundary, PKCE and the console's server-side rules), the pitch journey in demo, single-file and live mode, a 184-screen sweep across roles and widths, the contrast audit, iOS and Android bundle builds, and the console workflow with accessibility checks, in demo and live mode. |
 
 This lives in the `nmu-one/` folder. The repository root holds a separate,
 unrelated project with its own README, HANDOVER and RUNBOOK; nothing in NMU ONE
@@ -61,6 +61,7 @@ These are deliberately **not** guessed in the code.
 | Adapter contracts and live BFF clients | The mock SSO persona picker (hidden in live builds) |
 | NMU SSO sign-in (code + PKCE), push registration, payment hand-off | The BFF's development SSO and payment pages |
 | The reference BFF's sessions, server-side policy, ownership checks and audit | The BFF's mock connectors and in-memory stores |
+| Console actions run on the server, as the signed-in operator | The console's six synthetic operators |
 | Offline policy (no sensitive caching) | The schematic South Campus map |
 | Assistant routing and grounding rules | Shuttle positions, menus, order timings |
 | Notification priority, quiet hours, deep links | Console metrics and audience sizes |
@@ -77,8 +78,9 @@ These are deliberately **not** guessed in the code.
    fees and funding, library, transport, commerce, events, notifications);
    move sessions and the audit log to durable stores; run with `BFF_DEV=0`.
    The permission and consent checks are already there.
-3. **Console backend.** Move the console's store actions to BFF calls, with
-   server-side permission checks and audit.
+3. **Console backend.** Register the console's OIDC client, take operators and
+   their roles from NMU's staff directory, and store the console's data in a
+   database. The server-side actions, checks and audit are built.
 4. **Security review.** Penetration test, privacy impact assessment (POPIA),
    and legal review of safety, location, finance and identity features (§33).
 5. **Accessibility.** VoiceOver and TalkBack passes on real devices; test with

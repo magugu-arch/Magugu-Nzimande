@@ -9,50 +9,17 @@
  *
  *   node e2e/console.mjs            # CHROMIUM_PATH overrides the browser
  */
-import { createServer } from 'node:http';
-import { createReadStream, existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serve } from './serve.mjs';
 
 const here = resolve(fileURLToPath(import.meta.url), '..');
 const outDir = join(here, '..', 'out');
 const shots = join(here, '..', '.e2e');
 mkdirSync(shots, { recursive: true });
 const axeSource = readFileSync(join(here, '..', 'node_modules', 'axe-core', 'axe.min.js'), 'utf8');
-
-const TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'application/javascript',
-  '.css': 'text/css',
-  '.woff2': 'font/woff2',
-  '.woff': 'font/woff',
-  '.txt': 'text/plain',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon',
-};
-
-function serve() {
-  if (!existsSync(join(outDir, 'index.html')))
-    throw new Error('No export in out/. Run `npm run build` first.');
-  const server = createServer((req, res) => {
-    const path = decodeURIComponent((req.url ?? '/').split('?')[0]);
-    let file = join(outDir, path);
-    if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
-    if (!file.startsWith(outDir) || !existsSync(file)) {
-      res.writeHead(404, { 'Content-Type': TYPES['.html'] });
-      createReadStream(join(outDir, '404.html')).pipe(res);
-      return;
-    }
-    res.writeHead(200, { 'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream' });
-    createReadStream(file).pipe(res);
-  });
-  return new Promise((ok) =>
-    server.listen(0, '127.0.0.1', () =>
-      ok({ url: `http://127.0.0.1:${server.address().port}`, close: () => server.close() }),
-    ),
-  );
-}
 
 const ROUTES = [
   '/',
@@ -106,7 +73,7 @@ async function operator(page, name) {
 const executablePath =
   process.env.CHROMIUM_PATH ??
   (existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
-const server = await serve();
+const server = await serve(outDir);
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 
 try {

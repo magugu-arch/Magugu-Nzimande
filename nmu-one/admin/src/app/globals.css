@@ -1165,3 +1165,15 @@ dialog::backdrop {
   gap: 16px;
   margin-bottom: 16px;
 }
+
+/* Live mode sign-in */
+.sign-in {
+  max-width: 560px;
+  padding-block: 24px;
+}
+p.operator-picker {
+  margin: 0;
+}
+p.operator-picker strong {
+  color: var(--text);
+}

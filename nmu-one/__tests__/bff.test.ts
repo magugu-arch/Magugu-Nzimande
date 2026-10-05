@@ -188,3 +188,106 @@ describe('payments', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('the operator console, on the server', () => {
+  const operator = async (id: string) =>
+    (await call('/v1/console/session', { body: { operator: id } })).json.session
+      .accessToken as string;
+  const act = (token: string, name: string, body: unknown) =>
+    call(`/v1/console/actions/${name}`, { token, body });
+  const draft = {
+    title: 'Graduation photos are ready',
+    body: 'Your official graduation photos can be viewed from today.',
+    category: 'community',
+    priority: 'normal',
+    segmentId: 'seg-students',
+    deepLink: '/events',
+    actionLabel: 'See events',
+    sendAt: null,
+    expiresAt: null,
+    respectQuietHours: true,
+    channels: { push: true, inApp: true },
+  };
+
+  it('keeps console and app sessions apart', async () => {
+    const ayanda = await operator('op-ayanda');
+    expect((await call('/v1/console/state', { token: ayanda })).status).toBe(200);
+    expect((await call('/v1/finance/account', { token: ayanda })).status).toBe(403);
+    const student = await signIn('student');
+    expect((await call('/v1/console/state', { token: student })).status).toBe(403);
+    expect(
+      (await call('/v1/console/session', { body: { operator: 'u-demo-student' } })).status,
+    ).toBe(403);
+  });
+
+  it('checks each operator’s role on the server', async () => {
+    const ayanda = await operator('op-ayanda'); // communications officer: writes, can't approve
+    const saved = await act(ayanda, 'saveCampaign', { draft, id: null, submit: true });
+    expect(saved.status).toBe(200);
+    expect(saved.json.data.campaigns[0]).toMatchObject({ authorId: 'op-ayanda' });
+    expect((await act(ayanda, 'approveCampaign', { id: saved.json.id, note: '' })).status).toBe(
+      403,
+    );
+    const kagiso = await operator('op-kagiso'); // analyst: read-only
+    expect((await act(kagiso, 'saveCampaign', { draft, id: null, submit: false })).status).toBe(
+      403,
+    );
+  });
+
+  it('never lets anyone approve their own notice, even an administrator', async () => {
+    const naledi = await operator('op-naledi');
+    const saved = await act(naledi, 'saveCampaign', { draft, id: null, submit: true });
+    const own = await act(naledi, 'approveCampaign', { id: saved.json.id, note: '' });
+    expect(own.status).toBe(422);
+    expect(own.json.message).toMatch(/someone else/);
+    const lindiwe = await operator('op-lindiwe');
+    const approved = await act(lindiwe, 'approveCampaign', { id: saved.json.id, note: 'Fine' });
+    expect(approved.status).toBe(200);
+    const campaign = approved.json.data.campaigns.find((c: any) => c.id === saved.json.id);
+    expect(campaign).toMatchObject({ status: 'sent', approverId: 'op-lindiwe' });
+    // The audit trail names the operator the server signed in.
+    expect(approved.json.data.audit[0]).toMatchObject({
+      operatorId: 'op-lindiwe',
+      action: 'Approved and sent notification',
+    });
+  });
+
+  it('refuses unknown actions and incomplete requests', async () => {
+    const naledi = await operator('op-naledi');
+    expect((await act(naledi, 'resetDemo', {})).status).toBe(404);
+    expect((await act(naledi, 'saveCampaign', {})).status).toBe(422);
+  });
+
+  it('signs operators in with PKCE, and only through the console client', async () => {
+    const verifier = 'b'.repeat(64);
+    const challenge = createHash('sha256').update(verifier).digest('base64url');
+    const redirectUri = 'http://127.0.0.1:9999/auth/callback/';
+    const codeFor = async () => {
+      const q = new URLSearchParams({
+        client_id: 'nmu-one-console',
+        persona: 'op-lindiwe',
+        redirect_uri: redirectUri,
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+        state: 's',
+      });
+      const res = await call(`/dev-sso/approve?${q}`);
+      return new URL(String(res.headers.location)).searchParams.get('code')!;
+    };
+    // A console code can't open an app session…
+    const first = await codeFor();
+    expect(
+      (
+        await call('/v1/auth/session', {
+          body: { code: first, codeVerifier: verifier, redirectUri },
+        })
+      ).status,
+    ).toBe(401);
+    // …but signs the operator in to the console.
+    const res = await call('/v1/console/session', {
+      body: { code: await codeFor(), codeVerifier: verifier, redirectUri },
+    });
+    expect(res.status).toBe(200);
+    expect(res.json.operator).toMatchObject({ id: 'op-lindiwe', role: 'approver' });
+  });
+});

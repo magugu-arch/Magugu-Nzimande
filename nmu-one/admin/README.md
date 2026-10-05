@@ -42,20 +42,38 @@ Use **Working as** in the top bar to switch operator:
 Write a notice as Ayanda, then switch to Lindiwe to approve it. Two browser
 tabs stay in sync, so you can present both sides at once.
 
+### Live mode
+
+Built with `npm run build:live`, the console has no operator picker and keeps
+nothing in the browser. Staff sign in with NMU SSO (authorization code +
+PKCE), and the BFF holds the data and runs every action as the operator it
+signed in. To try it with the reference BFF:
+
+```bash
+cd .. && npm run bff          # http://127.0.0.1:8787, with a development sign-in page
+cd admin && npm run build:live && npx serve out-live    # or: npm run e2e:live
+```
+
+The development sign-in page lists the six operators above.
+
 ## How it's built
 
 - `src/lib/operators.ts`: what each operator role may do, scoped publishing and
   separation of duties.
-- `src/lib/store.ts`: every action, permission-checked and audited. Demo state
-  lives in `localStorage`, one demo per demo day; **Reset demo** starts over.
-  This is where BFF calls go in a live console.
+- `src/lib/actions.ts`: every action as a plain function of the console's data:
+  permission-checked, audited, no browser or React. The console runs them in
+  demo mode; the BFF (`../bff/src/console.ts`) runs the same functions in live
+  mode, as the signed-in operator.
+- `src/lib/store.ts`: the console's state. Demo state lives in `localStorage`,
+  one demo per demo day; **Reset demo** starts over. Live state comes from the
+  BFF (`src/lib/live.ts`), refreshed every five seconds.
 - `src/lib/seed.ts`: synthetic operators, audiences and notices. Events, vendors,
   menus and help articles come from the app's own fixtures in `../src/core`.
 - `src/views/`: one client component per page; `src/app/` holds the routes.
 - `src/components/charts.tsx`: small accessible charts with colours validated
   for contrast and colour-blind safety, keyboard tooltips and a table view.
 
-Pages render after the browser loads (the console holds no server data), and the
+Pages render after the browser loads (and, live, after sign-in), and the
 console runs on the app's demo clock (`EXPO_PUBLIC_DEMO_CLOCK`).
 
 ## Checks
@@ -66,5 +84,11 @@ console runs on the app's demo clock (`EXPO_PUBLIC_DEMO_CLOCK`).
 - drives the workflow: validation, submit, approval by another operator, delivery, metrics, return-for-changes, early send, emergency notice, audit trail, commerce, help-article approval and role scoping;
 - checks the skip link, focus handling, live announcements and keyboard-reachable chart values.
 
+`npm run e2e:live` starts the reference BFF and drives the live build: sign-in
+through the development SSO page (and axe-core on it), Ayanda submitting a
+notice she can't approve, signing out, Lindiwe approving it, and the audit log
+crediting each step to the right person.
+
 Screenshots go to `.e2e/`. The console's rules are also unit-tested in
-`../__tests__/console.test.ts`.
+`../__tests__/console.test.ts`, and the server's enforcement of them in
+`../__tests__/bff.test.ts`.

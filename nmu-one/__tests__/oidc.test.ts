@@ -114,11 +114,14 @@ describe('the authorization request and its redirect', () => {
     const outcome = readRedirect(back, req.state);
     if (outcome.kind !== 'code') throw new Error('expected a code');
     expect(
-      exchange({
-        code: outcome.code,
-        codeVerifier: verifier,
-        redirectUri: 'http://app.test/auth/callback',
-      }),
+      exchange(
+        {
+          code: outcome.code,
+          codeVerifier: verifier,
+          redirectUri: 'http://app.test/auth/callback',
+        },
+        'app',
+      ),
     ).toBe('staff');
   });
 });

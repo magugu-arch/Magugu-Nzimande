@@ -2,14 +2,16 @@
   "name": "nmu-one-admin",
   "version": "0.1.0",
   "private": true,
-  "description": "NMU ONE operator console — communications, approvals, events, commerce, content, roles and analytics.",
+  "description": "NMU ONE operator console \u2014 communications, approvals, events, commerce, content, roles and analytics.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "e2e": "node e2e/console.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run build && npm run e2e"
+    "verify": "npm run typecheck && npm run lint && npm run build && npm run e2e",
+    "build:live": "NEXT_PUBLIC_CONSOLE_MODE=live NEXT_PUBLIC_BFF_BASE_URL=${BFF_URL:-http://127.0.0.1:8787} NEXT_PUBLIC_OIDC_ISSUER=${BFF_URL:-http://127.0.0.1:8787} next build && node -e \"const f=require('fs');f.rmSync('out-live',{recursive:true,force:true});f.renameSync('out','out-live')\"",
+    "e2e:live": "node e2e/console-live.mjs"
   },
   "dependencies": {
     "@fontsource/nunito-sans": "^5.3.0",

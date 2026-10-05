@@ -113,7 +113,7 @@ export function Composer() {
     .filter((h) => h.action === 'changes-requested')
     .at(-1)?.note;
 
-  const submit = (forApproval: boolean) => {
+  const submit = async (forApproval: boolean) => {
     const final = { ...draft, sendAt: schedule === 'at' ? draft.sendAt : null };
     if (forApproval) {
       const problems = validateDraft(final, op, data.segments, clock.now());
@@ -125,7 +125,7 @@ export function Composer() {
         return;
       }
     }
-    const r = saveCampaign(final, editId, forApproval);
+    const r = await saveCampaign(final, editId, forApproval);
     if (r.ok && r.id) router.push(`/notifications/view/?id=${r.id}`);
     else if (!r.ok) {
       setErrors([r.message]);

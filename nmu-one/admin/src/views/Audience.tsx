@@ -78,9 +78,9 @@ export function Audience() {
           ) : null}
           <form
             className="stack"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              const r = saveSegment({ name, ...draft });
+              const r = await saveSegment({ name, ...draft });
               if (r.ok) setName('');
             }}
           >

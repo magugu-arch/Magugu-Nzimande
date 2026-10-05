@@ -283,9 +283,9 @@ export function Content() {
             <button
               type="button"
               className="btn primary"
-              onClick={() => {
+              onClick={async () => {
                 if (!editing) return;
-                const r = updateArticle(editing.id, {
+                const r = await updateArticle(editing.id, {
                   title: draft.title,
                   body: draft.body,
                   keywords: draft.keywords
