@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Empty, PageHeader, TableWrap } from '@/components/ui';
 import { when } from '@/lib/format';
 import { OPERATOR_ROLE_LABELS } from '@/lib/operators';
-import { useConsole } from '@/lib/store';
+import { isLive, useConsole } from '@/lib/store';
 
 export function Audit() {
   const data = useConsole();
@@ -17,7 +17,11 @@ export function Audit() {
       <PageHeader
         eyebrow="Trust"
         title="Audit log"
-        description="Every change made in the console: who, what and when. Entries can’t be edited or deleted here. (Reset demo starts a fresh demo log in this browser.)"
+        description={
+          isLive
+            ? 'Every change made in the console: who, what and when, as recorded by the server. Entries can’t be edited or deleted.'
+            : 'Every change made in the console: who, what and when. Entries can’t be edited or deleted here. (Reset demo starts a fresh demo log in this browser.)'
+        }
       />
       <div className="field" style={{ maxWidth: 320, marginBottom: 16 }}>
         <label htmlFor="audit-who">Operator</label>

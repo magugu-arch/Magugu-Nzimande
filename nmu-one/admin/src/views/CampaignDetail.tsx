@@ -15,6 +15,7 @@ import {
   currentOperator,
   deliverNow,
   requestChanges,
+  isLive,
   saveCampaign,
   useConsole,
   withdrawCampaign,
@@ -54,7 +55,9 @@ export function CampaignDetail() {
             </Link>
           }
         >
-          It may have been removed when the demo data was reset.
+          {isLive
+            ? 'Check the link, or find it in the list of notifications.'
+            : 'It may have been removed when the demo data was reset.'}
         </Empty>
       </>
     );
