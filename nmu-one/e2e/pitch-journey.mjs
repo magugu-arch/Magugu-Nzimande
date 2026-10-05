@@ -28,10 +28,15 @@ mkdirSync(out, { recursive: true });
 const server = await serve();
 const { browser, page, errors } = await launch();
 let step = 0;
+let current = '';
+
+/** The step's key screen, for steps that end by going back to Home. */
+const keyShot = () => shot(page, out, `${current}-key`);
 
 async function check(name, fn) {
   step += 1;
   const label = `${String(step).padStart(2, '0')}-${name}`;
+  current = label;
   try {
     await fn();
     await page.waitForTimeout(400);
@@ -51,6 +56,7 @@ try {
 
   await check('sign-in', async () => {
     await see(page, 'One sign-in');
+    await keyShot();
     await tap(page, 'sso-sign-in');
     await visible(page, 'home').waitFor();
   });
@@ -72,6 +78,7 @@ try {
     await visible(page, 'route-card').waitFor();
     await see(page, 'Business & Economics Building');
     await see(page, 'Take the stairs or lift to level 2');
+    await keyShot();
     await back();
     await back();
     await visible(page, 'home').waitFor();
@@ -82,6 +89,7 @@ try {
     await visible(page, 'balance-card').waitFor();
     await see(page, 'R4,250.00');
     await see(page, 'October living allowance delayed');
+    await keyShot();
     await back();
   });
 
@@ -93,6 +101,7 @@ try {
     await slot.click();
     await tap(page, 'booking-confirm');
     await visible(page, 'booking-confirmed').waitFor();
+    await keyShot();
     await tap(page, 'booking-done');
     await back();
   });
@@ -102,6 +111,7 @@ try {
     await visible(page, 'transport').waitFor();
     await see(page, 'South ↔ North Campus');
     await see(page, 'Route B running late');
+    await keyShot();
     await back();
   });
 
@@ -150,6 +160,7 @@ try {
     await tab('profile');
     await tap(page, 'profile-graduation');
     await visible(page, 'graduation').waitFor();
+    await keyShot();
     await tap(page, 'continue-as-alumni');
     await tap(page, 'confirm-alumni');
     await visible(page, 'home').waitFor();
@@ -163,6 +174,7 @@ try {
     await visible(page, 'mentoring').waitFor();
     await tap(page, 'mentoring-accept');
     await see(page, 'You’re matched');
+    await keyShot();
     await back();
   });
 
