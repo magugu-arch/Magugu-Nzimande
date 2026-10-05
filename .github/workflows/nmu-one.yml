@@ -1,0 +1,100 @@
+name: NMU ONE
+
+# NMU ONE lives in nmu-one/ and has its own checks; the root project's
+# Verify workflow skips that folder.
+on:
+  push:
+    branches: ['**']
+    paths: ['nmu-one/**', '.github/workflows/nmu-one.yml']
+  pull_request:
+    paths: ['nmu-one/**', '.github/workflows/nmu-one.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: App — checks, pitch journey and screen sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: nmu-one
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nmu-one/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Typecheck, lint, Prettier and unit tests (app and console rules).
+      - name: Verify
+        run: npm run verify
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build for the web
+        run: npm run export:web
+
+      # The brief's 14-step story, tap by tap.
+      - name: Pitch journey
+        run: npm run e2e
+
+      # Every screen for every role at 390pt and 320pt.
+      - name: Screen sweep
+        run: npm run e2e:screens
+
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nmu-one-app-screens
+          path: nmu-one/.e2e
+          if-no-files-found: ignore
+
+  console:
+    name: Console — checks, accessibility and workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: nmu-one/admin
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nmu-one/admin/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Typecheck, lint, static build, then axe-core on every page and the
+      # create → approve → deliver → measure workflow.
+      - name: Verify
+        run: npm run verify
+
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nmu-one-console-screens
+          path: nmu-one/admin/.e2e
+          if-no-files-found: ignore
