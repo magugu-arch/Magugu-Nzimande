@@ -10,7 +10,7 @@ export const metadata = pageMetadata({
   title: "Journal",
   description: "Stories from The House That Andile Built — the house, sport, culture, lifestyle, people, building and media.",
   path: "/journal",
-  image: "IMG_6900",
+  image: "IMG_6906",
 });
 
 export default function JournalPage() {

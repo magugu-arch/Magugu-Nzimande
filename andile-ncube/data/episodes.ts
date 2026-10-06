@@ -6,7 +6,7 @@ import type { Episode, MediaId } from "@/lib/types";
  * this module (or its CMS source) with real episodes and set `status` to
  * "published" — the layout, routes and schema.org output follow automatically.
  */
-const posters: MediaId[] = ["IMG_6893", "IMG_6898", "IMG_6894", "IMG_6901"];
+const posters: MediaId[] = ["IMG_6905", "IMG_6898", "IMG_6894", "IMG_6907"];
 
 export const episodes: Episode[] = posters.map((poster, i) => {
   const number = i + 1;
@@ -47,11 +47,11 @@ export const multiplierItems: {
   image: MediaId;
   orientation: "landscape" | "portrait";
 }[] = [
-  { kind: "Hero episode", image: "IMG_6893", orientation: "landscape" },
+  { kind: "Hero episode", image: "IMG_6905", orientation: "landscape" },
   { kind: "Short clip", image: "IMG_6898", orientation: "landscape" },
   { kind: "Vertical edit", image: "IMG_6894", orientation: "portrait" },
-  { kind: "Vertical edit", image: "IMG_6891", orientation: "portrait" },
-  { kind: "Short clip", image: "IMG_6895", orientation: "landscape" },
+  { kind: "Vertical edit", image: "IMG_6910", orientation: "portrait" },
+  { kind: "Short clip", image: "IMG_6907", orientation: "landscape" },
   { kind: "Milestone", image: "IMG_6897", orientation: "landscape" },
   { kind: "Vertical edit", image: "IMG_6901", orientation: "portrait" },
 ];

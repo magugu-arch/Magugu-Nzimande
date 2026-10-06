@@ -12,7 +12,7 @@ export const metadata = pageMetadata({
   title: "Press / Media",
   description: "Press kit for Andile Ncube and The House That Andile Built: biography, headshots, show information, photographs and media contact.",
   path: "/press",
-  image: "IMG_6891",
+  image: "IMG_6910",
 });
 
 function Block({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {

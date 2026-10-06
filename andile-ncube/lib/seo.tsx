@@ -55,7 +55,7 @@ export const personLd = {
   name: site.name,
   jobTitle: "Broadcaster, host and storyteller",
   url: absoluteUrl("/"),
-  image: absoluteUrl(getMedia("IMG_6891").src),
+  image: absoluteUrl(getMedia("IMG_6910").src),
 };
 
 export const organizationLd = {

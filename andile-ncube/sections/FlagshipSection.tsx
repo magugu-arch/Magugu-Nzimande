@@ -34,13 +34,13 @@ export function FlagshipSection({ headingLevel = "h2" }: { headingLevel?: "h1" |
             </div>
             <div className="grid grid-cols-6 gap-3 md:gap-4 lg:col-span-6">
               <div className="col-span-6" data-clip="">
-                <Media id="IMG_6893" sizes="(min-width: 1024px) 48vw, 100vw" className="aspect-[16/10]" motion="scale" />
+                <Media id="IMG_6905" sizes="(min-width: 1024px) 48vw, 100vw" className="aspect-[16/10]" motion="scale" />
               </div>
               <div className="col-span-3" data-reveal="">
-                <Media id="IMG_6901" sizes="(min-width: 1024px) 24vw, 50vw" className="aspect-square" />
+                <Media id="IMG_6907" sizes="(min-width: 1024px) 24vw, 50vw" className="aspect-square" />
               </div>
               <div className="col-span-3" data-reveal="">
-                <Media id="IMG_6898" sizes="(min-width: 1024px) 24vw, 50vw" className="aspect-square" />
+                <Media id="IMG_6906" sizes="(min-width: 1024px) 24vw, 50vw" className="aspect-square" />
               </div>
             </div>
           </div>

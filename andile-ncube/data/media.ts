@@ -1,10 +1,10 @@
 import type { MediaAsset, MediaId } from "@/lib/types";
 
 /**
- * The supplied image library. Filenames follow the brief's numbering. Only
- * IMG_6889–IMG_6903 were supplied with this build; where the brief names an
- * image outside that range, the closest supplied image stands in and the
- * mapping is noted in README.md.
+ * The supplied image library. Filenames follow the brief's numbering.
+ * IMG_6889–IMG_6910 have been supplied; IMG_6160–IMG_6167 have not, and where
+ * the brief names one of those the closest supplied image stands in (see the
+ * mapping in README.md).
  */
 export const media: Record<MediaId, MediaAsset> = {
   IMG_6889: {
@@ -141,6 +141,69 @@ export const media: Record<MediaId, MediaAsset> = {
     alt: "Andile speaking on a broadcast desk at a floodlit stadium.",
     role: "Sport / The Slate",
     focus: "45% 30%",
+  },
+  IMG_6904: {
+    id: "IMG_6904",
+    src: "/images/IMG_6904.webp",
+    width: 1080,
+    height: 717,
+    alt: "Andile in a grey suit, mid-conversation on a sofa in a book-lined room, gesturing as he speaks.",
+    role: "Thought leadership",
+    focus: "55% 30%",
+  },
+  IMG_6905: {
+    id: "IMG_6905",
+    src: "/images/IMG_6905.webp",
+    width: 1080,
+    height: 611,
+    alt: "Andile seated in a studio lounge, talking to camera in front of a board showing one image branching into several.",
+    role: "Flagship host",
+    focus: "35% 30%",
+  },
+  IMG_6906: {
+    id: "IMG_6906",
+    src: "/images/IMG_6906.webp",
+    width: 1080,
+    height: 717,
+    alt: "An editorial desk with a laptop, a printed production calendar, contact sheets and a notebook.",
+    role: "Content planning",
+    focus: "50% 50%",
+  },
+  IMG_6907: {
+    id: "IMG_6907",
+    src: "/images/IMG_6907.webp",
+    width: 1080,
+    height: 717,
+    alt: "Andile reviewing an edit with three members of the post-production team, monitors and cameras around them.",
+    role: "Production",
+    focus: "55% 35%",
+  },
+  IMG_6908: {
+    id: "IMG_6908",
+    src: "/images/IMG_6908.webp",
+    width: 1080,
+    height: 611,
+    alt: "Johannesburg skyline at sunset, towers and a broadcast mast on the horizon.",
+    role: "Johannesburg",
+    focus: "55% 50%",
+  },
+  IMG_6909: {
+    id: "IMG_6909",
+    src: "/images/IMG_6909.webp",
+    width: 1080,
+    height: 611,
+    alt: "Andile listening as a creative partner talks him through printed photographs spread across a table.",
+    role: "Co-production",
+    focus: "50% 35%",
+  },
+  IMG_6910: {
+    id: "IMG_6910",
+    src: "/images/IMG_6910.webp",
+    width: 1080,
+    height: 1350,
+    alt: "Andile Ncube in a grey suit, hands in pockets, beside a window over the Johannesburg skyline at sunset.",
+    role: "Portrait / mobile hero",
+    focus: "55% 25%",
   },
 };
 

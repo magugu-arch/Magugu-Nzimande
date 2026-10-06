@@ -33,7 +33,7 @@ export const formats: Format[] = [
     description:
       "A lifestyle territory that grows naturally from the flagship, with room for category partners beyond the build.",
     themes: ["Homes", "Design", "Cars", "Travel", "Culture", "Food", "Family"],
-    images: ["IMG_6896", "IMG_6897"],
+    images: ["IMG_6896", "IMG_6908", "IMG_6897"],
   },
   {
     slug: "fatherhood",

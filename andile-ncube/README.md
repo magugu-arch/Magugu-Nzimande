@@ -99,28 +99,27 @@ dressed up as real.
 
 ## Image library
 
-The brief lists 27 images (IMG_6889–IMG_6910 and IMG_6160–IMG_6167). **Fifteen
-were supplied with this build: IMG_6889–IMG_6903**, saved under their brief
-filenames in `public/images/`. IMG_6897 was supplied as a 6 MB PNG and is
-stored as a 2400 px JPEG; Next.js serves every image as AVIF/WebP with
+The brief lists 27 images. **Twenty-two have been supplied: IMG_6889–IMG_6910**,
+saved under their brief filenames in `public/images/` and placed as the brief
+maps them — e.g. IMG_6910 is the phone hero, IMG_6905 leads the Flagship and the
+short-form multiplier, IMG_6908 (Johannesburg) sits in the Lifestyle slate,
+IMG_6909 (co-production) in Build with us. IMG_6897 was supplied as a 6 MB PNG
+and is stored as a 2400 px JPEG; Next.js serves every image as AVIF/WebP with
 responsive `srcset`.
 
-Where the brief names an image that was not supplied, the closest supplied
-image stands in:
+**Not yet supplied: IMG_6160, IMG_6161, IMG_6165, IMG_6166, IMG_6167.** Where
+the brief names one of these, a supplied image stands in:
 
 | Brief asks for | Used instead | Where |
 | --- | --- | --- |
-| IMG_6910 (vertical portrait, mobile hero) | IMG_6891 (vertical seated portrait) | Homepage hero on phones |
-| IMG_6165 (keyhole, chapter intro) | IMG_6899 | Chapter 01 |
-| IMG_6166, IMG_6160, IMG_6161 (build / interior) | IMG_6890, IMG_6895, IMG_6898, IMG_6894 | House build story |
-| IMG_6905, IMG_6906, IMG_6907 (flagship host, planning, post) | IMG_6893, IMG_6901, IMG_6898 | Flagship |
-| IMG_6908, IMG_6161 (Johannesburg, interior) | IMG_6896, IMG_6897 | Slate — Lifestyle |
-| IMG_6909 (co-production) | IMG_6892 | Sponsor Engine / Build with us |
-| IMG_6904, IMG_6910, IMG_6167 (story/press portraits) | IMG_6891, IMG_6899, IMG_6889 | Story, Press |
+| IMG_6165 (keyhole, chapter intro) | IMG_6891 (seated portrait) | Chapter 01 |
+| IMG_6166, IMG_6160, IMG_6161 (build stages, finished interior) | IMG_6890, IMG_6895, IMG_6898, IMG_6894 | House build story |
+| IMG_6161 (interior, lifestyle) | IMG_6897 | Slate — Lifestyle |
+| IMG_6167 (architectural portrait, story/press) | IMG_6904 | Story hero, press headshots |
 
-To add the missing files: copy them into `public/images/`, add the IDs to
-`MediaId` in `lib/types.ts` and entries to `data/media.ts` (with alt text and a
-focal point), then point the relevant data at them.
+To add them: copy the files into `public/images/`, add the IDs to `MediaId` in
+`lib/types.ts` and entries to `data/media.ts` (with alt text and a focal
+point), then point the relevant data at them.
 
 ## Partnership enquiry
 

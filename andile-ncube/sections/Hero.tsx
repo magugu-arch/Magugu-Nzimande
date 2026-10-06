@@ -13,7 +13,7 @@ import { ArrowRight } from "lucide-react";
  */
 export function Hero() {
   const desktopAsset = getMedia("IMG_6889");
-  const mobileAsset = getMedia("IMG_6891");
+  const mobileAsset = getMedia("IMG_6910");
   const common = { alt: desktopAsset.alt, sizes: "100vw" };
   const {
     props: { srcSet: desktop },
@@ -33,7 +33,7 @@ export function Hero() {
               <img
                 {...rest}
                 // One description that holds for both crops.
-                alt="Portrait of Andile Ncube in a suit, warm architectural light behind him."
+                alt="Portrait of Andile Ncube in a suit, warm evening light behind him."
                 fetchPriority="high"
                 loading="eager"
                 className="size-full object-cover object-[50%_20%] md:object-[72%_30%]"

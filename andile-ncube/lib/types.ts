@@ -22,7 +22,14 @@ export type MediaId =
   | "IMG_6900"
   | "IMG_6901"
   | "IMG_6902"
-  | "IMG_6903";
+  | "IMG_6903"
+  | "IMG_6904"
+  | "IMG_6905"
+  | "IMG_6906"
+  | "IMG_6907"
+  | "IMG_6908"
+  | "IMG_6909"
+  | "IMG_6910";
 
 export type MediaAsset = {
   id: MediaId;

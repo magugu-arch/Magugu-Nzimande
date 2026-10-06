@@ -30,7 +30,7 @@ export function BuildWithUs() {
             <Media id="IMG_6890" sizes="(min-width: 1024px) 30vw, 60vw" className="aspect-[3/4]" focus="58% 40%" />
           </div>
           <div className="col-span-2 self-end" data-reveal="">
-            <Media id="IMG_6892" sizes="(min-width: 1024px) 20vw, 40vw" className="aspect-[3/4]" focus="70% 30%" />
+            <Media id="IMG_6909" sizes="(min-width: 1024px) 20vw, 40vw" className="aspect-[3/4]" focus="68% 30%" />
           </div>
         </div>
       </Motion>
