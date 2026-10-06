@@ -157,6 +157,20 @@ the header becomes a translucent material on scroll. It respects
 `prefers-reduced-motion` (cross-fades only), `prefers-reduced-transparency`
 (solid surfaces) and `prefers-contrast: more`.
 
+**Booking (fixture).** A "Book a call" section lets visitors choose a call
+type, a day and a time, add their details and request it. Availability is a
+**fixture**, generated from `data/booking.ts`: weekdays 09:00–17:00 SAST
+(fixed UTC+2), 24 hours' notice, a six-week window, South African public
+holidays closed, and a deterministic share of slots taken so a day always looks
+the same. Times show in SAST and, when different, in the visitor's own zone.
+A request is validated, kept in the browser's `localStorage` (so the slot then
+shows as "Requested", and can be changed or cancelled), and can be saved as a
+**tentative** `.ics` hold — the page says plainly that nothing was booked. The
+day strip drags with momentum like the other rails; the summary bar springs up
+when there is something to confirm. Set `BOOKING_ENDPOINT` in the page script
+to post requests to a real scheduler; adjust call types and hours in
+`data/booking.ts` and rebuild.
+
 The enquiry and deck forms validate fully but are **not connected**: the
 success screen says so. Set `ENQUIRY_ENDPOINT` near the top of the page script
 to post enquiries (the payload matches `/api/partnership`).

@@ -165,6 +165,7 @@ dialog::backdrop{background:transparent}
 
 /* ---------- Grids ---------- */
 .g{display:grid;gap:2.5rem}
+.g>*{min-width:0}
 @media (min-width:64rem){.g-12{grid-template-columns:repeat(12,minmax(0,1fr))}.c7{grid-column-end:span 7}.c6{grid-column-end:span 6}.c5{grid-column-end:span 5}.c4{grid-column-end:span 4}.c8{grid-column-end:span 8}.s7{grid-column-start:7}.s8{grid-column-start:8}.s6{grid-column-start:6}}
 
 /* Pillars */
@@ -387,6 +388,73 @@ ul.dash li::before{content:"";flex:none;width:.75rem;height:1px;margin-top:.6em;
 .notice{border-left:2px solid var(--brass);padding-left:1rem;color:var(--smoke)}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 
+/* ---------- Booking ---------- */
+.dark .field input,.dark .field textarea{border-color:rgba(242,239,232,.35)}
+.dark .field input:focus,.dark .field textarea:focus{border-color:var(--paper)}
+.dark .err{color:#ffab99}
+.dark .hint{color:var(--ash)}
+.book-card{position:relative;background:var(--charcoal);border:1px solid rgba(242,239,232,.08);border-radius:1.25rem;padding:1.25rem}
+@media (min-width:48rem){.book-card{padding:2rem 2.25rem}}
+.bstep+.bstep{margin-top:2rem;padding-top:2rem;border-top:1px solid rgba(242,239,232,.1)}
+.bstep-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.5rem 1rem}
+.bstep-h h3{display:flex;align-items:baseline;gap:.75rem;font-size:1.35rem;line-height:1.1}
+.bstep-h h3 .n{font-size:var(--t-meta);letter-spacing:.16em;color:var(--ash)}
+.btypes{margin-top:1.25rem;display:grid;gap:.5rem}
+@media (min-width:40rem){.btypes{grid-template-columns:1fr 1fr}}
+.btype{position:relative;display:block;padding:1rem 1.1rem;border:1px solid rgba(242,239,232,.18);border-radius:.85rem;cursor:pointer;transition:background-color .25s,color .25s,border-color .25s,transform .1s ease-out;-webkit-tap-highlight-color:transparent}
+.btype:hover{border-color:rgba(242,239,232,.5)}
+.btype:active{transform:scale(.985)}
+.btype input{position:absolute;opacity:0;pointer-events:none}
+.btype .bt-top{display:flex;justify-content:space-between;gap:.75rem;align-items:baseline}
+.btype .bt-name{font-weight:600;font-size:1.05rem;letter-spacing:-.005em}
+.btype .bt-sum{margin-top:.4rem;font-size:.9rem;line-height:1.45;color:var(--ash)}
+.btype:has(input:checked){background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.btype:has(input:checked) .bt-sum{color:var(--smoke)}
+.btype:has(input:focus-visible){outline:2px solid var(--paper);outline-offset:2px}
+.days-view{margin-top:1.25rem;margin-inline:-1.25rem;padding-inline:1.25rem}
+@media (min-width:48rem){.days-view{margin-inline:-2.25rem;padding-inline:2.25rem}}
+.days-track{gap:.5rem!important}
+.day{width:4.75rem;height:5.75rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;border:1px solid rgba(242,239,232,.18);border-radius:.85rem;transition:background-color .25s,color .25s,border-color .25s,transform .1s ease-out,opacity .25s}
+.day:hover:not(:disabled){border-color:rgba(242,239,232,.5)}
+.day:active:not(:disabled){transform:scale(.95)}
+.day .dw{font-size:var(--t-meta);letter-spacing:.14em;text-transform:uppercase;color:var(--ash)}
+.day .dn{font-family:var(--sans);font-variation-settings:"wdth" 80;font-weight:640;font-size:1.75rem;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.day .ds{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ash)}
+.day[aria-pressed=true]{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.day[aria-pressed=true] .dw,.day[aria-pressed=true] .ds{color:var(--smoke)}
+.day:disabled{opacity:.38;cursor:default;border-style:dashed}
+.tznote{margin-top:.75rem;font-size:.85rem;color:var(--ash)}
+.slots{margin-top:1.25rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(6.25rem,1fr));gap:.5rem}
+.slot{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:3.25rem;padding:.4rem;border:1px solid rgba(242,239,232,.18);border-radius:.7rem;cursor:pointer;font-variant-numeric:tabular-nums;transition:background-color .2s,color .2s,border-color .2s,transform .1s ease-out}
+.slot:hover{border-color:rgba(242,239,232,.5)}
+.slot:active{transform:scale(.95)}
+.slot input{position:absolute;opacity:0;pointer-events:none}
+.slot .st{font-weight:600;font-size:1rem}
+.slot .sl{font-size:.72rem;color:var(--ash)}
+.slot:has(input:checked){background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.slot:has(input:checked) .sl{color:var(--smoke)}
+.slot:has(input:focus-visible){outline:2px solid var(--paper);outline-offset:2px}
+.slot.mine{border-style:dashed;cursor:default;opacity:.6}
+.slots.enter>*{animation:slotIn .5s var(--ease) both}
+.slots.from-left>*{--dx:-14px}
+@keyframes slotIn{from{opacity:0;transform:translateX(var(--dx,14px))}to{opacity:1;transform:none}}
+.bempty{margin-top:1.25rem;color:var(--ash)}
+.bdetails{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s var(--ease)}
+.bdetails.open{grid-template-rows:1fr}
+.bdetails>div{overflow:hidden}
+.bbar{position:sticky;bottom:1rem;z-index:5;margin-top:1.5rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem 1rem;padding:.85rem .85rem .85rem 1.25rem;border-radius:1rem;background:rgba(36,36,36,.72);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);border:1px solid rgba(242,239,232,.12);box-shadow:0 18px 40px rgba(0,0,0,.35);will-change:transform,opacity}
+.bbar .sum{font-size:.95rem;line-height:1.35;font-weight:500;letter-spacing:.005em}
+.bbar .sum small{display:block;color:var(--ash);font-weight:400;font-size:.82rem}
+.bdone{text-align:left}
+.bdone .tick{width:3.5rem;height:3.5rem;border-radius:50%;background:var(--paper);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.bdone .tick svg{width:1.6rem;height:1.6rem;stroke-dasharray:24;stroke-dashoffset:24;animation:draw .6s .15s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.bdone dl{margin-top:1.75rem;display:grid;gap:1rem;border-block:1px solid rgba(242,239,232,.12);padding-block:1.25rem}
+@media (min-width:40rem){.bdone dl{grid-template-columns:1fr 1fr}}
+.bdone dt{font-size:var(--t-meta);letter-spacing:.14em;text-transform:uppercase;color:var(--ash)}
+.bdone dd{margin-top:.3rem}
+.bactions{margin-top:1.75rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+
 /* ---------- Sheet: drag to dismiss, springs both ways ---------- */
 .sheet{position:fixed;inset:0;width:100%;height:100dvh;margin:0;overflow:hidden}
 .sheet .scrim{position:absolute;inset:0;background:rgba(10,10,10,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0}
@@ -428,13 +496,17 @@ ul.dash li::before{content:"";flex:none;width:.75rem;height:1px;margin-top:.6em;
   .js .hero .bg .media{animation:none}
   .card .media img,.card:hover .media img{transform:none}
   .stage-pin .frame .media{transform:none!important}
-  .btn:active,.press:active,.card:active,.choice:active{transform:none}
+  .btn:active,.press:active,.card:active,.choice:active,.btype:active,.day:active,.slot:active{transform:none}
+  .slots.enter>*{animation:fadeOnly .25s both}
+  .bdone .tick svg{animation:none;stroke-dashoffset:0}
 }
+@keyframes fadeOnly{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-transparency:reduce){
   .header.scrolled{background:var(--ink);backdrop-filter:none;-webkit-backdrop-filter:none}
   .menu-panel{background:var(--ink);backdrop-filter:none;-webkit-backdrop-filter:none}
   .sheet .scrim{background:rgba(10,10,10,.85);backdrop-filter:none;-webkit-backdrop-filter:none}
   .card .play{background:var(--paper);backdrop-filter:none}
+  .bbar{background:var(--charcoal);backdrop-filter:none;-webkit-backdrop-filter:none}
 }
 @media (prefers-contrast:more){
   .muted,.light .muted,.stone-bg .muted{color:inherit}
@@ -489,6 +561,7 @@ ul.dash li::before{content:"";flex:none;width:.75rem;height:1px;margin-top:.6em;
       </nav>
       <div class="menu-foot">
         <a class="btn btn-solid" href="#enquire">Partner with Andile</a>
+        <a class="btn btn-line" href="#book">Book a call</a>
         <p class="meta muted">Media • Culture • Sport • Lifestyle</p>
       </div>
     </div>
@@ -781,7 +854,7 @@ ul.dash li::before{content:"";flex:none;width:.75rem;height:1px;margin-top:.6em;
         <li><span><span class="display" style="display:block;font-size:1.35rem;line-height:1">Show information</span><span class="hint">One-page overview of The House That Andile Built.</span></span><span class="meta muted">On request — file not yet supplied</span></li>
         <li><span><span class="display" style="display:block;font-size:1.35rem;line-height:1">Partnership deck</span><span class="hint">The Flagship, the Slate and the Sponsor Engine, with category inventory.</span></span><a class="btn-text meta" href="#deck">Request the deck</a></li>
       </ul></div>
-      <div class="press-block"><h3 class="display t-card">Media contact</h3><div><p class="muted" style="max-width:36rem">A dedicated media contact will be listed here. Until then, send media requests through the enquiry form and choose “Media Partnership”.</p><a class="btn btn-ink" style="margin-top:1.5rem" href="#enquire" data-opportunity="media-partnership">Media enquiry {{ICON_ARROW}}</a></div></div>
+      <div class="press-block"><h3 class="display t-card">Media contact</h3><div><p class="muted" style="max-width:36rem">A dedicated media contact will be listed here. Until then, send media requests through the enquiry form and choose “Media Partnership”.</p><div style="margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:.75rem"><a class="btn btn-ink" href="#book" data-booktype="media-request">Book a media call {{ICON_ARROW}}</a><a class="btn btn-line" href="#enquire" data-opportunity="media-partnership">Media enquiry</a></div></div></div>
     </div>
   </div>
 </section>
@@ -805,12 +878,72 @@ ul.dash li::before{content:"";flex:none;width:.75rem;height:1px;margin-top:.6em;
           <div><button class="btn btn-ink" type="submit">Request the deck {{ICON_ARROW}}</button></div>
         </form>
         <div id="deck-done" hidden role="status" tabindex="-1" style="width:100%;border-top:1px solid rgba(10,10,10,.2);padding-top:1.5rem;outline:none"><p class="display t-card">Request ready.</p><p class="notice" style="margin-top:1rem">This downloadable edition is not connected to a server, so the request was checked but not sent anywhere.</p></div>
-        <a class="btn-text meta" href="#enquire" data-opportunity="other" data-track="partnership_start" data-source="request_call">Request a partnership call →</a>
+        <a class="btn-text meta" href="#book" data-booktype="partnership-call" data-track="booking_start" data-source="request_call">Request a partnership call →</a>
       </div>
     </div>
     <div class="c6" style="display:grid;grid-template-columns:3fr 2fr;gap:.75rem;align-items:end">
       <div class="media r-34 wipe">{{img IMG_6890 focus="58% 40%"}}</div>
       <div class="media r-34 rv">{{img IMG_6909 focus="68% 30%"}}</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Book a call ============ -->
+<section class="dark section" id="book" aria-labelledby="book-title">
+  <div class="wrap g g-12">
+    <div class="c4"><div class="sticky-lg">
+      <p class="meta muted eyebrow rv">Book a call</p>
+      <h2 class="display t-section lines" id="book-title" style="margin-top:2rem"><span class="mask"><span>Talk it</span></span><span class="mask"><span>through.</span></span></h2>
+      <p class="muted rv" style="margin-top:2rem;max-width:24rem">Pick the kind of call, a day and a time. Times are shown in South African time, and in yours if it differs.</p>
+      <div class="rv" style="margin-top:2rem;max-width:24rem"><span class="tag">Fixture</span><p class="hint" style="margin-top:.75rem">Sample availability. This edition is not connected to a calendar, so a request is checked and kept on this device, but nothing is booked.</p></div>
+    </div></div>
+    <div class="c8">
+      <div class="book-card" id="booking">
+        <form id="book-form" novalidate>
+          <fieldset class="bstep" style="border:0;padding:0;margin:0">
+            <legend class="bstep-h" style="width:100%"><h3><span class="n">01</span>What kind of call?</h3></legend>
+            <div class="btypes">{{BOOKING_TYPES}}</div>
+          </fieldset>
+          <div class="bstep">
+            <div class="bstep-h"><h3 id="b-day-h"><span class="n">02</span>Choose a day</h3><div style="display:flex;align-items:center;gap:1rem"><p class="meta muted" id="b-month" aria-live="polite"></p><div class="rail-btns"><button type="button" data-prev aria-label="Earlier days">{{ICON_LEFT}}</button><button type="button" data-next aria-label="Later days">{{ICON_RIGHT}}</button></div></div></div>
+            <div class="rail-view days-view" tabindex="0" role="group" aria-labelledby="b-day-h"><ul class="rail-track days-track" id="b-days"></ul></div>
+          </div>
+          <div class="bstep">
+            <div class="bstep-h"><h3 id="b-time-h"><span class="n">03</span>Choose a time</h3><p class="meta muted" id="b-count" aria-live="polite"></p></div>
+            <p class="tznote" id="b-tz"></p>
+            <div class="slots" id="b-slots" role="radiogroup" aria-labelledby="b-time-h"></div>
+            <p class="bempty" id="b-empty" hidden></p>
+          </div>
+          <div class="bdetails" id="b-details"><div>
+            <div class="bstep" style="margin-top:2rem;padding-top:2rem;border-top:1px solid rgba(242,239,232,.1)">
+              <div class="bstep-h"><h3><span class="n">04</span>Your details</h3></div>
+              <div class="two-col" style="margin-top:1.25rem">
+                <div class="field"><label for="b-name">Your name</label><input id="b-name" name="name" autocomplete="name" aria-describedby="be-name"><p class="err" id="be-name" hidden></p></div>
+                <div class="field"><label for="b-co">Company</label><input id="b-co" name="company" autocomplete="organization" aria-describedby="be-company"><p class="err" id="be-company" hidden></p></div>
+                <div class="field"><label for="b-email">Work email</label><input id="b-email" name="email" type="email" autocomplete="email" aria-describedby="be-email"><p class="err" id="be-email" hidden></p></div>
+                <div class="field"><label for="b-note">What would you like to cover?<span class="opt">(optional)</span></label><input id="b-note" name="note" maxlength="300"></div>
+              </div>
+              <label class="consent" style="margin-top:1.5rem"><input type="checkbox" name="consent" value="yes" aria-describedby="be-consent"><span>I agree that these details may be used to arrange this call.</span></label>
+              <p class="err" id="be-consent" hidden></p>
+            </div>
+          </div></div>
+          <div class="bbar" id="b-bar" hidden>
+            <p class="sum" id="b-sum" aria-live="polite"></p>
+            <button class="btn btn-solid" type="submit" id="b-submit">Request this time {{ICON_ARROW}}</button>
+          </div>
+        </form>
+        <div class="bdone" id="b-done" hidden role="status" tabindex="-1" style="outline:none">
+          <div class="tick">{{ICON_CHECK}}</div>
+          <p class="display t-card" style="margin-top:1.5rem">Time requested.</p>
+          <p class="notice" style="margin-top:1rem;color:var(--ash)">Sample calendar: nothing was booked and no one was notified. The request is kept on this device so you can see the slot marked as yours.</p>
+          <dl id="b-done-list"></dl>
+          <div class="bactions">
+            <button class="btn btn-solid" type="button" id="b-ics">Add tentative hold (.ics) {{ICON_DOWN}}</button>
+            <button class="btn btn-line" type="button" id="b-change">Change time</button>
+            <button class="btn-text meta" type="button" id="b-cancel">Cancel request</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -854,7 +987,7 @@ ul.dash li::before{content:"";flex:none;width:.75rem;height:1px;margin-top:.6em;
 <footer class="footer dark">
   <div class="wrap top">
     <div><p class="meta muted">The House That Andile Built</p><p class="display t-section" style="margin-top:1rem">Andile Ncube</p><p class="muted" style="margin-top:1rem">A broadcaster building something he owns.</p><a class="btn btn-solid" href="#enquire" style="margin-top:2rem">Partner with Andile</a></div>
-    <nav aria-label="Footer" class="meta"><ul><li><a href="#house">The House</a></li><li><a href="#flagship">The Flagship</a></li><li><a href="#slate">The Slate</a></li><li><a href="#partners">Partners</a></li><li><a href="#story">The Story</a></li><li><a href="#journal">Journal</a></li><li><a href="#press">Press / Media</a></li><li><a href="#enquire">Contact</a></li></ul></nav>
+    <nav aria-label="Footer" class="meta"><ul><li><a href="#house">The House</a></li><li><a href="#flagship">The Flagship</a></li><li><a href="#slate">The Slate</a></li><li><a href="#partners">Partners</a></li><li><a href="#story">The Story</a></li><li><a href="#journal">Journal</a></li><li><a href="#press">Press / Media</a></li><li><a href="#book">Book a call</a></li><li><a href="#enquire">Contact</a></li></ul></nav>
     <nav aria-label="Downloads" class="meta"><ul><li><a href="#press">Press kit</a></li><li><a href="#deck">Partnership deck</a></li></ul></nav>
   </div>
   <div class="wrap base"><p class="meta">© Andile Ncube. The show, the audience and the IP belong to Andile.</p><p class="meta">Production &amp; commercial engine: LegacyLeverage</p></div>
@@ -881,6 +1014,8 @@ const IMAGES = {{IMAGES}};
 const IMAGE_META = {{IMAGE_META}};
 const SPONSORS = {{SPONSORS_JSON}};
 const ENQUIRY_ENDPOINT = ""; // Set to a URL (e.g. the Next.js site's /api/partnership) to send enquiries for real.
+const BOOKING = {{BOOKING_JSON}};
+const BOOKING_ENDPOINT = ""; // Set to a scheduling API to make requests real; until then availability is the fixture above.
 </script>
 <script>
 (() => {
@@ -890,7 +1025,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
 /* ---------------- Analytics boundary ---------------- */
-const funnel = { watch_click: "watch_explore", slate_click: "watch_explore", sponsor_category_view: "watch_explore", partnership_start: "partnership", deck_download: "partnership", partnership_complete: "enquiry" };
+const funnel = { booking_start: "partnership", booking_slot_select: "partnership", booking_request: "enquiry", watch_click: "watch_explore", slate_click: "watch_explore", sponsor_category_view: "watch_explore", partnership_start: "partnership", deck_download: "partnership", partnership_complete: "enquiry" };
 function track(event, props = {}) {
   const detail = { event, funnel_step: funnel[event] || null, ...props };
   (window.dataLayer = window.dataLayer || []).push(detail);
@@ -899,6 +1034,8 @@ function track(event, props = {}) {
 document.addEventListener("click", (e) => {
   const el = e.target.closest("[data-track]");
   if (el) track(el.dataset.track, { source: el.dataset.source || null, cta: el.dataset.cta || null });
+  const bt = e.target.closest("[data-booktype]");
+  if (bt) Booking.prefill(bt.dataset.booktype);
   const opp = e.target.closest("[data-opportunity]");
   if (opp) Enquiry.prefill(opp.dataset.opportunity, opp.dataset.category);
 });
@@ -1054,7 +1191,7 @@ class Rail {
     this.snaps = [...new Set(this.snaps.map((s) => Math.round(s)))];
   }
   clamp(x) { return Math.max(this.min, Math.min(0, x)); }
-  set(x) { this.x = x; this.track.style.transform = `translate3d(${x}px,0,0)`; }
+  set(x) { this.x = x; this.track.style.transform = `translate3d(${x}px,0,0)`; this.onMove && this.onMove(x); }
   update() { this.prev.disabled = this.x > -2; this.next.disabled = this.x < this.min + 2; }
   nearest(x) { return this.snaps.reduce((a, b) => (Math.abs(b - x) < Math.abs(a - x) ? b : a), this.snaps[0] ?? 0); }
   go(to, velocity = 0, bounce = false) {
@@ -1112,6 +1249,7 @@ class Rail {
   }
 }
 $$("[data-rail]").forEach((r) => new Rail(r));
+{{BOOKING_JS}}
 
 /* ---------------- Sponsor Engine ---------------- */
 const viewed = new Set();

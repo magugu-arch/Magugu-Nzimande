@@ -25,6 +25,7 @@ const { stories } = await load("stories.ts");
 const { headshots, pressPhotographs } = await load("press.ts");
 const { opportunities, budgetRanges, objectives } = await load("enquiry.ts");
 const { site } = await load("site.ts");
+const { booking } = await load("booking.ts");
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const ascii = (s) => s.replace(/[—–]/g, "-").replace(/[’‘]/g, "'").replace(/[“”]/g, '"').replace(/[^\x20-\x7e]/g, "");
@@ -163,6 +164,13 @@ const stepsHtml = steps
   .map((body, i) => `<div class="step"${i ? " hidden" : ""}><h3 class="display t-card" tabindex="-1"${i === 0 ? ' id="step-q"' : ""}>${stepTitles[i]}</h3>${body}</div>`)
   .join("\n");
 
+/* ------------------------------------------------------------------ booking */
+const bookingTypes = booking.types
+  .map(
+    (t) => `<label class="btype"><input type="radio" name="btype" value="${t.id}"><span class="bt-top"><span class="bt-name">${esc(t.name)}</span><span class="meta" style="opacity:.75">${t.minutes} min</span></span><span class="bt-sum">${esc(t.summary)}</span><span class="meta" style="display:block;margin-top:.6rem;opacity:.7">${esc(t.format)}</span></label>`,
+  )
+  .join("");
+
 /* ------------------------------------------------------------------ sheet content */
 const episodeTemplates = episodes
   .map(
@@ -232,6 +240,7 @@ const buildInfo = {
   imageProcessing: "levels (0.05–99.7 pct), contrast 1.04, saturation 1.03, unsharp (σ 0.7); WebP q80; EXIF + XMP embedded",
   fonts: ["Archivo (SIL OFL 1.1)", "Instrument Serif (SIL OFL 1.1)"],
   enquiry: "Not connected — set ENQUIRY_ENDPOINT in the page script to send enquiries.",
+  booking: "Fixture availability from data/booking.ts — set BOOKING_ENDPOINT to connect a real scheduler.",
 };
 const imageMeta = Object.fromEntries(Object.values(media).map((a) => [a.id, { alt: a.alt, focus: a.focus, role: a.role }]));
 const sponsorsJson = sponsorCategories.map((c) => ({ ...c, image: c.images[0] }));
@@ -259,6 +268,9 @@ const tokens = {
   IMAGES: json(images),
   IMAGE_META: json(imageMeta),
   SPONSORS_JSON: json(sponsorsJson),
+  BOOKING_JSON: json(booking),
+  BOOKING_TYPES: bookingTypes,
+  BOOKING_JS: readFileSync(path.join(here, "booking.js"), "utf8"),
 };
 
 let html = readFileSync(path.join(here, "template.html"), "utf8");
