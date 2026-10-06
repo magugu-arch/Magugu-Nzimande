@@ -28,7 +28,7 @@ export function ChapterIntro() {
           <div className="lg:col-span-5 lg:pt-24">
             <div data-clip="">
               <Media
-                id="IMG_6891"
+                id="IMG_6165"
                 sizes="(min-width: 1024px) 40vw, 100vw"
                 className="aspect-[4/5]"
                 motion="scale"

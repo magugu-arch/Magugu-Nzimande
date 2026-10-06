@@ -8,6 +8,11 @@
  */
 
 export type MediaId =
+  | "IMG_6160"
+  | "IMG_6161"
+  | "IMG_6165"
+  | "IMG_6166"
+  | "IMG_6167"
   | "IMG_6889"
   | "IMG_6890"
   | "IMG_6891"

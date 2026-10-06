@@ -94,21 +94,21 @@ export const houseStages: HouseStage[] = [
     label: "Vision",
     heading: "It starts as an idea on paper.",
     body: "Plans, references and the decision to build something that belongs to him — on camera, from the first sketch.",
-    image: "IMG_6890",
+    image: "IMG_6166",
   },
   {
     id: "foundation",
     label: "Foundation",
     heading: "Materials, choices, consequences.",
     body: "Every material, fitting and trade decision is a scene. The category partners live here, inside the work rather than beside it.",
-    image: "IMG_6895",
+    image: "IMG_6160",
   },
   {
     id: "build",
     label: "Build",
     heading: "Transparent, on site, in progress.",
     body: "The build is shown as it happens — the people, the problems and the fixes — so the audience earns the reveal with him.",
-    image: "IMG_6898",
+    image: "IMG_6894",
   },
   {
     id: "reveal",
@@ -122,7 +122,7 @@ export const houseStages: HouseStage[] = [
     label: "Ownership",
     heading: "The house, the show, the audience.",
     body: "What is built stays built. The series, the audience relationship and the IP are his to keep and extend.",
-    image: "IMG_6894",
+    image: "IMG_6161",
   },
 ];
 

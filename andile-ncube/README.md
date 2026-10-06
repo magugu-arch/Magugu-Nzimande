@@ -99,27 +99,29 @@ dressed up as real.
 
 ## Image library
 
-The brief lists 27 images. **Twenty-two have been supplied: IMG_6889–IMG_6910**,
-saved under their brief filenames in `public/images/` and placed as the brief
-maps them — e.g. IMG_6910 is the phone hero, IMG_6905 leads the Flagship and the
-short-form multiplier, IMG_6908 (Johannesburg) sits in the Lifestyle slate,
-IMG_6909 (co-production) in Build with us. IMG_6897 was supplied as a 6 MB PNG
-and is stored as a 2400 px JPEG; Next.js serves every image as AVIF/WebP with
-responsive `srcset`.
+All 27 images the brief names are in `public/images/` under their brief
+filenames (IMG_6889–IMG_6910 and IMG_6160, 6161, 6165, 6166, 6167) and placed as
+its image mapping directs. For example:
 
-**Not yet supplied: IMG_6160, IMG_6161, IMG_6165, IMG_6166, IMG_6167.** Where
-the brief names one of these, a supplied image stands in:
+| Image | Placement |
+| --- | --- |
+| IMG_6889 / IMG_6910 | Homepage hero — landscape on wide screens, the vertical portrait on phones |
+| IMG_6165 (keyhole) | Chapter 01 intro, press headshots |
+| IMG_6166 → IMG_6160 → IMG_6894 → IMG_6897 → IMG_6161 | House build story: Vision → Foundation → Build → Reveal → Ownership |
+| IMG_6905, IMG_6907, IMG_6906 | Flagship; IMG_6905 also leads the short-form multiplier |
+| IMG_6896, IMG_6908, IMG_6161 | Slate — Lifestyle |
+| IMG_6903 | Slate — Sport |
+| IMG_6902, IMG_6909 | Sponsor Engine, Build with us |
+| IMG_6891, IMG_6910, IMG_6167, IMG_6904 | Story and Press |
 
-| Brief asks for | Used instead | Where |
-| --- | --- | --- |
-| IMG_6165 (keyhole, chapter intro) | IMG_6891 (seated portrait) | Chapter 01 |
-| IMG_6166, IMG_6160, IMG_6161 (build stages, finished interior) | IMG_6890, IMG_6895, IMG_6898, IMG_6894 | House build story |
-| IMG_6161 (interior, lifestyle) | IMG_6897 | Slate — Lifestyle |
-| IMG_6167 (architectural portrait, story/press) | IMG_6904 | Story hero, press headshots |
+IMG_6897 (supplied as a 6 MB PNG) is stored as a 2400 px JPEG, and the PNGs
+among IMG_6160–IMG_6167 as JPEGs. Next.js serves every image as AVIF/WebP with
+responsive `srcset`. An extra 363×460 studio portrait was also supplied; it is
+too small for any slot on the site, so it is not used.
 
-To add them: copy the files into `public/images/`, add the IDs to `MediaId` in
-`lib/types.ts` and entries to `data/media.ts` (with alt text and a focal
-point), then point the relevant data at them.
+To add or swap an image: copy it into `public/images/`, add its ID to `MediaId`
+in `lib/types.ts` and an entry to `data/media.ts` (with alt text and a focal
+point), then point the relevant data at it.
 
 ## Partnership enquiry
 

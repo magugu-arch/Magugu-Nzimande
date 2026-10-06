@@ -33,7 +33,7 @@ export default function StoryPage() {
       <section aria-labelledby="bio-title" className="theme-light bg-paper py-24 text-ink md:py-36">
         <Motion className="container-site grid gap-12 lg:grid-cols-12">
           <div className="lg:col-span-5" data-clip="">
-            <Media id="IMG_6910" sizes="(min-width: 1024px) 40vw, 100vw" className="aspect-[4/5]" motion="scale" />
+            <Media id="IMG_6167" sizes="(min-width: 1024px) 40vw, 100vw" className="aspect-[4/5]" motion="scale" />
           </div>
           <div className="lg:col-span-6 lg:col-start-7 lg:pt-16">
             <div className="flex items-center gap-3" data-reveal="">
@@ -64,7 +64,7 @@ export default function StoryPage() {
         <p>Broadcast credibility is the foundation. The next move turns that credibility into something owned.</p>
       </ImageFeature>
 
-      <ImageFeature eyebrow="The next move" title={["Build the platform,", "not just appear on it."]} image="IMG_6909" reverse tone="stone">
+      <ImageFeature eyebrow="The next move" title={["Build the platform,", "not just appear on it."]} image="IMG_6166" reverse tone="stone">
         <p>The House That Andile Built is where that begins: a show he owns, about something he is building.</p>
         <p>
           <Link href="/house" className={`${buttonClass.text} text-ink`}>

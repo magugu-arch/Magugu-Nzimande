@@ -13,7 +13,7 @@ export const showInformation = {
   body: "A flagship series following the build — vision, foundation, build, reveal and ownership — produced on a weekly cadence with a cinematic long-form edit and a short-form multiplier. LegacyLeverage is the production and commercial engine; Andile owns the show, the audience and the IP.",
 };
 
-export const headshots: MediaId[] = ["IMG_6891", "IMG_6910", "IMG_6904"];
+export const headshots: MediaId[] = ["IMG_6891", "IMG_6910", "IMG_6167", "IMG_6165"];
 
 export const pressPhotographs: MediaId[] = [
   "IMG_6893",

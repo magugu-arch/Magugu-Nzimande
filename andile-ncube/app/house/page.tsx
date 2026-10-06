@@ -24,8 +24,8 @@ export default function HousePage() {
         eyebrow="The House That Andile Built"
         title={["The house", "is the show."]}
         lede="A real build, documented from the first plan to the keys."
-        image="IMG_6894"
-        focus="40% 35%"
+        image="IMG_6898"
+        focus="58% 30%"
       >
         <TrackedLink href={ctas.watch.href} event="watch_click" eventProps={{ source: "house_hero" }} className={buttonClass.solid}>
           {ctas.watch.label}
@@ -44,7 +44,7 @@ export default function HousePage() {
           </Link>
         </p>
       </ImageFeature>
-      <ImageFeature eyebrow="On site" title={["Transparent", "by design."]} image="IMG_6898" reverse tone="dark">
+      <ImageFeature eyebrow="On site" title={["Transparent", "by design."]} image="IMG_6890" reverse tone="dark">
         <p>
           The build is shown with the people doing it: the trades, the advisers and the problems solved along the way.
           The audience follows the work, not a finished set.

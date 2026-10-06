@@ -11,7 +11,7 @@ const extension = (src: string) => src.split(".").pop()?.toUpperCase() ?? "";
 /** Downloadable photographs: the supplied original file, at full resolution. */
 export function PhotoDownloads({ ids, kind }: { ids: MediaId[]; kind: "headshot" | "press_photo" }) {
   return (
-    <ul className="grid grid-cols-2 gap-4 md:grid-cols-3">
+    <ul className={`grid grid-cols-2 gap-4 ${kind === "headshot" ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
       {ids.map((id) => {
         const asset = getMedia(id);
         return (

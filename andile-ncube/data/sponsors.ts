@@ -28,7 +28,7 @@ export const sponsorCategories: SponsorCategory[] = [
       "Integrated segment per episode",
       "Short-form cut-downs for partner channels",
     ],
-    images: ["IMG_6894", "IMG_6895", "IMG_6898"],
+    images: ["IMG_6894", "IMG_6160", "IMG_6895", "IMG_6898"],
   },
   {
     slug: "home-finance",
@@ -96,7 +96,7 @@ export const sponsorCategories: SponsorCategory[] = [
       "Living-with-it follow-ups",
     ],
     inventory: ["Feature integration", "Walkthrough segments", "Short-form demos"],
-    images: ["IMG_6897", "IMG_6899"],
+    images: ["IMG_6161", "IMG_6897"],
   },
   {
     slug: "insurance-services",

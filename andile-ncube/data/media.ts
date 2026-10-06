@@ -1,12 +1,55 @@
 import type { MediaAsset, MediaId } from "@/lib/types";
 
 /**
- * The supplied image library. Filenames follow the brief's numbering.
- * IMG_6889–IMG_6910 have been supplied; IMG_6160–IMG_6167 have not, and where
- * the brief names one of those the closest supplied image stands in (see the
- * mapping in README.md).
+ * The supplied image library: all 27 images the brief names, under the
+ * brief's filenames, placed as its image mapping directs.
  */
 export const media: Record<MediaId, MediaAsset> = {
+  IMG_6160: {
+    id: "IMG_6160",
+    src: "/images/IMG_6160.jpeg",
+    width: 1376,
+    height: 768,
+    alt: "Andile standing inside the unfinished concrete-and-brick shell of a building, scaffolding and light behind him.",
+    role: "The build",
+    focus: "28% 35%",
+  },
+  IMG_6161: {
+    id: "IMG_6161",
+    src: "/images/IMG_6161.jpeg",
+    width: 1376,
+    height: 768,
+    alt: "Andile in a grey suit beside tall windows in a refined concrete and oak interior.",
+    role: "Lifestyle / house",
+    focus: "68% 35%",
+  },
+  IMG_6165: {
+    id: "IMG_6165",
+    src: "/images/IMG_6165.jpeg",
+    width: 1672,
+    height: 941,
+    alt: "Andile seen through a keyhole-shaped opening, seated in a grey suit beneath a single lamp.",
+    role: "Vision / reveal",
+    focus: "50% 45%",
+  },
+  IMG_6166: {
+    id: "IMG_6166",
+    src: "/images/IMG_6166.jpeg",
+    width: 814,
+    height: 941,
+    alt: "Andile in a grey suit looking out from inside an unfinished brick and concrete structure.",
+    role: "The build",
+    focus: "45% 25%",
+  },
+  IMG_6167: {
+    id: "IMG_6167",
+    src: "/images/IMG_6167.jpeg",
+    width: 698,
+    height: 940,
+    alt: "Andile Ncube in a grey suit beside a window and bare concrete column.",
+    role: "Editorial portrait",
+    focus: "45% 20%",
+  },
   IMG_6889: {
     id: "IMG_6889",
     src: "/images/IMG_6889.webp",
