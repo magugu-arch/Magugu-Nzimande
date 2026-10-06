@@ -30,17 +30,17 @@ export function PageHero({ eyebrow, title, intro, media, focal, mobileFocal, ove
         </div>
       )}
       <div className={`container ${styles.inner}`}>
-        <p className="eyebrow eyebrow-accent" data-reveal>
+        <p className="eyebrow eyebrow-accent" data-reveal="now">
           {eyebrow}
         </p>
-        <RevealText as="h1" id="page-title" lines={title} className={`display ${size === 'short' ? 'display-m' : 'display-l'} ${styles.title}`} delay={80} />
+        <RevealText as="h1" id="page-title" lines={title} className={`display ${size === 'short' ? 'display-m' : 'display-l'} ${styles.title}`} delay={80} immediate />
         {intro && (
-          <div className={`lede ${styles.intro}`} data-reveal style={{ '--reveal-delay': 300 } as CSSProperties}>
+          <div className={`lede ${styles.intro}`} data-reveal="now" style={{ '--reveal-delay': 300 } as CSSProperties}>
             {intro}
           </div>
         )}
         {actions && (
-          <div className={styles.actions} data-reveal style={{ '--reveal-delay': 420 } as CSSProperties}>
+          <div className={styles.actions} data-reveal="now" style={{ '--reveal-delay': 420 } as CSSProperties}>
             {actions}
           </div>
         )}

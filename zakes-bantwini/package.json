@@ -19,7 +19,8 @@
     "db:migrate": "tsx scripts/db-migrate.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "seed:demo": "tsx --conditions=react-server scripts/seed-demo.ts",
-    "smoke": "node e2e/smoke.mjs"
+    "smoke": "node e2e/smoke.mjs",
+    "perf": "node e2e/perf.mjs"
   },
   "dependencies": {
     "motion": "^14.0.0",

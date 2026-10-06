@@ -353,6 +353,42 @@ ul[role='list'] {
   html.js [data-reveal='lines'].is-revealed .line > span {
     transform: none;
   }
+
+  /* Above the fold: the same entrance, run by CSS from the first paint
+     instead of waiting for hydration and the observer. On a throttled phone
+     that wait was ~3 s of hero copy sitting invisible (and LCP with it). */
+  html.js [data-reveal='now'] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: reveal-rise var(--dur) var(--ease-out) both;
+    animation-delay: calc(var(--reveal-delay, 0) * 1ms);
+  }
+
+  html.js [data-reveal='lines-now'] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  html.js [data-reveal='lines-now'] .line > span {
+    display: inline-block;
+    animation: reveal-line 1100ms var(--ease-out) both;
+    animation-delay: calc((var(--reveal-delay, 0) + var(--line-index, 0) * 90) * 1ms);
+  }
+}
+
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+}
+
+@keyframes reveal-line {
+  from {
+    transform: translate3d(0, 105%, 0);
+  }
 }
 
 .line {

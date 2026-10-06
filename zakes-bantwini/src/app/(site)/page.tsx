@@ -43,14 +43,14 @@ export default async function HomePage() {
           </HeroMotion>
         </div>
         <div className={`container ${styles.heroInner}`}>
-          <p className="eyebrow eyebrow-accent" data-reveal style={{ '--reveal-delay': 200 } as CSSProperties}>
+          <p className="eyebrow eyebrow-accent" data-reveal="now" style={{ '--reveal-delay': 200 } as CSSProperties}>
             The Architect
           </p>
-          <RevealText as="h1" id="hero-title" lines={['Zakes', 'Bantwini']} className={`display display-xl ${styles.heroTitle}`} delay={100} />
-          <p className={`statement ${styles.heroLine}`} data-reveal style={{ '--reveal-delay': 500 } as CSSProperties}>
+          <RevealText as="h1" id="hero-title" lines={['Zakes', 'Bantwini']} className={`display display-xl ${styles.heroTitle}`} delay={100} immediate />
+          <p className={`statement ${styles.heroLine}`} data-reveal="now" style={{ '--reveal-delay': 500 } as CSSProperties}>
             {SITE_LINE.split('. ')[0]}. <em>{SITE_LINE.split('. ')[1]}</em>
           </p>
-          <div className={styles.heroActions} data-reveal style={{ '--reveal-delay': 650 } as CSSProperties}>
+          <div className={styles.heroActions} data-reveal="now" style={{ '--reveal-delay': 650 } as CSSProperties}>
             <ButtonLink href="/book" cursor="Book">
               Book Zakes
             </ButtonLink>

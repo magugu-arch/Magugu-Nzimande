@@ -7,12 +7,14 @@ type Props = {
   className?: string;
   delay?: number;
   id?: string;
+  /** Above the fold: animate from the first paint rather than on scroll-in. */
+  immediate?: boolean;
 };
 
 /** Masked line-by-line type reveal (brief §10 MOTION: hero masked type). */
-export function RevealText({ lines, as: Tag = 'h2', className, delay = 0, id }: Props) {
+export function RevealText({ lines, as: Tag = 'h2', className, delay = 0, id, immediate = false }: Props) {
   return (
-    <Tag className={className} data-reveal="lines" style={{ '--reveal-delay': delay } as CSSProperties} id={id}>
+    <Tag className={className} data-reveal={immediate ? 'lines-now' : 'lines'} style={{ '--reveal-delay': delay } as CSSProperties} id={id}>
       {lines.map((line, i) => (
         <span className="line" key={i} style={{ '--line-index': i } as CSSProperties}>
           <span>{line}</span>

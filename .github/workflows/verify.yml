@@ -138,6 +138,11 @@ jobs:
       - name: Smoke test
         run: npm run smoke
 
+      # Brief §11: every key page cold over Slow 4G with a 4x slower CPU, held
+      # to LCP <= 4 s, CLS <= 0.1 and a page-weight budget.
+      - name: Mobile performance budget
+        run: npm run perf
+
       - name: Keep smoke screenshots
         if: always()
         uses: actions/upload-artifact@v4
