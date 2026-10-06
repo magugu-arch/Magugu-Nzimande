@@ -1,0 +1,54 @@
+.hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.tall {
+  min-height: 100svh;
+}
+
+.medium {
+  min-height: clamp(560px, 82svh, 920px);
+}
+
+.short {
+  min-height: clamp(420px, 56svh, 620px);
+}
+
+.plain {
+  min-height: auto;
+  padding-top: calc(var(--header-h) + clamp(48px, 10vw, 140px));
+  border-bottom: 1px solid var(--line);
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.inner {
+  padding-top: calc(var(--header-h) + 40px);
+  padding-bottom: clamp(40px, 7vh, 96px);
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+}
+
+.title {
+  max-width: 14ch;
+}
+
+.intro {
+  max-width: 42ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}

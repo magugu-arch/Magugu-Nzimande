@@ -1,0 +1,50 @@
+{
+  "name": "zakes-bantwini",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/build-images.mjs",
+    "dev": "next dev",
+    "prebuild": "node scripts/build-images.mjs",
+    "build": "next build",
+    "start": "next start",
+    "images": "node scripts/build-images.mjs",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "verify": "npm run typecheck && npm run lint && npm test && npm run content:audit && npm run build",
+    "content:audit": "tsx scripts/content-audit.ts",
+    "content:schema": "tsx scripts/content-schema.ts",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "smoke": "node e2e/smoke.mjs"
+  },
+  "dependencies": {
+    "motion": "^14.0.0",
+    "next": "^16.3.8",
+    "pg": "^8.23.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.8",
+    "playwright": "^1.63.0",
+    "sharp": "^0.35.5",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.3"
+  },
+  "description": "Zakes Bantwini — The Architect. Official digital headquarters: music, film, live, bookings, story and legacy.",
+  "engines": {
+    "node": ">=20.9"
+  }
+}

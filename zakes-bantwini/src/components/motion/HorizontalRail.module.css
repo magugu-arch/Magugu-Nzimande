@@ -1,0 +1,38 @@
+.pinSection {
+  position: relative;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  gap: clamp(20px, 3vw, 48px);
+  padding-inline: var(--gutter);
+  will-change: transform;
+}
+
+.native {
+  position: relative;
+}
+
+.nativeTrack {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 8px var(--gutter) 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+  overscroll-behavior-x: contain;
+}
+
+.nativeTrack > * {
+  scroll-snap-align: start;
+}

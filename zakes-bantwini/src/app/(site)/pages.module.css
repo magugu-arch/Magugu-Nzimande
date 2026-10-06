@@ -1,0 +1,315 @@
+/* Layouts shared by the interior pages. */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(32px, 6vw, 120px);
+  align-items: center;
+}
+
+.splitReverse {
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+}
+
+.splitReverse > :first-child {
+  order: 2;
+}
+
+.copy {
+  display: grid;
+  gap: 24px;
+  justify-items: start;
+}
+
+.copy h2 {
+  font-size: var(--step-4);
+  max-width: 18ch;
+}
+
+.band {
+  background: var(--charcoal);
+  border-block: 1px solid var(--line);
+}
+
+.fullBleed {
+  position: relative;
+  min-height: clamp(420px, 80svh, 860px);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.fullBleed > figure,
+.fullBleed > div:first-child {
+  z-index: -1;
+}
+
+.fullBleedInner {
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+  padding-block: clamp(48px, 8vw, 120px);
+}
+
+.fullBleedInner .statement {
+  font-size: var(--step-4);
+  max-width: 20ch;
+}
+
+.wide {
+  position: relative;
+  height: clamp(260px, 42vw, 600px);
+  overflow: hidden;
+}
+
+/* Card grid for releases, films and stories */
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(28px, 3vw, 48px) clamp(16px, 2vw, 32px);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(28px, 3vw, 48px) clamp(16px, 2vw, 32px);
+}
+
+.card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.card a {
+  display: grid;
+  gap: 14px;
+}
+
+.cardTitle {
+  font-family: var(--font-statement);
+  font-size: var(--step-2);
+  line-height: 1.1;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.featured {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: end;
+  margin-bottom: clamp(48px, 6vw, 96px);
+}
+
+.featured h2 {
+  font-size: var(--step-4);
+}
+
+/* Long-form prose */
+.prose {
+  display: grid;
+  gap: 1.2em;
+  max-width: 68ch;
+  color: var(--bone);
+  font-size: var(--step-1);
+  line-height: 1.65;
+}
+
+.prose h2 {
+  font-family: var(--font-statement);
+  font-weight: 400;
+  font-size: var(--step-3);
+  line-height: 1.1;
+  color: var(--warm-white);
+  margin-top: 0.8em;
+}
+
+.prose .statement {
+  color: var(--warm-white);
+  font-size: var(--step-3);
+  border-left: 1px solid var(--bronze);
+  padding-left: 24px;
+  margin-block: 0.6em;
+}
+
+.prose figure {
+  margin-block: 1em;
+}
+
+.prose figcaption {
+  font-size: var(--step--1);
+  color: var(--grey);
+  margin-top: 10px;
+}
+
+.chapterNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.chip:hover,
+.chip[aria-current='page'] {
+  border-color: var(--bone);
+  color: var(--warm-white);
+}
+
+.chip[aria-current='page'] {
+  background: var(--warm-white);
+  color: var(--black);
+}
+
+/* Chapters (Architect, Handover) */
+.chapter {
+  display: grid;
+  grid-template-columns: 8ch minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(20px, 4vw, 64px);
+  align-items: start;
+  padding-block: clamp(56px, 8vw, 128px);
+  border-top: 1px solid var(--line);
+}
+
+.chapterNum {
+  font-family: var(--font-display);
+  font-stretch: 118%;
+  font-weight: 560;
+  font-size: var(--step-3);
+  color: var(--bronze);
+  line-height: 1;
+}
+
+.chapterBody {
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+}
+
+.chapterBody :is(h2, h3) {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 560;
+  font-size: clamp(2rem, 1.1rem + 2.2vw, 3.6rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.kicker {
+  font-family: var(--font-statement);
+  font-style: italic;
+  font-size: var(--step-2);
+  color: var(--champagne);
+}
+
+.chapterMedia {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  border-top: 1px solid var(--line);
+}
+
+.facts > div {
+  padding: 20px 20px 20px 0;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+}
+
+.facts dt {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.downloads {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.downloads a,
+.downloads > li > span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.downloads a:hover {
+  color: var(--champagne);
+}
+
+.formWrap {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: start;
+}
+
+.form {
+  display: grid;
+  gap: 22px;
+}
+
+@media (max-width: 960px) {
+  .split,
+  .splitReverse,
+  .featured,
+  .formWrap {
+    grid-template-columns: 1fr;
+  }
+  .splitReverse > :first-child {
+    order: 0;
+  }
+  .grid3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .chapter {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .grid3,
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.arcRole {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 560;
+  font-size: clamp(1.15rem, 0.7rem + 1.1vw, 1.8rem);
+  line-height: 1;
+  text-transform: uppercase;
+}

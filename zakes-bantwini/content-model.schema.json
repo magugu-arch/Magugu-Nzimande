@@ -1,0 +1,1064 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Zakes Bantwini — content model",
+  "description": "Generated from src/content/schema.ts. Every editorial entry carries approval: approved | pending | placeholder.",
+  "$defs": {
+    "Album": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "album",
+            "ep",
+            "single",
+            "compilation",
+            "live"
+          ]
+        },
+        "year": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1990,
+              "maximum": 2100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "artwork": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "src": {
+                  "type": "string"
+                },
+                "alt": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "width": {
+                  "type": "number"
+                },
+                "height": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "src",
+                "alt",
+                "width",
+                "height"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mood": {
+          "type": "string",
+          "enum": [
+            "IMG_6848",
+            "IMG_6849",
+            "IMG_6850",
+            "IMG_6851",
+            "IMG_6852",
+            "IMG_6853",
+            "IMG_6854",
+            "IMG_6855",
+            "IMG_6856",
+            "IMG_6857",
+            "IMG_6858",
+            "IMG_6859",
+            "IMG_6860",
+            "IMG_6861",
+            "IMG_6862",
+            "IMG_6863",
+            "IMG_6864",
+            "IMG_6865",
+            "IMG_6866",
+            "IMG_6867",
+            "IMG_6868",
+            "IMG_6869",
+            "IMG_6870",
+            "IMG_6871",
+            "IMG_6872",
+            "IMG_6873",
+            "IMG_6874",
+            "IMG_6875",
+            "IMG_6876",
+            "IMG_6877",
+            "IMG_6878",
+            "IMG_6879",
+            "IMG_6880",
+            "IMG_6881",
+            "IMG_6882",
+            "IMG_6883",
+            "IMG_6884",
+            "IMG_6885",
+            "IMG_6886",
+            "IMG_6887",
+            "IMG_6888"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "credits": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "role",
+              "name"
+            ]
+          }
+        },
+        "tracks": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "durationSeconds": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "audioUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "isrc": {
+                "type": "string"
+              },
+              "featuring": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "title"
+            ]
+          }
+        },
+        "links": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "spotify": {
+              "type": "string",
+              "format": "uri"
+            },
+            "appleMusic": {
+              "type": "string",
+              "format": "uri"
+            },
+            "youtube": {
+              "type": "string",
+              "format": "uri"
+            },
+            "deezer": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "relatedVideos": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        },
+        "relatedStories": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        },
+        "approval": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "pending",
+            "placeholder"
+          ]
+        },
+        "editorNote": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "slug",
+        "title",
+        "kind",
+        "year",
+        "artwork",
+        "mood",
+        "description",
+        "approval"
+      ]
+    },
+    "Video": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "official",
+            "live",
+            "behind-the-scenes",
+            "film"
+          ]
+        },
+        "poster": {
+          "type": "string",
+          "enum": [
+            "IMG_6848",
+            "IMG_6849",
+            "IMG_6850",
+            "IMG_6851",
+            "IMG_6852",
+            "IMG_6853",
+            "IMG_6854",
+            "IMG_6855",
+            "IMG_6856",
+            "IMG_6857",
+            "IMG_6858",
+            "IMG_6859",
+            "IMG_6860",
+            "IMG_6861",
+            "IMG_6862",
+            "IMG_6863",
+            "IMG_6864",
+            "IMG_6865",
+            "IMG_6866",
+            "IMG_6867",
+            "IMG_6868",
+            "IMG_6869",
+            "IMG_6870",
+            "IMG_6871",
+            "IMG_6872",
+            "IMG_6873",
+            "IMG_6874",
+            "IMG_6875",
+            "IMG_6876",
+            "IMG_6877",
+            "IMG_6878",
+            "IMG_6879",
+            "IMG_6880",
+            "IMG_6881",
+            "IMG_6882",
+            "IMG_6883",
+            "IMG_6884",
+            "IMG_6885",
+            "IMG_6886",
+            "IMG_6887",
+            "IMG_6888"
+          ]
+        },
+        "source": {
+          "anyOf": [
+            {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "file"
+                    },
+                    "src": {
+                      "type": "string"
+                    },
+                    "mime": {
+                      "default": "video/mp4",
+                      "type": "string"
+                    },
+                    "captions": {
+                      "default": [],
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "src": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "lang": {
+                            "type": "string",
+                            "minLength": 2
+                          }
+                        },
+                        "required": [
+                          "src",
+                          "label",
+                          "lang"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "src"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "youtube"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[\\w-]{11}$"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "id"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "publishedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "relatedAlbum": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "approval": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "pending",
+            "placeholder"
+          ]
+        }
+      },
+      "required": [
+        "slug",
+        "title",
+        "kind",
+        "poster",
+        "source",
+        "publishedAt",
+        "description",
+        "approval"
+      ]
+    },
+    "Story": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "music",
+            "culture",
+            "live",
+            "people",
+            "studio",
+            "legacy"
+          ]
+        },
+        "standfirst": {
+          "type": "string"
+        },
+        "hero": {
+          "type": "string",
+          "enum": [
+            "IMG_6848",
+            "IMG_6849",
+            "IMG_6850",
+            "IMG_6851",
+            "IMG_6852",
+            "IMG_6853",
+            "IMG_6854",
+            "IMG_6855",
+            "IMG_6856",
+            "IMG_6857",
+            "IMG_6858",
+            "IMG_6859",
+            "IMG_6860",
+            "IMG_6861",
+            "IMG_6862",
+            "IMG_6863",
+            "IMG_6864",
+            "IMG_6865",
+            "IMG_6866",
+            "IMG_6867",
+            "IMG_6868",
+            "IMG_6869",
+            "IMG_6870",
+            "IMG_6871",
+            "IMG_6872",
+            "IMG_6873",
+            "IMG_6874",
+            "IMG_6875",
+            "IMG_6876",
+            "IMG_6877",
+            "IMG_6878",
+            "IMG_6879",
+            "IMG_6880",
+            "IMG_6881",
+            "IMG_6882",
+            "IMG_6883",
+            "IMG_6884",
+            "IMG_6885",
+            "IMG_6886",
+            "IMG_6887",
+            "IMG_6888"
+          ]
+        },
+        "body": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "p"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "text"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "h2"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "text"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "statement"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "text"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "image"
+                  },
+                  "media": {
+                    "type": "string",
+                    "enum": [
+                      "IMG_6848",
+                      "IMG_6849",
+                      "IMG_6850",
+                      "IMG_6851",
+                      "IMG_6852",
+                      "IMG_6853",
+                      "IMG_6854",
+                      "IMG_6855",
+                      "IMG_6856",
+                      "IMG_6857",
+                      "IMG_6858",
+                      "IMG_6859",
+                      "IMG_6860",
+                      "IMG_6861",
+                      "IMG_6862",
+                      "IMG_6863",
+                      "IMG_6864",
+                      "IMG_6865",
+                      "IMG_6866",
+                      "IMG_6867",
+                      "IMG_6868",
+                      "IMG_6869",
+                      "IMG_6870",
+                      "IMG_6871",
+                      "IMG_6872",
+                      "IMG_6873",
+                      "IMG_6874",
+                      "IMG_6875",
+                      "IMG_6876",
+                      "IMG_6877",
+                      "IMG_6878",
+                      "IMG_6879",
+                      "IMG_6880",
+                      "IMG_6881",
+                      "IMG_6882",
+                      "IMG_6883",
+                      "IMG_6884",
+                      "IMG_6885",
+                      "IMG_6886",
+                      "IMG_6887",
+                      "IMG_6888"
+                    ]
+                  },
+                  "caption": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "media"
+                ]
+              }
+            ]
+          }
+        },
+        "publishedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "approval": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "pending",
+            "placeholder"
+          ]
+        }
+      },
+      "required": [
+        "slug",
+        "title",
+        "category",
+        "standfirst",
+        "hero",
+        "body",
+        "publishedAt",
+        "approval"
+      ]
+    },
+    "Pillar": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": [
+            "festival",
+            "label",
+            "catalogue",
+            "academy",
+            "community"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "kicker": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "body": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "media": {
+          "type": "string",
+          "enum": [
+            "IMG_6848",
+            "IMG_6849",
+            "IMG_6850",
+            "IMG_6851",
+            "IMG_6852",
+            "IMG_6853",
+            "IMG_6854",
+            "IMG_6855",
+            "IMG_6856",
+            "IMG_6857",
+            "IMG_6858",
+            "IMG_6859",
+            "IMG_6860",
+            "IMG_6861",
+            "IMG_6862",
+            "IMG_6863",
+            "IMG_6864",
+            "IMG_6865",
+            "IMG_6866",
+            "IMG_6867",
+            "IMG_6868",
+            "IMG_6869",
+            "IMG_6870",
+            "IMG_6871",
+            "IMG_6872",
+            "IMG_6873",
+            "IMG_6874",
+            "IMG_6875",
+            "IMG_6876",
+            "IMG_6877",
+            "IMG_6878",
+            "IMG_6879",
+            "IMG_6880",
+            "IMG_6881",
+            "IMG_6882",
+            "IMG_6883",
+            "IMG_6884",
+            "IMG_6885",
+            "IMG_6886",
+            "IMG_6887",
+            "IMG_6888"
+          ]
+        },
+        "secondaryMedia": {
+          "type": "string",
+          "enum": [
+            "IMG_6848",
+            "IMG_6849",
+            "IMG_6850",
+            "IMG_6851",
+            "IMG_6852",
+            "IMG_6853",
+            "IMG_6854",
+            "IMG_6855",
+            "IMG_6856",
+            "IMG_6857",
+            "IMG_6858",
+            "IMG_6859",
+            "IMG_6860",
+            "IMG_6861",
+            "IMG_6862",
+            "IMG_6863",
+            "IMG_6864",
+            "IMG_6865",
+            "IMG_6866",
+            "IMG_6867",
+            "IMG_6868",
+            "IMG_6869",
+            "IMG_6870",
+            "IMG_6871",
+            "IMG_6872",
+            "IMG_6873",
+            "IMG_6874",
+            "IMG_6875",
+            "IMG_6876",
+            "IMG_6877",
+            "IMG_6878",
+            "IMG_6879",
+            "IMG_6880",
+            "IMG_6881",
+            "IMG_6882",
+            "IMG_6883",
+            "IMG_6884",
+            "IMG_6885",
+            "IMG_6886",
+            "IMG_6887",
+            "IMG_6888"
+          ]
+        },
+        "approval": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "pending",
+            "placeholder"
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "title",
+        "kicker",
+        "summary",
+        "body",
+        "media",
+        "approval"
+      ]
+    },
+    "PressKit": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "shortBio": {
+          "type": "string"
+        },
+        "longBio": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "awards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "year",
+              "title"
+            ]
+          }
+        },
+        "quotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "quote": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "quote",
+              "source"
+            ]
+          }
+        },
+        "performance": {
+          "type": "object",
+          "properties": {
+            "formats": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "detail": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "detail"
+                ]
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "formats",
+            "notes"
+          ]
+        },
+        "photos": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "IMG_6848",
+              "IMG_6849",
+              "IMG_6850",
+              "IMG_6851",
+              "IMG_6852",
+              "IMG_6853",
+              "IMG_6854",
+              "IMG_6855",
+              "IMG_6856",
+              "IMG_6857",
+              "IMG_6858",
+              "IMG_6859",
+              "IMG_6860",
+              "IMG_6861",
+              "IMG_6862",
+              "IMG_6863",
+              "IMG_6864",
+              "IMG_6865",
+              "IMG_6866",
+              "IMG_6867",
+              "IMG_6868",
+              "IMG_6869",
+              "IMG_6870",
+              "IMG_6871",
+              "IMG_6872",
+              "IMG_6873",
+              "IMG_6874",
+              "IMG_6875",
+              "IMG_6876",
+              "IMG_6877",
+              "IMG_6878",
+              "IMG_6879",
+              "IMG_6880",
+              "IMG_6881",
+              "IMG_6882",
+              "IMG_6883",
+              "IMG_6884",
+              "IMG_6885",
+              "IMG_6886",
+              "IMG_6887",
+              "IMG_6888"
+            ]
+          }
+        },
+        "riderUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approval": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "pending",
+            "placeholder"
+          ]
+        }
+      },
+      "required": [
+        "shortBio",
+        "longBio",
+        "awards",
+        "quotes",
+        "performance",
+        "photos",
+        "riderUrl",
+        "approval"
+      ]
+    },
+    "SiteSettings": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "streaming": {
+          "type": "object",
+          "properties": {
+            "spotify": {
+              "type": "string",
+              "format": "uri"
+            },
+            "appleMusic": {
+              "type": "string",
+              "format": "uri"
+            },
+            "youtube": {
+              "type": "string",
+              "format": "uri"
+            },
+            "deezer": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "streamingApproval": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "pending",
+            "placeholder"
+          ]
+        },
+        "social": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "label",
+              "url"
+            ]
+          }
+        },
+        "bookingEmail": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "email",
+              "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pressEmail": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "email",
+              "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "featured": {
+          "type": "object",
+          "properties": {
+            "albums": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            },
+            "videos": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            },
+            "stories": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            }
+          },
+          "required": [
+            "albums",
+            "videos",
+            "stories"
+          ]
+        }
+      },
+      "required": [
+        "streaming",
+        "streamingApproval",
+        "social",
+        "bookingEmail",
+        "pressEmail",
+        "featured"
+      ]
+    }
+  }
+}

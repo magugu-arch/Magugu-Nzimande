@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // The Zakes Bantwini website is its own Next.js project with its own lint config.
+      'zakes-bantwini/**',
     ],
   },
   {

@@ -1,0 +1,96 @@
+.frame {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  background-color: var(--tone, var(--charcoal));
+}
+
+/* Placeholder: the 24px preview from the manifest, blurred, under the image. */
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  background-image: var(--placeholder);
+  background-size: cover;
+  background-position: var(--fx, 50%) var(--fy, 50%);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.ratio {
+  aspect-ratio: var(--ratio-d, 16/9);
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+}
+
+.frame picture {
+  position: absolute;
+  inset: 0;
+}
+
+.img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--fx, 50%) var(--fy, 50%);
+  transition: transform 1600ms var(--ease-out);
+  will-change: auto;
+}
+
+@media (max-width: 860px) {
+  .ratio {
+    aspect-ratio: var(--ratio-m, 4/5);
+  }
+  .img {
+    object-position: var(--mfx, 50%) var(--mfy, 50%);
+  }
+  .frame::before {
+    background-position: var(--mfx, 50%) var(--mfy, 50%);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .zoom:hover .img,
+  :global(.zoom-parent):hover .zoom .img,
+  :global(.zoom-parent):focus-visible .zoom .img {
+    transform: scale(1.045);
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay-bottom {
+  background: linear-gradient(to top, rgb(8 8 8 / 0.92) 0%, rgb(8 8 8 / 0.5) 30%, rgb(8 8 8 / 0) 62%);
+}
+
+.overlay-left {
+  background: linear-gradient(to right, rgb(8 8 8 / 0.9) 0%, rgb(8 8 8 / 0.55) 38%, rgb(8 8 8 / 0) 70%);
+}
+
+.overlay-right {
+  background: linear-gradient(to left, rgb(8 8 8 / 0.9) 0%, rgb(8 8 8 / 0.55) 38%, rgb(8 8 8 / 0) 70%);
+}
+
+.overlay-full {
+  background: rgb(8 8 8 / 0.55);
+}
+
+.overlay-vignette {
+  background: radial-gradient(ellipse at center, rgb(8 8 8 / 0) 40%, rgb(8 8 8 / 0.75) 100%);
+}
+
+@media (max-width: 860px) {
+  .overlay-left,
+  .overlay-right {
+    background: linear-gradient(to top, rgb(8 8 8 / 0.94) 0%, rgb(8 8 8 / 0.6) 38%, rgb(8 8 8 / 0.1) 75%);
+  }
+}

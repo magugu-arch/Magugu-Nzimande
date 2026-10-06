@@ -1,0 +1,141 @@
+.hero {
+  position: relative;
+  padding-top: calc(var(--header-h) + clamp(40px, 6vw, 96px));
+  padding-bottom: clamp(48px, 6vw, 96px);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mood {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  filter: blur(2px);
+}
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(28px, 5vw, 96px);
+  align-items: end;
+}
+
+.art {
+  box-shadow: 0 40px 80px rgb(0 0 0 / 0.5);
+}
+
+.meta {
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.play {
+  min-height: 52px;
+  padding: 0 28px;
+  border: 0;
+  background: var(--warm-white);
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.play:hover {
+  background: var(--bronze);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: clamp(32px, 5vw, 80px);
+  padding-block: var(--section);
+}
+
+.h2 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bone);
+  margin-bottom: 20px;
+}
+
+.tracks {
+  border-top: 1px solid var(--line);
+}
+
+.tracks li {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.trackPlay {
+  min-height: 56px;
+  border: 0;
+  background: none;
+  color: var(--bronze);
+  text-align: left;
+}
+
+.trackTitle {
+  font-size: var(--step-1);
+}
+
+.credits > div {
+  display: grid;
+  gap: 2px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.credits dt {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.related {
+  background: var(--charcoal);
+  border-top: 1px solid var(--line);
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.relatedGrid a {
+  display: grid;
+  gap: 10px;
+}
+
+.relatedTitle {
+  font-family: var(--font-statement);
+  font-size: var(--step-2);
+}
+
+@media (max-width: 960px) {
+  .heroGrid,
+  .body {
+    grid-template-columns: 1fr;
+  }
+  .art {
+    max-width: 420px;
+  }
+  .relatedGrid {
+    grid-template-columns: 1fr;
+  }
+}

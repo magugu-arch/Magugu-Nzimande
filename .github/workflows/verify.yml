@@ -73,6 +73,79 @@ jobs:
       - name: Check the launch-readiness audit still runs
         run: npm run audit:launch
 
+  # The Zakes Bantwini website is a separate Next.js project in zakes-bantwini/,
+  # with its own lockfile, so it installs and checks on its own. Store and
+  # booking-journey tests also run against a real Postgres service.
+  zakes-bantwini:
+    name: Zakes Bantwini website — verify and smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: zakes-bantwini
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: zb_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/zb_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: zakes-bantwini/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # AVIF encoding of 41 masters takes minutes; reuse it until a master or
+      # the encoder settings change.
+      - name: Cache image derivatives
+        uses: actions/cache@v4
+        with:
+          path: zakes-bantwini/public/media
+          key: zb-media-${{ hashFiles('zakes-bantwini/assets/masters/**', 'zakes-bantwini/scripts/build-images.mjs') }}
+
+      - name: Verify (typecheck, lint, tests, content audit, build)
+        run: npm run verify
+
+      - name: Image manifest is up to date
+        run: |
+          if ! git diff --quiet -- src/content/media.manifest.json; then
+            echo "::error::media.manifest.json is stale. Run 'npm run images' and commit the result."
+            exit 1
+          fi
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Every page at 320/390/1440 (overflow, console errors, axe), then the
+      # booking journey end to end against a production build.
+      - name: Smoke test
+        run: npm run smoke
+
+      - name: Keep smoke screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zakes-bantwini-smoke
+          path: zakes-bantwini/.smoke/*.png
+          if-no-files-found: ignore
+
   # Rendering the app catches what unit tests structurally cannot: overflow,
   # clipped labels, a screen that renders blank, a journey that no longer
   # connects. Kept out of `npm run verify` because a browser sweep is minutes,

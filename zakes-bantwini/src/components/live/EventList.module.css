@@ -1,0 +1,83 @@
+.list {
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 7ch minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.date {
+  display: grid;
+  line-height: 0.9;
+}
+
+.day {
+  font-family: var(--font-display);
+  font-stretch: 118%;
+  font-weight: 560;
+  font-size: var(--step-4);
+  font-variant-numeric: tabular-nums;
+}
+
+.month {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-top: 6px;
+}
+
+.title {
+  font-size: var(--step-2);
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.title:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.where {
+  color: var(--grey);
+  margin-top: 6px;
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+}
+
+.tickets,
+.details {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid var(--bone);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tickets:hover,
+.details:hover {
+  background: var(--warm-white);
+  color: var(--black);
+}
+
+.compact .row {
+  padding: 18px 0;
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 6ch 1fr;
+  }
+  .cta {
+    grid-column: 2;
+  }
+}

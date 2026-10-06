@@ -1,0 +1,85 @@
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--black);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.frame:fullscreen {
+  aspect-ratio: auto;
+}
+
+.video,
+.iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: contain;
+  background: var(--black);
+}
+
+.bigPlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: clamp(72px, 9vw, 120px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgb(242 239 232 / 0.7);
+  background: rgb(8 8 8 / 0.35);
+  backdrop-filter: blur(6px);
+  font-size: clamp(18px, 2vw, 28px);
+  transition:
+    transform 400ms var(--ease-out),
+    background-color 300ms var(--ease-out);
+}
+
+.bigPlay:hover {
+  transform: scale(1.06);
+  background: rgb(242 239 232 / 0.15);
+}
+
+.controls {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(to top, rgb(8 8 8 / 0.85), transparent);
+  font-size: 12px;
+}
+
+.controls button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.controls button[aria-pressed='true'] {
+  color: var(--bronze);
+}
+
+.controls input {
+  flex: 1;
+  accent-color: var(--bronze);
+}
+
+.pending {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 8px;
+  padding: clamp(20px, 3vw, 40px);
+  background: linear-gradient(to top, rgb(8 8 8 / 0.92), transparent);
+  color: var(--bone);
+  max-width: 100%;
+}

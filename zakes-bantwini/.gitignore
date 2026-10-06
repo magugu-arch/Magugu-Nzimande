@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# next
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Image derivatives are generated from assets/masters by `npm run images`
+# (it runs before `dev` and `build`). The manifest beside the registry is
+# committed; the pixels are not.
+public/media/
+
+# Local file store, uploads and smoke-test captures
+.data/
+.smoke/
+
+# env
+.env
+.env*.local
+
+# OS
+.DS_Store

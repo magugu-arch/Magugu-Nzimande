@@ -10,5 +10,8 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|standard-navigation|@tanstack/.*)',
   ],
+  // The Zakes Bantwini website runs its own tests with Vitest.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/zakes-bantwini/'],
+  modulePathIgnorePatterns: ['<rootDir>/zakes-bantwini/'],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
 };

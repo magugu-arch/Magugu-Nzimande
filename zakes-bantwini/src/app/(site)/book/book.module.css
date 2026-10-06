@@ -1,0 +1,186 @@
+.process {
+  background: var(--charcoal);
+  border-block: 1px solid var(--line);
+}
+
+.phases {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.phase {
+  padding: 28px 24px 8px 0;
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.phase + .phase {
+  padding-left: 24px;
+}
+
+.phase:last-child {
+  border-right: 0;
+}
+
+.phaseTitle {
+  font-family: var(--font-display);
+  font-stretch: 118%;
+  font-weight: 560;
+  font-size: var(--step-2);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.phase ol {
+  display: grid;
+  gap: 10px;
+  color: var(--bone);
+}
+
+.stepNum {
+  display: inline-block;
+  width: 3ch;
+  font-size: 12px;
+  color: var(--bronze);
+  font-variant-numeric: tabular-nums;
+}
+
+.occasions {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: center;
+}
+
+.occasions > div:last-child {
+  display: grid;
+  gap: 28px;
+  justify-items: start;
+}
+
+.occasions h2 {
+  font-size: var(--step-4);
+}
+
+.occasionImages {
+  position: relative;
+  padding-bottom: 12%;
+}
+
+.portrait {
+  position: absolute !important;
+  right: -6%;
+  bottom: 0;
+  width: 36%;
+  border: 6px solid var(--black);
+}
+
+.types {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+  width: 100%;
+}
+
+.types li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--bone);
+}
+
+.faqSection {
+  padding-top: 0;
+}
+
+.faq {
+  border-top: 1px solid var(--line);
+  max-width: 900px;
+  margin-left: auto;
+}
+
+.faq details {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  min-height: 64px;
+  padding: 16px 0;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--step-1);
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  content: '+';
+  font-size: 24px;
+  color: var(--bronze);
+  transition: transform 300ms var(--ease-out);
+}
+
+.faq details[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.faq details p {
+  padding-bottom: 24px;
+  color: var(--bone);
+  max-width: 64ch;
+}
+
+@media (max-width: 960px) {
+  .phases {
+    grid-template-columns: 1fr 1fr;
+  }
+  .phase:nth-child(2) {
+    border-right: 0;
+  }
+  .phase:nth-child(3) {
+    padding-left: 0;
+  }
+  .occasions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .phases {
+    grid-template-columns: 1fr;
+  }
+  .phase,
+  .phase + .phase {
+    border-right: 0;
+    padding-left: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .types {
+    grid-template-columns: 1fr;
+  }
+  .portrait {
+    right: 0;
+  }
+}
+
+.requestPage {
+  padding-top: calc(var(--header-h) + clamp(40px, 6vw, 88px));
+  padding-bottom: var(--section);
+}
+
+.requestHead {
+  display: grid;
+  gap: 16px;
+  margin-bottom: clamp(32px, 5vw, 64px);
+  padding-bottom: clamp(24px, 4vw, 48px);
+  border-bottom: 1px solid var(--line);
+}
