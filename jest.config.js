@@ -1,6 +1,9 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // A separate Next.js project with its own node_modules; keep it out of the
+  // haste map so its React copy cannot collide with the app's.
+  modulePathIgnorePatterns: ['<rootDir>/andile-ncube/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@assets/(.*)$': '<rootDir>/assets/$1',

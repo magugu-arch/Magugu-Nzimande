@@ -22,6 +22,9 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // The Andile Ncube website is a separate Next.js project with its own
+      // lint config, dependencies and CI job.
+      'andile-ncube/**',
     ],
   },
   {

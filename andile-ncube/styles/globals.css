@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. The palette is fixed by the brief: black, warm white, warm
+ * grey, stone and charcoal, with muted brass used sparingly as an accent.
+ */
+@theme {
+  --color-ink: #0a0a0a;
+  --color-charcoal: #191919;
+  --color-paper: #f2efe8;
+  --color-ash: #b7b0a5;
+  --color-stone: #d7d0c4;
+  --color-brass: #a89170;
+  --color-smoke: #524d46;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
+
+  --text-meta: clamp(0.6875rem, 0.65rem + 0.12vw, 0.8125rem);
+  --text-meta--letter-spacing: 0.18em;
+  --text-body: clamp(1rem, 0.95rem + 0.25vw, 1.1875rem);
+  --text-body--line-height: 1.6;
+  --text-lede: clamp(1.25rem, 1.05rem + 0.8vw, 1.875rem);
+  --text-lede--line-height: 1.3;
+  --text-card: clamp(1.5rem, 1.2rem + 1.1vw, 2.25rem);
+  --text-card--line-height: 1;
+  --text-section: clamp(2.25rem, 1.4rem + 3.6vw, 5rem);
+  --text-section--line-height: 0.92;
+  --text-hero: clamp(3.125rem, 1.5rem + 7.2vw, 9.375rem);
+  --text-hero--line-height: 0.86;
+
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  --focus: var(--color-paper);
+  --header-h: 4.25rem;
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: var(--header-h);
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-stone);
+  color: var(--color-ink);
+}
+
+.theme-light {
+  --focus: var(--color-ink);
+  color-scheme: light;
+}
+
+.theme-dark {
+  --focus: var(--color-paper);
+  color-scheme: dark;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* Condensed uppercase display type, from the Archivo width axis. */
+@utility font-display {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 80;
+  font-weight: 640;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+}
+
+@utility meta {
+  font-size: var(--text-meta);
+  letter-spacing: 0.18em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+@utility container-site {
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (min-width: 48rem) {
+    padding-inline: 2.5rem;
+  }
+  @media (min-width: 80rem) {
+    padding-inline: 4rem;
+  }
+}
+
+/* A line of type that slides up from behind its own baseline. */
+.mask-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+.mask-line > span {
+  display: block;
+}
+
+/* Hide work that motion will reveal, but only once JS has run, and never for
+   people who asked for less motion. Opacity, not visibility: content stays in
+   the accessibility tree while it waits. */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+  }
+  .js [data-line] {
+    transform: translateY(105%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Restrained grain over large dark photography, to keep blacks from banding. */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
