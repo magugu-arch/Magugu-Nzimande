@@ -123,6 +123,44 @@ To add or swap an image: copy it into `public/images/`, add its ID to `MediaId`
 in `lib/types.ts` and an entry to `data/media.ts` (with alt text and a focal
 point), then point the relevant data at it.
 
+## Downloadable edition
+
+`standalone/dist/andile-ncube.html` is the whole site as **one self-contained
+HTML file** (~3.4 MB): every section on a single scrolling page, with all 27
+photographs, both typefaces and all metadata embedded. It opens from disk with
+no server and no network.
+
+```bash
+npm run standalone   # rebuilds standalone/dist/andile-ncube.html
+```
+
+`standalone/build.mjs` reads the same `data/*.ts` modules as the Next.js site,
+so content never drifts between the two. For every image it:
+
+- **enhances** it lightly — a gentle levels stretch that leaves shadows alone,
+  contrast ×1.04, saturation ×1.03, fine unsharp mask — then encodes WebP q80;
+- **embeds metadata** in the file itself: EXIF `ImageDescription` (alt text)
+  and an XMP packet with `dc:title`, `dc:description`, IPTC
+  `AltTextAccessibility`, keywords and identifier. Press downloads carry it.
+
+The page itself carries title, description, Open Graph and Twitter tags, and a
+JSON-LD graph (WebSite, WebPage, Person, Organization, and an ImageGallery of
+all 27 images). There are no `og:image` or canonical URLs because the file has
+no hosted address; add them when it is deployed.
+
+Interaction follows Apple's fluid-interface principles: rails track the
+pointer 1:1, project flick momentum onto the nearest card and rubber-band at
+the ends; episodes and journal entries open in a sheet you can drag down to
+dismiss; every animation is a spring (critically damped by default, bounce
+only after a flick) and can be grabbed mid-flight; buttons respond on press;
+the header becomes a translucent material on scroll. It respects
+`prefers-reduced-motion` (cross-fades only), `prefers-reduced-transparency`
+(solid surfaces) and `prefers-contrast: more`.
+
+The enquiry and deck forms validate fully but are **not connected**: the
+success screen says so. Set `ENQUIRY_ENDPOINT` near the top of the page script
+to post enquiries (the payload matches `/api/partnership`).
+
 ## Partnership enquiry
 
 Seven steps, one question each: Opportunity → Company → Contact → Budget →
