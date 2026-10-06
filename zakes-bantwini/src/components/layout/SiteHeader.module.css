@@ -30,8 +30,39 @@
 }
 
 .solid {
-  background: var(--black);
-  border-bottom-color: var(--line);
+  background: rgb(8 8 8 / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+}
+
+/* Scroll-edge effect: content fades under the bar rather than meeting a line. */
+.solid::after {
+  content: '';
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 28px;
+  background: linear-gradient(to bottom, rgb(8 8 8 / 0.42), rgb(8 8 8 / 0));
+  pointer-events: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .solid {
+    background: var(--black);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .solid {
+    background: var(--black);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-bottom-color: var(--warm-white);
+  }
+  .solid::after {
+    display: none;
+  }
 }
 
 .inner {

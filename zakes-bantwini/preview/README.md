@@ -1,6 +1,6 @@
 # Offline preview
 
-**`Zakes-Bantwini-Website-Preview.html`** is the whole website in one file, about 4 MB. It works
+**`Zakes-Bantwini-Website-Preview.html`** is the whole website in one file, about 4.4 MB. It works
 offline, with nothing to install.
 
 ## Opening it

@@ -13,23 +13,44 @@
   display: none;
   flex-direction: column;
   overflow-y: auto;
+  /* Closing retraces the opening: the panel rolls back up the way it came,
+     on the mirrored curve. Transitions (not keyframes) so a close mid-open
+     reverses from wherever the panel is, without a jump. */
+  clip-path: inset(0 0 100% 0);
+  transition:
+    clip-path 420ms cubic-bezier(0.7, 0, 0.84, 0),
+    display 420ms allow-discrete,
+    overlay 420ms allow-discrete;
 }
 
 .dialog[open] {
   display: flex;
-  animation: menu-in 600ms var(--ease-out);
+  clip-path: inset(0 0 0 0);
+  transition-duration: 600ms;
+  transition-timing-function: var(--ease-out);
+}
+
+@starting-style {
+  .dialog[open] {
+    clip-path: inset(0 0 100% 0);
+  }
 }
 
 .dialog::backdrop {
+  background: rgb(8 8 8 / 0);
+  transition:
+    background-color 420ms var(--ease-out),
+    display 420ms allow-discrete,
+    overlay 420ms allow-discrete;
+}
+
+.dialog[open]::backdrop {
   background: rgb(8 8 8 / 0.8);
 }
 
-@keyframes menu-in {
-  from {
-    clip-path: inset(0 0 100% 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
+@starting-style {
+  .dialog[open]::backdrop {
+    background: rgb(8 8 8 / 0);
   }
 }
 

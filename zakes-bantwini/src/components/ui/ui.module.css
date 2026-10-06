@@ -29,8 +29,10 @@
   }
 }
 
-.btn:active {
-  transform: translateY(1px) scale(0.99);
+/* Feedback lands on the press itself, and fast: the release only commits. */
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: 100ms;
 }
 
 .btn:disabled,

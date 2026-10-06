@@ -91,6 +91,16 @@ body {
   padding-bottom: var(--player-h);
 }
 
+/* Taps respond at once: no double-tap-to-zoom wait on links and controls. */
+a,
+button,
+summary,
+label,
+[role='button'],
+[role='tab'] {
+  touch-action: manipulation;
+}
+
 img,
 picture,
 video,
@@ -204,18 +214,23 @@ ul[role='list'] {
   letter-spacing: -0.012em;
 }
 
+/* Tracking is size-specific: the larger the type, the tighter it sits. */
 .display-xl {
   font-size: var(--step-6);
+  letter-spacing: -0.024em;
 }
 .display-l {
   font-size: var(--step-5);
+  letter-spacing: -0.018em;
 }
 .display-m {
   font-size: var(--step-4);
+  letter-spacing: -0.012em;
 }
 .display-s {
   font-size: var(--step-3);
   line-height: 0.92;
+  letter-spacing: -0.006em;
 }
 
 /* Phones: the display face is wide, and a single long word ("Bantwini",

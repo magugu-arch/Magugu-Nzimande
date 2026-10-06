@@ -116,16 +116,22 @@ async function inlineCss(hrefs: string[], inline: string[]): Promise<string> {
   return [...parts, ...inline].join('\n');
 }
 
-/** Each supplied image once: the largest derivative up to 1600 px, as WebP. */
-function imageMap(): Record<string, string> {
+/**
+ * Each supplied image once, as WebP: the largest derivative the master allows
+ * (up to 2400 px), so Retina screens get every pixel there is. Nothing is
+ * upscaled or regenerated: the derivatives are faithful to the supplied files.
+ */
+function imageMap(): { map: Record<string, string>; widths: Record<string, number> } {
   const map: Record<string, string> = {};
+  const widths: Record<string, number> = {};
   for (const m of allMedia()) {
     const f = getMediaFile(m.id);
-    const width = [...f.widths].filter((w) => w <= 1600).sort((a, b) => b - a)[0] ?? f.widths[0];
+    const width = [...f.widths].filter((w) => w <= 2400).sort((a, b) => b - a)[0] ?? f.widths[0]!;
     const file = path.join(root, 'public', 'media', `${m.id}-${width}.webp`);
     map[m.id] = `data:image/webp;base64,${readFileSync(file).toString('base64')}`;
+    widths[m.id] = width;
   }
-  return map;
+  return { map, widths };
 }
 
 async function shot(page: Page, opts: { full?: boolean; maxHeight?: number } = {}): Promise<string> {
@@ -327,19 +333,29 @@ const PREVIEW_CSS = `
 .zb-page:target,.zb-page:has(:target){display:block}
 body:not(:has(.zb-page:target)):not(:has(.zb-page :target)) #p-guide{display:block}
 img[data-zb]:not([src]){background:#121212}
-.zb-fab{position:fixed;left:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #d9c7a3;background:#080808e6;color:#f2efe8;font:600 11px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;backdrop-filter:blur(6px)}
+@keyframes zb-in{from{opacity:0}}
+.zb-page:target,.zb-page:has(:target),body:not(:has(.zb-page:target)):not(:has(.zb-page :target)) #p-guide{animation:zb-in 260ms cubic-bezier(.16,1,.3,1)}
+.zb-fab{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483000;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px 0 14px;border:1px solid rgb(242 239 232/.16);border-radius:999px;background:rgb(18 18 18/.62);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 10px 30px rgb(0 0 0/.35);color:#f2efe8;font:600 11px/1 var(--font-sans,system-ui),system-ui,-apple-system,sans-serif;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform 100ms ease-out,background-color 200ms ease-out}
+.zb-fab:active{transform:scale(.96)}
 .zb-fab:focus-visible{outline:2px solid #d9c7a3;outline-offset:3px}
-.zb-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:2147483001;max-width:min(92vw,520px);padding:14px 18px;background:#121212;color:#f2efe8;border:1px solid #d9c7a3;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:none}
-.zb-toast[data-show]{display:block}
+.zb-fab-dot{width:7px;height:7px;border-radius:50%;background:#d9c7a3;flex:none}
+.zb-fab-where{color:#9b9b96;font-weight:500;letter-spacing:.1em;max-width:42vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zb-fab-where:empty{display:none}
+@media (hover:hover){.zb-fab:hover{background:rgb(30 30 30/.72)}}
+@media (prefers-reduced-transparency:reduce),(prefers-contrast:more){.zb-fab,.zbd-bar,.zb-toast{background:#121212!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}.zb-fab{border-color:#d9c7a3}}
+@media (prefers-reduced-motion:reduce){.zb-page{animation:none!important}.zb-toast{transition:opacity 150ms!important}}
+.zb-toast{position:fixed;left:50%;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 60px);z-index:2147483001;max-width:min(92vw,520px);padding:14px 18px;border-radius:14px;background:rgb(18 18 18/.72);-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);border:1px solid rgb(242 239 232/.14);box-shadow:0 16px 40px rgb(0 0 0/.4);color:#f2efe8;font:500 14px/1.5 var(--font-sans,system-ui),system-ui,-apple-system,sans-serif;opacity:0;transform:translate(-50%,10px) scale(.97);filter:blur(6px);pointer-events:none;transition:opacity 220ms ease-out,transform 380ms cubic-bezier(.16,1,.3,1),filter 260ms ease-out}
+.zb-toast[data-show]{opacity:1;transform:translate(-50%,0) scale(1);filter:none}
 .zbd{min-height:100vh;background:#080808;color:#f2efe8;padding:0 0 96px;font-family:var(--font-sans,system-ui),system-ui,sans-serif}
-.zbd-bar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);background:#080808f2;border-bottom:1px solid #2a2927}
+.zbd-bar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);padding-top:max(14px,env(safe-area-inset-top));background:rgb(8 8 8/.72);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%)}
+.zbd-bar::after{content:'';position:absolute;inset:100% 0 auto;height:24px;background:linear-gradient(to bottom,rgb(8 8 8/.45),rgb(8 8 8/0));pointer-events:none}
 .zbd-bar strong{font-size:12px;letter-spacing:.2em;text-transform:uppercase}
 .zbd-bar nav{display:flex;flex-wrap:wrap;gap:4px 16px}
 .zbd-bar a{color:#d8d1c5;font-size:12px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}
 .zbd-bar a:hover,.zbd-bar a:focus-visible{color:#d9c7a3}
 .zbd-wrap{max-width:1180px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(16px,4vw,48px)}
-.zbd h1{font-size:clamp(2.2rem,6vw,4.4rem);line-height:.95;letter-spacing:-.01em;text-transform:uppercase;margin:0 0 18px;font-stretch:110%}
-.zbd h2{font-size:clamp(1.3rem,2.6vw,1.9rem);margin:48px 0 14px;text-transform:uppercase;letter-spacing:.02em}
+.zbd h1{font-size:clamp(2.2rem,6vw,4.4rem);line-height:.95;letter-spacing:-.022em;text-transform:uppercase;margin:0 0 18px;font-stretch:110%}
+.zbd h2{font-size:clamp(1.3rem,2.6vw,1.9rem);line-height:1.15;margin:48px 0 14px;text-transform:uppercase;letter-spacing:-.006em}
 .zbd h3{font-size:1.1rem;margin:28px 0 10px;color:#d9c7a3}
 .zbd h4,.zbd h5{font-size:1rem;margin:20px 0 8px}
 .zbd p,.zbd li{color:#d8d1c5;line-height:1.65;font-size:16px}
@@ -354,7 +370,9 @@ img[data-zb]:not([src]){background:#121212}
 .zbd th,.zbd td{padding:10px 12px;border-bottom:1px solid #2a2927;vertical-align:top;color:#d8d1c5}
 .zbd th{color:#9b9b96;font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:#121212}
 .zbd .zbd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:14px;padding:0;list-style:none}
-.zbd-card{display:grid;gap:6px;padding:0;border:1px solid #2a2927;background:#121212;text-decoration:none;color:inherit}
+.zbd-card{display:grid;gap:6px;padding:0;border:1px solid #2a2927;background:#121212;text-decoration:none;color:inherit;overflow:hidden;touch-action:manipulation;transition:transform 100ms ease-out,border-color 200ms ease-out}
+a.zbd-card:active{transform:scale(.98)}
+@media (hover:hover){a.zbd-card:hover{border-color:#d9c7a3}}
 .zbd-card>div{padding:12px 14px 16px;display:grid;gap:4px}
 .zbd-card strong{color:#f2efe8;font-size:15px}
 .zbd-card span{color:#9b9b96;font-size:13px;line-height:1.5}
@@ -377,14 +395,22 @@ img[data-zb]:not([src]){background:#121212}
 const PREVIEW_JS = `
 (function(){
   var map = JSON.parse(document.getElementById('zb-images').textContent);
-  document.querySelectorAll('img[data-zb]').forEach(function(img){ var s = map[img.getAttribute('data-zb')]; if (s) img.src = s; });
+  document.querySelectorAll('img[data-zb]').forEach(function(img){ var s = map[img.getAttribute('data-zb')]; if (s) { img.decoding = 'async'; img.src = s; } });
+  // Wayfinding: the Guide pill always says where you are.
+  var where = document.getElementById('zb-where');
+  function currentPage(){
+    var t = location.hash && document.getElementById(location.hash.slice(1));
+    var page = t && (t.classList.contains('zb-page') ? t : t.closest('.zb-page'));
+    return page || document.getElementById('p-guide');
+  }
+  function wayfind(){ var p = currentPage(); where.textContent = p.id === 'p-guide' ? '' : (p.getAttribute('aria-label') || ''); }
   // Header: transparent over the hero, solid once scrolled (as on the site).
   function headerState(){
     var solid = window.scrollY > 40;
     document.querySelectorAll('header[data-zb-top]').forEach(function(h){ h.className = solid ? h.getAttribute('data-zb-solid') : h.getAttribute('data-zb-top'); });
   }
   window.addEventListener('scroll', headerState, { passive: true });
-  window.addEventListener('hashchange', function(){ if (/^#p-/.test(location.hash)) window.scrollTo(0, 0); headerState(); document.querySelectorAll('dialog[open]').forEach(function(d){ d.close(); }); });
+  window.addEventListener('hashchange', function(){ if (/^#p-/.test(location.hash)) window.scrollTo(0, 0); headerState(); wayfind(); document.querySelectorAll('dialog[open]').forEach(function(d){ d.close(); }); });
   // Menu dialog.
   document.addEventListener('click', function(e){
     var t = e.target.closest ? e.target : null; if (!t) return;
@@ -405,8 +431,9 @@ const PREVIEW_JS = `
   document.addEventListener('mouseover', function(e){ var tab = e.target.closest && e.target.closest('[role="tab"]'); if (tab) activate(tab); });
   // Forms are live on the deployed site only.
   var toast = document.getElementById('zb-toast'); var timer;
-  document.addEventListener('submit', function(e){ if (e.target.hasAttribute('data-zb-form')) { e.preventDefault(); toast.setAttribute('data-show', ''); clearTimeout(timer); timer = setTimeout(function(){ toast.removeAttribute('data-show'); }, 4200); } });
+  document.addEventListener('submit', function(e){ if (e.target.hasAttribute('data-zb-form')) { e.preventDefault(); toast.textContent = toast.getAttribute('data-message'); toast.setAttribute('data-show', ''); clearTimeout(timer); timer = setTimeout(function(){ toast.removeAttribute('data-show'); }, 4200); } });
   headerState();
+  wayfind();
 })();
 `;
 
@@ -434,8 +461,11 @@ async function main() {
     const htmlClass = [...new Set(captured.flatMap((c) => c.htmlClass.split(/\s+/)).filter(Boolean))].join(' ');
     console.log('capturing the booking journey and management screens');
     const shots = await walkthrough(browser);
-    const images = imageMap();
-    const icon = `data:image/svg+xml,${encodeURIComponent(readFileSync(path.join(root, 'src', 'app', 'icon.svg'), 'utf8'))}`;
+    const { map: images, widths: embeddedWidths } = imageMap();
+    const iconSvg = readFileSync(path.join(root, 'src', 'app', 'icon.svg'));
+    const icon = `data:image/svg+xml,${encodeURIComponent(iconSvg.toString('utf8'))}`;
+    // Home-screen icon for iOS and Android when the file is opened from Files.
+    const touchIcon = `data:image/png;base64,${(await sharp(iconSvg, { density: 512 }).resize(180, 180).flatten({ background: '#080808' }).png().toBuffer()).toString('base64')}`;
     const ogImage = `data:image/jpeg;base64,${readFileSync(path.join(root, 'public', 'media', 'IMG_6853-og.jpg')).toString('base64')}`;
     const audit = readFileSync(path.join(root, 'AUDIT.md'), 'utf8');
     const costing = readFileSync(path.join(root, 'COSTING.md'), 'utf8');
@@ -448,7 +478,7 @@ async function main() {
 
     const media = allMedia().map((m) => {
       const f = getMediaFile(m.id);
-      return { id: m.id, index: m.index, file: f.file, width: f.width, height: f.height, title: m.title, alt: m.alt, role: m.role, sections: m.sections, focal: m.focal, desktopRatio: m.desktopRatio, mobileRatio: m.mobileRatio, briefNote: m.briefNote ?? null, caution: m.caution ?? null };
+      return { id: m.id, index: m.index, file: f.file, width: f.width, height: f.height, embeddedWidth: embeddedWidths[m.id], title: m.title, alt: m.alt, role: m.role, sections: m.sections, focal: m.focal, desktopRatio: m.desktopRatio, mobileRatio: m.mobileRatio, briefNote: m.briefNote ?? null, caution: m.caution ?? null };
     });
     const metadata = {
       name: 'Zakes Bantwini — The Architect: website preview',
@@ -462,6 +492,14 @@ async function main() {
       completion: { overallPercent: 67, remainingPercent: 33, developmentHoursDonePercent: 88 },
       costing: { buildAtMarketZar: { low: 676000, typical: 988000, high: 1300000 }, finishZar: { low: 91000, typical: 133000, high: 175000 }, runningPlatformZarPerMonth: { low: 1225, high: 1390 }, firstYearZar: { low: 172000, typical: 248000, high: 325000 }, exchangeRate: 'R16.50 per US$' },
       tests: { unitAndIntegration: '86 passed (file store and Postgres)', smoke: 'all checks passed, 18 pages × 3 widths with axe', performance: perf },
+      imageEmbedding: { format: 'image/webp', maxWidth: 2400, note: 'Largest faithful derivative of each supplied master; nothing upscaled or regenerated.' },
+      design: [
+        'Press feedback lands on pointer-down (scale 0.97 in 100 ms); taps have no double-tap delay.',
+        'Header, player and preview chrome are translucent materials (blur + saturation) with scroll-edge fades instead of hard rules; solid under reduced transparency or increased contrast.',
+        'Display type tracking tightens with size (-0.006em to -0.024em); body text stays at 0.',
+        'The menu opens and closes along the same path on mirrored curves, and reverses from its live position if interrupted.',
+        'The Guide pill always names the current page (wayfinding); pages cross-fade, and do not move at all under reduced motion.',
+      ],
       images: media,
       disclaimer: 'Demo bookings, listings, signups and proposals are fictional sample data. Content marked pending or placeholder awaits management approval and is hidden in launch mode.',
     };
@@ -521,14 +559,27 @@ async function main() {
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#080808">
 <meta name="color-scheme" content="dark">
+<meta name="application-name" content="Zakes Bantwini preview">
+<meta name="apple-mobile-web-app-title" content="ZB Preview">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
 <meta name="generator" content="build-preview.ts · commit ${commit}">
 <meta name="date" content="${generated.toISOString()}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Zakes Bantwini — The Architect · Website preview">
 <meta property="og:description" content="Every page of the new website, the booking journey and admin, the image library, the completion audit and the costing.">
 <meta property="og:image" content="${ogImage}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Zakes Bantwini in a black suit, lit from the left, on a warm dark background">
+<meta property="og:locale" content="en_ZA">
+<meta property="og:site_name" content="Zakes Bantwini — The Architect (preview)">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="${icon}">
+<link rel="apple-touch-icon" href="${touchIcon}">
+<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebPage', name: 'Zakes Bantwini — The Architect · Website preview', description: 'Offline review copy of the new website, with the booking and admin walkthrough, image library, completion audit and costing.', inLanguage: 'en-ZA', dateModified: generated.toISOString(), version: commit, isAccessibleForFree: true }).replace(/</g, '\\u003c')}</script>
 <style>${css}</style>
 <style>${PREVIEW_CSS}</style>
 <script type="application/json" id="zb-metadata">${JSON.stringify(metadata).replace(/</g, '\\u003c')}</script>
@@ -544,8 +595,8 @@ ${imagesPage}
 ${doc('audit', 'Completion audit', audit)}
 ${doc('costing', 'Costing', costing)}
 ${liveOnly}
-<a class="zb-fab" href="#p-guide">Preview · Guide</a>
-<div class="zb-toast" id="zb-toast" role="status">This is an offline preview. Forms, bookings and payments work on the live website.</div>
+<a class="zb-fab" href="#p-guide" aria-label="Preview guide"><span class="zb-fab-dot" aria-hidden="true"></span><span>Guide</span><span class="zb-fab-where" id="zb-where" aria-live="polite"></span></a>
+<div class="zb-toast" id="zb-toast" role="status" data-message="This is an offline preview. Forms, bookings and payments work on the live website."></div>
 <script>${PREVIEW_JS}</script>
 </body>
 </html>`;
