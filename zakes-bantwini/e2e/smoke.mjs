@@ -124,6 +124,7 @@ async function sweep(browser) {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (overflow > 1) fail(`${p} @${width}: ${overflow}px horizontal overflow`);
       if ((await page.locator('h1').count()) < 1) fail(`${p} @${width}: no <h1>`);
+      if (expected === 404 && (await page.getByText('Wrong turn').count()) === 0) fail(`${p} @${width}: the designed 404 page did not render`);
       if (errors.length) fail(`${p} @${width}: console errors — ${errors.slice(0, 2).join(' | ')}`);
       if (width !== 320) {
         const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();

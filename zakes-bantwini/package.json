@@ -20,7 +20,8 @@
     "admin:create": "tsx scripts/create-admin.ts",
     "seed:demo": "tsx --conditions=react-server scripts/seed-demo.ts",
     "smoke": "node e2e/smoke.mjs",
-    "perf": "node e2e/perf.mjs"
+    "perf": "node e2e/perf.mjs",
+    "preview:build": "tsx scripts/build-preview.ts"
   },
   "dependencies": {
     "motion": "^14.0.0",
