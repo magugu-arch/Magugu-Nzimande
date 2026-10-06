@@ -14,6 +14,7 @@ import type {
   Payment,
   Quote,
 } from '@/lib/booking/types';
+import type { ContentEntry, PublicAsset } from '@/lib/cms/types';
 
 export type Rows = {
   customers: Customer;
@@ -30,6 +31,8 @@ export type Rows = {
   audit_log: AuditEntry;
   community_signups: CommunitySignup;
   collaboration_requests: CollaborationRequest;
+  content_entries: ContentEntry;
+  public_assets: PublicAsset;
 };
 
 export type Table = keyof Rows;
@@ -227,6 +230,26 @@ export const TABLES: { [T in Table]: { key: keyof Rows[T] & string; columns: { [
       createdAt: 'timestamptz',
     },
   },
+  content_entries: {
+    key: 'id',
+    columns: { id: 'text', collection: 'text', slug: 'text', data: 'json', archived: 'bool', createdAt: 'timestamptz', updatedAt: 'timestamptz', updatedBy: 'text' },
+  },
+  public_assets: {
+    key: 'id',
+    columns: {
+      id: 'text',
+      kind: 'text',
+      filename: 'text',
+      contentType: 'text',
+      size: 'int',
+      storageKey: 'text',
+      width: 'int',
+      height: 'int',
+      label: 'text',
+      uploadedBy: 'text',
+      createdAt: 'timestamptz',
+    },
+  },
 };
 
 export type Query<R> = {
@@ -263,4 +286,10 @@ export interface Store {
   remove<T extends Table>(table: T, key: string): Promise<boolean>;
   /** Atomic per-year counter behind ZB-YYYY-XXXX references. */
   nextReferenceNumber(year: number): Promise<number>;
+  /**
+   * Run `fn` against a store whose writes all land or none do. Everything in
+   * `fn` must go through `tx` — and nothing slow or external belongs inside
+   * (send messages after it returns). Nested calls join the outer one.
+   */
+  transaction<R>(fn: (tx: Store) => Promise<R>): Promise<R>;
 }

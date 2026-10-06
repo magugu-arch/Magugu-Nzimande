@@ -64,21 +64,47 @@ function where<T extends Table>(table: T, query: Pick<Query<Rows[T]>, 'where' | 
 
 export class PostgresStore implements Store {
   readonly kind = 'postgres' as const;
-  private readonly pool: pg.Pool;
+  private readonly pool: pg.Pool | null;
+  private readonly db: pg.Pool | pg.PoolClient;
 
-  constructor(connectionString: string) {
-    // TLS is configured in the connection string (`?sslmode=require` for
-    // Supabase and most hosted Postgres), never by disabling verification here.
-    this.pool = new pg.Pool({ connectionString, max: Number(process.env.DATABASE_POOL_MAX ?? 5) });
+  /** A connection string opens a pool; a client (inside a transaction) is used as-is. */
+  constructor(connection: string | pg.PoolClient) {
+    if (typeof connection === 'string') {
+      // TLS is configured in the connection string (`?sslmode=require` for
+      // Supabase and most hosted Postgres), never by disabling verification here.
+      // allowExitOnIdle: scripts and build workers that read content can exit
+      // without an explicit end().
+      this.pool = new pg.Pool({ connectionString: connection, max: Number(process.env.DATABASE_POOL_MAX ?? 5), allowExitOnIdle: true });
+      this.db = this.pool;
+    } else {
+      this.pool = null;
+      this.db = connection;
+    }
   }
 
   private async run(sql: string, params: unknown[] = []) {
     try {
-      return await this.pool.query(sql, params);
+      return await this.db.query(sql, params);
     } catch (error) {
       const e = error as { code?: string; table?: string; constraint?: string };
       if (e.code === '23505') throw new UniqueViolation(e.table ?? 'unknown', e.constraint ?? 'unique');
       throw error;
+    }
+  }
+
+  async transaction<R>(fn: (tx: Store) => Promise<R>): Promise<R> {
+    if (!this.pool) return fn(this);
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(new PostgresStore(client));
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
     }
   }
 
@@ -157,6 +183,6 @@ export class PostgresStore implements Store {
   }
 
   async end(): Promise<void> {
-    await this.pool.end();
+    await this.pool?.end();
   }
 }

@@ -67,4 +67,39 @@ describe.each(storeHarnesses())('store contract — $name', (harness) => {
     expect([...numbers].sort((a, b) => a - b)).toEqual(Array.from({ length: 12 }, (_, i) => i + 1));
     expect(await store.nextReferenceNumber(2028)).toBe(1);
   });
+
+  it('commits every write in a transaction together', async () => {
+    await store.transaction(async (tx) => {
+      await tx.insert('customers', customer('a', 'a@example.com', '2026-10-01T00:00:00.000Z'));
+      await tx.insert('customers', customer('b', 'b@example.com', '2026-10-02T00:00:00.000Z'));
+      await tx.nextReferenceNumber(2030);
+    });
+    expect(await store.count('customers')).toBe(2);
+    expect(await store.nextReferenceNumber(2030)).toBe(2);
+  });
+
+  it('rolls back every write when the transaction fails part-way', async () => {
+    await store.insert('customers', customer('a', 'a@example.com', '2026-10-01T00:00:00.000Z'));
+    await expect(
+      store.transaction(async (tx) => {
+        await tx.update('customers', 'a', { fullName: 'Changed' });
+        await tx.insert('customers', customer('b', 'b@example.com', '2026-10-02T00:00:00.000Z'));
+        await tx.nextReferenceNumber(2031);
+        throw new Error('calendar conflict');
+      }),
+    ).rejects.toThrow('calendar conflict');
+    expect(await store.count('customers')).toBe(1);
+    expect((await store.get('customers', 'a'))?.fullName).toBe('Person a');
+    expect(await store.nextReferenceNumber(2031)).toBe(1);
+  });
+
+  it('rolls back on a constraint violation inside the transaction', async () => {
+    await expect(
+      store.transaction(async (tx) => {
+        await tx.insert('customers', customer('c', 'c@example.com', '2026-10-01T00:00:00.000Z'));
+        await tx.insert('customers', customer('c', 'c2@example.com', '2026-10-01T00:00:00.000Z'));
+      }),
+    ).rejects.toBeInstanceOf(UniqueViolation);
+    expect(await store.get('customers', 'c')).toBeNull();
+  });
 });

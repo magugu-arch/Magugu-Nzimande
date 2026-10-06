@@ -22,6 +22,7 @@ export class FileStore implements Store {
   readonly kind = 'file' as const;
   private data: Data | null = null;
   private chain: Promise<unknown> = Promise.resolve();
+  private inTransaction = false;
 
   constructor(private readonly file: string | null) {}
 
@@ -138,6 +139,27 @@ export class FileStore implements Store {
       if (i === -1) return false;
       rows.splice(i, 1);
       return true;
+    });
+  }
+
+  /**
+   * Holds the write lock for the whole of `fn`, which works on the shared data
+   * through a store of its own; a throw puts the snapshot back and nothing is
+   * written to disk.
+   */
+  transaction<R>(fn: (tx: Store) => Promise<R>): Promise<R> {
+    if (this.inTransaction) return fn(this);
+    return this.exclusive(async (data) => {
+      const snapshot = structuredClone(data);
+      const tx = new FileStore(null);
+      tx.data = data;
+      tx.inTransaction = true;
+      try {
+        return await fn(tx);
+      } catch (error) {
+        this.data = snapshot;
+        throw error;
+      }
     });
   }
 

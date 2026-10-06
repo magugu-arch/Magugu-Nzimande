@@ -1,13 +1,28 @@
+import Link from 'next/link';
+import { setProposalStatusAction } from '@/app/admin/actions';
+import { buttonClass } from '@/components/ui/Button';
+import { requireAdmin } from '@/lib/auth/admin';
 import { formatMoment } from '@/lib/booking/dates';
-import { COLLABORATION_TYPES } from '@/lib/booking/types';
+import { COLLABORATION_TYPES, type CollaborationRequest } from '@/lib/booking/types';
 import { getStore } from '@/lib/store';
 import styles from '../../admin.module.css';
 
+const TABS: { key: CollaborationRequest['status']; label: string }[] = [
+  { key: 'new', label: 'New' },
+  { key: 'reviewed', label: 'Reviewed' },
+  { key: 'archived', label: 'Archived' },
+];
+
 /** Collaboration proposals and community signups (with the consent wording each person agreed to). */
-export default async function InboxPage() {
+export default async function InboxPage(props: PageProps<'/admin/inbox'>) {
+  const admin = await requireAdmin();
+  const canWrite = admin.role !== 'viewer';
+  const { show } = await props.searchParams;
+  const tab = TABS.find((t) => t.key === show)?.key ?? 'new';
   const store = getStore();
-  const [proposals, signups, totalSignups] = await Promise.all([
-    store.list('collaboration_requests', { orderBy: { field: 'createdAt', dir: 'desc' }, limit: 100 }),
+  const [proposals, counts, signups, totalSignups] = await Promise.all([
+    store.list('collaboration_requests', { where: { status: tab }, orderBy: { field: 'createdAt', dir: 'desc' }, limit: 100 }),
+    Promise.all(TABS.map((t) => store.count('collaboration_requests', { where: { status: t.key } }))),
     store.list('community_signups', { orderBy: { field: 'createdAt', dir: 'desc' }, limit: 50 }),
     store.count('community_signups'),
   ]);
@@ -19,12 +34,29 @@ export default async function InboxPage() {
           <p className="eyebrow eyebrow-accent">Inbox</p>
           <h1>Proposals and community</h1>
         </div>
+        {canWrite && (
+          <div className={styles.toolbar}>
+            <a href="/admin/export/proposals" className={buttonClass('outline', true)} download>
+              Export proposals
+            </a>
+            <a href="/admin/export/community" className={buttonClass('outline', true)} download>
+              Export community (consented)
+            </a>
+          </div>
+        )}
       </header>
 
       <section className={styles.panel} aria-labelledby="proposals-title">
-        <h2 id="proposals-title">Collaboration proposals ({proposals.length})</h2>
+        <h2 id="proposals-title">Collaboration proposals</h2>
+        <nav className={styles.filters} aria-label="Proposal status">
+          {TABS.map((t, i) => (
+            <Link key={t.key} href={`/admin/inbox?show=${t.key}`} aria-current={tab === t.key ? 'page' : undefined}>
+              {t.label} ({counts[i]})
+            </Link>
+          ))}
+        </nav>
         {proposals.length === 0 ? (
-          <p className={styles.small}>None yet. They arrive from /collaborate.</p>
+          <p className={styles.small}>{tab === 'new' ? 'Nothing new. Proposals arrive from /collaborate.' : `Nothing ${tab}.`}</p>
         ) : (
           <ul role="list" className={styles.feed}>
             {proposals.map((p) => (
@@ -39,6 +71,17 @@ export default async function InboxPage() {
                   {p.budget ? `Budget: ${p.budget} · ` : ''}
                   {formatMoment(p.createdAt)}
                 </span>
+                {canWrite && (
+                  <div className={styles.toolbar}>
+                    {TABS.filter((t) => t.key !== p.status).map((t) => (
+                      <form key={t.key} action={setProposalStatusAction.bind(null, p.id, t.key)}>
+                        <button type="submit" className={buttonClass('outline', true)}>
+                          {t.key === 'new' ? 'Move back to new' : t.key === 'reviewed' ? 'Mark reviewed' : 'Archive'}
+                        </button>
+                      </form>
+                    ))}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

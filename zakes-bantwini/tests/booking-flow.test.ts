@@ -26,6 +26,25 @@ import { setStoreForTesting } from '@/lib/store';
 import type { Store } from '@/lib/store/types';
 import { storeHarnesses } from './stores';
 
+/** The same store, except that inserting into `table` fails — inside transactions too. */
+function failingInsert(base: Store, table: string): Store {
+  const wrap = (target: Store): Store =>
+    new Proxy(target, {
+      get(t, prop) {
+        if (prop === 'insert') {
+          return (tbl: string, row: unknown) => {
+            if (tbl === table) throw new Error(`injected failure writing ${table}`);
+            return (t.insert as (a: string, b: unknown) => Promise<unknown>)(tbl, row);
+          };
+        }
+        if (prop === 'transaction') return <R,>(fn: (tx: Store) => Promise<R>) => t.transaction((tx) => fn(wrap(tx)));
+        const value = Reflect.get(t, prop) as unknown;
+        return typeof value === 'function' ? value.bind(t) : value;
+      },
+    });
+  return wrap(base);
+}
+
 const manager: Actor = { id: 'admin-1', name: 'Booking Manager', role: 'manager' };
 const viewer: Actor = { id: 'admin-2', name: 'Viewer', role: 'viewer' };
 
@@ -193,6 +212,29 @@ describe.each(storeHarnesses())('booking journey — $name', (harness) => {
     expect(result.released).toBe(1);
     expect((await getPortal(token))!.booking.status).toBe('IN_REVIEW');
     expect((await publicAvailability(date, date))[date]).toBe('available');
+  });
+
+  it('leaves nothing half-done when a step fails part-way', async () => {
+    const { token } = await submitBookingRequest(request(), null);
+    const p = (await getPortal(token))!;
+    await adminChangeStatus(p.booking.id, 'IN_REVIEW', manager);
+    const q = await adminSaveQuote(p.booking.id, quote(), manager);
+    await adminSendQuote(q.id, manager);
+
+    // Accepting writes the quote, then the booking status and calendar, then the
+    // agreement. Make the last of those fail: the first two must not survive.
+    setStoreForTesting(failingInsert(store, 'contracts'));
+    await expect(acceptQuote(token, q.id)).rejects.toThrow(/injected/);
+    setStoreForTesting(store);
+
+    expect((await store.get('quotes', q.id))?.status).toBe('sent');
+    expect((await store.get('bookings', p.booking.id))?.status).toBe('QUOTE_SENT');
+    expect(await store.count('audit_log', { where: { bookingId: p.booking.id, action: 'quote_accepted' } })).toBe(0);
+    expect(await store.count('notifications', { where: { bookingId: p.booking.id, event: 'quote_accepted' } })).toBe(0);
+
+    // And the step still works once the fault clears.
+    await acceptQuote(token, q.id);
+    expect((await getPortal(token))!.booking.status).toBe('AWAITING_DEPOSIT');
   });
 
   it('never resolves a portal from a guessed or malformed token', async () => {

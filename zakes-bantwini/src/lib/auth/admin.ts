@@ -69,6 +69,12 @@ export async function login(emailInput: string, password: string): Promise<Login
   if (!user || !valid) return { ok: false, error: 'That email and password do not match an admin account.' };
 
   await store.update('admin_users', user.id, { lastLoginAt: new Date().toISOString() });
+  await startSession(user);
+  return { ok: true };
+}
+
+/** Issue the session cookie — on sign-in, and again after a password change (which voids the old one). */
+export async function startSession(user: Pick<AdminUser, 'id' | 'passwordHash'>): Promise<void> {
   const { token, expires } = createSessionToken(user.id, user.passwordHash);
   (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -77,7 +83,6 @@ export async function login(emailInput: string, password: string): Promise<Login
     path: '/',
     expires,
   });
-  return { ok: true };
 }
 
 export async function logout(): Promise<void> {

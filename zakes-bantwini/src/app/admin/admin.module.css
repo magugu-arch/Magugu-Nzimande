@@ -315,6 +315,113 @@
   color: var(--grey);
 }
 
+/* Content editor */
+.editor {
+  display: grid;
+  gap: 20px;
+}
+
+.editorFields {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.editorFields:disabled {
+  opacity: 0.7;
+}
+
+.editorBar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 14px 20px;
+  border: 1px solid var(--line);
+  background: var(--black);
+  z-index: 2;
+}
+
+.editorBar > :first-child:not(:last-child) {
+  flex: 1 1 280px;
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.mono textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.checkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.checkColumns {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 8px 18px;
+}
+
+.checkItem {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.checkItem input {
+  margin-top: 2px;
+  accent-color: var(--champagne);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar form {
+  display: contents;
+}
+
+.origin {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.assetPreview {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  background: var(--black);
+}
+
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
 /* Calendar */
 .calHead {
   display: flex;

@@ -20,7 +20,7 @@ import {
   type Actor,
 } from '@/lib/booking/service';
 import { parseRandToCents } from '@/lib/booking/quote';
-import { AVAILABILITY_STATES, BOOKING_STATUSES, type AvailabilityState, type BookingStatus, type DocumentRecord } from '@/lib/booking/types';
+import { AVAILABILITY_STATES, BOOKING_STATUSES, type AvailabilityState, type BookingStatus, type CollaborationRequest, type DocumentRecord } from '@/lib/booking/types';
 import { newId } from '@/lib/security/crypto';
 import { getStore } from '@/lib/store';
 
@@ -244,4 +244,16 @@ export async function deleteEventAction(eventId: string): Promise<void> {
   }
   revalidatePath('/admin/events');
   revalidatePath('/live');
+}
+
+// ── Inbox ──
+
+const PROPOSAL_STATUSES: CollaborationRequest['status'][] = ['new', 'reviewed', 'archived'];
+
+export async function setProposalStatusAction(id: string, status: CollaborationRequest['status']): Promise<void> {
+  const admin = await requireAdmin();
+  if (admin.role === 'viewer' || !PROPOSAL_STATUSES.includes(status)) return;
+  const updated = await getStore().update('collaboration_requests', id, { status });
+  if (updated) await audit(admin, 'proposal_status_changed', { id, status, from: updated.name });
+  revalidatePath('/admin', 'layout');
 }

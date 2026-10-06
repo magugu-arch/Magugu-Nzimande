@@ -1,5 +1,5 @@
 import 'server-only';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 /**
@@ -11,6 +11,7 @@ export interface DocumentStorage {
   readonly kind: string;
   put(key: string, body: Buffer, contentType: string): Promise<void>;
   get(key: string): Promise<Buffer>;
+  delete(key: string): Promise<void>;
 }
 
 /** Local disk under .data/uploads — development and single-server previews. */
@@ -32,6 +33,10 @@ export class LocalStorage implements DocumentStorage {
 
   async get(key: string): Promise<Buffer> {
     return readFile(this.resolve(key));
+  }
+
+  async delete(key: string): Promise<void> {
+    await rm(this.resolve(key), { force: true });
   }
 }
 
@@ -68,6 +73,15 @@ export class SupabaseStorage implements DocumentStorage {
     });
     if (!res.ok) throw new Error(`Storage download failed: ${res.status}`);
     return Buffer.from(await res.arrayBuffer());
+  }
+
+  async delete(key: string): Promise<void> {
+    const res = await fetch(this.object(key), {
+      method: 'DELETE',
+      headers: { authorization: `Bearer ${this.serviceKey}` },
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!res.ok && res.status !== 404) throw new Error(`Storage delete failed: ${res.status}`);
   }
 }
 
@@ -107,6 +121,15 @@ export function sniffMatches(contentType: string, head: Buffer): boolean {
       return starts([0x50, 0x4b, 0x03, 0x04]);
     case 'application/msword':
       return starts([0xd0, 0xcf, 0x11, 0xe0]);
+    case 'image/webp':
+      return starts([0x52, 0x49, 0x46, 0x46]) && head.subarray(8, 12).toString('latin1') === 'WEBP';
+    case 'audio/mpeg':
+      // An ID3 tag, or straight into an MPEG audio frame sync.
+      return starts([0x49, 0x44, 0x33]) || (head[0] === 0xff && ((head[1] ?? 0) & 0xe0) === 0xe0);
+    case 'audio/mp4':
+      return head.subarray(4, 8).toString('latin1') === 'ftyp';
+    case 'text/vtt':
+      return head.toString('utf8').replace(/^\uFEFF/, '').startsWith('WEBVTT');
     default:
       return false;
   }

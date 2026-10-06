@@ -22,8 +22,12 @@ export const Approval = z.enum(['approved', 'pending', 'placeholder']);
 export type Approval = z.infer<typeof Approval>;
 
 const slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'lower-case words separated by hyphens');
-const url = z.url();
+/** Web links only: z.url() alone would accept javascript: and data: URLs. */
+const url = z.url({ protocol: /^https?$/ });
 const isoDate = z.iso.date();
+/** A file uploaded in the admin (served from /assets) or an absolute URL. */
+export const ASSET_PATH = /^\/assets\/[a-z0-9-]+\/[a-z0-9.-]+$/;
+const assetOrUrl = z.union([z.string().regex(ASSET_PATH), url]);
 
 export const StreamingLinks = z.object({
   spotify: url.optional(),
@@ -37,7 +41,7 @@ export const Track = z.object({
   title: z.string().min(1),
   durationSeconds: z.number().int().positive().optional(),
   /** Approved preview or full-length audio the site may stream. */
-  audioUrl: url.optional(),
+  audioUrl: assetOrUrl.optional(),
   isrc: z.string().optional(),
   featuring: z.array(z.string()).default([]),
 });
@@ -49,11 +53,11 @@ export const Album = z.object({
   kind: z.enum(['album', 'ep', 'single', 'compilation', 'live']),
   year: z.number().int().min(1990).max(2100).nullable(),
   /** Management-approved cover art. Until it exists the sleeve is set in type. */
-  artwork: z.object({ src: z.string(), alt: z.string().min(1), width: z.number(), height: z.number() }).nullable(),
+  artwork: z.object({ src: assetOrUrl, alt: z.string().min(1), width: z.number().int().positive(), height: z.number().int().positive() }).nullable(),
   /** Supplied image that sets the world around the record. */
   mood: MediaRef,
   description: z.string(),
-  credits: z.array(z.object({ role: z.string(), name: z.string() })).default([]),
+  credits: z.array(z.object({ role: z.string().min(1), name: z.string().min(1) })).default([]),
   tracks: z.array(Track).default([]),
   links: StreamingLinks.default({}),
   relatedVideos: z.array(slug).default([]),
@@ -63,12 +67,12 @@ export const Album = z.object({
 });
 export type Album = z.infer<typeof Album>;
 
-export const Caption = z.object({ src: z.string(), label: z.string(), lang: z.string().min(2) });
+export const Caption = z.object({ src: assetOrUrl, label: z.string().min(1), lang: z.string().regex(/^[a-z]{2,3}(-[A-Za-z0-9]+)*$/, 'a language code such as en or zu') });
 
 export const VideoSource = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('file'),
-    src: z.string(),
+    src: assetOrUrl,
     mime: z.string().default('video/mp4'),
     captions: z.array(Caption).default([]),
   }),
@@ -131,15 +135,15 @@ export type Pillar = z.infer<typeof Pillar>;
 export const PressKit = z.object({
   shortBio: z.string(),
   longBio: z.array(z.string()).min(1),
-  awards: z.array(z.object({ year: z.number().int(), title: z.string(), detail: z.string().optional() })),
-  quotes: z.array(z.object({ quote: z.string(), source: z.string(), url: url.optional() })),
+  awards: z.array(z.object({ year: z.number().int().min(1990).max(2100), title: z.string().min(1), detail: z.string().optional() })),
+  quotes: z.array(z.object({ quote: z.string().min(1), source: z.string().min(1), url: url.optional() })),
   performance: z.object({
-    formats: z.array(z.object({ name: z.string(), detail: z.string() })),
+    formats: z.array(z.object({ name: z.string().min(1), detail: z.string() })),
     notes: z.string(),
   }),
   photos: z.array(MediaRef).min(1),
   /** Approved technical rider PDF. Until supplied, the press page offers it on request. */
-  riderUrl: z.string().nullable(),
+  riderUrl: assetOrUrl.nullable(),
   approval: Approval,
 });
 export type PressKit = z.infer<typeof PressKit>;
@@ -147,7 +151,7 @@ export type PressKit = z.infer<typeof PressKit>;
 export const SiteSettings = z.object({
   streaming: StreamingLinks,
   streamingApproval: Approval,
-  social: z.array(z.object({ label: z.string(), url })),
+  social: z.array(z.object({ label: z.string().min(1), url })),
   /** Public inboxes. Null until management confirms the addresses. */
   bookingEmail: z.email().nullable(),
   pressEmail: z.email().nullable(),

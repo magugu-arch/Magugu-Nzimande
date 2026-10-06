@@ -8,6 +8,9 @@ function classes(variant: Variant, small?: boolean, extra?: string) {
   return [styles.btn, styles[variant], small ? styles.small : '', extra].filter(Boolean).join(' ');
 }
 
+/** Button styling for a plain <a> — downloads and route handlers, which must not go through client navigation. */
+export const buttonClass = classes;
+
 export function Arrow() {
   return (
     <svg className={styles.arrow} viewBox="0 0 22 10" aria-hidden="true">

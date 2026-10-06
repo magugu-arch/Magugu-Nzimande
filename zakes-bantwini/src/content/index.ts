@@ -1,55 +1,43 @@
 /**
  * Content access. Pages call these async getters and never import seed data
- * directly, so swapping the seed source for a headless CMS is a change to
- * `source` alone. Getters are async for exactly that reason.
+ * directly. The source is the seed (src/content/seed) with management's edits
+ * from the admin (the content_entries table) laid over it entry by entry.
+ * Without a configured store — a build machine with no database — the seed
+ * alone renders.
  */
-import {
-  Album,
-  Pillar,
-  PressKit,
-  SiteSettings,
-  Story,
-  Video,
-  type Approval,
-  type JournalCategory,
-  type PillarKey,
-} from './schema';
-import { albums as albumSeed, videos as videoSeed } from './seed/catalogue';
-import { pillars as pillarSeed, pressKit as pressSeed, siteSettings as settingsSeed } from './seed/institution';
-import { stories as storySeed } from './seed/journal';
+import 'server-only';
+import { cache } from 'react';
+import type { Album, Pillar, PressKit, SiteSettings, Story, Video, Approval, JournalCategory, PillarKey } from './schema';
+import { effectiveContent } from './overlay';
+import { seed, type SeedContent } from './seed';
+import type { ContentEntry } from '@/lib/cms/types';
+import { getStore, StoreNotConfigured } from '@/lib/store';
 
 export type { Album, Pillar, PressKit, SiteSettings, Story, Video, JournalCategory, PillarKey, Approval };
 
-export interface ContentSource {
-  albums(): Promise<Album[]>;
-  videos(): Promise<Video[]>;
-  stories(): Promise<Story[]>;
-  pillars(): Promise<Pillar[]>;
-  pressKit(): Promise<PressKit>;
-  settings(): Promise<SiteSettings>;
-}
+/** Stored entries, read once per request. */
+export const loadContentEntries = cache(async (): Promise<ContentEntry[]> => {
+  try {
+    return await getStore().list('content_entries');
+  } catch (error) {
+    if (error instanceof StoreNotConfigured) return [];
+    // A database outage should not take the public pages down with it; the
+    // designed seed renders and the error is logged for whoever is on call.
+    console.error('[content] could not read stored content; rendering the seed', error);
+    return [];
+  }
+});
 
-/** Seed content, validated once at load so a bad edit fails loudly. */
-export const seedSource: ContentSource = (() => {
-  const parsed = {
-    albums: Album.array().parse(albumSeed),
-    videos: Video.array().parse(videoSeed),
-    stories: Story.array().parse(storySeed),
-    pillars: Pillar.array().parse(pillarSeed),
-    pressKit: PressKit.parse(pressSeed),
-    settings: SiteSettings.parse(settingsSeed),
-  };
-  return {
-    albums: async () => parsed.albums,
-    videos: async () => parsed.videos,
-    stories: async () => parsed.stories,
-    pillars: async () => parsed.pillars,
-    pressKit: async () => parsed.pressKit,
-    settings: async () => parsed.settings,
-  };
-})();
+const content = cache(async (): Promise<SeedContent> => effectiveContent(seed, await loadContentEntries()));
 
-const source: ContentSource = seedSource;
+const source = {
+  albums: async () => (await content()).albums,
+  videos: async () => (await content()).videos,
+  stories: async () => (await content()).stories,
+  pillars: async () => (await content()).pillars,
+  pressKit: async () => (await content()).pressKit,
+  settings: async () => (await content()).settings,
+};
 
 /** Production launch mode: only management-approved entries render. */
 export function approvedOnly(): boolean {

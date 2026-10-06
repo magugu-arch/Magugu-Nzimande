@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { buttonClass } from '@/components/ui/Button';
+import { requireAdmin } from '@/lib/auth/admin';
 import { formatDay, formatMoment } from '@/lib/booking/dates';
 import { STATUS_META } from '@/lib/booking/status';
 import { BOOKING_STATUSES, EVENT_TYPES, type BookingStatus } from '@/lib/booking/types';
@@ -6,6 +8,7 @@ import { getStore } from '@/lib/store';
 import styles from '../../admin.module.css';
 
 export default async function BookingsPage(props: PageProps<'/admin/bookings'>) {
+  const admin = await requireAdmin();
   const { status } = await props.searchParams;
   const active = BOOKING_STATUSES.find((s) => s === status) as BookingStatus | undefined;
   const store = getStore();
@@ -24,7 +27,14 @@ export default async function BookingsPage(props: PageProps<'/admin/bookings'>) 
           <p className="eyebrow eyebrow-accent">Bookings</p>
           <h1>{active ? STATUS_META[active].label : 'All bookings'}</h1>
         </div>
-        <span className={styles.small}>{bookings.length} shown</span>
+        <div className={styles.toolbar}>
+          <span className={styles.small}>{bookings.length} shown</span>
+          {admin.role !== 'viewer' && (
+            <a href="/admin/export/bookings" className={buttonClass('outline', true)} download>
+              Export CSV
+            </a>
+          )}
+        </div>
       </header>
       <nav className={styles.filters} aria-label="Filter by status">
         <Link href="/admin/bookings" aria-current={!active ? 'page' : undefined}>

@@ -11,6 +11,7 @@ const ITEMS = [
   { href: '/admin/events', label: 'Public events' },
   { href: '/admin/inbox', label: 'Inbox' },
   { href: '/admin/content', label: 'Content & media' },
+  { href: '/admin/team', label: 'Team' },
 ];
 
 export function AdminNav({ counts }: { counts: Record<string, number> }) {

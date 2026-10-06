@@ -96,7 +96,7 @@ export const PublicEventInput = z.object({
   venue: text(160).min(2),
   city: text(80).min(2),
   country: text(80).min(2),
-  ticketUrl: z.url('Enter the full ticket link, starting https://').optional().or(z.literal('').transform(() => undefined)),
+  ticketUrl: z.url({ protocol: /^https?$/, error: 'Enter the full ticket link, starting https://' }).optional().or(z.literal('').transform(() => undefined)),
   description: optionalText(2000),
   published: checkbox,
 });
