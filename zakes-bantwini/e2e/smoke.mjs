@@ -8,6 +8,10 @@
  *    client accepts and signs → sandbox deposit → management confirms → the
  *    public calendar shows the date unavailable without leaking anything.
  * 3. The admin workspace renders every view, and is closed without a session.
+ * 4. Everything else management and visitors do: the brief upload, the menu
+ *    dialog, community and collaboration forms and proposal triage, a public
+ *    listing reaching /live, a content edit and cover art reaching the site,
+ *    CSV export, team accounts, and the security headers.
  *
  * Usage: npm run build && npm run smoke
  *   SMOKE_BASE_URL=http://localhost:3000 npm run smoke   (reuse a running server)
@@ -25,6 +29,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(root, '.smoke');
 const PORT = Number(process.env.SMOKE_PORT ?? 3210);
 const ADMIN = { email: 'smoke-admin@example.com', password: 'smoke-test-password-1234' };
+const FIXTURES = path.join(root, 'e2e', 'fixtures');
 let base = process.env.SMOKE_BASE_URL;
 let server;
 
@@ -153,6 +158,7 @@ async function journey(browser) {
   await client.getByLabel('Full name').fill('Smoke Tester');
   await client.getByLabel('Email').fill('smoke@example.com');
   await client.getByLabel('Mobile / WhatsApp').fill('+27 82 000 0000');
+  await client.setInputFiles('#brief', path.join(FIXTURES, 'event-brief.pdf'));
   await client.getByRole('button', { name: 'Continue' }).click();
   await client.getByLabel(/I agree to Zakes/).check();
   await client.getByRole('button', { name: 'Send booking request' }).click();
@@ -173,6 +179,16 @@ async function journey(browser) {
 
   await admin.getByRole('link', { name: reference }).first().click();
   await admin.waitForURL(/\/admin\/bookings\//);
+  const briefLink = admin.getByRole('link', { name: 'event-brief.pdf' });
+  check((await briefLink.count()) === 1, 'the uploaded event brief is on the booking', 'event brief missing from the booking');
+  const briefHref = await briefLink.getAttribute('href');
+  const asAdmin = await admin.request.get(base + briefHref);
+  const anonymous = await fetch(base + briefHref);
+  check(
+    asAdmin.ok() && (await asAdmin.body()).subarray(0, 4).toString() === '%PDF' && anonymous.status === 404,
+    'brief downloads for management only',
+    `brief download: admin ${asAdmin.status()}, anonymous ${anonymous.status}`,
+  );
   await admin.getByLabel('Move to').selectOption('IN_REVIEW');
   await admin.getByRole('button', { name: 'Update status' }).click();
   await admin.getByText('Status updated.').waitFor();
@@ -210,7 +226,7 @@ async function journey(browser) {
   const leak = JSON.stringify(cal).match(/Smoke|ZB-|smoke@/);
   check(cal.days?.[chosen] === 'unavailable' && !leak, 'public calendar shows the date unavailable and nothing else', `public calendar: ${JSON.stringify(cal)}`);
 
-  for (const p of ['/admin/bookings', '/admin/calendar', `/admin/calendar?view=week&date=${chosen}`, `/admin/calendar?view=day&date=${chosen}`, '/admin/events', '/admin/inbox', '/admin/content']) {
+  for (const p of ['/admin/bookings', '/admin/calendar', `/admin/calendar?view=week&date=${chosen}`, `/admin/calendar?view=day&date=${chosen}`, '/admin/events', '/admin/inbox', '/admin/content', '/admin/content/assets', '/admin/content/albums/release-i', '/admin/content/settings/default', '/admin/content/pressKit/default', '/admin/team']) {
     const res = await admin.goto(base + p);
     check(res?.ok(), `admin ${p}`, `admin ${p}: HTTP ${res?.status()}`);
   }
@@ -219,6 +235,118 @@ async function journey(browser) {
 
   const cron = await fetch(`${base}/api/cron/reminders`, { headers: { authorization: 'Bearer wrong' } });
   check(cron.status === 401, 'cron endpoint refuses a bad secret', `cron endpoint answered ${cron.status} to a bad secret`);
+  return { admin, reference };
+}
+
+async function everythingElse(browser, admin, reference) {
+  console.log('\nVisitors');
+  const phone = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+  await phone.goto(`${base}/`);
+  await phone.getByRole('button', { name: 'Menu' }).click();
+  const menu = phone.getByRole('dialog', { name: 'Site menu' });
+  await menu.waitFor();
+  await phone.keyboard.press('Escape');
+  await menu.waitFor({ state: 'hidden' });
+  check(await phone.evaluate(() => document.activeElement?.textContent?.trim() === 'Menu'), 'menu dialog opens, closes on Escape and returns focus', 'menu focus not returned');
+
+  await phone.goto(`${base}/community`);
+  const join = phone.locator('form').filter({ has: phone.getByRole('button', { name: 'Join the movement' }) }).first();
+  await join.getByLabel('Email', { exact: true }).fill('smoke-fan@example.com');
+  await join.getByRole('button', { name: 'Join the movement' }).click();
+  await phone.getByText(/You are in/).first().waitFor();
+  ok('community signup accepted');
+
+  await phone.goto(`${base}/collaborate`);
+  const pitch = phone.locator('form').filter({ has: phone.getByRole('button', { name: 'Send proposal' }) });
+  await pitch.getByLabel('Brand partnership').check();
+  await pitch.getByLabel('Your name').fill('Smoke Proposal');
+  await pitch.getByLabel('Email', { exact: true }).fill('smoke-proposal@example.com');
+  await pitch.getByLabel('The idea').fill('A test proposal from the smoke run, long enough to pass validation.');
+  await pitch.getByLabel(/I agree to my details/).check();
+  await pitch.getByRole('button', { name: 'Send proposal' }).click();
+  await phone.getByText(/reads every proposal/).first().waitFor();
+  ok('collaboration proposal sent');
+
+  console.log('\nManagement');
+  await admin.goto(`${base}/admin/inbox`);
+  check((await admin.getByText('smoke-fan@example.com').count()) > 0, 'signup is in the inbox with its consent', 'signup missing from inbox');
+  const proposal = admin.locator('li').filter({ hasText: 'Smoke Proposal' });
+  await proposal.getByRole('button', { name: 'Mark reviewed' }).click();
+  await admin.getByRole('link', { name: 'Reviewed (1)' }).waitFor();
+  ok('proposal triaged to reviewed');
+
+  await admin.goto(`${base}/admin/events`);
+  const newShow = admin.locator('form').filter({ has: admin.getByRole('button', { name: 'Save show' }) });
+  const showDate = new Date(Date.now() + 40 * 86_400_000).toISOString().slice(0, 10);
+  await newShow.getByLabel('Title').fill('Smoke Test Listing');
+  await newShow.getByLabel('Date').fill(showDate);
+  await newShow.getByLabel('Venue').fill('Smoke Hall');
+  await newShow.getByLabel('City').fill('Durban');
+  await newShow.getByLabel(/Published on/).check();
+  await newShow.getByRole('button', { name: 'Save show' }).click();
+  await admin.getByText('Saved and published on /live.').waitFor();
+  await phone.goto(`${base}/live`);
+  check((await phone.getByText('Smoke Test Listing').count()) > 0, 'a published listing appears on /live', 'published listing missing from /live');
+
+  await admin.goto(`${base}/admin/content/assets`);
+  await admin.setInputFiles('input[name=file]', path.join(FIXTURES, 'cover.png'));
+  await admin.getByLabel('What is it?').fill('Smoke cover');
+  await admin.getByRole('button', { name: 'Upload' }).click();
+  await admin.getByText('Uploaded cover.png.').waitFor();
+  const assetPath = (await admin.locator('code').first().innerText()).trim();
+  const asset = await fetch(base + assetPath);
+  const ranged = await fetch(base + assetPath, { headers: { range: 'bytes=0-7' } });
+  check(
+    asset.ok && asset.headers.get('content-type') === 'image/png' && ranged.status === 206 && (await ranged.arrayBuffer()).byteLength === 8,
+    'uploaded asset is served, with byte ranges',
+    `asset: ${asset.status} ${asset.headers.get('content-type')}, range ${ranged.status}`,
+  );
+
+  await admin.goto(`${base}/admin/content/albums/release-i`);
+  await admin.getByLabel('Cover artwork').selectOption(assetPath);
+  await admin.getByLabel('Cover description (alt text)').fill('Smoke cover artwork');
+  await admin.getByRole('button', { name: 'Save changes' }).click();
+  await admin.getByText(/^Saved\./).waitFor();
+  await admin.goto(`${base}/admin/content/stories/what-an-archive-is-for`);
+  await admin.getByLabel('Headline').fill('What an archive is for — smoke edit');
+  await admin.getByRole('button', { name: 'Save changes' }).click();
+  await admin.getByText(/^Saved\./).waitFor();
+  await phone.goto(`${base}/journal/what-an-archive-is-for`);
+  const headline = await phone.locator('h1').first().innerText();
+  await phone.goto(`${base}/music/release-i`);
+  const cover = await phone.locator('img[alt="Smoke cover artwork"]').count();
+  check(/smoke edit/i.test(headline) && cover > 0, 'content edits and cover art publish to the site', `site after edit: h1 “${headline}”, cover ${cover}`);
+
+  const csv = await admin.request.get(`${base}/admin/export/bookings`);
+  const text = await csv.text();
+  const anonCsv = await fetch(`${base}/admin/export/bookings`, { redirect: 'manual' });
+  check(
+    csv.ok() && /text\/csv/.test(csv.headers()['content-type'] ?? '') && text.startsWith('\uFEFF"Reference"') && text.includes(reference) && anonCsv.status >= 300 && anonCsv.status < 400,
+    'bookings export downloads as CSV for management only',
+    `export: ${csv.status()} ${csv.headers()['content-type']}, anonymous ${anonCsv.status}`,
+  );
+
+  await admin.goto(`${base}/admin/team`);
+  const addForm = admin.locator('form').filter({ has: admin.getByRole('button', { name: 'Create account' }) });
+  await addForm.getByLabel('Name').fill('Smoke Viewer');
+  await addForm.getByLabel('Email').fill('smoke-viewer@example.com');
+  await addForm.getByLabel('Role').selectOption('viewer');
+  await addForm.getByRole('button', { name: 'Create account' }).click();
+  const created = await admin.getByText(/Temporary password: /).innerText();
+  const temp = /Temporary password: (\S+)/.exec(created)?.[1];
+  const viewer = await (await browser.newContext()).newPage();
+  await viewer.goto(`${base}/admin/login`);
+  await viewer.getByLabel('Email').fill('smoke-viewer@example.com');
+  await viewer.getByLabel('Password').fill(temp ?? '');
+  await viewer.getByRole('button', { name: 'Sign in' }).click();
+  await viewer.waitForURL(`${base}/admin`);
+  const viewerCsv = await viewer.request.get(`${base}/admin/export/bookings`);
+  check(viewerCsv.status() === 403, 'a new viewer signs in with the one-time password and cannot export', `viewer export answered ${viewerCsv.status()}`);
+  await admin.screenshot({ path: path.join(OUT, 'admin-team.png'), fullPage: true });
+
+  const headers = (await fetch(`${base}/`)).headers;
+  const csp = headers.get('content-security-policy') ?? '';
+  check(/frame-ancestors 'none'/.test(csp) && /object-src 'none'/.test(csp) && headers.get('x-content-type-options') === 'nosniff', 'security headers and CSP are sent', `headers: csp=${csp.slice(0, 60)}`);
 }
 
 rmSync(OUT, { recursive: true, force: true });
@@ -226,7 +354,8 @@ mkdirSync(OUT, { recursive: true });
 if (!base) await startServer();
 const browser = await chromium.launch(process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {});
 try {
-  await journey(browser);
+  const { admin, reference } = await journey(browser);
+  await everythingElse(browser, admin, reference);
   await sweep(browser);
 } catch (error) {
   fail(`crashed: ${error instanceof Error ? error.message.split('\n')[0] : error}`);
