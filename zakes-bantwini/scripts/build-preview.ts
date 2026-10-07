@@ -12,7 +12,11 @@
  *     even where scripts are blocked; a small script adds the menu dialog,
  *     pillar tabs, the header's scroll state and a notice on forms;
  *   - management screens and the booking journey are included as screenshots,
- *     with the image library, the completion audit and the costing.
+ *     with the image library (and, with PREVIEW_REPORTS=1, the completion
+ *     audit and the costing — left out of the client copy by default);
+ *   - the site's motion runs again: reveals, the hero push-in and drift,
+ *     parallax, the pinned music rail and the Handover chapters, all off the
+ *     moment the device asks for reduced motion.
  * Output: preview/Zakes-Bantwini-Website-Preview.html
  */
 import { execSync } from 'node:child_process';
@@ -27,6 +31,9 @@ const base = (process.env.PREVIEW_BASE_URL ?? 'http://localhost:3000').replace(/
 const OUT_DIR = path.join(root, 'preview');
 const OUT = path.join(OUT_DIR, 'Zakes-Bantwini-Website-Preview.html');
 const ADMIN = { email: process.env.PREVIEW_ADMIN_EMAIL ?? 'owner@example.com', password: process.env.DEMO_PASSWORD ?? 'demo-password-change-me' };
+
+/** The completion audit and costing are for the team, not the client: opt in. */
+const REPORTS = process.env.PREVIEW_REPORTS === '1';
 
 const keyFor = (p: string) => (p === '/' ? 'home' : p.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/-+$/, '').toLowerCase());
 
@@ -334,6 +341,10 @@ const PREVIEW_CSS = `
 body:not(:has(.zb-page:target)):not(:has(.zb-page :target)) #p-guide{display:block}
 img[data-zb]:not([src]){background:#121212}
 @keyframes zb-in{from{opacity:0}}
+.zb-rail-pinned{position:relative}
+.zb-rail-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center;overflow:hidden}
+.zb-rail-pinned [data-motion-track]{overflow:visible!important;scroll-snap-type:none!important;flex-wrap:nowrap;gap:clamp(20px,3vw,48px)!important}
+@media (prefers-reduced-motion:no-preference){[data-motion="hero"],[data-motion-inner],.zb-rail-pinned [data-motion-track]{will-change:translate}}
 .zb-page:target,.zb-page:has(:target),body:not(:has(.zb-page:target)):not(:has(.zb-page :target)) #p-guide{animation:zb-in 260ms cubic-bezier(.16,1,.3,1)}
 .zb-fab{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483000;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px 0 14px;border:1px solid rgb(242 239 232/.16);border-radius:999px;background:rgb(18 18 18/.62);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 10px 30px rgb(0 0 0/.35);color:#f2efe8;font:600 11px/1 var(--font-sans,system-ui),system-ui,-apple-system,sans-serif;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform 100ms ease-out,background-color 200ms ease-out}
 .zb-fab:active{transform:scale(.96)}
@@ -434,11 +445,131 @@ const PREVIEW_JS = `
   document.addEventListener('submit', function(e){ if (e.target.hasAttribute('data-zb-form')) { e.preventDefault(); toast.textContent = toast.getAttribute('data-message'); toast.setAttribute('data-show', ''); clearTimeout(timer); timer = setTimeout(function(){ toast.removeAttribute('data-show'); }, 4200); } });
   headerState();
   wayfind();
+
+  // ── Motion: reveals, parallax and scroll effects ──────────────────────────
+  // Transform and opacity only, one rAF per scroll, and all of it off the
+  // moment the device asks for reduced motion (checked live, not just on load).
+  var reduceQ = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var wideQ = window.matchMedia ? matchMedia('(min-width: 1024px) and (hover: hover)') : { matches: false };
+  function motionOn(){ return !reduceQ.matches; }
+  function listen(q, fn){ if (q.addEventListener) q.addEventListener('change', fn); else if (q.addListener) q.addListener(fn); }
+  // The site's reveal styles key off html.js and only apply when motion is allowed.
+  document.documentElement.classList.add('js');
+
+  var revealer = 'IntersectionObserver' in window ? new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('is-revealed'); revealer.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }) : null;
+  document.querySelectorAll('[data-reveal]').forEach(function(el){ if (revealer) revealer.observe(el); else el.classList.add('is-revealed'); });
+
+  var parts = null;
+  function collect(){
+    var page = currentPage();
+    parts = { page: page, hero: page.querySelectorAll('[data-motion="hero"]'), parallax: page.querySelectorAll('[data-motion="parallax"]'), rails: page.querySelectorAll('[data-motion="rail"]') };
+  }
+  function clamp(v){ return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+  // Music: vertical scroll drives the catalogue sideways while the section stays pinned (wide screens).
+  function setupRail(w){
+    var track = w.querySelector('[data-motion-track]'); if (!track) return;
+    var want = motionOn() && wideQ.matches;
+    if (want && !w.zbSticky) {
+      var sticky = document.createElement('div'); sticky.className = 'zb-rail-sticky';
+      w.insertBefore(sticky, track); sticky.appendChild(track); w.zbSticky = sticky; w.classList.add('zb-rail-pinned');
+    } else if (!want && w.zbSticky) {
+      w.insertBefore(track, w.zbSticky); w.zbSticky.remove(); w.zbSticky = null;
+      w.classList.remove('zb-rail-pinned'); w.style.height = ''; track.style.translate = '';
+    }
+    if (w.zbSticky) {
+      w.zbDistance = Math.max(0, track.scrollWidth - window.innerWidth);
+      // Nothing to travel (the row already fits): stay a plain row, as the site does.
+      if (w.zbDistance === 0) {
+        w.insertBefore(track, w.zbSticky); w.zbSticky.remove(); w.zbSticky = null;
+        w.classList.remove('zb-rail-pinned'); w.style.height = ''; track.style.translate = '';
+        return;
+      }
+      w.style.height = (window.innerHeight + w.zbDistance) + 'px';
+    }
+  }
+  function railFrame(w, vh){
+    if (!w.zbSticky) return;
+    var r = w.getBoundingClientRect(), span = w.offsetHeight - vh;
+    w.querySelector('[data-motion-track]').style.translate = (span > 0 ? -clamp(-r.top / span) * w.zbDistance : 0) + 'px 0';
+  }
+
+  // Handover: each chapter's image takes the stage as its text reaches mid-screen.
+  function setupChapters(page){
+    page.querySelectorAll('[data-motion="chapters"]').forEach(function(root){
+      if (root.zbObserved || !('IntersectionObserver' in window)) return;
+      root.zbObserved = true;
+      var stage = root.firstElementChild, counter = root.querySelector('[data-chapter-counter]');
+      var frames = Array.prototype.filter.call(stage ? stage.children : [], function(f){ return f.hasAttribute('data-active'); });
+      var sections = root.querySelectorAll('section[data-index]'), last = sections[sections.length - 1];
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if (!e.isIntersecting) return;
+          var i = Number(e.target.getAttribute('data-index'));
+          frames.forEach(function(f, j){ f.setAttribute('data-active', String(j === i)); });
+          if (counter && last) counter.textContent = e.target.getAttribute('data-numeral') + ' / ' + last.getAttribute('data-numeral');
+        });
+      }, { rootMargin: '-45% 0px -45% 0px' });
+      sections.forEach(function(sec){ io.observe(sec); });
+    });
+  }
+
+  var ticking = false;
+  function frame(){
+    ticking = false;
+    if (!parts) collect();
+    var on = motionOn(), y = window.scrollY, vh = window.innerHeight;
+    // Hero: eases away and dims as the page scrolls past it.
+    parts.hero.forEach(function(el){
+      if (!on) { el.style.translate = ''; el.style.opacity = ''; return; }
+      el.style.translate = '0 ' + (clamp(y / 900) * 14).toFixed(2) + '%';
+      el.style.opacity = (1 - clamp(y / 700) * 0.65).toFixed(3);
+    });
+    // Architectural parallax: a slow drift inside an overscanned frame.
+    parts.parallax.forEach(function(el){
+      var inner = el.querySelector('[data-motion-inner]'); if (!inner) return;
+      if (!on) { inner.style.translate = ''; return; }
+      var r = el.getBoundingClientRect(); if (r.bottom < -200 || r.top > vh + 200) return;
+      var s = parseFloat(el.getAttribute('data-strength')) || 0.12;
+      inner.style.translate = '0 ' + (-s * 50 + clamp((vh - r.top) / (vh + r.height)) * s * 100).toFixed(2) + '%';
+    });
+    parts.rails.forEach(function(w){ railFrame(w, vh); });
+  }
+  function request(){ if (!ticking) { ticking = true; requestAnimationFrame(frame); } }
+
+  function refresh(){ collect(); parts.rails.forEach(setupRail); setupChapters(parts.page); frame(); }
+  // Each time a page comes into view: wire it up, and let its hero settle in.
+  // On first load the fragment's page can still be hidden for a frame or two
+  // (the browser applies :target after parsing), so wait until it is on screen.
+  function onPage(tries){
+    collect();
+    if (parts.page.offsetParent === null && getComputedStyle(parts.page).display === 'none' && (tries || 0) < 30) {
+      requestAnimationFrame(function(){ onPage((tries || 0) + 1); });
+      return;
+    }
+    refresh();
+    if (motionOn()) parts.hero.forEach(function(el){
+      if (el.animate) el.animate([{ scale: '1.08' }, { scale: '1' }], { duration: 2400, easing: 'cubic-bezier(.16,1,.3,1)' });
+    });
+  }
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', function(){ if (parts) parts.rails.forEach(setupRail); request(); });
+  window.addEventListener('load', refresh);
+  window.addEventListener('hashchange', function(){ onPage(0); });
+  listen(reduceQ, function(){
+    if (parts) { parts.rails.forEach(setupRail); parts.hero.forEach(function(el){ if (el.getAnimations) el.getAnimations().forEach(function(a){ a.cancel(); }); }); }
+    frame();
+  });
+  listen(wideQ, function(){ if (parts) parts.rails.forEach(setupRail); frame(); });
+  onPage(0);
 })();
 `;
 
 function bar(): string {
-  return `<div class="zbd-bar"><strong>Zakes Bantwini · Website preview</strong><nav aria-label="Preview"><a href="#p-guide">Guide</a><a href="#p-home">Website</a><a href="#p-walkthrough">Booking &amp; admin</a><a href="#p-images">Images</a><a href="#p-audit">Audit</a><a href="#p-costing">Costing</a></nav></div>`;
+  const reports = REPORTS ? '<a href="#p-audit">Audit</a><a href="#p-costing">Costing</a>' : '';
+  return `<div class="zbd-bar"><strong>Zakes Bantwini · Website preview</strong><nav aria-label="Preview"><a href="#p-guide">Guide</a><a href="#p-home">Website</a><a href="#p-walkthrough">Booking &amp; admin</a><a href="#p-images">Images</a>${reports}</nav></div>`;
 }
 
 async function main() {
@@ -467,8 +598,8 @@ async function main() {
     // Home-screen icon for iOS and Android when the file is opened from Files.
     const touchIcon = `data:image/png;base64,${(await sharp(iconSvg, { density: 512 }).resize(180, 180).flatten({ background: '#080808' }).png().toBuffer()).toString('base64')}`;
     const ogImage = `data:image/jpeg;base64,${readFileSync(path.join(root, 'public', 'media', 'IMG_6853-og.jpg')).toString('base64')}`;
-    const audit = readFileSync(path.join(root, 'AUDIT.md'), 'utf8');
-    const costing = readFileSync(path.join(root, 'COSTING.md'), 'utf8');
+    const audit = REPORTS ? readFileSync(path.join(root, 'AUDIT.md'), 'utf8') : '';
+    const costing = REPORTS ? readFileSync(path.join(root, 'COSTING.md'), 'utf8') : '';
     let perf: unknown = null;
     try {
       perf = JSON.parse(readFileSync(path.join(root, '.smoke', 'perf.json'), 'utf8'));
@@ -489,8 +620,12 @@ async function main() {
       howToOpen: 'Double-click the file (Mac), or open it from Files with Chrome (Android). Works offline.',
       pages: captured.map((c) => ({ path: c.path, title: c.title, anchor: `#p-${c.key}` })),
       walkthrough: shots.map((s) => s.title),
-      completion: { overallPercent: 67, remainingPercent: 33, developmentHoursDonePercent: 88 },
-      costing: { buildAtMarketZar: { low: 676000, typical: 988000, high: 1300000 }, finishZar: { low: 91000, typical: 133000, high: 175000 }, runningPlatformZarPerMonth: { low: 1225, high: 1390 }, firstYearZar: { low: 172000, typical: 248000, high: 325000 }, exchangeRate: 'R16.50 per US$' },
+      ...(REPORTS
+        ? {
+            completion: { overallPercent: 67, remainingPercent: 33, developmentHoursDonePercent: 88 },
+            costing: { buildAtMarketZar: { low: 676000, typical: 988000, high: 1300000 }, finishZar: { low: 91000, typical: 133000, high: 175000 }, runningPlatformZarPerMonth: { low: 1225, high: 1390 }, firstYearZar: { low: 172000, typical: 248000, high: 325000 }, exchangeRate: 'R16.50 per US$' },
+          }
+        : {}),
       tests: { unitAndIntegration: '86 passed (file store and Postgres)', smoke: 'all checks passed, 18 pages × 3 widths with axe', performance: perf },
       imageEmbedding: { format: 'image/webp', maxWidth: 2400, note: 'Largest faithful derivative of each supplied master; nothing upscaled or regenerated.' },
       design: [
@@ -499,6 +634,8 @@ async function main() {
         'Display type tracking tightens with size (-0.006em to -0.024em); body text stays at 0.',
         'The menu opens and closes along the same path on mirrored curves, and reverses from its live position if interrupted.',
         'The Guide pill always names the current page (wayfinding); pages cross-fade, and do not move at all under reduced motion.',
+        'Motion: content reveals as it scrolls into view, the hero settles in and drifts away, architectural images drift in parallax, the music catalogue pins and scrolls sideways on wide screens, and Handover chapters take the stage in turn.',
+        'All of that motion is transform and opacity only and switches off live when the device asks for reduced motion; nothing is hidden for people who never get it.',
       ],
       images: media,
       disclaimer: 'Demo bookings, listings, signups and proposals are fictional sample data. Content marked pending or placeholder awaits management approval and is hidden in launch mode.',
@@ -512,16 +649,25 @@ async function main() {
     const guide = `<section class="zb-page zbd" id="p-guide" aria-label="Preview guide">${bar()}<div class="zbd-wrap">
 <p class="zbd-eyebrow">Website preview · ${generated.toISOString().slice(0, 10)} · commit ${commit}</p>
 <h1>Zakes Bantwini<br>The Architect</h1>
-<p class="zbd-lede">The whole website in one file. Every public page as built, the booking journey and management screens, all 41 supplied images with their registry, the completion audit and the costing. It works offline: no server, no internet.</p>
-<div class="zbd-stats"><div class="zbd-stat"><b>67%</b><span>complete overall</span></div><div class="zbd-stat"><b>33%</b><span>remaining to launch</span></div><div class="zbd-stat"><b>${captured.length}</b><span>pages in this preview</span></div><div class="zbd-stat"><b>41</b><span>supplied images</span></div></div>
+<p class="zbd-lede">The whole website in one file: every public page as built, with its motion, the booking journey and management screens, and all 41 supplied photographs with their registry${REPORTS ? ', the completion audit and the costing' : ''}. It works offline: no server, no internet.</p>
+<div class="zbd-stats">${
+      REPORTS
+        ? `<div class="zbd-stat"><b>67%</b><span>complete overall</span></div><div class="zbd-stat"><b>33%</b><span>remaining to launch</span></div>`
+        : `<div class="zbd-stat"><b>${shots.length}</b><span>booking &amp; admin screens</span></div>`
+    }<div class="zbd-stat"><b>${captured.length}</b><span>pages in this preview</span></div><div class="zbd-stat"><b>41</b><span>supplied images</span></div></div>
 <p class="zbd-note">Bookings, listings and names in this preview are <strong>fictional sample data</strong>. Content flagged “pending” or “placeholder” is waiting for management’s approval; in launch mode only approved content appears. Forms, payments and downloads work on the live site; here they show a notice.</p>
 <h2>Start here</h2>
 <ul class="zbd-grid">
 <li><a class="zbd-card" href="#p-home"><img data-zb="IMG_6853" alt=""><div><strong>The website</strong><span>Start at the home page and click around. Use the Guide button at the bottom left to come back.</span></div></a></li>
 <li><a class="zbd-card" href="#p-walkthrough"><img data-zb="IMG_6884" alt=""><div><strong>Booking &amp; admin</strong><span>A booking from request to confirmation, and the management workspace.</span></div></a></li>
 <li><a class="zbd-card" href="#p-images"><img data-zb="IMG_6869" alt=""><div><strong>Image library</strong><span>All 41 images, where each is used, focal points and notes.</span></div></a></li>
-<li><a class="zbd-card" href="#p-audit"><img data-zb="IMG_6868" alt=""><div><strong>Audit: 67% complete</strong><span>What is done, what remains, and who it depends on.</span></div></a></li>
-<li><a class="zbd-card" href="#p-costing"><img data-zb="IMG_6879" alt=""><div><strong>Costing</strong><span>What this work costs at today’s South African rates, to finish and to run.</span></div></a></li>
+${
+      REPORTS
+        ? `<li><a class="zbd-card" href="#p-audit"><img data-zb="IMG_6868" alt=""><div><strong>Audit: 67% complete</strong><span>What is done, what remains, and who it depends on.</span></div></a></li>
+<li><a class="zbd-card" href="#p-costing"><img data-zb="IMG_6879" alt=""><div><strong>Costing</strong><span>What this work costs at today’s South African rates, to finish and to run.</span></div></a></li>`
+        : `<li><a class="zbd-card" href="#p-architect"><img data-zb="IMG_6852" alt=""><div><strong>The Architect</strong><span>The five pillars, with the site’s architectural parallax and reveals.</span></div></a></li>
+<li><a class="zbd-card" href="#p-handover"><img data-zb="IMG_6868" alt=""><div><strong>The Handover</strong><span>Chapter-by-chapter scroll storytelling.</span></div></a></li>`
+    }
 </ul>
 <h2>Every page</h2>
 <ul class="zbd-grid">${siteIndex}</ul>
@@ -555,7 +701,7 @@ async function main() {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Zakes Bantwini — The Architect · Website preview</title>
-<meta name="description" content="Offline preview of the Zakes Bantwini website: every public page, the booking journey and admin, the 41-image library, a completion audit (67% complete) and a South African costing.">
+<meta name="description" content="${REPORTS ? 'Offline preview of the Zakes Bantwini website: every public page, the booking journey and admin, the 41-image library, a completion audit (67% complete) and a South African costing.' : 'Offline preview of the Zakes Bantwini website: every public page with its motion, the booking journey and admin, and the 41-image library.'}">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#080808">
 <meta name="color-scheme" content="dark">
@@ -569,7 +715,7 @@ async function main() {
 <meta name="date" content="${generated.toISOString()}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Zakes Bantwini — The Architect · Website preview">
-<meta property="og:description" content="Every page of the new website, the booking journey and admin, the image library, the completion audit and the costing.">
+<meta property="og:description" content="Every page of the new website, the booking journey and admin, and the image library${REPORTS ? ', the completion audit and the costing' : ''}.">
 <meta property="og:image" content="${ogImage}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -579,7 +725,7 @@ async function main() {
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="${icon}">
 <link rel="apple-touch-icon" href="${touchIcon}">
-<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebPage', name: 'Zakes Bantwini — The Architect · Website preview', description: 'Offline review copy of the new website, with the booking and admin walkthrough, image library, completion audit and costing.', inLanguage: 'en-ZA', dateModified: generated.toISOString(), version: commit, isAccessibleForFree: true }).replace(/</g, '\\u003c')}</script>
+<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebPage', name: 'Zakes Bantwini — The Architect · Website preview', description: `Offline review copy of the new website, with the booking and admin walkthrough and the image library${REPORTS ? ', completion audit and costing' : ''}.`, inLanguage: 'en-ZA', dateModified: generated.toISOString(), version: commit, isAccessibleForFree: true }).replace(/</g, '\\u003c')}</script>
 <style>${css}</style>
 <style>${PREVIEW_CSS}</style>
 <script type="application/json" id="zb-metadata">${JSON.stringify(metadata).replace(/</g, '\\u003c')}</script>
@@ -592,8 +738,8 @@ ${captured.map(pageSection).join('\n')}
 <section class="zb-page" id="p-not-found" aria-label="Not found">${notFound.html}</section>
 ${walk}
 ${imagesPage}
-${doc('audit', 'Completion audit', audit)}
-${doc('costing', 'Costing', costing)}
+${REPORTS ? doc('audit', 'Completion audit', audit) : ''}
+${REPORTS ? doc('costing', 'Costing', costing) : ''}
 ${liveOnly}
 <a class="zb-fab" href="#p-guide" aria-label="Preview guide"><span class="zb-fab-dot" aria-hidden="true"></span><span>Guide</span><span class="zb-fab-where" id="zb-where" aria-live="polite"></span></a>
 <div class="zb-toast" id="zb-toast" role="status" data-message="This is an offline preview. Forms, bookings and payments work on the live website."></div>

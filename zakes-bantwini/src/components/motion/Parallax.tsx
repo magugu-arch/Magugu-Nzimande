@@ -22,8 +22,10 @@ export function Parallax({ children, strength = 0.12, className }: Props) {
   const y = useTransform(scrollYProgress, [0, 1], [`${-strength * 50}%`, `${strength * 50}%`]);
 
   return (
-    <div ref={ref} className={className} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      <motion.div style={{ position: 'absolute', inset: `-${strength * 60}% 0`, y: reduce ? 0 : y }}>{children}</motion.div>
+    <div ref={ref} className={className} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }} data-motion="parallax" data-strength={strength}>
+      <motion.div data-motion-inner="" style={{ position: 'absolute', inset: `-${strength * 60}% 0`, y: reduce ? 0 : y }}>
+        {children}
+      </motion.div>
     </div>
   );
 }

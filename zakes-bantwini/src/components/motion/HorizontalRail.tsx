@@ -39,8 +39,8 @@ export function HorizontalRail({ children, label }: { children: ReactNode; label
 
   if (!pinned || distance === 0) {
     return (
-      <div ref={section} className={styles.native}>
-        <div ref={track} className={styles.nativeTrack} role="region" aria-label={label} tabIndex={0}>
+      <div ref={section} className={styles.native} data-motion="rail">
+        <div ref={track} className={styles.nativeTrack} role="region" aria-label={label} tabIndex={0} data-motion-track="">
           {children}
         </div>
       </div>

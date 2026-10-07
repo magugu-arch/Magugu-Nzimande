@@ -16,6 +16,11 @@
     n.remove();
   });
 
+  // Reveals replay in the preview: clear what the capture's scroll-through revealed.
+  body.querySelectorAll('.is-revealed').forEach(function (el) {
+    el.classList.remove('is-revealed');
+  });
+
   var head = body.querySelector('header');
   if (head && args.topClass !== args.solidClass) {
     head.setAttribute('class', args.topClass);

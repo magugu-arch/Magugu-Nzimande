@@ -14,14 +14,22 @@ offline, with nothing to install.
 - **Every public page as built:** 35 pages, including each release, video, journal story and live
   listing. They are captured from the production build and keep their real layouts on desktop,
   tablet and phone.
+- **Motion:**
+  - content reveals as it scrolls into view
+  - the hero settles in and drifts away
+  - architectural images drift in parallax
+  - the music catalogue pins and scrolls sideways on wide screens
+  - Handover chapters take the stage in turn
+
+  All of it switches off, live, when the device asks for reduced motion.
 - **Booking & admin:** a booking from request to confirmation on a phone, plus the management
   workspace (dashboard, booking, calendar, content, assets, team, inbox).
 - **Images:** all 41 supplied photographs, with their registry (alt text, sections, focal points,
   notes).
-- **Audit and costing:** the same documents as [`AUDIT.md`](../AUDIT.md) and [`COSTING.md`](../COSTING.md).
 
-The machine-readable metadata (pages, image registry, completion figures, costing, test results) is
-embedded in the file as JSON: `<script id="zb-metadata">`.
+The completion audit and the costing are not in the client copy. Build with `PREVIEW_REPORTS=1`
+to include them for the team. The machine-readable metadata (pages, image registry, design notes)
+is embedded in the file as JSON: `<script id="zb-metadata">`.
 
 ## Limits of a static file
 

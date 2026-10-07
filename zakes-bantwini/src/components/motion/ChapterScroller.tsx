@@ -29,14 +29,14 @@ export function ChapterScroller({ chapters }: { chapters: Chapter[] }) {
   }, []);
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} data-motion="chapters">
       <div className={styles.stage} aria-hidden="true">
         {chapters.map((c, i) => (
           <div key={c.id} className={styles.frame} data-active={i === active}>
             {c.media}
           </div>
         ))}
-        <p className={styles.counter}>
+        <p className={styles.counter} data-chapter-counter="">
           {chapters[active]?.numeral} / {chapters[chapters.length - 1]?.numeral}
         </p>
       </div>
@@ -49,6 +49,7 @@ export function ChapterScroller({ chapters }: { chapters: Chapter[] }) {
               refs.current[i] = el;
             }}
             data-index={i}
+            data-numeral={c.numeral}
             className={styles.chapter}
             aria-labelledby={`${c.id}-title`}
           >

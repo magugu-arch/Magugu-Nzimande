@@ -16,6 +16,7 @@ export function HeroMotion({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
+      data-motion="hero"
       style={{ position: 'absolute', inset: 0, y: reduce ? 0 : y, opacity: reduce ? 1 : opacity }}
       initial={reduce ? false : { scale: 1.08 }}
       animate={{ scale: 1 }}
