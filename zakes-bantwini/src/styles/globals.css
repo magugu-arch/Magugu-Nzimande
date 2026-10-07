@@ -91,6 +91,11 @@ body {
   padding-bottom: var(--player-h);
 }
 
+/* Room past the footer for the floating Home button, so it never covers the last line. */
+body:has([data-home-button]) {
+  padding-bottom: calc(var(--player-h) + 76px);
+}
+
 /* Taps respond at once: no double-tap-to-zoom wait on links and controls. */
 a,
 button,

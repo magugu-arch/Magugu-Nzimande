@@ -9,7 +9,7 @@
  *    public calendar shows the date unavailable without leaking anything.
  * 3. The admin workspace renders every view, and is closed without a session.
  * 4. Everything else management and visitors do: the brief upload, the menu
- *    dialog, community and collaboration forms and proposal triage, a public
+ *    dialog, the Home button, community and collaboration forms and proposal triage, a public
  *    listing reaching /live, a content edit and cover art reaching the site,
  *    CSV export, team accounts, and the security headers.
  *
@@ -249,6 +249,20 @@ async function everythingElse(browser, admin, reference) {
   await phone.keyboard.press('Escape');
   await menu.waitFor({ state: 'hidden' });
   check(await phone.evaluate(() => document.activeElement?.textContent?.trim() === 'Menu'), 'menu dialog opens, closes on Escape and returns focus', 'menu focus not returned');
+
+  const homeButton = phone.locator('[data-home-button]');
+  const onHome = await homeButton.count();
+  await phone.goto(`${base}/journal/what-an-archive-is-for`);
+  await phone.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const box = await homeButton.boundingBox();
+  await homeButton.click();
+  await phone.waitForURL(`${base}/`);
+  await homeButton.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+  check(
+    onHome === 0 && box && box.x < 40 && box.y + box.height > 844 - 80 && (await homeButton.count()) === 0,
+    'Home button floats bottom-left on inner pages, returns home, and is absent on home',
+    `Home button: ${onHome} on home, box ${JSON.stringify(box)}`,
+  );
 
   await phone.goto(`${base}/community`);
   const join = phone.locator('form').filter({ has: phone.getByRole('button', { name: 'Join the movement' }) }).first();

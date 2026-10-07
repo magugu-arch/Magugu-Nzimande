@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { HomeButton } from '@/components/layout/HomeButton';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { CursorLabel } from '@/components/motion/CursorLabel';
@@ -14,6 +15,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
       <SiteFooter />
+      <HomeButton />
       <MiniPlayer />
       <CursorLabel />
       <RevealObserver />

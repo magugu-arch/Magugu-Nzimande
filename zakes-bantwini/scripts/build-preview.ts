@@ -9,7 +9,8 @@
  * reduced motion) and stitched into one document:
  *   - CSS, fonts and every image are inlined (images once each, as WebP);
  *   - pages switch with the URL fragment and CSS :target, so navigation works
- *     even where scripts are blocked; a small script adds the menu dialog,
+ *     even where scripts are blocked; a Home button and the Guide pill sit at
+ *     the bottom left of every page; a small script adds the menu dialog,
  *     pillar tabs, the header's scroll state and a notice on forms;
  *   - management screens and the booking journey are included as screenshots,
  *     with the image library (and, with PREVIEW_REPORTS=1, the completion
@@ -346,18 +347,24 @@ img[data-zb]:not([src]){background:#121212}
 .zb-rail-pinned [data-motion-track]{overflow:visible!important;scroll-snap-type:none!important;flex-wrap:nowrap;gap:clamp(20px,3vw,48px)!important}
 @media (prefers-reduced-motion:no-preference){[data-motion="hero"],[data-motion-inner],.zb-rail-pinned [data-motion-track]{will-change:translate}}
 .zb-page:target,.zb-page:has(:target),body:not(:has(.zb-page:target)):not(:has(.zb-page :target)) #p-guide{animation:zb-in 260ms cubic-bezier(.16,1,.3,1)}
-.zb-fab{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483000;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px 0 14px;border:1px solid rgb(242 239 232/.16);border-radius:999px;background:rgb(18 18 18/.62);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 10px 30px rgb(0 0 0/.35);color:#f2efe8;font:600 11px/1 var(--font-sans,system-ui),system-ui,-apple-system,sans-serif;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform 100ms ease-out,background-color 200ms ease-out}
+body{padding-bottom:76px}
+.zb-dock{position:fixed;left:max(var(--gutter,16px),env(safe-area-inset-left));bottom:max(clamp(16px,2vw,28px),env(safe-area-inset-bottom));z-index:2147483000;display:flex;gap:8px;align-items:center}
+.zb-fab{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 18px 0 14px;border:1px solid rgb(242 239 232/.16);border-radius:999px;background:rgb(18 18 18/.62);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 10px 30px rgb(0 0 0/.35);color:#f2efe8;font:600 11px/1 var(--font-sans,system-ui),system-ui,-apple-system,sans-serif;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform 100ms ease-out,background-color 200ms ease-out,border-color 200ms ease-out}
 .zb-fab:active{transform:scale(.96)}
 .zb-fab:focus-visible{outline:2px solid #d9c7a3;outline-offset:3px}
 .zb-fab-dot{width:7px;height:7px;border-radius:50%;background:#d9c7a3;flex:none}
-.zb-fab-where{color:#9b9b96;font-weight:500;letter-spacing:.1em;max-width:42vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zb-fab-glyph{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:color 200ms ease-out}
+.zb-fab-where{color:#9b9b96;font-weight:500;letter-spacing:.1em;max-width:max(48px,calc(100vw - 2 * var(--gutter,16px) - 240px));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .zb-fab-where:empty{display:none}
-@media (hover:hover){.zb-fab:hover{background:rgb(30 30 30/.72)}}
+/* You are already home: the Home button steps aside, as it does on the site. */
+body:has(#p-home:target,#p-home :target) .zb-home{display:none}
+@media (hover:hover){.zb-fab:hover{background:rgb(30 30 30/.74);border-color:rgb(217 199 163/.5)}.zb-fab:hover .zb-fab-glyph{color:#d9c7a3}}
 @media (prefers-reduced-transparency:reduce),(prefers-contrast:more){.zb-fab,.zbd-bar,.zb-toast{background:#121212!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}.zb-fab{border-color:#d9c7a3}}
 @media (prefers-reduced-motion:reduce){.zb-page{animation:none!important}.zb-toast{transition:opacity 150ms!important}}
+@media print{.zb-dock{display:none}}
 .zb-toast{position:fixed;left:50%;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 60px);z-index:2147483001;max-width:min(92vw,520px);padding:14px 18px;border-radius:14px;background:rgb(18 18 18/.72);-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);border:1px solid rgb(242 239 232/.14);box-shadow:0 16px 40px rgb(0 0 0/.4);color:#f2efe8;font:500 14px/1.5 var(--font-sans,system-ui),system-ui,-apple-system,sans-serif;opacity:0;transform:translate(-50%,10px) scale(.97);filter:blur(6px);pointer-events:none;transition:opacity 220ms ease-out,transform 380ms cubic-bezier(.16,1,.3,1),filter 260ms ease-out}
 .zb-toast[data-show]{opacity:1;transform:translate(-50%,0) scale(1);filter:none}
-.zbd{min-height:100vh;background:#080808;color:#f2efe8;padding:0 0 96px;font-family:var(--font-sans,system-ui),system-ui,sans-serif}
+.zbd{min-height:100vh;background:#080808;color:#f2efe8;padding:0 0 24px;font-family:var(--font-sans,system-ui),system-ui,sans-serif}
 .zbd-bar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);padding-top:max(14px,env(safe-area-inset-top));background:rgb(8 8 8/.72);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%)}
 .zbd-bar::after{content:'';position:absolute;inset:100% 0 auto;height:24px;background:linear-gradient(to bottom,rgb(8 8 8/.45),rgb(8 8 8/0));pointer-events:none}
 .zbd-bar strong{font-size:12px;letter-spacing:.2em;text-transform:uppercase}
@@ -633,6 +640,7 @@ async function main() {
         'Header, player and preview chrome are translucent materials (blur + saturation) with scroll-edge fades instead of hard rules; solid under reduced transparency or increased contrast.',
         'Display type tracking tightens with size (-0.006em to -0.024em); body text stays at 0.',
         'The menu opens and closes along the same path on mirrored curves, and reverses from its live position if interrupted.',
+        'A Home button floats at the bottom left of every page but the home page itself, so the home page is always one tap away; on the site it rises above the music player when that opens.',
         'The Guide pill always names the current page (wayfinding); pages cross-fade, and do not move at all under reduced motion.',
         'Motion: content reveals as it scrolls into view, the hero settles in and drifts away, architectural images drift in parallax, the music catalogue pins and scrolls sideways on wide screens, and Handover chapters take the stage in turn.',
         'All of that motion is transform and opacity only and switches off live when the device asks for reduced motion; nothing is hidden for people who never get it.',
@@ -658,7 +666,7 @@ async function main() {
 <p class="zbd-note">Bookings, listings and names in this preview are <strong>fictional sample data</strong>. Content flagged “pending” or “placeholder” is waiting for management’s approval; in launch mode only approved content appears. Forms, payments and downloads work on the live site; here they show a notice.</p>
 <h2>Start here</h2>
 <ul class="zbd-grid">
-<li><a class="zbd-card" href="#p-home"><img data-zb="IMG_6853" alt=""><div><strong>The website</strong><span>Start at the home page and click around. Use the Guide button at the bottom left to come back.</span></div></a></li>
+<li><a class="zbd-card" href="#p-home"><img data-zb="IMG_6853" alt=""><div><strong>The website</strong><span>Start at the home page and click around. The Home button at the bottom left always takes you back to the home page; Guide brings you here.</span></div></a></li>
 <li><a class="zbd-card" href="#p-walkthrough"><img data-zb="IMG_6884" alt=""><div><strong>Booking &amp; admin</strong><span>A booking from request to confirmation, and the management workspace.</span></div></a></li>
 <li><a class="zbd-card" href="#p-images"><img data-zb="IMG_6869" alt=""><div><strong>Image library</strong><span>All 41 images, where each is used, focal points and notes.</span></div></a></li>
 ${
@@ -732,7 +740,7 @@ ${
 <script type="application/json" id="zb-images">${JSON.stringify(images)}</script>
 </head>
 <body>
-<noscript><div style="position:fixed;bottom:0;left:0;right:0;z-index:2147483002;padding:8px 16px 8px 190px;background:#d9c7a3;color:#080808;font:13px/1.4 system-ui;pointer-events:none">Pages work without JavaScript, but photographs need it. Open the file in Chrome or Safari to see them.</div></noscript>
+<noscript><style>.zb-dock{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 52px)}</style><div style="position:fixed;bottom:0;left:0;right:0;z-index:2147483002;padding:8px 16px;padding-bottom:max(8px,env(safe-area-inset-bottom));background:#d9c7a3;color:#080808;font:13px/1.4 system-ui;pointer-events:none">Pages work without JavaScript, but photographs need it. Open the file in Chrome or Safari to see them.</div></noscript>
 ${guide}
 ${captured.map(pageSection).join('\n')}
 <section class="zb-page" id="p-not-found" aria-label="Not found">${notFound.html}</section>
@@ -741,7 +749,7 @@ ${imagesPage}
 ${REPORTS ? doc('audit', 'Completion audit', audit) : ''}
 ${REPORTS ? doc('costing', 'Costing', costing) : ''}
 ${liveOnly}
-<a class="zb-fab" href="#p-guide" aria-label="Preview guide"><span class="zb-fab-dot" aria-hidden="true"></span><span>Guide</span><span class="zb-fab-where" id="zb-where" aria-live="polite"></span></a>
+<nav class="zb-dock" aria-label="Preview shortcuts"><a class="zb-fab zb-home" href="#p-home"><svg class="zb-fab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.2V20h4.5v-5.5h3V20H18V9.2"/></svg><span>Home</span></a><a class="zb-fab" href="#p-guide" aria-label="Preview guide"><span class="zb-fab-dot" aria-hidden="true"></span><span>Guide</span><span class="zb-fab-where" id="zb-where" aria-live="polite"></span></a></nav>
 <div class="zb-toast" id="zb-toast" role="status" data-message="This is an offline preview. Forms, bookings and payments work on the live website."></div>
 <script>${PREVIEW_JS}</script>
 </body>

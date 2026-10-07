@@ -22,6 +22,9 @@ offline, with nothing to install.
   - Handover chapters take the stage in turn
 
   All of it switches off, live, when the device asks for reduced motion.
+- **Home button:** a pill at the bottom left of every page takes you straight back to the home
+  page (it steps aside on the home page itself). **Guide**, beside it, returns to the preview's
+  start page and names the page you are on.
 - **Booking & admin:** a booking from request to confirmation on a phone, plus the management
   workspace (dashboard, booking, calendar, content, assets, team, inbox).
 - **Images:** all 41 supplied photographs, with their registry (alt text, sections, focal points,

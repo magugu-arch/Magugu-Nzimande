@@ -12,7 +12,8 @@
     return p === '/' ? 'home' : p.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/-+$/, '').toLowerCase();
   }
   var body = document.body.cloneNode(true);
-  body.querySelectorAll('script, style, next-route-announcer, nextjs-portal, link[rel="preload"], template').forEach(function (n) {
+  // The preview's own dock carries the Home button on every page, in one place.
+  body.querySelectorAll('script, style, next-route-announcer, nextjs-portal, link[rel="preload"], template, [data-home-button]').forEach(function (n) {
     n.remove();
   });
 
