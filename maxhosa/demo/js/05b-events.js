@@ -180,9 +180,56 @@ function buildIcs(events) {
   return lines.map(icsFold).join('\r\n') + '\r\n';
 }
 
+/** A page shown inside another (a web preview) cannot save files; it gets the entry to copy. */
+function isFramed() {
+  try {
+    return window.self !== window.top;
+  } catch (err) {
+    return true;
+  }
+}
+
+function showIcsText(events, text) {
+  var sheet = openSheet({
+    title: 'Add to calendar',
+    body:
+      '<p class="note" style="margin-top:0">This preview can’t save files. Open the downloaded demo file to save a calendar file in one tap, or copy the entry below into a new .ics file.</p>' +
+      (events.length === 1 ? '<p><strong>' + esc(events[0].title) + '</strong><br>' + esc(eventDateLabel(events[0]) + ' · ' + events[0].city) + '</p>' : '') +
+      '<div class="field"><label for="ics-text">Calendar entry (iCalendar)</label><textarea id="ics-text" readonly style="min-height:9rem;font-family:ui-monospace,Menlo,monospace;font-size:0.75rem">' +
+      esc(text) +
+      '</textarea></div>',
+    foot: '<button class="btn btn-primary btn-block" data-copy-ics>' + icon('calendar') + 'Copy calendar entry</button>',
+  });
+  $('[data-copy-ics]', sheet.el).addEventListener('click', function () {
+    var ta = $('#ics-text', sheet.el);
+    ta.focus();
+    ta.select();
+    var done = function () {
+      toast('Calendar entry copied', { icon: 'check' });
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () {
+          document.execCommand('copy');
+          done();
+        });
+      } else {
+        document.execCommand('copy');
+        done();
+      }
+    } catch (err) {
+      toast('Selected — copy it from the box', { icon: 'info' });
+    }
+  });
+}
+
 /** Saved as a file the phone hands to its calendar. Works offline; nothing is sent. */
 function downloadIcs(events, filename) {
   var text = buildIcs(events);
+  if (isFramed()) {
+    showIcsText(events, text);
+    return;
+  }
   try {
     var url = URL.createObjectURL(new Blob([text], { type: 'text/calendar' }));
     var a = document.createElement('a');
