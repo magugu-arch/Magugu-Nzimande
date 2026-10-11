@@ -1,5 +1,8 @@
 # Task board and implementation status
 
+Overall: the concept is complete; the production app is about 30% complete.
+See [COMPLETION_AUDIT.md](COMPLETION_AUDIT.md) for the breakdown and cost.
+
 ## Phase 0 — Discovery (not started; needs the brand)
 
 - [ ] Commerce platform audit (see `commerce-integration-audit.md` — the
@@ -33,7 +36,9 @@
 - [x] Appointment enquiry flow (sample availability, idempotent, pending only)
 - [x] Same-day courier map mode, stale positions, delivery preferences with acknowledgement (simulated)
 - [ ] Booking provider integration with server-side slot locking
-- [ ] Store locator from verified data; events and RSVP
+- [x] Events and fixtures: calendar, RSVP / waitlist / invitation, add to calendar, invites, event edit, My events (sample data, idempotent mock)
+- [ ] Events service: fixtures back-office, capacity, waitlist promotion, confirmation emails, webcal feed, invite links with attribution
+- [ ] Store locator from verified data
 - [ ] Secure message centre; push notifications with consent records
 - [ ] iOS Live Activity for delivery progress
 
@@ -47,11 +52,11 @@
 
 | Check | Result |
 |---|---|
-| `npm run assets:verify` | 24 unique assets, whole and in step |
+| `npm run assets:verify` | 24 verified + 1 recorded addition, unique, whole and in step |
 | `npm run typecheck` | Pass |
 | `npm run lint` | Pass |
-| `npm test` | 59 / 59 |
-| `npm run shots:web` (15 routes via react-native-web) | 15 / 15 clean |
-| `npm run demo:test` (offline demo, Chromium, network cut) | 74 / 74 |
+| `npm test` | 75 / 75 |
+| `npm run shots:web` (20 routes via react-native-web) | 20 / 20 clean |
+| `npm run demo:test` (offline demo, Chromium, network cut) | 114 / 114 |
 | Root bb.q app: typecheck, lint, format, 891 tests | Pass, unchanged |
 | iOS / Android native builds | Not run in this environment |

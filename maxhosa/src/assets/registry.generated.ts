@@ -4,7 +4,13 @@
  */
 import type { AssetRecord } from './types';
 
-export const ASSET_IDS = ["mx-asset-01","mx-asset-02","mx-asset-03","mx-asset-04","mx-asset-05","mx-asset-06","mx-asset-07","mx-asset-08","mx-asset-09","mx-asset-10","mx-asset-11","mx-asset-12","mx-asset-13","mx-asset-14","mx-asset-15","mx-asset-16","mx-asset-17","mx-asset-18","mx-asset-19","mx-asset-20","mx-asset-21","mx-asset-22","mx-asset-23","mx-asset-24"] as const;
+export const ASSET_IDS = ["mx-asset-01","mx-asset-02","mx-asset-03","mx-asset-04","mx-asset-05","mx-asset-06","mx-asset-07","mx-asset-08","mx-asset-09","mx-asset-10","mx-asset-11","mx-asset-12","mx-asset-13","mx-asset-14","mx-asset-15","mx-asset-16","mx-asset-17","mx-asset-18","mx-asset-19","mx-asset-20","mx-asset-21","mx-asset-22","mx-asset-23","mx-asset-24","mx-asset-25"] as const;
+
+/** The 24 images in the verified manifest. */
+export const VERIFIED_ASSET_IDS = ["mx-asset-01","mx-asset-02","mx-asset-03","mx-asset-04","mx-asset-05","mx-asset-06","mx-asset-07","mx-asset-08","mx-asset-09","mx-asset-10","mx-asset-11","mx-asset-12","mx-asset-13","mx-asset-14","mx-asset-15","mx-asset-16","mx-asset-17","mx-asset-18","mx-asset-19","mx-asset-20","mx-asset-21","mx-asset-22","mx-asset-23","mx-asset-24"] as const;
+
+/** Images added later, each recording who supplied it, when, why and its approval. */
+export const ADDITION_ASSET_IDS = ["mx-asset-25"] as const;
 
 export type AssetId = (typeof ASSET_IDS)[number];
 
@@ -272,5 +278,17 @@ export const assetRegistry: Record<AssetId, AssetRecord> = {
     width: 336,
     height: 420,
     conceptAsset: true,
+  },
+  'mx-asset-25': {
+    id: 'mx-asset-25',
+    source: require('../../assets/maxhosa/mx-asset-25.jpg'),
+    title: "Sunset event — guests in patterned knitwear",
+    alt: "Guests at a sunset terrace gathering in patterned knitwear — cardigans, a knit skirt and shawl, a beaded crop top — talking around a fire bowl, with hills and an acacia tree behind.",
+    category: 'event',
+    placement: ["events-hero","home"],
+    width: 1122,
+    height: 1402,
+    conceptAsset: true,
+    addition: {"suppliedBy":"Client, in the build session","date":"2026-10-11","purpose":"Events and fixtures imagery","approval":"Supplied with the events request; confirm brand approval and rights before public use"},
   },
 };

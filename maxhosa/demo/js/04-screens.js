@@ -237,6 +237,7 @@ var TAB_RENDERERS = {
         '<div class="hero-actions"><button class="btn btn-light" data-action="open-story" data-id="s1">Explore the collection</button>' +
         '<button class="btn btn-glass" data-action="shop-new">Shop new arrivals</button></div></div></div>' +
         liveOrderCard() +
+        nextEventCard() +
         '<section class="section" aria-labelledby="h-cats"><div class="section-head"><h2 id="h-cats">Shop by category</h2></div>' +
         '<div class="rail cats">' +
         DATA.categories
@@ -347,12 +348,10 @@ var TAB_RENDERERS = {
         '<div style="padding:0 var(--gutter)">' +
         DATA.stories.map(storyCard).join('') +
         '</div>' +
-        '<section class="section" aria-labelledby="h-events" style="padding-top:0.5rem"><div class="section-head"><h2 id="h-events">Events</h2></div>' +
-        '<div class="group"><div class="empty" style="padding:2rem 1rem">' +
-        '<span class="empty-icon">' +
-        icon('calendar') +
-        '</span><h3>No events in this demo</h3>' +
-        '<p>Event listings, RSVPs and capacity come from MAXHOSA AFRICA’s event system once it is connected.</p></div></div></section>' +
+        '<section class="section" aria-labelledby="h-events" style="padding-top:0.5rem"><div class="section-head"><h2 id="h-events">Events and fixtures</h2>' +
+        '<button class="link-btn" data-action="open-events">Calendar</button></div>' +
+        fixturesPreview() +
+        '</section>' +
         '<section class="section" aria-labelledby="h-styling"><div class="section-head"><h2 id="h-styling">Styling</h2></div>' +
         '<div class="group"><button class="row" data-action="open-appointment"><span class="row-icon">' +
         icon('sparkle') +
@@ -437,6 +436,7 @@ var TAB_RENDERERS = {
           state.appointments.length ? state.appointments.length + ' enquiry sent (demo)' : 'Request a time with a stylist',
           'open-appointment',
         ) +
+        accountRow('sparkle', 'My events', myEventsSummary(), 'open-my-events') +
         '</div>' +
         '<div class="group-title">Shopping</div><div class="group">' +
         accountRow('globe', 'Market and currency', m.label + ' · ' + m.currencyCode, 'open-market') +
@@ -544,23 +544,13 @@ function storyCard(s) {
 
 /* ------------------------------------------------------------- shop */
 
-var PRICE_BANDS = {
-  ZA: [
-    { id: 'low', label: 'Under R1 000', min: 0, max: 100000 },
-    { id: 'mid', label: 'R1 000 – R4 000', min: 100000, max: 400000 },
-    { id: 'high', label: 'Over R4 000', min: 400000, max: Infinity },
-  ],
-  GB: [
-    { id: 'low', label: 'Under £50', min: 0, max: 5000 },
-    { id: 'mid', label: '£50 – £200', min: 5000, max: 20000 },
-    { id: 'high', label: 'Over £200', min: 20000, max: Infinity },
-  ],
-  US: [
-    { id: 'low', label: 'Under $60', min: 0, max: 6000 },
-    { id: 'mid', label: '$60 – $240', min: 6000, max: 24000 },
-    { id: 'high', label: 'Over $240', min: 24000, max: Infinity },
-  ],
-};
+/* Price bands per market come from the shared sample catalogue, in minor units. */
+var PRICE_BANDS = {};
+Object.keys(DATA.priceBands).forEach(function (m) {
+  PRICE_BANDS[m] = DATA.priceBands[m].map(function (b) {
+    return { id: b.id, label: b.label, min: b.minMinor, max: b.maxMinor == null ? Infinity : b.maxMinor };
+  });
+});
 
 var SORTS = [
   { id: 'new', label: 'New arrivals' },
@@ -917,6 +907,7 @@ function openProduct(pid) {
         '<div class="size-status" id="size-status-' +
         p.id +
         '" aria-live="polite">Choose a size to see its availability. Nothing is pre-selected.</div>' +
+        wearItToCallout(p.id) +
         '<div class="callout">' +
         icon('truck') +
         '<div><p><strong>Delivery and returns</strong></p><p>Delivery options, costs, duties and taxes for ' +

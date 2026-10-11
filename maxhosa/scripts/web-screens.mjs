@@ -54,6 +54,11 @@ const ROUTES = [
   ['filters', '/filters'],
   ['size-guide', '/size-guide/tops'],
   ['market', '/market'],
+  ['events', '/events'],
+  ['event', '/events/ev02'],
+  ['event-past', '/events/ev08'],
+  ['rsvp', '/rsvp/ev01'],
+  ['my-events', '/my-events'],
 ];
 
 async function launch() {

@@ -8,10 +8,11 @@ app in a web browser with no internet and no installation.
 
   Concept demo — sample products, sample courier, no real purchase/delivery.
 
-Nothing you do in it creates an order, takes a payment, books an appointment
-or sends a message. Products, prices, sizes, stock, orders and courier events
-are invented sample data. The 24 images are verified concept assets, not
-approved product photography.
+Nothing you do in it creates an order, takes a payment, books an appointment,
+holds an event place or sends a message. Products, prices, sizes, stock,
+orders, courier events and event fixtures are invented sample data. The 24
+images are verified concept assets, not approved product photography; one
+more photograph (the sunset event) was supplied by the client for events.
 
 What you can try
 ----------------
@@ -19,6 +20,11 @@ What you can try
   size guide), Saved, the Bag and a simulated checkout, a styling appointment
   enquiry, and the delivery tracker (with "Advance demo status", a simulated
   same-day courier map, delivery problems and stale-data states).
+
+  Events and fixtures: Discover > Open the events calendar. Swipe the month,
+  tap a day, filter by city, RSVP (or join a waitlist, or request an
+  invitation), add an event to your calendar (saves an .ics file), invite a
+  friend, and shop the event edit.
 
   It is built to feel like a phone app: drag sheets by their handle and flick
   them away, swipe from the left edge to go back, pinch or double-tap photos.

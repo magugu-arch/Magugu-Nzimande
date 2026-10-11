@@ -1,13 +1,21 @@
 import type { ImageSourcePropType } from 'react-native';
 
-export type AssetCategory = 'product' | 'product-on-model' | 'editorial' | 'accessory';
+export type AssetCategory = 'product' | 'product-on-model' | 'editorial' | 'accessory' | 'event';
 
 export type AssetPlacement =
-  'home-hero' | 'onboarding' | 'catalogue-card' | 'pdp-primary' | 'pdp-gallery' | 'discover';
+  | 'home-hero'
+  | 'home'
+  | 'onboarding'
+  | 'catalogue-card'
+  | 'pdp-primary'
+  | 'pdp-gallery'
+  | 'discover'
+  | 'events-hero';
 
 /**
- * One of the 24 verified concept images. `conceptAsset` stays true until
- * MAXHOSA approves the image for production; the UI labels it while it is.
+ * One of the 24 verified concept images, or an addition the manifest records
+ * with who supplied it and why. `conceptAsset` stays true until MAXHOSA
+ * approves the image for production; the UI labels it while it is.
  */
 export type AssetRecord = {
   id: string;
@@ -19,4 +27,6 @@ export type AssetRecord = {
   width: number;
   height: number;
   conceptAsset: true;
+  /** Present only on images outside the verified 24, recorded when they were added. */
+  addition?: { suppliedBy: string; date: string; purpose: string; approval: string };
 };

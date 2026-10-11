@@ -24,6 +24,9 @@ export type CategoryId = 'men' | 'women' | 'unisex' | 'accessories' | 'lifestyle
 
 export type Category = { id: CategoryId; label: string; assetId: string };
 
+/** A price range in the market's minor units; `maxMinor: null` means no upper bound. */
+export type PriceBand = { id: string; label: string; minMinor: number; maxMinor: number | null };
+
 export type StockStatus = 'available' | 'preorder' | 'unavailable';
 
 export type PreorderInfo = {
@@ -227,6 +230,53 @@ export type Appointment = {
 };
 
 export type RescheduleRequest = { reference: string; slotId: string };
+
+/* ----------------------------------------------------------------- events */
+
+export type EventKind = 'preview' | 'styling' | 'trunk' | 'virtual' | 'popup' | 'private';
+
+/** How a guest gets in: an RSVP against capacity, just turning up, or by invitation. */
+export type RsvpPolicy = 'open' | 'drop-in' | 'invite-only';
+
+/**
+ * Whether a place can be had. The provider derives it from capacity and never
+ * hands the app a count, so the app cannot show "only 3 left" — scarcity is
+ * MAXHOSA's to state, not the app's to invent.
+ */
+export type EventAvailability = 'open' | 'full' | 'drop-in' | 'invite-only';
+
+export type BrandEvent = {
+  id: string;
+  title: string;
+  kind: EventKind;
+  kindLabel: string;
+  /** The kind of place, never an address — venues go to confirmed guests only. */
+  place: string;
+  city: string;
+  /** ISO 8601 with offset; shown in `timeZone`. */
+  startsAt: string;
+  endsAt: string;
+  timeZone: string;
+  rsvp: RsvpPolicy;
+  availability: EventAvailability;
+  heroAssetId: string;
+  /** The event edit: pieces chosen for the occasion. */
+  productIds: string[];
+  summary: string;
+  sample: boolean;
+};
+
+export type RsvpStatus = 'going' | 'waitlist' | 'requested';
+
+export type Rsvp = {
+  reference: string;
+  eventId: string;
+  status: RsvpStatus;
+  guests: 1 | 2;
+  /** Updates about this event only — never marketing. */
+  updates: boolean;
+  createdAt: string;
+};
 
 /* ---------------------------------------------------------- notifications */
 

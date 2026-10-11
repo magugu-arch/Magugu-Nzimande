@@ -10,6 +10,7 @@ import { Screen } from '@/components/Screen';
 import { ErrorState, LoadingSkeleton } from '@/components/States';
 import { Text } from '@/components/Text';
 import { LiveOrderCard } from '@/components/delivery/LiveOrderCard';
+import { NextEventCard } from '@/components/events/NextEventCard';
 import { radius, space } from '@/design/tokens';
 import { useCategories, useProducts, useStories } from '@/features/catalogue';
 import { useShopFilters } from '@/store/shop';
@@ -73,6 +74,7 @@ export default function Home() {
       right={<BagButton onMedia />}
     >
       <LiveOrderCard />
+      <NextEventCard />
 
       <Section title="Shop by category">
         <ScrollView

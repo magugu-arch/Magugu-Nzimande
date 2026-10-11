@@ -1,8 +1,14 @@
-import { ASSET_IDS, assetRegistry } from '@/assets/registry.generated';
+import {
+  ADDITION_ASSET_IDS,
+  ASSET_IDS,
+  VERIFIED_ASSET_IDS,
+  assetRegistry,
+} from '@/assets/registry.generated';
 import { stageIndex, trackingView } from '@/domain/delivery';
 import { MockBookingProvider } from '@/providers/booking/MockBookingProvider';
 import { MockCommerceProvider } from '@/providers/commerce/MockCommerceProvider';
 import { MockDeliveryProvider } from '@/providers/delivery/MockDeliveryProvider';
+import { MockEventsProvider } from '@/providers/events/MockEventsProvider';
 import catalogue from '@data/sample-catalogue.json';
 
 describe('MockCommerceProvider', () => {
@@ -22,6 +28,10 @@ describe('MockCommerceProvider', () => {
     for (const s of await commerce.listStories())
       [s.heroAssetId, ...s.mediaAssetIds].forEach((a) => used.add(a));
     for (const c of await commerce.listCategories()) used.add(c.assetId);
+    for (const e of await new MockEventsProvider().listEvents()) {
+      expect(ASSET_IDS).toContain(e.heroAssetId);
+      used.add(e.heroAssetId);
+    }
     expect([...used].sort()).toEqual([...ASSET_IDS].sort());
   });
 
@@ -135,11 +145,17 @@ describe('MockBookingProvider', () => {
 });
 
 describe('asset registry', () => {
-  it('holds exactly the 24 verified concept images, each described', () => {
-    expect(ASSET_IDS).toHaveLength(24);
+  it('holds the 24 verified concept images plus recorded additions, each described', () => {
+    expect(VERIFIED_ASSET_IDS).toHaveLength(24);
+    expect([...VERIFIED_ASSET_IDS, ...ADDITION_ASSET_IDS].sort()).toEqual([...ASSET_IDS].sort());
     for (const id of ASSET_IDS) {
       expect(assetRegistry[id].conceptAsset).toBe(true);
       expect(assetRegistry[id].alt.length).toBeGreaterThan(20);
+    }
+    for (const id of VERIFIED_ASSET_IDS) expect(assetRegistry[id].addition).toBeUndefined();
+    for (const id of ADDITION_ASSET_IDS) {
+      const a = assetRegistry[id].addition!;
+      expect(a.suppliedBy && a.date && a.purpose && a.approval).toBeTruthy();
     }
     expect(
       catalogue.products

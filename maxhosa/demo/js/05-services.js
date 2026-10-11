@@ -1182,11 +1182,12 @@ function openAbout() {
       '.</p>' +
       '<div class="group" style="margin:0">' +
       [
-        ['Images', 'The 24 verified concept assets — not approved product photography or live SKUs'],
+        ['Images', 'The 24 verified concept assets, plus one client-supplied event photograph — not approved product photography or live SKUs'],
         ['Products, prices, sizes, stock', 'Invented sample data, labelled throughout'],
         ['Checkout', 'Simulated; no payment form, no order leaves this device'],
         ['Delivery tracking', 'Simulated courier, timeline and map — "Demo location, not GPS"'],
         ['Appointments', 'Enquiry only, sample times, nothing is sent'],
+        ['Events', 'Sample fixtures; RSVPs stay on this device, nothing is sent and no place is held'],
         ['Stories', 'Placeholder copy until MAXHOSA approves the text'],
         ['Wordmark', 'Typeset placeholder until the approved logo is supplied'],
       ]

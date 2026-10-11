@@ -13,6 +13,23 @@
     { "id": "lifestyle", "label": "Lifestyle", "asset": "mx-asset-06" }
   ],
   "colours": ["Black", "Ochre", "Red", "Blue", "Turquoise", "Cream", "Orange"],
+  "priceBands": {
+    "ZA": [
+      { "id": "low", "label": "Under R1 000", "minMinor": 0, "maxMinor": 100000 },
+      { "id": "mid", "label": "R1 000 – R4 000", "minMinor": 100000, "maxMinor": 400000 },
+      { "id": "high", "label": "Over R4 000", "minMinor": 400000, "maxMinor": null }
+    ],
+    "GB": [
+      { "id": "low", "label": "Under £50", "minMinor": 0, "maxMinor": 5000 },
+      { "id": "mid", "label": "£50 – £200", "minMinor": 5000, "maxMinor": 20000 },
+      { "id": "high", "label": "Over £200", "minMinor": 20000, "maxMinor": null }
+    ],
+    "US": [
+      { "id": "low", "label": "Under $60", "minMinor": 0, "maxMinor": 6000 },
+      { "id": "mid", "label": "$60 – $240", "minMinor": 6000, "maxMinor": 24000 },
+      { "id": "high", "label": "Over $240", "minMinor": 24000, "maxMinor": null }
+    ]
+  },
   "sizeGuides": {
     "tops": {
       "title": "Knitwear tops",
@@ -333,5 +350,135 @@
     "carrier": "Sample Courier (demo)",
     "trackingReference": "SAMPLE-TRK-0001",
     "serviceLevel": "Standard parcel"
-  }
+  },
+  "eventKinds": {
+    "preview": { "label": "Collection preview", "place": "Event venue" },
+    "styling": { "label": "Styling evening", "place": "Event venue" },
+    "trunk": { "label": "Trunk show", "place": "Boutique" },
+    "virtual": { "label": "Live virtual styling", "place": "Online" },
+    "popup": { "label": "Pop-up", "place": "Temporary pop-up" },
+    "private": { "label": "Private viewing", "place": "Event venue" }
+  },
+  "events": [
+    {
+      "id": "ev01",
+      "title": "New-season preview evening",
+      "kind": "preview",
+      "city": "Johannesburg",
+      "startsInDays": 12,
+      "startTime": "18:30",
+      "durationMinutes": 150,
+      "rsvp": "open",
+      "capacity": 80,
+      "reserved": 52,
+      "hero": "mx-asset-09",
+      "products": ["p06", "p07", "p08", "p01"],
+      "summary": "An evening with the new-season pieces before they reach the shop, with the team on hand to style and fit."
+    },
+    {
+      "id": "ev02",
+      "title": "Sunset knitwear soirée",
+      "kind": "styling",
+      "city": "Johannesburg",
+      "startsInDays": 20,
+      "startTime": "17:00",
+      "durationMinutes": 180,
+      "rsvp": "open",
+      "capacity": 60,
+      "reserved": 60,
+      "hero": "mx-asset-25",
+      "products": ["p01", "p02", "p10", "p15", "p13"],
+      "summary": "Golden hour on a terrace, knitwear for the cooler evening, and a stylist for anyone who wants a second opinion."
+    },
+    {
+      "id": "ev03",
+      "title": "Trunk show and fittings",
+      "kind": "trunk",
+      "city": "Cape Town",
+      "startsInDays": 26,
+      "startTime": "11:00",
+      "durationMinutes": 360,
+      "rsvp": "drop-in",
+      "capacity": null,
+      "reserved": 0,
+      "hero": "mx-asset-05",
+      "products": ["p01", "p03", "p05"],
+      "summary": "Drop in to try the knitwear in every size, or reserve a fitting so a stylist is free when you arrive."
+    },
+    {
+      "id": "ev04",
+      "title": "Live virtual styling",
+      "kind": "virtual",
+      "city": "Online",
+      "startsInDays": 31,
+      "startTime": "19:00",
+      "durationMinutes": 45,
+      "rsvp": "open",
+      "capacity": 300,
+      "reserved": 41,
+      "hero": "mx-asset-07",
+      "products": ["p03", "p04", "p11"],
+      "summary": "Forty-five minutes on how to wear the polos and sets three ways, with questions answered live."
+    },
+    {
+      "id": "ev05",
+      "title": "Weekend pop-up",
+      "kind": "popup",
+      "city": "Durban",
+      "startsInDays": 41,
+      "startTime": "10:00",
+      "durationMinutes": 2160,
+      "rsvp": "drop-in",
+      "capacity": null,
+      "reserved": 0,
+      "hero": "mx-asset-14",
+      "products": ["p04", "p09", "p12", "p14"],
+      "summary": "Two days in Durban with a selection of pieces and accessories. No booking needed."
+    },
+    {
+      "id": "ev06",
+      "title": "Festive gifting evening",
+      "kind": "styling",
+      "city": "Johannesburg",
+      "startsInDays": 54,
+      "startTime": "18:00",
+      "durationMinutes": 120,
+      "rsvp": "open",
+      "capacity": 40,
+      "reserved": 12,
+      "hero": "mx-asset-23",
+      "products": ["p12", "p13", "p14", "p15", "p11"],
+      "summary": "Gift ideas from the accessories and lifestyle pieces, wrapped on the night."
+    },
+    {
+      "id": "ev07",
+      "title": "Collectors’ private viewing",
+      "kind": "private",
+      "city": "Johannesburg",
+      "startsInDays": 61,
+      "startTime": "19:00",
+      "durationMinutes": 120,
+      "rsvp": "invite-only",
+      "capacity": 24,
+      "reserved": 0,
+      "hero": "mx-asset-24",
+      "products": ["p06", "p02", "p15"],
+      "summary": "A small, seated viewing for invited guests. Invitations are checked by MAXHOSA, never by the app alone."
+    },
+    {
+      "id": "ev08",
+      "title": "Spring styling morning",
+      "kind": "styling",
+      "city": "Johannesburg",
+      "startsInDays": -14,
+      "startTime": "10:00",
+      "durationMinutes": 150,
+      "rsvp": "open",
+      "capacity": 50,
+      "reserved": 50,
+      "hero": "mx-asset-11",
+      "products": ["p07", "p09", "p10"],
+      "summary": "The morning has happened — the looks styled on the day are below."
+    }
+  ]
 }

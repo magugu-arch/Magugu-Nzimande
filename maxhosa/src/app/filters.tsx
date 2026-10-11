@@ -7,7 +7,7 @@ import { SheetScaffold } from '@/components/SheetScaffold';
 import { Text } from '@/components/Text';
 import { space } from '@/design/tokens';
 import { filterProducts } from '@/domain/catalogue';
-import { useCategories, useProducts } from '@/features/catalogue';
+import { useCategories, usePriceBands, useProducts } from '@/features/catalogue';
 import catalogue from '@data/sample-catalogue.json';
 import {
   DEFAULT_FILTERS,
@@ -25,12 +25,13 @@ export default function Filters() {
   const [draft, setDraft] = useState<ShopFilters>(current);
   const products = useProducts();
   const categories = useCategories();
+  const bands = usePriceBands();
   const count = useMemo(
     () =>
       products.data && categories.data
-        ? filterProducts(products.data, draft, categories.data).length
+        ? filterProducts(products.data, draft, categories.data, bands).length
         : 0,
-    [products.data, categories.data, draft],
+    [products.data, categories.data, draft, bands],
   );
   const sizes = useMemo(
     () => [...new Set(catalogue.products.flatMap((p) => p.sizes.map((s) => s.label)))],
@@ -96,6 +97,17 @@ export default function Filters() {
             label={c}
             selected={draft.colours.includes(c)}
             onPress={() => toggle('colours', c)}
+          />
+        ))}
+      </Group>
+      <Group title="Price">
+        {[{ id: 'any', label: 'Any price' }, ...bands].map((b) => (
+          <Chip
+            key={b.id}
+            kind="radio"
+            label={b.label}
+            selected={draft.band === b.id}
+            onPress={() => setDraft((d) => ({ ...d, band: b.id }))}
           />
         ))}
       </Group>

@@ -1,17 +1,23 @@
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { AssetImage } from '@/components/AssetImage';
+import { Button } from '@/components/Button';
+import { FixtureRow } from '@/components/events/FixtureRow';
 import { BagButton } from '@/components/HeaderActions';
 import { Group, GroupTitle, Row } from '@/components/List';
 import { PressableScale } from '@/components/PressableScale';
 import { Screen } from '@/components/Screen';
-import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/States';
+import { ErrorState, LoadingSkeleton } from '@/components/States';
 import { Text } from '@/components/Text';
 import { radius, space } from '@/design/tokens';
+import { upcoming } from '@/domain/events';
 import { useStories } from '@/features/catalogue';
+import { useEvents } from '@/features/events';
 
 export default function Discover() {
   const stories = useStories();
+  const events = useEvents();
+  const next = events.data ? upcoming(events.data.list, events.data.now).slice(0, 3) : [];
   return (
     <Screen
       title="Discover"
@@ -41,14 +47,29 @@ export default function Discover() {
           </PressableScale>
         ))}
       </View>
-      <GroupTitle>Events</GroupTitle>
-      <Group>
-        <EmptyState
+      <GroupTitle>Events and fixtures</GroupTitle>
+      {events.status === 'error' ? <ErrorState onRetry={events.retry} /> : null}
+      {next.length ? (
+        <Group>
+          {next.map((e, i) => (
+            <FixtureRow
+              key={e.id}
+              event={e}
+              rsvp={events.data!.rsvps.find((r) => r.eventId === e.id)}
+              now={events.data!.now}
+              first={i === 0}
+            />
+          ))}
+        </Group>
+      ) : null}
+      <View style={{ paddingHorizontal: space.gutter, paddingTop: space.m }}>
+        <Button
+          label="Open the events calendar"
           icon="calendar-outline"
-          title="No events in this demo"
-          body="Event listings, RSVPs and capacity come from MAXHOSA AFRICA’s event system once it is connected."
+          variant="secondary"
+          onPress={() => router.push('/events')}
         />
-      </Group>
+      </View>
       <GroupTitle>Styling</GroupTitle>
       <Group>
         <Row

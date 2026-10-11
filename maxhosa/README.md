@@ -27,6 +27,7 @@ root; the root's TypeScript, ESLint and Jest configs exclude it.
 | [SECURITY_PRIVACY](docs/SECURITY_PRIVACY.md) | What the build does now; what launch requires |
 | [commerce-integration-audit](docs/commerce-integration-audit.md) | Discovery status and open questions |
 | [TASK_BOARD](docs/TASK_BOARD.md) | Phased plan, status checklist, verification log |
+| [COMPLETION_AUDIT](docs/COMPLETION_AUDIT.md) | How complete the app is (about 30% of production), what remains and what it costs |
 | [OFFLINE_DEMO_TEST_RESULTS](docs/OFFLINE_DEMO_TEST_RESULTS.md) | The offline demo's automated test report |
 
 ## Quick start
@@ -51,18 +52,19 @@ and Chromium (see TASK_BOARD).
 | `npm start` | Expo dev server |
 | `npm run typecheck` | `tsc --noEmit` (strict) |
 | `npm run lint` | ESLint (Expo config, React Compiler rules, Prettier) |
-| `npm test` | Jest — 59 tests |
+| `npm test` | Jest — 75 tests |
 | `npm run verify` | Asset gate → typecheck → lint → format check → tests |
-| `npm run assets:verify` | The 24-image gate: count, uniqueness, integrity, allowlist, registry in step |
+| `npm run assets:verify` | The 24-image gate: count, uniqueness, integrity, allowlist, recorded additions, registry in step |
 | `npm run assets:manifest` | Recompute hashes/sizes and regenerate the registry after replacing images |
 | `npm run demo:build` | Build the single-file offline demo, its README and ZIP |
 | `npm run demo:test` | Test the offline demo in Chromium with the network cut; writes the report |
-| `npm run export:web` / `npm run shots:web` | Web export, then render and photograph 15 routes |
+| `npm run export:web` / `npm run shots:web` | Web export, then render and photograph 20 routes |
 
 ## Mock mode and configuration
 
-`EXPO_PUBLIC_COMMERCE_PROVIDER`, `EXPO_PUBLIC_DELIVERY_PROVIDER` and
-`EXPO_PUBLIC_BOOKING_PROVIDER` select adapters. Only `mock` exists; any other
+`EXPO_PUBLIC_COMMERCE_PROVIDER`, `EXPO_PUBLIC_DELIVERY_PROVIDER`,
+`EXPO_PUBLIC_BOOKING_PROVIDER` and `EXPO_PUBLIC_EVENTS_PROVIDER` select
+adapters. Only `mock` exists; any other
 value stops the app at start-up rather than running on sample data while
 appearing live. While any provider is a mock, the demo strip shows on every
 screen. See [INTEGRATION_STATUS](docs/INTEGRATION_STATUS.md) for what each
@@ -78,6 +80,12 @@ full-resolution masters: replace each `mx-asset-NN.jpg` with its master
 (JPEG), run `npm run assets:manifest`, then `npm run demo:build`. They remain
 concept assets — not approved product photography or live SKUs — until
 MAXHOSA approves them.
+
+One image sits outside the 24: `mx-asset-25`, the sunset terrace event
+photograph supplied with the events request, used as the hero of the sample
+“Sunset knitwear soirée” and recorded in the manifest as an addition (who
+supplied it, when, why). The gate refuses any addition without that record.
+Confirm brand approval and rights before it is shown publicly.
 
 ## Offline demo vs. the app vs. a PWA
 

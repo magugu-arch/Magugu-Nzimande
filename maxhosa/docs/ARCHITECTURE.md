@@ -14,11 +14,11 @@ maxhosa/
   src/components/     design-system components
   src/design/         tokens, motion, theme
   src/domain/         types and pure rules (money, catalogue, delivery)
-  src/providers/      CommerceProvider · DeliveryProvider · BookingProvider + mocks
+  src/providers/      Commerce · Delivery · Booking · Events providers + mocks
   src/store/          zustand stores (bag, saved, prefs, shop filters)
   src/features/       hooks that join providers, stores and formatting
   data/               sample catalogue shared with the offline demo
-  assets/maxhosa/     the 24 verified images + manifest
+  assets/maxhosa/     the 24 verified images (+ recorded additions) + manifest
   demo/               offline HTML demo sources (classic scripts)
   deliverables/       built offline demo, README, ZIP
   scripts/            asset gate, demo build/test, web screenshots
@@ -43,8 +43,17 @@ maxhosa/
   fulfilment; the courier owns scans, estimates and positions. Merchant and
   courier events are labelled separately so “packed” never reads as “with the
   courier”.
-- **Idempotency** on checkout and booking: one key per attempt, so double
-  taps and retries cannot create two orders or two bookings.
+- **Idempotency** on checkout, booking and RSVP: one key per attempt, so
+  double taps and retries cannot create two orders, bookings or places.
+- **Events never carry a head-count.** The events provider turns capacity
+  into `open | full | drop-in | invite-only`, so the app can say “Spaces
+  available” or “Waitlist open” but cannot invent “only 3 left”. Venues stay
+  with the provider; the app shows the kind of place only.
+- **Add to calendar** uses the system's own new-event form
+  (`expo-calendar/legacy`): SDK 57's object API needs a calendar instance,
+  which on Android means calendar permission; the system form needs none.
+  On web, `features/calendar.web.ts` hands the browser an `.ics` file built
+  by `domain/events.ts`.
 
 ## Production integration service (not built)
 
@@ -66,13 +75,16 @@ The mock providers model exactly the interface that service would expose.
 
 ## Testing
 
-- `npm test` — 59 Jest tests: money, catalogue filters, delivery rules, the
-  three providers (idempotency, slot holds, preference cut-off), asset
-  registry, WCAG contrast of every token pair, motion maths, stores, and UI
-  tests that the tracker never shows an unconfirmed status or ETA as fact.
-- `npm run assets:verify` — the 24-image gate.
-- `npm run export:web && npm run shots:web` — renders 15 routes through
+- `npm test` — 75 Jest tests: money, catalogue filters (including price
+  bands), delivery rules, the four providers (idempotency, slot holds,
+  preference cut-off, RSVP capacity, waitlist and invitations), event dates
+  in SAST, calendar-file validity and octet folding, asset registry
+  (24 verified + recorded additions), WCAG contrast of every token pair,
+  motion maths, stores, and UI tests that the tracker never shows an
+  unconfirmed status or ETA as fact.
+- `npm run assets:verify` — the 24-image gate, plus recorded additions.
+- `npm run export:web && npm run shots:web` — renders 20 routes through
   react-native-web and fails on errors, blank screens or overflow.
 - `npm run demo:build && npm run demo:test` — the offline demo in Chromium
-  with the network cut (74 checks).
+  with the network cut (114 checks, including the events loop).
 - Not yet run: iOS simulator, Android emulator, real devices (see TASK_BOARD).

@@ -4,6 +4,8 @@ import type { CommerceProvider } from './commerce/CommerceProvider';
 import { MockCommerceProvider } from './commerce/MockCommerceProvider';
 import type { DeliveryProvider, DemoDeliveryControls } from './delivery/DeliveryProvider';
 import { MockDeliveryProvider } from './delivery/MockDeliveryProvider';
+import type { EventsProvider } from './events/EventsProvider';
+import { MockEventsProvider } from './events/MockEventsProvider';
 
 /**
  * Which adapter backs each domain. Only mocks exist until the discovery audit
@@ -31,6 +33,7 @@ export const providers: {
   commerce: CommerceProvider;
   delivery: DeliveryProvider;
   booking: BookingProvider;
+  events: EventsProvider;
   /** Present only when the delivery provider is the simulator. */
   demoDelivery: DemoDeliveryControls | null;
 } = {
@@ -45,9 +48,13 @@ export const providers: {
     process.env.EXPO_PUBLIC_BOOKING_PROVIDER,
     () => new MockBookingProvider(),
   ),
+  events: choose('events', process.env.EXPO_PUBLIC_EVENTS_PROVIDER, () => new MockEventsProvider()),
   demoDelivery: delivery instanceof MockDeliveryProvider ? delivery : null,
 };
 
 /** True while any domain runs on sample data — drives the demo labels. */
 export const isDemo =
-  providers.commerce.isMock || providers.delivery.isMock || providers.booking.isMock;
+  providers.commerce.isMock ||
+  providers.delivery.isMock ||
+  providers.booking.isMock ||
+  providers.events.isMock;

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { providers } from '@/providers';
 import { usePrefs } from '@/store/prefs';
 import { formatMoney } from '@/domain/money';
-import type { Market, Money } from '@/domain/types';
+import type { Market, Money, PriceBand } from '@/domain/types';
 import { useAsync } from './async';
 import catalogue from '@data/sample-catalogue.json';
 
@@ -11,6 +11,12 @@ const { commerce } = providers;
 export function useMarket(): Market {
   const id = usePrefs((s) => s.market);
   return useMemo(() => catalogue.markets.find((m) => m.id === id) ?? catalogue.markets[0]!, [id]);
+}
+
+/** The sample price bands for the current market (shared with the offline demo). */
+export function usePriceBands(): PriceBand[] {
+  const id = usePrefs((s) => s.market);
+  return useMemo(() => (catalogue.priceBands as Record<string, PriceBand[]>)[id] ?? [], [id]);
 }
 
 export function useFormatMoney(): (money: Money) => string {

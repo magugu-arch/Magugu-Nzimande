@@ -3,8 +3,9 @@
 Every connector the app needs, and how real it is. Labels follow the brief:
 **mock** · **configured** · **verified in sandbox** · **production approved**.
 
-As of this build, **everything is `mock`.** No credentials, platform access or
-vendor approval exist yet, and the app refuses to start if an adapter other
+As of this build, **everything that needs a backend is `mock`** (only the
+system calendar form, which needs none, is configured). No credentials,
+platform access or vendor approval exist yet, and the app refuses to start if an adapter other
 than `mock` is requested (`src/providers/index.ts`) rather than quietly running
 on sample data while looking live.
 
@@ -21,7 +22,9 @@ on sample data while looking live.
 | Appointments | `MockBookingProvider` (sample slots, slot hold, idempotent) | mock | Booking provider via integration service | Booking system, locations, service list, capacity rules |
 | Notifications | Preference switches stored on device; nothing sent; no OS permission requested | mock | Expo push via integration service, consent records server-side | Messaging provider, consent design, POPIA review |
 | Store locator | Not built; Account says details come from verified data | — | Approved location data | Verified store list |
-| Events / RSVP | Empty state | — | Event system | Event data source |
+| Events, fixtures, RSVP | `MockEventsProvider` (sample fixtures dated from today; capacity held out of the app's sight; going / waitlist / invitation requested; idempotent) | mock | Events service or ticketing API via the integration service: fixtures, capacity, waitlist promotion, invitation approval, confirmation emails | Who runs events, the event data source, invitation rules |
+| Add to calendar | System new-event form (`expo-calendar/legacy` `createEventInCalendarAsync`, no calendar permission); `.ics` download on web and in the offline demo | configured (works on device without a backend) | Plus a webcal subscription feed from the events service for "every fixture" | Events service |
+| Event invites | System share sheet with invite text | mock (text only) | Universal links / app links to a public event page, so a shared invite opens the app or the website | Web event pages, associated domains, attribution analytics |
 | CMS / editorial copy | Placeholder copy, labelled | mock | Approved CMS content, sanitised | Brand-approved copy and cultural review |
 | Analytics | None | — | Consent-aware, PII-free event schema (see SECURITY_PRIVACY.md) | Analytics vendor, consent design |
 | Images | 24 verified concept assets (preview resolution) | configured (concept) | Approved, full-resolution photography mapped to SKUs | Masters for the 24, brand approval, SKU mapping |

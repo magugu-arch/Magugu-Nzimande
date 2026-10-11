@@ -9,6 +9,7 @@ import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { PressableScale } from '@/components/PressableScale';
 import { ProductCard, WishlistButton } from '@/components/ProductCard';
+import { WearItTo } from '@/components/events/WearItTo';
 import { HeaderButton, Screen } from '@/components/Screen';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/States';
 import { Tag } from '@/components/Tag';
@@ -220,6 +221,7 @@ function ProductDetail({ product, heroHeight }: { product: Product; heroHeight: 
           })}
         </Animated.View>
         <SizeStatus product={product} variant={variant} needsChoice={needsChoice} />
+        <WearItTo productId={product.id} />
 
         <View
           style={[styles.callout, { backgroundColor: colors.card, borderColor: colors.hairline }]}

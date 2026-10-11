@@ -12,7 +12,7 @@ import { Text } from '@/components/Text';
 import { useTheme } from '@/design/theme';
 import { space } from '@/design/tokens';
 import { activeFilterCount, filterProducts } from '@/domain/catalogue';
-import { useCategories, useMarket, useProducts } from '@/features/catalogue';
+import { useCategories, useMarket, usePriceBands, useProducts } from '@/features/catalogue';
 import { SORT_LABEL, useShopFilters } from '@/store/shop';
 
 export default function Shop() {
@@ -20,6 +20,7 @@ export default function Shop() {
   const market = useMarket();
   const products = useProducts();
   const categories = useCategories();
+  const bands = usePriceBands();
   const filters = useShopFilters((s) => s.filters);
   const setFilters = useShopFilters((s) => s.set);
   const resetFilters = useShopFilters((s) => s.reset);
@@ -33,9 +34,9 @@ export default function Shop() {
   const list = useMemo(
     () =>
       products.data && categories.data
-        ? filterProducts(products.data, filters, categories.data)
+        ? filterProducts(products.data, filters, categories.data, bands)
         : [],
-    [products.data, categories.data, filters],
+    [products.data, categories.data, filters, bands],
   );
   const extra = activeFilterCount(filters);
 

@@ -7,11 +7,15 @@ import { space } from '@/design/tokens';
 import { providers } from '@/providers';
 
 const ROWS: [string, string][] = [
-  ['Images', 'The 24 verified concept assets — not approved product photography or live SKUs'],
+  [
+    'Images',
+    'The 24 verified concept assets, plus one client-supplied event photograph — not approved product photography or live SKUs',
+  ],
   ['Products, prices, sizes, stock', 'Invented sample data, labelled throughout'],
   ['Checkout', 'Simulated; no payment form, no order leaves this device'],
   ['Delivery tracking', 'Simulated courier, timeline and map — "Demo location, not GPS"'],
   ['Appointments', 'Enquiries only, sample times, nothing is sent'],
+  ['Events', 'Sample fixtures; RSVPs stay in the app, nothing is sent and no place is held'],
   ['Stories', 'Placeholder copy until MAXHOSA approves the text'],
   [
     'Wordmark and type',

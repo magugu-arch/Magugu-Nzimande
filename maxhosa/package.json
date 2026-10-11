@@ -1,7 +1,7 @@
 {
   "name": "maxhosa-africa-app",
   "version": "0.1.0",
-  "description": "MAXHOSA AFRICA app \u2014 concept build. Expo SDK 57, mock commerce/delivery/booking adapters, offline single-file demo.",
+  "description": "MAXHOSA AFRICA app — concept build. Expo SDK 57, mock commerce/delivery/booking adapters, offline single-file demo.",
   "main": "expo-router/entry",
   "private": true,
   "scripts": {
@@ -29,6 +29,7 @@
     "expo": "~57.0.27",
     "expo-asset": "~57.0.19",
     "expo-blur": "~57.0.3",
+    "expo-calendar": "~57.0.5",
     "expo-constants": "~57.0.21",
     "expo-font": "~57.0.4",
     "expo-haptics": "~57.0.3",

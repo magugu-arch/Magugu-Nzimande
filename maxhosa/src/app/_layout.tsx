@@ -83,6 +83,7 @@ function Shell() {
           <Stack.Screen name="market" options={sheet('fitToContents')} />
           <Stack.Screen name="delivery-preferences/[id]" options={sheet('fitToContents')} />
           <Stack.Screen name="about" options={sheet([0.75, 1])} />
+          <Stack.Screen name="rsvp/[id]" options={sheet('fitToContents')} />
           <Stack.Screen
             name="zoom/[asset]"
             options={{

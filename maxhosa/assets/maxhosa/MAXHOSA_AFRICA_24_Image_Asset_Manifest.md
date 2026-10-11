@@ -32,6 +32,16 @@ Excluded and never to be used: maxhosa_24_contact_sheet.jpg; Department of Home 
 | mx-asset-22 | Textile tassel accessory still life | `close_up_high_detail_still_life_product_style_pho.png` | 1122×1402 | 336×420 | catalogue-card, pdp-primary | `26086f73c5bf1b0d…` |
 | mx-asset-23 | Beaded earrings editorial close-up | `close_up_high_fashion_portrait_photograph_edito.png` | 1122×1402 | 336×420 | catalogue-card, pdp-primary | `146c96dd1ac62120…` |
 | mx-asset-24 | High-end styled fashion portrait / scarf | `studio_fashion_portrait_scene_a_high_end_editoria.png` | 1122×1402 | 336×420 | pdp-primary, discover | `f999c631342f57ea…` |
+| mx-asset-25 | Sunset event — guests in patterned knitwear | `client-supplied event image (PNG, converted to JPEG)` | 1122×1402 | 1122×1402 | events-hero, home | `57592781b3f85bdc…` |
+
+
+## Additions outside the verified 24
+
+Assets after mx-asset-24 are additions outside the brief's verified set. Each records who supplied it, when and for what; each must be confirmed with MAXHOSA before public use.
+
+| ID | Supplied by | Date | Purpose | Approval |
+|---|---|---|---|---|
+| mx-asset-25 | Client, in the build session | 2026-10-11 | Events and fixtures imagery | Supplied with the events request; confirm brand approval and rights before public use |
 
 Full hashes, byte counts and alt text are in the JSON manifest beside this file.
 Run `npm run assets:verify` to check the folder against it.

@@ -1,6 +1,8 @@
 import { availabilitySummary, filterProducts } from '@/domain/catalogue';
 import { MockCommerceProvider } from '@/providers/commerce/MockCommerceProvider';
+import type { PriceBand } from '@/domain/types';
 import { DEFAULT_FILTERS } from '@/store/shop';
+import catalogue from '@data/sample-catalogue.json';
 
 const commerce = new MockCommerceProvider();
 
@@ -41,6 +43,32 @@ describe('shop filtering', () => {
     const sorted = filterProducts(products, { ...DEFAULT_FILTERS, sort: 'price-asc' }, categories);
     const amounts = sorted.map((p) => Number(p.price.amount));
     expect(amounts).toEqual([...amounts].sort((a, b) => a - b));
+  });
+
+  it('filters by the market’s own price bands, in minor units', async () => {
+    for (const market of ['ZA', 'GB'] as const) {
+      const [products, categories] = await Promise.all([
+        commerce.listProducts(market),
+        commerce.listCategories(),
+      ]);
+      const bands = (catalogue.priceBands as Record<string, PriceBand[]>)[market]!;
+      const counts = bands.map((b) => {
+        const hits = filterProducts(
+          products,
+          { ...DEFAULT_FILTERS, band: b.id },
+          categories,
+          bands,
+        );
+        for (const p of hits) {
+          const minor = Math.round(Number(p.price.amount) * 100);
+          expect(minor).toBeGreaterThanOrEqual(b.minMinor);
+          if (b.maxMinor !== null) expect(minor).toBeLessThan(b.maxMinor);
+        }
+        return hits.length;
+      });
+      // The bands partition the catalogue: every piece lands in exactly one.
+      expect(counts.reduce((a, b) => a + b, 0)).toBe(products.length);
+    }
   });
 
   it('summarises stock honestly from the variants', async () => {

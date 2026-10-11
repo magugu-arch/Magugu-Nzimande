@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 /**
- * The asset gate for the 24 verified MAXHOSA images.
+ * The asset gate for the 24 verified MAXHOSA images (and any approved additions).
  *
- * The brief allows exactly these 24 files and nothing else, so this fails the
- * build rather than warning. In check mode (the default) it confirms:
+ * The brief allows exactly these 24 files unless the brand approves another,
+ * so this fails the build rather than warning. In check mode (the default) it
+ * confirms:
  *
- *   - the manifest lists exactly 24 entries, ids mx-asset-01…24, no duplicates
+ *   - the manifest lists the 24 verified entries, ids mx-asset-01…24, then any
+ *     additions in sequence — each of which must record who supplied it, when,
+ *     why and its approval status; no duplicates
  *   - every file exists, is a regular file inside assets/maxhosa/, and decodes
  *     as a complete JPEG (SOI, a frame header, a scan, EOI)
  *   - no two files are the same image (by SHA-256)
@@ -32,7 +35,8 @@ const ASSET_DIR = path.join(root, 'assets', 'maxhosa');
 const MANIFEST_JSON = path.join(ASSET_DIR, 'MAXHOSA_AFRICA_24_Image_Asset_Manifest.json');
 const MANIFEST_MD = path.join(ASSET_DIR, 'MAXHOSA_AFRICA_24_Image_Asset_Manifest.md');
 const REGISTRY = path.join(root, 'src', 'assets', 'registry.generated.ts');
-const EXPECTED = 24;
+const VERIFIED = 24;
+const ADDITION_FIELDS = ['suppliedBy', 'date', 'purpose', 'approval'];
 const ALLOWED_EXTRA = new Set([path.basename(MANIFEST_JSON), path.basename(MANIFEST_MD)]);
 const FORBIDDEN = [/contact[_-]?sheet/i, /home[_-]?affairs/i, /\bdha\b/i];
 
@@ -74,7 +78,7 @@ export function readJpeg(buffer) {
 const manifest = JSON.parse(readFileSync(MANIFEST_JSON, 'utf8'));
 const assets = manifest.assets ?? [];
 
-if (assets.length !== EXPECTED) fail(`manifest lists ${assets.length} assets, expected ${EXPECTED}`);
+if (assets.length < VERIFIED) fail(`manifest lists ${assets.length} assets, expected at least the ${VERIFIED} verified`);
 
 const seenIds = new Set();
 const seenFiles = new Set();
@@ -89,6 +93,11 @@ assets.forEach((asset, index) => {
   seenFiles.add(asset.file);
   if (!asset.alt || asset.alt.length < 20) fail(`${asset.id} needs meaningful alt text`);
   if (asset.conceptAsset !== true) fail(`${asset.id} must stay flagged conceptAsset until approved`);
+  if (index < VERIFIED && asset.addition) fail(`${asset.id} is one of the verified 24 and cannot be an addition`);
+  if (index >= VERIFIED) {
+    const missing = ADDITION_FIELDS.filter((f) => !asset.addition?.[f]);
+    if (missing.length) fail(`${asset.id} is an addition and must record ${missing.join(', ')}`);
+  }
   if (FORBIDDEN.some((re) => re.test(asset.file) || re.test(asset.sourceFilename ?? ''))) {
     fail(`${asset.id} names an excluded source`);
   }
@@ -150,7 +159,7 @@ function renderRegistry() {
     placement: ${JSON.stringify(a.placement)},
     width: ${a.packagedSize?.width ?? 0},
     height: ${a.packagedSize?.height ?? 0},
-    conceptAsset: true,
+    conceptAsset: true,${a.addition ? `\n    addition: ${JSON.stringify(a.addition)},` : ''}
   },`,
     )
     .join('\n');
@@ -161,6 +170,12 @@ function renderRegistry() {
 import type { AssetRecord } from './types';
 
 export const ASSET_IDS = ${JSON.stringify(assets.map((a) => a.id))} as const;
+
+/** The 24 images in the verified manifest. */
+export const VERIFIED_ASSET_IDS = ${JSON.stringify(assets.filter((a) => !a.addition).map((a) => a.id))} as const;
+
+/** Images added later, each recording who supplied it, when, why and its approval. */
+export const ADDITION_ASSET_IDS = ${JSON.stringify(assets.filter((a) => a.addition).map((a) => a.id))} as const;
 
 export type AssetId = (typeof ASSET_IDS)[number];
 
@@ -189,6 +204,14 @@ Excluded and never to be used: ${manifest.excluded.join('; ')}.
 |---|---|---|---|---|---|---|
 ${rows}
 
+${
+    assets.length > VERIFIED
+      ? `\n## Additions outside the verified 24\n\n${manifest.additionsPolicy ?? ''}\n\n| ID | Supplied by | Date | Purpose | Approval |\n|---|---|---|---|---|\n${assets
+          .slice(VERIFIED)
+          .map((a) => `| ${a.id} | ${a.addition.suppliedBy} | ${a.addition.date} | ${a.addition.purpose} | ${a.addition.approval} |`)
+          .join('\n')}\n`
+      : ''
+  }
 Full hashes, byte counts and alt text are in the JSON manifest beside this file.
 Run \`npm run assets:verify\` to check the folder against it.
 `;
@@ -215,5 +238,5 @@ if (failures.length) {
 console.log(
   write
     ? `Wrote manifest, Markdown and registry for ${assets.length} assets.`
-    : `Asset gate passed: ${assets.length} unique assets, all present, whole and in step.`,
+    : `Asset gate passed: ${VERIFIED} verified + ${assets.length - VERIFIED} approved addition(s), all unique, present, whole and in step.`,
 );

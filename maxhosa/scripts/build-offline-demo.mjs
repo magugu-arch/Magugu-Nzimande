@@ -55,10 +55,11 @@ for (const a of manifest.assets) {
     uri: `data:image/jpeg;base64,${bytes.toString('base64')}`,
     alt: a.alt,
     title: a.title,
+    addition: !!a.addition,
   };
 }
 
-// Every image the catalogue names must be one of the 24, and all 24 must be used.
+// Every image the catalogue names must be in the manifest, and every one must be used.
 const referenced = new Set();
 const note = (id, where) => {
   if (!assets[id]) throw new Error(`${where} names ${id}, which is not in the verified manifest`);
@@ -67,6 +68,7 @@ const note = (id, where) => {
 catalogue.categories.forEach((c) => note(c.asset, `category ${c.id}`));
 catalogue.products.forEach((p) => p.media.forEach((m) => note(m, `product ${p.id}`)));
 catalogue.stories.forEach((s) => [s.hero, ...s.media].forEach((m) => note(m, `story ${s.id}`)));
+catalogue.events.forEach((e) => note(e.hero, `event ${e.id}`));
 ['mx-asset-10'].forEach((id) => note(id, 'home hero'));
 const unused = Object.keys(assets).filter((id) => !referenced.has(id));
 if (unused.length) throw new Error(`verified assets not placed anywhere in the demo: ${unused.join(', ')}`);

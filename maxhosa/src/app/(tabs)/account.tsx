@@ -10,6 +10,7 @@ import { toast } from '@/components/Toast';
 import { useTheme } from '@/design/theme';
 import { radius, space } from '@/design/tokens';
 import { useMarket, useOrders } from '@/features/catalogue';
+import { useEvents } from '@/features/events';
 import { openOfficialSite } from '@/features/links';
 import { usePrefs } from '@/store/prefs';
 
@@ -17,6 +18,8 @@ export default function Account() {
   const { colors } = useTheme();
   const market = useMarket();
   const orders = useOrders();
+  const events = useEvents();
+  const rsvps = events.data?.rsvps.length ?? 0;
   const sizes = usePrefs((s) => s.sizes);
   const notifications = usePrefs((s) => s.notifications);
   const appearance = usePrefs((s) => s.appearance);
@@ -62,6 +65,16 @@ export default function Account() {
           title="Styling appointments"
           subtitle="Request a time with a stylist"
           onPress={() => router.push('/appointment')}
+        />
+        <Row
+          icon="sparkles-outline"
+          title="My events"
+          subtitle={
+            rsvps
+              ? `${rsvps} ${rsvps === 1 ? 'RSVP' : 'RSVPs'}${events.data?.list[0]?.sample ? ' (demo)' : ''}`
+              : 'RSVPs, invitations and reminders'
+          }
+          onPress={() => router.push('/my-events')}
         />
       </Group>
 

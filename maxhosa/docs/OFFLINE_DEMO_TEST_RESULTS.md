@@ -1,10 +1,10 @@
 # Offline demo — test results
 
 Automated run on 2026-10-11 against `deliverables/MAXHOSA_AFRICA_App_Offline_Demo.html`
-(1.30 MB), Chromium 141.0.7390.37, headless, **network disabled**
+(1.77 MB), Chromium 141.0.7390.37, headless, **network disabled**
 (every non-`file:`/`data:`/`blob:` request aborted and counted).
 
-**74 of 74 checks passed.**
+**114 of 114 checks passed.**
 
 Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots/`.
 
@@ -16,7 +16,7 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | no ES-module scripts | Pass |
 | Content-Security-Policy forbids network fetches | Pass |
 | demo label present in markup | Pass |
-| single file under 5 MB (1.30 MB) | Pass |
+| single file under 5 MB (1.77 MB) | Pass |
 
 ## phone 390×844
 
@@ -27,7 +27,7 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | demo label fully visible (not truncated) | Pass |
 | every visible button has an accessible name | Pass |
 | every image has an alt attribute | Pass |
-| all 24 verified images decode (24/24) | Pass |
+| all 24 verified images and 1 approved addition(s) decode (25/25) | Pass |
 | no network requests attempted | Pass |
 
 ## small phone 320×640
@@ -39,7 +39,7 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | demo label fully visible (not truncated) | Pass |
 | every visible button has an accessible name | Pass |
 | every image has an alt attribute | Pass |
-| all 24 verified images decode (24/24) | Pass |
+| all 24 verified images and 1 approved addition(s) decode (25/25) | Pass |
 | no network requests attempted | Pass |
 
 ## tablet 820×1180
@@ -51,7 +51,7 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | demo label fully visible (not truncated) | Pass |
 | every visible button has an accessible name | Pass |
 | every image has an alt attribute | Pass |
-| all 24 verified images decode (24/24) | Pass |
+| all 24 verified images and 1 approved addition(s) decode (25/25) | Pass |
 | no network requests attempted | Pass |
 
 ## desktop 1280×900
@@ -63,7 +63,7 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | demo label fully visible (not truncated) | Pass |
 | every visible button has an accessible name | Pass |
 | every image has an alt attribute | Pass |
-| all 24 verified images decode (24/24) | Pass |
+| all 24 verified images and 1 approved addition(s) decode (25/25) | Pass |
 | no network requests attempted | Pass |
 
 ## journeys (phone)
@@ -107,6 +107,51 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | Outbound links go only to maxhosa.africa, and only when chosen (https://maxhosa.africa/ — opened by the visitor, blocked by the test) | Pass |
 | no console errors during the journeys | Pass |
 | no network requests during the journeys | Pass |
+
+## events (phone)
+
+| Check | Result |
+|---|---|
+| Home shows the next fixture, labelled as a sample | Pass |
+| Event page: kind, date in SAST and status | Pass |
+| Event page: the venue is not published | Pass |
+| Event page: no invented scarcity counts | Pass |
+| Event page: the event edit is shoppable | Pass |
+| Add to calendar saves an .ics with the right UTC time (ev01-sample.ics) | Pass |
+| Calendar file lines are folded to 75 octets | Pass |
+| RSVP: empty details show inline errors | Pass |
+| RSVP: future-event marketing is off by default | Pass |
+| RSVP: place held, labelled demo | Pass |
+| RSVP: offers calendar, invite and the event edit next | Pass |
+| Event page shows your RSVP and +1 | Pass |
+| Primary action becomes Add to calendar | Pass |
+| Releasing a place can be undone | Pass |
+| Invite: shareable text names the event and says sample | Pass |
+| Invite: copy confirms | Pass |
+| Product page: “Wear it to” links the next event | Pass |
+| Discover previews the next three fixtures | Pass |
+| Calendar: month grid with labelled days | Pass |
+| Calendar: every day has an accessible name | Pass |
+| Calendar: buttons and a sideways swipe change month (October 2026 → November 2026 → December 2026) | Pass |
+| Calendar: choosing a day lists that day’s fixtures (1) | Pass |
+| Fixtures: city filter (1) | Pass |
+| Fixtures: past events are kept, marked past | Pass |
+| Past event: shop the looks from the day | Pass |
+| Fixtures: no invented scarcity counts anywhere | Pass |
+| Full event shows the client-supplied image as its hero | Pass |
+| Full event offers the waitlist, not a place | Pass |
+| RSVP remembers your details on this device | Pass |
+| Waitlist: confirmed as waitlist, not a place | Pass |
+| Invite-only: asks for no +1 | Pass |
+| Invite-only: a request, checked by MAXHOSA | Pass |
+| Add all fixtures: one file with every upcoming event (7 events) | Pass |
+| Following fixtures asks first, as marketing | Pass |
+| Events screen has no sideways scroll (0px) | Pass |
+| Account counts your RSVPs | Pass |
+| My events lists going, waitlist and requested | Pass |
+| Calendar fits 320px with 44px day targets (0px, 44px) | Pass |
+| no console errors during the events journey | Pass |
+| no network requests during the events journey | Pass |
 
 ## preferences
 

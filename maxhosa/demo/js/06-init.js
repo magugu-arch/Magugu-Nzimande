@@ -60,6 +60,15 @@ var ACTIONS = {
   'open-orders': function () {
     openOrders();
   },
+  'open-events': function () {
+    openEvents();
+  },
+  'open-event': function (el) {
+    openEvent(el.getAttribute('data-id'));
+  },
+  'open-my-events': function () {
+    openMyEvents();
+  },
   'open-appointment': function () {
     openAppointment();
   },
@@ -189,14 +198,19 @@ var ACTIONS = {
       restock: state.restock,
       orders: state.orders,
       appointments: state.appointments,
+      rsvps: state.rsvps,
+      reminders: state.reminders,
     });
     state.bag = [];
     state.saved = [];
     state.restock = [];
     state.orders = null;
     state.appointments = [];
+    state.rsvps = {};
+    state.reminders = {};
     seedOrders();
     persist();
+    persistEvents();
     refreshAll();
     toast('Demo reset', {
       icon: 'refresh',
@@ -208,6 +222,7 @@ var ACTIONS = {
             state[k] = s[k];
           });
           persist();
+          persistEvents();
           refreshAll();
         },
       },
@@ -260,6 +275,10 @@ function wirePresenterPanel() {
     } else if (what === 'appointment') {
       closeLayers(layers.length, function () {
         openAppointment();
+      });
+    } else if (what === 'events') {
+      closeLayers(layers.length, function () {
+        openEvents();
       });
     } else if (what === 'product') {
       closeLayers(layers.length, function () {

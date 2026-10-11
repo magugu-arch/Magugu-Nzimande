@@ -38,7 +38,16 @@
           "dark": { "backgroundColor": "#100E0B" }
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-calendar",
+        {
+          "writeOnlyAccess": true,
+          "calendarPermission": false,
+          "remindersPermission": false,
+          "writeOnlyCalendarPermission": "MAXHOSA AFRICA adds the events you choose to your calendar. It never reads your calendar."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

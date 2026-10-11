@@ -6,9 +6,11 @@
  * or blob: is aborted and counted, so "works offline" is a measured fact
  * rather than a hope. At four widths it checks the page loads cleanly, the
  * demo label is fully visible, nothing scrolls sideways, every button has a
- * name and all 24 images decode. On the phone width it then walks every
- * required view and the gestures: sheet dismiss by flick, back-swipe from the
- * edge, the browser's own Back, and the tracker in each delivery state.
+ * name and every image in the manifest (the 24 verified plus approved
+ * additions) decodes. On the phone width it then walks every required view
+ * and the gestures: sheet dismiss by flick, back-swipe from the edge, the
+ * browser's own Back, the tracker in each delivery state, and the events
+ * loop (calendar, RSVP, waitlist, invitation, calendar file, invite).
  *
  * Writes docs/OFFLINE_DEMO_TEST_RESULTS.md and screenshots to
  * .offline-demo-shots/ (git-ignored). Exits non-zero on any failure.
@@ -25,6 +27,11 @@ const HTML = path.join(root, 'deliverables', 'MAXHOSA_AFRICA_App_Offline_Demo.ht
 const SHOTS = path.join(root, '.offline-demo-shots');
 const REPORT = path.join(root, 'docs', 'OFFLINE_DEMO_TEST_RESULTS.md');
 const URL = pathToFileURL(HTML).href;
+const MANIFEST = JSON.parse(
+  readFileSync(path.join(root, 'assets/maxhosa/MAXHOSA_AFRICA_24_Image_Asset_Manifest.json'), 'utf8'),
+);
+const VERIFIED = MANIFEST.assets.filter((a) => !a.addition).length;
+const ADDITIONS = MANIFEST.assets.length - VERIFIED;
 
 if (!existsSync(HTML)) {
   console.error('No demo found. Run: npm run demo:build');
@@ -152,7 +159,12 @@ for (const vp of VIEWPORTS) {
     );
     return { count: ids.length, decoded: out.filter(Boolean).length };
   });
-  check(g, 'all 24 verified images decode', decode.count === 24 && decode.decoded === 24, `${decode.decoded}/${decode.count}`);
+  check(
+    g,
+    `all ${VERIFIED} verified images and ${ADDITIONS} approved addition(s) decode`,
+    VERIFIED === 24 && decode.count === MANIFEST.assets.length && decode.decoded === decode.count,
+    `${decode.decoded}/${decode.count}`,
+  );
   await shot(page, `${vp.key}-home`);
   check(g, 'no network requests attempted', problems.blocked.length === 0, problems.blocked.slice(0, 2).join(', '));
   await context.close();
@@ -353,6 +365,230 @@ for (const vp of VIEWPORTS) {
   );
   check(g, 'no console errors during the journeys', problems.console.length === 0, problems.console.slice(0, 2).join(' | '));
   check(g, 'no network requests during the journeys', problems.blocked.length === 0, problems.blocked.slice(0, 2).join(', '));
+  await context.close();
+}
+
+// ---- events: the calendar that brings people back ------------------------
+{
+  const g = 'events (phone)';
+  const { context, page, problems } = await openPage({ width: 390, height: 844 }, { mobile: true });
+  const top = () => page.locator('.screen.pushed').last();
+  const sheet = () => page.locator('.sheet-layer').last();
+  const primary = () => top().locator('.action-bar .btn');
+  const readDownload = async (click) => {
+    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 5000 }), click()]);
+    return { name: dl.suggestedFilename(), text: readFileSync(await dl.path(), 'utf8') };
+  };
+  const SCARCITY = /\b\d+\s*(places?|spaces?|seats?|spots?|tickets?)\s*(left|remaining)\b|only\s+\d+/i;
+
+  // Home leads with the next fixture.
+  const next = page.locator('#tab-home [data-action="open-event"]').first();
+  check(g, 'Home shows the next fixture, labelled as a sample', (await next.textContent()).includes('Sample event'));
+  await next.click();
+  await settle(page);
+  const firstEvent = await top().textContent();
+  check(g, 'Event page: kind, date in SAST and status', firstEvent.includes('SAST') && firstEvent.includes('Spaces available'));
+  check(g, 'Event page: the venue is not published', firstEvent.includes('shared with confirmed guests'));
+  check(g, 'Event page: no invented scarcity counts', !SCARCITY.test(firstEvent));
+  check(g, 'Event page: the event edit is shoppable', (await top().locator('.rail .pcard').count()) >= 3);
+  await shot(page, 'phone-event');
+
+  // Add to calendar: a real .ics in SAST, labelled as a sample.
+  const one = await readDownload(() => top().locator('[data-ev="ics"]').click());
+  check(
+    g,
+    'Add to calendar saves an .ics with the right UTC time',
+    one.name.endsWith('.ics') && one.text.startsWith('BEGIN:VCALENDAR') && /DTSTART:\d{8}T163000Z/.test(one.text) && one.text.includes('sample event'),
+    one.name,
+  );
+  check(g, 'Calendar file lines are folded to 75 octets', one.text.split('\r\n').every((l) => Buffer.byteLength(l) <= 75));
+
+  // RSVP: validation, then a place held, then the follow-ups.
+  await primary().click();
+  await settle(page);
+  await page.evaluate(() => {
+    document.getElementById('rsvp-name').value = '';
+    document.getElementById('rsvp-email').value = '';
+  });
+  await sheet().locator('[data-r="submit"]').click();
+  await settle(page, 300);
+  check(g, 'RSVP: empty details show inline errors', (await sheet().locator('.error svg').count()) === 2);
+  await sheet().locator('#rsvp-name').fill('Sample Guest');
+  await sheet().locator('#rsvp-email').fill('guest@example.com');
+  await sheet().locator('[data-g="2"]').click();
+  check(g, 'RSVP: future-event marketing is off by default', (await sheet().locator('[data-u="future"]').getAttribute('aria-checked')) === 'false');
+  await sheet().locator('[data-r="submit"]').click();
+  await settle(page, 400);
+  const done = await sheet().textContent();
+  check(g, 'RSVP: place held, labelled demo', done.includes('You’re going (demo)'));
+  check(
+    g,
+    'RSVP: offers calendar, invite and the event edit next',
+    done.includes('Add to calendar') && done.includes('Invite a friend') && done.includes('Shop the event edit'),
+  );
+  await shot(page, 'phone-rsvp-done');
+  await sheet().locator('[data-action="close-sheet"]').first().click();
+  await settle(page);
+  check(g, 'Event page shows your RSVP and +1', (await top().textContent()).includes('You’re going · +1'));
+  check(g, 'Primary action becomes Add to calendar', (await primary().textContent()).includes('Add to calendar'));
+
+  // Release the place, then undo.
+  await top().locator('[data-ev="cancel"]').click();
+  await settle(page, 300);
+  const released = !(await top().textContent()).includes('You’re going');
+  await page.locator('.toast button').click();
+  await settle(page, 300);
+  check(g, 'Releasing a place can be undone', released && (await top().textContent()).includes('You’re going'));
+
+  // Invite a friend — the phone's share sheet, or text to copy where there is none.
+  await page.evaluate(() => {
+    navigator.share = undefined;
+  });
+  await top().locator('.prose ~ div [data-ev="share"], [data-ev="share"]').last().click();
+  await settle(page);
+  const invite = await sheet().locator('#invite-text').inputValue();
+  check(g, 'Invite: shareable text names the event and says sample', invite.includes('New-season preview evening') && invite.includes('sample event'));
+  await sheet().locator('[data-copy]').click();
+  await settle(page, 200);
+  check(g, 'Invite: copy confirms', /Invite copied|Selected/.test(await page.locator('.toast').last().textContent()));
+  await page.goBack();
+  await settle(page);
+
+  // Product page from the event edit points back to the event.
+  await top().locator('.rail .card-link').first().click();
+  await settle(page);
+  check(g, 'Product page: “Wear it to” links the next event', (await top().locator('.wear-it').textContent()).includes('Wear it to'));
+  await page.goBack();
+  await settle(page);
+  await page.goBack();
+  await settle(page);
+
+  // Calendar and fixtures.
+  await page.click('.tab[data-tab="discover"]');
+  check(g, 'Discover previews the next three fixtures', (await page.locator('#tab-discover .fixture').count()) === 3);
+  await page.locator('#tab-discover [data-action="open-events"]').first().click();
+  await settle(page);
+  check(g, 'Calendar: month grid with labelled days', (await top().locator('.cal-cell[data-day]').count()) >= 28);
+  const unnamedDays = await top().locator('.cal-cell[data-day]:not([aria-label])').count();
+  check(g, 'Calendar: every day has an accessible name', unnamedDays === 0);
+  await shot(page, 'phone-events-calendar');
+  const title0 = await top().locator('.cal-title').textContent();
+  await top().locator('[data-cal="next"]').click();
+  await settle(page, 500);
+  const title1 = await top().locator('.cal-title').textContent();
+  const box = await top().locator('.cal-grid-wrap').boundingBox();
+  await page.mouse.move(box.x + box.width - 30, box.y + box.height / 2);
+  await page.mouse.down();
+  for (let x = box.x + box.width - 50; x >= box.x + 20; x -= 30) await page.mouse.move(x, box.y + box.height / 2 + 2);
+  await page.mouse.up();
+  await settle(page, 700);
+  const title2 = await top().locator('.cal-title').textContent();
+  check(g, 'Calendar: buttons and a sideways swipe change month', title0 !== title1 && title1 !== title2 && title0 !== title2, `${title0} → ${title1} → ${title2}`);
+  await top().locator('[data-cal="prev"]').click();
+  await settle(page, 300);
+  await top().locator('[data-cal="prev"]').click();
+  await settle(page, 300);
+  let day = top().locator('.cal-cell.has-events').first();
+  if (!(await day.count())) {
+    await top().locator('[data-cal="next"]').click();
+    await settle(page, 300);
+    day = top().locator('.cal-cell.has-events').first();
+  }
+  await day.click();
+  await settle(page, 300);
+  const dayCards = await top().locator('.fixtures .fixture').count();
+  check(g, 'Calendar: choosing a day lists that day’s fixtures', dayCards >= 1 && (await top().locator('[data-cal="clear-day"]').isVisible()), `${dayCards}`);
+  await top().locator('[data-cal="clear-day"]').click();
+  await top().locator('[data-city="Cape Town"]').click();
+  const ct = await top().locator('.fixtures .fixture').allTextContents();
+  check(g, 'Fixtures: city filter', ct.length >= 1 && ct.every((t) => t.includes('Cape Town')), `${ct.length}`);
+  await top().locator('[data-city="all"]').click();
+  await top().locator('[data-when="past"]').click();
+  const past = await top().locator('.fixtures .fixture').allTextContents();
+  check(g, 'Fixtures: past events are kept, marked past', past.length >= 1 && past.every((t) => t.includes('Past event')));
+  await top().locator('.fixtures .fixture').first().click();
+  await settle(page);
+  check(g, 'Past event: shop the looks from the day', (await primary().textContent()).includes('Shop the looks'));
+  await page.goBack();
+  await settle(page);
+  await top().locator('[data-when="upcoming"]').click();
+  check(g, 'Fixtures: no invented scarcity counts anywhere', !SCARCITY.test(await top().textContent()));
+
+  // Full evening: waitlist. The client-supplied image is its hero.
+  await top().locator('.fixture', { hasText: 'Sunset knitwear soirée' }).click();
+  await settle(page);
+  const alt25 = MANIFEST.assets.find((a) => a.id === 'mx-asset-25').alt;
+  check(g, 'Full event shows the client-supplied image as its hero', (await top().locator('.story-hero img').getAttribute('alt')) === alt25);
+  check(g, 'Full event offers the waitlist, not a place', (await primary().textContent()).includes('Join the waitlist') && (await top().textContent()).includes('Waitlist open'));
+  await primary().click();
+  await settle(page);
+  check(g, 'RSVP remembers your details on this device', (await sheet().locator('#rsvp-email').inputValue()) === 'guest@example.com');
+  await sheet().locator('[data-r="submit"]').click();
+  await settle(page, 400);
+  check(g, 'Waitlist: confirmed as waitlist, not a place', (await sheet().textContent()).includes('You’re on the waitlist (demo)'));
+  await sheet().locator('[data-action="close-sheet"]').first().click();
+  await settle(page);
+  await page.goBack();
+  await settle(page);
+
+  // Invitation only: a request, never self-granted access.
+  await top().locator('.fixture', { hasText: 'private viewing' }).click();
+  await settle(page);
+  await primary().click();
+  await settle(page);
+  check(g, 'Invite-only: asks for no +1', (await sheet().locator('[data-g]').count()) === 0);
+  await sheet().locator('[data-r="submit"]').click();
+  await settle(page, 400);
+  const req = await sheet().textContent();
+  check(g, 'Invite-only: a request, checked by MAXHOSA', req.includes('Invitation requested (demo)') && !req.includes('Add to calendar'));
+  await sheet().locator('[data-action="close-sheet"]').first().click();
+  await settle(page);
+  await page.goBack();
+  await settle(page);
+
+  // Stay in the loop: every fixture in one file; follow with consent.
+  const all = await readDownload(() => top().locator('[data-ev="ics-all"]').click());
+  const upcoming = await page.evaluate(() => window.MX_DATA.events.filter((e) => e.startsInDays >= 0).length);
+  check(g, 'Add all fixtures: one file with every upcoming event', (all.text.match(/BEGIN:VEVENT/g) || []).length === upcoming, `${upcoming} events`);
+  await top().locator('[data-ev="follow"]').click();
+  await settle(page);
+  const consent = await sheet().textContent();
+  await sheet().locator('[data-yes]').click();
+  await settle(page);
+  check(
+    g,
+    'Following fixtures asks first, as marketing',
+    consent.includes('This is marketing') && (await top().locator('[data-ev="follow"]').getAttribute('aria-checked')) === 'true',
+  );
+  const narrow = await top().locator('.scroller').evaluate((el) => el.scrollWidth - el.clientWidth);
+  check(g, 'Events screen has no sideways scroll', narrow <= 0, `${narrow}px`);
+  await page.goBack();
+  await settle(page);
+
+  // Account keeps your events together.
+  await page.click('.tab[data-tab="account"]');
+  check(g, 'Account counts your RSVPs', (await page.locator('#tab-account [data-action="open-my-events"]').textContent()).includes('3 RSVPs'));
+  await page.locator('#tab-account [data-action="open-my-events"]').click();
+  await settle(page);
+  check(g, 'My events lists going, waitlist and requested', (await top().locator('.fixture').count()) === 3);
+  await page.goBack();
+  await settle(page);
+
+  // The small phone: the calendar still fits.
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.click('.tab[data-tab="discover"]');
+  await page.locator('#tab-discover [data-action="open-events"]').first().click();
+  await settle(page);
+  const small = await top().evaluate((el) => {
+    const sc = el.querySelector('.scroller');
+    const cell = el.querySelector('.cal-cell[data-day]').getBoundingClientRect();
+    return { over: sc.scrollWidth - sc.clientWidth, cellH: cell.height };
+  });
+  check(g, 'Calendar fits 320px with 44px day targets', small.over <= 0 && small.cellH >= 44, `${small.over}px, ${small.cellH}px`);
+  await shot(page, 'small-events-calendar');
+
+  check(g, 'no console errors during the events journey', problems.console.length === 0, problems.console.slice(0, 2).join(' | '));
+  check(g, 'no network requests during the events journey', problems.blocked.length === 0, problems.blocked.slice(0, 2).join(', '));
   await context.close();
 }
 

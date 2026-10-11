@@ -1,6 +1,6 @@
 import type { ShopFilters } from '@/store/shop';
 import { toMinor } from './money';
-import type { Category, Product, StockStatus } from './types';
+import type { Category, PriceBand, Product, StockStatus } from './types';
 
 export type AvailabilitySummary = { tone: 'ok' | 'warn' | 'bad'; label: string };
 
@@ -34,7 +34,9 @@ export function filterProducts(
   products: Product[],
   f: ShopFilters,
   categories: Category[],
+  bands: PriceBand[] = [],
 ): Product[] {
+  const band = bands.find((b) => b.id === f.band);
   const scored = products
     .map((p) => ({ p, s: score(p, f.query, categories) }))
     .filter(({ p, s }) => {
@@ -50,6 +52,11 @@ export function filterProducts(
         return false;
       if (f.availability === 'preorder' && !p.variants.some((v) => v.stock === 'preorder'))
         return false;
+      if (band) {
+        const minor = toMinor(p.price);
+        if (minor < band.minMinor || (band.maxMinor !== null && minor >= band.maxMinor))
+          return false;
+      }
       return true;
     });
   scored.sort((a, b) => {
@@ -69,5 +76,10 @@ export function filterProducts(
 }
 
 export function activeFilterCount(f: ShopFilters): number {
-  return f.sizes.length + f.colours.length + (f.availability !== 'any' ? 1 : 0);
+  return (
+    f.sizes.length +
+    f.colours.length +
+    (f.availability !== 'any' ? 1 : 0) +
+    (f.band !== 'any' ? 1 : 0)
+  );
 }

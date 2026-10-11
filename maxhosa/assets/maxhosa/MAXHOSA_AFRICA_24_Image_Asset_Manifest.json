@@ -561,6 +561,36 @@
         "height": 420,
         "width": 336
       }
+    },
+    {
+      "id": "mx-asset-25",
+      "file": "mx-asset-25.jpg",
+      "sourceFilename": "client-supplied event image (PNG, converted to JPEG)",
+      "title": "Sunset event — guests in patterned knitwear",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "event",
+      "placement": [
+        "events-hero",
+        "home"
+      ],
+      "alt": "Guests at a sunset terrace gathering in patterned knitwear — cardigans, a knit skirt and shawl, a beaded crop top — talking around a fire bowl, with hills and an acacia tree behind.",
+      "conceptAsset": true,
+      "addition": {
+        "suppliedBy": "Client, in the build session",
+        "date": "2026-10-11",
+        "purpose": "Events and fixtures imagery",
+        "approval": "Supplied with the events request; confirm brand approval and rights before public use"
+      },
+      "bytes": 332930,
+      "sha256": "57592781b3f85bdc9fc012e12fff1c295a3b713c9ebde3f2b0ca4d95f79b6a3d",
+      "packagedSize": {
+        "height": 1402,
+        "width": 1122
+      }
     }
-  ]
+  ],
+  "additionsPolicy": "Assets after mx-asset-24 are additions outside the brief's verified set. Each records who supplied it, when and for what; each must be confirmed with MAXHOSA before public use."
 }

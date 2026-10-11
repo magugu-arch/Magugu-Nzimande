@@ -17,6 +17,8 @@ export type ShopFilters = {
   sizes: string[];
   colours: string[];
   availability: Availability;
+  /** A price band id for the current market, or 'any'. */
+  band: string;
   sort: SortId;
 };
 
@@ -26,6 +28,7 @@ export const DEFAULT_FILTERS: ShopFilters = {
   sizes: [],
   colours: [],
   availability: 'any',
+  band: 'any',
   sort: 'new',
 };
 
