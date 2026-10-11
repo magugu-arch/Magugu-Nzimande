@@ -4,7 +4,7 @@ Automated run on 2026-10-11 against `deliverables/MAXHOSA_AFRICA_App_Offline_Dem
 (1.30 MB), Chromium 141.0.7390.37, headless, **network disabled**
 (every non-`file:`/`data:`/`blob:` request aborted and counted).
 
-**73 of 73 checks passed.**
+**74 of 74 checks passed.**
 
 Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots/`.
 
@@ -104,6 +104,7 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | Product photo opens the zoom viewer | Pass |
 | Dragging the photo down closes the viewer | Pass |
 | External link explains it needs internet | Pass |
+| Outbound links go only to maxhosa.africa, and only when chosen (https://maxhosa.africa/ — opened by the visitor, blocked by the test) | Pass |
 | no console errors during the journeys | Pass |
 | no network requests during the journeys | Pass |
 

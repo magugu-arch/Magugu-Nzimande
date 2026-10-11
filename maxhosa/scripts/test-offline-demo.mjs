@@ -72,16 +72,32 @@ async function openPage(viewport, opts = {}) {
     colorScheme: opts.colorScheme ?? 'light',
     reducedMotion: opts.reducedMotion ?? 'no-preference',
   });
+  if (opts.reportOnline) {
+    // Some Chromium builds report navigator.onLine = true even in an offline
+    // context (CI's does); pin it so the outbound-link path runs everywhere.
+    await context.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => true }));
+  }
   const page = await context.newPage();
-  const problems = { console: [], blocked: [] };
+  const problems = { console: [], blocked: [], outbound: [] };
   page.on('console', (m) => {
     if (m.type() === 'error') problems.console.push(m.text());
   });
   page.on('pageerror', (e) => problems.console.push(`pageerror: ${e.message}`));
   await context.route('**/*', (route) => {
-    const u = route.request().url();
+    const req = route.request();
+    const u = req.url();
     if (/^(file|data|blob):/.test(u)) return route.continue();
-    problems.blocked.push(u);
+    // A tab the visitor opened from an outbound policy link is not the demo
+    // fetching anything — record it separately and still block it. Whether
+    // that tab opens depends on what the browser reports as online.
+    let fromDemo = true;
+    try {
+      fromDemo = req.frame().page() === page;
+    } catch {
+      // Playwright has no frame yet for a new tab's first navigation.
+      fromDemo = !req.isNavigationRequest();
+    }
+    (fromDemo ? problems.blocked : problems.outbound).push(u);
     return route.abort();
   });
   await page.goto(URL);
@@ -145,7 +161,7 @@ for (const vp of VIEWPORTS) {
 // ---- journeys on the phone ----------------------------------------------
 {
   const g = 'journeys (phone)';
-  const { context, page, problems } = await openPage({ width: 390, height: 844 }, { mobile: true });
+  const { context, page, problems } = await openPage({ width: 390, height: 844 }, { mobile: true, reportOnline: true });
   const top = () => page.locator('.screen.pushed').last();
 
   // Shop: search, no results, filters persist across a product visit.
@@ -329,6 +345,12 @@ for (const vp of VIEWPORTS) {
   await page.locator('#tab-account [data-action="external"]').click();
   check(g, 'External link explains it needs internet', (await page.locator('.toast').textContent()).includes('requires internet'));
 
+  check(
+    g,
+    'Outbound links go only to maxhosa.africa, and only when chosen',
+    problems.outbound.every((u) => u.startsWith('https://maxhosa.africa/')),
+    problems.outbound.length ? `${problems.outbound.join(', ')} — opened by the visitor, blocked by the test` : 'none opened',
+  );
   check(g, 'no console errors during the journeys', problems.console.length === 0, problems.console.slice(0, 2).join(' | '));
   check(g, 'no network requests during the journeys', problems.blocked.length === 0, problems.blocked.slice(0, 2).join(', '));
   await context.close();

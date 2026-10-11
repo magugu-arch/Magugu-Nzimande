@@ -74,5 +74,5 @@ The mock providers model exactly the interface that service would expose.
 - `npm run export:web && npm run shots:web` — renders 15 routes through
   react-native-web and fails on errors, blank screens or overflow.
 - `npm run demo:build && npm run demo:test` — the offline demo in Chromium
-  with the network cut (73 checks).
+  with the network cut (74 checks).
 - Not yet run: iOS simulator, Android emulator, real devices (see TASK_BOARD).

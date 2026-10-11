@@ -52,6 +52,6 @@
 | `npm run lint` | Pass |
 | `npm test` | 59 / 59 |
 | `npm run shots:web` (15 routes via react-native-web) | 15 / 15 clean |
-| `npm run demo:test` (offline demo, Chromium, network cut) | 73 / 73 |
+| `npm run demo:test` (offline demo, Chromium, network cut) | 74 / 74 |
 | Root bb.q app: typecheck, lint, format, 891 tests | Pass, unchanged |
 | iOS / Android native builds | Not run in this environment |
