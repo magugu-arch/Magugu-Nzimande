@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "MAXHOSA AFRICA",
+    "slug": "maxhosa-africa",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "maxhosa",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F6F1E8",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "africa.maxhosa.app.concept",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "africa.maxhosa.app.concept",
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-image",
+      "expo-font",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F6F1E8",
+          "dark": { "backgroundColor": "#100E0B" }
+        }
+      ],
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

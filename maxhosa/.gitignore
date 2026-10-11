@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+*.tsbuildinfo
+coverage/
+.env
+.env*.local
+/ios
+/android
+
+# throwaway captures — regenerate with the scripts that made them
+.offline-demo-shots/
+.web-preview/
+.web-shots/

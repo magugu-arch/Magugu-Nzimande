@@ -1,0 +1,566 @@
+{
+  "name": "MAXHOSA AFRICA — 24 verified fashion assets",
+  "source": "MAXHOSA_AFRICA_App_UI_UX_Digital_Commerce_and_Delivery_Brief_v1.2_24_Verified_Images.docx, Appendix C",
+  "status": "concept",
+  "note": "Concept/demo assets. Not approved product photography and not mapped to live SKUs. These files are the preview copies embedded in the brief; replace them with the full-resolution masters (same ids) before any public use, then run `npm run assets:manifest`.",
+  "excluded": [
+    "maxhosa_24_contact_sheet.jpg",
+    "Department of Home Affairs imagery",
+    "any government service imagery",
+    "unrelated project files"
+  ],
+  "assets": [
+    {
+      "id": "mx-asset-01",
+      "file": "mx-asset-01.jpg",
+      "sourceFilename": "a_clean_studio_product_fashion_portrait_a_full_bo.png",
+      "title": "Studio product / on-model cardigan hero",
+      "masterSize": {
+        "width": 1024,
+        "height": 1536
+      },
+      "category": "product-on-model",
+      "placement": [
+        "pdp-gallery",
+        "onboarding"
+      ],
+      "alt": "Model in a studio wearing a black-trimmed cardigan with a red, ochre, blue and black geometric knit pattern, a white T-shirt and black trousers.",
+      "conceptAsset": true,
+      "bytes": 15095,
+      "sha256": "2b44a6cf064226311cfbd64915d33d83d32444b7a5e86706b51de5d6ca150423",
+      "packagedSize": {
+        "height": 420,
+        "width": 280
+      }
+    },
+    {
+      "id": "mx-asset-02",
+      "file": "mx-asset-02.jpg",
+      "sourceFilename": "a_clean_studio_product_shot_on_a_plain_light_off_w.png",
+      "title": "Clean studio knitwear product view",
+      "masterSize": {
+        "width": 1024,
+        "height": 1536
+      },
+      "category": "product",
+      "placement": [
+        "catalogue-card",
+        "pdp-primary"
+      ],
+      "alt": "Black V-neck cardigan with an ochre, red, blue and cream geometric knit pattern, photographed on a light background.",
+      "conceptAsset": true,
+      "bytes": 28045,
+      "sha256": "4138fad6ac0131523e5439f0621b38be8cb323bc3afd862a81ca4a3150caf1a6",
+      "packagedSize": {
+        "height": 420,
+        "width": 280
+      }
+    },
+    {
+      "id": "mx-asset-03",
+      "file": "mx-asset-03.jpg",
+      "sourceFilename": "a_clean_studio_product_shot_with_a_plain_light_whi.png",
+      "title": "Clean studio cardigan product view",
+      "masterSize": {
+        "width": 1024,
+        "height": 1536
+      },
+      "category": "product",
+      "placement": [
+        "catalogue-card",
+        "pdp-primary"
+      ],
+      "alt": "Short-sleeved collared knit with a black, ochre, red, blue and cream geometric pattern, photographed on a light background.",
+      "conceptAsset": true,
+      "bytes": 27999,
+      "sha256": "24ada230b6a635d174a1abbf7942f60816c25e4aa2d4d39420f0b3ef47069351",
+      "packagedSize": {
+        "height": 420,
+        "width": 280
+      }
+    },
+    {
+      "id": "mx-asset-04",
+      "file": "mx-asset-04.jpg",
+      "sourceFilename": "studio_product_shot_on_a_clean_neutral_off_white.png",
+      "title": "Neutral-background knitwear product view",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "product",
+      "placement": [
+        "catalogue-card",
+        "pdp-primary"
+      ],
+      "alt": "Black V-neck cardigan with a bold ochre, red, blue and cream geometric knit pattern on a neutral background.",
+      "conceptAsset": true,
+      "bytes": 33866,
+      "sha256": "a7c4f80a2ec4f6c5a214c4710dd8e2edb67dd45a83314c90fa04fab5447cbbff",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-05",
+      "file": "mx-asset-05.jpg",
+      "sourceFilename": "studio_product_fashion_portrait_on_a_plain_light_n.png",
+      "title": "Studio fashion portrait / product styling",
+      "masterSize": {
+        "width": 1024,
+        "height": 1536
+      },
+      "category": "product-on-model",
+      "placement": [
+        "pdp-gallery"
+      ],
+      "alt": "Model wearing a patterned V-neck cardigan, shown beside four close-up crops of the knit and buttons.",
+      "conceptAsset": true,
+      "bytes": 30298,
+      "sha256": "96c7cd63af422e1f7e1deefbe0a426d5fbcddbe46198ac1760e3b37d1dacbecf",
+      "packagedSize": {
+        "height": 420,
+        "width": 280
+      }
+    },
+    {
+      "id": "mx-asset-06",
+      "file": "mx-asset-06.jpg",
+      "sourceFilename": "studio_product_photograph_of_the_same_pair_of_patt.png",
+      "title": "Patterned knit socks product detail",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "product",
+      "placement": [
+        "catalogue-card",
+        "pdp-primary"
+      ],
+      "alt": "Pair of black-and-white diamond-patterned knit socks with turquoise toes, heels and cuffs.",
+      "conceptAsset": true,
+      "bytes": 27145,
+      "sha256": "267e9771def8a11c9f555bc049b3b107132afc9d9ac788819e0122fe1a569b9a",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-07",
+      "file": "mx-asset-07.jpg",
+      "sourceFilename": "a_high_end_fashion_editorial_portrait_a_single_sc.png",
+      "title": "High-end fashion editorial portrait",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-gallery",
+        "discover"
+      ],
+      "alt": "Model in sunglasses wearing a short-sleeved geometric knit polo against a warm sandstone wall.",
+      "conceptAsset": true,
+      "bytes": 27955,
+      "sha256": "23fd2249373c5e9717ac6bd74b91f0a032c6367c55f7d4bff4242bc9c4e38eb0",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-08",
+      "file": "mx-asset-08.jpg",
+      "sourceFilename": "a_high_fashion_cinematic_outdoor_portrait_scene_i.png",
+      "title": "Cinematic outdoor fashion portrait",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-gallery",
+        "discover"
+      ],
+      "alt": "Model in sunglasses walking through ochre architecture in a matching patterned knit polo and shorts, with mountains behind.",
+      "conceptAsset": true,
+      "bytes": 26831,
+      "sha256": "d4c74e6f0629d6b06abfd3598b9b7b516591691f1c2e4f2c2aa31577f903915d",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-09",
+      "file": "mx-asset-09.jpg",
+      "sourceFilename": "a_high_fashion_editorial_full_body_outdoor_portr.png",
+      "title": "Full-body outdoor fashion editorial",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "home-hero",
+        "pdp-primary",
+        "discover"
+      ],
+      "alt": "Model in a long patterned knit coat over black, walking through ochre architecture beside a pool.",
+      "conceptAsset": true,
+      "bytes": 26457,
+      "sha256": "df0992009c3031affef65f9a960aa2b378cd24e9af4c4eddeea56d8114a190fa",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-10",
+      "file": "mx-asset-10.jpg",
+      "sourceFilename": "a_high_fashion_editorial_outdoor_architectural_sc.png",
+      "title": "Architectural campaign editorial",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "home-hero",
+        "discover"
+      ],
+      "alt": "Model in sunglasses wearing a patterned knit polo and shorts among ochre columns and steps.",
+      "conceptAsset": true,
+      "bytes": 27186,
+      "sha256": "b30928883e74ca1e8cb29ea37560053b562967a17bdc315ec31df62590288ed0",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-11",
+      "file": "mx-asset-11.jpg",
+      "sourceFilename": "a_high_fashion_editorial_outdoor_portrait_scene_a.png",
+      "title": "Outdoor portrait editorial",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-primary",
+        "discover"
+      ],
+      "alt": "Model in a patterned knit top and long skirt holding a black handbag in ochre architecture.",
+      "conceptAsset": true,
+      "bytes": 26101,
+      "sha256": "42bb433cc64bd25a7c266a54a665b7ad75e635289f68673ac8726fcc13401969",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-12",
+      "file": "mx-asset-12.jpg",
+      "sourceFilename": "a_high_fashion_editorial_outdoor_portrait_scene_wi.png",
+      "title": "Outdoor fashion portrait variant",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-primary",
+        "discover"
+      ],
+      "alt": "Model in sunglasses wearing a patterned knit polo and matching trousers in ochre architecture.",
+      "conceptAsset": true,
+      "bytes": 28027,
+      "sha256": "d7c5d9a4fff27f74aa052d67e24cb15d16d10bda7f2883f74d854142dd9e611f",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-13",
+      "file": "mx-asset-13.jpg",
+      "sourceFilename": "a_high_fashion_editorial_outdoor_scene_a_single_f.png",
+      "title": "Single-model outdoor editorial",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-gallery",
+        "discover"
+      ],
+      "alt": "Model in sunglasses wearing a patterned cardigan, a black T-shirt and black trousers in ochre architecture.",
+      "conceptAsset": true,
+      "bytes": 23930,
+      "sha256": "b663648afb2b461916261784facf43eccd70b91a599d7030043a789cdb778004",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-14",
+      "file": "mx-asset-14.jpg",
+      "sourceFilename": "a_high_fashion_editorial_outdoor_scene_a_stylish.png",
+      "title": "Styled outdoor campaign image",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-primary",
+        "discover"
+      ],
+      "alt": "Model in sunglasses in a patterned knit polo and shorts walking past ochre columns.",
+      "conceptAsset": true,
+      "bytes": 27710,
+      "sha256": "5f5967ed5a93273fe56fc90a324d8ceacca662015c294a9f6d6e111cc4aaaab8",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-15",
+      "file": "mx-asset-15.jpg",
+      "sourceFilename": "a_high_fashion_editorial_outdoor_scene_a_tall_st.png",
+      "title": "Full-length outdoor fashion image",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-primary",
+        "discover"
+      ],
+      "alt": "Model in a long sleeveless patterned knit dress with a side slit, standing in ochre architecture.",
+      "conceptAsset": true,
+      "bytes": 28289,
+      "sha256": "18b67d8c07d20787ea06cadf59c9e72df65b31bc95b6953d008259dbc1201ccd",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-16",
+      "file": "mx-asset-16.jpg",
+      "sourceFilename": "a_high_fashion_editorial_portrait_scene_a_stylish.png",
+      "title": "Styled fashion portrait",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-gallery",
+        "discover"
+      ],
+      "alt": "Close portrait of a model in sunglasses wearing a patterned knit polo, with ochre walls and mountains behind.",
+      "conceptAsset": true,
+      "bytes": 28463,
+      "sha256": "4db519330690c19f9babf0815359f22363b75af9fdb8d2277b989ed3cf2af244",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-17",
+      "file": "mx-asset-17.jpg",
+      "sourceFilename": "a_high_fashion_outdoor_editorial_portrait_scene_a.png",
+      "title": "Outdoor editorial portrait",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-primary",
+        "discover"
+      ],
+      "alt": "Model in a patterned V-neck knit vest and black wide-leg trousers in ochre architecture.",
+      "conceptAsset": true,
+      "bytes": 23687,
+      "sha256": "317de55daf3b426233b90ce903aeaf5af394a68d344297f2d0353071c7a07318",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-18",
+      "file": "mx-asset-18.jpg",
+      "sourceFilename": "a_high_fashion_studio_lit_editorial_portrait_in.png",
+      "title": "Studio-lit fashion editorial",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-gallery",
+        "discover"
+      ],
+      "alt": "Studio portrait of a model in a short-sleeved patterned knit polo with hands in pockets.",
+      "conceptAsset": true,
+      "bytes": 31476,
+      "sha256": "c20ed9b4b10d6bd2869d2700d6b9152d59be6d22a72456e2825b62b4b6cffc4f",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-19",
+      "file": "mx-asset-19.jpg",
+      "sourceFilename": "a_high_resolution_fashion_editorial_portrait_shot.png",
+      "title": "High-resolution fashion portrait / top",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-primary",
+        "discover"
+      ],
+      "alt": "Model in a red and turquoise patterned knit crop top with lettering on the straps.",
+      "conceptAsset": true,
+      "bytes": 21545,
+      "sha256": "4066e5746889429be7e7bbf0995dbad632a6396ec1ed06d42b9e5611c97e0866",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-20",
+      "file": "mx-asset-20.jpg",
+      "sourceFilename": "close_up_fashion_portrait_scene_with_a_warm_softl.png",
+      "title": "Beaded necklace editorial close-up",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "accessory",
+      "placement": [
+        "catalogue-card",
+        "pdp-primary"
+      ],
+      "alt": "Close-up of a beaded collar necklace in orange and turquoise with a long beaded fringe.",
+      "conceptAsset": true,
+      "bytes": 24924,
+      "sha256": "3a3a54e82d9a4b4baff81d22da163ac4ba6656976dd76aafd8a7f4fdac3b982e",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-21",
+      "file": "mx-asset-21.jpg",
+      "sourceFilename": "close_up_fashion_portrait_studio_editorial_style.png",
+      "title": "Accessory / fashion close-up",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "accessory",
+      "placement": [
+        "pdp-gallery",
+        "discover"
+      ],
+      "alt": "Model in a red and turquoise patterned halter top, wearing gold earrings.",
+      "conceptAsset": true,
+      "bytes": 26200,
+      "sha256": "4250b92a4fb1e9961f7d9717b6fd67528da93bb40434fe416226a2ea24411b79",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-22",
+      "file": "mx-asset-22.jpg",
+      "sourceFilename": "close_up_high_detail_still_life_product_style_pho.png",
+      "title": "Textile tassel accessory still life",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "accessory",
+      "placement": [
+        "catalogue-card",
+        "pdp-primary"
+      ],
+      "alt": "Turquoise beaded pin with a black chevron, an orange band and a natural tassel, on linen.",
+      "conceptAsset": true,
+      "bytes": 36248,
+      "sha256": "26086f73c5bf1b0d33249eecdf6f4d2fcde32159d70931996581196b54fdc002",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-23",
+      "file": "mx-asset-23.jpg",
+      "sourceFilename": "close_up_high_fashion_portrait_photograph_edito.png",
+      "title": "Beaded earrings editorial close-up",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "accessory",
+      "placement": [
+        "catalogue-card",
+        "pdp-primary"
+      ],
+      "alt": "Close-up of a model wearing long rectangular beaded earrings in turquoise, black, red and white.",
+      "conceptAsset": true,
+      "bytes": 23272,
+      "sha256": "146c96dd1ac6212065c3842397650538822ef14a9d7d138527a5a93c50f861a8",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    },
+    {
+      "id": "mx-asset-24",
+      "file": "mx-asset-24.jpg",
+      "sourceFilename": "studio_fashion_portrait_scene_a_high_end_editoria.png",
+      "title": "High-end styled fashion portrait / scarf",
+      "masterSize": {
+        "width": 1122,
+        "height": 1402
+      },
+      "category": "editorial",
+      "placement": [
+        "pdp-primary",
+        "discover"
+      ],
+      "alt": "Model in a black blazer wearing a long cream, red, blue and black patterned knit scarf.",
+      "conceptAsset": true,
+      "bytes": 29780,
+      "sha256": "f999c631342f57ea0edb4bfdbe447f74e34db6de299079f82b97939215b4d8c6",
+      "packagedSize": {
+        "height": 420,
+        "width": 336
+      }
+    }
+  ]
+}

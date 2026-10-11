@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // A separate app with its own package.json, lint config and tests.
+      'maxhosa/**',
     ],
   },
   {

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en-ZA">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f6f1e8" />
+    <meta name="robots" content="noindex" />
+    <!--
+      Offline guarantee: this policy forbids the page from fetching anything.
+      Images and the display font are data: URIs, script and style are inline.
+      Outbound policy links open in a new tab and are never needed to render.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src data: blob:; font-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; form-action 'none'; base-uri 'none'"
+    />
+    <title>MAXHOSA AFRICA App — Concept Demo</title>
+    <style>
+      /*__CSS__*/
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="device" id="device">
+        <div class="demo-strip" role="note">
+          <span>Concept demo — sample products, sample courier, no real purchase/delivery</span>
+        </div>
+        <div class="app" id="app"></div>
+        <div class="layer-root" id="layers"></div>
+        <div class="toast-root" id="toasts" aria-live="polite"></div>
+      </div>
+
+      <aside class="presenter-panel" aria-label="Presenter notes">
+        <span class="eyebrow">Concept demo · v__VERSION__</span>
+        <h1>MAXHOSA AFRICA app</h1>
+        <p>
+          A working prototype of the app’s shopping, styling and delivery journeys. Every product, price, order and
+          courier event is sample data; nothing leaves this file.
+        </p>
+        <p><strong>Try it like a phone:</strong></p>
+        <ul>
+          <li>Drag any sheet by its handle — flick it down to dismiss.</li>
+          <li>Swipe from the left edge of a pushed screen to go back.</li>
+          <li>Tap a product photo, then pinch or double-tap to zoom.</li>
+        </ul>
+        <p><strong>Shortcuts</strong></p>
+        <div>
+          <button class="btn btn-secondary" data-p="product">Open a product</button>
+          <button class="btn btn-secondary" data-p="tracker">Open delivery tracker</button>
+          <button class="btn btn-primary" data-p="advance">Advance demo status</button>
+          <button class="btn btn-secondary" data-p="appointment">Styling enquiry</button>
+          <button class="btn btn-secondary" data-p="reset">Reset demo</button>
+        </div>
+        <p class="note" style="margin-top: 1rem">
+          Built __BUILT__ · 24 verified concept images · runs from file://, no network. Images are previews from the
+          brief; swap in the full-resolution masters before showing externally.
+        </p>
+      </aside>
+    </div>
+
+    <noscript>
+      <p style="padding: 2rem; font: 16px/1.5 system-ui">
+        This concept demo needs JavaScript. Open it in Chrome, Safari, Edge or Firefox.
+      </p>
+    </noscript>
+
+    <script>
+      window.MX_DATA = /*__DATA__*/ null;
+    </script>
+    <script>
+      /*__JS__*/
+    </script>
+  </body>
+</html>

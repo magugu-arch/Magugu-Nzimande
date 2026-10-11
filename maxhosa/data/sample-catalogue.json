@@ -1,0 +1,337 @@
+{
+  "$comment": "SAMPLE DATA for the concept demo and the mock commerce provider. Names, codes, prices, sizes, stock and lead times are invented for demonstration and labelled as such in the UI. None of it describes a real MAXHOSA AFRICA product. Production data comes only from the verified commerce platform.",
+  "markets": [
+    { "id": "ZA", "label": "South Africa", "currencyCode": "ZAR", "locale": "en-ZA" },
+    { "id": "GB", "label": "United Kingdom", "currencyCode": "GBP", "locale": "en-GB" },
+    { "id": "US", "label": "United States", "currencyCode": "USD", "locale": "en-US" }
+  ],
+  "categories": [
+    { "id": "men", "label": "Men", "asset": "mx-asset-18" },
+    { "id": "women", "label": "Women", "asset": "mx-asset-15" },
+    { "id": "unisex", "label": "Unisex", "asset": "mx-asset-24" },
+    { "id": "accessories", "label": "Accessories", "asset": "mx-asset-20" },
+    { "id": "lifestyle", "label": "Lifestyle", "asset": "mx-asset-06" }
+  ],
+  "colours": ["Black", "Ochre", "Red", "Blue", "Turquoise", "Cream", "Orange"],
+  "sizeGuides": {
+    "tops": {
+      "title": "Knitwear tops",
+      "unit": "cm",
+      "columns": ["Size", "Chest", "Length", "Sleeve"],
+      "rows": [
+        ["XS", "88", "66", "60"],
+        ["S", "94", "68", "61"],
+        ["M", "100", "70", "62"],
+        ["L", "106", "72", "63"],
+        ["XL", "112", "74", "64"],
+        ["XXL", "118", "76", "65"]
+      ]
+    },
+    "bottoms": {
+      "title": "Knitwear bottoms",
+      "unit": "cm",
+      "columns": ["Size", "Waist", "Hip", "Inseam"],
+      "rows": [
+        ["XS", "68", "90", "78"],
+        ["S", "74", "96", "79"],
+        ["M", "80", "102", "80"],
+        ["L", "86", "108", "81"],
+        ["XL", "92", "114", "82"]
+      ]
+    }
+  },
+  "products": [
+    {
+      "id": "p01",
+      "code": "DEMO-MX-001",
+      "name": "Patterned knit cardigan",
+      "category": "men",
+      "colours": ["Black", "Ochre", "Red", "Blue"],
+      "media": ["mx-asset-02", "mx-asset-01", "mx-asset-05", "mx-asset-13"],
+      "price": { "ZA": "5400.00", "GB": "265.00", "US": "320.00" },
+      "sizes": [
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "available" },
+        { "label": "L", "stock": "available" },
+        { "label": "XL", "stock": "preorder" },
+        { "label": "XXL", "stock": "unavailable" }
+      ],
+      "preorderLeadTime": "6–8 weeks",
+      "sizeGuide": "tops",
+      "released": "2026-10-01",
+      "pairsWith": ["p05"]
+    },
+    {
+      "id": "p02",
+      "code": "DEMO-MX-002",
+      "name": "Bold-pattern knit cardigan",
+      "category": "unisex",
+      "colours": ["Black", "Ochre", "Red", "Blue", "Cream"],
+      "media": ["mx-asset-04"],
+      "price": { "ZA": "5600.00", "GB": "275.00", "US": "330.00" },
+      "sizes": [
+        { "label": "XS", "stock": "available" },
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "unavailable" },
+        { "label": "L", "stock": "available" },
+        { "label": "XL", "stock": "available" }
+      ],
+      "sizeGuide": "tops",
+      "released": "2026-09-24",
+      "pairsWith": ["p15"]
+    },
+    {
+      "id": "p03",
+      "code": "DEMO-MX-003",
+      "name": "Patterned knit polo",
+      "category": "men",
+      "colours": ["Black", "Ochre", "Red", "Blue", "Cream"],
+      "media": ["mx-asset-03", "mx-asset-18", "mx-asset-07", "mx-asset-16"],
+      "price": { "ZA": "3200.00", "GB": "160.00", "US": "190.00" },
+      "sizes": [
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "available" },
+        { "label": "L", "stock": "available" },
+        { "label": "XL", "stock": "available" },
+        { "label": "XXL", "stock": "preorder" }
+      ],
+      "preorderLeadTime": "4–6 weeks",
+      "sizeGuide": "tops",
+      "released": "2026-10-05",
+      "pairsWith": ["p05", "p11"]
+    },
+    {
+      "id": "p04",
+      "code": "DEMO-MX-004",
+      "name": "Knit polo and shorts set",
+      "category": "men",
+      "colours": ["Black", "Red", "Blue", "Cream"],
+      "media": ["mx-asset-14", "mx-asset-08", "mx-asset-10"],
+      "price": { "ZA": "4800.00", "GB": "235.00", "US": "285.00" },
+      "sizes": [
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "available" },
+        { "label": "L", "stock": "unavailable" },
+        { "label": "XL", "stock": "available" }
+      ],
+      "sizeGuide": "tops",
+      "released": "2026-10-08",
+      "pairsWith": ["p11"]
+    },
+    {
+      "id": "p05",
+      "code": "DEMO-MX-005",
+      "name": "Patterned knit trousers",
+      "category": "men",
+      "colours": ["Black", "Red", "Blue", "Cream"],
+      "media": ["mx-asset-12"],
+      "price": { "ZA": "3900.00", "GB": "190.00", "US": "230.00" },
+      "sizes": [
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "available" },
+        { "label": "L", "stock": "available" },
+        { "label": "XL", "stock": "unavailable" }
+      ],
+      "sizeGuide": "bottoms",
+      "released": "2026-09-18",
+      "pairsWith": ["p03"]
+    },
+    {
+      "id": "p06",
+      "code": "DEMO-MX-006",
+      "name": "Long patterned knit coat",
+      "category": "women",
+      "colours": ["Black", "Ochre", "Red", "Cream"],
+      "media": ["mx-asset-09"],
+      "price": { "ZA": "8900.00", "GB": "435.00", "US": "525.00" },
+      "sizes": [
+        { "label": "XS", "stock": "preorder" },
+        { "label": "S", "stock": "preorder" },
+        { "label": "M", "stock": "preorder" },
+        { "label": "L", "stock": "preorder" }
+      ],
+      "preorderLeadTime": "8–10 weeks",
+      "sizeGuide": "tops",
+      "released": "2026-10-09",
+      "pairsWith": ["p15"]
+    },
+    {
+      "id": "p07",
+      "code": "DEMO-MX-007",
+      "name": "Knit top and long skirt",
+      "category": "women",
+      "colours": ["Black", "Red", "Blue", "Cream"],
+      "media": ["mx-asset-11"],
+      "price": { "ZA": "6200.00", "GB": "305.00", "US": "365.00" },
+      "sizes": [
+        { "label": "XS", "stock": "available" },
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "available" },
+        { "label": "L", "stock": "unavailable" }
+      ],
+      "sizeGuide": "tops",
+      "released": "2026-09-30",
+      "pairsWith": ["p13"]
+    },
+    {
+      "id": "p08",
+      "code": "DEMO-MX-008",
+      "name": "Patterned knit maxi dress",
+      "category": "women",
+      "colours": ["Black", "Ochre", "Red", "Blue", "Cream"],
+      "media": ["mx-asset-15"],
+      "price": { "ZA": "5900.00", "GB": "290.00", "US": "345.00" },
+      "sizes": [
+        { "label": "XS", "stock": "available" },
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "available" },
+        { "label": "L", "stock": "preorder" }
+      ],
+      "preorderLeadTime": "6–8 weeks",
+      "sizeGuide": "tops",
+      "released": "2026-10-03",
+      "pairsWith": ["p12"]
+    },
+    {
+      "id": "p09",
+      "code": "DEMO-MX-009",
+      "name": "Patterned knit vest",
+      "category": "women",
+      "colours": ["Black", "Ochre", "Red", "Blue", "Cream"],
+      "media": ["mx-asset-17"],
+      "price": { "ZA": "2900.00", "GB": "145.00", "US": "170.00" },
+      "sizes": [
+        { "label": "XS", "stock": "unavailable" },
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "available" },
+        { "label": "L", "stock": "available" }
+      ],
+      "sizeGuide": "tops",
+      "released": "2026-09-12",
+      "pairsWith": ["p13"]
+    },
+    {
+      "id": "p10",
+      "code": "DEMO-MX-010",
+      "name": "Patterned knit crop top",
+      "category": "women",
+      "colours": ["Red", "Turquoise"],
+      "media": ["mx-asset-19", "mx-asset-21"],
+      "price": { "ZA": "2400.00", "GB": "120.00", "US": "140.00" },
+      "sizes": [
+        { "label": "XS", "stock": "available" },
+        { "label": "S", "stock": "available" },
+        { "label": "M", "stock": "available" },
+        { "label": "L", "stock": "available" }
+      ],
+      "sizeGuide": "tops",
+      "released": "2026-10-06",
+      "pairsWith": ["p12"]
+    },
+    {
+      "id": "p11",
+      "code": "DEMO-MX-011",
+      "name": "Patterned knit socks",
+      "category": "lifestyle",
+      "colours": ["Black", "Cream", "Turquoise"],
+      "media": ["mx-asset-06"],
+      "price": { "ZA": "450.00", "GB": "22.00", "US": "26.00" },
+      "sizes": [
+        { "label": "S/M", "stock": "available" },
+        { "label": "L/XL", "stock": "available" }
+      ],
+      "released": "2026-09-05",
+      "pairsWith": ["p03"]
+    },
+    {
+      "id": "p12",
+      "code": "DEMO-MX-012",
+      "name": "Beaded collar necklace",
+      "category": "accessories",
+      "colours": ["Orange", "Turquoise"],
+      "media": ["mx-asset-20"],
+      "price": { "ZA": "1800.00", "GB": "88.00", "US": "105.00" },
+      "sizes": [{ "label": "One size", "stock": "unavailable" }],
+      "released": "2026-09-20",
+      "pairsWith": ["p13"]
+    },
+    {
+      "id": "p13",
+      "code": "DEMO-MX-013",
+      "name": "Beaded drop earrings",
+      "category": "accessories",
+      "colours": ["Turquoise", "Black", "Red", "Cream"],
+      "media": ["mx-asset-23"],
+      "price": { "ZA": "950.00", "GB": "47.00", "US": "55.00" },
+      "sizes": [{ "label": "One size", "stock": "available" }],
+      "released": "2026-10-02",
+      "pairsWith": ["p12"]
+    },
+    {
+      "id": "p14",
+      "code": "DEMO-MX-014",
+      "name": "Beaded tassel pin",
+      "category": "accessories",
+      "colours": ["Turquoise", "Orange", "Cream"],
+      "media": ["mx-asset-22"],
+      "price": { "ZA": "650.00", "GB": "32.00", "US": "38.00" },
+      "sizes": [{ "label": "One size", "stock": "available" }],
+      "released": "2026-08-28",
+      "pairsWith": ["p02"]
+    },
+    {
+      "id": "p15",
+      "code": "DEMO-MX-015",
+      "name": "Patterned knit scarf",
+      "category": "unisex",
+      "colours": ["Cream", "Red", "Blue", "Black"],
+      "media": ["mx-asset-24"],
+      "price": { "ZA": "1900.00", "GB": "95.00", "US": "110.00" },
+      "sizes": [{ "label": "One size", "stock": "available" }],
+      "released": "2026-09-27",
+      "pairsWith": ["p06"]
+    }
+  ],
+  "stories": [
+    {
+      "id": "s1",
+      "kind": "Lookbook",
+      "title": "The outdoor lookbook",
+      "hero": "mx-asset-09",
+      "media": ["mx-asset-11", "mx-asset-15", "mx-asset-17", "mx-asset-08"],
+      "products": ["p06", "p07", "p08", "p09"]
+    },
+    {
+      "id": "s2",
+      "kind": "Craft",
+      "title": "Knitwear, up close",
+      "hero": "mx-asset-05",
+      "media": ["mx-asset-02", "mx-asset-04", "mx-asset-01"],
+      "products": ["p01", "p02", "p03"]
+    },
+    {
+      "id": "s3",
+      "kind": "Edit",
+      "title": "Accessories, considered",
+      "hero": "mx-asset-23",
+      "media": ["mx-asset-20", "mx-asset-22", "mx-asset-24"],
+      "products": ["p12", "p13", "p14", "p15"]
+    }
+  ],
+  "appointmentTypes": [
+    { "id": "studio", "label": "Studio or boutique visit", "format": "in-person", "minutes": 45 },
+    { "id": "styling", "label": "Personal styling", "format": "in-person", "minutes": 60 },
+    { "id": "virtual", "label": "Virtual styling", "format": "virtual", "minutes": 30 },
+    { "id": "preview", "label": "Collection preview", "format": "in-person", "minutes": 45 }
+  ],
+  "sampleOrder": {
+    "id": "DEMO-ORDER-0001",
+    "lines": [
+      { "productId": "p03", "size": "M", "quantity": 1 },
+      { "productId": "p11", "size": "L/XL", "quantity": 2 }
+    ],
+    "carrier": "Sample Courier (demo)",
+    "trackingReference": "SAMPLE-TRK-0001",
+    "serviceLevel": "Standard parcel"
+  }
+}

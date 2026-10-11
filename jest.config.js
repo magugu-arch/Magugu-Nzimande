@@ -11,4 +11,8 @@ module.exports = {
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|standard-navigation|@tanstack/.*)',
   ],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
+  // maxhosa/ is a separate app with its own Jest setup; keep its tests and its
+  // node_modules out of this one's haste map.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/maxhosa/'],
+  modulePathIgnorePatterns: ['<rootDir>/maxhosa/'],
 };
