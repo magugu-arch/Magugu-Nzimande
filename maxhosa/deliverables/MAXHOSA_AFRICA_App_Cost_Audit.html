@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="What the MAXHOSA AFRICA iOS and Android app costs to finish and to build from zero, by stage, workstream, rates and running costs. Planning estimates in ZAR, excluding VAT.">
+<meta name="mx-document" content="cost-audit">
+<meta name="mx-date" content="2026-10-12">
+<meta name="mx-currency" content="ZAR, excluding VAT">
+<meta name="color-scheme" content="light dark">
+<title>MAXHOSA App Cost Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&display=swap">
+<style>
+html { -webkit-text-size-adjust: 100%; } body { margin: 0; }
+/* Layout: a single reading column that answers first, then shows the arithmetic — stages, workstreams, options, rates, running costs. Tokens follow the app's provisional palette. */
+:root {
+  --paper: #f6f1e8; --card: #fffcf7; --sunk: #ece4d7;
+  --ink: #16130f; --ink-2: #4b443b; --ink-3: #6b6257;
+  --mark: #85590f; --mark-ext: #e3cfa6; --hairline: rgba(22,19,15,0.12); --hairline-strong: rgba(22,19,15,0.22);
+  --focus: #1d4f9c;
+  --display: 'Playfair Display', 'New York', Georgia, 'Times New Roman', serif;
+  --ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #100e0b; --card: #1b1814; --sunk: #26221c;
+  --ink: #f4ede2; --ink-2: #cdc3b4; --ink-3: #a2978a;
+  --mark: #b5822f; --mark-ext: #4f3d1d; --hairline: rgba(244,237,226,0.12); --hairline-strong: rgba(244,237,226,0.24);
+  --focus: #94b6f0; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --paper: #100e0b; --card: #1b1814; --sunk: #26221c;
+  --ink: #f4ede2; --ink-2: #cdc3b4; --ink-3: #a2978a;
+  --mark: #b5822f; --mark-ext: #4f3d1d; --hairline: rgba(244,237,226,0.12); --hairline-strong: rgba(244,237,226,0.24);
+  --focus: #94b6f0; color-scheme: dark;
+}
+body { background: var(--paper); color: var(--ink); font: 16px/1.55 var(--ui); padding-inline: 16px; padding-block: 0; }
+main { max-width: 52rem; margin: 0 auto; padding-block: 2.5rem 4rem; display: grid; gap: 3rem; }
+h1, h2 { font-family: var(--display); font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2rem, 4.5vw + 1rem, 3rem); line-height: 1.05; }
+h2 { font-size: 1.625rem; line-height: 1.15; }
+h3 { margin: 0; font-size: 1rem; }
+p { margin: 0; }
+.eyebrow { font-size: 0.75rem; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.lede { color: var(--ink-2); max-width: 40rem; }
+header, section { display: grid; gap: 1rem; min-width: 0; }
+.answer { background: var(--card); border-radius: 18px; box-shadow: inset 0 0 0 0.5px var(--hairline-strong); padding: 1.5rem; display: grid; gap: 1.25rem; }
+.hero-label { font-size: 0.9375rem; color: var(--ink-2); }
+.hero { font-size: clamp(2rem, 8.5vw, 3.75rem); font-weight: 650; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.hero small { font-size: 0.35em; font-weight: 600; letter-spacing: 0; color: var(--ink-3); margin-left: 0.4rem; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: 1rem 1.5rem; margin: 0; }
+.facts div { min-width: 0; border-top: 1px solid var(--hairline); padding-top: 0.75rem; }
+.facts dt { font-size: 0.8125rem; color: var(--ink-3); }
+.facts dd { margin: 0.125rem 0 0; font-size: 1.125rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.facts dd span { display: block; font-size: 0.8125rem; font-weight: 400; color: var(--ink-2); }
+.note { font-size: 0.875rem; color: var(--ink-3); max-width: 42rem; }
+/* charts */
+.chart { margin: 0; background: var(--card); border-radius: 16px; box-shadow: inset 0 0 0 0.5px var(--hairline); padding: 1.25rem 1.25rem 1rem; display: grid; gap: 0.875rem; min-width: 0; }
+.chart figcaption { font-weight: 600; }
+.key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem 0.75rem; font-size: 0.8125rem; color: var(--ink-2); }
+.sw { display: inline-block; width: 14px; height: 10px; border-radius: 3px; margin-right: -0.25rem; }
+.sw-solid { background: var(--mark); }
+.sw-ext { background: var(--mark-ext); }
+.rows { display: grid; gap: 0.875rem; }
+.row { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 1rem; align-items: center; }
+.row-label { display: grid; min-width: 0; }
+.row-name { font-size: 0.9375rem; font-weight: 600; }
+.row-sub { font-size: 0.8125rem; color: var(--ink-3); }
+.track { position: relative; height: 28px; margin-right: 6.75rem; }
+.grid { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--hairline); }
+.bar { position: absolute; left: 0; top: 6px; height: 16px; padding: 0; border: 0; background: none; display: flex; gap: 2px; cursor: default; border-radius: 0 4px 4px 0; }
+.bar-solid { height: 100%; background: var(--mark); }
+.bar-ext { flex: 1; height: 100%; background: var(--mark-ext); border-radius: 0 4px 4px 0; }
+.bar:hover .bar-solid, .bar:focus-visible .bar-solid { filter: brightness(1.12); }
+.bar:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.bar-label { position: absolute; top: 4px; white-space: nowrap; font-size: 0.8125rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); }
+.axis { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 1rem; }
+.axis-track { position: relative; height: 1.25rem; margin-right: 6.75rem; font-size: 0.75rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.axis-track span { position: absolute; transform: translateX(-50%); }
+.axis-track span:first-child { transform: none; }
+.tip { position: fixed; z-index: 10; max-width: 18rem; background: var(--ink); color: var(--paper); border-radius: 10px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; line-height: 1.4; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+.tip strong { display: block; }
+@media (max-width: 640px) {
+  .row, .axis { grid-template-columns: minmax(0, 1fr); gap: 0.375rem; }
+  .axis-pad { display: none; }
+}
+/* tables */
+.table-wrap { overflow-x: auto; background: var(--card); border-radius: 14px; box-shadow: inset 0 0 0 0.5px var(--hairline); }
+table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 36rem; }
+th, td { text-align: left; padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+th { font-size: 0.75rem; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.total td { font-weight: 650; border-bottom: 0; }
+tr.sub td { color: var(--ink-2); }
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.75rem; }
+.option { background: var(--card); border-radius: 14px; box-shadow: inset 0 0 0 0.5px var(--hairline); padding: 1rem 1.125rem; display: grid; gap: 0.375rem; align-content: start; }
+.option.pick { box-shadow: inset 0 0 0 1.5px var(--mark); }
+.option .price { font-size: 1.375rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.option p { font-size: 0.875rem; color: var(--ink-2); }
+.pill { justify-self: start; font-size: 0.75rem; font-weight: 650; padding: 0.125rem 0.5rem; border-radius: 999px; background: var(--sunk); color: var(--ink); }
+ol.steps { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.5rem; max-width: 42rem; }
+a { color: var(--ink); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+</style>
+
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">MAXHOSA AFRICA app · cost audit · 12 October 2026</p>
+    <h1>What the app costs to build</h1>
+    <p class="lede">Planning estimates for a premium iOS and Android app, in ZAR, excluding VAT. The concept app and offline demo already exist, so the main figure is what it costs to finish from here.</p>
+  </header>
+
+  <div class="answer">
+    <div>
+      <p class="hero-label">To finish the app from where it stands</p>
+      <p class="hero">R6.1m – R10.8m<small>ex VAT</small></p>
+      <p class="note">About 7 to 12 months with a team of 5 to 6. R7.0m – R12.4m including 15% VAT.</p>
+    </div>
+    <dl class="facts">
+      <div><dt>To build it from zero</dt><dd>R7m – R14m<span>The brief's range. Bottom-up: R7.1m – R11.8m</span></dd></div>
+      <div><dt>First commitment: discovery</dt><dd>R0.7m – R1.0m<span>4–6 weeks; turns these ranges into a quote</span></dd></div>
+      <div><dt>Phase 1 only, from here</dt><dd>R4.3m – R7.1m<span>Commerce, accounts, orders, tracking</span></dd></div>
+      <div><dt>Running costs</dt><dd>R1.2m – R2.4m a year<span>Maintenance, hosting, monitoring, store fees</span></dd></div>
+    </dl>
+    <p class="note">The widest swing is MAXHOSA's commerce platform. Reusable APIs put the cost near the bottom of each range. Custom checkout, accounts or fulfilment work puts it near the top.</p>
+  </div>
+
+  <section aria-labelledby="stage-h">
+    <h2 id="stage-h">Cost to finish, by stage</h2>
+    <figure class="chart" id="chart-stages"><figcaption>Cost by stage, ZAR millions ex VAT</figcaption>
+<div class="key" aria-hidden="true"><span class="sw sw-solid"></span>Low estimate <span class="sw sw-ext"></span>Up to the high estimate</div>
+<div class="rows">
+<div class="row">
+  <div class="row-label"><span class="row-name">Phase 0: discovery</span><span class="row-sub">4–6 weeks · ≈ 4 people</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:20.000%"></i><i class="grid" style="left:40.000%"></i><i class="grid" style="left:60.000%"></i><i class="grid" style="left:80.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:20.000%" aria-label="Phase 0: discovery: R0.7m to R1.0m" data-tip="4–6 weeks, 640–960 hours. Product lead, designer, researcher, ½ mobile lead, ½ backend." data-name="Phase 0: discovery" data-range="R0.7m – R1.0m">
+      <span class="bar-solid" style="width:70.000%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(20.000% + 8px)">R0.7m – R1.0m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Phase 1: real commerce, accounts, orders, tracking</span><span class="row-sub">3–5 months · ≈ 5.5 people</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:20.000%"></i><i class="grid" style="left:40.000%"></i><i class="grid" style="left:60.000%"></i><i class="grid" style="left:80.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:88.000%" aria-label="Phase 1: real commerce, accounts, orders, tracking: R2.6m to R4.4m" data-tip="3–5 months, 2,640–4,400 hours. Product ½, designer ¾, 2 React Native, 1 backend, 1 QA, DevOps ¼." data-name="Phase 1: real commerce, accounts, orders, tracking" data-range="R2.6m – R4.4m">
+      <span class="bar-solid" style="width:59.091%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(88.000% + 8px)">R2.6m – R4.4m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Phase 2: booking, events service, notifications, CRM, store locator, message centre</span><span class="row-sub">2–4 months · ≈ 5 people</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:20.000%"></i><i class="grid" style="left:40.000%"></i><i class="grid" style="left:60.000%"></i><i class="grid" style="left:80.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:64.000%" aria-label="Phase 2: booking, events service, notifications, CRM, store locator, message centre: R1.6m to R3.2m" data-tip="2–4 months, 1,600–3,200 hours. Same team, design lighter." data-name="Phase 2: booking, events service, notifications, CRM, store locator, message centre" data-range="R1.6m – R3.2m">
+      <span class="bar-solid" style="width:50.000%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(64.000% + 8px)">R1.6m – R3.2m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Hardening and release</span><span class="row-sub">~1 month · Mixed people</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:20.000%"></i><i class="grid" style="left:40.000%"></i><i class="grid" style="left:60.000%"></i><i class="grid" style="left:80.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:16.000%" aria-label="Hardening and release: R0.4m to R0.8m" data-tip="~1 month, 400–800 hours. Security test, accessibility audit, device lab, store submission." data-name="Hardening and release" data-range="R0.4m – R0.8m">
+      <span class="bar-solid" style="width:50.000%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(16.000% + 8px)">R0.4m – R0.8m</span>
+  </div>
+</div>
+</div><div class="axis" aria-hidden="true"><span class="axis-pad"></span><div class="axis-track">
+<span style="left:0.000%">R0m</span>
+<span style="left:20.000%">R1m</span>
+<span style="left:40.000%">R2m</span>
+<span style="left:60.000%">R3m</span>
+<span style="left:80.000%">R4m</span>
+<span style="left:100.000%">R5m</span>
+</div></div></figure>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Stage</th><th>Team (people at once)</th><th>Duration</th><th class="num">Hours</th><th class="num">Low</th><th class="num">High</th></tr></thead>
+      <tbody>
+        <tr><td>Phase 0: discovery</td><td>Product lead, designer, researcher, ½ mobile lead, ½ backend (≈ 4)</td><td>4–6 weeks</td><td class="num">640–960</td><td class="num">R0.7m</td><td class="num">R1.0m</td></tr>
+<tr><td>Phase 1: real commerce, accounts, orders, tracking</td><td>Product ½, designer ¾, 2 React Native, 1 backend, 1 QA, DevOps ¼ (≈ 5.5)</td><td>3–5 months</td><td class="num">2,640–4,400</td><td class="num">R2.6m</td><td class="num">R4.4m</td></tr>
+<tr><td>Phase 2: booking, events service, notifications, CRM, store locator, message centre</td><td>Same team, design lighter (≈ 5)</td><td>2–4 months</td><td class="num">1,600–3,200</td><td class="num">R1.6m</td><td class="num">R3.2m</td></tr>
+<tr><td>Hardening and release</td><td>Security test, accessibility audit, device lab, store submission (Mixed)</td><td>~1 month</td><td class="num">400–800</td><td class="num">R0.4m</td><td class="num">R0.8m</td></tr>
+        <tr class="sub"><td>Subtotal</td><td></td><td>≈ 7–12 months</td><td class="num">≈ 5,300–9,400</td><td class="num">R5.3m</td><td class="num">R9.4m</td></tr>
+        <tr class="sub"><td>Contingency (15%)</td><td></td><td></td><td></td><td class="num">R0.8m</td><td class="num">R1.4m</td></tr>
+        <tr class="total"><td>Total to finish (ex VAT)</td><td></td><td></td><td></td><td class="num">R6.1m</td><td class="num">R10.8m</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="work-h">
+    <h2 id="work-h">Where the money goes</h2>
+    <p class="lede">The same R5.3m – R9.4m before contingency, split by what it buys. Product and delivery management is spread across every line.</p>
+    <figure class="chart" id="chart-work"><figcaption>Cost by workstream, ZAR millions ex VAT, largest first</figcaption>
+<div class="key" aria-hidden="true"><span class="sw sw-solid"></span>Low estimate <span class="sw sw-ext"></span>Up to the high estimate</div>
+<div class="rows">
+<div class="row">
+  <div class="row-label"><span class="row-name">Commerce integration</span><span class="row-sub">Catalogue, market pricing, stock, cart, checkout handoff</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:85.000%" aria-label="Commerce integration: R0.95m to R1.7m" data-tip="Head start from the concept: Typed provider interfaces, mock adapter, every screen." data-name="Commerce integration" data-range="R0.95m – R1.7m">
+      <span class="bar-solid" style="width:55.882%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(85.000% + 8px)">R0.95m – R1.7m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Discovery</span><span class="row-sub">Research, service blueprint, costed backlog</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:50.000%" aria-label="Discovery: R0.7m to R1.0m" data-tip="Head start from the concept: Brief audit, asset gate, integration questions." data-name="Discovery" data-range="R0.7m – R1.0m">
+      <span class="bar-solid" style="width:70.000%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(50.000% + 8px)">R0.7m – R1.0m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Accounts and orders</span><span class="row-sub">OAuth with PKCE, order history, guest checkout</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:40.000%" aria-label="Accounts and orders: R0.45m to R0.8m" data-tip="Head start from the concept: Guest flows, order screens." data-name="Accounts and orders" data-range="R0.45m – R0.8m">
+      <span class="bar-solid" style="width:56.250%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(40.000% + 8px)">R0.45m – R0.8m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Delivery tracking</span><span class="row-sub">Carrier webhooks, normaliser, notifications</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:37.500%" aria-label="Delivery tracking: R0.4m to R0.75m" data-tip="Head start from the concept: Tracker screens, normaliser and its tests." data-name="Delivery tracking" data-range="R0.4m – R0.75m">
+      <span class="bar-solid" style="width:53.333%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(37.500% + 8px)">R0.4m – R0.75m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Events service</span><span class="row-sub">Fixtures back-office, RSVP capacity, waitlist, emails, calendar feed, invite links</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:37.500%" aria-label="Events service: R0.4m to R0.75m" data-tip="Head start from the concept: Calendar, RSVP, .ics and invite flows." data-name="Events service" data-range="R0.4m – R0.75m">
+      <span class="bar-solid" style="width:53.333%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(37.500% + 8px)">R0.4m – R0.75m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">QA, accessibility, devices</span><span class="row-sub">Device matrix, VoiceOver and TalkBack, performance</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:37.500%" aria-label="QA, accessibility, devices: R0.45m to R0.75m" data-tip="Head start from the concept: 78 app tests, 132 offline checks, 21 web checks." data-name="QA, accessibility, devices" data-range="R0.45m – R0.75m">
+      <span class="bar-solid" style="width:60.000%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(37.500% + 8px)">R0.45m – R0.75m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Notifications and CRM</span><span class="row-sub">Push, consent records, preference centre, CRM bridge</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:35.000%" aria-label="Notifications and CRM: R0.35m to R0.7m" data-tip="Head start from the concept: Preference centre with consent per kind." data-name="Notifications and CRM" data-range="R0.35m – R0.7m">
+      <span class="bar-solid" style="width:50.000%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(35.000% + 8px)">R0.35m – R0.7m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Design system on approved CI</span><span class="row-sub">Brand tokens, usability testing</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:27.500%" aria-label="Design system on approved CI: R0.3m to R0.55m" data-tip="Head start from the concept: Provisional tokens, components, motion." data-name="Design system on approved CI" data-range="R0.3m – R0.55m">
+      <span class="bar-solid" style="width:54.545%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(27.500% + 8px)">R0.3m – R0.55m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Appointments</span><span class="row-sub">Booking system integration, slot locking</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:27.500%" aria-label="Appointments: R0.3m to R0.55m" data-tip="Head start from the concept: Enquiry flow, idempotent mock." data-name="Appointments" data-range="R0.3m – R0.55m">
+      <span class="bar-solid" style="width:54.545%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(27.500% + 8px)">R0.3m – R0.55m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Store locator and message centre</span><span class="row-sub">Verified locations, secure messaging</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:27.500%" aria-label="Store locator and message centre: R0.25m to R0.55m" data-tip="Head start from the concept: Not started." data-name="Store locator and message centre" data-range="R0.25m – R0.55m">
+      <span class="bar-solid" style="width:45.455%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(27.500% + 8px)">R0.25m – R0.55m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">App polish on real data</span><span class="row-sub">States, analytics, localisation hooks</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:27.500%" aria-label="App polish on real data: R0.3m to R0.55m" data-tip="Head start from the concept: Loading, empty and error states." data-name="App polish on real data" data-range="R0.3m – R0.55m">
+      <span class="bar-solid" style="width:54.545%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(27.500% + 8px)">R0.3m – R0.55m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Security and privacy</span><span class="row-sub">Review, penetration test, POPIA/GDPR</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:20.000%" aria-label="Security and privacy: R0.2m to R0.4m" data-tip="Head start from the concept: Security and privacy notes." data-name="Security and privacy" data-range="R0.2m – R0.4m">
+      <span class="bar-solid" style="width:50.000%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(20.000% + 8px)">R0.2m – R0.4m</span>
+  </div>
+</div>
+<div class="row">
+  <div class="row-label"><span class="row-name">Release and DevOps</span><span class="row-sub">EAS builds, store submissions, monitoring</span></div>
+  <div class="track">
+    <i class="grid" style="left:0.000%"></i><i class="grid" style="left:25.000%"></i><i class="grid" style="left:50.000%"></i><i class="grid" style="left:75.000%"></i><i class="grid" style="left:100.000%"></i>
+    <button class="bar" style="width:17.500%" aria-label="Release and DevOps: R0.25m to R0.35m" data-tip="Head start from the concept: CI runs the checks." data-name="Release and DevOps" data-range="R0.25m – R0.35m">
+      <span class="bar-solid" style="width:71.429%"></span><span class="bar-ext"></span>
+    </button>
+    <span class="bar-label" style="left:calc(17.500% + 8px)">R0.25m – R0.35m</span>
+  </div>
+</div>
+</div><div class="axis" aria-hidden="true"><span class="axis-pad"></span><div class="axis-track">
+<span style="left:0.000%">R0m</span>
+<span style="left:25.000%">R0.5m</span>
+<span style="left:50.000%">R1m</span>
+<span style="left:75.000%">R1.5m</span>
+<span style="left:100.000%">R2m</span>
+</div></div></figure>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Workstream</th><th>Covers</th><th class="num">Low</th><th class="num">High</th><th>Head start from the concept</th></tr></thead>
+      <tbody>
+        <tr><td>Commerce integration</td><td>Catalogue, market pricing, stock, cart, checkout handoff</td><td class="num">R0.95m</td><td class="num">R1.7m</td><td>Typed provider interfaces, mock adapter, every screen</td></tr>
+<tr><td>Discovery</td><td>Research, service blueprint, costed backlog</td><td class="num">R0.7m</td><td class="num">R1.0m</td><td>Brief audit, asset gate, integration questions</td></tr>
+<tr><td>Accounts and orders</td><td>OAuth with PKCE, order history, guest checkout</td><td class="num">R0.45m</td><td class="num">R0.8m</td><td>Guest flows, order screens</td></tr>
+<tr><td>Delivery tracking</td><td>Carrier webhooks, normaliser, notifications</td><td class="num">R0.4m</td><td class="num">R0.75m</td><td>Tracker screens, normaliser and its tests</td></tr>
+<tr><td>Events service</td><td>Fixtures back-office, RSVP capacity, waitlist, emails, calendar feed, invite links</td><td class="num">R0.4m</td><td class="num">R0.75m</td><td>Calendar, RSVP, .ics and invite flows</td></tr>
+<tr><td>QA, accessibility, devices</td><td>Device matrix, VoiceOver and TalkBack, performance</td><td class="num">R0.45m</td><td class="num">R0.75m</td><td>78 app tests, 132 offline checks, 21 web checks</td></tr>
+<tr><td>Notifications and CRM</td><td>Push, consent records, preference centre, CRM bridge</td><td class="num">R0.35m</td><td class="num">R0.7m</td><td>Preference centre with consent per kind</td></tr>
+<tr><td>Design system on approved CI</td><td>Brand tokens, usability testing</td><td class="num">R0.3m</td><td class="num">R0.55m</td><td>Provisional tokens, components, motion</td></tr>
+<tr><td>Appointments</td><td>Booking system integration, slot locking</td><td class="num">R0.3m</td><td class="num">R0.55m</td><td>Enquiry flow, idempotent mock</td></tr>
+<tr><td>Store locator and message centre</td><td>Verified locations, secure messaging</td><td class="num">R0.25m</td><td class="num">R0.55m</td><td>Not started</td></tr>
+<tr><td>App polish on real data</td><td>States, analytics, localisation hooks</td><td class="num">R0.3m</td><td class="num">R0.55m</td><td>Loading, empty and error states</td></tr>
+<tr><td>Security and privacy</td><td>Review, penetration test, POPIA/GDPR</td><td class="num">R0.2m</td><td class="num">R0.4m</td><td>Security and privacy notes</td></tr>
+<tr><td>Release and DevOps</td><td>EAS builds, store submissions, monitoring</td><td class="num">R0.25m</td><td class="num">R0.35m</td><td>CI runs the checks</td></tr>
+        <tr class="total"><td>Subtotal</td><td></td><td class="num">R5.30m</td><td class="num">R9.40m</td><td></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="zero-h">
+    <h2 id="zero-h">Building it from zero</h2>
+    <p class="lede">The same team, rates and phases without the concept build come to R7.1m – R11.8m, inside the brief's R7m – R14m range. The difference from the cost to finish, about R1m, is what the concept already covers: the design system, every screen on sample data, and the tests.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Stage</th><th class="num">Low</th><th class="num">High</th></tr></thead>
+      <tbody>
+        <tr><td>Discovery</td><td class="num">R0.7m</td><td class="num">R1.0m</td></tr>
+        <tr><td>Phase 1, including the design system and every screen (4–6 months)</td><td class="num">R3.5m</td><td class="num">R5.3m</td></tr>
+        <tr><td>Phase 2</td><td class="num">R1.6m</td><td class="num">R3.2m</td></tr>
+        <tr><td>Hardening and release</td><td class="num">R0.4m</td><td class="num">R0.8m</td></tr>
+        <tr class="sub"><td>Contingency (15%)</td><td class="num">R0.9m</td><td class="num">R1.5m</td></tr>
+        <tr class="total"><td>Total from zero</td><td class="num">R7.1m</td><td class="num">R11.8m</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="opt-h">
+    <h2 id="opt-h">The three options in the brief</h2>
+    <div class="options">
+      <div class="option"><span class="pill">Validate first</span><h3>Mobile web / PWA</h3><p class="price">R1.5m – R3.5m</p><p>Proves mobile conversion before a native build. The app's web export and the offline demo are a head start.</p></div>
+      <div class="option pick"><span class="pill">Recommended baseline</span><h3>Premium iOS + Android app</h3><p class="price">R7m – R14m</p><p>The app priced on this page, if the platform's APIs can be reused.</p></div>
+      <div class="option"><span class="pill">Phase 3 scale</span><h3>Global luxury omnichannel</h3><p class="price">R15m – R30m+</p><p>Complex CRM, retail, localisation, clienteling and advanced product experiences.</p></div>
+    </div>
+    <p class="note">These are alternative budgets, so don't add them to the stage costs above.</p>
+  </section>
+
+  <section aria-labelledby="rate-h">
+    <h2 id="rate-h">Rates the estimate uses</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Role</th><th class="num">Per hour, ex VAT</th></tr></thead>
+      <tbody>
+        <tr><td>Product lead / delivery manager</td><td class="num">R1,100</td></tr>
+        <tr><td>Senior product designer</td><td class="num">R1,000</td></tr>
+        <tr><td>UX researcher</td><td class="num">R950</td></tr>
+        <tr><td>Senior React Native engineer</td><td class="num">R1,050</td></tr>
+        <tr><td>Backend / integration engineer</td><td class="num">R1,050</td></tr>
+        <tr><td>QA and accessibility engineer</td><td class="num">R800</td></tr>
+        <tr><td>DevOps and release</td><td class="num">R1,000</td></tr>
+        <tr class="total"><td>Blended across the team</td><td class="num">≈ R1,000</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Blended South African agency rates for 2026, 160 hours per person per month. Freelancers usually cost less and international agencies more.</p>
+  </section>
+
+  <section aria-labelledby="run-h">
+    <h2 id="run-h">Running costs after launch</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Each year</th><th class="num">Low</th><th class="num">High</th></tr></thead>
+      <tbody>
+        <tr><td>Maintenance, OS and SDK upgrades, small improvements (15–20% of build)</td><td class="num">R1.00m</td><td class="num">R2.00m</td></tr>
+        <tr><td>Integration service hosting: compute, database, queues</td><td class="num">R70k</td><td class="num">R200k</td></tr>
+        <tr><td>Monitoring and crash reporting</td><td class="num">R20k</td><td class="num">R50k</td></tr>
+        <tr><td>EAS builds and over-the-air updates</td><td class="num">R20k</td><td class="num">R40k</td></tr>
+        <tr><td>Email and messaging for confirmations, maps, domains</td><td class="num">R40k</td><td class="num">R60k</td></tr>
+        <tr class="total"><td>Total</td><td class="num">≈ R1.2m</td><td class="num">≈ R2.4m</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="third-h">
+    <h2 id="third-h">One-off third-party costs</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Item</th><th class="num">Estimate</th><th>Where it sits</th></tr></thead>
+      <tbody>
+        <tr><td>Penetration test (external)</td><td class="num">R80k – R200k</td><td>Security and privacy line</td></tr>
+        <tr><td>Accessibility audit (external)</td><td class="num">R50k – R120k</td><td>QA line</td></tr>
+        <tr><td>POPIA / GDPR legal review</td><td class="num">R30k – R100k</td><td>Security and privacy line</td></tr>
+        <tr><td>Test devices or a device cloud</td><td class="num">R30k – R80k</td><td>Hardening</td></tr>
+        <tr><td>Apple Developer Program (yearly) and Google Play (one-off)</td><td class="num">under R5k</td><td>Release line</td></tr>
+        <tr><td>Photography, copy and cultural review</td><td class="num">not priced</td><td>A brand cost</td></tr>
+        <tr><td>Translation</td><td class="num">not priced</td><td>Once languages are chosen</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Also excluded: the commerce platform's licence, payment and courier fees, CRM and email-marketing licences, and any proprietary rider network.</p>
+  </section>
+
+  <section aria-labelledby="drive-h">
+    <h2 id="drive-h">What moves the number</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Driver</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td>Commerce platform APIs</td><td>Reusable APIs save R1m – R3m. A platform without them adds about the same.</td></tr>
+        <tr><td>Events and ticketing</td><td>An existing system with an API saves most of the R0.40m – R0.75m events line.</td></tr>
+        <tr><td>Courier</td><td>Scan-based tracking through an aggregator is in this budget. A live map needs a same-day courier with a location feed, which is Phase 3 money.</td></tr>
+        <tr><td>Content readiness</td><td>Late copy, photography or SKU mapping keeps a 5-person team waiting at about R0.9m a month.</td></tr>
+        <tr><td>Scope</td><td>Deferring the message centre and store locator saves R0.25m – R0.55m. Launching on iOS first saves little, because React Native shares most of the work.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="pay-h">
+    <h2 id="pay-h">Paying for it in steps</h2>
+    <ol class="steps">
+      <li><strong>Discovery at a fixed fee</strong> (R0.7m – R1.0m). It produces a costed backlog and a quote for Phase 1.</li>
+      <li><strong>Phase 1 against that quote</strong>, billed monthly, with a release-approval gate at the end.</li>
+      <li><strong>Phase 2 quoted after Phase 1's analytics review.</strong> Spend the 15% contingency only on approved changes.</li>
+    </ol>
+    <p class="note">Confidence: about ±30%. These figures become a quote only after discovery confirms the platform, payments, courier, booking and events systems. The full method and the completion audit (the app is about 30% complete) are in the project's docs: COST_AUDIT.md and COMPLETION_AUDIT.md.</p>
+  </section>
+</main>
+
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<script>
+(function () {
+  var tip = document.getElementById('tip');
+  function show(bar) {
+    tip.innerHTML = '';
+    var name = document.createElement('strong');
+    name.textContent = bar.getAttribute('data-name') + ' · ' + bar.getAttribute('data-range');
+    var body = document.createElement('span');
+    body.textContent = bar.getAttribute('data-tip');
+    tip.appendChild(name);
+    tip.appendChild(body);
+    tip.hidden = false;
+    var r = bar.getBoundingClientRect();
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var x = Math.min(window.innerWidth - w - 12, Math.max(12, r.left + r.width / 2 - w / 2));
+    var y = r.top - h - 10;
+    if (y < 8) y = r.bottom + 10;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+  function hide() { tip.hidden = true; }
+  document.querySelectorAll('.bar').forEach(function (bar) {
+    bar.addEventListener('pointerenter', function () { show(bar); });
+    bar.addEventListener('pointerleave', hide);
+    bar.addEventListener('focus', function () { show(bar); });
+    bar.addEventListener('blur', hide);
+    bar.addEventListener('click', function () { show(bar); });
+  });
+  window.addEventListener('scroll', hide, { passive: true });
+})();
+</script>
+
+<!-- Machine-readable figures behind this page. -->
+<script type="application/json" id="mx-cost-audit">
+{
+ "name": "MAXHOSA AFRICA app — cost audit",
+ "date": "2026-10-12",
+ "currency": "ZAR",
+ "vat": "Excluded unless stated; South African VAT is 15%",
+ "status": "Planning estimates, about ±30%; a quote follows discovery",
+ "answer": {
+  "toFinish": {
+   "low": 6.1,
+   "high": 10.8,
+   "unit": "million",
+   "inclVat": [
+    7.0,
+    12.4
+   ],
+   "months": "7-12",
+   "team": "5-6"
+  },
+  "fromZeroBrief": {
+   "low": 7,
+   "high": 14,
+   "unit": "million"
+  },
+  "fromZeroBottomUp": {
+   "low": 7.1,
+   "high": 11.8,
+   "unit": "million"
+  },
+  "discovery": {
+   "low": 0.7,
+   "high": 1.0,
+   "unit": "million",
+   "weeks": "4-6"
+  },
+  "phase1Only": {
+   "low": 4.3,
+   "high": 7.1,
+   "unit": "million"
+  },
+  "phase2Later": {
+   "low": 1.8,
+   "high": 3.7,
+   "unit": "million"
+  },
+  "runningPerYear": {
+   "low": 1.2,
+   "high": 2.4,
+   "unit": "million"
+  }
+ },
+ "stages": [
+  {
+   "stage": "Phase 0: discovery",
+   "team": "Product lead, designer, researcher, ½ mobile lead, ½ backend",
+   "people": "≈ 4",
+   "duration": "4–6 weeks",
+   "hours": "640–960",
+   "low": 0.7,
+   "high": 1.0
+  },
+  {
+   "stage": "Phase 1: real commerce, accounts, orders, tracking",
+   "team": "Product ½, designer ¾, 2 React Native, 1 backend, 1 QA, DevOps ¼",
+   "people": "≈ 5.5",
+   "duration": "3–5 months",
+   "hours": "2,640–4,400",
+   "low": 2.6,
+   "high": 4.4
+  },
+  {
+   "stage": "Phase 2: booking, events service, notifications, CRM, store locator, message centre",
+   "team": "Same team, design lighter",
+   "people": "≈ 5",
+   "duration": "2–4 months",
+   "hours": "1,600–3,200",
+   "low": 1.6,
+   "high": 3.2
+  },
+  {
+   "stage": "Hardening and release",
+   "team": "Security test, accessibility audit, device lab, store submission",
+   "people": "Mixed",
+   "duration": "~1 month",
+   "hours": "400–800",
+   "low": 0.4,
+   "high": 0.8
+  }
+ ],
+ "subtotal": {
+  "low": 5.3,
+  "high": 9.4
+ },
+ "contingency": {
+  "rate": 0.15,
+  "low": 0.8,
+  "high": 1.4
+ },
+ "workstreams": [
+  {
+   "workstream": "Commerce integration",
+   "covers": "Catalogue, market pricing, stock, cart, checkout handoff",
+   "low": 0.95,
+   "high": 1.7,
+   "headStart": "Typed provider interfaces, mock adapter, every screen"
+  },
+  {
+   "workstream": "Discovery",
+   "covers": "Research, service blueprint, costed backlog",
+   "low": 0.7,
+   "high": 1.0,
+   "headStart": "Brief audit, asset gate, integration questions"
+  },
+  {
+   "workstream": "Accounts and orders",
+   "covers": "OAuth with PKCE, order history, guest checkout",
+   "low": 0.45,
+   "high": 0.8,
+   "headStart": "Guest flows, order screens"
+  },
+  {
+   "workstream": "Delivery tracking",
+   "covers": "Carrier webhooks, normaliser, notifications",
+   "low": 0.4,
+   "high": 0.75,
+   "headStart": "Tracker screens, normaliser and its tests"
+  },
+  {
+   "workstream": "Events service",
+   "covers": "Fixtures back-office, RSVP capacity, waitlist, emails, calendar feed, invite links",
+   "low": 0.4,
+   "high": 0.75,
+   "headStart": "Calendar, RSVP, .ics and invite flows"
+  },
+  {
+   "workstream": "QA, accessibility, devices",
+   "covers": "Device matrix, VoiceOver and TalkBack, performance",
+   "low": 0.45,
+   "high": 0.75,
+   "headStart": "78 app tests, 132 offline checks, 21 web checks"
+  },
+  {
+   "workstream": "Notifications and CRM",
+   "covers": "Push, consent records, preference centre, CRM bridge",
+   "low": 0.35,
+   "high": 0.7,
+   "headStart": "Preference centre with consent per kind"
+  },
+  {
+   "workstream": "Design system on approved CI",
+   "covers": "Brand tokens, usability testing",
+   "low": 0.3,
+   "high": 0.55,
+   "headStart": "Provisional tokens, components, motion"
+  },
+  {
+   "workstream": "Appointments",
+   "covers": "Booking system integration, slot locking",
+   "low": 0.3,
+   "high": 0.55,
+   "headStart": "Enquiry flow, idempotent mock"
+  },
+  {
+   "workstream": "Store locator and message centre",
+   "covers": "Verified locations, secure messaging",
+   "low": 0.25,
+   "high": 0.55,
+   "headStart": "Not started"
+  },
+  {
+   "workstream": "App polish on real data",
+   "covers": "States, analytics, localisation hooks",
+   "low": 0.3,
+   "high": 0.55,
+   "headStart": "Loading, empty and error states"
+  },
+  {
+   "workstream": "Security and privacy",
+   "covers": "Review, penetration test, POPIA/GDPR",
+   "low": 0.2,
+   "high": 0.4,
+   "headStart": "Security and privacy notes"
+  },
+  {
+   "workstream": "Release and DevOps",
+   "covers": "EAS builds, store submissions, monitoring",
+   "low": 0.25,
+   "high": 0.35,
+   "headStart": "CI runs the checks"
+  }
+ ],
+ "rates": {
+  "Product lead": 1100,
+  "Senior product designer": 1000,
+  "UX researcher": 950,
+  "Senior React Native engineer": 1050,
+  "Backend / integration engineer": 1050,
+  "QA and accessibility engineer": 800,
+  "DevOps and release": 1000,
+  "blended": 1000
+ },
+ "source": "maxhosa/docs/COST_AUDIT.md"
+}
+</script>
+</body>
+</html>

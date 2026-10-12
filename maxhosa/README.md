@@ -5,13 +5,16 @@
 > sample data behind a typed mock provider. Nothing connects to MAXHOSA
 > AFRICA's store, payments, couriers or bookings.
 
-Two deliverables, one design:
+Three deliverables:
 
 1. **The app** — Expo SDK 57 · React Native 0.86 · React 19 · strict
    TypeScript · Expo Router, for iOS and Android (and web for review).
 2. **The offline demo** — one HTML file anyone can open without installing
    anything: [`deliverables/MAXHOSA_AFRICA_App_Offline_Demo.html`](deliverables/MAXHOSA_AFRICA_App_Offline_Demo.html),
    with a ZIP and [`OPEN_ME_FIRST_README.txt`](deliverables/OPEN_ME_FIRST_README.txt).
+3. **The cost audit** as a standalone HTML file with its figures embedded as
+   JSON: [`deliverables/MAXHOSA_AFRICA_App_Cost_Audit.html`](deliverables/MAXHOSA_AFRICA_App_Cost_Audit.html)
+   (the same numbers as [COST_AUDIT](docs/COST_AUDIT.md)).
 
 This folder is a separate app from the bb.q Chicken app at the repository
 root; the root's TypeScript, ESLint and Jest configs exclude it.
