@@ -54,6 +54,26 @@ check('file', 'no external src/href/url()/@import/script/link references', exter
 check('file', 'no ES-module scripts', !/<script[^>]+type=["']module/i.test(source));
 check('file', 'Content-Security-Policy forbids network fetches', /connect-src 'none'/.test(source) && /default-src 'none'/.test(source));
 check('file', 'demo label present in markup', source.includes('Concept demo — sample products, sample courier, no real purchase/delivery'));
+const metaMatch = source.match(/<script type="application\/json" id="mx-metadata">([\s\S]*?)<\/script>/);
+let embedded = null;
+try {
+  embedded = metaMatch ? JSON.parse(metaMatch[1]) : null;
+} catch {
+  embedded = null;
+}
+check(
+  'file',
+  'embedded metadata lists every image with its manifest hash',
+  embedded &&
+    embedded.images.items.length === MANIFEST.assets.length &&
+    MANIFEST.assets.every((a) => embedded.images.items.find((i) => i.id === a.id)?.sha256 === a.sha256),
+  embedded ? `${embedded.images.items.length} images, v${embedded.version}, built ${embedded.built}` : 'missing or invalid',
+);
+check(
+  'file',
+  'file describes itself in meta tags',
+  /<meta\s+name="description"/.test(source) && /<meta name="mx-version" content="\d/.test(source) && /<meta name="mx-built" content="\d{4}-/.test(source),
+);
 const sizeMb = statSync(HTML).size / 1024 / 1024;
 check('file', 'single file under 5 MB', sizeMb < 5, `${sizeMb.toFixed(2)} MB`);
 
@@ -562,6 +582,22 @@ for (const vp of VIEWPORTS) {
   );
   const narrow = await top().locator('.scroller').evaluate((el) => el.scrollWidth - el.clientWidth);
   check(g, 'Events screen has no sideways scroll', narrow <= 0, `${narrow}px`);
+  await page.goBack();
+  await settle(page);
+
+  // The file's own images and metadata, inside the demo.
+  await page.click('.tab[data-tab="account"]');
+  await page.locator('#tab-account [data-action="open-file-details"]').click();
+  await settle(page);
+  const cards = await top().locator('[data-asset-card]').count();
+  const addition = await top().locator('[data-asset-card="mx-asset-25"]').textContent();
+  check(
+    g,
+    'Images and file details lists every embedded image, the addition flagged',
+    cards === MANIFEST.assets.length && addition.includes('Addition — confirm approval') && addition.includes(MANIFEST.assets[24].sha256),
+    `${cards} images`,
+  );
+  await shot(page, 'phone-file-details');
   await page.goBack();
   await settle(page);
 

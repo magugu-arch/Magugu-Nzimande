@@ -55,7 +55,7 @@ for (const a of manifest.assets) {
     uri: `data:image/jpeg;base64,${bytes.toString('base64')}`,
     alt: a.alt,
     title: a.title,
-    addition: !!a.addition,
+    addition: a.addition ?? null,
   };
 }
 
@@ -74,6 +74,45 @@ const unused = Object.keys(assets).filter((id) => !referenced.has(id));
 if (unused.length) throw new Error(`verified assets not placed anywhere in the demo: ${unused.join(', ')}`);
 
 const data = { ...catalogue, assets };
+
+// File metadata, embedded as JSON so the file describes itself: what it is,
+// when it was built, what it holds, and each image's manifest record.
+const verified = manifest.assets.filter((a) => !a.addition).length;
+const metadata = {
+  name: 'MAXHOSA AFRICA app — offline concept demo',
+  status: 'Concept demo — sample products, sample courier, no real purchase/delivery',
+  version: pkg.version,
+  built: new Date().toISOString().slice(0, 10),
+  brief: 'MAXHOSA AFRICA App UI/UX, Digital Commerce and Delivery Brief v1.2 (24 verified images)',
+  offline: 'Everything is inside this file: images and the display font are data URIs, and its Content-Security-Policy blocks all network requests.',
+  contents: {
+    products: catalogue.products.length,
+    categories: catalogue.categories.length,
+    stories: catalogue.stories.length,
+    events: catalogue.events.length,
+    markets: catalogue.markets.map((m) => m.id),
+  },
+  images: {
+    verified,
+    additions: manifest.assets.length - verified,
+    excluded: manifest.excluded,
+    additionsPolicy: manifest.additionsPolicy ?? null,
+    items: manifest.assets.map((a) => ({
+      id: a.id,
+      title: a.title,
+      alt: a.alt,
+      category: a.category,
+      placement: a.placement,
+      originalFilename: a.sourceFilename,
+      masterSize: a.masterSize,
+      embeddedSize: a.packagedSize,
+      bytes: a.bytes,
+      sha256: a.sha256,
+      conceptAsset: true,
+      addition: a.addition ?? null,
+    })),
+  },
+};
 
 // --- script -------------------------------------------------------------
 const jsDir = path.join(root, 'demo/js');
@@ -98,10 +137,12 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
 
 const html = read('demo/index.html')
   .replace('/*__CSS__*/', () => css)
+  .replace('/*__META__*/', () => JSON.stringify(metadata, null, 1).replace(/</g, '\\u003c'))
   .replace('/*__DATA__*/ null', () => json)
   .replace('/*__JS__*/', () => js.replace(/<\/script/gi, '<\\/script'))
-  .replace('__VERSION__', pkg.version)
-  .replace('__BUILT__', built);
+  .replaceAll('__VERSION__', pkg.version)
+  .replaceAll('__BUILT__', built)
+  .replace('__IMAGE_COUNT__', `${verified} verified + ${manifest.assets.length - verified} addition`);
 
 mkdirSync(OUT, { recursive: true });
 writeFileSync(path.join(OUT, HTML_NAME), html);

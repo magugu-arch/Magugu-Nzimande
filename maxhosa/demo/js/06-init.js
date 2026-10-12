@@ -69,6 +69,9 @@ var ACTIONS = {
   'open-my-events': function () {
     openMyEvents();
   },
+  'open-file-details': function () {
+    openFileDetails();
+  },
   'open-appointment': function () {
     openAppointment();
   },
@@ -275,6 +278,10 @@ function wirePresenterPanel() {
     } else if (what === 'appointment') {
       closeLayers(layers.length, function () {
         openAppointment();
+      });
+    } else if (what === 'file') {
+      closeLayers(layers.length, function () {
+        openFileDetails();
       });
     } else if (what === 'events') {
       closeLayers(layers.length, function () {

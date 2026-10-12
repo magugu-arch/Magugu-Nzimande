@@ -470,6 +470,7 @@ var TAB_RENDERERS = {
         '</div></div></div>' +
         '<div class="group-title">This demo</div><div class="group">' +
         accountRow('info', 'What is real in this demo', 'Sample data, simulated services', 'open-about') +
+        accountRow('grid', 'Images and file details', 'Every embedded image with its manifest record', 'open-file-details') +
         accountRow('refresh', 'Reset demo', 'Clears bag, saved pieces and sample orders', 'reset-demo') +
         '</div>' +
         '<p class="note" style="padding:1.25rem var(--gutter) 0">Storage: ' +

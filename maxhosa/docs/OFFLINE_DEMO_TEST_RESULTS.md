@@ -1,10 +1,10 @@
 # Offline demo — test results
 
 Automated run on 2026-10-11 against `deliverables/MAXHOSA_AFRICA_App_Offline_Demo.html`
-(1.77 MB), Chromium 141.0.7390.37, headless, **network disabled**
+(1.79 MB), Chromium 141.0.7390.37, headless, **network disabled**
 (every non-`file:`/`data:`/`blob:` request aborted and counted).
 
-**114 of 114 checks passed.**
+**117 of 117 checks passed.**
 
 Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots/`.
 
@@ -16,7 +16,9 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | no ES-module scripts | Pass |
 | Content-Security-Policy forbids network fetches | Pass |
 | demo label present in markup | Pass |
-| single file under 5 MB (1.77 MB) | Pass |
+| embedded metadata lists every image with its manifest hash (25 images, v0.1.0, built 2026-10-11) | Pass |
+| file describes itself in meta tags | Pass |
+| single file under 5 MB (1.79 MB) | Pass |
 
 ## phone 390×844
 
@@ -147,6 +149,7 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | Add all fixtures: one file with every upcoming event (7 events) | Pass |
 | Following fixtures asks first, as marketing | Pass |
 | Events screen has no sideways scroll (0px) | Pass |
+| Images and file details lists every embedded image, the addition flagged (25 images) | Pass |
 | Account counts your RSVPs | Pass |
 | My events lists going, waitlist and requested | Pass |
 | Calendar fits 320px with 44px day targets (0px, 44px) | Pass |

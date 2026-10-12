@@ -6,6 +6,15 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f6f1e8" />
     <meta name="robots" content="noindex" />
+    <meta
+      name="description"
+      content="MAXHOSA AFRICA app concept demo: shopping, delivery tracking, styling appointments and an events calendar on sample data. One file, works offline, nothing can be bought."
+    />
+    <meta name="application-name" content="MAXHOSA AFRICA app concept demo" />
+    <meta name="generator" content="maxhosa/scripts/build-offline-demo.mjs" />
+    <meta name="mx-version" content="__VERSION__" />
+    <meta name="mx-built" content="__BUILT__" />
+    <meta name="mx-images" content="__IMAGE_COUNT__" />
     <!--
       Offline guarantee: this policy forbids the page from fetching anything.
       Images and the display font are data: URIs, script and style are inline.
@@ -52,6 +61,7 @@
           <button class="btn btn-primary" data-p="advance">Advance demo status</button>
           <button class="btn btn-secondary" data-p="appointment">Styling enquiry</button>
           <button class="btn btn-secondary" data-p="events">Events calendar</button>
+          <button class="btn btn-secondary" data-p="file">Images and file details</button>
           <button class="btn btn-secondary" data-p="reset">Reset demo</button>
         </div>
         <p class="note" style="margin-top: 1rem">
@@ -67,6 +77,10 @@
       </p>
     </noscript>
 
+    <!-- Machine-readable file metadata: build, contents and every embedded image with its manifest record. -->
+    <script type="application/json" id="mx-metadata">
+      /*__META__*/
+    </script>
     <script>
       window.MX_DATA = /*__DATA__*/ null;
     </script>
