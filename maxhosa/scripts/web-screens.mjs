@@ -88,7 +88,28 @@ for (const [name, route] of ROUTES) {
   await context.close();
 }
 
+// The menu button opens its menu over Home, anchored to the button.
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByLabel('Menu', { exact: true }).first().click();
+  await page.waitForTimeout(700);
+  const shown = await page.getByText('Events calendar').isVisible().catch(() => false);
+  await page.screenshot({ path: path.join(SHOTS, 'menu.png') });
+  await page.getByTestId('menu-events').click();
+  await page.waitForTimeout(900);
+  const arrived = page.url().endsWith('/events');
+  const ok = shown && arrived && !errors.length;
+  if (!ok) failures++;
+  console.log(`${ok ? '✓' : '✗'} menu opens over Home and goes to the events calendar${errors.length ? ` — ${errors[0].slice(0, 160)}` : ''}${shown ? '' : ' — menu not shown'}${arrived ? '' : ` — ended at ${page.url()}`}`);
+  await context.close();
+}
+
 await browser.close();
 server.close();
-console.log(`\n${ROUTES.length - failures}/${ROUTES.length} routes rendered cleanly. Screenshots: .web-shots/`);
+console.log(`\n${ROUTES.length + 1 - failures}/${ROUTES.length + 1} checks passed (${ROUTES.length} routes + the menu). Screenshots: .web-shots/`);
 process.exit(failures ? 1 : 0);

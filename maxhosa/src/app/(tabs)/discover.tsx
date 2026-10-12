@@ -4,6 +4,7 @@ import { AssetImage } from '@/components/AssetImage';
 import { Button } from '@/components/Button';
 import { FixtureRow } from '@/components/events/FixtureRow';
 import { BagButton } from '@/components/HeaderActions';
+import { MenuButton } from '@/components/MenuButton';
 import { Group, GroupTitle, Row } from '@/components/List';
 import { PressableScale } from '@/components/PressableScale';
 import { Screen } from '@/components/Screen';
@@ -24,6 +25,7 @@ export default function Discover() {
       largeTitle
       subtitle="Stories, lookbooks and private styling"
       inTabs
+      left={<MenuButton />}
       right={<BagButton />}
     >
       {stories.status === 'loading' ? <LoadingSkeleton rows={1} /> : null}

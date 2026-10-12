@@ -1,5 +1,5 @@
 import type { ReactNode, RefObject } from 'react';
-import { StyleSheet, View, type ScrollView } from 'react-native';
+import { StyleSheet, View, useWindowDimensions, type ScrollView } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useScrollToTop } from 'expo-router';
 import Animated, {
@@ -69,6 +69,8 @@ export function Screen({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
+  // The wordmark gives up some tracking on narrow phones so both header buttons fit.
+  const narrow = useWindowDimensions().width < 360;
   const y = useSharedValue(0);
   const ref = useAnimatedRef<Animated.ScrollView>();
   useScrollToTop(ref as unknown as RefObject<ScrollView>);
@@ -152,7 +154,11 @@ export function Screen({
           {wordmark ? (
             <View accessible accessibilityLabel={`${wordmark} (wordmark placeholder)`}>
               <Animated.View style={barStyle}>
-                <Text variant="eyebrow" style={styles.wordmark} maxFontSizeMultiplier={1.2}>
+                <Text
+                  variant="eyebrow"
+                  style={[styles.wordmark, narrow && styles.wordmarkNarrow]}
+                  maxFontSizeMultiplier={1.2}
+                >
                   {wordmark}
                 </Text>
               </Animated.View>
@@ -160,7 +166,7 @@ export function Screen({
                 <Text
                   variant="eyebrow"
                   color="white"
-                  style={[styles.wordmark, styles.wordmarkShadow]}
+                  style={[styles.wordmark, narrow && styles.wordmarkNarrow, styles.wordmarkShadow]}
                   maxFontSizeMultiplier={1.2}
                 >
                   {wordmark}
@@ -207,12 +213,20 @@ export function HeaderButton({
   icon,
   label,
   onPress,
+  onPressIn,
   onMedia,
   badge,
+  expanded,
+  hint,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
+  /** For controls that act on the press itself, like a menu. */
+  onPressIn?: () => void;
+  /** Set for a button that opens a menu, so assistive tech hears its state. */
+  expanded?: boolean;
+  hint?: string;
   onMedia?: boolean;
   badge?: number;
 }) {
@@ -220,7 +234,10 @@ export function HeaderButton({
   return (
     <PressableScale
       onPress={onPress}
+      onPressIn={onPressIn}
       accessibilityRole="button"
+      accessibilityState={expanded === undefined ? undefined : { expanded }}
+      accessibilityHint={hint}
       accessibilityLabel={
         badge !== undefined ? `${label}, ${badge} ${badge === 1 ? 'item' : 'items'}` : label
       }
@@ -266,8 +283,9 @@ const styles = StyleSheet.create({
   },
   side: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   end: { justifyContent: 'flex-end' },
-  center: { flex: 2.4, alignItems: 'center' },
+  center: { flex: 2, alignItems: 'center' },
   wordmark: { fontSize: 13, letterSpacing: 4 },
+  wordmarkNarrow: { fontSize: 11, letterSpacing: 2 },
   wordmarkShadow: { textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 8 },
   large: { paddingHorizontal: space.gutter, paddingTop: space.xs, paddingBottom: space.m },
   iconButton: {

@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { BagButton } from '@/components/HeaderActions';
+import { MenuButton } from '@/components/MenuButton';
 import { Group, GroupTitle, Row } from '@/components/List';
 import { PressableScale } from '@/components/PressableScale';
 import { ProductCard } from '@/components/ProductCard';
@@ -28,6 +29,7 @@ export default function Saved() {
           : undefined
       }
       inTabs
+      left={<MenuButton />}
       right={<BagButton />}
     >
       {!saved.length ? (

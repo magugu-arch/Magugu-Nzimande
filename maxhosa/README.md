@@ -28,6 +28,7 @@ root; the root's TypeScript, ESLint and Jest configs exclude it.
 | [commerce-integration-audit](docs/commerce-integration-audit.md) | Discovery status and open questions |
 | [TASK_BOARD](docs/TASK_BOARD.md) | Phased plan, status checklist, verification log |
 | [COMPLETION_AUDIT](docs/COMPLETION_AUDIT.md) | How complete the app is (about 30% of production), what remains and what it costs |
+| [COST_AUDIT](docs/COST_AUDIT.md) | What the app costs to finish and to build from zero, by stage, workstream, rates and running costs |
 | [OFFLINE_DEMO_TEST_RESULTS](docs/OFFLINE_DEMO_TEST_RESULTS.md) | The offline demo's automated test report |
 
 ## Quick start
@@ -52,13 +53,13 @@ and Chromium (see TASK_BOARD).
 | `npm start` | Expo dev server |
 | `npm run typecheck` | `tsc --noEmit` (strict) |
 | `npm run lint` | ESLint (Expo config, React Compiler rules, Prettier) |
-| `npm test` | Jest — 75 tests |
+| `npm test` | Jest — 78 tests |
 | `npm run verify` | Asset gate → typecheck → lint → format check → tests |
 | `npm run assets:verify` | The 24-image gate: count, uniqueness, integrity, allowlist, recorded additions, registry in step |
 | `npm run assets:manifest` | Recompute hashes/sizes and regenerate the registry after replacing images |
 | `npm run demo:build` | Build the single-file offline demo, its README and ZIP |
 | `npm run demo:test` | Test the offline demo in Chromium with the network cut; writes the report |
-| `npm run export:web` / `npm run shots:web` | Web export, then render and photograph 20 routes |
+| `npm run export:web` / `npm run shots:web` | Web export, then render and photograph 20 routes and open the menu |
 
 ## Mock mode and configuration
 

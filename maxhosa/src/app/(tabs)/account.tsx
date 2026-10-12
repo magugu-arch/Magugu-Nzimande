@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Button } from '@/components/Button';
 import { BagButton } from '@/components/HeaderActions';
+import { MenuButton } from '@/components/MenuButton';
 import { Group, GroupTitle, Row } from '@/components/List';
 import { PressableScale } from '@/components/PressableScale';
 import { Screen } from '@/components/Screen';
@@ -27,7 +28,7 @@ export default function Account() {
   const on = Object.values(notifications).filter((n) => n.enabled).length;
 
   return (
-    <Screen title="Account" largeTitle inTabs right={<BagButton />}>
+    <Screen title="Account" largeTitle inTabs left={<MenuButton />} right={<BagButton />}>
       <Group>
         <View style={styles.guest}>
           <Text variant="headline">Browsing as a guest</Text>

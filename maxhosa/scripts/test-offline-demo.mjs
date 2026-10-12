@@ -628,6 +628,96 @@ for (const vp of VIEWPORTS) {
   await context.close();
 }
 
+// ---- the menu button: press-and-drag, tap, keyboard -------------------------
+{
+  const g = 'menu (phone)';
+  const { context, page, problems } = await openPage({ width: 390, height: 844 }, { mobile: true });
+  const trigger = page.locator('#tab-home [data-menu-trigger]');
+  check(g, 'Every tab has the menu button in the same place', (await page.locator('.tab-screen .navbar-start [data-menu-trigger]').count()) === 5);
+
+  // Tap: opens on the press, stays open, anchored under the button.
+  const b = await trigger.boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  const onPress = await page.locator('.menu').count();
+  await page.mouse.up();
+  await settle(page, 450);
+  const m = await page.locator('.menu').boundingBox();
+  check(g, 'Opens on the press, not the release', onPress === 1);
+  check(g, 'Stays open after a tap, hanging from its button', m && Math.abs(m.x - b.x) < 2 && m.y > b.y + b.height && m.y - (b.y + b.height) < 12);
+  check(g, 'Button reports it is expanded', (await trigger.getAttribute('aria-expanded')) === 'true');
+  check(g, 'Items have menu roles', (await page.locator('.menu [role="menuitem"]').count()) === 9 && (await page.locator('.menu [role="menuitemradio"]').count()) === 3);
+  await shot(page, 'phone-menu');
+
+  // Appearance changes in place; the menu stays.
+  await page.locator('.menu [data-menu-theme="dark"]').click();
+  await settle(page, 200);
+  const dark = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+  check(g, 'Appearance switches in place, menu stays open', dark === 'dark' && (await page.locator('.menu').count()) === 1);
+  await page.locator('.menu [data-menu-theme="system"]').click();
+
+  // A press outside closes it and is not passed through.
+  await page.mouse.click(300, 700);
+  await settle(page, 500);
+  check(g, 'A press outside closes it without tapping what is beneath', (await page.locator('.menu-layer').count()) === 0 && (await page.locator('.screen.pushed').count()) === 0);
+  check(g, 'Focus returns to the button', await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute('data-menu-trigger')));
+
+  // Press, drag to an item and lift: one gesture.
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await settle(page, 400);
+  const target = await page.locator('.menu [data-menu-item="orders"]').boundingBox();
+  for (let i = 1; i <= 8; i++)
+    await page.mouse.move(b.x + b.width / 2 + ((target.x + 60 - b.x - b.width / 2) * i) / 8, b.y + b.height / 2 + ((target.y + target.height / 2 - b.y - b.height / 2) * i) / 8);
+  const lit = await page.locator('.menu [data-menu-item="orders"].is-highlighted').count();
+  await page.mouse.up();
+  await settle(page, 900);
+  check(g, 'Press-and-drag highlights and chooses an item', lit === 1 && (await page.locator('.screen.pushed').last().getAttribute('aria-label')) === 'Orders');
+  await page.goBack();
+  await settle(page);
+
+  // Back closes the menu like any other layer.
+  await trigger.click();
+  await settle(page, 400);
+  await page.goBack();
+  await settle(page, 500);
+  check(g, 'The browser’s Back closes it', (await page.locator('.menu-layer').count()) === 0);
+
+  // Keyboard: Enter opens with the first item focused; arrows move; Escape closes.
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await settle(page, 400);
+  const first = await page.evaluate(() => document.activeElement.getAttribute('data-menu-theme'));
+  await page.keyboard.press('ArrowDown');
+  const second = await page.evaluate(() => document.activeElement.getAttribute('data-menu-theme'));
+  await page.keyboard.press('End');
+  const last = await page.evaluate(() => document.activeElement.getAttribute('data-menu-item'));
+  await page.keyboard.press('Escape');
+  await settle(page, 500);
+  check(
+    g,
+    'Keyboard: Enter opens, arrows and End move, Escape closes',
+    first === 'system' && second === 'light' && last === 'reset' && (await page.locator('.menu-layer').count()) === 0,
+    `${first} → ${second} → ${last}`,
+  );
+
+  // Small phone: it fits, scrolling inside itself if it must.
+  await page.setViewportSize({ width: 320, height: 640 });
+  await trigger.click();
+  await settle(page, 450);
+  const fit = await page.evaluate(() => {
+    const menu = document.querySelector('.menu').getBoundingClientRect();
+    const dev = document.getElementById('device').getBoundingClientRect();
+    return menu.left >= dev.left && menu.right <= dev.right && menu.bottom <= dev.bottom;
+  });
+  check(g, 'Fits a 320px screen', fit && (await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0);
+  await page.keyboard.press('Escape');
+
+  check(g, 'no console errors with the menu', problems.console.length === 0, problems.console.slice(0, 2).join(' | '));
+  check(g, 'no network requests with the menu', problems.blocked.length === 0, problems.blocked.slice(0, 2).join(', '));
+  await context.close();
+}
+
 // ---- preferences: reduced motion, dark mode, storage denied -------------
 {
   const g = 'preferences';
@@ -635,6 +725,15 @@ for (const vp of VIEWPORTS) {
   await rm.page.locator('#tab-home .card-link').first().click();
   await settle(rm.page, 500);
   check(g, 'Reduce Motion: screens still open (cross-fade, no slide)', (await rm.page.locator('.screen.pushed').count()) === 1);
+  await rm.page.goBack();
+  await settle(rm.page, 400);
+  await rm.page.locator('#tab-home [data-menu-trigger]').click();
+  await settle(rm.page, 300);
+  const rmMenu = await rm.page.evaluate(() => {
+    const m = document.querySelector('.menu');
+    return m ? m.style.transform : null;
+  });
+  check(g, 'Reduce Motion: the menu cross-fades in at full size, no growth', /^scale\(1(\.0+)?\)$/.test(rmMenu || ''), String(rmMenu));
   check(g, 'Reduce Motion: no errors', rm.problems.console.length === 0);
   await rm.context.close();
 

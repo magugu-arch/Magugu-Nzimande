@@ -221,6 +221,7 @@ var TAB_RENDERERS = {
         overMedia: true,
         title: '',
         start:
+          menuButton(true) +
           '<button class="icon-btn on-media" data-action="search" aria-label="Search the shop">' + icon('search') + '</button>',
         end: bagButton(true),
         center: '<span class="wordmark" title="Wordmark placeholder — supply the approved MAXHOSA AFRICA logo">MAXHOSA AFRICA</span>',
@@ -293,7 +294,7 @@ var TAB_RENDERERS = {
 
   shop: function () {
     return {
-      navbar: { title: 'Shop', end: bagButton(false) },
+      navbar: { title: 'Shop', start: menuButton(false), end: bagButton(false) },
       body:
         largeTitle('Shop', 'Sample catalogue · prices in ' + esc(market().currencyCode)) +
         '<div class="search-wrap"><label class="search" for="shop-q">' +
@@ -342,7 +343,7 @@ var TAB_RENDERERS = {
 
   discover: function () {
     return {
-      navbar: { title: 'Discover', end: bagButton(false) },
+      navbar: { title: 'Discover', start: menuButton(false), end: bagButton(false) },
       body:
         largeTitle('Discover', 'Stories, lookbooks and private styling') +
         '<div style="padding:0 var(--gutter)">' +
@@ -414,14 +415,14 @@ var TAB_RENDERERS = {
       '</span><span class="row-main"><span class="row-title">Restock and collection alerts</span><span class="row-sub" style="display:block">Choose what you hear about. Off until you switch them on.</span></span><span class="row-end">' +
       icon('chevronRight') +
       '</span></button></div>';
-    return { navbar: { title: 'Saved', end: bagButton(false) }, body: body };
+    return { navbar: { title: 'Saved', start: menuButton(false), end: bagButton(false) }, body: body };
   },
 
   account: function () {
     var m = market();
     var orders = state.orders || [];
     return {
-      navbar: { title: 'Account', end: bagButton(false) },
+      navbar: { title: 'Account', start: menuButton(false), end: bagButton(false) },
       body:
         largeTitle('Account') +
         '<div class="group"><div class="row no-icon" style="align-items:flex-start;flex-direction:column;gap:0.5rem;padding:1rem">' +

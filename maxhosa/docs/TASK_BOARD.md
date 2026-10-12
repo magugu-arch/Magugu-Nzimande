@@ -18,6 +18,7 @@ See [COMPLETION_AUDIT.md](COMPLETION_AUDIT.md) for the breakdown and cost.
 
 - [x] Design tokens (provisional), motion system, components
 - [x] Five-tab navigation, persistent bag and search
+- [x] Menu button on every tab: pull-down menu anchored to the button, press-and-drag to choose (demo), appearance in place
 - [x] Home, Shop (search, filters, sort, persistence), Product detail
 - [x] Saved, restock requests (device-only)
 - [x] Bag, revalidation, idempotent checkout handoff with four outcome states
@@ -55,8 +56,8 @@ See [COMPLETION_AUDIT.md](COMPLETION_AUDIT.md) for the breakdown and cost.
 | `npm run assets:verify` | 24 verified + 1 recorded addition, unique, whole and in step |
 | `npm run typecheck` | Pass |
 | `npm run lint` | Pass |
-| `npm test` | 75 / 75 |
-| `npm run shots:web` (20 routes via react-native-web) | 20 / 20 clean |
-| `npm run demo:test` (offline demo, Chromium, network cut) | 114 / 114 |
+| `npm test` | 78 / 78 |
+| `npm run shots:web` (20 routes + the menu, via react-native-web) | 21 / 21 clean |
+| `npm run demo:test` (offline demo, Chromium, network cut) | 132 / 132 |
 | Root bb.q app: typecheck, lint, format, 891 tests | Pass, unchanged |
 | iOS / Android native builds | Not run in this environment |

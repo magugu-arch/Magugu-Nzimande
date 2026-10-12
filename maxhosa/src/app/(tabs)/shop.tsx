@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Chip } from '@/components/Chip';
 import { BagButton } from '@/components/HeaderActions';
+import { MenuButton } from '@/components/MenuButton';
 import { PressableScale } from '@/components/PressableScale';
 import { ProductCard } from '@/components/ProductCard';
 import { Screen } from '@/components/Screen';
@@ -46,6 +47,7 @@ export default function Shop() {
       largeTitle
       subtitle={`Sample catalogue · prices in ${market.currencyCode}`}
       inTabs
+      left={<MenuButton />}
       right={<BagButton />}
     >
       <View style={styles.searchWrap}>

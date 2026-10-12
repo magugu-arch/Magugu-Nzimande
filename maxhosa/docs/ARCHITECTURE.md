@@ -75,7 +75,7 @@ The mock providers model exactly the interface that service would expose.
 
 ## Testing
 
-- `npm test` — 75 Jest tests: money, catalogue filters (including price
+- `npm test` — 78 Jest tests (including the menu button): money, catalogue filters (including price
   bands), delivery rules, the four providers (idempotency, slot holds,
   preference cut-off, RSVP capacity, waitlist and invitations), event dates
   in SAST, calendar-file validity and octet folding, asset registry
@@ -84,7 +84,8 @@ The mock providers model exactly the interface that service would expose.
   unconfirmed status or ETA as fact.
 - `npm run assets:verify` — the 24-image gate, plus recorded additions.
 - `npm run export:web && npm run shots:web` — renders 20 routes through
-  react-native-web and fails on errors, blank screens or overflow.
+  react-native-web, opens the menu, and fails on errors, blank screens or
+  overflow.
 - `npm run demo:build && npm run demo:test` — the offline demo in Chromium
-  with the network cut (114 checks, including the events loop).
+  with the network cut (132 checks, including the events loop and the menu).
 - Not yet run: iOS simulator, Android emulator, real devices (see TASK_BOARD).

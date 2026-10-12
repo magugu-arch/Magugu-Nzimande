@@ -1,10 +1,10 @@
 # Offline demo — test results
 
-Automated run on 2026-10-11 against `deliverables/MAXHOSA_AFRICA_App_Offline_Demo.html`
-(1.79 MB), Chromium 141.0.7390.37, headless, **network disabled**
+Automated run on 2026-10-12 against `deliverables/MAXHOSA_AFRICA_App_Offline_Demo.html`
+(1.80 MB), Chromium 141.0.7390.37, headless, **network disabled**
 (every non-`file:`/`data:`/`blob:` request aborted and counted).
 
-**117 of 117 checks passed.**
+**132 of 132 checks passed.**
 
 Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots/`.
 
@@ -16,9 +16,9 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | no ES-module scripts | Pass |
 | Content-Security-Policy forbids network fetches | Pass |
 | demo label present in markup | Pass |
-| embedded metadata lists every image with its manifest hash (25 images, v0.1.0, built 2026-10-11) | Pass |
+| embedded metadata lists every image with its manifest hash (25 images, v0.1.0, built 2026-10-12) | Pass |
 | file describes itself in meta tags | Pass |
-| single file under 5 MB (1.79 MB) | Pass |
+| single file under 5 MB (1.80 MB) | Pass |
 
 ## phone 390×844
 
@@ -156,11 +156,31 @@ Re-run with `npm run demo:test`. Screenshots are written to `.offline-demo-shots
 | no console errors during the events journey | Pass |
 | no network requests during the events journey | Pass |
 
+## menu (phone)
+
+| Check | Result |
+|---|---|
+| Every tab has the menu button in the same place | Pass |
+| Opens on the press, not the release | Pass |
+| Stays open after a tap, hanging from its button | Pass |
+| Button reports it is expanded | Pass |
+| Items have menu roles | Pass |
+| Appearance switches in place, menu stays open | Pass |
+| A press outside closes it without tapping what is beneath | Pass |
+| Focus returns to the button | Pass |
+| Press-and-drag highlights and chooses an item | Pass |
+| The browser’s Back closes it | Pass |
+| Keyboard: Enter opens, arrows and End move, Escape closes (system → light → reset) | Pass |
+| Fits a 320px screen | Pass |
+| no console errors with the menu | Pass |
+| no network requests with the menu | Pass |
+
 ## preferences
 
 | Check | Result |
 |---|---|
 | Reduce Motion: screens still open (cross-fade, no slide) | Pass |
+| Reduce Motion: the menu cross-fades in at full size, no growth (scale(1)) | Pass |
 | Reduce Motion: no errors | Pass |
 | Dark mode follows the system setting (rgb(16, 14, 11)) | Pass |
 | Storage denied: the demo still runs from memory | Pass |

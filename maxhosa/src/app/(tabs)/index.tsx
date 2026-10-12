@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { AssetImage } from '@/components/AssetImage';
 import { Button } from '@/components/Button';
 import { BagButton, SearchButton } from '@/components/HeaderActions';
+import { MenuButton } from '@/components/MenuButton';
 import { Group, Row } from '@/components/List';
 import { PressableScale } from '@/components/PressableScale';
 import { ProductCard } from '@/components/ProductCard';
@@ -70,7 +71,12 @@ export default function Home() {
       }
       heroHeight={heroHeight}
       wordmark="MAXHOSA AFRICA"
-      left={<SearchButton onMedia />}
+      left={
+        <>
+          <MenuButton onMedia />
+          <SearchButton onMedia />
+        </>
+      }
       right={<BagButton onMedia />}
     >
       <LiveOrderCard />
