@@ -15,7 +15,7 @@ export default function NotFound() {
   return (
     <section className="relative isolate flex min-h-[80svh] items-center overflow-hidden bg-ink pt-[var(--header-h)]">
       <div className="absolute inset-0 -z-10 opacity-60">
-        <Photo id="MG-35" fill sizes="100vw" />
+        <Photo id="MG-35" fill priority sizes="100vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/30" />
       </div>
       <div className="container-site py-20">

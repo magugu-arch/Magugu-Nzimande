@@ -8,7 +8,7 @@ import { Eyebrow } from '../ui/Section';
  * The cinematic opener. Art direction: the wide stage image on desktop with
  * Myron on the right third and open space for the headline on the left; the
  * vertical portrait on phones with copy below his eyeline. One <picture>, so
- * only the right file downloads, and it is the only preloaded image.
+ * only the right file downloads, and it loads eagerly at high priority.
  */
 export function HomeHero() {
   const wide = getAsset('MG-02');

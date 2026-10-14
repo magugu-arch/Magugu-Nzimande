@@ -89,6 +89,16 @@ jobs:
         env:
           CI: 'true'
 
+      # The downloadable single-file copy of the site, opened from disk and exercised.
+      - name: Single-file export
+        run: npm run export:html && npm run export:check
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: myron-golden-site-html
+          path: myron-golden-site/dist/myron-golden-site.html
+          retention-days: 14
+
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

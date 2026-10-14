@@ -1,0 +1,318 @@
+/*
+ * Styles for the parts of the single-file export that the Next.js site
+ * renders with React: the mobile menu sheet, the photo viewer and the
+ * offline form notice. Colours mirror the site's tokens.
+ */
+:root {
+  --mg-ink: #111114;
+  --mg-charcoal: #1b1b1f;
+  --mg-gold: #cba45d;
+  --mg-gold-bright: #e2c48a;
+  --mg-ivory: #f8f5ee;
+}
+
+.mg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.mg-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(5 7 12 / 0.72);
+  opacity: 0;
+}
+
+/* ---------- Menu sheet ---------- */
+
+.mg-sheet {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(26rem, 100%);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  background: var(--mg-charcoal);
+  color: var(--mg-ivory);
+  box-shadow: -30px 0 80px -20px rgb(0 0 0 / 0.7);
+  transform: translate3d(100%, 0, 0);
+  will-change: transform;
+}
+
+.mg-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-h, 4rem);
+  padding: 0 var(--gutter, 1.25rem);
+}
+
+.mg-sheet-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.mg-icon-button {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 100ms ease-out,
+    background-color 200ms ease;
+}
+
+.mg-icon-button:hover {
+  background: rgb(248 245 238 / 0.1);
+}
+
+.mg-icon-button:active {
+  transform: scale(0.94);
+}
+
+.mg-sheet nav {
+  padding: 1rem var(--gutter, 1.25rem) 2.5rem;
+}
+
+.mg-sheet-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mg-sheet-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--mg-ivory);
+  text-decoration: none;
+}
+
+.mg-sheet-links a[aria-current='page'] {
+  color: var(--mg-gold-bright);
+}
+
+.mg-sheet-links a[aria-current='page']::after {
+  content: '';
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--mg-gold);
+}
+
+.mg-sheet-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3.25rem;
+  margin-top: 2rem;
+  border-radius: 999px;
+  background: var(--mg-gold);
+  color: var(--mg-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mg-sheet-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+  margin: 2.5rem 0 0;
+  padding: 2rem 0 0;
+  list-style: none;
+  border-top: 1px solid rgb(248 245 238 / 0.1);
+  font-size: 0.875rem;
+}
+
+.mg-sheet-secondary a {
+  color: rgb(248 245 238 / 0.75);
+  text-decoration: none;
+}
+
+.mg-sheet-secondary a:hover {
+  color: var(--mg-ivory);
+}
+
+/* ---------- Photo viewer ---------- */
+
+.mg-viewer {
+  color: var(--mg-ivory);
+}
+
+.mg-viewer .mg-scrim {
+  background: rgb(5 7 12 / 0.95);
+}
+
+.mg-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.mg-strip {
+  display: flex;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  will-change: transform;
+}
+
+.mg-strip li {
+  position: relative;
+  flex: 0 0 100%;
+  height: 100%;
+  padding: 5rem 1rem 7rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .mg-strip li {
+    padding: 5rem 4rem 7rem;
+  }
+}
+
+.mg-strip img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.mg-viewer-chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.mg-viewer-top,
+.mg-viewer-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  pointer-events: auto;
+}
+
+.mg-viewer-top {
+  top: 0;
+  align-items: center;
+}
+
+.mg-viewer-bottom {
+  bottom: 0;
+  align-items: flex-end;
+}
+
+@media (min-width: 640px) {
+  .mg-viewer-top,
+  .mg-viewer-bottom {
+    padding: 1.5rem;
+  }
+}
+
+.mg-viewer .mg-icon-button {
+  background: rgb(248 245 238 / 0.1);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.mg-viewer .mg-icon-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.mg-viewer-caption {
+  max-width: 36rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: rgb(248 245 238 / 0.82);
+}
+
+.mg-viewer-count {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgb(248 245 238 / 0.75);
+}
+
+.mg-viewer-nav {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+/* ---------- Offline notices ---------- */
+
+.mg-notice {
+  border-radius: 1.5rem;
+  padding: 1.75rem;
+  background: var(--mg-charcoal);
+  color: var(--mg-ivory);
+  box-shadow: inset 0 0 0 1px rgb(203 164 93 / 0.35);
+}
+
+.surface-ivory .mg-notice {
+  background: #fff;
+  color: var(--mg-ink);
+  box-shadow: inset 0 0 0 1px rgb(17 17 20 / 0.1);
+}
+
+.mg-notice h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.mg-notice p {
+  margin: 0.75rem 0 0;
+  max-width: 36rem;
+  opacity: 0.85;
+}
+
+.mg-invalid {
+  border-color: #e8a598 !important;
+}
+
+.surface-ivory .mg-invalid {
+  border-color: #b4412f !important;
+}
+
+/* ---------- Reduced motion and transparency ---------- */
+
+@media (prefers-reduced-transparency: reduce) {
+  .mg-viewer .mg-icon-button {
+    background: var(--mg-charcoal);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Headings receive focus on navigation so screen readers announce the new
+   page; that is not a keyboard target, so no focus ring. */
+main h1[tabindex='-1']:focus {
+  outline: none;
+}

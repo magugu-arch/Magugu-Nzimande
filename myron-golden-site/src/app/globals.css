@@ -312,18 +312,50 @@
   transition: transform 900ms var(--ease-out-quint);
 }
 
-/* ---------- Reveal on scroll: only once the observer is running ---------- */
+/*
+ * ---------- Reveal on scroll: driven by the scroll itself ----------
+ * A scroll-driven animation, not a script: progress is the element's own
+ * position in the viewport, so it moves exactly as fast as the reader
+ * scrolls, can be reversed mid-way, and never touches the DOM React owns
+ * (a script that marked elements as revealed raced hydration). Browsers
+ * without scroll timelines, and readers who prefer reduced motion, simply
+ * see everything.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+      animation-timing-function: var(--ease-out-quint);
+    }
 
-html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
-  opacity: 0;
-  transform: translateY(18px);
+    /* Siblings in a row arrive a beat apart. */
+    [data-reveal-group] > [data-reveal]:nth-child(2) {
+      animation-range: entry 6% entry 76%;
+    }
+
+    [data-reveal-group] > [data-reveal]:nth-child(3) {
+      animation-range: entry 12% entry 82%;
+    }
+
+    [data-reveal-group] > [data-reveal]:nth-child(n + 4) {
+      animation-range: entry 18% entry 88%;
+    }
+  }
 }
 
-html[data-reveal-ready] [data-reveal] {
-  transition:
-    opacity 700ms var(--ease-out-quint),
-    transform 900ms var(--ease-out-quint);
-  transition-delay: var(--reveal-delay, 0ms);
+/* `translate`, not `transform`, so it composes with hover lifts and parallax. */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
 /* ---------- Drawer items follow the sheet in, a beat behind ---------- */
@@ -436,15 +468,6 @@ html[data-reveal-ready] [data-reveal] {
 /* ---------- Preferences: motion, transparency, contrast ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
-    transform: none;
-  }
-
-  html[data-reveal-ready] [data-reveal] {
-    transition: opacity 240ms ease;
-    transition-delay: 0ms;
-  }
-
   .lift,
   .lift-image,
   .pressable {

@@ -5,7 +5,6 @@ import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { Consent } from '@/components/system/Consent';
-import { RevealObserver } from '@/components/system/RevealObserver';
 import { site } from '@/content/site';
 import { IS_PREVIEW, SITE_URL } from '@/lib/env';
 import { identityJsonLd } from '@/lib/seo';
@@ -62,7 +61,6 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         </div>
         <PreviewRibbon />
         <Consent />
-        <RevealObserver />
         <JsonLd data={identityJsonLd()} />
       </body>
     </html>

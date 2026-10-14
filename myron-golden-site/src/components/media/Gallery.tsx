@@ -72,6 +72,7 @@ export function Gallery({
   return (
     <>
       <ul
+        data-gallery
         className={cn('grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3', className)}
         data-reveal-group
       >

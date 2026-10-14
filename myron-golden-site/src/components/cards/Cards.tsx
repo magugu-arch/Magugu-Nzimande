@@ -42,7 +42,7 @@ export function ProgramCard({
           id={program.image}
           fill
           alt=""
-          preload={priority}
+          priority={priority}
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           className="lift-image"
         />
@@ -54,7 +54,11 @@ export function ProgramCard({
       <div className="flex flex-1 flex-col p-6 pt-5">
         <p className="type-eyebrow text-gold">{program.format ?? 'Program'}</p>
         <h3 className="mt-3 font-display text-[1.75rem] leading-[1.1] font-semibold tracking-[-0.01em]">
-          <Link href={`/programs/${program.slug}`} className="after:absolute after:inset-0">
+          <Link
+            href={`/programs/${program.slug}`}
+            prefetch
+            className="after:absolute after:inset-0"
+          >
             {program.title}
           </Link>
         </h3>
@@ -87,11 +91,11 @@ export function PlaceholderCoverLabel({ className }: { className?: string }) {
 export function BookCover({
   book,
   sizes,
-  preload,
+  priority,
 }: {
   book: Book;
   sizes: string;
-  preload?: boolean;
+  priority?: boolean;
 }) {
   return (
     <div className="relative aspect-[1145/1374] overflow-hidden rounded-2xl bg-midnight ring-1 ring-ivory/10">
@@ -101,7 +105,7 @@ export function BookCover({
             id={book.cover}
             fill
             sizes={sizes}
-            preload={preload}
+            priority={priority}
             quality={82}
             className="lift-image"
           />
@@ -119,15 +123,19 @@ export function BookCover({
   );
 }
 
-export function BookCard({ book }: { book: Book }) {
+export function BookCard({ book, priority = false }: { book: Book; priority?: boolean }) {
   return (
     <article className="lift group relative flex flex-col">
-      <BookCover book={book} sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 90vw" />
+      <BookCover
+        book={book}
+        priority={priority}
+        sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 90vw"
+      />
       <div className="mt-6 flex items-center gap-2">
         {book.status === 'draft' ? <Pill tone="light">Awaiting confirmation</Pill> : null}
       </div>
       <h3 className="mt-2 font-display text-[2rem] leading-[1.05] font-semibold tracking-[-0.012em]">
-        <Link href={`/books/${book.slug}`} className="hover:text-gold-deep">
+        <Link href={`/books/${book.slug}`} prefetch className="hover:text-gold-deep">
           {book.title}
         </Link>
       </h3>
@@ -208,7 +216,7 @@ export function ContentCard({
             row ? 'mt-2 text-[1.0625rem]' : 'mt-3',
           )}
         >
-          <Link href={contentHref(item)} className="after:absolute after:inset-0">
+          <Link href={contentHref(item)} prefetch className="after:absolute after:inset-0">
             {item.title}
           </Link>
         </h3>
@@ -247,7 +255,7 @@ export function EventCard({ event, past = false }: { event: SiteEvent; past?: bo
           {past ? <Pill tone="muted">Past</Pill> : null}
         </div>
         <h3 className="type-title mt-3 transition-colors group-hover:text-gold-bright">
-          <Link href={`/events/${event.slug}`} className="after:absolute after:inset-0">
+          <Link href={`/events/${event.slug}`} prefetch className="after:absolute after:inset-0">
             {event.title}
           </Link>
         </h3>

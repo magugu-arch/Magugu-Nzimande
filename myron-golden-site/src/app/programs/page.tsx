@@ -22,7 +22,7 @@ export default function ProgramsPage() {
   return (
     <>
       <PageHero
-        image="MG-28"
+        image="MG-09"
         eyebrow="Programs"
         title="Programs for every stage of the work"
         intro={

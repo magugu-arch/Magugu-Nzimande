@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { StatusPill } from '@/components/cards/Cards';
 import { PageHero } from '@/components/layout/PageHero';
-import { Photo } from '@/components/media/Photo';
 import { Accordion } from '@/components/ui/Accordion';
 import { OutboundLink } from '@/components/ui/OutboundLink';
 import { Eyebrow, Section } from '@/components/ui/Section';
@@ -12,6 +11,15 @@ import { official } from '@/content/site';
 import { getProgram, getPrograms, staticParams } from '@/lib/content';
 import { IS_PREVIEW } from '@/lib/env';
 import { pageMetadata } from '@/lib/seo';
+
+/**
+ * Detail pages render their content straight into the static HTML, so every
+ * reader and crawler gets the whole page without JavaScript (brief §10).
+ * Reading the slug outside <Suspense> means a navigation *could* wait on the
+ * server, so the segment opts out of instant validation; the cards that link
+ * here prefetch the full page, which keeps navigations instant in practice.
+ */
+export const instant = false;
 
 export function generateStaticParams() {
   return staticParams(getPrograms().map((p) => p.slug));
@@ -141,9 +149,10 @@ export default async function ProgramPage({ params }: PageProps<'/programs/[slug
 
           <aside className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
             <div className="overflow-hidden rounded-[1.75rem] bg-ink text-ivory ring-1 ring-ink/10">
-              <div className="relative aspect-[16/10]">
-                <Photo id={program.image} fill alt="" sizes="(min-width: 1024px) 35vw, 100vw" />
-              </div>
+              {/* The hero already carries this program's photograph; the card stays typographic. */}
+              <p className="px-7 pt-7 font-display text-[1.6rem] leading-tight font-semibold">
+                {program.title}
+              </p>
               <dl className="divide-y divide-ivory/10 px-7">
                 {facts.map((f) => (
                   <div key={f.label} className="flex flex-col gap-1 py-5">

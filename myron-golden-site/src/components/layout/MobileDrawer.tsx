@@ -76,7 +76,10 @@ export function MobileDrawer({
   const widthRef = useRef(420);
   const releaseVelocity = useRef(0);
   const gesture = useRef<Gesture | null>(null);
-  const suppressClick = useRef(false);
+  // A drag ends with a click on whatever is under the finger — swallow only
+  // that one, within a short window. A flag would linger when the browser
+  // sends no click after a pan, and eat the next real tap.
+  const suppressClickUntil = useRef(0);
 
   const x = useMotionValue(typeof window === 'undefined' ? 1000 : window.innerWidth);
   const fade = useMotionValue(reduced ? 0 : 1);
@@ -215,7 +218,7 @@ export function MobileDrawer({
       const g = gesture.current;
       gesture.current = null;
       if (!g || !g.dragging || e.pointerId !== g.pointerId) return;
-      suppressClick.current = true;
+      suppressClickUntil.current = e.timeStamp + 250;
       const velocity = velocityFromSamples(g.samples);
       if (shouldDismiss({ offset: x.get(), velocity, distance: widthRef.current })) {
         releaseVelocity.current = velocity;
@@ -256,8 +259,8 @@ export function MobileDrawer({
         onPointerUp={endGesture}
         onPointerCancel={endGesture}
         onClickCapture={(e) => {
-          if (suppressClick.current) {
-            suppressClick.current = false;
+          if (e.timeStamp < suppressClickUntil.current) {
+            suppressClickUntil.current = 0;
             e.preventDefault();
             e.stopPropagation();
           }

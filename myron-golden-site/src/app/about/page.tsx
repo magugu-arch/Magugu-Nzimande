@@ -38,8 +38,10 @@ export default function AboutPage() {
 
       <Section tone="ivory" labelledBy="story-title">
         <div className="container-site grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:gap-24">
-          <div className="relative aspect-[3/2] overflow-hidden rounded-[1.75rem] lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:aspect-[4/5] lg:self-start">
-            <Photo id="MG-05" fill sizes="(min-width: 1024px) 45vw, 100vw" quality={82} />
+          <div className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-[1.75rem] lg:aspect-[4/5]">
+              <Photo id="MG-05" fill sizes="(min-width: 1024px) 45vw, 100vw" quality={82} />
+            </div>
           </div>
           <div data-reveal>
             <Eyebrow tone="light" className="mb-5">

@@ -102,9 +102,10 @@ test.describe('events', () => {
   test('month view lists the month’s events', async ({ page }) => {
     await page.goto('/events');
     await page.getByRole('button', { name: 'Month view' }).click();
-    await expect(page.locator('#events-panel h3').first()).toHaveText('November 2026');
+    const panel = page.locator('#events-panel');
+    await expect(panel.getByRole('heading', { name: 'November 2026' })).toBeVisible();
     await page.getByRole('button', { name: 'Next month' }).click();
-    await expect(page.locator('#events-panel h3').first()).toHaveText('December 2026');
+    await expect(panel.getByRole('heading', { name: 'December 2026' })).toBeVisible();
   });
 
   test('a past event offers no registration', async ({ page }) => {
@@ -127,7 +128,8 @@ test.describe('learning library', () => {
     await expect(
       grid.getByRole('heading', { name: 'Stewardship and money decisions' }),
     ).toBeVisible();
-    await expect(grid.locator('h3')).toHaveCount(1);
+    // Filtering hides items rather than removing them, so count what is visible.
+    await expect(grid.getByRole('heading')).toHaveCount(1);
   });
 
   test('a video without an official id says so instead of pretending to play', async ({ page }) => {

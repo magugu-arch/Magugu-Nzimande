@@ -11,7 +11,11 @@ interface PhotoProps {
   className?: string;
   /** Override the register's alt — e.g. "" when an adjacent caption already describes it. */
   alt?: string;
-  preload?: boolean;
+  /**
+   * Above the fold — usually the page's largest paint. Loads eagerly at high
+   * fetch priority (Next 16 recommends this over `preload` in most cases).
+   */
+  priority?: boolean;
   quality?: 70 | 82;
   /** Override the focus point used for object-position. */
   focus?: string;
@@ -28,12 +32,17 @@ export function Photo({
   fill = false,
   className,
   alt,
-  preload = false,
+  priority = false,
   quality = 70,
   focus,
 }: PhotoProps) {
   const asset = getAsset(id);
-  const common = { src: assetSrc(asset), sizes, quality, preload };
+  const common = {
+    src: assetSrc(asset),
+    sizes,
+    quality,
+    ...(priority ? { loading: 'eager' as const, fetchPriority: 'high' as const } : {}),
+  };
   const altText = alt ?? asset.alt;
   if (fill) {
     return (

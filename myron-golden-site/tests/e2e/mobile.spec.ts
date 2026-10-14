@@ -53,6 +53,15 @@ test.describe('mobile menu', () => {
     }
     await page.mouse.up();
     await expect(menu).toHaveCount(0);
+
+    // Regression: a drag that the browser ends without a click must not
+    // leave the next real tap swallowed.
+    await page.getByRole('button', { name: 'Open menu' }).click();
+    await page
+      .getByRole('dialog', { name: 'Site menu' })
+      .getByRole('link', { name: 'Books' })
+      .click();
+    await expect(page).toHaveURL(/\/books$/);
   });
 
   test('pages never scroll sideways', async ({ page }) => {

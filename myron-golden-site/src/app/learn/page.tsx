@@ -51,7 +51,7 @@ export default function LearnPage() {
                   id={featured.image}
                   fill
                   alt=""
-                  preload
+                  priority
                   sizes="(min-width: 1024px) 60vw, 100vw"
                 />
               }

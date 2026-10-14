@@ -25,6 +25,8 @@ export function VideoFacade({
 
   return (
     <div
+      data-video-facade
+      data-youtube-id={youtubeId ?? undefined}
       className={cn(
         'relative aspect-video overflow-hidden rounded-[1.5rem] bg-charcoal ring-1 ring-ivory/10',
         className,

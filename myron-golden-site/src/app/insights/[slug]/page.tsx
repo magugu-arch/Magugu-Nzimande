@@ -9,6 +9,15 @@ const findArticle = (slug: string) => {
   return item && item.type === 'article' ? item : undefined;
 };
 
+/**
+ * Detail pages render their content straight into the static HTML, so every
+ * reader and crawler gets the whole page without JavaScript (brief §10).
+ * Reading the slug outside <Suspense> means a navigation *could* wait on the
+ * server, so the segment opts out of instant validation; the cards that link
+ * here prefetch the full page, which keeps navigations instant in practice.
+ */
+export const instant = false;
+
 export function generateStaticParams() {
   return staticParams(getArticles().map((a) => a.slug));
 }

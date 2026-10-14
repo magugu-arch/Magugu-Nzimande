@@ -10,6 +10,15 @@ import { getBook, getBooks, getContent, staticParams } from '@/lib/content';
 import { IS_PREVIEW } from '@/lib/env';
 import { bookJsonLd, pageMetadata } from '@/lib/seo';
 
+/**
+ * Detail pages render their content straight into the static HTML, so every
+ * reader and crawler gets the whole page without JavaScript (brief §10).
+ * Reading the slug outside <Suspense> means a navigation *could* wait on the
+ * server, so the segment opts out of instant validation; the cards that link
+ * here prefetch the full page, which keeps navigations instant in practice.
+ */
+export const instant = false;
+
 export function generateStaticParams() {
   return staticParams(getBooks().map((b) => b.slug));
 }
@@ -54,7 +63,7 @@ export default async function BookPage({ params }: PageProps<'/books/[slug]'>) {
           />
           <div className="grid items-start gap-12 md:grid-cols-[0.9fr_1.1fr] lg:gap-20">
             <div className="mx-auto w-full max-w-md">
-              <BookCover book={book} preload sizes="(min-width: 768px) 40vw, 90vw" />
+              <BookCover book={book} priority sizes="(min-width: 768px) 40vw, 90vw" />
             </div>
             <div>
               <Eyebrow className="mb-5">Book</Eyebrow>

@@ -32,13 +32,16 @@ export function LibraryBrowser({
   );
   const terms = normalise(deferredQuery).split(' ').filter(Boolean);
 
-  const filtered = items.filter((item) => {
+  const haystack = (item: ContentItem) =>
+    normalise(`${item.title} ${item.excerpt} ${topics[item.topic].label}`);
+  const matches = (item: ContentItem) => {
     if (topic !== 'all' && item.topic !== topic) return false;
     if (type !== 'all' && item.type !== type) return false;
     if (terms.length === 0) return true;
-    const hay = normalise(`${item.title} ${item.excerpt} ${topics[item.topic].label}`);
+    const hay = haystack(item);
     return terms.every((t) => hay.includes(t));
-  });
+  };
+  const filtered = items.filter(matches);
 
   const chip = (active: boolean) =>
     cn(
@@ -49,7 +52,7 @@ export function LibraryBrowser({
     );
 
   return (
-    <div className={tone === 'light' ? 'text-ink' : undefined}>
+    <div data-library-browser className={tone === 'light' ? 'text-ink' : undefined}>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative w-full lg:max-w-sm">
           <label htmlFor="library-search" className="sr-only">
@@ -75,6 +78,7 @@ export function LibraryBrowser({
                 key={t}
                 type="button"
                 aria-pressed={type === t}
+                data-filter-type={t}
                 onClick={() => setType(t)}
                 className={chip(type === t)}
               >
@@ -93,6 +97,7 @@ export function LibraryBrowser({
         <button
           type="button"
           aria-pressed={topic === 'all'}
+          data-filter-topic="all"
           onClick={() => setTopic('all')}
           className={chip(topic === 'all')}
         >
@@ -103,6 +108,7 @@ export function LibraryBrowser({
             key={t}
             type="button"
             aria-pressed={topic === t}
+            data-filter-topic={t}
             onClick={() => setTopic(t)}
             className={chip(topic === t)}
           >
@@ -116,7 +122,10 @@ export function LibraryBrowser({
       </p>
 
       {filtered.length === 0 ? (
-        <div className="mt-10 rounded-[1.5rem] bg-charcoal/70 p-10 text-center ring-1 ring-ivory/10">
+        <div
+          data-library-empty
+          className="mt-10 rounded-[1.5rem] bg-charcoal/70 p-10 text-center ring-1 ring-ivory/10"
+        >
           <p className="font-display text-[1.75rem] font-semibold">Nothing matches that yet</p>
           <p className="mt-2 text-ivory/70">Try a different word, or clear the filters.</p>
           <button
@@ -131,15 +140,25 @@ export function LibraryBrowser({
             Clear search and filters
           </button>
         </div>
-      ) : (
-        <ul className="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((item) => (
-            <li key={item.id}>
-              <ContentCard item={item} />
-            </li>
-          ))}
-        </ul>
-      )}
+      ) : null}
+
+      {/* Every item stays in the list; filters hide rather than remove. */}
+      <ul
+        className="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3"
+        hidden={filtered.length === 0}
+      >
+        {items.map((item) => (
+          <li
+            key={item.id}
+            hidden={!matches(item)}
+            data-topic={item.topic}
+            data-type={item.type}
+            data-text={haystack(item)}
+          >
+            <ContentCard item={item} />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

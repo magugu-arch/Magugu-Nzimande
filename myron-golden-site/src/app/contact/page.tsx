@@ -1,13 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Suspense } from 'react';
 import { ContactForm } from '@/components/forms/ContactForm';
 import { PageHero } from '@/components/layout/PageHero';
 import { OutboundLink } from '@/components/ui/OutboundLink';
 import { Eyebrow, Section } from '@/components/ui/Section';
 import { ArrowRight } from '@/components/ui/icons';
 import { contactRoutes, official } from '@/content/site';
-import { contactCategories } from '@/lib/validation';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
@@ -23,17 +21,7 @@ const routeLinks: Record<string, { label: string; href: string } | undefined> = 
   press: { label: 'Press kit', href: '/press' },
 };
 
-/** Pre-selects the topic from ?topic=…, so links elsewhere land on the right form. */
-async function FormWithTopic({ searchParams }: Pick<PageProps<'/contact'>, 'searchParams'>) {
-  const { topic } = await searchParams;
-  const value =
-    typeof topic === 'string' && (contactCategories as readonly string[]).includes(topic)
-      ? topic
-      : undefined;
-  return <ContactForm defaultCategory={value} />;
-}
-
-export default function ContactPage(props: PageProps<'/contact'>) {
+export default function ContactPage() {
   return (
     <>
       <PageHero
@@ -111,9 +99,7 @@ export default function ContactPage(props: PageProps<'/contact'>) {
             </p>
           </div>
           <div className="rounded-[1.75rem] bg-white p-6 ring-1 ring-ink/[0.08] md:p-10">
-            <Suspense fallback={<ContactForm />}>
-              <FormWithTopic searchParams={props.searchParams} />
-            </Suspense>
+            <ContactForm />
           </div>
         </div>
       </Section>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import { type FormState, submitContact } from '@/app/actions';
 import { contactRoutes } from '@/content/site';
+import { contactCategories } from '@/lib/validation';
 import { buttonClasses } from '../ui/Button';
 import { CheckboxField, Honeypot, SelectField, TextArea, TextField } from './Field';
 import { FormErrors, SuccessPanel, formHelpers, useFormAnalytics } from './FormShell';
@@ -19,8 +20,29 @@ const labels: Record<string, string> = {
 
 const initial: FormState = { status: 'idle' };
 
-export function ContactForm({ defaultCategory }: { defaultCategory?: string }) {
+/**
+ * The page is fully static: one form, in the HTML from the start. `?topic=`
+ * (from "Contact the press team" and similar links) is applied in the
+ * browser after mount, and only if the visitor has not already chosen —
+ * reading it on the server meant streaming a second copy of the form that
+ * replaced the first, losing anything typed in the meantime.
+ */
+export function ContactForm() {
   const [state, action, pending] = useActionState(submitContact, initial);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    const topic = new URLSearchParams(window.location.search).get('topic');
+    const select = formRef.current?.elements.namedItem('category');
+    if (
+      topic &&
+      (contactCategories as readonly string[]).includes(topic) &&
+      select instanceof HTMLSelectElement &&
+      select.value === ''
+    ) {
+      select.value = topic;
+    }
+  }, []);
   const { onFocusCapture } = useFormAnalytics('contact', state);
   const f = formHelpers(state);
 
@@ -36,7 +58,13 @@ export function ContactForm({ defaultCategory }: { defaultCategory?: string }) {
   }
 
   return (
-    <form action={action} onFocusCapture={onFocusCapture} noValidate className="relative space-y-6">
+    <form
+      ref={formRef}
+      action={action}
+      onFocusCapture={onFocusCapture}
+      noValidate
+      className="relative space-y-6"
+    >
       <FormErrors state={state} labels={labels} tone="light" />
       <Honeypot />
       <input type="hidden" name="sourcePage" value="/contact" />
@@ -46,7 +74,7 @@ export function ContactForm({ defaultCategory }: { defaultCategory?: string }) {
         label={labels.category!}
         required
         options={contactRoutes.map((r) => ({ value: r.id, label: r.title }))}
-        defaultValue={f.value('category') ?? defaultCategory}
+        defaultValue={f.value('category')}
         error={f.error('category')}
       />
       <div className="grid gap-6 md:grid-cols-2">

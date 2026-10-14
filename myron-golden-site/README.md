@@ -32,14 +32,16 @@ cp .env.example .env.local   # optional — the defaults run a preview
 npm run dev                  # http://localhost:3000
 ```
 
-| Script                | Does                                                                     |
-| --------------------- | ------------------------------------------------------------------------ |
-| `npm run dev`         | Development server                                                       |
-| `npm run build`       | Production build                                                         |
-| `npm start`           | Serve the production build                                               |
-| `npm run verify`      | Typecheck, lint, formatting and unit tests — run before every push       |
-| `npm run test:e2e`    | Playwright against a production build (`npm run build` first)            |
-| `npm run screenshots` | Every route at 360–1920px into `.screenshots/`; fails on sideways scroll |
+| Script                 | Does                                                                       |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`          | Development server                                                         |
+| `npm run build`        | Production build                                                           |
+| `npm start`            | Serve the production build                                                 |
+| `npm run verify`       | Typecheck, lint, formatting and unit tests — run before every push         |
+| `npm run test:e2e`     | Playwright against a production build (`npm run build` first)              |
+| `npm run screenshots`  | Every route at 360–1920px into `.screenshots/`; fails on sideways scroll   |
+| `npm run export:html`  | The whole site as one downloadable HTML file (needs `npm run build` first) |
+| `npm run export:check` | Opens that file from disk and exercises it; fails on any error             |
 
 ## Preview and production modes
 
@@ -106,10 +108,28 @@ function (`lib/events-server.ts`, `cacheLife('hours')`), so an event leaves
 "upcoming" within the hour after it ends. Search and the contact topic read
 the URL and stream behind `<Suspense>`.
 
+**Detail pages and instant navigation.** Program, book, event and library
+pages render their content straight into the static HTML, so readers and
+crawlers without JavaScript get the whole page (brief §10). Reading the slug
+outside `<Suspense>` would make Next.js flag the route as possibly blocking a
+client navigation; wrapping it in `<Suspense>` instead turns the static HTML
+into a skeleton. So these segments set `export const instant = false`, and
+every card linking to them uses `<Link prefetch>`, which prefetches the whole
+page and keeps navigations instant in production.
+
+**Reveal on scroll** is a CSS scroll-driven animation (`animation-timeline:
+view()`), not a script. A script that marks elements as revealed races React
+hydration and causes mismatches; the CSS version is tied directly to scroll
+position and falls back to plain, visible content where unsupported.
+
 **Proxy.** With Partial Prerendering the static shell is sent before a page
 can call `notFound()`, which would make unknown slugs a "soft 404" (right
 content, 200 status). `src/proxy.ts` checks slugs against the same data layer
 first, so they get a real 404.
+
+**Workspace root.** `next.config.ts` pins `turbopack.root` and
+`outputFileTracingRoot` to this folder; otherwise Next.js picks the Expo app's
+lockfile one level up as the root.
 
 ## Images
 
@@ -161,6 +181,8 @@ visible focus rings on both surfaces; real labels with hints and errors
 wired through `aria-describedby`; an error summary that takes focus;
 focus-trapped dialogs that make the page `inert` and restore focus;
 `aria-live` counts for filters; video only on request, with captions on.
+`tests/e2e/a11y.spec.ts` runs axe (WCAG 2.2 A/AA plus best practices) on
+every route and fails on any violation.
 
 ## Forms and delivery
 
@@ -174,6 +196,52 @@ not a booking. Logs carry field names, never personal data.
 The rate limiter is in memory, so it is per instance. On serverless or
 multi-instance hosting, back it with a shared store (Upstash Redis or the
 host's limiter).
+
+## Single-file export
+
+`npm run export:html` writes `dist/myron-golden-site.html`: every page of the
+site in one self-contained file (about 3.5 MB) that opens from disk with no
+server. It is built from the real pages, not a mock-up:
+
+- The production build is started and every page is captured with JavaScript
+  off, so the file holds exactly the server-rendered HTML. Each page becomes a
+  `<template>`; a small hash router (`#/about`, `#/programs/…`) shows one at a
+  time. Internal links, anchors and `?topic=` links are rewritten to match.
+- Styles and fonts are inlined. The images are embedded once each as WebP
+  (1280px wide, 1600px for the wide heroes).
+- `scripts/standalone/runtime.js` re-creates the interactions without React:
+  the menu sheet and photo viewer (same spring physics, flick projection and
+  rubber-banding as the site), event and library filters, search over an
+  embedded index, the video facade, copy buttons and the hero parallax. The
+  month calendar view is omitted; the list carries every event.
+- Forms cannot send from a file. They validate, then say plainly that nothing
+  was sent.
+- **Metadata.** The `<head>` carries the title, description, canonical URL,
+  Open Graph and Twitter cards, robots (`noindex` for a preview build), theme
+  colour, icon, generator, date and commit, plus Person, Organization,
+  WebSite and Book structured data. `#mg-site-metadata` embeds the review
+  trail as JSON: every record's source, review date and outstanding
+  confirmations; the asset register with alt text, rights and approval
+  status; social accounts; the page list; and the search index. The same
+  JSON is served at `/site-metadata.json` in preview.
+
+Pass `--site-url https://the-final-domain` to set the canonical and social
+image URLs (default: `NEXT_PUBLIC_SITE_URL`, then `https://myrongolden.com`).
+CI builds the file, checks it and keeps it as a workflow artifact.
+
+## Known issues
+
+- `npm audit` reports five high-severity advisories, all one chain in
+  development tooling: `eslint-config-next` → `@next/eslint-plugin-next` →
+  `fast-glob` → `micromatch` → `braces` (stack exhaustion on deeply nested
+  glob patterns). No patched `braces` exists, and npm's suggested fix is a
+  downgrade to Next 14's lint config. It runs only at lint time on this repo's
+  own patterns; production dependencies have no advisories.
+- Automated contrast checks run on page load without scrolling can flag a few
+  elements near the bottom of the viewport: they are mid-way through the
+  scroll-driven reveal, so partly transparent. Scrolled into view they pass,
+  and with reduced motion they never fade. `tests/e2e/a11y.spec.ts` audits
+  with reduced motion for that reason.
 
 ## Ready vs requires owner credentials or approval
 

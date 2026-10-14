@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -34,7 +35,15 @@ const securityHeaders = [
     : [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' }]),
 ];
 
+/**
+ * This project lives inside the Expo app's repository, which has its own
+ * lockfile one level up. Without an explicit root, Next.js picks the parent
+ * as the workspace root — watching and tracing the whole app repository.
+ */
+const projectRoot = path.resolve(__dirname);
+
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: projectRoot,
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
@@ -44,6 +53,7 @@ const nextConfig: NextConfig = {
     qualities: [70, 82],
   },
   turbopack: {
+    root: projectRoot,
     rules: {
       '*.css': {
         loaders: ['@tailwindcss/turbopack'],

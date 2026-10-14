@@ -50,3 +50,6 @@ next-env.d.ts
 
 # viewport screenshots from scripts/screenshots.mjs
 /.screenshots/
+
+# single-file export (npm run export:html)
+/dist/

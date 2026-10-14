@@ -49,6 +49,8 @@ export function ParallaxLayer({
   return (
     <div ref={frame} className={cn('absolute inset-0 overflow-hidden', className)}>
       <motion.div
+        data-parallax={distance}
+        data-parallax-scale={scaleFrom}
         className="absolute inset-0 will-change-transform"
         style={allowed ? { y, scale } : undefined}
       >

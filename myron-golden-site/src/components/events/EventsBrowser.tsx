@@ -42,12 +42,15 @@ export function EventsBrowser({ upcoming, past }: { upcoming: SiteEvent[]; past:
   }, [source, tab]);
   const types = useMemo(() => Array.from(new Set(source.map((e) => e.type))), [source]);
 
-  const filtered = source.filter(
-    (e) =>
-      (format === 'all' || e.format === format) &&
-      (type === 'all' || e.type === type) &&
-      (month === 'all' || monthKey(e) === month),
-  );
+  const matches = (e: SiteEvent) =>
+    (format === 'all' || e.format === format) &&
+    (type === 'all' || e.type === type) &&
+    (month === 'all' || monthKey(e) === month);
+  const filtered = source.filter(matches);
+  const all = [
+    ...upcoming.map((e) => ({ e, when: 'upcoming' as const })),
+    ...past.map((e) => ({ e, when: 'past' as const })),
+  ];
 
   const [calendarMonth, setCalendarMonth] = useState<string | null>(null);
   const shownMonth = calendarMonth ?? (month !== 'all' ? month : months[0]) ?? null;
@@ -62,7 +65,7 @@ export function EventsBrowser({ upcoming, past }: { upcoming: SiteEvent[]; past:
   const filtersActive = format !== 'all' || type !== 'all' || month !== 'all';
 
   return (
-    <div>
+    <div data-events-browser>
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div
           role="tablist"
@@ -75,6 +78,7 @@ export function EventsBrowser({ upcoming, past }: { upcoming: SiteEvent[]; past:
               type="button"
               role="tab"
               id={`tab-${t}`}
+              data-tab={t}
               aria-selected={tab === t}
               aria-controls="events-panel"
               onClick={() => switchTab(t)}
@@ -124,6 +128,7 @@ export function EventsBrowser({ upcoming, past }: { upcoming: SiteEvent[]; past:
             className="inline-flex rounded-full bg-charcoal p-1 ring-1 ring-ivory/10"
             role="group"
             aria-label="View"
+            data-view-toggle
           >
             {(
               [
@@ -164,15 +169,28 @@ export function EventsBrowser({ upcoming, past }: { upcoming: SiteEvent[]; past:
               setMonth('all');
             }}
           />
-        ) : view === 'list' ? (
-          <ul className="space-y-4">
-            {filtered.map((e) => (
-              <li key={e.id}>
-                <EventCard event={e} past={tab === 'past'} />
-              </li>
-            ))}
-          </ul>
-        ) : shownMonth ? (
+        ) : null}
+
+        {/* Every event stays in the list; filters hide rather than remove, so the
+            full set is in the HTML for every reader, crawler and offline copy. */}
+        <ul className="flex flex-col gap-4" hidden={view !== 'list' || filtered.length === 0}>
+          {all.map(({ e, when }) => (
+            <li
+              key={e.id}
+              hidden={when !== tab || !matches(e)}
+              data-when={when}
+              data-format={e.format}
+              data-type={e.type}
+              data-type-label={eventTypeLabels[e.type]}
+              data-month={monthKey(e)}
+              data-month-label={formatMonthKey(monthKey(e))}
+            >
+              <EventCard event={e} past={when === 'past'} />
+            </li>
+          ))}
+        </ul>
+
+        {view === 'month' && filtered.length > 0 && shownMonth ? (
           <MonthView
             monthKey={shownMonth}
             events={filtered}

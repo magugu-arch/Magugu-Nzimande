@@ -13,6 +13,15 @@ import { eventFormatLabels, eventTypeLabels, formatEventDate, formatEventTime } 
 import { getEventBuckets } from '@/lib/events-server';
 import { pageMetadata } from '@/lib/seo';
 
+/**
+ * Detail pages render their content straight into the static HTML, so every
+ * reader and crawler gets the whole page without JavaScript (brief §10).
+ * Reading the slug outside <Suspense> means a navigation *could* wait on the
+ * server, so the segment opts out of instant validation; the cards that link
+ * here prefetch the full page, which keeps navigations instant in practice.
+ */
+export const instant = false;
+
 export function generateStaticParams() {
   return staticParams(getEvents().map((e) => e.slug));
 }

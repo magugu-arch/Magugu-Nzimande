@@ -55,7 +55,7 @@ export function PageHero({
     return (
       <section className="relative isolate flex min-h-[34rem] items-end overflow-hidden bg-ink pt-[calc(var(--header-h)+4rem)] pb-16 md:min-h-[40rem] md:pb-24">
         <div className="absolute inset-0 -z-10">
-          <Photo id={image} fill preload sizes="100vw" alt="" focus={focus} />
+          <Photo id={image} fill priority sizes="100vw" alt="" focus={focus} />
           {/* Left-weighted shade on wide screens, bottom-weighted on narrow ones. */}
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/20 md:bg-gradient-to-r md:from-ink md:via-ink/75 md:to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent" />
@@ -79,7 +79,7 @@ export function PageHero({
             <Photo
               id={image}
               fill
-              preload
+              priority
               sizes="(min-width: 768px) 45vw, 100vw"
               quality={82}
               focus={focus}

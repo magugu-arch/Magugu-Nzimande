@@ -37,9 +37,9 @@ export default function BooksPage() {
             All books
           </h2>
           <ul className="grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3" data-reveal-group>
-            {books.map((b) => (
+            {books.map((b, i) => (
               <li key={b.id} data-reveal>
-                <BookCard book={b} />
+                <BookCard book={b} priority={i === 0} />
               </li>
             ))}
           </ul>

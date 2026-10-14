@@ -52,14 +52,14 @@ export function ContentDetail({ item, crumbs }: { item: ContentItem; crumbs: Cru
                     id={item.image}
                     fill
                     alt=""
-                    preload
+                    priority
                     sizes="(min-width: 1024px) 64rem, 100vw"
                   />
                 }
               />
             ) : (
               <div className="relative aspect-[16/8] overflow-hidden rounded-[1.5rem]">
-                <Photo id={item.image} fill preload sizes="(min-width: 1024px) 64rem, 100vw" />
+                <Photo id={item.image} fill priority sizes="(min-width: 1024px) 64rem, 100vw" />
               </div>
             )}
           </div>
