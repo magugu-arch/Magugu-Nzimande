@@ -111,6 +111,13 @@ export const PlusIcon = (p: IconProps) => (
   </Icon>
 );
 
+export const BagIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5.5 8.5h13l-1 11.5h-11Z" />
+    <path d="M9 10.5V7a3 3 0 0 1 6 0v3.5" />
+  </Icon>
+);
+
 export const MinusIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M5 12h14" />

@@ -11,6 +11,8 @@ export type AnalyticsEvent =
   | 'book_outbound_click'
   | 'program_outbound_click'
   | 'event_registration_start'
+  | 'add_to_cart'
+  | 'begin_checkout'
   | 'checkout_complete';
 
 export const CONSENT_KEY = 'mg-consent-v1';

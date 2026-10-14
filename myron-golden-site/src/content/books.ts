@@ -6,6 +6,10 @@ import type { Book } from './types';
  * official homepage. Synopses, formats, publishers and ISBNs are not, so they
  * are kept minimal or left empty rather than guessed. The covers shown are
  * generated mock-ups and are labelled as placeholders wherever they appear.
+ *
+ * No price is confirmed, so `priceCents` is null for every book. The two
+ * active books carry a DEMO price, used only in preview and labelled there,
+ * so the cart and checkout can be reviewed end to end.
  */
 export const books: Book[] = [
   {
@@ -25,6 +29,7 @@ export const books: Book[] = [
     publisher: null,
     isbn: null,
     buy: { label: 'Get the book', href: official.bossMoves, external: true },
+    shop: { priceCents: null, demoPriceCents: 2000, maxPerOrder: 10 },
     cover: 'MG-11',
     status: 'active',
     order: 1,
@@ -35,6 +40,7 @@ export const books: Book[] = [
       'Approved synopsis',
       'Formats, publisher and ISBN',
       'Current purchase destination and checkout details',
+      'Price per copy for selling on this site (the cart shows a demo price until then)',
     ],
   },
   {
@@ -51,6 +57,7 @@ export const books: Book[] = [
     publisher: null,
     isbn: null,
     buy: { label: 'Get the book', href: official.trashManCashMan, external: true },
+    shop: { priceCents: null, demoPriceCents: 2000, maxPerOrder: 10 },
     cover: 'MG-19',
     status: 'active',
     order: 2,
@@ -61,6 +68,7 @@ export const books: Book[] = [
       'Approved synopsis, reader and topics',
       'Formats, publisher and ISBN',
       'Current purchase destination and checkout details',
+      'Price per copy for selling on this site (the cart shows a demo price until then)',
     ],
   },
   {
@@ -77,6 +85,7 @@ export const books: Book[] = [
     publisher: null,
     isbn: null,
     buy: null,
+    shop: null,
     cover: null,
     status: 'draft',
     order: 3,

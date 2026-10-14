@@ -14,7 +14,7 @@ import { socialAccounts } from '@/content/site';
 import { demoEnquiries, testimonials } from '@/content/testimonials';
 import { formatUsd } from '@/lib/booking';
 import { IS_PREVIEW } from '@/lib/env';
-import { paymentsBlockText, paymentsState } from '@/lib/payments';
+import { paymentsBlockText, paymentsState, shippingSetup } from '@/lib/payments';
 
 export const metadata: Metadata = {
   title: 'Content review',
@@ -133,6 +133,27 @@ export default function ReviewPage() {
               })}
           />
           <Table
+            title="Book shop"
+            head={['Book', 'On sale here', 'Price per copy', 'Copies per order', 'Before launch']}
+            rows={books.map((b) => [
+              <Link key="t" href={`/books/${b.slug}`} className="font-semibold underline">
+                {b.title}
+              </Link>,
+              b.shop ? (b.status === 'active' ? 'Yes' : 'Not while the book is a draft') : 'No',
+              b.shop
+                ? b.shop.priceCents !== null
+                  ? formatUsd(b.shop.priceCents)
+                  : b.shop.demoPriceCents
+                    ? `${formatUsd(b.shop.demoPriceCents)} — demo value, preview only`
+                    : 'To be confirmed'
+                : '—',
+              b.shop ? String(b.shop.maxPerOrder) : '—',
+              b.shop && b.shop.priceCents === null
+                ? 'Confirm the price per copy; until then production keeps the official link only'
+                : '—',
+            ])}
+          />
+          <Table
             title="Payments"
             head={['Item', 'State', 'Notes']}
             rows={[
@@ -154,6 +175,11 @@ export default function ReviewPage() {
                   ? 'Set'
                   : 'Not set — preview logs instead',
                 'Where requests, registrations and paid bookings are sent (BOOKING_WEBHOOK_URL).',
+              ],
+              [
+                'Book shipping',
+                shippingSetup().rateId ? 'Shipping rate set' : 'Not set',
+                'STRIPE_SHIPPING_RATE_ID: a shipping rate made in the Stripe dashboard. Production book checkout needs it.',
               ],
               [
                 'Live payments',

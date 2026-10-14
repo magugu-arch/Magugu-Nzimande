@@ -1,6 +1,5 @@
 'use client';
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import Link from 'next/link';
 import { type ReactNode, useActionState, useRef, useState } from 'react';
 import { type BookingState, submitBooking } from '@/app/bookings/actions';
@@ -8,10 +7,11 @@ import type { FormState } from '@/app/actions';
 import { track } from '@/lib/analytics';
 import { bookingMode, formatUsd, orderTotal, seatsLabel } from '@/lib/booking';
 import { cn } from '@/lib/cn';
-import { clamp, springs } from '@/lib/motion';
+import { clamp } from '@/lib/motion';
 import { CheckboxField, Honeypot, TextArea, TextField } from '../forms/Field';
 import { FormErrors, SuccessPanel, formHelpers } from '../forms/FormShell';
 import { buttonClasses } from '../ui/Button';
+import { Rolling } from '../ui/Rolling';
 import { Pill } from '../ui/Section';
 import {
   AlertIcon,
@@ -481,37 +481,5 @@ function StepButton({
     >
       {children}
     </button>
-  );
-}
-
-/**
- * The total rolls in the direction of the change — up when seats are added,
- * down when removed — on a critically damped spring, so rapid taps retarget
- * smoothly instead of queueing. Reduced motion keeps only the cross-fade.
- */
-function Rolling({ value, direction }: { value: string; direction: 1 | -1 }) {
-  const reduce = useReducedMotion();
-  const offset = reduce ? 0 : 0.6;
-  return (
-    <span aria-hidden="true" className="relative inline-flex overflow-hidden tabular-nums">
-      <AnimatePresence mode="popLayout" initial={false} custom={direction}>
-        <motion.span
-          key={value}
-          custom={direction}
-          variants={{
-            enter: (d: number) => ({ y: `${d * offset}em`, opacity: 0 }),
-            center: { y: 0, opacity: 1 },
-            exit: (d: number) => ({ y: `${-d * offset}em`, opacity: 0 }),
-          }}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={springs.settle}
-          className="inline-block"
-        >
-          {value}
-        </motion.span>
-      </AnimatePresence>
-    </span>
   );
 }

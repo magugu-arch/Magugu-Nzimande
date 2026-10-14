@@ -9,7 +9,13 @@ import { ButtonLink } from '@/components/ui/Button';
 import { Eyebrow, GoldRule, Pill, Section, SectionHeading } from '@/components/ui/Section';
 import { ArrowRight } from '@/components/ui/icons';
 import { credentials } from '@/content/bio';
-import { getBooks, getContent, getFeaturedPrograms, getTestimonials } from '@/lib/content';
+import {
+  getBooks,
+  getContent,
+  getFeaturedPrograms,
+  getShopCatalog,
+  getTestimonials,
+} from '@/lib/content';
 import { site } from '@/content/site';
 import { contentHref } from '@/lib/links';
 import { getEventBuckets } from '@/lib/events-server';
@@ -61,6 +67,7 @@ const pathways = [
 export default async function HomePage() {
   const programs = getFeaturedPrograms();
   const books = getBooks().filter((b) => b.status === 'active');
+  const shop = getShopCatalog();
   const library = getContent();
   const featuredVideo = library.find((c) => c.type === 'video');
   const moreLearning = library.filter((c) => c.id !== featuredVideo?.id).slice(0, 3);
@@ -167,7 +174,11 @@ export default async function HomePage() {
               tone="light"
               eyebrow="Books"
               title="Read the thinking behind the teaching"
-              intro="Each book links to its official purchase page."
+              intro={
+                shop.length > 0
+                  ? 'Buy here, or on each book’s official page.'
+                  : 'Each book links to its official purchase page.'
+              }
             />
             <ButtonLink href="/books" variant="ink" className="mt-8" arrow>
               All books
@@ -176,7 +187,7 @@ export default async function HomePage() {
           <ul className="grid gap-12 sm:grid-cols-2" data-reveal-group>
             {books.map((b) => (
               <li key={b.id} data-reveal>
-                <BookCard book={b} />
+                <BookCard book={b} shopItem={shop.find((item) => item.slug === b.slug)} />
               </li>
             ))}
           </ul>

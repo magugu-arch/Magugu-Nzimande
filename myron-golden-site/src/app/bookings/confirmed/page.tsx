@@ -7,13 +7,7 @@ import { CheckIcon, ClockIcon } from '@/components/ui/icons';
 import { BOOKING_REFERENCE, formatUsd, seatsLabel } from '@/lib/booking';
 import { getEvent } from '@/lib/content';
 import { formatEventDate } from '@/lib/events';
-import {
-  CHECKOUT_SESSION_ID,
-  type CheckoutSession,
-  paymentsState,
-  retrieveCheckoutSession,
-  StripeError,
-} from '@/lib/payments';
+import { type CheckoutOutcome, lookupCheckout } from '@/lib/checkout-result';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
@@ -48,35 +42,9 @@ function Checking() {
   );
 }
 
-type Outcome =
-  | { kind: 'paid'; session: CheckoutSession }
-  | { kind: 'processing'; session: CheckoutSession }
-  | { kind: 'unfinished'; session: CheckoutSession }
-  | { kind: 'expired' }
-  | { kind: 'unknown' }
-  | { kind: 'unavailable' };
-
-async function lookup(id: string | undefined): Promise<Outcome> {
-  if (!id || !CHECKOUT_SESSION_ID.test(id)) return { kind: 'unknown' };
-  const payments = paymentsState();
-  if (!payments.ready) return { kind: 'unavailable' };
-  try {
-    const session = await retrieveCheckoutSession({ secretKey: payments.secretKey }, id);
-    if (session.status === 'expired') return { kind: 'expired' };
-    if (session.payment_status === 'paid') return { kind: 'paid', session };
-    if (session.status === 'complete') return { kind: 'processing', session };
-    return { kind: 'unfinished', session };
-  } catch (error) {
-    // Stripe answers 404 for a session it does not know; anything else is an outage.
-    return error instanceof StripeError && error.status === 404
-      ? { kind: 'unknown' }
-      : { kind: 'unavailable' };
-  }
-}
-
 async function Result({ searchParams }: Pick<PageProps<'/bookings/confirmed'>, 'searchParams'>) {
   const { session_id } = await searchParams;
-  const outcome = await lookup(typeof session_id === 'string' ? session_id : undefined);
+  const outcome = await lookupCheckout(typeof session_id === 'string' ? session_id : undefined);
 
   if (outcome.kind === 'paid' || outcome.kind === 'processing') {
     const { session } = outcome;
@@ -130,7 +98,7 @@ async function Result({ searchParams }: Pick<PageProps<'/bookings/confirmed'>, '
     );
   }
 
-  const copy: Record<Exclude<Outcome['kind'], 'paid' | 'processing'>, [string, string]> = {
+  const copy: Record<Exclude<CheckoutOutcome['kind'], 'paid' | 'processing'>, [string, string]> = {
     unfinished: [
       'Checkout was not finished',
       'Stripe has not taken a payment for this booking, so no seats are booked. You can go back to the event and start again.',

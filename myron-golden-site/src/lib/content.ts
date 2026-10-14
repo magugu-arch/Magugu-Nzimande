@@ -1,3 +1,4 @@
+import { assetSrc, getAsset } from '@/content/assets';
 import { books } from '@/content/books';
 import { events } from '@/content/events';
 import { content } from '@/content/learn';
@@ -13,6 +14,7 @@ import type {
   Testimonial,
 } from '@/content/types';
 import { IS_PREVIEW, type SiteMode, SITE_MODE } from './env';
+import { type ShopItem, shopCatalog } from './shop';
 
 /**
  * The one place that decides what the public can see. Pages never filter by
@@ -75,6 +77,19 @@ export function getBooks(mode?: SiteMode): Book[] {
 
 export function getBook(slug: string): Book | undefined {
   return getBooks().find((b) => b.slug === slug);
+}
+
+/** Books the cart can sell right now, with their covers. Empty means no shop. */
+export function getShopCatalog(mode: SiteMode = SITE_MODE): ShopItem[] {
+  return shopCatalog(getBooks(mode), mode, (b) => {
+    if (!b.cover) return null;
+    const asset = getAsset(b.cover);
+    return {
+      src: assetSrc(asset),
+      alt: '',
+      placeholder: asset.status === 'placeholder-not-official',
+    };
+  });
 }
 
 // ---------- Events (upcoming/past is decided in lib/events.ts) ----------

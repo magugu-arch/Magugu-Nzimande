@@ -91,6 +91,17 @@ export function buildSiteMetadata() {
           isDemo: !!e.isDemo,
         })),
     },
+    shop: books
+      .filter((b) => b.shop)
+      .map((b) => ({
+        id: b.id,
+        title: b.title,
+        href: `/books/${b.slug}`,
+        priceCents: b.shop!.priceCents,
+        priceStatus: b.shop!.priceCents !== null ? 'confirmed' : 'to-confirm',
+        previewDemoPriceCents: b.shop!.demoPriceCents ?? null,
+        maxPerOrder: b.shop!.maxPerOrder,
+      })),
     assets: assetList.map((a) => ({
       id: a.id,
       file: a.file,

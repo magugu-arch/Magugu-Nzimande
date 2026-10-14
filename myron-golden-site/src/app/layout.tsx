@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Manrope } from 'next/font/google';
 import { PreviewRibbon } from '@/components/layout/PreviewRibbon';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
+import { getShopCatalog } from '@/lib/content';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { Consent } from '@/components/system/Consent';
 import { site } from '@/content/site';
@@ -53,7 +54,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           >
             Skip to content
           </a>
-          <SiteHeader />
+          <SiteHeader shop={getShopCatalog()} />
           <main id="main" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>

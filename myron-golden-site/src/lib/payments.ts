@@ -46,7 +46,10 @@ export function paymentsState(
   if (mode === 'test' && siteMode === 'production') {
     return { ready: false, reason: 'test-key-in-production' };
   }
-  if (siteMode === 'production' && !(env.BOOKING_WEBHOOK_URL || env.ENQUIRY_WEBHOOK_URL)) {
+  if (
+    siteMode === 'production' &&
+    !(env.BOOKING_WEBHOOK_URL || env.ORDER_WEBHOOK_URL || env.ENQUIRY_WEBHOOK_URL)
+  ) {
     return { ready: false, reason: 'no-booking-destination' };
   }
   return { ready: true, mode, secretKey: key };
@@ -60,7 +63,7 @@ export const paymentsBlockText: Record<PaymentsBlock, string> = {
     'A live Stripe key is set, but live payments need production mode and PAYMENTS_LIVE_APPROVED=true.',
   'test-key-in-production': 'A Stripe test key cannot take payments on the production site.',
   'no-booking-destination':
-    'Production needs BOOKING_WEBHOOK_URL (or ENQUIRY_WEBHOOK_URL) so paid bookings are recorded.',
+    'Production needs BOOKING_WEBHOOK_URL, ORDER_WEBHOOK_URL or ENQUIRY_WEBHOOK_URL so paid bookings and orders are recorded.',
 };
 
 // ---------------------------------------------------------------- Stripe API
@@ -187,6 +190,7 @@ export interface CheckoutInput {
 export function checkoutParams(input: CheckoutInput): Record<string, unknown> {
   const now = input.now ?? Math.floor(Date.now() / 1000);
   const metadata = {
+    kind: 'event',
     bookingRef: input.reference,
     eventId: input.eventId,
     eventSlug: input.eventSlug,
@@ -223,6 +227,82 @@ export function createCheckoutSession(
     body: encodeForm(checkoutParams(input)),
     // A retried submit of the same booking cannot open a second session.
     idempotencyKey: `checkout-${input.reference}`,
+  });
+}
+
+// ---------------------------------------------------------------- Book orders
+
+/**
+ * Physical books need an address and a shipping charge. The owner creates
+ * the shipping rate in the Stripe dashboard (it holds the price, so none is
+ * written here) and sets its id; production refuses book checkout without
+ * one. SHOP_SHIP_TO lists the countries to ship to (default: US).
+ */
+export function shippingSetup(env: Env = process.env): {
+  rateId: string | null;
+  countries: string[];
+} {
+  const rate = env.STRIPE_SHIPPING_RATE_ID?.trim();
+  const countries = (env.SHOP_SHIP_TO || 'US')
+    .split(',')
+    .map((c) => c.trim().toUpperCase())
+    .filter((c) => /^[A-Z]{2}$/.test(c));
+  return {
+    rateId: rate && /^shr_[A-Za-z0-9]+$/.test(rate) ? rate : null,
+    countries: countries.length > 0 ? countries : ['US'],
+  };
+}
+
+export interface BookOrderInput {
+  reference: string;
+  lines: { slug: string; title: string; unitAmountCents: number; quantity: number }[];
+  shipping: { rateId: string | null; countries: string[] };
+  successUrl: string;
+  cancelUrl: string;
+  /** Unix seconds; the session expires an hour later. */
+  now?: number;
+}
+
+/** Only slugs and quantities go into metadata; Stripe collects the buyer's details itself. */
+export function bookOrderParams(input: BookOrderInput): Record<string, unknown> {
+  const now = input.now ?? Math.floor(Date.now() / 1000);
+  const metadata = {
+    kind: 'books',
+    orderRef: input.reference,
+    items: input.lines.map((l) => `${l.slug}:${l.quantity}`).join(','),
+  };
+  return {
+    mode: 'payment',
+    submit_type: 'pay',
+    client_reference_id: input.reference,
+    line_items: input.lines.map((l) => ({
+      quantity: l.quantity,
+      price_data: {
+        currency: 'usd',
+        unit_amount: l.unitAmountCents,
+        product_data: { name: l.title, description: 'Book' },
+      },
+    })),
+    shipping_address_collection: { allowed_countries: input.shipping.countries },
+    shipping_options: input.shipping.rateId
+      ? [{ shipping_rate: input.shipping.rateId }]
+      : undefined,
+    phone_number_collection: { enabled: true },
+    metadata,
+    payment_intent_data: { description: `Book order ${input.reference}`, metadata },
+    success_url: input.successUrl,
+    cancel_url: input.cancelUrl,
+    expires_at: now + 60 * 60,
+  };
+}
+
+export function createBookOrderSession(
+  client: StripeClient,
+  input: BookOrderInput,
+): Promise<CheckoutSession> {
+  return request<CheckoutSession>(client, 'POST', '/checkout/sessions', {
+    body: encodeForm(bookOrderParams(input)),
+    idempotencyKey: `order-${input.reference}`,
   });
 }
 

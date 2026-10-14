@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import { primaryCta, primaryNav } from '@/content/site';
 import { cn } from '@/lib/cn';
+import type { ShopItem } from '@/lib/shop';
+import { CartButton } from '../shop/CartButton';
 import { MenuIcon, SearchIcon } from '../ui/icons';
 import { MobileDrawer } from './MobileDrawer';
 import { Wordmark } from './Wordmark';
@@ -19,7 +21,7 @@ function subscribeScroll(onChange: () => void) {
  * arrives under it (blur and tint animate together) with a soft scroll-edge
  * fade instead of a hard divider.
  */
-export function SiteHeader() {
+export function SiteHeader({ shop }: { shop: ShopItem[] }) {
   const pathname = usePathname();
   const elevated = useSyncExternalStore(
     subscribeScroll,
@@ -68,6 +70,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2">
+            {shop.length > 0 ? <CartButton catalog={shop} /> : null}
             <Link
               href="/search"
               className="pressable grid size-11 place-items-center rounded-full text-ivory/85 hover:bg-ivory/10 hover:text-ivory"

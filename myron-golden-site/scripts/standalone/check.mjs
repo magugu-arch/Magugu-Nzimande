@@ -163,6 +163,40 @@ ok(
   'booking offline: nothing booked or charged',
   (await page.locator('.mg-notice[role="status"]').textContent()).includes('no payment was taken'),
 );
+// Book cart
+await page.goto(file + '#/books/boss-moves');
+await page.waitForTimeout(200);
+await page.click('[data-add-to-cart]');
+await page.click('[data-add-to-cart]');
+ok(
+  'cart: add confirms and counts',
+  (await page.locator('[data-cart-added]').textContent()).includes('2 in your cart') &&
+    (await page.locator('[data-cart-count]').first().textContent()) === '2',
+);
+await page.goto(file + '#/cart');
+await page.waitForTimeout(200);
+ok(
+  'cart: line and subtotal',
+  (await page.locator('.mg-cart-line h3').textContent()).includes('B.O.S.S. Moves') &&
+    (await page.locator('.mg-cart-total').textContent()) === '$40.00',
+);
+await page.selectOption('.mg-cart-line select', '3');
+ok(
+  'cart: quantity updates total',
+  (await page.locator('.mg-cart-total').textContent()) === '$60.00',
+);
+await page.click('button:has-text("Clear cart")');
+ok(
+  'cart: clear empties',
+  await page.getByRole('heading', { name: 'Your cart is empty' }).isVisible(),
+);
+await page.click('button:has-text("Undo")');
+ok('cart: undo restores', (await page.locator('.mg-cart-total').textContent()) === '$60.00');
+await page.click('.mg-cart-summary button:has-text("Check out")');
+ok(
+  'cart: checkout offline, nothing charged',
+  (await page.locator('.mg-notice[role="status"]').textContent()).includes('no payment was taken'),
+);
 // Search
 await page.goto(file + '#/search?q=offers');
 await page.waitForTimeout(200);

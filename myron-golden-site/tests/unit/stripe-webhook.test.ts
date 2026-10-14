@@ -88,6 +88,29 @@ describe('Stripe webhook', () => {
     expect(deliver).not.toHaveBeenCalled();
   });
 
+  it('records a paid book order with its items and delivery address', async () => {
+    const event = completed('paid');
+    event.data.object.metadata = {
+      kind: 'books',
+      orderRef: 'MG-ABCD-EFGH',
+      items: 'boss-moves:2',
+    } as never;
+    (event.data.object as Record<string, unknown>).collected_information = {
+      shipping_details: { name: 'Ada Lovelace', address: { line1: '1 Main St', country: 'US' } },
+    };
+    const res = await POST(signedRequest(event));
+    expect(res.status).toBe(200);
+    expect(deliver).toHaveBeenCalledWith(
+      'order',
+      expect.objectContaining({
+        stage: 'paid',
+        items: 'boss-moves:2',
+        shipping: expect.objectContaining({ name: 'Ada Lovelace' }),
+      }),
+      { sourcePage: '/api/stripe/webhook' },
+    );
+  });
+
   it('answers 500 when the booking cannot be recorded, so Stripe retries', async () => {
     deliver.mockResolvedValue({ ok: false, reason: 'failed' });
     const res = await POST(signedRequest(completed('paid')));

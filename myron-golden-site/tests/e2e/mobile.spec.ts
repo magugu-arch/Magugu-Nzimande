@@ -73,6 +73,7 @@ test.describe('mobile menu', () => {
       '/learn',
       '/books/boss-moves',
       '/events/business-growth-workshop/book',
+      '/cart',
     ]) {
       await page.goto(path);
       const overflow = await page.evaluate(

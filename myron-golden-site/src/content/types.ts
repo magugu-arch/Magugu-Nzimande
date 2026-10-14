@@ -85,6 +85,25 @@ export interface Program extends Governance {
   category: 'challenge' | 'coaching' | 'mastermind' | 'course';
 }
 
+/**
+ * Selling a book on this site through the cart and Stripe Checkout. Without
+ * it (or without a price) the book keeps its official purchase link only.
+ */
+export interface BookShop {
+  /**
+   * Price per copy in US cents, copied from the authorised price list. Null
+   * until confirmed. Never estimated.
+   */
+  priceCents: number | null;
+  /**
+   * PREVIEW ONLY: a labelled stand-in so the cart and checkout can be
+   * reviewed before prices are confirmed. Ignored in production.
+   */
+  demoPriceCents?: number;
+  /** Most copies of this book in one order. */
+  maxPerOrder: number;
+}
+
 export interface Book extends Governance {
   id: string;
   slug: string;
@@ -99,6 +118,8 @@ export interface Book extends Governance {
   publisher: string | null;
   isbn: string | null;
   buy: Cta | null;
+  /** Sold on this site through the cart; null keeps the official link only. */
+  shop: BookShop | null;
   /** Asset id. Mock-ups are flagged in the asset register and labelled on the page. */
   cover: string | null;
   status: PublishStatus;

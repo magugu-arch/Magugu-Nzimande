@@ -1187,8 +1187,291 @@
     });
   }
 
+  // ---------------------------------------------------------------- book cart
+  // Same storage key and format as the site, so the cart behaves the same:
+  // slugs and quantities only, prices from the catalog the page carries.
+
+  var CART_KEY = 'mg-cart-v1';
+  var cartMemory = [];
+
+  function readCart() {
+    try {
+      var raw = localStorage.getItem(CART_KEY);
+      var data = raw ? JSON.parse(raw) : [];
+      return Array.isArray(data)
+        ? data.filter(function (l) {
+            return l && typeof l.slug === 'string' && typeof l.qty === 'number' && l.qty > 0;
+          })
+        : [];
+    } catch {
+      return cartMemory.slice();
+    }
+  }
+
+  /** `pulse`: the badge pops, as on the site — for additions only. */
+  function writeCart(lines, pulse) {
+    cartMemory = lines.slice();
+    try {
+      if (lines.length) localStorage.setItem(CART_KEY, JSON.stringify(lines));
+      else localStorage.removeItem(CART_KEY);
+    } catch {
+      // Storage blocked: the in-memory copy carries this session.
+    }
+    updateCartBadge(pulse);
+  }
+
+  var shopCatalog = null;
+  function catalogFrom(root) {
+    var node = (root || doc).querySelector('[data-cart-root][data-catalog]');
+    if (node && !shopCatalog) {
+      try {
+        shopCatalog = JSON.parse(node.getAttribute('data-catalog'));
+      } catch {
+        shopCatalog = null;
+      }
+    }
+    return shopCatalog;
+  }
+
+  /** Every template carries no catalog except /cart, so read it from there once. */
+  function ensureCatalog() {
+    if (shopCatalog) return shopCatalog;
+    var tpl = doc.querySelector('template[data-route="/cart"]');
+    if (tpl) catalogFrom(tpl.content);
+    return shopCatalog || [];
+  }
+
+  function cartSummary() {
+    var catalog = ensureCatalog();
+    var lines = [];
+    var count = 0;
+    var subtotal = 0;
+    var demo = false;
+    readCart().forEach(function (l) {
+      var item = catalog.filter(function (c) {
+        return c.slug === l.slug;
+      })[0];
+      if (!item) return;
+      var qty = clamp(Math.floor(l.qty), 1, item.max);
+      lines.push({ slug: l.slug, qty: qty, item: item, cents: item.priceCents * qty });
+      count += qty;
+      subtotal += item.priceCents * qty;
+      demo = demo || item.demo;
+    });
+    return { lines: lines, count: count, subtotal: subtotal, demo: demo };
+  }
+
+  function books(n) {
+    return n + (n === 1 ? ' book' : ' books');
+  }
+
+  function updateCartBadge(pulse) {
+    var count = cartSummary().count;
+    Array.prototype.forEach.call(doc.querySelectorAll('[data-cart-link]'), function (link) {
+      link.setAttribute('aria-label', count ? 'Cart, ' + books(count) : 'Cart, empty');
+      var badge = link.querySelector('[data-cart-count]');
+      if (!badge) return;
+      badge.textContent = String(count);
+      badge.hidden = count === 0;
+      if (pulse && count && !reduceMotion.matches && badge.animate) {
+        badge.animate([{ transform: 'scale(1.45)' }, { transform: 'scale(1)' }], {
+          duration: 380,
+          easing: 'cubic-bezier(0.22, 1.4, 0.36, 1)',
+        });
+      }
+    });
+  }
+
+  function enhanceShop(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-add-to-cart]'), function (button) {
+      button.addEventListener('click', function () {
+        var slug = button.getAttribute('data-add-to-cart');
+        var max = Number(button.getAttribute('data-max')) || 1;
+        var lines = readCart();
+        var line = lines.filter(function (l) {
+          return l.slug === slug;
+        })[0];
+        var before = line ? line.qty : 0;
+        var after = Math.min(before + 1, max);
+        if (after !== before) {
+          if (line) line.qty = after;
+          else lines.push({ slug: slug, qty: after });
+          writeCart(lines, true);
+        }
+        var status = button.parentElement.querySelector('[data-cart-added]');
+        if (status) {
+          status.textContent = '';
+          status.appendChild(
+            doc.createTextNode(
+              after === before
+                ? after + ' is the most copies for one order. '
+                : 'Added. ' + after + ' in your cart. ',
+            ),
+          );
+          status.appendChild(el('a', { href: '#/cart', class: 'mg-cart-link', text: 'View cart' }));
+        }
+      });
+    });
+    var cartRoot = root.querySelector('[data-cart-root]');
+    if (cartRoot) {
+      catalogFrom(root);
+      renderCart(cartRoot, null);
+    }
+  }
+
+  function renderCart(rootNode, undo, notice) {
+    var s = cartSummary();
+    rootNode.textContent = '';
+    if (notice) rootNode.appendChild(notice);
+    if (!s.lines.length) {
+      var empty = el('div', { class: 'mg-cart-empty' });
+      if (undo) {
+        var undoBtn = el('button', { type: 'button', class: 'mg-cart-button', text: 'Undo' });
+        undoBtn.addEventListener('click', function () {
+          writeCart(undo);
+          renderCart(rootNode, null);
+        });
+        empty.appendChild(
+          el('p', { role: 'status', class: 'mg-cart-undo' }, [
+            el('span', { text: 'Cart cleared.' }),
+            undoBtn,
+          ]),
+        );
+      }
+      empty.appendChild(el('h2', { text: 'Your cart is empty' }));
+      empty.appendChild(el('p', { text: 'Books you add appear here.' }));
+      empty.appendChild(
+        el('a', { href: '#/books', class: 'mg-cart-primary', text: 'Browse books' }),
+      );
+      rootNode.appendChild(empty);
+      return;
+    }
+
+    var list = el('ul', { class: 'mg-cart-lines', 'aria-label': 'Books in your cart' });
+    s.lines.forEach(function (line) {
+      var item = line.item;
+      var file = item.cover ? item.cover.split('/').pop() : null;
+      var thumb = el(
+        'div',
+        { class: 'mg-cart-thumb' },
+        file ? [el('img', { alt: '', 'data-sa': file })] : [],
+      );
+      var select = el('select', { 'aria-label': 'Quantity of ' + item.title });
+      for (var n = 1; n <= item.max; n++) {
+        var opt = el('option', { value: String(n), text: String(n) });
+        if (n === line.qty) opt.selected = true;
+        select.appendChild(opt);
+      }
+      select.addEventListener('change', function () {
+        writeCart(
+          readCart().map(function (l) {
+            return l.slug === line.slug ? { slug: l.slug, qty: Number(select.value) } : l;
+          }),
+        );
+        renderCart(rootNode, null);
+        var again = rootNode.querySelector('select[aria-label="Quantity of ' + item.title + '"]');
+        if (again) again.focus();
+      });
+      var remove = el('button', {
+        type: 'button',
+        class: 'mg-cart-remove',
+        html: 'Remove<span class="sr-only"> ' + item.title + '</span>',
+      });
+      remove.addEventListener('click', function () {
+        writeCart(
+          readCart().filter(function (l) {
+            return l.slug !== line.slug;
+          }),
+        );
+        renderCart(rootNode, null);
+      });
+      var chips = el('p', { class: 'mg-cart-meta' }, [
+        el('span', { text: usd.format(item.priceCents / 100) + ' each' }),
+      ]);
+      if (item.demo) chips.appendChild(el('span', { class: 'mg-chip', text: 'Demo price' }));
+      if (item.placeholder)
+        chips.appendChild(
+          el('span', { class: 'mg-chip mg-chip-muted', text: 'Placeholder cover' }),
+        );
+      list.appendChild(
+        el('li', { class: 'mg-cart-line' }, [
+          thumb,
+          el('div', { class: 'mg-cart-body' }, [
+            el('div', { class: 'mg-cart-head' }, [
+              el('h3', {}, [el('a', { href: '#/books/' + line.slug, text: item.title })]),
+              el('p', { class: 'mg-cart-price', text: usd.format(line.cents / 100) }),
+            ]),
+            chips,
+            el('div', { class: 'mg-cart-controls' }, [
+              el('label', {}, [doc.createTextNode('Quantity '), select]),
+              remove,
+            ]),
+          ]),
+        ]),
+      );
+    });
+
+    var clear = el('button', { type: 'button', class: 'mg-cart-button', text: 'Clear cart' });
+    clear.addEventListener('click', function () {
+      var previous = readCart();
+      writeCart([]);
+      renderCart(rootNode, previous);
+    });
+
+    var checkout = el('button', { type: 'button', class: 'mg-cart-primary', text: 'Check out' });
+    var summary = el('aside', { class: 'mg-cart-summary', 'aria-label': 'Order summary' }, [
+      el('h2', { text: 'Summary' }),
+      el('dl', {}, [
+        el('div', {}, [
+          el('dt', { text: 'Subtotal (' + books(s.count) + ')' }),
+          el('dd', { class: 'mg-cart-total', text: usd.format(s.subtotal / 100) }),
+        ]),
+        el('div', {}, [el('dt', { text: 'Shipping' }), el('dd', { text: 'Not set up yet' })]),
+      ]),
+    ]);
+    if (s.demo)
+      summary.appendChild(
+        el('p', {
+          class: 'mg-cart-note',
+          text: 'Demo prices: the real prices are still to be confirmed.',
+        }),
+      );
+    summary.appendChild(checkout);
+    var live = el('p', {
+      class: 'sr-only',
+      'aria-live': 'polite',
+      text: books(s.count) + ', subtotal ' + usd.format(s.subtotal / 100),
+    });
+    summary.appendChild(live);
+    checkout.addEventListener('click', function () {
+      var done = el('div', { class: 'mg-notice', role: 'status', tabindex: '-1' }, [
+        el('h3', { text: 'Preview only — nothing charged' }),
+        el('p', {
+          text: 'This is a downloaded copy of the site, so checkout cannot open and no payment was taken. On the live site, Check out opens Stripe’s secure checkout, where the buyer pays and adds a delivery address. Your cart is unchanged.',
+        }),
+      ]);
+      renderCart(rootNode, null, done);
+      done.focus();
+    });
+
+    rootNode.appendChild(
+      el('div', { class: 'mg-cart' }, [
+        el('div', {}, [
+          list,
+          el('div', { class: 'mg-cart-actions' }, [
+            el('a', { href: '#/books', class: 'mg-cart-link', text: '← Keep shopping' }),
+            clear,
+          ]),
+        ]),
+        summary,
+      ]),
+    );
+    fillImages(rootNode);
+  }
+
   function enhance(root, route) {
     fillImages(root);
+    enhanceShop(root);
     enhanceBooking(root);
     enhanceForms(root);
     enhanceVideos(root);
@@ -1226,5 +1509,13 @@
     render(false);
   });
   render(true);
+  updateCartBadge(false);
+  // Another tab changed the cart: keep the badge (and an open cart) current.
+  window.addEventListener('storage', function (e) {
+    if (e.key !== CART_KEY && e.key !== null) return;
+    updateCartBadge(false);
+    var open = main.querySelector('[data-cart-root]');
+    if (open) renderCart(open, null);
+  });
   onScroll();
 })();

@@ -70,6 +70,7 @@ build with the mode you intend to serve.
 | `/events`, `/events/[slug]`                              | Upcoming/Past, list/month views, format/type/month filters; expiry is automatic                  |
 | `/events/[slug]/book`                                    | Booking: seats, details, order summary; Stripe Checkout for paid seats                           |
 | `/bookings/confirmed`, `/bookings/cancelled`             | Where Stripe returns people; "paid" only when Stripe says so                                     |
+| `/cart`, `/orders/confirmed`                             | Book cart (add, change, remove, clear with undo) and Stripe Checkout for books                   |
 | `/api/stripe/webhook`                                    | Stripe's signed notice that a payment settled; records it against the booking reference          |
 | `/learn`, `/learn/[slug]`                                | Library with search, topic and type filters; click-to-load video                                 |
 | `/insights`, `/insights/[slug]`                          | Articles                                                                                         |
@@ -252,6 +253,36 @@ To try paid checkout end to end, set a Stripe **test** key and run
 `stripe listen --forward-to localhost:3000/api/stripe/webhook` for the webhook
 secret.
 
+## Book cart
+
+Books can be bought on the site through a cart. Each book's `shop` field sets
+its price per copy (US cents) and the most copies per order.
+
+- **Prices.** `priceCents` comes from the authorised price list and is null
+  until then, so production keeps the official purchase link and shows no
+  cart at all. The two active books carry a `demoPriceCents` of $20.00 that
+  only preview uses, labelled "Demo price" wherever it appears. Mock-up
+  covers stay labelled in the cart ("Placeholder cover").
+- **The cart** lives in the visitor's browser (`localStorage`, synced across
+  tabs) and holds slugs and quantities only. "Add to cart" confirms beside
+  the button with a link to the cart; the bag in the header counts the books
+  and its badge pops when one is added. `/cart` has a quantity picker and
+  Remove for each line, the subtotal, and Clear cart. Clearing has no "are
+  you sure?"; instead, Undo is offered for ten seconds.
+- **Checkout** (`app/cart/actions.ts`) rebuilds the order from the server's
+  catalog, so a price cannot be changed in the browser, and refuses a cart
+  that no longer matches it. It sends the order to `ORDER_WEBHOOK_URL`
+  (falling back to the booking, then the enquiry webhook), then opens Stripe
+  Checkout with one line per book, US address collection (`SHOP_SHIP_TO`) and
+  the shipping rate in `STRIPE_SHIPPING_RATE_ID`. Production refuses book
+  checkout without a shipping rate.
+- **After payment.** `/orders/confirmed` asks Stripe and thanks the buyer only
+  when the order is paid, then empties the cart. The webhook records the paid
+  order with the delivery address the team ships to. A cancelled checkout
+  returns to `/cart` with the cart untouched and says nothing was charged.
+- **Not included yet:** stock levels, sales tax (Stripe Tax can be switched
+  on), discount codes, digital editions and refunds from the site.
+
 ## Single-file export
 
 `npm run export:html` writes `dist/myron-golden-site.html`: every page of the
@@ -271,6 +302,8 @@ server. It is built from the real pages, not a mock-up:
   month calendar view is omitted; the list carries every event.
 - Forms cannot send from a file. They validate, then say plainly that nothing
   was sent; the booking form says no seats were booked and nothing was charged.
+  The book cart works in the file (add, change, remove, clear and undo, kept
+  in the browser), and Check out explains that no payment was taken.
   Its seat stepper and total work as on the site.
 - Sections Next.js streams behind `<Suspense>` arrive as a hidden block that
   a script swaps in. Capture runs with scripts off, so the export makes the
@@ -318,6 +351,7 @@ CI builds the file, checks it and keeps it as a workflow artifact.
 | Analytics                                                           | Needs `NEXT_PUBLIC_GA_ID`; consent banner and events are wired, off until set                                  |
 | Member portal                                                       | Needs `NEXT_PUBLIC_MEMBER_PORTAL_URL`                                                                          |
 | Event bookings and payments                                         | **Ready** in preview and Stripe test mode. Live payments need a Stripe account, owner approval and real prices |
+| Book cart and checkout                                              | **Ready** in preview with demo prices. Needs confirmed prices per copy and a Stripe shipping rate              |
 | Program checkout                                                    | Not on this site, by design: every program hands off to its official platform                                  |
 | CMS                                                                 | Content model ready; CMS choice and accounts needed                                                            |
 | Events                                                              | All six are demo fixtures; needs the authorised calendar                                                       |
@@ -337,6 +371,7 @@ record-level detail.
 - [ ] Confirm each program's status, inclusions, price display and destination
 - [ ] Supply verified events (dates, time zones, venues, tickets, refund terms)
 - [ ] For each event booked on the site: confirm price per seat, seats per order and refund terms
+- [ ] For each book sold on the site: confirm the price per copy and copies per order; create the Stripe shipping rate
 - [ ] Payments: Stripe account in the owner's name, test-mode run-through, webhook endpoint and secret, written approval, then `PAYMENTS_LIVE_APPROVED=true` with the live key
 - [ ] Replace or approve every concept image; obtain likeness and rights sign-off
 - [ ] Supply approved testimonials with written consent, if any

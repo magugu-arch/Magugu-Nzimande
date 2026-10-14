@@ -14,6 +14,7 @@ const routes = [
   '/programs/make-more-offers-challenge',
   '/books',
   '/books/boss-moves',
+  '/cart',
   '/learn',
   '/learn/selling-as-service',
   '/insights',

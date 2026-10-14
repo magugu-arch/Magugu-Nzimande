@@ -9,7 +9,10 @@ import {
   formatEventShortDate,
   formatEventTime,
 } from '@/lib/events';
+import { formatUsd } from '@/lib/booking';
+import type { ShopItem } from '@/lib/shop';
 import { Photo } from '../media/Photo';
+import { AddToCart } from '../shop/AddToCart';
 import { OutboundLink } from '../ui/OutboundLink';
 import { Pill } from '../ui/Section';
 import { ArrowRight, ClockIcon, GlobeIcon, PinIcon, PlayIcon } from '../ui/icons';
@@ -123,7 +126,16 @@ export function BookCover({
   );
 }
 
-export function BookCard({ book, priority = false }: { book: Book; priority?: boolean }) {
+export function BookCard({
+  book,
+  priority = false,
+  shopItem,
+}: {
+  book: Book;
+  priority?: boolean;
+  /** The book is on sale here: show its price and Add to cart. */
+  shopItem?: ShopItem;
+}) {
   return (
     <article className="lift group relative flex flex-col">
       <BookCover
@@ -140,6 +152,17 @@ export function BookCard({ book, priority = false }: { book: Book; priority?: bo
         </Link>
       </h3>
       <p className="type-small mt-3 max-w-md text-slate">{book.synopsis}</p>
+      {shopItem ? (
+        <div className="mt-5 space-y-3">
+          <p className="flex flex-wrap items-center gap-2">
+            <span className="text-[1.25rem] font-semibold tabular-nums">
+              {formatUsd(shopItem.priceCents)}
+            </span>
+            {shopItem.isDemoPrice ? <Pill tone="light">Demo price</Pill> : null}
+          </p>
+          <AddToCart item={shopItem} variant="ink" size="md" tone="light" />
+        </div>
+      ) : null}
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <Link
           href={`/books/${book.slug}`}

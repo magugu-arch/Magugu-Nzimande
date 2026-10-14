@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { BookCard } from '@/components/cards/Cards';
 import { PageHero } from '@/components/layout/PageHero';
 import { Section } from '@/components/ui/Section';
-import { getBooks } from '@/lib/content';
+import { getBooks, getShopCatalog } from '@/lib/content';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
@@ -14,6 +14,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default function BooksPage() {
   const books = getBooks();
+  const shop = getShopCatalog();
   return (
     <>
       <PageHero
@@ -22,8 +23,10 @@ export default function BooksPage() {
         title="The books"
         intro={
           <p>
-            Read the thinking behind the teaching, at your own pace. Each book links to its official
-            purchase page.
+            Read the thinking behind the teaching, at your own pace.{' '}
+            {shop.length > 0
+              ? 'Add books to your cart here, or buy from each book’s official page.'
+              : 'Each book links to its official purchase page.'}
           </p>
         }
         crumbs={[
@@ -39,7 +42,11 @@ export default function BooksPage() {
           <ul className="grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3" data-reveal-group>
             {books.map((b, i) => (
               <li key={b.id} data-reveal>
-                <BookCard book={b} priority={i === 0} />
+                <BookCard
+                  book={b}
+                  priority={i === 0}
+                  shopItem={shop.find((item) => item.slug === b.slug)}
+                />
               </li>
             ))}
           </ul>

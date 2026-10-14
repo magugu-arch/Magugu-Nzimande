@@ -6,7 +6,9 @@ import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { OutboundLink } from '@/components/ui/OutboundLink';
 import { Eyebrow, Pill, Section } from '@/components/ui/Section';
-import { getBook, getBooks, getContent, staticParams } from '@/lib/content';
+import { AddToCart } from '@/components/shop/AddToCart';
+import { formatUsd } from '@/lib/booking';
+import { getBook, getBooks, getContent, getShopCatalog, staticParams } from '@/lib/content';
 import { IS_PREVIEW } from '@/lib/env';
 import { bookJsonLd, pageMetadata } from '@/lib/seo';
 
@@ -39,6 +41,7 @@ export default async function BookPage({ params }: PageProps<'/books/[slug]'>) {
   const { slug } = await params;
   const book = getBook(slug);
   if (!book) notFound();
+  const shopItem = getShopCatalog().find((item) => item.slug === book.slug);
 
   const details = [
     { label: 'Author', value: book.role === 'author' ? 'Myron Golden' : 'Credit to be confirmed' },
@@ -74,7 +77,33 @@ export default async function BookPage({ params }: PageProps<'/books/[slug]'>) {
                 </Pill>
               ) : null}
               <p className="type-lede mt-6 max-w-xl text-ivory/80">{book.synopsis}</p>
-              {book.buy ? (
+              {shopItem ? (
+                <div className="mt-8">
+                  <p className="flex flex-wrap items-center gap-3">
+                    <span className="font-display text-[2.25rem] leading-none font-semibold tabular-nums">
+                      {formatUsd(shopItem.priceCents)}
+                    </span>
+                    {shopItem.isDemoPrice ? <Pill tone="demo">Demo price</Pill> : null}
+                  </p>
+                  <div className="mt-5">
+                    <AddToCart item={shopItem} />
+                  </div>
+                  {book.buy ? (
+                    <p className="mt-4 text-[0.875rem] text-ivory/65">
+                      Or buy it on the{' '}
+                      <a
+                        href={book.buy.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:text-ivory"
+                      >
+                        book’s official site
+                      </a>
+                      .
+                    </p>
+                  ) : null}
+                </div>
+              ) : book.buy ? (
                 <div className="mt-8">
                   <OutboundLink
                     href={book.buy.href}

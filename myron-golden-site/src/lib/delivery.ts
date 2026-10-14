@@ -11,7 +11,7 @@ import { SITE_MODE } from './env';
  * it was. With no webhook configured, preview logs a redacted line and says
  * so on screen; production refuses and shows a failure state instead.
  */
-export type DeliveryKind = 'speaking' | 'contact' | 'newsletter' | 'booking';
+export type DeliveryKind = 'speaking' | 'contact' | 'newsletter' | 'booking' | 'order';
 
 export type DeliveryResult =
   | { ok: true; channel: 'webhook' | 'preview-log' }
@@ -22,15 +22,19 @@ const ENV_KEYS: Record<DeliveryKind, string> = {
   contact: 'CONTACT_WEBHOOK_URL',
   newsletter: 'NEWSLETTER_WEBHOOK_URL',
   booking: 'BOOKING_WEBHOOK_URL',
+  order: 'ORDER_WEBHOOK_URL',
 };
 
 export function webhookFor(kind: DeliveryKind): string | null {
   const specific = process.env[ENV_KEYS[kind]];
-  // Contact messages and bookings fall back to the enquiry webhook if only that one is set.
-  if (!specific && (kind === 'contact' || kind === 'booking')) {
+  if (specific) return specific;
+  // Book orders go with bookings if they have no destination of their own;
+  // contact messages, bookings and orders fall back to the enquiry webhook.
+  if (kind === 'order' && process.env.BOOKING_WEBHOOK_URL) return process.env.BOOKING_WEBHOOK_URL;
+  if (kind === 'contact' || kind === 'booking' || kind === 'order') {
     return process.env.ENQUIRY_WEBHOOK_URL || null;
   }
-  return specific || null;
+  return null;
 }
 
 export function sign(body: string, secret: string): string {
