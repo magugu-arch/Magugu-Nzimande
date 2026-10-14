@@ -42,9 +42,7 @@ test('the seat stepper updates the total and stays within the order limit', asyn
   await expect(total).toHaveText('$600.00');
 });
 
-test('a paid booking without payments connected charges nothing and offers a request', async ({
-  page,
-}) => {
+test('a paid booking continues to the payment step and pays with a test card', async ({ page }) => {
   await page.goto(`${PAID}/book`);
   await page.getByRole('button', { name: /Continue to payment/ }).click();
 
@@ -59,20 +57,30 @@ test('a paid booking without payments connected charges nothing and offers a req
   await page.getByLabel(/I have read the/).check();
   await page.getByRole('button', { name: /Continue to payment/ }).click();
 
-  const notice = page.getByRole('alert').filter({ hasText: 'Checkout is not available yet' });
-  await expect(notice).toBeVisible();
-  await expect(notice).toContainText('you have not been charged');
-  await expect(notice).toContainText('STRIPE_SECRET_KEY');
-  // What was typed survives the round trip.
-  await expect(page.getByLabel('Full name')).toHaveValue('Ada Lovelace');
-  await expect(page.locator('#quantity')).toHaveValue('2');
+  await expect(page).toHaveURL(/\/checkout\/demo$/);
+  const form = page.locator('form[data-demo-checkout]');
+  await expect(form.getByRole('button', { name: 'Pay $200.00' })).toBeVisible();
+  // Seats need no delivery address.
+  await expect(form.getByText('Delivery', { exact: true })).toHaveCount(0);
 
-  await notice.getByRole('button', { name: 'Send a booking request instead' }).click();
-  const done = page.getByRole('status').filter({ hasText: 'Request sent' });
+  await form.getByLabel('Email').fill('ada@example.com');
+  await form.getByRole('button', { name: '4242 … succeeds' }).click();
+  await form.getByLabel('Expiry date').fill('1230');
+  await form.getByLabel('Security code').fill('123');
+  await form.getByLabel('Name on card').fill('Ada Lovelace');
+  await form.getByRole('button', { name: 'Pay $200.00' }).click();
+
+  const done = page.getByRole('status').filter({ hasText: 'Payment complete' });
   await expect(done).toBeVisible();
-  await expect(done).toContainText('not a confirmed booking');
+  await expect(done).toContainText('nothing was charged');
+  await expect(done).toContainText('Business Growth Workshop — General admission × 2');
   await expect(done).toContainText(/MG-[A-Z2-9]{4}-[A-Z2-9]{4}/);
-  await expect(done).toContainText('Nothing was sent');
+
+  // Going back to the event does not bounce to payment again.
+  await done.getByRole('link', { name: 'Back to the event' }).click();
+  await expect(page).toHaveURL(/\/events\/business-growth-workshop$/);
+  await page.waitForTimeout(500);
+  await expect(page).toHaveURL(/\/events\/business-growth-workshop$/);
 });
 
 test('free registration completes without any payment step', async ({ page }) => {

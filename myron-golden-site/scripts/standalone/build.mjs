@@ -160,7 +160,10 @@ function processInPage({ selector, route, keep }) {
 
   node.querySelectorAll('form').forEach((form) => {
     ['action', 'method', 'enctype', 'encType'].forEach((attr) => form.removeAttribute(attr));
-    if (form.getAttribute('role') !== 'search') form.setAttribute('data-offline-form', '');
+    // The demo payment page has its own handler in the runtime.
+    if (form.getAttribute('role') !== 'search' && !form.hasAttribute('data-demo-checkout')) {
+      form.setAttribute('data-offline-form', '');
+    }
     form.querySelectorAll('input[name^="$ACTION"]').forEach((i) => i.remove());
   });
 
@@ -199,7 +202,8 @@ const page = await context.newPage();
 const skip = (p) =>
   p.startsWith('/_next') || /\.[a-z0-9]+$/i.test(p) || p === '/site-metadata.json';
 
-const queue = ['/', '/search', '/review'];
+// The payment page is reached by script (Check out), not by a link, so seed it.
+const queue = ['/', '/search', '/review', '/checkout/demo'];
 const seen = new Set(queue);
 const pages = [];
 

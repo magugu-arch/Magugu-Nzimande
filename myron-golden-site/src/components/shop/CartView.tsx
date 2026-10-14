@@ -3,10 +3,12 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState, useSyncExternalStore } from 'react';
 import { type CheckoutState, startBookCheckout } from '@/app/cart/actions';
 import { track } from '@/lib/analytics';
-import { formatUsd } from '@/lib/booking';
+import { bookingReference, formatUsd } from '@/lib/booking';
+import { DEMO_ORDER_KEY, type DemoOrder } from '@/lib/demo-payment';
 import { cn } from '@/lib/cn';
 import { springs } from '@/lib/motion';
 import {
@@ -63,6 +65,7 @@ export function CartView({
   const [undo, setUndo] = useState<CartLine[] | null>(null);
   const [direction, setDirection] = useState<1 | -1>(1);
   const reduce = useReducedMotion();
+  const router = useRouter();
 
   useEffect(() => {
     if (!undo) return;
@@ -268,7 +271,45 @@ export function CartView({
                 </p>
               ) : null}
 
-              {checkoutReady || preview ? (
+              {!checkoutReady && preview ? (
+                <div className="mt-6 space-y-3">
+                  <p className="rounded-xl bg-[#1d1810] px-4 py-3 text-[0.85rem] text-gold-bright ring-1 ring-gold/25">
+                    Preview: payments are not connected, so checkout continues to a demo payment
+                    page. Nothing is charged.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      track('begin_checkout', { books: summary.count });
+                      const order: DemoOrder = {
+                        kind: 'books',
+                        reference: bookingReference(),
+                        lines: summary.lines.map((l) => ({
+                          title: l.item.title,
+                          detail: l.item.isDemoPrice ? 'Demo price' : undefined,
+                          quantity: l.qty,
+                          unitCents: l.item.priceCents,
+                        })),
+                        shipping: true,
+                        back: { href: '/books', label: 'Back to books' },
+                      };
+                      try {
+                        window.sessionStorage.setItem(DEMO_ORDER_KEY, JSON.stringify(order));
+                      } catch {
+                        // Storage blocked: the payment page will say there is nothing to pay.
+                      }
+                      router.push('/checkout/demo');
+                    }}
+                    className={cn(buttonClasses('primary', 'lg'), 'w-full')}
+                  >
+                    <LockIcon size={18} />
+                    Check out
+                  </button>
+                  <p className="text-center text-[0.8rem] text-ivory/60">
+                    Next: delivery address and card details, then pay.
+                  </p>
+                </div>
+              ) : checkoutReady ? (
                 <form
                   action={action}
                   onSubmit={() => track('begin_checkout', { books: summary.count })}
@@ -276,12 +317,6 @@ export function CartView({
                 >
                   <Honeypot />
                   <input type="hidden" name="items" value={serialiseCart(lines)} />
-                  {!checkoutReady ? (
-                    <p className="rounded-xl bg-[#1d1810] px-4 py-3 text-[0.85rem] text-gold-bright ring-1 ring-gold/25">
-                      Preview: payments are not connected, so checkout stops before Stripe and
-                      nothing is charged.
-                    </p>
-                  ) : null}
                   <button
                     type="submit"
                     disabled={pending}

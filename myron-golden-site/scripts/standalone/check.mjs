@@ -159,9 +159,22 @@ await page.fill('input[name="name"]', 'Test');
 await page.fill('input[name="email"]', 'test@example.com');
 await page.check('input[name="consent"]');
 await page.click('button:has-text("Continue to payment")');
+await page.waitForTimeout(250);
 ok(
-  'booking offline: nothing booked or charged',
-  (await page.locator('.mg-notice[role="status"]').textContent()).includes('no payment was taken'),
+  'booking continues to payment',
+  page.url().endsWith('#/checkout/demo') &&
+    (await page.locator('[data-demo-pay-label]').textContent()) === 'Pay $300.00' &&
+    (await page.locator('[data-demo-shipping]').count()) === 0,
+);
+await page.click('[data-demo-fill="4242424242424242"]');
+await page.fill('#demo-exp', '1230');
+await page.fill('#demo-cvc', '123');
+await page.fill('#demo-cardname', 'Test');
+await page.click('[data-demo-pay]');
+await page.waitForTimeout(1500);
+ok(
+  'booking paid (demo)',
+  (await page.locator('main [role="status"]').first().textContent()).includes('Payment complete'),
 );
 // Book cart
 await page.goto(file + '#/books/boss-moves');
@@ -193,9 +206,46 @@ ok(
 await page.click('button:has-text("Undo")');
 ok('cart: undo restores', (await page.locator('.mg-cart-total').textContent()) === '$60.00');
 await page.click('.mg-cart-summary button:has-text("Check out")');
+await page.waitForTimeout(250);
 ok(
-  'cart: checkout offline, nothing charged',
-  (await page.locator('.mg-notice[role="status"]').textContent()).includes('no payment was taken'),
+  'cart: continues to payment',
+  page.url().endsWith('#/checkout/demo') &&
+    (await page.locator('[data-demo-pay-label]').textContent()) === 'Pay $60.00',
+);
+await page.click('[data-demo-pay]');
+ok(
+  'payment: lists what is missing',
+  (await page.locator('[data-demo-errors] [role="alert"]').textContent()).includes('ZIP code'),
+);
+await page.fill('#demo-email', 'test@example.com');
+await page.fill('#demo-name', 'Test Person');
+await page.fill('#demo-address1', '1 Main Street');
+await page.fill('#demo-city', 'Dallas');
+await page.fill('#demo-state', 'TX');
+await page.fill('#demo-zip', '75201');
+await page.fill('#demo-exp', '1230');
+await page.fill('#demo-cvc', '123');
+await page.fill('#demo-cardname', 'Test Person');
+await page.fill('#demo-card', '4111111111111111');
+await page.click('[data-demo-pay]');
+ok(
+  'payment: real cards refused',
+  (await page.locator('#demo-card-error').textContent()).includes('only accepts test card numbers'),
+);
+await page.click('[data-demo-fill="4000000000000002"]');
+await page.click('[data-demo-pay]');
+await page.waitForTimeout(1500);
+ok(
+  'payment: test decline',
+  (await page.locator('#demo-card-error').textContent()).includes('declined'),
+);
+await page.click('[data-demo-fill="4242424242424242"]');
+await page.click('[data-demo-pay]');
+await page.waitForTimeout(1500);
+ok(
+  'payment: paid, cart emptied',
+  (await page.locator('main [role="status"]').first().textContent()).includes('Dallas, TX 75201') &&
+    (await page.locator('[data-cart-count]').first().isHidden()),
 );
 // Search
 await page.goto(file + '#/search?q=offers');

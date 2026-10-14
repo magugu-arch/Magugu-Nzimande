@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { type ReactNode, useActionState, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { type ReactNode, useActionState, useEffect, useRef, useState } from 'react';
 import { type BookingState, submitBooking } from '@/app/bookings/actions';
 import type { FormState } from '@/app/actions';
 import { track } from '@/lib/analytics';
+import { DEMO_ORDER_KEY } from '@/lib/demo-payment';
 import { bookingMode, formatUsd, orderTotal, seatsLabel } from '@/lib/booking';
 import { cn } from '@/lib/cn';
 import { clamp } from '@/lib/motion';
@@ -71,6 +73,23 @@ export function BookingForm({
   photo: ReactNode;
 }) {
   const [state, action, pending] = useActionState(submitBooking, initial);
+  const router = useRouter();
+
+  // Preview without Stripe: the server checked the booking, now continue to
+  // the demo payment page with the order it prepared.
+  // Once per result: Next keeps visited pages alive (hidden) and re-runs
+  // effects when one is shown again, which must not bounce back to payment.
+  const handled = useRef<BookingState | null>(null);
+  useEffect(() => {
+    if (state.status !== 'demo-checkout' || handled.current === state) return;
+    handled.current = state;
+    try {
+      window.sessionStorage.setItem(DEMO_ORDER_KEY, JSON.stringify(state.order));
+    } catch {
+      // Storage blocked: the payment page will say there is nothing to pay.
+    }
+    router.push('/checkout/demo');
+  }, [state, router]);
   const asForm: FormState = state.status === 'error' ? state : { status: 'idle' };
   const f = formHelpers(asForm);
   const restored = state.status === 'payments-off' ? state.values : null;
@@ -134,6 +153,9 @@ export function BookingForm({
       data-booking-form
       data-unit-cents={offer.priceCents ?? ''}
       data-max={offer.maxPerOrder}
+      data-event={offer.eventSlug}
+      data-title={`${offer.title} — ${offer.ticketName}`}
+      data-detail={`${offer.dateLabel}${offer.isDemo && offer.priceCents ? ' · Demo price' : ''}`}
       onFocusCapture={() => {
         if (started.current) return;
         started.current = true;
@@ -357,7 +379,7 @@ export function BookingForm({
             mode={mode}
             priceMode={priceMode}
             state={state}
-            pending={pending}
+            pending={pending || state.status === 'demo-checkout'}
             paymentsReady={paymentsReady}
             preview={preview}
           />
@@ -424,7 +446,8 @@ function SubmitArea({
     <div className="space-y-3">
       {mode === 'paid' && !paymentsReady && preview ? (
         <p className="rounded-xl bg-ink/60 px-4 py-3 text-[0.85rem] text-gold-bright ring-1 ring-gold/25">
-          Preview: payments are not connected, so this stops before Stripe and nothing is charged.
+          Preview: payments are not connected, so this continues to a demo payment page. Nothing is
+          charged.
         </p>
       ) : null}
       <button

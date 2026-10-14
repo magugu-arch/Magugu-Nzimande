@@ -60,15 +60,62 @@ test('the cart changes quantities, removes, clears and undoes', async ({ page })
   await expect(summary.locator('[aria-live]')).toHaveText('4 books, subtotal $80.00');
 });
 
-test('checkout without payments connected charges nothing and keeps the cart', async ({ page }) => {
+test('checkout continues to payment: details, card, declined, then paid', async ({ page }) => {
   await add(page, TRASH);
   await page.goto('/cart');
   await page.getByRole('button', { name: 'Check out' }).click();
-  const notice = page.getByRole('alert').filter({ hasText: 'Checkout is not available yet' });
-  await expect(notice).toBeVisible();
-  await expect(notice).toContainText('nothing was charged');
-  await expect(notice).toContainText('STRIPE_SECRET_KEY');
+  await expect(page).toHaveURL(/\/checkout\/demo$/);
+
+  const form = page.locator('form[data-demo-checkout]');
+  const pay = form.getByRole('button', { name: 'Pay $20.00' });
+  await pay.click();
+  const problems = page.getByRole('alert').filter({ hasText: 'need attention' });
+  await expect(problems).toContainText('Email');
+  await expect(problems).toContainText('ZIP code');
+
+  await form.getByLabel('Email').fill('grace@example.com');
+  await form.getByLabel('Full name').fill('Grace Hopper');
+  await form.getByLabel('Address', { exact: true }).fill('1 Main Street');
+  await form.getByLabel('City').fill('Dallas');
+  await form.getByLabel('State').fill('TX');
+  await form.getByLabel('ZIP code').fill('75201');
+  await form.getByLabel('Expiry date').fill('1230');
+  await form.getByLabel('Security code').fill('123');
+  await form.getByLabel('Name on card').fill('Grace Hopper');
+
+  // A real-looking card is refused before anything happens.
+  await form.getByLabel('Card number').fill('4111111111111111');
+  await expect(form.getByLabel('Card number')).toHaveValue('4111 1111 1111 1111');
+  await pay.click();
+  await expect(page.locator('#demo-card-error')).toContainText('only accepts test card numbers');
+
+  // The declining test card fails the way a bank would.
+  await form.getByRole('button', { name: '0002 … declines' }).click();
+  await pay.click();
+  await expect(page.locator('#demo-card-error')).toContainText('declined');
   await expect(badge(page)).toHaveText('1');
+
+  await form.getByRole('button', { name: '4242 … succeeds' }).click();
+  await pay.click();
+  const done = page.getByRole('status').filter({ hasText: 'Payment complete' });
+  await expect(done).toBeVisible();
+  await expect(done).toContainText('Grace Hopper, 1 Main Street, Dallas, TX 75201');
+  await expect(done).toContainText('From the Trash Man to the Cash Man × 1');
+  await expect(badge(page)).toBeHidden();
+});
+
+test('the payment page has no accessibility violations', async ({ page }) => {
+  await add(page, BOSS);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/cart');
+  await page.getByRole('button', { name: 'Check out' }).click();
+  await expect(page.getByRole('button', { name: 'Pay $20.00' })).toBeVisible();
+  await page.getByRole('button', { name: 'Pay $20.00' }).click();
+  await expect(page.getByRole('alert').filter({ hasText: 'need attention' })).toBeVisible();
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+    .analyze();
+  expect(results.violations.map((v) => `${v.id}: ${v.nodes[0]?.target.join(' ')}`)).toEqual([]);
 });
 
 test('a cancelled checkout and an unknown order say nothing was charged', async ({ page }) => {

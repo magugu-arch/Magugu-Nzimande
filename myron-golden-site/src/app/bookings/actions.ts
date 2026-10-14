@@ -21,6 +21,7 @@ import {
   paymentsState,
   StripeError,
 } from '@/lib/payments';
+import type { DemoOrder } from '@/lib/demo-payment';
 import { createRateLimiter } from '@/lib/rate-limit';
 import { bookingSchema, type FieldErrors, fieldErrors, formDataToObject } from '@/lib/validation';
 
@@ -46,6 +47,11 @@ export type BookingState =
       /** Why, for whoever configures the site. Preview only. */
       detail: string | null;
       values: Record<string, string | string[]>;
+    }
+  | {
+      /** Preview without Stripe: continue to the demo payment page with this order. */
+      status: 'demo-checkout';
+      order: DemoOrder;
     }
   | {
       status: 'success';
@@ -149,6 +155,33 @@ export async function submitBooking(
 
   if (mode === 'paid' && data.intent !== 'request') {
     const payments = paymentsState();
+    if (!payments.ready && IS_PREVIEW) {
+      // Preview stands in for Stripe so the journey can be reviewed end to end.
+      const recordedDemo = await deliver(
+        'booking',
+        { stage: 'checkout-started', demo: true, ...details },
+        { sourcePage },
+      );
+      if (!recordedDemo.ok) return fail(CHECKOUT_FAILED);
+      return {
+        status: 'demo-checkout',
+        order: {
+          kind: 'event',
+          reference,
+          lines: [
+            {
+              title: `${event.title} — ${booking.ticketName}`,
+              detail: `${formatEventDate(event)}${event.isDemo ? ' · Demo price' : ''}`,
+              quantity: data.quantity,
+              unitCents: booking.priceCents!,
+            },
+          ],
+          shipping: false,
+          email: data.email,
+          back: { href: `/events/${event.slug}`, label: 'Back to the event' },
+        },
+      };
+    }
     if (!payments.ready) {
       return {
         status: 'payments-off',

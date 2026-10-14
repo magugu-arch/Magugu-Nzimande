@@ -15,6 +15,7 @@ const routes = [
   '/books',
   '/books/boss-moves',
   '/cart',
+  '/checkout/demo',
   '/learn',
   '/learn/selling-as-service',
   '/insights',

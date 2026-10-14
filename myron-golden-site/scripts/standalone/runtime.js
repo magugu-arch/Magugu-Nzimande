@@ -809,6 +809,35 @@
           return;
         }
         var booking = form.hasAttribute('data-booking-form');
+        var unit = Number(form.getAttribute('data-unit-cents'));
+        if (booking && unit > 0) {
+          // Paid seats continue to the payment step, as on the preview site.
+          var qty = form.querySelector('#quantity');
+          var email = form.querySelector('input[name="email"]');
+          startDemoPayment({
+            kind: 'event',
+            reference: demoReference(),
+            lines: [
+              {
+                title: form.getAttribute('data-title') || 'Event seats',
+                detail: form.getAttribute('data-detail') || undefined,
+                quantity: clamp(
+                  Math.round(Number(qty && qty.value)) || 1,
+                  1,
+                  Number(form.getAttribute('data-max')) || 1,
+                ),
+                unitCents: unit,
+              },
+            ],
+            shipping: false,
+            email: email ? email.value : undefined,
+            back: {
+              href: '/events/' + (form.getAttribute('data-event') || ''),
+              label: 'Back to the event',
+            },
+          });
+          return;
+        }
         var done = el('div', { class: 'mg-notice', role: 'status', tabindex: '-1' }, [
           el('h3', {
             text: booking ? 'Preview only — nothing booked or charged' : 'Preview only — not sent',
@@ -1444,14 +1473,20 @@
     });
     summary.appendChild(live);
     checkout.addEventListener('click', function () {
-      var done = el('div', { class: 'mg-notice', role: 'status', tabindex: '-1' }, [
-        el('h3', { text: 'Preview only — nothing charged' }),
-        el('p', {
-          text: 'This is a downloaded copy of the site, so checkout cannot open and no payment was taken. On the live site, Check out opens Stripe’s secure checkout, where the buyer pays and adds a delivery address. Your cart is unchanged.',
+      startDemoPayment({
+        kind: 'books',
+        reference: demoReference(),
+        lines: s.lines.map(function (line) {
+          return {
+            title: line.item.title,
+            detail: line.item.demo ? 'Demo price' : undefined,
+            quantity: line.qty,
+            unitCents: line.item.priceCents,
+          };
         }),
-      ]);
-      renderCart(rootNode, null, done);
-      done.focus();
+        shipping: true,
+        back: { href: '/books', label: 'Back to books' },
+      });
     });
 
     rootNode.appendChild(
@@ -1469,9 +1504,416 @@
     fillImages(rootNode);
   }
 
+  // ---------------------------------------------------------------- payment step
+  // The preview's stand-in for Stripe's page, ported from lib/demo-payment.ts:
+  // only Stripe's test card numbers are accepted, and nothing typed is stored
+  // or sent anywhere.
+
+  var ORDER_KEY = 'mg-demo-order-v1';
+  var pendingOrder = null;
+  var TEST_OUTCOMES = {
+    4242424242424242: 'success',
+    5555555555554444: 'success',
+    378282246310005: 'success',
+    4000000000000002: 'declined',
+    4000000000009995: 'insufficient-funds',
+  };
+  var DECLINES = {
+    declined: 'Your card was declined. Try another card. (Demo: this test card always declines.)',
+    'insufficient-funds':
+      'Your card has insufficient funds. Try another card. (Demo: this test card always fails this way.)',
+  };
+  var PAY_LABELS = {
+    'demo-email': 'Email',
+    'demo-name': 'Full name',
+    'demo-address1': 'Address',
+    'demo-city': 'City',
+    'demo-state': 'State',
+    'demo-zip': 'ZIP code',
+    'demo-card': 'Card number',
+    'demo-exp': 'Expiry date',
+    'demo-cvc': 'Security code',
+    'demo-cardname': 'Name on card',
+  };
+
+  function demoReference() {
+    var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var out = '';
+    for (var i = 0; i < 8; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)];
+    return 'MG-' + out.slice(0, 4) + '-' + out.slice(4);
+  }
+
+  function startDemoPayment(order) {
+    pendingOrder = order;
+    try {
+      sessionStorage.setItem(ORDER_KEY, JSON.stringify(order));
+    } catch {
+      // Storage blocked (some browsers on file://): the in-memory copy carries it.
+    }
+    location.hash = '#/checkout/demo';
+  }
+
+  function readOrder() {
+    try {
+      var raw = sessionStorage.getItem(ORDER_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // Fall back to the in-memory copy.
+    }
+    return pendingOrder;
+  }
+
+  function onlyDigits(v) {
+    return String(v).replace(/\D/g, '');
+  }
+  function brandOf(v) {
+    var n = onlyDigits(v);
+    if (/^4/.test(n)) return 'visa';
+    if (/^(5[1-5]|2[2-7])/.test(n)) return 'mastercard';
+    if (/^3[47]/.test(n)) return 'amex';
+    return 'unknown';
+  }
+  function formatCard(v) {
+    var n = onlyDigits(v);
+    if (brandOf(n) === 'amex') {
+      n = n.slice(0, 15);
+      return [n.slice(0, 4), n.slice(4, 10), n.slice(10)].filter(Boolean).join(' ');
+    }
+    return (n.slice(0, 16).match(/.{1,4}/g) || []).join(' ');
+  }
+  function formatExp(v) {
+    var n = onlyDigits(v).slice(0, 4);
+    if (n.length === 1 && Number(n) > 1) n = '0' + n;
+    return n.length > 2 ? n.slice(0, 2) + ' / ' + n.slice(2) : n;
+  }
+  function luhnOk(v) {
+    var n = onlyDigits(v);
+    if (n.length < 12) return false;
+    var sum = 0;
+    for (var i = 0; i < n.length; i++) {
+      var d = Number(n[n.length - 1 - i]);
+      if (i % 2 === 1) {
+        d *= 2;
+        if (d > 9) d -= 9;
+      }
+      sum += d;
+    }
+    return sum % 10 === 0;
+  }
+
+  function checkField(id, value, form) {
+    var v = String(value).trim();
+    if (id === 'demo-email') {
+      if (!v) return 'Enter your email address.';
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+        ? null
+        : 'Enter an email address in the format name@example.com.';
+    }
+    if (id === 'demo-zip') return /^\d{5}(-\d{4})?$/.test(v) ? null : 'Enter a 5-digit ZIP code.';
+    if (id === 'demo-state')
+      return /^[A-Za-z]{2}$/.test(v) ? null : 'Enter the two-letter state, such as TX.';
+    if (id === 'demo-card') {
+      var n = onlyDigits(v);
+      if (!n) return 'Enter the card number.';
+      if (!luhnOk(n)) return 'Check the card number; it is not complete or has a typo.';
+      if (!TEST_OUTCOMES[n])
+        return 'This demo only accepts test card numbers, such as 4242 4242 4242 4242. Real cards are refused, and nothing typed here is sent anywhere.';
+      return null;
+    }
+    if (id === 'demo-exp') {
+      var e = onlyDigits(v);
+      if (e.length !== 4) return 'Enter the expiry date as MM / YY.';
+      var month = Number(e.slice(0, 2));
+      var year = 2000 + Number(e.slice(2));
+      if (month < 1 || month > 12) return 'Enter a month from 01 to 12.';
+      var now = new Date();
+      var thisMonth = now.getFullYear() * 12 + now.getMonth();
+      var expiry = year * 12 + (month - 1);
+      if (expiry < thisMonth) return 'This card has expired. Use a future date.';
+      if (expiry > thisMonth + 240) return 'Check the expiry year.';
+      return null;
+    }
+    if (id === 'demo-cvc') {
+      var len = brandOf(form.querySelector('#demo-card').value) === 'amex' ? 4 : 3;
+      return onlyDigits(v).length === len ? null : 'Enter the ' + len + '-digit security code.';
+    }
+    return v ? null : 'Enter the ' + PAY_LABELS[id].toLowerCase() + '.';
+  }
+
+  function setFieldError(form, id, message) {
+    var input = form.querySelector('#' + id);
+    if (!input) return;
+    var old = form.querySelector('#' + id + '-error');
+    if (old) old.remove();
+    input.classList.toggle('mg-invalid', !!message);
+    if (message) {
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', id + '-error');
+      var p = el('p', {
+        id: id + '-error',
+        class: 'mt-2 flex items-start gap-1.5 text-[0.875rem] text-[#f0b4a8]',
+        text: message,
+      });
+      input.parentElement.after(p);
+    } else {
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    }
+  }
+
+  function enhanceDemoCheckout(root) {
+    var form = root.querySelector('form[data-demo-checkout]');
+    if (!form) return;
+    var order = readOrder();
+    if (!order || !order.lines || !order.lines.length) {
+      form.replaceWith(
+        el('div', { class: 'mg-cart-empty' }, [
+          el('h2', { text: 'There is nothing to pay for yet' }),
+          el('p', {
+            text: 'Start from your cart or an event’s booking page, and checkout brings you here.',
+          }),
+          el('a', { href: '#/cart', class: 'mg-cart-primary', text: 'Go to your cart' }),
+        ]),
+      );
+      return;
+    }
+    var total = order.lines.reduce(function (t, l) {
+      return t + l.unitCents * l.quantity;
+    }, 0);
+    var money = function (cents) {
+      return usd.format(cents / 100);
+    };
+
+    var list = form.querySelector('[data-demo-lines]');
+    list.textContent = '';
+    order.lines.forEach(function (l) {
+      var name = el('span', { class: 'min-w-0' }, [
+        doc.createTextNode(l.title + ' '),
+        el('span', { class: 'text-ivory/60', text: '× ' + l.quantity }),
+      ]);
+      if (l.detail)
+        name.appendChild(
+          el('span', { class: 'block text-[0.8rem] text-ivory/55', text: l.detail }),
+        );
+      list.appendChild(
+        el('li', { class: 'flex items-baseline justify-between gap-4 text-[0.95rem]' }, [
+          name,
+          el('span', { class: 'tabular-nums', text: money(l.unitCents * l.quantity) }),
+        ]),
+      );
+    });
+    form.querySelector('[data-demo-total]').textContent = money(total);
+    var payLabel = form.querySelector('[data-demo-pay-label]');
+    payLabel.textContent = 'Pay ' + money(total);
+    form.querySelector('[data-demo-reference]').textContent =
+      'Reference ' + order.reference + '. Demo only: nothing is charged.';
+    var back = root.querySelector('[data-demo-back]');
+    if (back && order.kind === 'event') {
+      back.setAttribute('href', '#' + order.back.href);
+      back.textContent = '← Back to booking';
+    }
+    if (!order.shipping) {
+      var ship = form.querySelector('[data-demo-shipping]');
+      if (ship) ship.remove();
+      var row = form.querySelector('[data-demo-shipping-row]');
+      if (row) row.remove();
+    }
+    if (order.email) form.querySelector('#demo-email').value = order.email;
+
+    var card = form.querySelector('#demo-card');
+    var brand = form.querySelector('[data-demo-brand]');
+    var names = { visa: 'Visa', mastercard: 'Mastercard', amex: 'American Express' };
+    function showBrand() {
+      var b = brandOf(card.value);
+      brand.textContent = names[b] || '';
+    }
+    card.addEventListener('input', function () {
+      card.value = formatCard(card.value);
+      showBrand();
+    });
+    var exp = form.querySelector('#demo-exp');
+    exp.addEventListener('input', function () {
+      exp.value = formatExp(exp.value);
+    });
+    var cvc = form.querySelector('#demo-cvc');
+    cvc.addEventListener('input', function () {
+      cvc.value = onlyDigits(cvc.value).slice(0, brandOf(card.value) === 'amex' ? 4 : 3);
+    });
+    Array.prototype.forEach.call(form.querySelectorAll('[data-demo-fill]'), function (b) {
+      b.addEventListener('click', function () {
+        card.value = formatCard(b.getAttribute('data-demo-fill'));
+        showBrand();
+        setFieldError(form, 'demo-card', null);
+      });
+    });
+
+    var required = [
+      'demo-email',
+      'demo-name',
+      'demo-address1',
+      'demo-city',
+      'demo-state',
+      'demo-zip',
+      'demo-card',
+      'demo-exp',
+      'demo-cvc',
+      'demo-cardname',
+    ].filter(function (id) {
+      return form.querySelector('#' + id);
+    });
+    required.forEach(function (id) {
+      var input = form.querySelector('#' + id);
+      input.addEventListener('blur', function () {
+        if (input.value) setFieldError(form, id, checkField(id, input.value, form));
+      });
+    });
+
+    var errorsBox = form.querySelector('[data-demo-errors]');
+    function showSummary(title, problems) {
+      errorsBox.textContent = '';
+      var box = el(
+        'div',
+        {
+          role: 'alert',
+          tabindex: '-1',
+          class: 'rounded-2xl bg-[#3a1d18] p-5 ring-1 ring-[#e8a598]/40 outline-none',
+        },
+        [el('p', { class: 'flex items-center gap-2 font-semibold text-[#f0b4a8]', text: title })],
+      );
+      if (problems.length) {
+        var ul = el('ul', { class: 'mt-3 list-disc space-y-1 pl-6 text-[0.9rem] text-[#f0b4a8]' });
+        problems.forEach(function (pr) {
+          ul.appendChild(
+            el('li', {}, [
+              el('a', {
+                href: '#/checkout/demo#' + pr[0],
+                class: 'underline',
+                text: PAY_LABELS[pr[0]] + ': ' + pr[1],
+              }),
+            ]),
+          );
+        });
+        box.appendChild(ul);
+      }
+      errorsBox.appendChild(box);
+      box.focus();
+    }
+
+    var payButton = form.querySelector('[data-demo-pay]');
+    var busy = false;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (busy) return;
+      var problems = [];
+      required.forEach(function (id) {
+        var message = checkField(id, form.querySelector('#' + id).value, form);
+        setFieldError(form, id, message);
+        if (message) problems.push([id, message]);
+      });
+      if (problems.length) {
+        showSummary('Some details need attention before you pay.', problems);
+        return;
+      }
+      errorsBox.textContent = '';
+      busy = true;
+      payButton.disabled = true;
+      payLabel.textContent = 'Processing…';
+      var outcome = TEST_OUTCOMES[onlyDigits(card.value)];
+      setTimeout(function () {
+        busy = false;
+        payButton.disabled = false;
+        payLabel.textContent = 'Pay ' + money(total);
+        if (outcome !== 'success') {
+          setFieldError(form, 'demo-card', DECLINES[outcome]);
+          showSummary('Your payment did not go through.', [['demo-card', DECLINES[outcome]]]);
+          return;
+        }
+        try {
+          sessionStorage.removeItem(ORDER_KEY);
+        } catch {
+          // Nothing to tidy.
+        }
+        pendingOrder = null;
+        if (order.kind === 'books') writeCart([], false);
+        var value = function (id) {
+          var input = form.querySelector('#' + id);
+          return input ? input.value.trim() : '';
+        };
+        var deliver = order.shipping
+          ? [
+              value('demo-name'),
+              value('demo-address1'),
+              value('demo-address2'),
+              value('demo-city') +
+                ', ' +
+                value('demo-state').toUpperCase() +
+                ' ' +
+                value('demo-zip'),
+            ]
+              .filter(Boolean)
+              .join(', ')
+          : null;
+        var detail = function (label, text, wide) {
+          return el('div', { class: 'min-w-0' + (wide ? ' sm:col-span-2' : '') }, [
+            el('dt', { class: 'type-eyebrow text-ivory/55', text: label }),
+            el('dd', { class: 'mt-1 break-words', text: text }),
+          ]);
+        };
+        var dl = el(
+          'dl',
+          {
+            class:
+              'mt-10 grid gap-x-8 gap-y-5 rounded-2xl bg-ink/60 p-7 ring-1 ring-ivory/10 sm:grid-cols-2',
+          },
+          [
+            detail('Reference', order.reference),
+            detail('Paid (demo)', money(total)),
+            detail(
+              order.kind === 'books' ? 'Books' : 'Booking',
+              order.lines
+                .map(function (l) {
+                  return l.title + ' × ' + l.quantity;
+                })
+                .join('; '),
+              true,
+            ),
+          ],
+        );
+        if (deliver) dl.appendChild(detail('Deliver to', deliver, true));
+        dl.appendChild(detail('Email', value('demo-email'), true));
+        var done = el(
+          'div',
+          { role: 'status', tabindex: '-1', class: 'mx-auto max-w-2xl outline-none' },
+          [
+            el('span', {
+              class: 'grid size-16 place-items-center rounded-full bg-gold text-ink',
+              html: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+            }),
+            el('h2', { class: 'type-display-md mt-6', text: 'Payment complete' }),
+            el('p', {
+              class: 'type-lede mt-4 text-ivory/80',
+              text: 'This was a demo payment, so nothing was charged. On the live site, Stripe takes the payment and sends the receipt.',
+            }),
+            dl,
+            el('div', { class: 'mt-8 flex flex-wrap gap-3' }, [
+              el('a', {
+                href: '#' + order.back.href,
+                class: 'mg-cart-button',
+                text: order.back.label,
+              }),
+            ]),
+          ],
+        );
+        form.replaceWith(done);
+        done.focus();
+      }, 1200);
+    });
+  }
+
   function enhance(root, route) {
     fillImages(root);
     enhanceShop(root);
+    enhanceDemoCheckout(root);
     enhanceBooking(root);
     enhanceForms(root);
     enhanceVideos(root);

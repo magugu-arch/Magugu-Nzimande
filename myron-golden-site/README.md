@@ -70,6 +70,7 @@ build with the mode you intend to serve.
 | `/events`, `/events/[slug]`                              | Upcoming/Past, list/month views, format/type/month filters; expiry is automatic                  |
 | `/events/[slug]/book`                                    | Booking: seats, details, order summary; Stripe Checkout for paid seats                           |
 | `/bookings/confirmed`, `/bookings/cancelled`             | Where Stripe returns people; "paid" only when Stripe says so                                     |
+| `/checkout/demo`                                         | Preview only: the payment step (details, card, Pay) standing in for Stripe until a key is set    |
 | `/cart`, `/orders/confirmed`                             | Book cart (add, change, remove, clear with undo) and Stripe Checkout for books                   |
 | `/api/stripe/webhook`                                    | Stripe's signed notice that a payment settled; records it against the booking reference          |
 | `/learn`, `/learn/[slug]`                                | Library with search, topic and type filters; click-to-load video                                 |
@@ -282,6 +283,26 @@ its price per copy (US cents) and the most copies per order.
   returns to `/cart` with the cart untouched and says nothing was charged.
 - **Not included yet:** stock levels, sales tax (Stripe Tax can be switched
   on), discount codes, digital editions and refunds from the site.
+
+## Payment step in preview
+
+Until a Stripe key is set, Check out (cart) and Continue to payment (paid
+event seats) lead to `/checkout/demo`, a stand-in for Stripe's hosted page,
+so the whole journey can be reviewed: contact, delivery address (books
+only), card, Pay, a short processing pause, and a confirmation with the
+reference. Event bookings are still validated and recorded by the server
+first; the cart empties after a paid demo order.
+
+It cannot take a payment. Only Stripe's published test cards are accepted
+(4242 4242 4242 4242 succeeds; 4000 0000 0000 0002 declines; 4000 0000 0000
+9995 fails for insufficient funds); any other number, real or not, is
+refused. The card fields have no `name`, the form has no action, and nothing
+typed is stored or sent. Card numbers are grouped as typed and the brand is
+shown; errors appear by the field once it is left, and all together on Pay.
+Production answers 404 for the page and never links to it; with a Stripe
+key set, checkout goes to Stripe instead. The rules live in
+`lib/demo-payment.ts` (unit-tested) and are ported to the single-file export,
+where the same journey works offline.
 
 ## Single-file export
 
