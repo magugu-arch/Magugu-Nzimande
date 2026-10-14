@@ -777,6 +777,8 @@
 
   var OFFLINE =
     'This is a downloaded copy of the site, so nothing was sent. On the live site this form delivers to the team, and only says “sent” once it has been.';
+  var OFFLINE_BOOKING =
+    'This is a downloaded copy of the site, so no seats were booked and no payment was taken. On the live site, paid seats go to Stripe’s secure checkout, and the site confirms a booking only once Stripe has confirmed the payment.';
 
   function enhanceForms(root) {
     Array.prototype.forEach.call(root.querySelectorAll('form[data-offline-form]'), function (form) {
@@ -806,9 +808,12 @@
           note.focus();
           return;
         }
+        var booking = form.hasAttribute('data-booking-form');
         var done = el('div', { class: 'mg-notice', role: 'status', tabindex: '-1' }, [
-          el('h3', { text: 'Preview only — not sent' }),
-          el('p', { text: OFFLINE }),
+          el('h3', {
+            text: booking ? 'Preview only — nothing booked or charged' : 'Preview only — not sent',
+          }),
+          el('p', { text: booking ? OFFLINE_BOOKING : OFFLINE }),
         ]);
         form.replaceWith(done);
         done.focus();
@@ -1130,8 +1135,61 @@
     else form.after(box);
   }
 
+  // Booking: the seat stepper and the live order total, as the site's form does.
+  var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+  function enhanceBooking(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('form[data-booking-form]'), function (form) {
+      var input = form.querySelector('#quantity');
+      if (!input) return;
+      var max = Number(form.getAttribute('data-max')) || 1;
+      var unitAttr = form.getAttribute('data-unit-cents');
+      var unit = unitAttr === '' || unitAttr === null ? null : Number(unitAttr);
+      var live = form.querySelector('[aria-live]');
+
+      function render() {
+        var qty = clamp(Math.round(Number(input.value)) || 1, 1, max);
+        var total =
+          unit === null ? 'To be confirmed' : unit === 0 ? 'Free' : usd.format((unit * qty) / 100);
+        Array.prototype.forEach.call(form.querySelectorAll('[data-booking-qty]'), function (n) {
+          n.textContent = String(qty);
+        });
+        Array.prototype.forEach.call(form.querySelectorAll('[data-booking-total]'), function (n) {
+          n.textContent = total;
+        });
+        if (live) live.textContent = qty + (qty === 1 ? ' seat' : ' seats') + ', total ' + total;
+        Array.prototype.forEach.call(form.querySelectorAll('[data-stepper]'), function (b) {
+          var d = Number(b.getAttribute('data-stepper'));
+          var stuck = (d < 0 && qty <= 1) || (d > 0 && qty >= max);
+          if (stuck) b.setAttribute('aria-disabled', 'true');
+          else b.removeAttribute('aria-disabled');
+          b.style.opacity = stuck ? '0.35' : '';
+        });
+        return qty;
+      }
+
+      Array.prototype.forEach.call(form.querySelectorAll('[data-stepper]'), function (b) {
+        b.addEventListener('click', function () {
+          var qty = clamp(
+            (Math.round(Number(input.value)) || 1) + Number(b.getAttribute('data-stepper')),
+            1,
+            max,
+          );
+          input.value = String(qty);
+          render();
+        });
+      });
+      input.addEventListener('input', render);
+      input.addEventListener('blur', function () {
+        input.value = String(render());
+      });
+      render();
+    });
+  }
+
   function enhance(root, route) {
     fillImages(root);
+    enhanceBooking(root);
     enhanceForms(root);
     enhanceVideos(root);
     enhanceGalleries(root);

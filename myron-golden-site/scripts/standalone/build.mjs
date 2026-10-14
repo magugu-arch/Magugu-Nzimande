@@ -96,6 +96,37 @@ function processInPage({ selector, route, keep }) {
     return target.startsWith('/images/myron/') ? target.split('/').pop() : null;
   };
 
+  // Prerendered Suspense content arrives as a hidden <div id="S:n"> that an
+  // inline $RC("B:n","S:n") script swaps in for the fallback. Scripts are off
+  // during capture, so make the same swap here, or the export would keep the
+  // loading placeholder instead of the content. Idempotent across calls.
+  const swaps = [];
+  document.querySelectorAll('script').forEach((s) => {
+    for (const m of s.textContent.matchAll(/\$RC\("([^"]+)","([^"]+)"\)/g))
+      swaps.push([m[1], m[2]]);
+  });
+  for (const [boundaryId, segmentId] of swaps) {
+    const segment = document.getElementById(segmentId);
+    const marker = document.getElementById(boundaryId)?.previousSibling; // <!--$?-->
+    if (!segment || !marker) continue;
+    const parent = marker.parentNode;
+    let n = marker.nextSibling;
+    let depth = 0;
+    while (n) {
+      if (n.nodeType === Node.COMMENT_NODE) {
+        if (n.data === '/$') {
+          if (depth === 0) break;
+          depth--;
+        } else if (n.data === '$' || n.data === '$?' || n.data === '$!') depth++;
+      }
+      const next = n.nextSibling;
+      n.remove();
+      n = next;
+    }
+    while (segment.firstChild) parent.insertBefore(segment.firstChild, n);
+    segment.remove();
+  }
+
   const source = document.querySelector(selector);
   if (!source) return null;
   const node = source.cloneNode(true);

@@ -10,6 +10,7 @@ import type { Governance, PublishStatus } from '@/content/types';
 import { contentHref } from './links';
 import { buildSearchIndex } from './search-index';
 import { SITE_MODE } from './env';
+import { paymentsState } from './payments';
 
 type Provenance = Pick<Governance, 'source' | 'lastReviewed' | 'needsConfirmation'> & {
   id: string;
@@ -67,6 +68,28 @@ export function buildSiteMetadata() {
       events: events.map((e) => provenance(e, e.title, `/events/${e.slug}`)),
       library: content.map((c) => provenance(c, c.title, contentHref(c))),
       testimonials: testimonials.map((t) => provenance(t, 'Client story placeholder', null)),
+    },
+    bookings: {
+      provider: 'Stripe Checkout (hosted page; card details never reach the site)',
+      checkout: (() => {
+        const state = paymentsState();
+        return state.ready ? `on (${state.mode} mode)` : `off (${state.reason})`;
+      })(),
+      liveRequires: 'Production mode, a live Stripe key and PAYMENTS_LIVE_APPROVED=true',
+      events: events
+        .filter((e) => e.booking)
+        .map((e) => ({
+          id: e.id,
+          title: e.title,
+          href: `/events/${e.slug}/book`,
+          status: e.booking!.status,
+          ticketName: e.booking!.ticketName,
+          priceCents: e.booking!.priceCents,
+          priceStatus:
+            e.booking!.priceCents === null ? 'to-confirm' : e.isDemo ? 'demo-value' : 'confirmed',
+          maxPerOrder: e.booking!.maxPerOrder,
+          isDemo: !!e.isDemo,
+        })),
     },
     assets: assetList.map((a) => ({
       id: a.id,

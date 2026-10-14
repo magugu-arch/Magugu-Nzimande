@@ -108,6 +108,25 @@ export interface Book extends Governance {
 export type EventFormat = 'online' | 'in-person';
 export type EventType = 'workshop' | 'keynote' | 'live-training' | 'networking' | 'fireside';
 
+/**
+ * Booking on this site, with payment through Stripe Checkout. An event with
+ * an outside `ticketUrl` keeps sending people there instead.
+ */
+export interface EventBooking {
+  /** `open` takes bookings; `closed` and `sold-out` show why not. */
+  status: 'open' | 'closed' | 'sold-out';
+  /** What one seat is called on the form, the receipt and Stripe. */
+  ticketName: string;
+  /**
+   * Price of one seat in US cents, copied from the authorised price list.
+   * 0 means free registration. Null means the price is not confirmed: the
+   * form takes a booking request and nobody is asked to pay. Never estimated.
+   */
+  priceCents: number | null;
+  /** Most seats one order can hold. */
+  maxPerOrder: number;
+}
+
 export interface SiteEvent extends Governance {
   id: string;
   slug: string;
@@ -127,6 +146,8 @@ export interface SiteEvent extends Governance {
   capacityNote: string | null;
   refundPolicyUrl: string | null;
   registrationCutoff: string | null;
+  /** Null: no booking on this site (an outside ticket link, or none yet). */
+  booking: EventBooking | null;
   status: PublishStatus;
   image: string;
 }

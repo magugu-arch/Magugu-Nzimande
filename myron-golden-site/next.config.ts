@@ -19,7 +19,8 @@ const contentSecurityPolicy = [
   "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
   'frame-src https://www.youtube-nocookie.com',
   "frame-ancestors 'none'",
-  "form-action 'self'",
+  // Checkout without JavaScript is a form post that Stripe answers with a redirect.
+  "form-action 'self' https://checkout.stripe.com",
   "base-uri 'self'",
   "object-src 'none'",
 ].join('; ');

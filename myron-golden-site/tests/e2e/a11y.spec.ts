@@ -20,6 +20,8 @@ const routes = [
   '/insights/purpose-at-work',
   '/events',
   '/events/business-growth-workshop',
+  '/events/business-growth-workshop/book',
+  '/bookings/cancelled',
   '/speaking',
   '/press',
   '/contact',

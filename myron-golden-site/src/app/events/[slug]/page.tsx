@@ -8,9 +8,10 @@ import { Pill, Section } from '@/components/ui/Section';
 import { CalendarIcon, ClockIcon, GlobeIcon, PinIcon } from '@/components/ui/icons';
 import { ButtonLink } from '@/components/ui/Button';
 import type { SiteEvent } from '@/content/types';
+import { availabilityMessages, bookingAvailability, formatUsd } from '@/lib/booking';
 import { getEvent, getEvents, staticParams } from '@/lib/content';
 import { eventFormatLabels, eventTypeLabels, formatEventDate, formatEventTime } from '@/lib/events';
-import { getEventBuckets } from '@/lib/events-server';
+import { getBookingClock, getEventBuckets } from '@/lib/events-server';
 import { pageMetadata } from '@/lib/seo';
 
 /**
@@ -57,24 +58,68 @@ async function Registration({ event }: { event: SiteEvent }) {
     );
   }
 
+  if (event.ticketUrl) {
+    return (
+      <div className="rounded-2xl bg-ink/60 p-6 ring-1 ring-ivory/10">
+        <OutboundLink
+          href={event.ticketUrl}
+          campaign={`event-${event.slug}`}
+          event="event_registration_start"
+          label={event.slug}
+          variant="primary"
+          size="lg"
+          className="w-full"
+        >
+          Register
+        </OutboundLink>
+        <p className="mt-3 text-[0.85rem] text-ivory/60">
+          Registration opens on the ticketing partner’s site.
+        </p>
+        <CapacityNote event={event} />
+      </div>
+    );
+  }
+
+  const availability = bookingAvailability(event, await getBookingClock());
+  if (event.booking && availability === 'open') {
+    const price = event.booking.priceCents;
+    return (
+      <div className="rounded-2xl bg-ink/60 p-6 ring-1 ring-ivory/10">
+        <p className="type-eyebrow text-gold">{event.booking.ticketName}</p>
+        <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-2">
+          <span className="font-display text-[2rem] leading-none font-semibold">
+            {price === null ? 'Price to be confirmed' : price === 0 ? 'Free' : formatUsd(price)}
+          </span>
+          {price ? <span className="text-ivory/60">per seat</span> : null}
+          {event.isDemo && price ? <Pill tone="demo">Demo price</Pill> : null}
+        </p>
+        <ButtonLink href={`/events/${event.slug}/book`} size="lg" className="mt-6 w-full" arrow>
+          {price === null ? 'Request seats' : price === 0 ? 'Register' : 'Book seats'}
+        </ButtonLink>
+        <p className="mt-3 text-[0.85rem] text-ivory/60">
+          {price === null
+            ? 'Send a request; the team confirms the price and your seats by email.'
+            : price === 0
+              ? `Up to ${event.booking.maxPerOrder} seats per registration.`
+              : `Up to ${event.booking.maxPerOrder} seats per order. Payment by card on Stripe’s secure checkout.`}
+        </p>
+        <CapacityNote event={event} />
+      </div>
+    );
+  }
+
+  const closed =
+    availability === 'closed' || availability === 'sold-out' || availability === 'cutoff-passed'
+      ? availabilityMessages[availability]
+      : null;
   return (
     <div className="rounded-2xl bg-ink/60 p-6 ring-1 ring-ivory/10">
-      {event.ticketUrl ? (
+      {closed ? (
         <>
-          <OutboundLink
-            href={event.ticketUrl}
-            campaign={`event-${event.slug}`}
-            event="event_registration_start"
-            label={event.slug}
-            variant="primary"
-            size="lg"
-            className="w-full"
-          >
-            Register
-          </OutboundLink>
-          <p className="mt-3 text-[0.85rem] text-ivory/60">
-            Registration opens on the ticketing partner’s site.
-          </p>
+          <Pill tone="muted">
+            {availability === 'sold-out' ? 'Fully booked' : 'Booking closed'}
+          </Pill>
+          <p className="mt-3 text-ivory/80">{closed}</p>
         </>
       ) : (
         <>
@@ -87,11 +132,15 @@ async function Registration({ event }: { event: SiteEvent }) {
           </ButtonLink>
         </>
       )}
-      {event.capacityNote ? (
-        <p className="mt-4 text-[0.875rem] text-ivory/70">{event.capacityNote}</p>
-      ) : null}
+      <CapacityNote event={event} />
     </div>
   );
+}
+
+function CapacityNote({ event }: { event: SiteEvent }) {
+  return event.capacityNote ? (
+    <p className="mt-4 text-[0.875rem] text-ivory/70">{event.capacityNote}</p>
+  ) : null;
 }
 
 export default async function EventPage({ params }: PageProps<'/events/[slug]'>) {

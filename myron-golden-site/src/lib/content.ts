@@ -87,6 +87,11 @@ export function getEvent(slug: string): SiteEvent | undefined {
   return getEvents().find((e) => e.slug === slug);
 }
 
+/** Events with booking on this site (open or not); outside ticket links take precedence. */
+export function getBookableEvents(mode?: SiteMode): SiteEvent[] {
+  return getEvents(mode).filter((e) => e.booking !== null && !e.ticketUrl);
+}
+
 // ---------- Learning library ----------
 
 export function getContent(mode?: SiteMode): ContentItem[] {

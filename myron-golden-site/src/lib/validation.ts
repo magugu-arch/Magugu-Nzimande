@@ -17,12 +17,14 @@ const email = z
   .max(254, 'Enter a shorter email address.')
   .email('Enter an email address in the format name@example.com.');
 
-const consent = z
-  .string()
-  .optional()
-  .refine((v) => v === 'on' || v === 'true', {
-    message: 'Confirm you are happy for us to use these details to reply.',
-  });
+/**
+ * A ticked checkbox sends "on"; an unticked one sends nothing at all. Zod 4
+ * skips refinements on absent optional keys, so this must be a required
+ * enum — `.optional().refine()` would let a missing tick through.
+ */
+const checkbox = (message: string) => z.enum(['on', 'true'], { message });
+
+const consent = checkbox('Confirm you are happy for us to use these details to reply.');
 
 /** Empty strings from untouched optional fields become undefined. */
 const optionalText = (max: number) =>
@@ -136,6 +138,34 @@ export const newsletterSchema = z.object({
   consent,
 });
 
+/**
+ * Event booking. The seat limit here is the outer bound; the action also
+ * checks the event's own `maxPerOrder`. Price never comes from the form.
+ */
+export const BOOKING_MAX_SEATS = 20;
+
+export const bookingIntents = ['pay', 'reserve', 'request'] as const;
+
+export const bookingSchema = z.object({
+  eventSlug: z.string().trim().min(1).max(120),
+  intent: z.enum(bookingIntents).default('pay'),
+  quantity: z.coerce
+    .number({ message: 'Choose how many seats.' })
+    .int('Choose a whole number of seats.')
+    .min(1, 'Choose at least one seat.')
+    .max(BOOKING_MAX_SEATS, `Book up to ${BOOKING_MAX_SEATS} seats at a time.`),
+  name: requiredText('your name', 120),
+  email,
+  phone: optionalText(40).refine(
+    (v) => v === undefined || /^[+()\-.\s\d]{6,40}$/.test(v),
+    'Enter a phone number using digits, spaces and + ( ) - only.',
+  ),
+  attendees: optionalText(1000),
+  accessNeeds: optionalText(1000),
+  consent: checkbox('Confirm you have read the refund policy and terms.'),
+});
+
+export type BookingRequest = z.infer<typeof bookingSchema>;
 export type SpeakingEnquiry = z.infer<typeof speakingEnquirySchema>;
 export type ContactMessage = z.infer<typeof contactSchema>;
 export type NewsletterSignup = z.infer<typeof newsletterSchema>;

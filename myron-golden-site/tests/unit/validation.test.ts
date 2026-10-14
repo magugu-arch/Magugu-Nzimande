@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  bookingSchema,
   contactSchema,
   fieldErrors,
   formDataToObject,
@@ -43,6 +44,38 @@ describe('speaking enquiry', () => {
     const r = speakingEnquirySchema.safeParse({ ...validEnquiry, consent: undefined });
     expect(r.success).toBe(false);
     if (!r.success) expect(fieldErrors(r.error).consent).toMatch(/^Confirm/);
+  });
+
+  // Regression: an unticked checkbox sends no key at all, and Zod 4 skips
+  // refinements on absent optional keys — every form must still refuse it.
+  it('refuses a form posted with the consent box unticked', () => {
+    const post = (fields: Record<string, string>) => {
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(fields)) fd.append(k, v);
+      return formDataToObject(fd);
+    };
+    const enquiry: Record<string, string> = { ...validEnquiry };
+    delete enquiry.consent;
+    const cases = [
+      speakingEnquirySchema.safeParse(post(enquiry)),
+      contactSchema.safeParse(
+        post({
+          category: 'general',
+          name: 'Ada',
+          email: 'ada@example.com',
+          subject: 'Hello',
+          message: 'A message long enough to send.',
+        }),
+      ),
+      newsletterSchema.safeParse(post({ email: 'ada@example.com' })),
+      bookingSchema.safeParse(
+        post({ eventSlug: 'x', quantity: '1', name: 'Ada', email: 'ada@example.com' }),
+      ),
+    ];
+    for (const r of cases) {
+      expect(r.success).toBe(false);
+      if (!r.success) expect(fieldErrors(r.error).consent).toMatch(/^Confirm/);
+    }
   });
 
   it('rejects a malformed email and an invalid date', () => {

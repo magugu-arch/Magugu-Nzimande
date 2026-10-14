@@ -65,7 +65,15 @@ test.describe('mobile menu', () => {
   });
 
   test('pages never scroll sideways', async ({ page }) => {
-    for (const path of ['/', '/about', '/events', '/speaking', '/learn', '/books/boss-moves']) {
+    for (const path of [
+      '/',
+      '/about',
+      '/events',
+      '/speaking',
+      '/learn',
+      '/books/boss-moves',
+      '/events/business-growth-workshop/book',
+    ]) {
       await page.goto(path);
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

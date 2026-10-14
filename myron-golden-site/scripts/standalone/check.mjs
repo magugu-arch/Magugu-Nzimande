@@ -143,6 +143,26 @@ ok(
   'form offline success',
   (await page.locator('.mg-notice[role="status"]').textContent()).includes('nothing was sent'),
 );
+// Booking
+await page.goto(file + '#/events/business-growth-workshop/book');
+await page.waitForTimeout(200);
+await page.click('button[aria-label="One seat more"]');
+await page.click('button[aria-label="One seat more"]');
+ok(
+  'booking stepper and total',
+  (await page.locator('#quantity').inputValue()) === '3' &&
+    (await page.locator('[data-booking-total]').textContent()).trim() === '$300.00',
+);
+await page.click('button:has-text("Continue to payment")');
+ok('booking invalid notice', await page.locator('.mg-notice[role="alert"]').isVisible());
+await page.fill('input[name="name"]', 'Test');
+await page.fill('input[name="email"]', 'test@example.com');
+await page.check('input[name="consent"]');
+await page.click('button:has-text("Continue to payment")');
+ok(
+  'booking offline: nothing booked or charged',
+  (await page.locator('.mg-notice[role="status"]').textContent()).includes('no payment was taken'),
+);
 // Search
 await page.goto(file + '#/search?q=offers');
 await page.waitForTimeout(200);

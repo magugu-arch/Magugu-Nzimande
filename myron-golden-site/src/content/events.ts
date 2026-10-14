@@ -7,6 +7,10 @@ import type { SiteEvent } from './types';
  * (brief §7, demo fixtures). None of them is a real engagement. In
  * production every record with `isDemo` is dropped at the data layer, so the
  * events page shows its empty state until the team supplies verified events.
+ *
+ * The two upcoming fixtures take bookings so the booking and payment flow can
+ * be tested end to end: one as free registration, one with a DEMO price.
+ * Both prices are test values for fake events and say so wherever they show.
  */
 const DEMO = {
   isDemo: true,
@@ -34,6 +38,7 @@ export const events: SiteEvent[] = [
     capacityNote: null,
     refundPolicyUrl: official.returnPolicy,
     registrationCutoff: null,
+    booking: { status: 'open', ticketName: 'Online seat', priceCents: 0, maxPerOrder: 4 },
     status: 'active',
     image: 'MG-18',
     ...DEMO,
@@ -56,6 +61,12 @@ export const events: SiteEvent[] = [
     capacityNote: null,
     refundPolicyUrl: official.returnPolicy,
     registrationCutoff: null,
+    booking: {
+      status: 'open',
+      ticketName: 'General admission',
+      priceCents: 10000,
+      maxPerOrder: 6,
+    },
     status: 'active',
     image: 'MG-29',
     ...DEMO,
@@ -77,6 +88,7 @@ export const events: SiteEvent[] = [
     capacityNote: null,
     refundPolicyUrl: null,
     registrationCutoff: null,
+    booking: null,
     status: 'active',
     image: 'MG-09',
     ...DEMO,
@@ -98,6 +110,7 @@ export const events: SiteEvent[] = [
     capacityNote: null,
     refundPolicyUrl: null,
     registrationCutoff: null,
+    booking: null,
     status: 'active',
     image: 'MG-32',
     ...DEMO,
@@ -119,6 +132,7 @@ export const events: SiteEvent[] = [
     capacityNote: null,
     refundPolicyUrl: null,
     registrationCutoff: null,
+    booking: null,
     status: 'active',
     image: 'MG-30',
     ...DEMO,
@@ -140,6 +154,7 @@ export const events: SiteEvent[] = [
     capacityNote: null,
     refundPolicyUrl: null,
     registrationCutoff: null,
+    booking: null,
     status: 'active',
     image: 'MG-08',
     ...DEMO,

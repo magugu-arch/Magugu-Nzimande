@@ -12,7 +12,9 @@ import { content } from '@/content/learn';
 import { programs } from '@/content/programs';
 import { socialAccounts } from '@/content/site';
 import { demoEnquiries, testimonials } from '@/content/testimonials';
+import { formatUsd } from '@/lib/booking';
 import { IS_PREVIEW } from '@/lib/env';
+import { paymentsBlockText, paymentsState } from '@/lib/payments';
 
 export const metadata: Metadata = {
   title: 'Content review',
@@ -27,6 +29,7 @@ export const metadata: Metadata = {
 export default function ReviewPage() {
   if (!IS_PREVIEW) notFound();
 
+  const payments = paymentsState();
   const outstanding =
     [...programs, ...books, ...events, ...content, ...testimonials].reduce(
       (n, r) => n + r.needsConfirmation.length,
@@ -106,6 +109,58 @@ export default function ReviewPage() {
               e.isDemo ? 'Yes' : 'No',
               e.needsConfirmation.join('; '),
             ])}
+          />
+          <Table
+            title="Bookings"
+            head={['Event', 'Booking', 'Price per seat', 'Seats per order', 'Before launch']}
+            rows={events
+              .filter((e) => e.booking)
+              .map((e) => {
+                const price = e.booking!.priceCents;
+                return [
+                  <Link key="t" href={`/events/${e.slug}/book`} className="font-semibold underline">
+                    {e.title}
+                  </Link>,
+                  <StatusTag key="s" value={e.booking!.status} />,
+                  price === null
+                    ? 'To be confirmed (requests only)'
+                    : `${price === 0 ? 'Free' : formatUsd(price)}${e.isDemo ? ' — demo value' : ''}`,
+                  String(e.booking!.maxPerOrder),
+                  e.isDemo
+                    ? 'Demo event and price: replace with a real event and the authorised price'
+                    : 'Price confirmed against the authorised price list',
+                ];
+              })}
+          />
+          <Table
+            title="Payments"
+            head={['Item', 'State', 'Notes']}
+            rows={[
+              [
+                'Checkout',
+                payments.ready ? `On — Stripe ${payments.mode} mode` : 'Off',
+                payments.ready
+                  ? 'Stripe’s hosted checkout page; card details never reach this site.'
+                  : paymentsBlockText[payments.reason],
+              ],
+              [
+                'Payment webhook',
+                process.env.STRIPE_WEBHOOK_SECRET ? 'Signing secret set' : 'Not set',
+                '/api/stripe/webhook records each settled payment with the booking reference.',
+              ],
+              [
+                'Booking destination',
+                process.env.BOOKING_WEBHOOK_URL || process.env.ENQUIRY_WEBHOOK_URL
+                  ? 'Set'
+                  : 'Not set — preview logs instead',
+                'Where requests, registrations and paid bookings are sent (BOOKING_WEBHOOK_URL).',
+              ],
+              [
+                'Live payments',
+                'Need owner approval',
+                'Production mode, a live key and PAYMENTS_LIVE_APPROVED=true, all three.',
+              ],
+            ]}
           />
           <Table
             title="Learning library (all demo)"

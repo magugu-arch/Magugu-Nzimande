@@ -68,6 +68,9 @@ build with the mode you intend to serve.
 | `/programs`, `/programs/[slug]`                          | Catalogue with status flags; detail pages hand off to the official platform                      |
 | `/books`, `/books/[slug]`                                | Books with official purchase links; mock-up covers are labelled as such                          |
 | `/events`, `/events/[slug]`                              | Upcoming/Past, list/month views, format/type/month filters; expiry is automatic                  |
+| `/events/[slug]/book`                                    | Booking: seats, details, order summary; Stripe Checkout for paid seats                           |
+| `/bookings/confirmed`, `/bookings/cancelled`             | Where Stripe returns people; "paid" only when Stripe says so                                     |
+| `/api/stripe/webhook`                                    | Stripe's signed notice that a payment settled; records it against the booking reference          |
 | `/learn`, `/learn/[slug]`                                | Library with search, topic and type filters; click-to-load video                                 |
 | `/insights`, `/insights/[slug]`                          | Articles                                                                                         |
 | `/speaking`                                              | Topics, formats, booking process, full enquiry form                                              |
@@ -82,11 +85,13 @@ build with the mode you intend to serve.
 
 ```
 src/
-  app/            routes, server actions (actions.ts), sitemap, robots
+  app/            routes, server actions (actions.ts, bookings/actions.ts), sitemap, robots
+  app/api/        the Stripe webhook
   proxy.ts        real 404s for unknown slugs (see below)
   components/     layout, cards, forms, media (Photo, Gallery, Parallax, VideoFacade), ui
   content/        typed records — the CMS-ready content model
-  lib/            data access, events, search, validation, delivery, motion physics, SEO
+  lib/            data access, events, booking, payments, search, validation, delivery,
+                  motion physics, SEO
 tests/unit        Vitest
 tests/e2e         Playwright
 ```
@@ -197,6 +202,56 @@ The rate limiter is in memory, so it is per instance. On serverless or
 multi-instance hosting, back it with a shared store (Upstash Redis or the
 host's limiter).
 
+## Bookings and payments
+
+Events can take bookings on the site. Each event's `booking` field
+(`src/content/types.ts`) sets the seat name, the price per seat in US cents,
+the most seats per order and whether booking is open. An event with an
+outside `ticketUrl` keeps sending people there instead.
+
+- **Price decides the flow.** A price → card payment through **Stripe
+  Checkout**. `0` → free registration. `null` → the price is not confirmed,
+  so the form sends a booking request and nobody is asked to pay. Prices are
+  never estimated, and the form never sends one: the server reads it from the
+  event record.
+- **The form** (`components/booking/BookingForm.tsx`) is one page: seats,
+  details, confirm, with the order summary beside it on wide screens. The
+  seat stepper keeps focus at its limits; the total rolls in the direction of
+  the change on a critically damped spring (cross-fade with reduced motion).
+  It is a real form posting to a Server Action, so it also works without
+  JavaScript.
+- **Paying.** The action (`app/bookings/actions.ts`) re-checks everything, sends
+  the full details to the team (`BOOKING_WEBHOOK_URL`) with a reference such as
+  `MG-7KQ2-H9TX`, then opens a Checkout Session and redirects to Stripe's
+  hosted page. Card details never reach this site, and names, phone numbers
+  and access needs never go into Stripe metadata; the reference ties the two
+  together. Sessions use an idempotency key, so a double-submit cannot open
+  two checkouts.
+- **After payment.** `/bookings/confirmed` asks Stripe for the session and
+  says "Payment received" only when Stripe reports it paid.
+  `/api/stripe/webhook` verifies Stripe's signature (HMAC-SHA256, 5-minute
+  replay window) and records settled payments; if recording fails it answers
+  500, so Stripe retries. Receivers should de-duplicate on `stripeEventId`.
+- **Guard rails.** Checkout stays off without `STRIPE_SECRET_KEY`. A live key
+  works only in production **and** with `PAYMENTS_LIVE_APPROVED=true`, set
+  with the owner's written approval; a test key is refused in production;
+  production also needs a booking destination. While checkout is off,
+  production shows "Send booking request" instead of a Pay button; preview
+  keeps the Pay button so the flow can be reviewed, and stops before Stripe
+  with "nothing was charged" and an offer to send a request instead. `/review`
+  shows the current state.
+- **Demo data.** Two upcoming demo events take bookings: free registration
+  and a $100.00 **demo price**, labelled as such wherever it appears. Like
+  all demo records, they do not exist in production.
+- **Not included yet:** seat inventory (capacity is not enforced; it needs a
+  database), refunds from the site (handled in the Stripe dashboard), tax,
+  discount codes and booking emails sent by the site (the team's webhook
+  receiver or Stripe's receipts handle confirmation emails).
+
+To try paid checkout end to end, set a Stripe **test** key and run
+`stripe listen --forward-to localhost:3000/api/stripe/webhook` for the webhook
+secret.
+
 ## Single-file export
 
 `npm run export:html` writes `dist/myron-golden-site.html`: every page of the
@@ -215,7 +270,12 @@ server. It is built from the real pages, not a mock-up:
   embedded index, the video facade, copy buttons and the hero parallax. The
   month calendar view is omitted; the list carries every event.
 - Forms cannot send from a file. They validate, then say plainly that nothing
-  was sent.
+  was sent; the booking form says no seats were booked and nothing was charged.
+  Its seat stepper and total work as on the site.
+- Sections Next.js streams behind `<Suspense>` arrive as a hidden block that
+  a script swaps in. Capture runs with scripts off, so the export makes the
+  same swap itself; without it, those sections would export as loading
+  placeholders.
 - **Metadata.** The `<head>` carries the title, description, canonical URL,
   Open Graph and Twitter cards, robots (`noindex` for a preview build), theme
   colour, icon, generator, date and commit, plus Person, Organization,
@@ -231,6 +291,11 @@ CI builds the file, checks it and keeps it as a workflow artifact.
 
 ## Known issues
 
+- Fixed in this round: every form accepted a submission with its consent box
+  unticked. An unticked checkbox sends no field at all, and Zod 4 skips
+  refinements on absent optional keys, so `.optional().refine()` let it
+  through. Consent is now a required enum, with a regression test that posts
+  each form without the field.
 - `npm audit` reports five high-severity advisories, all one chain in
   development tooling: `eslint-config-next` → `@next/eslint-plugin-next` →
   `fast-glob` → `micromatch` → `braces` (stack exhaustion on deeply nested
@@ -245,20 +310,21 @@ CI builds the file, checks it and keeps it as a workflow artifact.
 
 ## Ready vs requires owner credentials or approval
 
-| Area                                                                | State                                                                                                        |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Pages, navigation, search, filters, calendar, gallery, video facade | **Ready** (preview data)                                                                                     |
-| Forms (validation, spam, rate limit, states)                        | **Ready**. Delivery needs webhook URLs, plus a shared rate-limit store for multi-instance hosting            |
-| Email list / CRM                                                    | Needs the owner's ESP or CRM and a webhook; double opt-in is configured there                                |
-| Analytics                                                           | Needs `NEXT_PUBLIC_GA_ID`; consent banner and events are wired, off until set                                |
-| Member portal                                                       | Needs `NEXT_PUBLIC_MEMBER_PORTAL_URL`                                                                        |
-| Payments / checkout                                                 | **Not built, by design.** Every offer hands off to its official platform                                     |
-| CMS                                                                 | Content model ready; CMS choice and accounts needed                                                          |
-| Events                                                              | All six are demo fixtures; needs the authorised calendar                                                     |
-| Learning library                                                    | All eight are demo fixtures; needs official video IDs, dates and transcripts                                 |
-| Social links                                                        | TikTok `@myrongoldenofficial` confirmed; YouTube, Instagram, Facebook, X and LinkedIn hidden until confirmed |
-| Legal pages                                                         | Placeholders that link to the official policies; need approved text                                          |
-| Logo                                                                | A typeset wordmark stands in for the official logo                                                           |
+| Area                                                                | State                                                                                                          |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Pages, navigation, search, filters, calendar, gallery, video facade | **Ready** (preview data)                                                                                       |
+| Forms (validation, spam, rate limit, states)                        | **Ready**. Delivery needs webhook URLs, plus a shared rate-limit store for multi-instance hosting              |
+| Email list / CRM                                                    | Needs the owner's ESP or CRM and a webhook; double opt-in is configured there                                  |
+| Analytics                                                           | Needs `NEXT_PUBLIC_GA_ID`; consent banner and events are wired, off until set                                  |
+| Member portal                                                       | Needs `NEXT_PUBLIC_MEMBER_PORTAL_URL`                                                                          |
+| Event bookings and payments                                         | **Ready** in preview and Stripe test mode. Live payments need a Stripe account, owner approval and real prices |
+| Program checkout                                                    | Not on this site, by design: every program hands off to its official platform                                  |
+| CMS                                                                 | Content model ready; CMS choice and accounts needed                                                            |
+| Events                                                              | All six are demo fixtures; needs the authorised calendar                                                       |
+| Learning library                                                    | All eight are demo fixtures; needs official video IDs, dates and transcripts                                   |
+| Social links                                                        | TikTok `@myrongoldenofficial` confirmed; YouTube, Instagram, Facebook, X and LinkedIn hidden until confirmed   |
+| Legal pages                                                         | Placeholders that link to the official policies; need approved text                                            |
+| Logo                                                                | A typeset wordmark stands in for the official logo                                                             |
 
 ## Launch checklist
 
@@ -270,6 +336,8 @@ record-level detail.
 - [ ] Supply exact book covers, confirm synopses, formats, ISBNs and purchase URLs
 - [ ] Confirm each program's status, inclusions, price display and destination
 - [ ] Supply verified events (dates, time zones, venues, tickets, refund terms)
+- [ ] For each event booked on the site: confirm price per seat, seats per order and refund terms
+- [ ] Payments: Stripe account in the owner's name, test-mode run-through, webhook endpoint and secret, written approval, then `PAYMENTS_LIVE_APPROVED=true` with the live key
 - [ ] Replace or approve every concept image; obtain likeness and rights sign-off
 - [ ] Supply approved testimonials with written consent, if any
 - [ ] Confirm the remaining social accounts
