@@ -10,5 +10,8 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|standard-navigation|@tanstack/.*)',
   ],
+  // The Next.js site in myron-golden-site/ runs its own tests with Vitest.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/myron-golden-site/'],
+  modulePathIgnorePatterns: ['<rootDir>/myron-golden-site/'],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
 };

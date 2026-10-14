@@ -1,0 +1,10 @@
+.next
+node_modules
+public
+package-lock.json
+next-env.d.ts
+test-results
+playwright-report
+.screenshots
+# written and re-written by `next dev`
+AGENTS.md

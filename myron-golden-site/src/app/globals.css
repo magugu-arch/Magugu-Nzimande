@@ -1,0 +1,511 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. The palette is the brief's proposed direction (section 4),
+ * plus one navy drawn from the photography so gradients meet the images
+ * without a seam. Gold is an accent: it is never body text on ivory, where it
+ * falls well short of 4.5:1.
+ */
+@theme {
+  --color-ink: #111114;
+  --color-charcoal: #1b1b1f;
+  --color-midnight: #0d1422;
+  --color-gold: #cba45d;
+  --color-gold-bright: #e2c48a;
+  --color-gold-deep: #8a6a2e;
+  --color-ivory: #f8f5ee;
+  --color-stone: #e8e1d5;
+  --color-slate: #6b6870;
+  --color-mist: #b9b5ae;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-quint: cubic-bezier(0.64, 0, 0.78, 0);
+
+  --breakpoint-xs: 26rem;
+}
+
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-cormorant), ui-serif, Georgia, 'Times New Roman', serif;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --gutter: 1.25rem;
+    --header-h: 4rem;
+  }
+
+  @media (min-width: 48rem) {
+    :root {
+      --gutter: 2rem;
+      --header-h: 4.5rem;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    :root {
+      --gutter: 3rem;
+    }
+  }
+
+  html {
+    background: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  body {
+    background: var(--color-ink);
+    color: var(--color-ivory);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.65;
+    letter-spacing: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-gold) 45%, transparent);
+    color: var(--color-ivory);
+  }
+
+  /* One focus ring everywhere: visible on ink and on ivory alike. */
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .surface-ivory :focus-visible {
+    outline-color: var(--color-gold-deep);
+  }
+
+  /* Native controls (checkboxes, date pickers) follow the surface they sit on. */
+  .surface-ivory {
+    color-scheme: light;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+/*
+ * Type. Tracking is per size, never one value: display sizes tighten as they
+ * grow, the small uppercase labels open up. Leading runs the other way.
+ */
+@utility type-display-xl {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.75rem, 5.2vw + 0.9rem, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.022em;
+  font-optical-sizing: auto;
+  text-wrap: balance;
+}
+
+@utility type-display-lg {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.25rem, 3.4vw + 1rem, 4.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+
+@utility type-display-md {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.875rem, 1.8vw + 1.2rem, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+@utility type-display-sm {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 0.8vw + 1.2rem, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.006em;
+  text-wrap: balance;
+}
+
+@utility type-title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1.1875rem;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+@utility type-lede {
+  font-size: clamp(1.0625rem, 0.35vw + 1rem, 1.25rem);
+  line-height: 1.6;
+  letter-spacing: -0.003em;
+  text-wrap: pretty;
+}
+
+@utility type-eyebrow {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@utility type-small {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  letter-spacing: 0.004em;
+}
+
+@utility container-site {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility prose-site {
+  max-width: 42rem;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+
+  & > * + * {
+    margin-top: 1.15em;
+  }
+
+  & h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.875rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-top: 2em;
+  }
+
+  & h3 {
+    font-weight: 600;
+    font-size: 1.1875rem;
+    line-height: 1.35;
+    margin-top: 1.6em;
+  }
+
+  & ul {
+    list-style: disc;
+    padding-left: 1.25em;
+  }
+
+  & li + li {
+    margin-top: 0.4em;
+  }
+
+  & a {
+    text-decoration: underline;
+  }
+}
+
+/* ---------- Header: a material that arrives, not a bar that sits there ---------- */
+
+.site-header {
+  --material-alpha: 0;
+  --material-blur: 0px;
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  height: var(--header-h);
+  background: rgb(17 17 20 / var(--material-alpha));
+  -webkit-backdrop-filter: blur(var(--material-blur)) saturate(170%);
+  backdrop-filter: blur(var(--material-blur)) saturate(170%);
+  transition:
+    background-color 360ms var(--ease-out-quint),
+    backdrop-filter 360ms var(--ease-out-quint),
+    -webkit-backdrop-filter 360ms var(--ease-out-quint);
+}
+
+.site-header[data-elevated='true'] {
+  --material-alpha: 0.68;
+  --material-blur: 22px;
+}
+
+/* A scroll-edge fade where content passes under the header, in place of a divider. */
+.site-header::after {
+  content: '';
+  position: absolute;
+  inset: 100% 0 auto 0;
+  height: 1.5rem;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(17 17 20 / 0.35), transparent);
+  opacity: 0;
+  transition: opacity 360ms var(--ease-out-quint);
+}
+
+.site-header[data-elevated='true']::after {
+  opacity: 1;
+}
+
+/* Over the hero, before the material arrives, a soft top shade keeps the wordmark legible. */
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -2rem 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(10 12 18 / 0.55), transparent);
+  opacity: 1;
+  transition: opacity 360ms var(--ease-out-quint);
+}
+
+.site-header[data-elevated='true']::before {
+  opacity: 0;
+}
+
+/* ---------- Press feedback: on pointer-down, instantly ---------- */
+
+.pressable {
+  transition:
+    transform 100ms ease-out,
+    background-color 200ms var(--ease-out-quint),
+    color 200ms var(--ease-out-quint),
+    border-color 200ms var(--ease-out-quint),
+    box-shadow 300ms var(--ease-out-quint);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pressable:active {
+  transform: scale(0.97);
+}
+
+/* Cards lift a few pixels; everything in them stays readable without hover. */
+.lift {
+  transition:
+    transform 420ms var(--ease-out-quint),
+    border-color 300ms var(--ease-out-quint),
+    box-shadow 420ms var(--ease-out-quint);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover {
+    transform: translateY(-4px);
+  }
+
+  .lift:hover .lift-image {
+    transform: scale(1.025);
+  }
+}
+
+.lift:active {
+  transform: translateY(-1px) scale(0.99);
+  transition-duration: 100ms;
+}
+
+.lift-image {
+  transition: transform 900ms var(--ease-out-quint);
+}
+
+/* ---------- Reveal on scroll: only once the observer is running ---------- */
+
+html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+html[data-reveal-ready] [data-reveal] {
+  transition:
+    opacity 700ms var(--ease-out-quint),
+    transform 900ms var(--ease-out-quint);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* ---------- Drawer items follow the sheet in, a beat behind ---------- */
+
+.drawer-item {
+  opacity: 0;
+  transform: translateX(28px);
+  transition:
+    opacity 420ms var(--ease-out-quint),
+    transform 520ms var(--ease-out-quint);
+}
+
+[data-state='open'] .drawer-item {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Gold geometry: drawn once, decorative only ---------- */
+
+.gold-draw path,
+.gold-draw line,
+.gold-draw circle {
+  stroke-dasharray: var(--len, 1200);
+  stroke-dashoffset: var(--len, 1200);
+  animation: gold-draw 2.4s var(--ease-out-quint) 0.3s forwards;
+}
+
+@keyframes gold-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---------- Accordions built on <details> ---------- */
+
+.accordion summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion .accordion-icon {
+  transition: transform 320ms var(--ease-out-quint);
+}
+
+.accordion[open] .accordion-icon {
+  transform: rotate(45deg);
+}
+
+@supports (interpolate-size: allow-keywords) {
+  .accordion {
+    interpolate-size: allow-keywords;
+  }
+
+  .accordion::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 360ms var(--ease-out-quint),
+      content-visibility 360ms allow-discrete;
+  }
+
+  .accordion[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* ---------- Horizontal rails use the platform's own scroll physics ---------- */
+
+.rail {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+  padding-inline: var(--gutter);
+  scrollbar-width: none;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.rail > * {
+  scroll-snap-align: start;
+}
+
+/* ---------- Grain: a little texture on flat dark fields ---------- */
+
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+
+.grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Preferences: motion, transparency, contrast ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
+    transform: none;
+  }
+
+  html[data-reveal-ready] [data-reveal] {
+    transition: opacity 240ms ease;
+    transition-delay: 0ms;
+  }
+
+  .lift,
+  .lift-image,
+  .pressable {
+    transition-property: opacity, background-color, color, border-color;
+  }
+
+  .lift:hover,
+  .lift:active,
+  .pressable:active {
+    transform: none;
+  }
+
+  .lift:hover .lift-image {
+    transform: none;
+  }
+
+  .drawer-item {
+    transform: none;
+    transition: opacity 200ms ease;
+  }
+
+  .gold-draw path,
+  .gold-draw line,
+  .gold-draw circle {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .accordion::details-content {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-header[data-elevated='true'] {
+    background: var(--color-ink);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .material {
+    background: var(--color-charcoal) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .site-header[data-elevated='true'] {
+    background: var(--color-ink);
+    border-bottom: 1px solid var(--color-ivory);
+  }
+
+  .text-ivory\/70,
+  .text-ivory\/75,
+  .text-ivory\/80 {
+    color: var(--color-ivory) !important;
+  }
+
+  .material {
+    background: var(--color-ink) !important;
+    border: 1px solid var(--color-ivory) !important;
+  }
+}

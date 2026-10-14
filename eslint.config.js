@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // A separate Next.js project with its own lint, type and test setup.
+      'myron-golden-site/**',
     ],
   },
   {
