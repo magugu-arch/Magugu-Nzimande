@@ -157,12 +157,59 @@ function social() {
   return tags.join('\n  ');
 }
 
+/**
+ * The booking flow's payment settings. Deposits go through PayFast's hosted
+ * checkout: the page only posts the order to PayFast, and card details are
+ * typed on PayFast's own page, never on this one. "test" uses PayFast's public
+ * sandbox account, so the whole flow can be tried without moving money.
+ */
+const PAYFAST = {
+  test: {
+    processUrl: 'https://sandbox.payfast.co.za/eng/process',
+    merchantId: '10000100',
+    merchantKey: '46f0cd694581a',
+    // Published in PayFast's developer docs for the shared sandbox account,
+    // which rejects unsigned orders. Never put a live passphrase in the page.
+    passphrase: 'jt7NOE43FZPn',
+  },
+  live: { processUrl: 'https://www.payfast.co.za/eng/process' },
+};
+
+function booking() {
+  const b = site.booking ?? {};
+  const fail = (why) => {
+    console.error(`site.json booking: ${why}`);
+    process.exit(1);
+  };
+  if (!['test', 'live'].includes(b.mode)) fail('mode must be "test" or "live"');
+  if (!(Number(b.depositZAR) >= 5)) fail('depositZAR must be at least R5, PayFast’s minimum');
+  if (!/^[^@\s]+@[^@\s]+$/.test(b.email ?? '')) fail('email must be the bookings address');
+  const pf = b.payfast ?? {};
+  if (b.mode === 'live' && !(pf.merchantId && pf.merchantKey)) {
+    fail('live mode needs payfast.merchantId and payfast.merchantKey from the PayFast dashboard');
+  }
+  if (pf.notifyUrl && !/^https:\/\//.test(pf.notifyUrl)) fail('payfast.notifyUrl must be https');
+  const config = {
+    mode: b.mode,
+    processUrl: PAYFAST[b.mode].processUrl,
+    merchantId: b.mode === 'test' ? PAYFAST.test.merchantId : pf.merchantId,
+    merchantKey: b.mode === 'test' ? PAYFAST.test.merchantKey : pf.merchantKey,
+    passphrase: b.mode === 'test' ? PAYFAST.test.passphrase : '',
+    notifyUrl: pf.notifyUrl || '',
+    deposit: Number(b.depositZAR).toFixed(2),
+    email: b.email,
+  };
+  // Inside a <script>: never let a value close the element early.
+  return JSON.stringify(config).replace(/</g, '\\u003c');
+}
+
 const used = new Map();
 const template = readFileSync(path.join(here, 'src', 'index.html'), 'utf8');
 const html = template.replace(
-  /\{\{(img|src):([\w-]+)\}\}|\{\{(icon|social)\}\}/g,
+  /\{\{(img|src):([\w-]+)\}\}|\{\{(icon|social|booking)\}\}/g,
   (token, kind, id, name) => {
     if (name === 'social') return social();
+    if (name === 'booking') return booking();
     if (name === 'icon') {
       const buf = readFileSync(path.join(IMAGES, 'apple-touch-icon.png'));
       return `data:image/png;base64,${buf.toString('base64')}`;
@@ -192,3 +239,6 @@ const mb = (Buffer.byteLength(html) / 1024 / 1024).toFixed(2);
 console.log(
   `Wrote ${path.relative(process.cwd(), out)} — ${mb} MB, ${manifest.images.length} images inline`,
 );
+if (site.booking.mode === 'test') {
+  console.log('Bookings take deposits in PayFast TEST mode (sandbox): no real money moves.');
+}

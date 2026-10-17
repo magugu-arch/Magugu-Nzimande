@@ -1,5 +1,11 @@
 {
   "siteUrl": "",
   "ogImageUrl": "https://raw.githubusercontent.com/magugu-arch/Magugu-Nzimande/054b49a7ff7ef8e0c76bdf439e528a1392836dee/sites/thandiswa-mazwai/images/og-image.jpg",
-  "indexable": false
+  "indexable": false,
+  "booking": {
+    "mode": "test",
+    "depositZAR": 5000,
+    "email": "thandiswabookings@gmail.com",
+    "payfast": { "merchantId": "", "merchantKey": "", "notifyUrl": "" }
+  }
 }

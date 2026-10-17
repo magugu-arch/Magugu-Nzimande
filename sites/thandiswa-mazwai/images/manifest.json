@@ -7,8 +7,14 @@
       "section": "Hero",
       "alt": "Thandiswa Mazwai singing into a microphone on stage, in a turquoise ruffled outfit with cowrie shells in her braids",
       "master": [2752, 1536],
-      "width": 2200,
-      "variants": [{ "id": "IMG_7137-portrait", "crop": [1381, 0, 2610, 1536], "width": 1170 }]
+      "width": 2752,
+      "variants": [
+        {
+          "id": "IMG_7137-tall",
+          "crop": [1276, 0, 2198, 1536],
+          "width": 922
+        }
+      ]
     },
     {
       "id": "IMG_7138",
@@ -185,5 +191,9 @@
     "size": [1200, 630],
     "alt": "Thandiswa Mazwai singing on stage in turquoise, with cowrie shells in her braids"
   },
-  "icon": { "from": "IMG_7145", "crop": [413, 280, 1533, 1400], "size": 180 }
+  "icon": {
+    "from": "IMG_7145",
+    "crop": [413, 280, 1533, 1400],
+    "size": 180
+  }
 }
