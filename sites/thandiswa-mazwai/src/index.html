@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Thandiswa Mazwai — A Living Archive of Sound</title>
+  <meta name="description" content="The music, story and stage of Thandiswa Mazwai, South African singer-songwriter. Explore Sankofa, the discography, live dates and booking enquiries.">
+  <!-- Link-preview tags sit first: chat apps read only the top of a large page. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Thandiswa Mazwai">
+  <meta property="og:locale" content="en_ZA">
+  <meta property="og:title" content="Thandiswa Mazwai — A Living Archive of Sound">
+  <meta property="og:description" content="Tradition in conversation with the future. The music, the story, the stage and the archive of the South African singer-songwriter.">
+  {{social}}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Thandiswa Mazwai — A Living Archive of Sound">
+  <meta name="twitter:description" content="Tradition in conversation with the future.">
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-title" content="Thandiswa">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230b0d10%22/%3E%3Cpath d=%22M15 16h8v32h-8zm13 0h8v32h-8zm13 0h8v32h-8z%22 fill=%22%23d9a76b%22/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="{{icon}}">
+  <script>document.documentElement.className += ' js';</script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Thandiswa Mazwai",
+    "jobTitle": "Singer-songwriter",
+    "nationality": { "@type": "Country", "name": "South Africa" },
+    "description": "South African singer-songwriter whose music brings traditional Xhosa rhythms into conversation with kwaito, jazz, reggae, funk and contemporary African sounds.",
+    "url": "https://thandiswa.com/",
+    "sameAs": ["https://thandiswa.com/"]
+  }
+  </script>
+  <style>
+    :root {
+      --ink: #0b0d10;
+      --ink-2: #101318;
+      --warm: #14100c;
+      --night: #070809;
+      --paper: #efe9df;
+      --text: #f3eee6;
+      --text-2: rgba(243, 238, 230, 0.74);
+      --text-3: rgba(243, 238, 230, 0.58);
+      --hair: rgba(243, 238, 230, 0.14);
+      --teal: #4cc7d1;
+      --amber: #d9a76b;
+      --clay: #9a4529;
+      --accent: var(--teal);
+      --serif: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif", "Droid Serif", serif;
+      --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --gutter: clamp(1.25rem, 5vw, 4rem);
+      --pad-l: max(var(--gutter), env(safe-area-inset-left));
+      --pad-r: max(var(--gutter), env(safe-area-inset-right));
+      --max: 80rem;
+      --radius: 12px;
+      --header: 3.5rem;
+      --gap: clamp(0.5rem, 1.2vw, 1rem);
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html {
+      background: var(--ink);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      scroll-padding-top: calc(var(--header) + env(safe-area-inset-top) + 0.5rem);
+    }
+    body {
+      margin: 0;
+      background: var(--ink);
+      font: 400 1rem/1.55 var(--sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+    @supports (overflow: clip) { body { overflow-x: clip; } }
+    [hidden] { display: none !important; }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; }
+    a, button, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    button { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+    ::selection { background: var(--teal); color: var(--ink); }
+
+    .skip {
+      position: fixed; z-index: 200; left: 1rem; top: calc(env(safe-area-inset-top) + 0.5rem);
+      padding: 0.75rem 1rem; border-radius: 999px; background: var(--text); color: var(--ink);
+      font-weight: 600; text-decoration: none; transform: translateY(-200%);
+    }
+    .skip:focus { transform: none; }
+
+    /* Type: tracking tightens as size grows; leading loosens as it shrinks. */
+    h1, h2, h3 { margin: 0; font-family: var(--serif); font-weight: 400; text-wrap: balance; }
+    .display { font-size: clamp(3.25rem, 15vw, 9rem); line-height: 0.9; letter-spacing: -0.035em; }
+    .h2 { font-size: clamp(2.375rem, 6.4vw, 5rem); line-height: 0.98; letter-spacing: -0.028em; }
+    .h3 { font-size: clamp(1.75rem, 3.4vw, 2.75rem); line-height: 1.05; letter-spacing: -0.02em; }
+    .h2 em, .h3 em { font-style: italic; color: var(--accent); }
+    .eyebrow {
+      margin: 0 0 1rem; color: var(--accent);
+      font: 600 0.75rem/1.3 var(--sans); letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    .lede { margin: 0; max-width: 34rem; color: var(--text-2); font-size: clamp(1.125rem, 1.7vw, 1.375rem); line-height: 1.45; letter-spacing: -0.005em; }
+    .copy > p:not(.eyebrow):not(.lede):not(.meta) { max-width: 36rem; margin: 0 0 1.1em; color: var(--text-2); font-size: 1.0625rem; line-height: 1.62; }
+    .fine { margin: 1.25rem 0 0; color: var(--text-3); font-size: 0.8125rem; line-height: 1.5; }
+    .meta { margin: 0 0 0.75rem; color: var(--accent); font: 600 0.75rem/1.3 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; }
+
+    .wrap { max-width: var(--max); margin-inline: auto; padding-left: var(--pad-l); padding-right: var(--pad-r); }
+    .section { padding-block: clamp(4.5rem, 11vw, 9rem); }
+    .head { display: grid; gap: 1.25rem; margin-bottom: clamp(2.5rem, 6vw, 4.5rem); }
+    .head .side { margin: 0; max-width: 24rem; color: var(--text-2); line-height: 1.6; }
+    @media (min-width: 900px) {
+      .head { grid-template-columns: 1fr minmax(16rem, 22rem); align-items: end; gap: 3rem; }
+    }
+
+    /* Section palettes: each one redefines the tokens rather than the rules. */
+    .paper { background: var(--paper); color: #17140f; --text-2: #51493f; --text-3: #6d6457; --hair: rgba(23, 20, 15, 0.16); --accent: var(--clay); }
+    .tone-music { background: var(--ink-2); --accent: var(--amber); }
+    .tone-warm { background: var(--warm); --accent: var(--amber); }
+    .tone-live { background: var(--ink); --accent: var(--teal); }
+
+    /* Buttons answer on press, not on release. */
+    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      min-height: 3rem; padding: 0 1.375rem; border: 1px solid transparent; border-radius: 999px;
+      font: 600 0.9375rem/1 var(--sans); letter-spacing: -0.005em; text-decoration: none; cursor: pointer;
+      transition: transform 0.1s ease-out, background-color 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--text); color: var(--ink); }
+    .btn-primary:hover { background: #fff; }
+    .btn-ghost { border-color: rgba(243, 238, 230, 0.42); color: var(--text); background: transparent; }
+    .btn-ghost:hover { border-color: var(--text); background: rgba(243, 238, 230, 0.08); }
+    .paper .btn-primary { background: #17140f; color: var(--paper); }
+    .paper .btn-primary:hover { background: #000; }
+    .link { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.75rem; color: var(--accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.3em; }
+    .link:hover { text-decoration-thickness: 2px; }
+
+    /* Header: a translucent material layer the page scrolls under. */
+    .site-header {
+      position: fixed; inset: 0 0 auto; z-index: 50;
+      padding-top: env(safe-area-inset-top);
+      background: rgba(11, 13, 16, 0.74);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--hair);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .js .site-header:not(.is-scrolled):not(.menu-open) {
+      background: linear-gradient(rgba(11, 13, 16, 0.6), rgba(11, 13, 16, 0));
+      border-bottom-color: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: var(--header); max-width: var(--max); margin-inline: auto; padding-left: var(--pad-l); padding-right: var(--pad-r); }
+    .brand { color: var(--text); font: 400 1.25rem/1 var(--serif); letter-spacing: -0.01em; text-decoration: none; white-space: nowrap; }
+    .nav { display: none; align-items: center; gap: clamp(1rem, 2.2vw, 2rem); }
+    .nav a { padding: 0.5rem 0; color: var(--text-2); font-size: 0.875rem; text-decoration: none; transition: color 0.2s; }
+    .nav a:hover { color: var(--text); }
+    .nav .pill { padding: 0.5rem 0.95rem; border-radius: 999px; background: var(--text); color: var(--ink); font-weight: 600; }
+    .nav .pill:hover { color: var(--ink); background: #fff; }
+    .menu summary {
+      display: flex; align-items: center; gap: 0.6rem; min-height: 2.75rem; padding: 0 0.25rem;
+      list-style: none; cursor: pointer; font-size: 0.9375rem; color: var(--text);
+    }
+    .menu summary::-webkit-details-marker { display: none; }
+    .burger { position: relative; width: 18px; height: 10px; }
+    .burger::before, .burger::after { content: ""; position: absolute; left: 0; right: 0; height: 1.5px; border-radius: 1px; background: currentColor; transition: transform 0.25s var(--ease-out); }
+    .burger::before { top: 0; }
+    .burger::after { bottom: 0; }
+    .menu[open] .burger::before { transform: translateY(4.25px) rotate(45deg); }
+    .menu[open] .burger::after { transform: translateY(-4.25px) rotate(-45deg); }
+    .menu-panel {
+      position: fixed; left: 0; right: 0; top: calc(var(--header) + env(safe-area-inset-top));
+      max-height: calc(100vh - var(--header) - env(safe-area-inset-top));
+      overflow: auto; padding: 0.5rem var(--pad-r) 2rem var(--pad-l);
+      background: rgba(11, 13, 16, 0.94);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--hair);
+      transform-origin: top center;
+      animation: drop 0.32s var(--ease-out);
+    }
+    .menu-panel a { display: block; padding: 0.7rem 0; border-bottom: 1px solid var(--hair); color: var(--text); font: 400 1.75rem/1.2 var(--serif); letter-spacing: -0.015em; text-decoration: none; }
+    .menu-panel a:active { color: var(--accent); }
+    @keyframes drop { from { opacity: 0; transform: translateY(-0.5rem); } }
+    @media (min-width: 900px) {
+      .nav { display: flex; }
+      .menu { display: none; }
+    }
+
+    /* Hero */
+    .hero {
+      position: relative; isolation: isolate; overflow: hidden;
+      display: flex; align-items: flex-end;
+      min-height: 100vh; min-height: 100svh;
+      padding: calc(var(--header) + env(safe-area-inset-top) + 2rem) 0 clamp(2.5rem, 6vw, 4.5rem);
+    }
+    .hero-media { position: absolute; inset: 0; z-index: -2; display: block; margin: 0; }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: 72% 30%; }
+    .hero::after {
+      content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(11, 13, 16, 0.82) 0%, rgba(11, 13, 16, 0.45) 38%, rgba(11, 13, 16, 0) 62%),
+        linear-gradient(0deg, rgba(11, 13, 16, 0.92) 0%, rgba(11, 13, 16, 0) 46%);
+    }
+    .hero-copy { width: 100%; }
+    .hero .display { margin: 0.25rem 0 1.25rem; }
+    @media (orientation: portrait) and (max-width: 1100px) {
+      .hero-media img { object-position: 50% 22%; }
+    }
+    @media (max-width: 700px) {
+      .hero { display: block; min-height: 0; padding: calc(var(--header) + env(safe-area-inset-top)) 0 1rem; }
+      .hero::after { display: none; }
+      .hero-media { position: relative; inset: auto; aspect-ratio: 4 / 5; }
+      .hero-media::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 48%; background: linear-gradient(0deg, var(--ink) 4%, rgba(11, 13, 16, 0)); }
+      .hero-copy { position: relative; margin-top: -7rem; }
+      .hero .lede { font-size: 1.0625rem; }
+    }
+    @supports not (aspect-ratio: 1) {
+      @media (max-width: 700px) { .hero-media { height: 125vw; } }
+    }
+    @media (orientation: landscape) and (max-height: 540px) {
+      .hero { min-height: 0; padding-top: calc(var(--header) + 3rem); }
+      .hero .display { font-size: clamp(2.75rem, 9vw, 4.5rem); }
+    }
+
+    /* Photographs. Each figure sets its shape; the image fills it. */
+    .ph { position: relative; margin: 0; overflow: hidden; border-radius: var(--radius); background: #1a1c21; }
+    .ph > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s var(--ease-out); }
+    .paper .ph { background: #d8cfc0; }
+    .r45 { aspect-ratio: 4 / 5; }
+    .r43 { aspect-ratio: 4 / 3; }
+    .r32 { aspect-ratio: 3 / 2; }
+    .r11 { aspect-ratio: 1 / 1; }
+    .r169 { aspect-ratio: 16 / 9; }
+    @supports not (aspect-ratio: 1) {
+      .ph::before { content: ""; display: block; padding-top: 125%; }
+      .r43::before { padding-top: 75%; }
+      .r32::before { padding-top: 66.67%; }
+      .r11::before { padding-top: 100%; }
+      .r169::before { padding-top: 56.25%; }
+    }
+    .ph figcaption {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; pointer-events: none;
+      padding: 2.5rem 1rem 0.85rem;
+      background: linear-gradient(0deg, rgba(7, 8, 9, 0.6), rgba(7, 8, 9, 0));
+      color: #f3eee6; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.01em;
+    }
+    .zoom {
+      position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; margin: 0; padding: 0;
+      border: 0; border-radius: inherit; background: transparent; cursor: zoom-in;
+    }
+    .zoom:focus-visible { outline-offset: -4px; }
+    .ph:has(.zoom:active) > img, .banner-media:has(.zoom:active) > img { transform: scale(0.985); transition-duration: 0.12s; }
+
+    /* Full-bleed banners: copy sits in the photograph's own negative space. */
+    .banner { position: relative; }
+    .banner-media { position: relative; margin: 0; overflow: hidden; }
+    .banner-media > img { width: 100%; height: auto; transition: transform 0.5s var(--ease-out); }
+    .banner-copy { position: absolute; inset: 0; display: flex; align-items: center; pointer-events: none; }
+    .banner-text { position: relative; z-index: 3; max-width: min(34rem, 44%); pointer-events: auto; }
+    .banner .h2 { font-size: clamp(2.375rem, 4.6vw, 4.5rem); }
+    .banner--right .banner-copy { justify-content: flex-end; }
+    .banner--left .banner-media::after, .banner--right .banner-media::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+    .banner--left .banner-media::after { background: linear-gradient(90deg, rgba(11, 13, 16, 0.55), rgba(11, 13, 16, 0) 55%); }
+    .banner--right .banner-media::after { background: linear-gradient(270deg, rgba(11, 13, 16, 0.55), rgba(11, 13, 16, 0) 55%); }
+    .banner .lede { margin-top: 1.25rem; }
+    @media (max-width: 1099px) {
+      .banner-media > img { aspect-ratio: 1 / 1; object-fit: cover; object-position: var(--focus, 50% 50%); }
+      .banner-media::after { display: none; }
+      .banner-copy { position: static; display: block; padding-top: 2rem; }
+      .banner-text { max-width: 40rem; }
+    }
+
+    /* Statement */
+    .statement { background: var(--ink); --accent: var(--teal); }
+    @media (max-width: 1099px) { .statement .banner-copy { padding-bottom: 1rem; } }
+    @media (min-width: 700px) and (max-width: 1099px) {
+      .banner-media > img { aspect-ratio: 16 / 9; }
+    }
+
+    /* Story */
+    .story-grid { display: grid; gap: clamp(2.5rem, 6vw, 6rem); align-items: center; }
+    .story-grid .ph { max-width: 34rem; width: 100%; justify-self: end; }
+    .quote { margin: 2rem 0 1.5rem; padding-left: 1.25rem; border-left: 2px solid var(--accent); }
+    .quote p { margin: 0; max-width: 32rem; font: 400 clamp(1.375rem, 2.4vw, 1.875rem)/1.25 var(--serif); letter-spacing: -0.012em; color: inherit; }
+    .quote footer { margin-top: 0.75rem; color: var(--text-3); font-size: 0.8125rem; }
+    .roots { display: grid; gap: var(--gap); grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: clamp(4rem, 9vw, 7rem); align-items: start; }
+    .roots-copy { grid-column: 1 / -1; margin-bottom: 1rem; }
+    .roots-copy p { margin: 1rem 0 0; max-width: 28rem; color: var(--text-2); line-height: 1.6; }
+    .roots .offset { margin-top: 18%; }
+    @media (min-width: 900px) {
+      .story-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+      .roots { grid-template-columns: minmax(0, 4fr) minmax(0, 4fr) minmax(0, 4fr); }
+      .roots-copy { grid-column: auto; align-self: end; margin-bottom: 18%; }
+    }
+
+    /* Music */
+    .feature { display: grid; gap: clamp(1.5rem, 5vw, 4.5rem); align-items: center; padding-bottom: clamp(3.5rem, 8vw, 6rem); border-bottom: 1px solid var(--hair); }
+    .feature .big { font-size: clamp(3.25rem, 8vw, 6.5rem); line-height: 0.9; letter-spacing: -0.035em; margin-bottom: 1.25rem; }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0 1.75rem; padding: 0; list-style: none; }
+    .tags li { padding: 0.45rem 0.8rem; border: 1px solid var(--hair); border-radius: 999px; color: var(--text-2); font-size: 0.8125rem; }
+    .disco { display: grid; gap: clamp(2rem, 5vw, 4.5rem); padding-top: clamp(3.5rem, 8vw, 6rem); align-items: start; }
+    .discs { margin: 1.5rem 0 0; padding: 0; list-style: none; border-top: 1px solid var(--hair); }
+    .discs a {
+      display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) auto; align-items: baseline; gap: 0.25rem 1rem;
+      padding: 1.1rem 0; border-bottom: 1px solid var(--hair); text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    .discs a:active { background: rgba(243, 238, 230, 0.05); }
+    .discs .yr { color: var(--text-3); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+    .discs .t { font: 400 clamp(1.375rem, 2.6vw, 1.875rem)/1.15 var(--serif); letter-spacing: -0.015em; }
+    .discs .n { grid-column: 2; color: var(--text-2); font-size: 0.875rem; }
+    .discs .ar { grid-row: 1; grid-column: 3; color: var(--accent); }
+    @media (min-width: 900px) {
+      .feature { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }
+      .disco { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+      .disco .ph { position: sticky; top: calc(var(--header) + 2rem); }
+    }
+    @media (max-width: 899px) {
+      .disco .ph { aspect-ratio: 4 / 3; order: 2; }
+      .disco .ph > img { object-position: 50% 55%; }
+    }
+
+    /* Studio */
+    .studio-grid { display: grid; gap: var(--gap); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .studio-grid .a, .studio-grid .b { grid-column: span 2; }
+    @media (min-width: 900px) {
+      .studio-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 3fr) minmax(0, 4fr); }
+      .studio-grid .a { grid-column: 1; grid-row: 1 / 3; aspect-ratio: auto; }
+      .studio-grid .b { grid-column: 2 / 4; grid-row: 1; }
+      .studio-grid .c { grid-column: 2; grid-row: 2; aspect-ratio: auto; }
+      .studio-grid .d { grid-column: 3; grid-row: 2; }
+    }
+
+    /* Live */
+    .live-grid { display: grid; gap: var(--gap); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .live-grid .w, .live-grid .x { grid-column: span 2; }
+    @media (min-width: 900px) {
+      .live-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .live-grid .w { grid-column: 1 / 3; grid-row: 1; aspect-ratio: auto; }
+      .live-grid .t { grid-column: 3; grid-row: 1; }
+      .live-grid .p { grid-column: 1; grid-row: 2; }
+      .live-grid .x { grid-column: 2 / 4; grid-row: 2; aspect-ratio: auto; }
+    }
+    .dates { margin-top: clamp(3.5rem, 8vw, 6rem); }
+    .dates-grid { display: grid; gap: var(--gap); margin-top: 1.75rem; }
+    .card { padding: clamp(1.25rem, 2.6vw, 2rem); border: 1px solid var(--hair); border-radius: var(--radius); background: rgba(243, 238, 230, 0.03); }
+    .card .big-note { margin: 0 0 0.5rem; font: 400 clamp(1.375rem, 2.2vw, 1.75rem)/1.2 var(--serif); letter-spacing: -0.012em; }
+    .card > p:not(.meta):not(.fine) { color: var(--text-2); line-height: 1.55; }
+    .event { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 1rem; align-items: center; padding: 1rem 0; border-top: 1px solid var(--hair); text-decoration: none; }
+    .event time { display: grid; justify-items: start; min-width: 4.25rem; }
+    .event .d { font: 400 2.5rem/1 var(--serif); letter-spacing: -0.03em; }
+    .event .m { color: var(--text-3); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .event strong { display: block; font: 400 1.25rem/1.2 var(--serif); }
+    .event .where { display: block; margin-top: 0.25rem; color: var(--text-2); font-size: 0.875rem; }
+    .event .ar { color: var(--accent); }
+    @media (min-width: 900px) { .dates-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+    /* Archive: a justified row — each column is as wide as its photograph's
+       ratio, so all three land at exactly the same height. */
+    .row3 { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr) minmax(0, 1.4906fr); }
+    .row3 .wide { grid-column: 1 / -1; }
+    .row3 .r-7146 { aspect-ratio: 1 / 1; }
+    .row3 .r-7154 { aspect-ratio: 2528 / 1696; }
+    @media (min-width: 900px) {
+      .row3 { grid-template-columns: minmax(0, 1.7917fr) minmax(0, 1fr) minmax(0, 1.4906fr); }
+      .row3 .wide { grid-column: auto; aspect-ratio: 2752 / 1536; }
+    }
+    .viewall { display: flex; justify-content: center; margin-top: clamp(2rem, 5vw, 3rem); }
+
+    /* Shop + bookings */
+    .split { display: grid; gap: clamp(2rem, 6vw, 6rem); align-items: center; }
+    @media (min-width: 900px) {
+      .split { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }
+      .split--text { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; }
+    }
+    .booking { background: var(--ink); --accent: var(--teal); }
+    .email { display: inline-block; margin-top: 1.25rem; color: var(--text); font-size: 1.0625rem; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 0.3em; word-break: break-all; }
+    .checklist { margin: 1.25rem 0 0; padding: 0; list-style: none; }
+    .checklist li { position: relative; padding: 0.8rem 0 0.8rem 1.75rem; border-top: 1px solid var(--hair); color: var(--text-2); }
+    .checklist li::before { content: ""; position: absolute; left: 0.25rem; top: 1.3rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; border: 1.5px solid var(--accent); }
+
+    /* Footer */
+    .site-footer { padding: clamp(3rem, 7vw, 5rem) 0 calc(2rem + env(safe-area-inset-bottom)); background: var(--night); color: var(--text-2); font-size: 0.875rem; }
+    .foot-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 1.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--hair); }
+    .site-footer .brand { font-size: 1.75rem; }
+    .foot-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; }
+    .foot-nav a { display: inline-flex; align-items: center; min-height: 2.75rem; text-decoration: none; }
+    .foot-nav a:hover { color: var(--text); }
+    .preview-note { max-width: 46rem; margin: 2rem 0 0.75rem; line-height: 1.6; }
+    .preview-note a { color: var(--text); }
+    .legal { margin: 0; color: var(--text-3); font-size: 0.8125rem; }
+
+    /* Entrances run only once script has proved it can reveal them again. */
+    .reveal [data-reveal] { transition: opacity 0.7s var(--ease-out), transform 0.9s var(--ease-out); }
+    .reveal [data-reveal]:not(.is-in) { opacity: 0; transform: translateY(1.5rem); }
+
+    /* Viewer */
+    .viewer-open, .viewer-open body { overflow: hidden; }
+    .viewer { position: fixed; inset: 0; z-index: 100; color: var(--text); touch-action: none; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; }
+    .viewer[hidden] { display: none; }
+    .viewer-scrim { position: absolute; inset: 0; background: #050608; opacity: 0; }
+    .viewer-track { position: absolute; inset: 0; }
+    .viewer-img { position: absolute; max-width: none; transform-origin: 50% 50%; -webkit-user-drag: none; will-change: transform; }
+    .viewer-ui { transition: opacity 0.25s ease-out, visibility 0.25s; }
+    .viewer.ui-hidden .viewer-ui { opacity: 0 !important; visibility: hidden; }
+    .viewer-close, .viewer-step {
+      display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0;
+      border: 0; border-radius: 50%; background: rgba(243, 238, 230, 0.14); color: var(--text); cursor: pointer;
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      transition: transform 0.1s ease-out, background-color 0.2s, opacity 0.2s;
+    }
+    .viewer-close:active, .viewer-step:active { transform: scale(0.92); }
+    .viewer-step:disabled { opacity: 0.3; cursor: default; }
+    .viewer-close { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top) + 0.75rem); right: calc(env(safe-area-inset-right) + 0.75rem); }
+    .viewer-bar {
+      position: absolute; z-index: 2; left: 0; right: 0; bottom: 0;
+      display: grid; grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem; align-items: center; gap: 0.75rem;
+      padding: 0.75rem var(--pad-r) calc(env(safe-area-inset-bottom) + 0.75rem) var(--pad-l);
+    }
+    .viewer-cap { margin: 0; text-align: center; color: var(--text-2); font-size: 0.875rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .viewer-count { display: block; margin-top: 0.2rem; text-align: center; color: var(--text-3); font-size: 0.75rem; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+    .viewer svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+      .reveal [data-reveal]:not(.is-in) { transform: none; }
+    }
+    @media (prefers-reduced-transparency: reduce) {
+      .site-header, .menu-panel { background: var(--ink) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    }
+    @media (prefers-contrast: more) {
+      :root { --text-2: rgba(243, 238, 230, 0.9); --text-3: rgba(243, 238, 230, 0.8); --hair: rgba(243, 238, 230, 0.4); }
+      .paper { --text-2: #2c2620; --text-3: #3a332b; --hair: rgba(23, 20, 15, 0.45); }
+    }
+  </style>
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="bar">
+      <a class="brand" href="#top">Thandiswa Mazwai</a>
+      <nav class="nav" aria-label="Main">
+        <a href="#story">Story</a>
+        <a href="#music">Music</a>
+        <a href="#studio">Studio</a>
+        <a href="#live">Live</a>
+        <a href="#archive">Archive</a>
+        <a class="pill" href="#booking">Bookings</a>
+      </nav>
+      <details class="menu">
+        <summary>Menu <span class="burger" aria-hidden="true"></span></summary>
+        <nav class="menu-panel" aria-label="Main">
+          <a href="#story">Story</a>
+          <a href="#music">Music</a>
+          <a href="#studio">Studio</a>
+          <a href="#live">Live</a>
+          <a href="#archive">Archive</a>
+          <a href="#shop">Shop</a>
+          <a href="#booking">Bookings</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <picture class="hero-media">
+        <source media="(orientation: portrait) and (max-width: 1100px)" srcset="{{src:IMG_7137-portrait}}">
+        <img {{img:IMG_7137}} fetchpriority="high" decoding="async" data-zoom>
+      </picture>
+      <div class="hero-copy wrap">
+        <p class="eyebrow">South African singer-songwriter</p>
+        <h1 id="hero-title" class="display">Thandiswa<br>Mazwai</h1>
+        <p class="lede">A voice grounded in heritage, resistance and joy — carrying ancestral sound into the possibilities of tomorrow.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#music">Explore the music</a>
+          <a class="btn btn-ghost" href="#booking">Booking enquiries</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="statement banner banner--left" aria-labelledby="statement-title">
+      <figure class="banner-media" style="--focus: 100% 50%">
+        <img {{img:IMG_7155}} loading="lazy" decoding="async" data-zoom>
+      </figure>
+      <div class="banner-copy wrap">
+        <div class="banner-text" data-reveal>
+          <p class="eyebrow">Xhosa roots · global rhythm · living memory</p>
+          <h2 id="statement-title" class="h2">Tradition in conversation with the future.</h2>
+        </div>
+      </div>
+    </section>
+
+    <section id="story" class="section paper" aria-labelledby="story-title">
+      <div class="wrap story-grid">
+        <div class="copy" data-reveal>
+          <p class="eyebrow">The story</p>
+          <h2 id="story-title" class="h2">The past is not behind us. It is <em>part of the song.</em></h2>
+          <p style="margin-top:1.75rem">Thandiswa Mazwai is a South African singer-songwriter whose music brings traditional Xhosa rhythms into conversation with kwaito, jazz, reggae, funk and contemporary African sounds. From the pioneering kwaito group Bongo Maffin to her solo career, her work has made room for both movement and meaning.</p>
+          <p>Her sound is an ongoing conversation with history — a space for Blackness, Africanness, freedom, social justice and joy. It does not keep heritage behind glass. It lets heritage live, change and speak to the present.</p>
+          <blockquote class="quote">
+            <p>“Music gave me an opportunity to feed my revolutionary self.”</p>
+            <footer>Thandiswa Mazwai, in her official biography</footer>
+          </blockquote>
+          <a class="link" href="https://thandiswa.com/about/" target="_blank" rel="noopener">Read the full biography <span aria-hidden="true">↗</span></a>
+        </div>
+        <figure class="ph r45" data-reveal>
+          <img {{img:IMG_7145}} loading="lazy" decoding="async" data-zoom>
+        </figure>
+      </div>
+      <div class="wrap roots">
+        <div class="roots-copy" data-reveal>
+          <h3 class="h3">Roots and reflection.</h3>
+          <p>Wide land, low light and long roads — the quiet places that sit underneath the noise of the stage.</p>
+        </div>
+        <figure class="ph r45" data-reveal>
+          <img {{img:IMG_7148}} loading="lazy" decoding="async" data-zoom>
+        </figure>
+        <figure class="ph r45 offset" data-reveal>
+          <img {{img:IMG_7141}} loading="lazy" decoding="async" data-zoom>
+        </figure>
+      </div>
+    </section>
+
+    <section id="music" class="section tone-music" aria-labelledby="music-title">
+      <div class="wrap">
+        <header class="head" data-reveal>
+          <div>
+            <p class="eyebrow">Music</p>
+            <h2 id="music-title" class="h2">An archive that keeps becoming.</h2>
+          </div>
+          <p class="side">From the pulse of kwaito to the depth of jazz and Xhosa memory — every record opens a different room.</p>
+        </header>
+
+        <article class="feature" aria-labelledby="sankofa-title">
+          <figure class="ph r43" data-reveal>
+            <img {{img:IMG_7152}} loading="lazy" decoding="async" data-zoom>
+          </figure>
+          <div class="copy" data-reveal>
+            <p class="meta">Featured release · 2024</p>
+            <h3 id="sankofa-title" class="h3 big">Sankofa</h3>
+            <p>A word from the Twi language of Ghana meaning “to go back and fetch what has been left behind.” The album connects archival Xhosa field recordings with jazz and West African music, placing memory at the centre of a living, forward-looking sound.</p>
+            <ul class="tags" aria-label="Sounds on Sankofa">
+              <li>Xhosa field recordings</li>
+              <li>Jazz</li>
+              <li>West African sounds</li>
+            </ul>
+            <a class="btn btn-primary" href="https://thandiswa.com/album/sankofa/" target="_blank" rel="noopener">Explore Sankofa <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+
+        <div class="disco">
+          <figure class="ph r45" data-reveal>
+            <img {{img:IMG_7151}} loading="lazy" decoding="async" data-zoom>
+          </figure>
+          <div data-reveal>
+            <h3 class="h3">Discography</h3>
+            <ol class="discs">
+              <li><a href="https://thandiswa.com/music/" target="_blank" rel="noopener"><span class="yr">2024</span><span class="t">Sankofa</span><span class="ar" aria-hidden="true">↗</span><span class="n">Featured release</span></a></li>
+              <li><a href="https://thandiswa.com/music/" target="_blank" rel="noopener"><span class="yr">2016</span><span class="t">Belede</span><span class="ar" aria-hidden="true">↗</span><span class="n">Jazz interpretations</span></a></li>
+              <li><a href="https://thandiswa.com/music/" target="_blank" rel="noopener"><span class="yr">2010</span><span class="t">Dance of the Forgotten Free</span><span class="ar" aria-hidden="true">↗</span><span class="n">Live</span></a></li>
+              <li><a href="https://thandiswa.com/music/" target="_blank" rel="noopener"><span class="yr">2009</span><span class="t">Ibokwe</span><span class="ar" aria-hidden="true">↗</span><span class="n">Spirit and roots</span></a></li>
+              <li><a href="https://thandiswa.com/music/" target="_blank" rel="noopener"><span class="yr">2004</span><span class="t">Zabalaza</span><span class="ar" aria-hidden="true">↗</span><span class="n">Solo debut</span></a></li>
+            </ol>
+            <p class="fine">Each title opens the official music page. The still lifes in this section are illustrative, not official album artwork.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="studio" class="section tone-warm" aria-labelledby="studio-title">
+      <div class="wrap">
+        <header class="head" data-reveal>
+          <div>
+            <p class="eyebrow">In the studio</p>
+            <h2 id="studio-title" class="h2">Made in the room.</h2>
+          </div>
+          <p class="side">Rehearsal halls, recording booths and the hours in between — where a song finds its body before it finds an audience.</p>
+        </header>
+        <div class="studio-grid">
+          <figure class="ph r45 a" data-reveal>
+            <img {{img:IMG_7139}} loading="lazy" decoding="async" data-zoom style="object-position:68% 50%">
+            <figcaption>Recording</figcaption>
+          </figure>
+          <figure class="ph r32 b" data-reveal>
+            <img {{img:IMG_7147}} loading="lazy" decoding="async" data-zoom style="object-position:60% 40%">
+            <figcaption>Between takes</figcaption>
+          </figure>
+          <figure class="ph r45 c" data-reveal>
+            <img {{img:IMG_7149}} loading="lazy" decoding="async" data-zoom style="object-position:45% 30%">
+            <figcaption>Rehearsal</figcaption>
+          </figure>
+          <figure class="ph r45 d" data-reveal>
+            <img {{img:IMG_7142}} loading="lazy" decoding="async" data-zoom style="object-position:60% 40%">
+            <figcaption>Movement</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="live" class="tone-live" aria-labelledby="live-title">
+      <div class="banner banner--right">
+        <figure class="banner-media" style="--focus: 0% 50%">
+          <img {{img:IMG_7144}} loading="lazy" decoding="async" data-zoom>
+        </figure>
+        <div class="banner-copy wrap">
+          <div class="banner-text" data-reveal>
+            <p class="eyebrow">Live</p>
+            <h2 id="live-title" class="h2">A voice made for the room.</h2>
+            <p class="lede">Concerts, festivals and special appearances — the live calendar belongs to the people who gather around the sound.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section wrap" style="padding-top:clamp(3rem,7vw,5rem)">
+        <div class="live-grid">
+          <figure class="ph r169 w" data-reveal>
+            <img {{img:IMG_7143}} loading="lazy" decoding="async" data-zoom style="object-position:50% 35%">
+          </figure>
+          <figure class="ph r45 t" data-reveal>
+            <img {{img:IMG_7156}} loading="lazy" decoding="async" data-zoom style="object-position:40% 30%">
+          </figure>
+          <figure class="ph r45 p" data-reveal>
+            <img {{img:IMG_7150}} loading="lazy" decoding="async" data-zoom style="object-position:55% 30%">
+          </figure>
+          <figure class="ph r169 x" data-reveal>
+            <img {{img:IMG_7157}} loading="lazy" decoding="async" data-zoom style="object-position:60% 35%">
+          </figure>
+        </div>
+
+        <div class="dates" aria-labelledby="dates-title">
+          <h3 id="dates-title" class="h3" data-reveal>Dates</h3>
+          <div class="dates-grid">
+            <figure class="ph r43" data-reveal>
+              <img {{img:IMG_7140}} loading="lazy" decoding="async" data-zoom style="object-position:55% 45%">
+            </figure>
+            <div class="card" data-reveal>
+              <p class="meta">Upcoming</p>
+              <p class="big-note">No public dates are listed here yet.</p>
+              <p>Confirmed performances are published on the official tour page.</p>
+              <a class="btn btn-ghost" href="https://thandiswa.com/tour/" target="_blank" rel="noopener">Official tour page <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="card" data-reveal>
+              <p class="meta">From the archive</p>
+              <a class="event" href="https://thandiswa.com/sankofa-festival/" target="_blank" rel="noopener">
+                <time datetime="2026-02-28"><span class="d">28</span><span class="m">Feb 2026</span></time>
+                <span><strong>Sankofa Heritage Festival</strong><span class="where">Carnival City, Johannesburg · Past event</span></span>
+                <span class="ar" aria-hidden="true">↗</span>
+              </a>
+              <p class="fine" style="margin-top:0.5rem">A record of a past performance, not a ticket offer.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="archive" class="tone-warm" aria-labelledby="archive-title">
+      <div class="banner banner--left">
+        <figure class="banner-media" style="--focus: 100% 50%">
+          <img {{img:IMG_7158}} loading="lazy" decoding="async" data-zoom>
+        </figure>
+        <div class="banner-copy wrap">
+          <div class="banner-text" data-reveal>
+            <p class="eyebrow">Archive</p>
+            <h2 id="archive-title" class="h2">A living archive of sound.</h2>
+            <p class="lede">Tape, notes, cloth and cowrie shells — the objects that hold a song before it is sung, and keep it long after.</p>
+          </div>
+        </div>
+      </div>
+      <div class="section wrap" style="padding-top:clamp(3rem,7vw,5rem)">
+        <div class="row3">
+          <figure class="ph r169 wide" data-reveal>
+            <img {{img:IMG_7138}} loading="lazy" decoding="async" data-zoom>
+          </figure>
+          <figure class="ph r-7146" data-reveal>
+            <img {{img:IMG_7146}} loading="lazy" decoding="async" data-zoom>
+          </figure>
+          <figure class="ph r-7154" data-reveal>
+            <img {{img:IMG_7154}} loading="lazy" decoding="async" data-zoom>
+          </figure>
+        </div>
+        <div class="viewall">
+          <button class="btn btn-ghost" type="button" data-open-viewer hidden>View all 22 photographs</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="shop" class="section paper" aria-labelledby="shop-title">
+      <div class="wrap split">
+        <figure class="ph r43" data-reveal>
+          <img {{img:IMG_7153}} loading="lazy" decoding="async" data-zoom>
+        </figure>
+        <div class="copy" data-reveal>
+          <p class="eyebrow">Shop</p>
+          <h2 id="shop-title" class="h2">Take the sound with you.</h2>
+          <p style="margin-top:1.5rem">Physical editions and artist merchandise will live here once products, prices and delivery are confirmed. Nothing is for sale on this page yet.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="https://thandiswa.com/music/" target="_blank" rel="noopener">Listen to the music <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="booking" class="section booking" aria-labelledby="booking-title">
+      <div class="wrap split split--text">
+        <div class="copy" data-reveal>
+          <p class="eyebrow">Bookings</p>
+          <h2 id="booking-title" class="h2">Bring the voice to your stage.</h2>
+          <p class="lede" style="margin-top:1.5rem">For festivals, concert halls, cultural programmes, collaborations, media and special appearances, write to the bookings team.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="mailto:thandiswabookings@gmail.com?subject=Booking%20enquiry%20%E2%80%94%20Thandiswa%20Mazwai&amp;body=Name%3A%0D%0AOrganisation%3A%0D%0AEvent%20and%20type%3A%0D%0AProposed%20date%3A%0D%0ACity%20and%20country%3A%0D%0AVenue%20and%20expected%20audience%3A%0D%0APerformance%20length%3A%0D%0ABudget%20range%3A%0D%0ATechnical%20and%20travel%20notes%3A%0D%0A">Email the bookings team</a>
+            <a class="btn btn-ghost" href="https://thandiswa.com/contact/" target="_blank" rel="noopener">Official contact page <span aria-hidden="true">↗</span></a>
+          </div>
+          <a class="email" href="mailto:thandiswabookings@gmail.com">thandiswabookings@gmail.com</a>
+        </div>
+        <div class="card" data-reveal>
+          <h3 class="h3" style="font-size:clamp(1.5rem,2.4vw,1.875rem)">What to include</h3>
+          <ul class="checklist">
+            <li>Your name and organisation</li>
+            <li>The event, its date and city</li>
+            <li>Venue and expected audience</li>
+            <li>Performance length</li>
+            <li>Budget range</li>
+            <li>Technical and travel notes</li>
+          </ul>
+          <p class="fine">A booking is confirmed only when the artist’s team replies in writing. This page does not collect or store anything you type.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="foot-top">
+        <a class="brand" href="#top">Thandiswa Mazwai</a>
+        <nav class="foot-nav" aria-label="Footer">
+          <a href="#story">Story</a>
+          <a href="#music">Music</a>
+          <a href="#live">Live</a>
+          <a href="#booking">Bookings</a>
+          <a href="https://thandiswa.com/" target="_blank" rel="noopener">thandiswa.com <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+      <p class="preview-note">Concept preview prepared for review — not the official website. Official news, music and contacts are at <a href="https://thandiswa.com/" target="_blank" rel="noopener">thandiswa.com</a>. Photography is from the supplied image library; credits and usage rights are to be confirmed before public launch.</p>
+      <p class="legal">© 2026 Thandiswa Mazwai</p>
+    </div>
+  </footer>
+
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Photograph viewer" hidden>
+    <div class="viewer-scrim"></div>
+    <div class="viewer-track">
+      <img class="viewer-img" alt="">
+      <img class="viewer-img" alt="" aria-hidden="true">
+    </div>
+    <button class="viewer-close viewer-ui" type="button" aria-label="Close viewer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="viewer-bar viewer-ui">
+      <button class="viewer-step" type="button" data-step="-1" aria-label="Previous photograph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div aria-live="polite"><p class="viewer-cap"></p><span class="viewer-count"></span></div>
+      <button class="viewer-step" type="button" data-step="1" aria-label="Next photograph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+      var root = document.documentElement;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      // iOS Safari only applies :active styles once a touch listener exists.
+      document.addEventListener('touchstart', function () {}, { passive: true });
+
+      /* ---------- Header material, hero drift ---------- */
+      var header = document.querySelector('.site-header');
+      var heroImg = document.querySelector('.hero-media img');
+      var wide = window.matchMedia('(min-width: 701px)');
+      var ticking = false;
+      function onScroll() {
+        ticking = false;
+        var y = window.pageYOffset;
+        header.classList.toggle('is-scrolled', y > 8);
+        if (!heroImg || reduce.matches || !wide.matches) {
+          if (heroImg) heroImg.style.transform = '';
+          return;
+        }
+        if (y < window.innerHeight * 1.2) {
+          heroImg.style.transform = 'translate3d(0,' + (y * 0.18).toFixed(1) + 'px,0) scale(1.04)';
+        }
+      }
+      window.addEventListener('scroll', function () {
+        if (!ticking) { ticking = true; requestAnimationFrame(onScroll); }
+      }, { passive: true });
+      window.addEventListener('resize', onScroll);
+      onScroll();
+
+      /* ---------- Menu ---------- */
+      var menu = document.querySelector('.menu');
+      if (menu) {
+        menu.addEventListener('toggle', function () { header.classList.toggle('menu-open', menu.open); });
+        menu.querySelectorAll('a').forEach(function (a) {
+          a.addEventListener('click', function () { menu.open = false; });
+        });
+        document.addEventListener('click', function (e) {
+          if (menu.open && !menu.contains(e.target)) menu.open = false;
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && menu.open) { menu.open = false; menu.querySelector('summary').focus(); }
+        });
+      }
+
+      /* ---------- Entrances ---------- */
+      if ('IntersectionObserver' in window && !reduce.matches) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) { entry.target.classList.add('is-in'); io.unobserve(entry.target); }
+          });
+        }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+        document.querySelectorAll('[data-reveal]').forEach(function (el) { io.observe(el); });
+        root.classList.add('reveal');
+      }
+
+      /* ---------- Viewer ----------
+         Every value on screen is a spring, so any motion can be grabbed and
+         redirected mid-flight: a spring always continues from where it is,
+         at the speed it is going. Damping 1 settles without overshoot; a
+         little bounce is reserved for releases that carried momentum. */
+      var frames = Array.prototype.slice.call(document.querySelectorAll('img[data-zoom]'));
+      var viewer = document.getElementById('viewer');
+      if (!frames.length || !viewer || !window.requestAnimationFrame) return;
+
+      var scrim = viewer.querySelector('.viewer-scrim');
+      var track = viewer.querySelector('.viewer-track');
+      var imgs = viewer.querySelectorAll('.viewer-img');
+      var cur = imgs[0], adj = imgs[1];
+      var ui = viewer.querySelectorAll('.viewer-ui');
+      var cap = viewer.querySelector('.viewer-cap');
+      var count = viewer.querySelector('.viewer-count');
+      var closeBtn = viewer.querySelector('.viewer-close');
+      var steps = viewer.querySelectorAll('[data-step]');
+      var outside = [document.querySelector('.site-header'), document.getElementById('main'), document.querySelector('.site-footer')];
+      var GAP = 24;
+
+      function Spring(x, eps) { this.x = x; this.v = 0; this.to = x; this.k = 0; this.c = 0; this.on = false; this.eps = eps; }
+      Spring.prototype.go = function (to, opt) {
+        opt = opt || {};
+        var w = 2 * Math.PI / (opt.response || 0.4);
+        this.k = w * w;
+        this.c = 2 * (opt.damping == null ? 1 : opt.damping) * w;
+        this.to = to;
+        if (opt.velocity != null) this.v = opt.velocity;
+        this.on = true;
+        kick();
+      };
+      Spring.prototype.set = function (x) { this.x = this.to = x; this.v = 0; this.on = false; };
+      Spring.prototype.grab = function () { this.on = false; };
+
+      var tx = new Spring(0, 0.5);   // track position, px
+      var ty = new Spring(0, 0.5);   // current photo, vertical px
+      var sc = new Spring(1, 0.001); // current photo, scale
+      var cl = new Spring(0, 0.001); // 1 = clipped to its thumbnail
+      var op = new Spring(0, 0.002); // scrim and controls
+      var fd = new Spring(1, 0.002); // current photo opacity
+      var springs = [tx, ty, sc, cl, op, fd];
+
+      var index = 0, adjDir = 0, pending = 0, isOpen = false, closing = false;
+      var clip = [0, 0, 0, 0], radius = 0, returnTo = null, hiddenThumb = null;
+      var raf = 0, last = 0;
+
+      function kick() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }
+      function frame(now) {
+        // A frame's timestamp can predate the kick that scheduled it.
+        var dt = Math.max(0, Math.min((now - last) / 1000, 1 / 30));
+        last = now;
+        var n = Math.max(1, Math.ceil(dt * 240)), h = dt / n, moving = false;
+        springs.forEach(function (s) {
+          if (!s.on) return;
+          for (var i = 0; i < n; i++) {
+            s.v += (-s.k * (s.x - s.to) - s.c * s.v) * h;
+            s.x += s.v * h;
+          }
+          if (Math.abs(s.x - s.to) < s.eps && Math.abs(s.v) < s.eps * 20) { s.x = s.to; s.v = 0; s.on = false; }
+          else moving = true;
+        });
+        render();
+        if (moving) raf = requestAnimationFrame(frame);
+        else { raf = 0; settle(); }
+      }
+
+      function pageW() { return viewer.clientWidth + GAP; }
+      function srcOf(img) { return img.currentSrc || img.src; }
+      function natural(img) {
+        return img.naturalWidth ? [img.naturalWidth, img.naturalHeight]
+          : [+img.getAttribute('width') || 4, +img.getAttribute('height') || 5];
+      }
+      // Where a photograph rests: as large as fits between the controls.
+      function rest(img) {
+        var vw = viewer.clientWidth, vh = viewer.clientHeight, d = natural(img);
+        var side = vw < 700 ? 0 : 32, top = 64, bottom = 104;
+        var s = Math.min((vw - side * 2) / d[0], (vh - top - bottom) / d[1]);
+        var w = d[0] * s, h = d[1] * s;
+        return { x: (vw - w) / 2, y: top + (vh - top - bottom - h) / 2, w: w, h: h };
+      }
+      function place(el, img) {
+        var r = rest(img);
+        el.style.left = r.x + 'px'; el.style.top = r.y + 'px';
+        el.style.width = r.w + 'px'; el.style.height = r.h + 'px';
+        return r;
+      }
+      function fraction(v) {
+        if (/%$/.test(v)) return parseFloat(v) / 100;
+        return { left: 0, top: 0, right: 1, bottom: 1 }[v] != null ? { left: 0, top: 0, right: 1, bottom: 1 }[v] : 0.5;
+      }
+      // The transform and clip that make the resting photo sit exactly over
+      // its (cropped, object-fit: cover) thumbnail on the page.
+      function geometry(img) {
+        var r = img.getBoundingClientRect();
+        var vw = viewer.clientWidth, vh = viewer.clientHeight;
+        if (r.width < 2 || r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) return null;
+        var d = natural(img), F = rest(img), cs = getComputedStyle(img);
+        var pos = (cs.objectPosition || '50% 50%').split(' ');
+        var px = fraction(pos[0]), py = fraction(pos[1] || '50%');
+        var k = Math.max(r.width / d[0], r.height / d[1]), f = F.w / d[0];
+        var L = f * (-(r.width - d[0] * k) * px / k), T = f * (-(r.height - d[1] * k) * py / k);
+        var W = f * r.width / k, H = f * r.height / k, S = k / f;
+        var box = img.closest('figure') || img;
+        return {
+          x: r.left + r.width / 2 - (F.x + F.w / 2) - S * (L + W / 2 - F.w / 2),
+          y: r.top + r.height / 2 - (F.y + F.h / 2) - S * (T + H / 2 - F.h / 2),
+          s: S,
+          clip: [T, F.w - L - W, F.h - T - H, L],
+          r: parseFloat(getComputedStyle(box).borderTopLeftRadius) || 0
+        };
+      }
+
+      function render() {
+        track.style.transform = 'translate3d(' + tx.x + 'px,0,0)';
+        cur.style.transform = 'translate3d(0,' + ty.x + 'px,0) scale(' + sc.x + ')';
+        cur.style.opacity = Math.max(0, Math.min(1, fd.x));
+        var c = Math.max(0, Math.min(1, cl.x));
+        var path = c > 0.001
+          ? 'inset(' + clip[0] * c + 'px ' + clip[1] * c + 'px ' + clip[2] * c + 'px ' + clip[3] * c + 'px round ' + radius * c / Math.max(sc.x, 0.05) + 'px)'
+          : '';
+        cur.style.webkitClipPath = path; cur.style.clipPath = path;
+        var o = Math.max(0, Math.min(1, op.x));
+        scrim.style.opacity = o;
+        for (var i = 0; i < ui.length; i++) ui[i].style.opacity = o;
+        if (adjDir) adj.style.transform = 'translate3d(' + adjDir * pageW() + 'px,0,0)';
+      }
+
+      function hideThumb(img) {
+        if (hiddenThumb) hiddenThumb.style.visibility = '';
+        hiddenThumb = img;
+        if (img) img.style.visibility = 'hidden';
+      }
+      function neighbour(dir) { var j = index + dir; return j >= 0 && j < frames.length ? j : -1; }
+      // The second element always holds the photograph one page to the side
+      // the user is heading, so a swipe reveals it already in place.
+      function showAdj(dir) {
+        if (adjDir === dir) return;
+        adjDir = dir;
+        var j = dir ? neighbour(dir) : -1;
+        adj.style.visibility = j < 0 ? 'hidden' : '';
+        if (j >= 0) { adj.src = srcOf(frames[j]); place(adj, frames[j]); }
+      }
+      function label() {
+        var f = frames[index];
+        cap.textContent = f.alt;
+        count.textContent = (index + 1) + ' of ' + frames.length;
+        cur.alt = f.alt;
+        steps[0].disabled = index === 0;
+        steps[1].disabled = index === frames.length - 1;
+      }
+
+      // Hand the neighbour the middle of the stage: swap which element is
+      // "current" and shift the track by one page in the same frame, so
+      // nothing visibly moves and the spring keeps its velocity. The old
+      // photograph stays put as the neighbour on the side it left by.
+      function commit(dir) {
+        if (neighbour(dir) < 0) return;
+        index += dir;
+        var t = cur; cur = adj; adj = t;
+        cur.removeAttribute('aria-hidden'); adj.setAttribute('aria-hidden', 'true');
+        adj.style.webkitClipPath = adj.style.clipPath = ''; adj.style.opacity = '';
+        adjDir = -dir;
+        tx.x += dir * pageW(); tx.to += dir * pageW();
+        if (pending === dir) pending = 0;
+        hideThumb(frames[index]);
+        label();
+        render();
+      }
+      function step(dir, velocity) {
+        if (!isOpen || closing) return;
+        if (pending) commit(pending);
+        if (neighbour(dir) < 0) { tx.go(0, { velocity: velocity || 0, damping: 0.85, response: 0.35 }); return; }
+        showAdj(dir);
+        if (reduce.matches) { commit(dir); fd.set(0); fd.go(1, { response: 0.25 }); render(); return; }
+        pending = dir;
+        tx.go(-dir * pageW(), { velocity: velocity || 0, response: 0.38 });
+      }
+      function settle() {
+        if (closing) { finish(); return; }
+        if (pending && Math.abs(tx.x + pending * pageW()) < 1) commit(pending);
+      }
+
+      function open(i, fromPage) {
+        index = i; isOpen = true; closing = false; pending = 0; adjDir = 0;
+        returnTo = document.activeElement;
+        viewer.hidden = false;
+        viewer.classList.remove('ui-hidden');
+        root.classList.add('viewer-open');
+        outside.forEach(function (el) { if (el) el.setAttribute('aria-hidden', 'true'); });
+        cur.src = srcOf(frames[i]);
+        adj.style.visibility = 'hidden';
+        place(cur, frames[i]);
+        label();
+        var g = fromPage && !reduce.matches ? geometry(frames[i]) : null;
+        if (g) {
+          clip = g.clip; radius = g.r;
+          tx.set(g.x); ty.set(g.y); sc.set(g.s); cl.set(1); fd.set(1);
+          hideThumb(frames[i]);
+        } else {
+          tx.set(0); ty.set(0); sc.set(reduce.matches ? 1 : 0.94); cl.set(0); fd.set(0);
+          hideThumb(frames[i]);
+        }
+        op.set(0);
+        render();
+        var o = { response: 0.42 };
+        tx.go(0, o); ty.go(0, o); sc.go(1, o); cl.go(0, o);
+        op.go(1, { response: 0.32 }); fd.go(1, { response: 0.3 });
+        closeBtn.focus({ preventScroll: true });
+      }
+      function close(vy) {
+        if (!isOpen || closing) return;
+        if (pending) commit(pending);
+        closing = true;
+        adj.style.visibility = 'hidden'; adjDir = 0;
+        var g = reduce.matches ? null : geometry(frames[index]);
+        var o = { response: 0.38 };
+        if (g) {
+          clip = g.clip; radius = g.r;
+          tx.go(g.x, o); ty.go(g.y, { response: 0.38, velocity: vy || 0 }); sc.go(g.s, o); cl.go(1, o);
+          op.go(0, { response: 0.32 });
+        } else {
+          // The thumbnail is off-screen: there is nowhere to return to, so dissolve in place.
+          op.go(0, { response: 0.3 }); fd.go(0, { response: 0.26 });
+          if (!reduce.matches) sc.go(0.94, o);
+        }
+      }
+      function finish() {
+        closing = false; isOpen = false;
+        viewer.hidden = true;
+        root.classList.remove('viewer-open');
+        outside.forEach(function (el) { if (el) el.removeAttribute('aria-hidden'); });
+        hideThumb(null);
+        cur.style.webkitClipPath = cur.style.clipPath = '';
+        if (returnTo && returnTo.focus) returnTo.focus({ preventScroll: true });
+      }
+
+      /* Gestures: 1:1 tracking, then velocity decides. */
+      function project(v, rate) { rate = rate || 0.998; return (v / 1000) * rate / (1 - rate); }
+      function rubber(x, dim) { return (x * dim * 0.55) / (dim + 0.55 * Math.abs(x)); }
+      var drag = null;
+      viewer.addEventListener('pointerdown', function (e) {
+        if (!isOpen || e.button > 0 || e.target.closest('button') || drag) return;
+        // Caught mid-flight — on the way out, or between pages — it belongs to
+        // the finger again, from exactly where it is on screen.
+        closing = false;
+        pending = 0;
+        springs.forEach(function (s) { s.grab(); });
+        drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, bx: tx.x, by: ty.x, axis: null, hist: [[e.timeStamp, e.clientX, e.clientY]], onImg: e.target === cur };
+        try { viewer.setPointerCapture(e.pointerId); } catch (err) { /* synthetic pointer */ }
+      });
+      viewer.addEventListener('pointermove', function (e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        var dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+        drag.hist.push([e.timeStamp, e.clientX, e.clientY]);
+        if (drag.hist.length > 8) drag.hist.shift();
+        if (!drag.axis) {
+          if (Math.sqrt(dx * dx + dy * dy) < 10) return;
+          drag.axis = Math.abs(dx) > Math.abs(dy) && Math.abs(drag.by) < 1 ? 'x' : 'y';
+        }
+        if (drag.axis === 'x') {
+          var x = drag.bx + dx, dir = x < 0 ? 1 : -1;
+          showAdj(dir);
+          tx.x = neighbour(dir) < 0 ? rubber(x, viewer.clientWidth) : x;
+        } else {
+          ty.x = drag.by + dy;
+          var p = Math.min(Math.abs(ty.x) / (viewer.clientHeight * 0.5), 1);
+          sc.x = 1 - 0.2 * p;
+          op.x = 1 - 0.9 * p;
+        }
+        render();
+      });
+      function velocity(h, t) {
+        var a = h[h.length - 1], b = a;
+        if (t - a[0] > 60) return [0, 0]; // the finger stopped before it lifted
+        for (var i = h.length - 2; i >= 0; i--) { b = h[i]; if (a[0] - b[0] > 80) break; }
+        var dt = (a[0] - b[0]) / 1000;
+        return dt > 0 ? [(a[1] - b[1]) / dt, (a[2] - b[2]) / dt] : [0, 0];
+      }
+      // Settle on the page nearest to where the motion was heading, not
+      // where the finger happened to let go. On a wide screen half a page is
+      // further than a flick ever projects, so intent is capped at 240px.
+      function snapX(v) {
+        var px = tx.x + project(v), half = Math.min(pageW() / 2, 240);
+        if (px <= -half && neighbour(1) >= 0) step(1, v);
+        else if (px >= half && neighbour(-1) >= 0) step(-1, v);
+        else tx.go(0, { velocity: v, damping: 0.85, response: 0.35 });
+      }
+      function restore(vy) {
+        var back = { damping: 0.85, response: 0.35 };
+        ty.go(0, { velocity: vy, damping: 0.8, response: 0.35 });
+        sc.go(1, back); cl.go(0, back); op.go(1, back); fd.go(1, back);
+      }
+      function release(e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        var d = drag; drag = null;
+        var v = velocity(d.hist, e.timeStamp);
+        if (!d.axis) {
+          // A tap: on the photograph it hides the controls, elsewhere it closes.
+          if (e.type === 'pointerup' && !d.onImg) return close(0);
+          if (e.type === 'pointerup') viewer.classList.toggle('ui-hidden');
+          restore(0); snapX(0);
+          return;
+        }
+        if (d.axis === 'x') { restore(0); snapX(v[0]); return; }
+        var py = ty.x + project(v[1]);
+        if (Math.abs(py) > viewer.clientHeight * 0.22) close(v[1]);
+        else { restore(v[1]); snapX(0); }
+      }
+      viewer.addEventListener('pointerup', release);
+      viewer.addEventListener('pointercancel', release);
+
+      closeBtn.addEventListener('click', function () { close(0); });
+      steps.forEach(function (b) {
+        b.addEventListener('click', function () { step(+b.getAttribute('data-step'), 0); });
+      });
+      viewer.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { e.preventDefault(); close(0); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); step(1, 0); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1, 0); }
+        else if (e.key === 'Tab') {
+          var f = [closeBtn, steps[0], steps[1]].filter(function (b) { return !b.disabled; });
+          var at = f.indexOf(document.activeElement);
+          e.preventDefault();
+          f[(at + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
+        }
+      });
+      window.addEventListener('resize', function () {
+        if (!isOpen) return;
+        if (pending) commit(pending);
+        place(cur, frames[index]);
+        if (adjDir && neighbour(adjDir) >= 0) place(adj, frames[neighbour(adjDir)]);
+        render();
+      });
+
+      frames.forEach(function (img, i) {
+        if (img.closest('.hero')) return; // the hero opens through "View all"
+        var box = img.closest('figure');
+        if (!box) return;
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'zoom';
+        b.setAttribute('aria-label', 'View larger: ' + img.alt);
+        b.addEventListener('click', function () { open(i, true); });
+        box.appendChild(b);
+      });
+      document.querySelectorAll('[data-open-viewer]').forEach(function (b) {
+        b.hidden = false;
+        b.addEventListener('click', function () { open(0, false); });
+      });
+    })();
+  </script>
+</body>
+</html>

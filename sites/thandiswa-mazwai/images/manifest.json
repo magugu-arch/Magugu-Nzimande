@@ -1,0 +1,189 @@
+{
+  "note": "The 22 supplied masters (IMG_7137–IMG_7158) are not committed; build.mjs --masters <dir> re-derives these files from them. width is the derivative's pixel width, crop is [left, top, right, bottom] in master pixels.",
+  "images": [
+    {
+      "id": "IMG_7137",
+      "title": "Live performance — teal stage portrait",
+      "section": "Hero",
+      "alt": "Thandiswa Mazwai singing into a microphone on stage, in a turquoise ruffled outfit with cowrie shells in her braids",
+      "master": [2752, 1536],
+      "width": 2200,
+      "variants": [{ "id": "IMG_7137-portrait", "crop": [1381, 0, 2610, 1536], "width": 1170 }]
+    },
+    {
+      "id": "IMG_7138",
+      "title": "Archival audio equipment and handwritten notes",
+      "section": "Archive",
+      "alt": "A reel-to-reel tape recorder, film canisters, an open handwritten notebook and headphones on a wooden table",
+      "master": [2752, 1536],
+      "width": 1600
+    },
+    {
+      "id": "IMG_7139",
+      "title": "Artist in a recording studio",
+      "section": "Studio",
+      "alt": "Thandiswa Mazwai in a dim recording studio beside a reel-to-reel tape machine and a studio microphone",
+      "master": [1856, 2304],
+      "width": 1100
+    },
+    {
+      "id": "IMG_7140",
+      "title": "Artist in an intimate music venue",
+      "section": "Live",
+      "alt": "Thandiswa Mazwai seated in a lamp-lit jazz venue beside an upright piano, a saxophone and a vintage microphone",
+      "master": [2048, 2048],
+      "width": 1200
+    },
+    {
+      "id": "IMG_7141",
+      "title": "Artist in an open landscape",
+      "section": "Story",
+      "alt": "Thandiswa Mazwai in a dark wool coat, standing beside a dirt road in an open landscape",
+      "master": [1856, 2304],
+      "width": 1100
+    },
+    {
+      "id": "IMG_7142",
+      "title": "Artist at a dance or rehearsal studio",
+      "section": "Studio",
+      "alt": "Thandiswa Mazwai dancing in a rehearsal studio, with dancers moving behind her",
+      "master": [2048, 2048],
+      "width": 1200
+    },
+    {
+      "id": "IMG_7143",
+      "title": "Artist performing under coloured stage lights",
+      "section": "Live",
+      "alt": "Thandiswa Mazwai singing under crossing blue stage lights, the crowd's raised hands in the foreground",
+      "master": [2752, 1536],
+      "width": 1600
+    },
+    {
+      "id": "IMG_7144",
+      "title": "Artist performing with dark negative space",
+      "section": "Live",
+      "alt": "Thandiswa Mazwai performing on a smoky blue stage above a crowd",
+      "master": [2752, 1536],
+      "width": 2000
+    },
+    {
+      "id": "IMG_7145",
+      "title": "Close-up artist portrait with traditional beadwork",
+      "section": "Story",
+      "alt": "Portrait of Thandiswa Mazwai smiling, with cowrie shells in her braids and beadwork at her neckline",
+      "master": [1856, 2304],
+      "width": 1100
+    },
+    {
+      "id": "IMG_7146",
+      "title": "Audio recorder, headphones and archival materials",
+      "section": "Archive",
+      "alt": "A tape reel, a cassette recorder, headphones, handwritten pages and cowrie shells on dark indigo cloth",
+      "master": [2048, 2048],
+      "width": 1200
+    },
+    {
+      "id": "IMG_7147",
+      "title": "Artist in a recording-room doorway",
+      "section": "Studio",
+      "alt": "Thandiswa Mazwai in a recording-room doorway, holding headphones to one ear",
+      "master": [2528, 1696],
+      "width": 1600
+    },
+    {
+      "id": "IMG_7148",
+      "title": "Artist in a highland grassland landscape",
+      "section": "Story",
+      "alt": "Thandiswa Mazwai in profile, standing in tall grass above rolling hills at dusk",
+      "master": [1856, 2304],
+      "width": 1100
+    },
+    {
+      "id": "IMG_7149",
+      "title": "Artist rehearsing with a microphone",
+      "section": "Studio",
+      "alt": "Thandiswa Mazwai singing into a microphone during a rehearsal in a concrete studio",
+      "master": [1856, 2304],
+      "width": 1100
+    },
+    {
+      "id": "IMG_7150",
+      "title": "Artist backstage holding a microphone",
+      "section": "Live",
+      "alt": "Thandiswa Mazwai waiting in the wings beside a stage curtain, microphone in hand",
+      "master": [1856, 2304],
+      "width": 1100
+    },
+    {
+      "id": "IMG_7151",
+      "title": "Vinyl record, headphones and recording equipment",
+      "section": "Music",
+      "alt": "Studio headphones, a portable audio recorder and a vinyl record beside a plain sleeve",
+      "master": [1856, 2304],
+      "width": 1100
+    },
+    {
+      "id": "IMG_7152",
+      "title": "Vinyl record and minimal album packaging",
+      "section": "Music",
+      "alt": "A black vinyl record sliding out of a plain sleeve, beside a CD case and coloured paper stock",
+      "master": [2400, 1792],
+      "width": 1600
+    },
+    {
+      "id": "IMG_7153",
+      "title": "Minimal artist merchandise still life",
+      "section": "Shop",
+      "alt": "A folded black T-shirt, a canvas tote bag and a woven scarf laid out flat",
+      "master": [2400, 1792],
+      "width": 1600
+    },
+    {
+      "id": "IMG_7154",
+      "title": "Cassette, handwritten notes and woven textile",
+      "section": "Archive",
+      "alt": "A hand-labelled cassette tape resting on handwritten pages and a strip of woven textile",
+      "master": [2528, 1696],
+      "width": 1600
+    },
+    {
+      "id": "IMG_7155",
+      "title": "Cinematic artist portrait in teal stage styling",
+      "section": "Statement",
+      "alt": "Portrait of Thandiswa Mazwai in teal stage styling, with cowrie-shell braids and layered beadwork",
+      "master": [2752, 1536],
+      "width": 2000
+    },
+    {
+      "id": "IMG_7156",
+      "title": "Artist singing in a live performance",
+      "section": "Live",
+      "alt": "Thandiswa Mazwai laughing as she sings on stage in a turquoise ruffled outfit",
+      "master": [1856, 2304],
+      "width": 1100
+    },
+    {
+      "id": "IMG_7157",
+      "title": "Artist with microphone in dramatic low-key light",
+      "section": "Live",
+      "alt": "Thandiswa Mazwai holding a microphone in low stage light, wearing indigo cloth and beadwork",
+      "master": [2752, 1536],
+      "width": 1600
+    },
+    {
+      "id": "IMG_7158",
+      "title": "Vintage reel-to-reel tape deck in a dark venue",
+      "section": "Archive",
+      "alt": "A loose ribbon of tape on a reel-to-reel machine in a dark, wood-panelled studio",
+      "master": [2752, 1536],
+      "width": 2000
+    }
+  ],
+  "og": {
+    "from": "IMG_7137",
+    "crop": [952, 0, 2752, 945],
+    "size": [1200, 630],
+    "alt": "Thandiswa Mazwai singing on stage in turquoise, with cowrie shells in her braids"
+  },
+  "icon": { "from": "IMG_7145", "crop": [413, 280, 1533, 1400], "size": 180 }
+}

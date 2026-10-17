@@ -32,7 +32,7 @@ module.exports = defineConfig([
   },
   {
     // Build and audit scripts are CLI tools — their whole job is to print.
-    files: ['scripts/**/*.mjs', 'scripts/**/*.js'],
+    files: ['scripts/**/*.mjs', 'scripts/**/*.js', 'sites/**/*.mjs'],
     rules: {
       'no-console': 'off',
     },
