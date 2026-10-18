@@ -37,6 +37,9 @@ const args = Object.fromEntries(
 );
 
 const out = path.resolve(projectRoot, args.out || 'dist/myron-golden-site.html');
+// --by "Studio name": a client copy credited to the studio, without internal
+// build details (commit, export notes).
+const by = args.by?.trim() || null;
 const siteUrl = (
   args['site-url'] ||
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -301,10 +304,12 @@ for (const file of files) {
 
 const siteMetadata = await (await fetch(`${base}/site-metadata.json`)).json();
 let commit = null;
-try {
-  commit = execSync('git rev-parse --short HEAD', { cwd: projectRoot }).toString().trim();
-} catch {
-  // not a git checkout
+if (!by) {
+  try {
+    commit = execSync('git rev-parse --short HEAD', { cwd: projectRoot }).toString().trim();
+  } catch {
+    // not a git checkout
+  }
 }
 const generatedAt = new Date().toISOString();
 const home = pages.find((p) => p.route === '/');
@@ -314,7 +319,8 @@ const embedded = {
   export: {
     format: 'Single-file HTML export of the site',
     generatedAt,
-    commit,
+    ...(commit ? { commit } : {}),
+    ...(by ? { preparedBy: by } : {}),
     siteUrl,
     pages: pages
       .filter((p) => p.route !== '/__404')
@@ -353,7 +359,7 @@ const head = `<meta charset="utf-8">
 <meta name="description" content="${attr(home.description)}">
 <meta name="application-name" content="${attr(siteMetadata.name)}">
 <meta name="author" content="${attr(siteMetadata.legalEntity)}">
-<meta name="generator" content="myron-golden-site single-file export${commit ? ` (${commit})` : ''}">
+<meta name="${by ? 'designer' : 'generator'}" content="${by ? attr(by) : `myron-golden-site single-file export${commit ? ` (${commit})` : ''}`}">
 <meta name="date" content="${generatedAt}">
 <meta name="robots" content="${isPreview ? 'noindex, nofollow' : 'index, follow'}">
 <meta name="theme-color" content="#111114">
@@ -378,8 +384,8 @@ const head = `<meta charset="utf-8">
 
 const html = `<!doctype html>
 <!--
-  ${siteMetadata.name} — single-file export of the website preview.
-  Generated ${generatedAt}${commit ? ` from commit ${commit}` : ''}. Open in any modern browser; no server needed.
+  ${siteMetadata.name} — website preview${by ? ` designed by ${by}` : ', single-file export'}.
+  ${by ? 'Prepared' : 'Generated'} ${generatedAt.slice(0, 10)}${commit ? ` from commit ${commit}` : ''}. Open in any modern browser; no server needed.
   Machine-readable metadata (sources, outstanding confirmations, image rights) is in #mg-site-metadata.
 -->
 <html lang="en" class="${attr(shell.htmlClass)}">
