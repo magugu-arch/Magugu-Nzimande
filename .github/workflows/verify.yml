@@ -224,3 +224,66 @@ jobs:
             git --no-pager diff --stat -- assets assets/brand
             exit 1
           fi
+
+  # The Tashas app is its own package (tashas/), with its own lockfile and
+  # toolchain, so it gets its own job rather than riding on the Expo checks.
+  tashas:
+    name: Tashas app
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tashas
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tashas/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Booking, payment, reconciliation, consent, notification, rewards and
+      # campaign rules, against the sandbox adapters (brief §13.15).
+      - name: Test
+        run: npm test
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Pillow
+        run: pip install --quiet 'pillow==12.3.0'
+
+      # Fails if any of the 28 supplied originals has been altered, then builds
+      # the single-file app, the artifact fragment and the PWA.
+      - name: Build
+        run: npm run build
+
+      # Not a dependency of the package: the sandbox this was written in ships
+      # its own Playwright, so CI installs one only for this step.
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.62.1
+          npx playwright install --with-deps chromium
+
+      # Phone, Android, tablet and desktop in light and dark: overflow, console
+      # errors, both booking paths, sheet and edge-swipe gestures, all 28
+      # images, and the downloaded HTML opened offline.
+      - name: Browser QA
+        run: npm run qa
+
+      - name: Keep the QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tashas-qa
+          path: tashas/build/qa
+          retention-days: 7

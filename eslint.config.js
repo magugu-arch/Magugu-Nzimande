@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // A separate package with its own toolchain (Preact, node:test); see tashas/README.md.
+      'tashas/**',
     ],
   },
   {

@@ -1,5 +1,9 @@
 # bb.q Chicken South Africa — Mobile Ordering App
 
+> This repository also holds the **Tashas guest app**, a separate package in
+> [`tashas/`](./tashas/README.md) with its own toolchain. Nothing below applies
+> to it.
+
 Production-oriented React Native customer ordering app for bb.q Chicken South
 Africa, built to the supplied product brief.
 

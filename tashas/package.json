@@ -1,0 +1,27 @@
+{
+  "name": "tashas-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tashas guest app: booking, payments, notifications and lifecycle marketing, PWA-first, with sandbox adapters until Tashas approves providers.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "assets:verify": "node scripts/verify-assets.mjs",
+    "assets:derive": "node scripts/derive-images.mjs",
+    "build": "node scripts/verify-assets.mjs && node scripts/build.mjs",
+    "qa": "node scripts/qa.mjs",
+    "verify": "npm run typecheck && npm test && npm run build && npm run qa"
+  },
+  "dependencies": {
+    "preact": "10.29.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.1",
+    "esbuild": "0.28.2",
+    "typescript": "6.0.3"
+  }
+}
