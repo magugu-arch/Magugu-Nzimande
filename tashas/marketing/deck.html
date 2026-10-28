@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Tashas App: Marketing Strategy</title>
+<meta name="viewport" content="width=1600">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=block" rel="stylesheet">
+<style>
+/*
+ * The Tashas App: marketing strategy deck. One 1600 × 900 page per slide,
+ * rendered to PDF by build-deck.mjs. Visual language follows the supplied
+ * reference: a pale grey panel, rounded light-grey gradient cards with one
+ * charcoal card per row, wide uppercase type, thin arrows and pill buttons.
+ * The reference's green becomes Tashas's botanical sage.
+ */
+@page { size: 1600px 900px; margin: 0; }
+:root {
+  --panel: #ebeae7;
+  --ink: #1d1c1a;
+  --ink-2: #44423e;
+  --mute: #7d7a74;
+  --line: rgba(29, 28, 26, 0.13);
+  --sage: #56704a;
+  --sage-lt: #a9c294;
+  --card: linear-gradient(160deg, #fefefd 0%, #f2f1ee 46%, #e3e2de 100%);
+  --dark: linear-gradient(160deg, #5b5954 0%, #3d3c39 44%, #2a2927 100%);
+  --on-dark: #f3f1ec;
+  --on-dark-2: #cfcbc3;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #b9b8b4; }
+body {
+  font-family: 'Exo 2', system-ui, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: lining-nums;
+}
+.slide {
+  width: 1600px; height: 900px;
+  position: relative; overflow: hidden;
+  background: var(--panel);
+  padding: 34px 48px 40px;
+  display: flex; flex-direction: column;
+  break-after: page; page-break-after: always;
+  isolation: isolate; /* so the gradient shadows sit above the panel */
+}
+.slide:last-child { break-after: auto; page-break-after: auto; }
+@media screen { .slide { margin: 0 auto 24px; } }
+
+/* ---------- running header ---------- */
+.top {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute);
+  height: 18px; flex: none;
+}
+.top .brand { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-weight: 600; }
+.top .brand i { font-style: normal; font-weight: 300; color: var(--mute); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sage); display: inline-block; }
+.top .pg { justify-self: end; font-variant-numeric: tabular-nums; }
+
+/* ---------- titles ---------- */
+.head { margin: 26px 0 26px; display: flex; align-items: flex-end; justify-content: space-between; gap: 64px; flex: none; }
+.eyebrow { font-size: 12.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage); margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+h1, h2, h3, h4 { margin: 0; font-weight: 300; text-transform: uppercase; }
+h2 { font-size: 50px; line-height: 1.02; letter-spacing: -0.012em; max-width: 1080px; text-wrap: balance; }
+.lead { font-size: 17.5px; line-height: 1.55; color: var(--ink-2); max-width: 470px; margin: 0; padding-bottom: 4px; }
+.body { flex: 1; min-height: 0; display: grid; gap: 18px; }
+.note { font-size: 12.5px; line-height: 1.5; color: var(--mute); margin: 14px 0 0; flex: none; max-width: 1300px; }
+
+/* ---------- cards ---------- */
+.card {
+  position: relative; border-radius: 26px; padding: 26px 28px 24px;
+  background: var(--card);
+  /* Solid edge colours: a translucent border over a gradient prints as a bitmap. */
+  border: 1px solid #fbfbfa;
+  border-bottom-color: #dcdbd7;
+  display: flex; flex-direction: column; min-height: 0;
+}
+/* Soft contact shadow drawn as a gradient: blurred box-shadows print as bitmaps and bloat the PDF. */
+.card::after, .phone::after, .banner::before {
+  content: ''; position: absolute; left: 7%; right: 7%; bottom: -16px; height: 30px; z-index: -1; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(29, 28, 26, 0.17), rgba(29, 28, 26, 0));
+}
+.card.dark { background: var(--dark); color: var(--on-dark); border-color: #5f5d58; border-bottom-color: #2a2927; }
+.card.dark::after { background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0)); }
+.card h3 { font-size: 31px; line-height: 1.06; letter-spacing: -0.005em; padding-right: 48px; }
+.card h3.sm { font-size: 25px; }
+.card .arrow { position: absolute; top: 24px; right: 24px; width: 30px; height: 30px; color: currentColor; opacity: 0.85; }
+.card .num { font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sage); margin-bottom: 14px; }
+.card.dark .num { color: var(--sage-lt); }
+.fine {
+  margin-top: auto; align-self: flex-end; text-align: right;
+  font-size: 13.5px; line-height: 1.5; letter-spacing: 0.02em; text-transform: uppercase;
+  color: var(--ink-2); max-width: 380px; padding-top: 16px;
+}
+.card.dark .fine { color: var(--on-dark-2); }
+.sub { margin-top: 12px; font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sage); }
+.card.dark .sub { color: var(--sage-lt); }
+.price { font-size: 46px; font-weight: 700; letter-spacing: -0.01em; margin-top: 14px; line-height: 1; }
+.tag { display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 12px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; background: rgba(86, 112, 74, 0.14); color: var(--sage); }
+.card.dark .tag { background: rgba(169, 194, 148, 0.18); color: var(--sage-lt); }
+
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g3x2 { grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g5 { grid-template-columns: repeat(5, 1fr); }
+
+/* ---------- photo ---------- */
+.ph { background-size: cover; background-position: center; border-radius: 26px; position: relative; overflow: hidden; }
+.banner { height: 168px; flex: none; margin-bottom: 18px; overflow: visible; }
+.banner::after { border-radius: 26px; }
+.banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,0.10), rgba(20,19,17,0) 40%, rgba(20,19,17,0.55)); }
+
+/* ---------- hero (cover, dividers, close) ---------- */
+.hero { flex: 1; border-radius: 30px; position: relative; overflow: hidden; color: #fff; }
+.hero .bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.hero .veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,17,15,0.7) 0%, rgba(18,17,15,0.38) 38%, rgba(18,17,15,0.58) 70%, rgba(18,17,15,0.86) 100%); }
+.hero .corner { position: absolute; top: 30px; font-size: 19px; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.86); }
+.hero .corner.l { left: 36px; } .hero .corner.r { right: 36px; text-align: right; }
+.hero h1 { position: absolute; left: 0; right: 0; top: 74px; text-align: center; font-size: 74px; line-height: 1.04; letter-spacing: -0.01em; font-weight: 300; padding: 0 70px; text-wrap: balance; }
+.hero .say { position: absolute; right: 40px; bottom: 36px; max-width: 760px; text-align: right; font-size: 26px; line-height: 1.32; font-weight: 300; text-transform: uppercase; letter-spacing: 0.005em; }
+.hero .cta { position: absolute; left: 44px; bottom: 44px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 22px; height: 62px; padding: 0 26px 0 8px; border-radius: 99px;
+  background: linear-gradient(180deg, #f8f8f6, #dcdbd7); color: var(--ink);
+  font-size: 21px; font-style: italic; font-weight: 300; letter-spacing: 0.02em; text-transform: uppercase;
+  box-shadow: inset 0 1px 0 #fff;
+}
+.pill .ico { width: 46px; height: 46px; border-radius: 50%; background: #2a2927; display: grid; place-items: center; }
+.pill .ico svg { width: 22px; height: 22px; color: var(--sage-lt); }
+.pill .go { width: 22px; height: 22px; color: var(--sage); }
+.foot { flex: none; height: 54px; margin-top: 18px; display: flex; align-items: center; justify-content: space-between; }
+.foot .links { display: flex; gap: 22px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 10px; height: 30px; padding: 0 16px 0 4px; border-radius: 99px;
+  background: #2f2e2b; color: #e9e6e0; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.chip .c { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.5); display: grid; place-items: center; }
+.chip .c svg { width: 12px; height: 12px; }
+.chip.on { background: var(--sage); }
+.mark { width: 34px; height: 34px; border-radius: 50%; background: #2a2927; display: grid; place-items: center; }
+.mark span { width: 12px; height: 12px; border-radius: 50%; background: var(--sage-lt); }
+.foot .meta { font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); text-align: right; line-height: 1.5; }
+
+/* ---------- lists ---------- */
+ul.ticks { list-style: none; margin: 0; padding: 0; }
+ul.ticks li { position: relative; padding-left: 20px; font-size: 14.5px; line-height: 1.45; letter-spacing: 0.015em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 10px; }
+ul.ticks li::before { content: ''; position: absolute; left: 0; top: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--sage); }
+.card.dark ul.ticks li { color: var(--on-dark-2); }
+.card.dark ul.ticks li::before { background: var(--sage-lt); }
+
+/* ---------- tables ---------- */
+table { border-collapse: collapse; width: 100%; }
+th { font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); text-align: left; padding: 0 0 10px; border-bottom: 1px solid rgba(29,28,26,0.35); }
+td { padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 15px; vertical-align: top; }
+th.r, td.r { text-align: right; }
+td .t { font-weight: 500; text-transform: uppercase; letter-spacing: 0.02em; font-size: 14.5px; }
+td .d { color: var(--mute); font-size: 13px; margin-top: 2px; line-height: 1.4; }
+td.n { color: var(--sage); font-weight: 600; font-size: 12.5px; letter-spacing: 0.1em; width: 38px; padding-top: 13px; }
+tr.hl td { background: rgba(86,112,74,0.10); }
+
+/* ---------- phones ---------- */
+.phone { position: relative; background: #1c1b19; border-radius: 34px; padding: 7px; }
+.phone img { display: block; width: 100%; border-radius: 27px; }
+.cap { margin-top: 12px; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- Arrow, used in every card corner. -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="ar" viewBox="0 0 32 32"><path d="M6 26 L26 6 M10.5 6 H26 V21.5" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" fill="none"/></symbol>
+    <symbol id="ph" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.7"/></symbol>
+    <symbol id="ml" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+    <symbol id="gl" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+    <symbol id="us" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M4.5 20.5c1.2-4 4-5.5 7.5-5.5s6.3 1.5 7.5 5.5" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============================================================ 01 COVER -->
+<section class="slide">
+  <div class="hero">
+    <div class="bg" style="background-image:url(img/interior-wide.jpg)"></div>
+    <div class="veil"></div>
+    <div class="corner l">Marketing strategy</div>
+    <div class="corner r">October 2026</div>
+    <h1>The Tashas app —<br>every visit, the start of the next.</h1>
+    <div class="cta"><span class="pill"><span class="ico"><svg><use href="#cal"/></svg></span>Prepared for Tashas<svg class="go"><use href="#ar"/></svg></span></div>
+    <div class="say">A strategy for the app as a business engine, and as Tashas’s own marketing channel.</div>
+  </div>
+  <div class="foot">
+    <div class="mark"><span></span></div>
+    <div class="links">
+      <span class="chip"><span class="c"><svg><use href="#cal"/></svg></span>Business engine</span>
+      <span class="chip"><span class="c"><svg><use href="#ph"/></svg></span>Marketing tool</span>
+      <span class="chip"><span class="c"><svg><use href="#gl"/></svg></span>Launch plan</span>
+      <span class="chip"><span class="c"><svg><use href="#us"/></svg></span>Investment</span>
+    </div>
+    <div class="meta">Prepared by LegacyLeverage Creative Agency<br>28 October 2026</div>
+  </div>
+</section>
+
+<!-- ============================================================ 02 EXECUTIVE SUMMARY -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Executive summary</span><span class="pg">02 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Executive summary</p>
+      <h2>One app. An owned channel that fills tables and brings guests back.</h2>
+    </div>
+    <p class="lead">Tashas is built on beautiful food, distinctive cafés and personal service. The app turns that into an owned, measurable relationship with every guest who says yes, so each booking, visit and gift becomes the start of the next.</p>
+  </div>
+  <div class="body g3x2">
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>R680&nbsp;000<br>to build</h3><p class="fine">Growth edition, fixed price excluding VAT. A web-app-only Launch edition starts at R459&nbsp;000.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>16 weeks<br>to launch</h3><p class="fine">A pilot café on a test build at week 12. Every café and both app stores at week 16.</p></div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3>About 1&nbsp;680 extra<br>tables to pay back</h3><p class="fine">At a R900 average table bill and 45% contribution (illustrative): fewer than five a day across the group in year one.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>App, code<br>and data: yours</h3><p class="fine">Transferred to Tashas on final payment. Guest data is collected under POPIA, with a clear yes for marketing.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>R4&nbsp;000–R10&nbsp;000<br>a month to run</h3><p class="fine">Estimated hosting, messaging and store accounts at launch volumes. Gateway and booking fees sit under Tashas’s own contracts.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>A week-2 gate<br>before the build</h3><p class="fine">Booking and payment providers are confirmed before build spend. If they differ, we re-scope with you first.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ 03 OPPORTUNITY -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>The opportunity</span><span class="pg">03 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">The opportunity</p>
+      <h2>Why an app, and why it creates value beyond the booking</h2>
+    </div>
+    <p class="lead">What asset does this money create, and how does it earn? The app is a booking system, a loyalty programme and a marketing channel in one. It compounds: every guest it gains can be reached again.</p>
+  </div>
+  <div class="body g3x2">
+    <div class="card"><div class="num">01</div><h3 class="sm">Own the relationship</h3><p class="fine">Social reach is rented and rationed. A guest who opts in can be reached directly with a new menu, an event or a reward, at almost no cost per message.</p></div>
+    <div class="card"><div class="num">02</div><h3 class="sm">Know who walked in</h3><p class="fine">A walk-in guest can love their brunch and leave without Tashas ever knowing their name. Bookings, rewards and a table QR turn visits into known guests, with permission.</p></div>
+    <div class="card dark"><div class="num">03</div><h3 class="sm">Fill the quieter hours</h3><p class="fine">Café demand arrives in peaks. Targeted campaigns for weekday mornings and afternoons move guests into the gaps, without blanket discounts.</p></div>
+    <div class="card"><div class="num">04</div><h3 class="sm">Protect the table</h3><p class="fine">Deposits on larger or peak bookings, terms shown up front and a reminder before every visit protect the tables that matter most, café by café.</p></div>
+    <div class="card"><div class="num">05</div><h3 class="sm">Evidence, not guesswork</h3><p class="fine">Every link, QR code and campaign carries its source through to the booking, so Tashas sees which channel actually fills tables, and spends accordingly.</p></div>
+    <div class="card"><div class="num">06</div><h3 class="sm">The brand in their pocket</h3><p class="fine">Tashas’s photography, design and each café’s own “Inspired by” story, carried into an experience as considered as the rooms themselves.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ 04 STRATEGY ON A PAGE -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>The strategy</span><span class="pg">04 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">The strategy on a page</p>
+      <h2>Four levers of café growth. One app pulls all of them.</h2>
+    </div>
+    <p class="lead">Café revenue is guests × visits × spend, less the cost of serving them. Each part of the app is there to move one of those four numbers, and each is measured.</p>
+  </div>
+  <div class="body g4" style="grid-template-rows: 1fr auto;">
+    <div class="card"><div class="price" style="margin:0 0 6px;font-weight:300">+</div><h3 class="sm">More guests</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:18px">
+        <li>Book any hour from Google, Instagram, WhatsApp or a QR code</li>
+        <li>Every booking invites the rest of the table</li>
+        <li>Vouchers bring in new guests, paid for by existing ones</li>
+      </ul></div>
+    <div class="card dark"><div class="price" style="margin:0 0 6px;font-weight:300">×</div><h3 class="sm">More visits</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:18px">
+        <li>Rewards that count every completed visit</li>
+        <li>Welcome, post-visit and win-back journeys</li>
+        <li>New menus and events announced to guests who said yes</li>
+      </ul></div>
+    <div class="card"><div class="price" style="margin:0 0 6px;font-weight:300">↑</div><h3 class="sm">Better spend</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:18px">
+        <li>Occasions noted at booking: birthdays, celebrations</li>
+        <li>Pre-paid event seats and gift vouchers</li>
+        <li>Campaigns that sell the right hour, not a discount</li>
+      </ul></div>
+    <div class="card"><div class="price" style="margin:0 0 6px;font-weight:300">−</div><h3 class="sm">Lower cost to serve</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:18px">
+        <li>Deposits and reminders protect against no-shows</li>
+        <li>Confirmations and changes without a phone call</li>
+        <li>Direct reach replaces repeat paid media</li>
+      </ul></div>
+    <div class="card" style="grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 40px; padding: 24px 32px;">
+      <span class="tag" style="flex:none">Positioning</span>
+      <p style="margin:0;font-size:27px;line-height:1.25;font-weight:300;text-transform:uppercase;letter-spacing:0.005em">For guests who treat a café visit as an occasion, Tashas is the café that remembers them. <span style="color:var(--sage)">The app is how it remembers.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 05 GUESTS -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>The guests</span><span class="pg">05 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Who it serves</p>
+      <h2>Six guests the app is built to serve</h2>
+    </div>
+    <p class="lead">Each guest has a job they want done. The app does it for them, and Tashas gets a measurable result in return.</p>
+  </div>
+  <div class="body" style="grid-template-columns: repeat(6, 1fr);">
+    <div class="card" style="padding:10px 10px 20px"><div class="ph" style="height:330px;border-radius:18px;background-image:url(img/sm/iced-coffee.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:21px;padding:0">The weekday regular</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px">Wants: good coffee, no fuss.<br>App: rewards on every visit, the nearest café.<br><b style="color:var(--sage)">Measure: visits per guest</b></p></div></div>
+    <div class="card" style="padding:10px 10px 20px"><div class="ph" style="height:330px;border-radius:18px;background-image:url(img/sm/brunch.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:21px;padding:0">The brunch table</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px">Wants: a table for six, held.<br>App: book ahead, deposit, invite the table.<br><b style="color:var(--sage)">Measure: bookings, no-shows</b></p></div></div>
+    <div class="card dark" style="padding:10px 10px 20px"><div class="ph" style="height:330px;border-radius:18px;background-image:url(img/sm/cake.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:21px;padding:0">The celebration</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px">Wants: a birthday that feels looked after.<br>App: the occasion noted for the team.<br><b style="color:var(--sage-lt)">Measure: spend per table</b></p></div></div>
+    <div class="card" style="padding:10px 10px 20px"><div class="ph" style="height:330px;border-radius:18px;background-image:url(img/sm/voucher.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:21px;padding:0">The gifter</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px">Wants: a gift that feels personal.<br>App: “Gift a morning” vouchers.<br><b style="color:var(--sage)">Measure: vouchers redeemed by new guests</b></p></div></div>
+    <div class="card" style="padding:10px 10px 20px"><div class="ph" style="height:330px;border-radius:18px;background-image:url(img/sm/terrace.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:21px;padding:0">The newcomer</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px">Wants: a good café nearby.<br>App: verified café pages on Google, one-tap booking.<br><b style="color:var(--sage)">Measure: first visits by source</b></p></div></div>
+    <div class="card" style="padding:10px 10px 20px"><div class="ph" style="height:330px;border-radius:18px;background-image:url(img/sm/juice.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:21px;padding:0">The lapsed guest</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px">Wants: a reason to come back.<br>App: a win-back note, a new menu, a reward reminder.<br><b style="color:var(--sage)">Measure: guests reactivated</b></p></div></div>
+  </div>
+  <p class="note">These segments are working hypotheses. Each is sized from real booking and rewards data during discovery, and campaigns are weighted to the segments that prove largest.</p>
+</section>
+
+<!-- ============================================================ 06 PART ONE -->
+<section class="slide">
+  <div class="hero">
+    <div class="bg" style="background-image:url(img/guests.jpg);background-position:center 38%"></div>
+    <div class="veil"></div>
+    <div class="corner l">Part one</div>
+    <div class="corner r">06 / 24</div>
+    <h1 style="top:96px">What the app does<br>for the business</h1>
+    <div class="say">Bookings, deposits, rewards, guest data and one view of every café: the engine that runs underneath the brand.</div>
+  </div>
+  <div class="foot">
+    <div class="mark"><span></span></div>
+    <div class="links">
+      <span class="chip on"><span class="c"><svg><use href="#cal"/></svg></span>Business engine</span>
+      <span class="chip"><span class="c"><svg><use href="#ph"/></svg></span>Marketing tool</span>
+      <span class="chip"><span class="c"><svg><use href="#gl"/></svg></span>Launch plan</span>
+      <span class="chip"><span class="c"><svg><use href="#us"/></svg></span>Investment</span>
+    </div>
+    <div class="meta">Tashas app<br>Marketing strategy</div>
+  </div>
+</section>
+
+<!-- ============================================================ 07 FILL THE ROOM -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Business engine · 1 of 2</span><span class="pg">07 / 24</span></div>
+  <div class="head" style="margin-bottom:22px">
+    <div>
+      <p class="eyebrow">Business engine</p>
+      <h2>Fill the room, and protect every table in it</h2>
+    </div>
+  </div>
+  <div class="ph banner" style="background-image:url(img/bakery.jpg);background-position:center 82%"></div>
+  <div class="body g3">
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Book any hour</h3><div class="sub">Live availability</div>
+      <p class="fine">Guests book from Google, Instagram, WhatsApp or a QR code, at midnight or at the door. Slots come live from Tashas’s reservation provider, and a double tap never makes a double booking.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Protect the table</h3><div class="sub">Deposits and reminders</div>
+      <p class="fine">Café-specific deposits for larger or peak tables, terms shown before payment, and a reminder before every booking. A booking is confirmed only once the payment is verified.</p></div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3>Sell beyond the table</h3><div class="sub">Vouchers and event seats</div>
+      <p class="fine">Gift vouchers, pre-paid tasting events and occasion bookings bring revenue in before the guest arrives, with refunds and reconciliation built in.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ 08 BRING THEM BACK -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Business engine · 2 of 2</span><span class="pg">08 / 24</span></div>
+  <div class="head" style="margin-bottom:22px">
+    <div>
+      <p class="eyebrow">Business engine</p>
+      <h2>Bring guests back, and know who they are</h2>
+    </div>
+  </div>
+  <div class="ph banner" style="background-image:url(img/avocado.jpg);background-position:center 89%"></div>
+  <div class="body g3">
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Rewards that count</h3><div class="sub">Every verified visit</div>
+      <p class="fine">Points for completed visits and events, tiers guests watch themselves climb, a voucher wallet and fair expiry. Every point sits in an auditable ledger and is never earned twice.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>One guest, one profile</h3><div class="sub">With consent</div>
+      <p class="fine">Bookings, visits, preferences and rewards in one place, with marketing consent recorded per channel under POPIA. Guests see and change what they receive.</p></div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3>Service that runs itself</h3><div class="sub">Confirm, remind, reconcile</div>
+      <p class="fine">Confirmations, reminders, changes and receipts go out automatically. If a payment and a booking ever disagree, staff are alerted and the guest is told the truth.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ 09 GUEST JOURNEY -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>The guest journey</span><span class="pg">09 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">The guest journey</p>
+      <h2>From first look to next visit, one connected flow</h2>
+    </div>
+    <p class="lead">Each step is something the guest wants to do. Each one also hands Tashas something it can use: a source, a protected table, a known guest, a reason to return.</p>
+  </div>
+  <div class="body steps" style="grid-template-columns: repeat(7, 1fr); grid-template-rows: 1fr auto; gap: 14px; position: relative;">
+    <div style="position:absolute;left:30px;right:30px;top:52px;height:1px;background:rgba(29,28,26,0.25)"></div>
+    <div class="card" style="padding:22px 20px"><div class="num">01</div><h3 style="font-size:23px;padding:0">Discover</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px"><b>Guest</b><br>Finds a café on Google, Instagram or a friend’s invite.<br><br><b style="color:var(--sage)">Tashas gets</b><br>The source of every visit.</p></div>
+    <div class="card" style="padding:22px 20px"><div class="num">02</div><h3 style="font-size:23px;padding:0">Book</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px"><b>Guest</b><br>Picks a café, a time and the size of the table.<br><br><b style="color:var(--sage)">Tashas gets</b><br>A booking confirmed live by its provider.</p></div>
+    <div class="card" style="padding:22px 20px"><div class="num">03</div><h3 style="font-size:23px;padding:0">Secure</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px"><b>Guest</b><br>Pays a deposit where the café asks for one.<br><br><b style="color:var(--sage)">Tashas gets</b><br>A protected table, verified server-side.</p></div>
+    <div class="card" style="padding:22px 20px"><div class="num">04</div><h3 style="font-size:23px;padding:0">Prepare</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px"><b>Guest</b><br>Gets a reminder and adds it to their calendar.<br><br><b style="color:var(--sage)">Tashas gets</b><br>Fewer no-shows, occasions known ahead.</p></div>
+    <div class="card dark" style="padding:22px 20px"><div class="num">05</div><h3 style="font-size:23px;padding:0">Visit</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px"><b style="color:#fff">Guest</b><br>Arrives, enjoys, scans the table QR to earn.<br><br><b style="color:var(--sage-lt)">Tashas gets</b><br>A verified visit, linked to a known guest.</p></div>
+    <div class="card" style="padding:22px 20px"><div class="num">06</div><h3 style="font-size:23px;padding:0">Reward</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px"><b>Guest</b><br>Earns points and sees the next tier.<br><br><b style="color:var(--sage)">Tashas gets</b><br>A reason to return, without discounting.</p></div>
+    <div class="card" style="padding:22px 20px"><div class="num">07</div><h3 style="font-size:23px;padding:0">Return</h3>
+      <p class="fine" style="text-align:left;align-self:stretch;font-size:12.5px"><b>Guest</b><br>Comes back for a new menu, an event or a reward.<br><br><b style="color:var(--sage)">Tashas gets</b><br>Repeat visits, measured.</p></div>
+    <div class="card" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:40px;padding:22px 32px">
+      <span class="tag" style="flex:none">Underneath</span>
+      <p style="margin:0;font-size:21px;line-height:1.3;font-weight:300;text-transform:uppercase">Every step writes to one guest record and one event stream. <span style="color:var(--sage)">That is how a booking triggers its reminder, a visit earns its points and a campaign proves it worked.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 10 OPERATIONS -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Operations</span><span class="pg">10 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">One view of every café</p>
+      <h2>Run every café from one screen</h2>
+    </div>
+    <p class="lead">Managers see bookings, payments, messages and campaigns in one place, with every action checked against their role and written to an audit log.</p>
+  </div>
+  <div class="body" style="grid-template-columns: 1.92fr 1fr;">
+    <div class="card" style="padding:14px">
+      <img src="shots/ops.jpg" alt="Operations dashboard in the working concept" style="width:100%;flex:1;min-height:0;object-fit:cover;object-position:left top;border-radius:16px;display:block;border:1px solid rgba(29,28,26,0.1)">
+      <p class="cap" style="margin-top:10px">Working concept · operations overview · sandbox data</p>
+    </div>
+    <div style="display:grid;grid-template-rows:repeat(3,1fr);gap:18px;min-height:0">
+      <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">Bookings and no-shows</h3><p class="fine">Conversion, cancellations and no-shows by café, device and campaign, so deposit rules are set on evidence.</p></div>
+      <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">Payments reconciled</h3><p class="fine">Every deposit matched to a booking. Refunds by role, with a reason and a gateway reference.</p></div>
+      <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">Honest numbers</h3><p class="fine">Revenue is credited to the app only under attribution rules agreed with Tashas, never from last click alone.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 11 PART TWO -->
+<section class="slide">
+  <div class="hero">
+    <div class="bg" style="background-image:url(img/terrace.jpg);background-position:center 55%"></div>
+    <div class="veil"></div>
+    <div class="corner l">Part two</div>
+    <div class="corner r">11 / 24</div>
+    <h1 style="top:96px">The app as its own<br>marketing tool</h1>
+    <div class="say">Every booking, visit and gift is designed to bring in the next guest, and to show Tashas exactly where they came from.</div>
+  </div>
+  <div class="foot">
+    <div class="mark"><span></span></div>
+    <div class="links">
+      <span class="chip"><span class="c"><svg><use href="#cal"/></svg></span>Business engine</span>
+      <span class="chip on"><span class="c"><svg><use href="#ph"/></svg></span>Marketing tool</span>
+      <span class="chip"><span class="c"><svg><use href="#gl"/></svg></span>Launch plan</span>
+      <span class="chip"><span class="c"><svg><use href="#us"/></svg></span>Investment</span>
+    </div>
+    <div class="meta">Tashas app<br>Marketing strategy</div>
+  </div>
+</section>
+
+<!-- ============================================================ 12 MARKETING ENGINE -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Marketing engine</span><span class="pg">12 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Marketing engine</p>
+      <h2>Six ways the app markets Tashas, every day</h2>
+    </div>
+    <p class="lead">An app is usually treated as a cost of service. Built well, it is the most efficient marketing channel a café group can own.</p>
+  </div>
+  <div class="body g3x2">
+    <div class="card"><div class="num">01</div><h3 class="sm">Every booking is an invitation</h3><p class="fine">A table for six is one booker and five guests. “Invite your table” shares the café, the time and a calendar link by WhatsApp, so every booking introduces Tashas to new people.</p></div>
+    <div class="card dark"><div class="num">02</div><h3 class="sm">Walk-ins become known guests</h3><p class="fine">A QR code on the table and the receipt: “Join and earn points for today.” The visit is confirmed at the till, so points stay honest. The best moment to ask is when the guest is already happy.</p></div>
+    <div class="card"><div class="num">03</div><h3 class="sm">Gifts that recruit</h3><p class="fine">A “Gift a morning” voucher is a new guest, introduced and paid for by an existing one. Redeeming it brings them into the app.</p></div>
+    <div class="card"><div class="num">04</div><h3 class="sm">One page, one action</h3><p class="fine">Campaign pages for brunch, coffee, cake, gifts and events, each with one button and a tracked link for email, QR, social and WhatsApp.</p></div>
+    <div class="card"><div class="num">05</div><h3 class="sm">Reach without rent</h3><p class="fine">Push, in-app and email reach opted-in guests at almost no cost per message, with frequency caps and quiet hours so every message is welcome.</p></div>
+    <div class="card"><div class="num">06</div><h3 class="sm">Found where guests look</h3><p class="fine">Verified café pages with structured data for Google, linked to each Business Profile, and a well-made App Store listing. Rankings are earned and measured, never promised.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ 13 LOOP -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>The self-marketing loop</span><span class="pg">13 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">The self-marketing loop</p>
+      <h2>Each guest brings in the next one</h2>
+    </div>
+  </div>
+  <div class="body" style="grid-template-columns: 1.15fr 1fr;">
+    <div class="card" style="padding:0;align-items:center;justify-content:center">
+      <!-- Six nodes on a circle (centre 400,320; r 225) at -90°, -22°, 22°, 90°, 158°, 202°;
+           each arc runs clockwise from just past one pill to just short of the next. -->
+      <svg viewBox="0 0 800 640" style="width:100%;height:100%">
+        <defs>
+          <marker id="tip" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#56704a"/></marker>
+        </defs>
+        <circle cx="400" cy="320" r="225" fill="none" stroke="rgba(29,28,26,0.12)" stroke-width="1.5"/>
+        <g fill="none" stroke="#56704a" stroke-width="2.2" marker-end="url(#tip)">
+          <path d="M 519.2 129.2 A 225 225 0 0 1 586.5 194.2"/>
+          <path d="M 621.6 280.9 A 225 225 0 0 1 621.6 359.1"/>
+          <path d="M 586.5 445.8 A 225 225 0 0 1 519.2 510.8"/>
+          <path d="M 280.8 510.8 A 225 225 0 0 1 213.5 445.8"/>
+          <path d="M 178.4 359.1 A 225 225 0 0 1 178.4 280.9"/>
+          <path d="M 213.5 194.2 A 225 225 0 0 1 280.8 129.2"/>
+        </g>
+        <text x="400" y="306" text-anchor="middle" font-family="Exo 2" font-weight="300" font-size="36" fill="#1d1c1a">ONE GUEST IN,</text>
+        <text x="400" y="350" text-anchor="middle" font-family="Exo 2" font-weight="300" font-size="36" fill="#56704a">MANY RETURNS</text>
+        <g font-family="Exo 2" font-size="15" letter-spacing="1.6" text-anchor="middle">
+          <g transform="translate(400 95)"><rect x="-92" y="-25" width="184" height="50" rx="25" fill="#2a2927"/><text y="5.5" fill="#f3f1ec">1 · BOOK</text></g>
+          <g transform="translate(608.6 235.7)"><rect x="-110" y="-25" width="220" height="50" rx="25" fill="#fff" stroke="rgba(29,28,26,0.14)"/><text y="5.5" fill="#1d1c1a">2 · INVITE THE TABLE</text></g>
+          <g transform="translate(608.6 404.3)"><rect x="-104" y="-25" width="208" height="50" rx="25" fill="#fff" stroke="rgba(29,28,26,0.14)"/><text y="5.5" fill="#1d1c1a">3 · VISIT AND SCAN</text></g>
+          <g transform="translate(400 545)"><rect x="-108" y="-25" width="216" height="50" rx="25" fill="#fff" stroke="rgba(29,28,26,0.14)"/><text y="5.5" fill="#1d1c1a">4 · EARN AND RETURN</text></g>
+          <g transform="translate(191.4 404.3)"><rect x="-106" y="-25" width="212" height="50" rx="25" fill="#fff" stroke="rgba(29,28,26,0.14)"/><text y="5.5" fill="#1d1c1a">5 · GIFT A MORNING</text></g>
+          <g transform="translate(191.4 235.7)"><rect x="-112" y="-25" width="224" height="50" rx="25" fill="#56704a"/><text y="5.5" fill="#fff">6 · A NEW GUEST BOOKS</text></g>
+        </g>
+      </svg>
+    </div>
+    <div style="display:grid;grid-template-rows:1.25fr 1fr 1fr;gap:18px;min-height:0">
+      <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">How it compounds</h3>
+        <p class="fine" style="max-width:520px">Paid media buys a guest’s attention once. The loop keeps what the first booking earned: the friends at the table, the visit, the reward and the gift each carry Tashas to someone new. The app tracks every turn, so Tashas can see which step to strengthen.</p></div>
+      <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">Party size is reach</h3><p class="fine">A booking is rarely for one. Each shared booking reaches everyone at the table.</p></div>
+      <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">A gift is a new guest</h3><p class="fine">The giver pays; the recipient arrives already sold on Tashas.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 14 CAMPAIGN PLAYBOOK -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Campaign playbook</span><span class="pg">14 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Campaign playbook</p>
+      <h2>Five campaigns, ready on day one</h2>
+    </div>
+    <p class="lead">Each campaign has one job, one audience and one button. Together they cover the week, the day and the gifting year.</p>
+  </div>
+  <div class="body g5" style="gap:16px">
+    <div class="card" style="padding:10px 10px 18px"><div class="ph" style="height:300px;border-radius:18px;background-image:url(img/sm/brunch.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:23px;padding:0">Weekend brunch</h3>
+      <dl class="kv"><dt>Goal</dt><dd>Book ahead, protect big tables</dd><dt>Who</dt><dd>Groups and families</dd><dt>Where</dt><dd>Instagram, email, WhatsApp</dd><dt>Measure</dt><dd>Bookings, deposits, no-shows</dd></dl></div></div>
+    <div class="card" style="padding:10px 10px 18px"><div class="ph" style="height:300px;border-radius:18px;background-image:url(img/sm/iced-coffee.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:23px;padding:0">Morning coffee</h3>
+      <dl class="kv"><dt>Goal</dt><dd>Weekday frequency</dd><dt>Who</dt><dd>Regulars near each café</dd><dt>Where</dt><dd>Push, table QR, Google</dd><dt>Measure</dt><dd>Visits per guest</dd></dl></div></div>
+    <div class="card dark" style="padding:10px 10px 18px"><div class="ph" style="height:300px;border-radius:18px;background-image:url(img/sm/cake.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:23px;padding:0">Afternoon cake</h3>
+      <dl class="kv"><dt>Goal</dt><dd>Lift the quiet afternoon</dd><dt>Who</dt><dd>Nearby and lapsed guests</dd><dt>Where</dt><dd>Push, Instagram</dd><dt>Measure</dt><dd>Afternoon covers</dd></dl></div></div>
+    <div class="card" style="padding:10px 10px 18px"><div class="ph" style="height:300px;border-radius:18px;background-image:url(img/sm/voucher.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:23px;padding:0">Gift a morning</h3>
+      <dl class="kv"><dt>Goal</dt><dd>New guests, paid in advance</dd><dt>Who</dt><dd>Gifters and companies</dd><dt>Where</dt><dd>Email, social, in-café</dd><dt>Measure</dt><dd>Sold, redeemed, new guests</dd></dl></div></div>
+    <div class="card" style="padding:10px 10px 18px"><div class="ph" style="height:300px;border-radius:18px;background-image:url(img/sm/chef.jpg)"></div>
+      <div style="padding:16px 10px 0;display:flex;flex-direction:column;flex:1"><h3 style="font-size:23px;padding:0">Spring tasting</h3>
+      <dl class="kv"><dt>Goal</dt><dd>Events that sell out and recruit</dd><dt>Who</dt><dd>Rewards members first</dd><dt>Where</dt><dd>In-app, email</dd><dt>Measure</dt><dd>Seats sold, first visits</dd></dl></div></div>
+  </div>
+  <p class="note">All five pages exist in the working concept with sample copy. Final copy, offers, prices and dates are written with and approved by Tashas before anything goes live.</p>
+</section>
+
+<!-- ============================================================ 15 LIFECYCLE -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Lifecycle journeys</span><span class="pg">15 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Lifecycle journeys</p>
+      <h2>The right message at the right moment, and never one too many</h2>
+    </div>
+  </div>
+  <div class="body" style="grid-template-columns: 2.05fr 1fr;">
+    <div class="card" style="padding:30px 34px">
+      <div style="display:flex;gap:26px;font-size:11.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mute);margin-bottom:22px">
+        <span><span class="dot" style="background:#2a2927;margin-right:8px"></span>Service message: always sent</span>
+        <span><span class="dot" style="margin-right:8px"></span>Marketing message: only with consent</span>
+      </div>
+      <div class="journey">
+        <div class="j"><span class="jd mk"></span><b>Welcome</b><i>When a guest opts in</i><em>Email · push</em></div>
+        <div class="j"><span class="jd sv"></span><b>Booking confirmed</b><i>Immediately</i><em>In-app · email · push</em></div>
+        <div class="j"><span class="jd sv"></span><b>Reminder</b><i>24 hours before</i><em>Push · email</em></div>
+        <div class="j"><span class="jd sv"></span><b>Thank you</b><i>After a verified visit</i><em>In-app · email</em></div>
+        <div class="j"><span class="jd sv"></span><b>Reward earned or expiring</b><i>On earn, before expiry</i><em>In-app · push · email</em></div>
+        <div class="j"><span class="jd mk"></span><b>Birthday</b><i>If shared, with consent</i><em>Email</em></div>
+        <div class="j"><span class="jd mk"></span><b>Win-back</b><i>After a quiet spell Tashas sets</i><em>Email · push · WhatsApp*</em></div>
+      </div>
+      <div class="mlabel">What guests receive</div>
+      <div class="msgs">
+        <div class="msg"><div class="mh"><span class="ai">t</span>Tashas<span class="when">Now</span></div><b>Your table is booked</b><p>Tashas Rosebank, Saturday 31 Oct at 07:00 for 6. Reference TSH-4F7Q2K. Deposit paid: R600.</p></div>
+        <div class="msg"><div class="mh"><span class="ai">t</span>Tashas<span class="when">Day before</span></div><b>See you tomorrow</b><p>Tashas Rosebank at 07:00, table for 6. Need to change it? Manage your booking in the app.</p></div>
+        <div class="msg"><div class="mh"><span class="ai">t</span>Tashas<span class="when">After the visit</span></div><b>You earned 50 points</b><p>For your visit to Tashas Rosebank. Your balance is now 200 points.</p></div>
+        <div class="msg mk"><div class="mh"><span class="ai">t</span>Tashas<span class="when">With consent</span></div><b>It has been a while</b><p>Your table at Tashas Rosebank is waiting. Book your next breakfast in a few taps.</p></div>
+      </div>
+      <p class="note" style="margin-top:18px">Sample messages from the working concept’s templates; final wording, reward values and timings are set by Tashas. *WhatsApp and SMS switch on only once Tashas approves the provider, the sender, the templates and the consent wording.</p>
+    </div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">Guardrails, built in</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:20px">
+        <li>Consent recorded per channel and purpose, with wording and version</li>
+        <li>A global suppression list, checked again just before every send</li>
+        <li>Frequency caps and quiet hours</li>
+        <li>Every campaign approved by a second person</li>
+        <li>Service messages never carry promotions</li>
+        <li>One-tap opt-out, honoured immediately</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ============================================================ 16 LAUNCH 90 DAYS -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Launch marketing</span><span class="pg">16 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Launch marketing</p>
+      <h2>The first 90 days: seed, launch, compound</h2>
+    </div>
+    <p class="lead">Launches fail quietly when the app is ready but the cafés are not. The plan starts with the team at the host stand, not with an advert.</p>
+  </div>
+  <div class="ph banner" style="height:150px;background-image:url(img/florals.jpg);background-position:center 30%"></div>
+  <div class="body g3">
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><div class="num">Weeks −4 to 0</div><h3>Seed</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:18px">
+        <li>Team briefing and a host-stand script at every café</li>
+        <li>Table talkers and receipt QR codes, tracked per café</li>
+        <li>Booking links on each Google Business Profile, Instagram and the website</li>
+        <li>App Store and Google Play listings, screenshots and privacy labels</li>
+        <li>A first look for guests who already said yes to email</li>
+      </ul></div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><div class="num">Days 1 to 30</div><h3>Launch</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:18px">
+        <li>The pilot café first, then every café</li>
+        <li>A founding-member welcome reward, value set by Tashas</li>
+        <li>“Scan to earn today” at every table</li>
+        <li>Launch content from the photography, with tracked links</li>
+        <li>A weekly review: fix whatever slows guests down</li>
+      </ul></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><div class="num">Days 31 to 90</div><h3>Compound</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:18px">
+        <li>Rotate the five campaigns by day, hour and season</li>
+        <li>Festive gifting with “Gift a morning” vouchers</li>
+        <li>Post-visit and win-back journeys on, after legal sign-off</li>
+        <li>A/B tests on landing copy, with holdout groups</li>
+        <li>A 90-day review: move spend to the channels that fill tables</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ============================================================ 17 PROOF -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Proof before payment</span><span class="pg">17 / 24</span></div>
+  <div class="head" style="margin-bottom:22px">
+    <div>
+      <p class="eyebrow">Proof before payment</p>
+      <h2>The app already works. This investment takes it live.</h2>
+    </div>
+    <p class="lead">A working concept built from Tashas’s brief and photography, running on sandbox providers. The build starts here, not from a blank page.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:22px;padding:0 6px;flex:none">
+    <div><div class="phone"><img src="shots/today.jpg" alt="Today screen"></div><div class="cap">Today</div></div>
+    <div><div class="phone"><img src="shots/campaign.jpg" alt="Campaign page"></div><div class="cap">Campaign page</div></div>
+    <div><div class="phone"><img src="shots/book.jpg" alt="Booking with a held slot"></div><div class="cap">Booking, slot held</div></div>
+    <div><div class="phone"><img src="shots/checkout.jpg" alt="Sandbox deposit checkout"></div><div class="cap">Deposit · sandbox</div></div>
+    <div><div class="phone"><img src="shots/booked.jpg" alt="Booking confirmed"></div><div class="cap">Confirmed</div></div>
+    <div><div class="phone"><img src="shots/rewards.jpg" alt="Rewards"></div><div class="cap">Rewards</div></div>
+  </div>
+  <div class="body g4" style="margin-top:20px;gap:16px">
+    <div class="card" style="padding:18px 22px"><h3 style="font-size:22px">85 automated tests</h3><p class="fine" style="font-size:12px;padding-top:8px;max-width:none">Bookings, payments, refunds, rewards, consent and campaigns.</p></div>
+    <div class="card" style="padding:18px 22px"><h3 style="font-size:22px">Every screen checked</h3><p class="fine" style="font-size:12px;padding-top:8px;max-width:none">Phone, Android, tablet and desktop, plus dark mode.</p></div>
+    <div class="card" style="padding:18px 22px"><h3 style="font-size:22px">28 brand images</h3><p class="fine" style="font-size:12px;padding-top:8px;max-width:none">Each verified against its SHA-256 fingerprint.</p></div>
+    <div class="card dark" style="padding:18px 22px"><h3 style="font-size:22px">One offline file</h3><p class="fine" style="font-size:12px;padding-top:8px;max-width:none">The whole concept, shared by WhatsApp or email.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ 18 INVESTMENT OPTIONS -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Investment options</span><span class="pg">18 / 24</span></div>
+  <div class="head" style="margin-bottom:22px">
+    <div>
+      <p class="eyebrow">Investment options</p>
+      <h2>Three ways to start. We recommend Growth.</h2>
+    </div>
+  </div>
+  <div class="ph banner" style="height:150px;background-image:url(img/interior-wide.jpg);background-position:center 70%"></div>
+  <div class="body g3">
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Launch</h3><div class="price">R459&nbsp;000</div><div class="sub">83 days · live in 12 weeks</div>
+      <p class="fine">An installable web app on iPhone, Android and desktop. Booking on the approved provider, deposits, confirmations and reminders, rewards, five campaign pages with QR codes and tracked links, and the operations dashboard.</p></div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3>Growth <span class="tag" style="vertical-align:middle;margin-left:10px">Recommended</span></h3><div class="price">R680&nbsp;000</div><div class="sub">123 days · live in 16 weeks</div>
+      <p class="fine">Everything in Launch, plus native apps on the App Store and Google Play, lifecycle journeys, gift vouchers and event seats, WhatsApp once approved, verified café pages for Google, and A/B tests with holdouts.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Group</h3><div class="price">R922&nbsp;000</div><div class="sub">167 days · live in 20 weeks</div>
+      <p class="fine">Everything in Growth, plus POS integration so rewards follow verified spend, CRM integration, order-ahead where cafés support it, multi-currency readiness and a host-stand view for staff.</p></div>
+  </div>
+  <p class="note">Fixed prices excluding VAT, at the same senior rate as our current proposals (R690 an hour), confirmed at the week-2 gate. Valid until 27 November 2026.</p>
+</section>
+
+<!-- ============================================================ 19 COSTING -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>The costing</span><span class="pg">19 / 24</span></div>
+  <div class="head" style="margin-bottom:20px">
+    <div>
+      <p class="eyebrow">The costing</p>
+      <h2>Growth edition, R680&nbsp;000, itemised</h2>
+    </div>
+  </div>
+  <div class="body" style="grid-template-columns: 1fr 1fr; grid-template-rows: 1fr auto;">
+    <div class="card" style="padding:22px 28px">
+      <table>
+        <tr><th></th><th>Deliverable</th><th class="r">Days</th><th class="r">Price</th></tr>
+        <tr><td class="n">01</td><td><div class="t">Discovery and provider confirmation</div><div class="d">Ends in a go / re-scope decision at week 2</div></td><td class="r">7</td><td class="r">R38&nbsp;640</td></tr>
+        <tr><td class="n">02</td><td><div class="t">Brand system and launch design</div><div class="d">Tashas’s palette and type, app icon, store art</div></td><td class="r">8</td><td class="r">R44&nbsp;160</td></tr>
+        <tr><td class="n">03</td><td><div class="t">Booking engine</div><div class="d">Live availability, change, cancel, waitlist, webhooks</div></td><td class="r">16</td><td class="r">R88&nbsp;320</td></tr>
+        <tr><td class="n">04</td><td><div class="t">Payments</div><div class="d">Deposits, vouchers, event seats, refunds, reconciliation</div></td><td class="r">14</td><td class="r">R77&nbsp;280</td></tr>
+        <tr><td class="n">05</td><td><div class="t">Notifications and preferences</div><div class="d">In-app, push, email; consent records per channel</div></td><td class="r">10</td><td class="r">R55&nbsp;200</td></tr>
+        <tr><td class="n">06</td><td><div class="t">Rewards ledger and voucher wallet</div><div class="d">Earn, redeem, expire, reverse; table QR to join</div></td><td class="r">8</td><td class="r">R44&nbsp;160</td></tr>
+        <tr><td class="n">07</td><td><div class="t">Lifecycle journeys and campaign builder</div><div class="d">Approvals, caps, quiet hours, suppression</div></td><td class="r">12</td><td class="r">R66&nbsp;240</td></tr>
+      </table>
+    </div>
+    <div class="card" style="padding:22px 28px">
+      <table>
+        <tr><th></th><th>Deliverable</th><th class="r">Days</th><th class="r">Price</th></tr>
+        <tr><td class="n">08</td><td><div class="t">Campaign pages and attribution</div><div class="d">QR, tracked links, “invite your table”, A/B tests</div></td><td class="r">8</td><td class="r">R44&nbsp;160</td></tr>
+        <tr><td class="n">09</td><td><div class="t">Local search foundations</div><div class="d">Verified café pages, structured data, Search Console</div></td><td class="r">6</td><td class="r">R33&nbsp;120</td></tr>
+        <tr><td class="n">10</td><td><div class="t">Operations dashboard</div><div class="d">Bookings, payments, refunds, message health, KPIs</div></td><td class="r">8</td><td class="r">R44&nbsp;160</td></tr>
+        <tr><td class="n">11</td><td><div class="t">iOS and Android release</div><div class="d">Native builds, store listings, review</div></td><td class="r">9</td><td class="r">R49&nbsp;680</td></tr>
+        <tr><td class="n">12</td><td><div class="t">Quality, accessibility and security</div><div class="d">Devices, screen readers, large text, penetration checks</div></td><td class="r">7</td><td class="r">R38&nbsp;640</td></tr>
+        <tr><td class="n">13</td><td><div class="t">Launch marketing kit</div><div class="d">Team briefing, table QR, store screenshots, launch assets</div></td><td class="r">5</td><td class="r">R27&nbsp;600</td></tr>
+        <tr><td class="n">14</td><td><div class="t">Hypercare and handover</div><div class="d">30 days of priority fixes, training, code and accounts</div></td><td class="r">5</td><td class="r">R27&nbsp;600</td></tr>
+      </table>
+    </div>
+    <div class="card dark" style="grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;padding:20px 32px">
+      <div class="tot"><span>Subtotal</span><b>123 days · R678&nbsp;960</b></div>
+      <div class="tot"><span>Rounding</span><b>R1&nbsp;040</b></div>
+      <div class="tot"><span>VAT at 15%, if applicable</span><b>R102&nbsp;000</b></div>
+      <div class="tot big"><span>Total, fixed price, excluding VAT</span><b>R680&nbsp;000</b></div>
+    </div>
+  </div>
+  <p class="note">Effort is in person-days for a senior team: 984 hours at R690 an hour. The Launch edition is 83 days; the Group edition is 167 days.</p>
+</section>
+
+<!-- ============================================================ 20 ROI -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Return on investment</span><span class="pg">20 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Return on investment</p>
+      <h2>The app pays for itself at fewer than five extra tables a day</h2>
+    </div>
+    <p class="lead">Break-even is simple arithmetic: the investment divided by what an extra table contributes. The table shows how many it takes across a range of bills and margins.</p>
+  </div>
+  <div class="body" style="grid-template-columns: 1.5fr 1fr; grid-template-rows: 1fr auto;">
+    <div class="card" style="padding:26px 32px">
+      <div style="font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px">Extra tables needed to recover R680&nbsp;000</div>
+      <table class="roi">
+        <tr><th>Average table bill</th><th class="r">35% contribution</th><th class="r">45% contribution</th><th class="r">55% contribution</th></tr>
+        <tr><td><b>R600</b></td><td class="r">3&nbsp;239</td><td class="r">2&nbsp;519</td><td class="r">2&nbsp;061</td></tr>
+        <tr><td><b>R900</b></td><td class="r">2&nbsp;159</td><td class="r hlc"><b>1&nbsp;680</b></td><td class="r">1&nbsp;374</td></tr>
+        <tr><td><b>R1&nbsp;200</b></td><td class="r">1&nbsp;620</td><td class="r">1&nbsp;260</td><td class="r">1&nbsp;031</td></tr>
+      </table>
+      <p class="note" style="margin-top:auto">Extra tables = R680&nbsp;000 ÷ (average table bill × contribution margin), rounded up. The values are illustrative, not Tashas’s figures, and are replaced with real numbers in discovery. Count only visits that would not have happened without the app, measured with holdout groups.</p>
+    </div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">In the middle case: about 140 extra tables a month</h3>
+      <p class="fine" style="max-width:440px">At a R900 average table bill and a 45% contribution, 1&nbsp;680 extra tables recover the investment in year one. That is about 140 a month, or fewer than five a day across the whole group.</p></div>
+    <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <div class="card" style="padding:18px 22px"><div class="num" style="margin-bottom:8px">Value beyond tables</div><h3 style="font-size:20px">Fewer no-shows</h3></div>
+      <div class="card" style="padding:18px 22px"><div class="num" style="margin-bottom:8px">Value beyond tables</div><h3 style="font-size:20px">Lower cost to reach guests</h3></div>
+      <div class="card" style="padding:18px 22px"><div class="num" style="margin-bottom:8px">Value beyond tables</div><h3 style="font-size:20px">Staffing and prep planned ahead</h3></div>
+      <div class="card" style="padding:18px 22px"><div class="num" style="margin-bottom:8px">Value beyond tables</div><h3 style="font-size:20px">Guest data Tashas owns</h3></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 21 TIMELINE -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Timeline and payments</span><span class="pg">21 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Timeline and payments</p>
+      <h2>Sixteen weeks to launch, with a gate before the build</h2>
+    </div>
+  </div>
+  <div class="body" style="grid-template-columns: 1.55fr 1fr;">
+    <div class="card" style="padding:26px 30px">
+      <div class="gantt">
+        <div class="gh"><span></span><div class="wk"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i><i>11</i><i>12</i><i>13</i><i>14</i><i>15</i><i>16</i><i>17</i><i>18</i><i>19</i><i>20</i></div></div>
+        <div class="gr"><span>Discovery and providers<small>Gate: go / re-scope</small></span><div class="tr"><b class="ac" style="grid-column:1/3"></b></div></div>
+        <div class="gr"><span>Brand system and design</span><div class="tr"><b style="grid-column:2/5"></b></div></div>
+        <div class="gr"><span>Booking and payments</span><div class="tr"><b style="grid-column:3/10"></b></div></div>
+        <div class="gr"><span>Messages, rewards, journeys</span><div class="tr"><b style="grid-column:6/12"></b></div></div>
+        <div class="gr"><span>Campaigns, attribution, search</span><div class="tr"><b style="grid-column:8/12"></b></div></div>
+        <div class="gr"><span>Pilot café on a test build<small>Milestone 2</small></span><div class="tr"><b class="ac" style="grid-column:12/13"></b></div></div>
+        <div class="gr"><span>Quality and store review</span><div class="tr"><b style="grid-column:12/16"></b></div></div>
+        <div class="gr"><span>Every café, both stores<small>Milestone 3 · launch campaign</small></span><div class="tr"><b class="ac" style="grid-column:16/17"></b></div></div>
+        <div class="gr"><span>Hypercare, 30 days<small>Milestone 4</small></span><div class="tr"><b class="lt" style="grid-column:16/21"></b></div></div>
+      </div>
+      <p class="note" style="margin-top:auto">Weeks from signature. Sage bars mark the points where Tashas sees and approves progress.</p>
+    </div>
+    <div style="display:grid;grid-template-rows:1fr auto;gap:18px;min-height:0">
+      <div class="card" style="padding:24px 28px">
+        <div style="font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px">Four milestone payments</div>
+        <table>
+          <tr><th>Milestone</th><th class="r">Share</th><th class="r">Amount</th></tr>
+          <tr><td><div class="t">On signature</div><div class="d">Discovery starts</div></td><td class="r">30%</td><td class="r">R204&nbsp;000</td></tr>
+          <tr><td><div class="t">Pilot café on a test build</div><div class="d">Week 12</div></td><td class="r">30%</td><td class="r">R204&nbsp;000</td></tr>
+          <tr><td><div class="t">Every café, both stores</div><div class="d">Week 16</div></td><td class="r">30%</td><td class="r">R204&nbsp;000</td></tr>
+          <tr><td><div class="t">After 30 days of hypercare</div><div class="d">Week 20</div></td><td class="r">10%</td><td class="r">R68&nbsp;000</td></tr>
+          <tr><td><div class="t" style="font-weight:700">Total</div></td><td class="r"><b>100%</b></td><td class="r"><b>R680&nbsp;000</b></td></tr>
+        </table>
+      </div>
+      <div class="card dark" style="padding:22px 28px"><h3 style="font-size:21px">Nothing is paid for work you have not seen</h3><p class="fine" style="max-width:none;font-size:12.5px;padding-top:10px">After the first payment, each one follows something Tashas can use: a test build on its own phones, the app live in every café, and a month of live operation.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 22 KPIs -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Measurement</span><span class="pg">22 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Measurement</p>
+      <h2>Measured monthly, from day one</h2>
+    </div>
+    <p class="lead">Business outcomes, not vanity metrics. Baselines are measured in month one, targets are agreed with Tashas in discovery, and every estimate is labelled as one.</p>
+  </div>
+  <div class="body g3x2">
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Booking<br>conversion</h3><p class="fine">Confirmed bookings divided by qualified booking starts, by café, device and campaign.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>No-show<br>rate</h3><p class="fine">With and without a deposit, by café and time of day, so deposit rules are set on evidence.</p></div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3>Known-guest<br>share</h3><p class="fine">The share of visits linked to a guest who said yes. The north-star measure of this strategy.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Repeat guest<br>rate</h3><p class="fine">Opted-in guests with another completed visit within 90 days.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Opt-in and<br>opt-out</h3><p class="fine">Consent gained and withdrawn, per channel. A rising opt-out rate means fewer, better messages.</p></div>
+    <div class="card"><svg class="arrow"><use href="#ar"/></svg><h3>Incremental<br>revenue</h3><p class="fine">Proven with holdout groups and agreed attribution windows, never claimed from last click alone.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ 23 RISKS -->
+<section class="slide">
+  <div class="top"><span class="brand"><span class="dot"></span>Tashas app <i>· marketing strategy</i></span><span>Protection</span><span class="pg">23 / 24</span></div>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Protection</p>
+      <h2>How the investment is protected</h2>
+    </div>
+  </div>
+  <div class="body" style="grid-template-columns: 1.85fr 1fr;">
+    <div class="card" style="padding:24px 32px">
+      <table class="risk">
+        <tr><th style="width:36%">Risk</th><th>How we manage it</th></tr>
+        <tr><td><div class="t">Providers differ from our assumption</div></td><td>Week-2 gate: booking and payment providers, APIs and sandbox access confirmed before build spend, and re-scoped with you if needed.</td></tr>
+        <tr><td><div class="t">Low adoption after launch</div></td><td>Table QR, a host-stand script, a launch reward and tracked campaigns drive installs. The dashboard shows what is working every week.</td></tr>
+        <tr><td><div class="t">Guests feel over-messaged</div></td><td>Consent per channel, frequency caps, quiet hours and one-tap opt-out. The opt-out rate is a reported KPI.</td></tr>
+        <tr><td><div class="t">Privacy and POPIA</div></td><td>Data minimised, consent recorded with its wording and version, and marketing switched on only after Tashas’s legal sign-off.</td></tr>
+        <tr><td><div class="t">Content or offers arrive late</div></td><td>A shared content calendar and a five-working-day approval turnaround agreed at kick-off. Sample content stays labelled until approved.</td></tr>
+        <tr><td><div class="t">Scope grows during the build</div></td><td>Fixed price for the listed scope. Anything new goes through a written change request with its own price, approved first.</td></tr>
+        <tr><td><div class="t">App store review delays</div></td><td>Store rules built in from the start, two weeks planned for review, submitted under Tashas’s own developer accounts.</td></tr>
+      </table>
+    </div>
+    <div class="card dark"><svg class="arrow"><use href="#ar"/></svg><h3 class="sm">What this rests on</h3>
+      <ul class="ticks" style="margin-top:auto;padding-top:20px">
+        <li>Tashas confirms its booking and payment providers by week 2</li>
+        <li>Tashas supplies approved menus, café details, offers and reward rules</li>
+        <li>Apple, Google and messaging accounts open in Tashas’s name, paid at cost</li>
+        <li>Prices, menus and stock always come from Tashas’s systems</li>
+        <li>English at launch</li>
+        <li>On final payment, Tashas owns the code, designs and data</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ============================================================ 24 CLOSE -->
+<section class="slide">
+  <div class="hero">
+    <div class="bg" style="background-image:url(img/exterior.jpg);background-position:center 60%"></div>
+    <div class="veil"></div>
+    <div class="corner l">Next step</div>
+    <div class="corner r">To talk</div>
+    <h1>See the working app —<br>here and now.</h1>
+    <div class="cta"><span class="pill"><span class="ico"><svg><use href="#cal"/></svg></span>Book a walkthrough<svg class="go"><use href="#ar"/></svg></span></div>
+    <div class="say">Approve the Growth edition and discovery starts within five working days. Nothing beyond it is spent until the week-2 gate confirms the plan.</div>
+  </div>
+  <div class="foot">
+    <div class="mark"><span></span></div>
+    <div class="links">
+      <span class="chip"><span class="c"><svg><use href="#us"/></svg></span>Magugu S. Nzimande · Founder &amp; CEO</span>
+      <span class="chip"><span class="c"><svg><use href="#ph"/></svg></span>+27 73 225 7761</span>
+      <span class="chip"><span class="c"><svg><use href="#ml"/></svg></span>info@legacyleverage.co.za</span>
+      <span class="chip"><span class="c"><svg><use href="#gl"/></svg></span>www.legacyleverage.co.za</span>
+    </div>
+    <div class="meta">Concept screens use sample cafés, menus,<br>prices and reward rules. 24 / 24</div>
+  </div>
+</section>
+
+<style>
+/* Pieces used by a single slide each. */
+dl.kv { margin: auto 0 0; padding-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 7px 12px; font-size: 12.5px; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.02em; }
+dl.kv dt { color: var(--sage); font-weight: 600; letter-spacing: 0.1em; }
+dl.kv dd { margin: 0; color: var(--ink-2); }
+.card.dark dl.kv dt { color: var(--sage-lt); }
+.card.dark dl.kv dd { color: var(--on-dark-2); }
+
+.journey { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+.journey::before { content: ''; position: absolute; left: 7px; right: 7px; top: 7px; height: 1px; background: rgba(29,28,26,0.28); }
+.j { position: relative; padding-top: 30px; display: flex; flex-direction: column; gap: 8px; }
+.jd { position: absolute; top: 0; left: 0; width: 15px; height: 15px; border-radius: 50%; border: 3px solid #f2f1ee; box-sizing: content-box; margin: -3px; }
+.jd.sv { background: #2a2927; } .jd.mk { background: var(--sage); }
+.j b { font-weight: 500; font-size: 16.5px; line-height: 1.15; text-transform: uppercase; letter-spacing: 0.01em; }
+.j i { font-style: normal; font-size: 12.5px; line-height: 1.35; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.02em; }
+.j em { font-style: normal; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sage); }
+
+.mlabel { margin-top: auto; font-size: 11.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); margin-bottom: 12px; }
+.msgs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.msg { background: rgba(255,255,255,0.86); border: 1px solid rgba(29,28,26,0.08); border-radius: 18px; padding: 14px 16px 16px; }
+.msg .mh { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); margin-bottom: 10px; }
+.msg .ai { width: 22px; height: 22px; border-radius: 6px; background: var(--sage); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+.msg .when { margin-left: auto; letter-spacing: 0.06em; }
+.msg.mk .when { color: var(--sage); font-weight: 600; }
+.msg b { display: block; font-size: 15.5px; font-weight: 600; margin-bottom: 4px; }
+.msg p { margin: 0; font-size: 13.5px; line-height: 1.42; color: var(--ink-2); }
+.steps .num { font-size: 40px; font-weight: 300; letter-spacing: 0; margin-bottom: 8px; line-height: 1; }
+.tot { display: flex; flex-direction: column; gap: 6px; }
+.tot span { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--on-dark-2); }
+.tot b { font-size: 22px; font-weight: 500; }
+.tot.big b { font-size: 30px; font-weight: 700; color: #fff; }
+
+table.roi td { font-size: 22px; padding: 28px 0; }
+table.roi th { font-size: 11.5px; }
+td.hlc { background: rgba(86,112,74,0.13); padding-right: 14px !important; }
+table.roi td.r { padding-right: 14px; }
+table.roi th.r { padding-right: 14px; }
+table.risk td { font-size: 14.5px; line-height: 1.45; color: var(--ink-2); padding: 16px 0; }
+table.risk td:first-child { padding-right: 24px; color: var(--ink); }
+
+.gantt { display: flex; flex-direction: column; gap: 14px; }
+.gh, .gr { display: grid; grid-template-columns: 250px 1fr; align-items: center; gap: 14px; }
+.gh .wk, .gr .tr { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; }
+.gh .wk i { font-style: normal; font-size: 11px; color: var(--mute); text-align: center; letter-spacing: 0.04em; }
+.gr span { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.2; }
+.gr span small { display: block; font-size: 11px; font-weight: 400; color: var(--mute); letter-spacing: 0.04em; margin-top: 2px; }
+.gr .tr { height: 40px; align-items: center; background: repeating-linear-gradient(90deg, transparent 0 calc(5% - 1px), rgba(29,28,26,0.07) calc(5% - 1px) 5%); }
+.gr .tr b { height: 20px; border-radius: 99px; background: #2f2e2b; }
+.gr .tr b.ac { background: var(--sage); }
+.gr .tr b.lt { background: #cfd9c6; }
+</style>
+</body>
+</html>

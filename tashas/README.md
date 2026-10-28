@@ -135,6 +135,24 @@ Moving from sandbox to live means implementing `ReservationProvider` and
 adapters; the brief's credentials checklist is in Profile → About and in
 Operations → Sandbox, and summarised below.
 
+## Marketing strategy deck
+
+`release/Tashas_App_Marketing_Strategy.pdf` is a 24-page presentation of what
+the app does for the business, how it works as its own marketing channel, the
+launch plan and three investment options. Its source is `marketing/deck.html`.
+The page is built from the supplied photography (`marketing/img/`) and from
+screens of this app (`marketing/shots/`).
+
+```bash
+npm run build                    # the app the screens come from
+node marketing/capture.mjs       # refresh marketing/shots/
+node marketing/build-deck.mjs    # write the PDF; --preview <dir> also saves PNGs
+```
+
+The deck loads Exo 2 from Google Fonts, so building it needs network access.
+Its prices, rand figures and the break-even table are proposals and
+illustrations, labelled as such in the deck. They are not Tashas data.
+
 ## Still needed from Tashas and its providers
 
 1. Reservation provider: contract, café coverage, availability, hold, create,

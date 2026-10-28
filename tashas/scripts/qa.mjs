@@ -30,7 +30,11 @@ const note = (msg) => {
 };
 const ok = (msg) => console.log(`  ✓ ${msg}`);
 
-const browser = await chromium.launch();
+// The Playwright that resolves may not match the browser on disk; fall back to
+// a Chromium given by CHROMIUM_PATH (or the cloud image's preinstalled one).
+const browser = await chromium
+  .launch()
+  .catch(() => chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium' }));
 
 async function open(name, options) {
   const context = await browser.newContext({ acceptDownloads: true, ...options });

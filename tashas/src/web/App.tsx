@@ -223,7 +223,10 @@ export function App() {
   const nav = useNav();
   const allTabs: Tab[] = ['today', 'cafes', 'menu', 'rewards', 'profile', 'ops'];
   const fabScroll = useFabScroll(nav.tab, nav.stacks[nav.tab].length);
-  const showFab = fabScroll && nav.sheets.length === 0 && nav.tab !== 'ops' && nav.tab !== 'profile';
+  // Campaign and event pages carry their own primary action; the floating button would cover it.
+  const top = nav.stacks[nav.tab].at(-1)?.name;
+  const ownsAction = top === 'campaign' || top === 'event';
+  const showFab = fabScroll && !ownsAction && nav.sheets.length === 0 && nav.tab !== 'ops' && nav.tab !== 'profile';
   return (
     <div class="app">
       <Sidebar tab={nav.tab} />
