@@ -8,6 +8,13 @@ official Bulls product: tickets, scores, rewards and screens are sample data.
 - **Single-file app:** `Bulls_One_Loftus_Experience.html`, about 4.3 MB, with
   all 22 reference images, fonts and metadata embedded. Works offline.
 - **Social preview image:** `og-image.jpg` (1200 × 630)
+- **Hosted site build:** `site/` (also sent as `Bulls_One_Site_Package.zip`): the app as
+  `index.html` with a web app manifest, an offline service worker and
+  home-screen icons. Upload the folder to any web host (your domain, Netlify,
+  GitHub Pages) to get a public link that installs to the home screen on
+  Android and iPhone and keeps working offline. Rebuild it with `--site-url`
+  set to that address so WhatsApp link previews show the preview image.
+- **Device test results:** `TESTING.md`
 
 ## Opening and sharing it
 
@@ -38,6 +45,14 @@ python3 -I build.py <briefing.docx> .. --icon <apple-touch-icon.png> --og <og.pn
     [--site-url https://your-host/bulls-one/]
 node prerender.js ../Bulls_One_Loftus_Experience.html
 python3 -I make_artifact.py ../Bulls_One_Loftus_Experience.html ../dist/artifact/index.html
+```
+
+Hosted site build (adds the manifest, service worker and icons):
+
+```sh
+python3 -I build.py <briefing.docx> ../site --icon <apple-touch-icon.png> --og <og.png> \
+    --app-url <shareable link> --site-url https://your-host/bulls-one/ --pwa --out-name index.html
+node prerender.js ../site/index.html
 ```
 
 - `build.py` embeds each image once as a CSS data URI, so pictures show without

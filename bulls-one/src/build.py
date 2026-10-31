@@ -23,6 +23,7 @@ import io
 import json
 import pathlib
 import re
+import shutil
 import sys
 import urllib.parse
 import zipfile
@@ -100,6 +101,8 @@ def main():
     ap.add_argument("--icon"); ap.add_argument("--og")
     ap.add_argument("--site-url", default="https://example.com/bulls-one/")
     ap.add_argument("--app-url", default="")
+    ap.add_argument("--pwa", action="store_true", help="hosted site build: manifest, service worker and icons beside the page")
+    ap.add_argument("--out-name", default="Bulls_One_Loftus_Experience.html")
     a = ap.parse_args()
     docx, out_dir = pathlib.Path(a.docx), pathlib.Path(a.out_dir)
     icon = pathlib.Path(a.icon) if a.icon else None
@@ -173,15 +176,21 @@ def main():
     share = "Bulls One — The Loftus Experience (concept prototype)" + (f"\n{app_url}" if app_url else "")
     page = (page.replace("__SITE_URL__", site_url).replace("__APP_URL_TEXT__", html.escape(app_url) if app_url else "the hosted app link")
                 .replace("__APP_URL__", app_url).replace("__WA_HREF__", "https://wa.me/?text=" + urllib.parse.quote(share))
-                .replace("__APP_LINK_HIDDEN__", "" if app_url else "hidden"))
+                .replace("__APP_LINK_HIDDEN__", "" if app_url else "hidden")
+                .replace("__PWA_LINKS__", '<link rel="manifest" href="manifest.webmanifest">' if a.pwa else "")
+                .replace("'__PWA__'", "'on'" if a.pwa else "'off'"))
     left = re.findall(r"__[A-Z_]+__", page)
     if left:
         sys.exit(f"unfilled placeholders: {sorted(set(left))}")
-    out = out_dir / "Bulls_One_Loftus_Experience.html"
+    out = out_dir / a.out_name
     out.write_text(page, "utf8")
     total = sum(a["bytes"] for a in assets)
     print(f"wrote {out} ({out.stat().st_size / 1048576:.2f} MB; images {total / 1048576:.2f} MB raw WebP)")
     print(f"wrote {out_dir / 'og-image.jpg'}")
+    if a.pwa:
+        for f in ("manifest.webmanifest", "sw.js", "icon-192.png", "icon-512.png"):
+            shutil.copyfile(HERE / "pwa" / f, out_dir / f)
+        print(f"wrote PWA files to {out_dir}")
 
 
 if __name__ == "__main__":

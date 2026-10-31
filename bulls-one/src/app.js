@@ -1852,6 +1852,11 @@
      Boot
      ====================================================================== */
   setupGetApp();
+  // Installable web app: only in the hosted site build, which ships a
+  // manifest and service worker beside index.html.
+  if ('__PWA__' === 'on' && /^https?:$/.test(location.protocol) && !inViewer() && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
   $$('[data-seg]').forEach(initSeg);
   updateGlobal();
   updateScores();
