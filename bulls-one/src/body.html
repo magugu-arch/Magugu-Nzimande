@@ -1,0 +1,944 @@
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.5l8.5 7V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3.5 7.5h17v3a1.8 1.8 0 0 0 0 3.6v3.4h-17v-3.4a1.8 1.8 0 0 0 0-3.6z"/><path d="M14.5 7.5v10" stroke-dasharray="1.6 2.4"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.5" y="8" width="17" height="4.5" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8v12M12 8c-2.5 0-5-.6-5-2.6 0-1.5 1.6-2.4 3-1.6C11.2 4.5 12 8 12 8zm0 0c2.5 0 5-.6 5-2.6 0-1.5-1.6-2.4-3-1.6C12.8 4.5 12 8 12 8z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c1.4-3.6 4.2-5.5 7.5-5.5s6.1 1.9 7.5 5.5"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.8-2.6h6.4L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.6"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.8-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.2-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.4 2.9 7.9 7 9.5 4.1-1.6 7-5.1 7-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9l-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9.5 5.5 6.5 6.5-6.5 6.5"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m14.5 5.5-6.5 6.5 6.5 6.5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></symbol>
+    <symbol id="i-food" viewBox="0 0 24 24"><path d="M4.5 11a7.5 6 0 0 1 15 0zM4 14.5h16M5 14.5l.8 3.2a2 2 0 0 0 1.9 1.3h8.6a2 2 0 0 0 1.9-1.3l.8-3.2"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 6.1c.5-.1.9-.1 1.4-.1 6 0 9.5 6 9.5 6a17 17 0 0 1-2.8 3.4M6.3 7.2A16.6 16.6 0 0 0 2.5 12S6 18 12 18c1.6 0 3-.4 4.2-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></symbol>
+    <symbol id="i-screen" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M8 20.5h8M12 16.5v4"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3.5v8"/><path d="M6.6 6.6a7.6 7.6 0 1 0 10.8 0"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2.5 4.5 13.5h6.5l-1 8 8.5-11h-6.5z"/></symbol>
+    <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 19.5c1-3.4 3.4-5 6.2-5s5.2 1.6 6.2 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.8 14c2.4 0 4 1.4 4.6 4"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3.4 2.8 14.6 0 18M12 3c-2.8 3.4-2.8 14.6 0 18"/></symbol>
+    <symbol id="i-live" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M8.2 8.2a5.4 5.4 0 0 0 0 7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6M5.2 5.2a9.6 9.6 0 0 0 0 13.6M18.8 5.2a9.6 9.6 0 0 1 0 13.6"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.7M12 16.8v.2"/></symbol>
+    <symbol id="i-medical" viewBox="0 0 24 24"><path d="M9.5 3.5h5v6h6v5h-6v6h-5v-6h-6v-5h6z"/></symbol>
+    <symbol id="i-access" viewBox="0 0 24 24"><circle cx="11.5" cy="4.5" r="1.8"/><path d="M11.5 8v6h5.5l2 5"/><path d="M8.2 11.2a5.6 5.6 0 1 0 7 7"/></symbol>
+    <symbol id="i-wc" viewBox="0 0 24 24"><circle cx="7" cy="4.8" r="1.8"/><circle cx="17" cy="4.8" r="1.8"/><path d="M5 9h4l1.2 6H8.5v5.5h-3V15H3.8zM15 9h4v5.5h-1V20.5h-2V14.5h-1z"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12.5H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
+    <symbol id="i-parking" viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="3"/><path d="M10 16.5V7.5h3a2.8 2.8 0 0 1 0 5.6h-3"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21M5.6 5.6l3.1 3.1M15.3 15.3l3.1 3.1M5.6 18.4l3.1-3.1M15.3 8.7l3.1-3.1"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 5.5H5a3 3 0 0 0 3.2 4M16 5.5h3a3 3 0 0 1-3.2 4M12 13v4M8.5 20.5h7M9.5 17h5v3.5h-5z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 1 0-2.4 5.8"/><path d="M20 4.5v7h-7"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 3 10.4l7.2 2.4L12.6 20z"/><path d="m10.2 12.8 4.3-4.3"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.4"/><path d="M3.5 3.5v4.9h4.9M12 7.5v4.8l3.2 2"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8.5 8.5M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><path d="M13.5 13.5h3v3h-3zM17.5 17.5h3v3h-3zM17.5 13.5h3M13.5 20.5h2"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10.5 5-3v9l-5-3"/></symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="app" id="app">
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="#/" aria-label="Bulls One — home">
+      <span class="mono" aria-hidden="true">B1</span>
+      <span class="brand-text"><strong>Bulls One</strong><small>The Loftus Experience</small></span>
+    </a>
+    <nav class="side-nav" aria-label="Sections">
+      <p class="side-label">Supporter</p>
+      <a href="#/" data-nav="home"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Home</a>
+      <a href="#/fixtures" data-nav="fixtures"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>Fixtures &amp; results</a>
+      <a href="#/live/evt-r9" data-nav="live"><svg class="i" aria-hidden="true"><use href="#i-live"/></svg>Live Centre<span class="chip chip-live" style="margin-left:auto;min-height:22px;padding:0 7px;font-size:10px">LIVE</span></a>
+      <a href="#/matchday/evt-r9" data-nav="matchday"><svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg>Matchday</a>
+      <a href="#/fan-cam/evt-r9" data-nav="fancam"><svg class="i" aria-hidden="true"><use href="#i-camera"/></svg>Fan Cam</a>
+      <a href="#/stadium" data-nav="stadium"><svg class="i" aria-hidden="true"><use href="#i-map"/></svg>Stadium guide</a>
+      <a href="#/rewards" data-nav="rewards"><svg class="i" aria-hidden="true"><use href="#i-gift"/></svg>Rewards</a>
+      <a href="#/club" data-nav="club"><svg class="i" aria-hidden="true"><use href="#i-people"/></svg>Club</a>
+      <a href="#/profile" data-nav="profile"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg>Profile &amp; privacy</a>
+      <p class="side-label">Staff · demo</p>
+      <a href="#/operator" data-nav="operator"><svg class="i" aria-hidden="true"><use href="#i-screen"/></svg>Operator console<span class="count" data-queue-count hidden>0</span></a>
+      <a href="#/assets" data-nav="assets"><svg class="i" aria-hidden="true"><use href="#i-grid"/></svg>Asset library</a>
+    </nav>
+    <div class="side-foot caption">Concept prototype · demo data.<br>Not an official Bulls product.</div>
+  </aside>
+
+  <div class="stage" id="stage">
+    <div class="demo-strip" id="demoStrip" role="note">
+      <svg class="i i-sm" aria-hidden="true"><use href="#i-info"/></svg>
+      <p><strong>Concept prototype</strong> · not an official Bulls product. All tickets, scores, rewards and screens are sample data.</p>
+      <button class="icon-btn" type="button" data-action="dismiss-strip" aria-label="Dismiss prototype notice"><svg class="i i-sm" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+
+    <header class="topbar" id="topbar">
+      <a class="brand brand-compact" href="#/" aria-label="Bulls One — home"><span class="mono" aria-hidden="true">B1</span></a>
+      <span class="topbar-title" id="topbarTitle" aria-hidden="true">Home</span>
+      <div class="topbar-actions">
+        <span class="demo-pill" title="Concept prototype — sample data, not connected to live club, ticketing or stadium systems">Demo</span>
+        <button class="role-btn" id="roleBtn" type="button" data-action="role" aria-haspopup="dialog">
+          <span class="avatar" aria-hidden="true">L</span><span id="roleLabel">Supporter</span>
+        </button>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <h1 class="sr-only">Bulls One — The Loftus Experience: a concept supporter app for the Vodacom Bulls at Loftus Versfeld Stadium</h1>
+
+      <!-- ============================== HOME ============================== -->
+      <section class="view" data-view="home" aria-labelledby="home-title">
+        <div class="hero">
+          <img data-asset="09" alt="" class="hero-img" fetchpriority="high" decoding="async">
+          <div class="hero-shade"></div>
+          <div class="hero-content">
+            <p class="eyebrow"><span class="live-badge">Live</span> Matchday · Loftus Versfeld</p>
+            <p class="greeting">Welcome to Loftus, <span data-supporter-name>Lerato</span>.</p>
+            <h2 class="display view-title" id="home-title">Your team.<br>Your seat.<br><span class="accent">Your moment.</span></h2>
+            <a class="scorestrip" href="#/live/evt-r9" aria-describedby="home-score-note">
+              <span class="team">BULLS</span>
+              <span class="score" data-score="home">24</span><span class="sep" aria-hidden="true">–</span><span class="score" data-score="away">17</span>
+              <span class="team">MARINERS</span>
+              <span class="clock"><span class="sr-only">Match clock</span><span data-live-clock>54:00</span></span>
+            </a>
+            <p class="demo-note" id="home-score-note">Demo data · simulated match feed</p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#/matchday/evt-r9"><svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg>Matchday at Loftus</a>
+              <a class="btn btn-glass" href="#/fan-cam/evt-r9"><svg class="i" aria-hidden="true"><use href="#i-camera"/></svg>Fan Cam</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="section grid grid-3">
+          <a class="feature feature-tall span-2-lg" href="#/fan-cam/evt-r9" style="grid-column: 1 / -1">
+            <img data-asset="03" alt="" loading="lazy">
+            <div class="feature-body">
+              <p class="eyebrow"><svg class="i i-sm" aria-hidden="true"><use href="#i-camera"/></svg>Fan Cam · tonight</p>
+              <h3 class="large-title" style="font-size:clamp(1.75rem,4.4vw,2.5rem)">Get your moment on the big screen.</h3>
+              <p class="body-2">Send a photo and the name you want on screen. A Bulls screen producer checks every submission before anything goes live.</p>
+              <div class="chips" style="margin-top:14px">
+                <span class="chip chip-info"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg>Human-moderated</span>
+                <span class="chip chip-info"><svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg>Ticket-verified</span>
+                <span class="chip chip-info"><svg class="i" aria-hidden="true"><use href="#i-eye-off"/></svg>No facial recognition</span>
+              </div>
+            </div>
+          </a>
+
+          <article class="card pass-card" aria-labelledby="home-pass-title">
+            <div class="card-head">
+              <h3 class="title-3" id="home-pass-title">Your matchday pass</h3>
+              <span class="chip chip-demo">Demo</span>
+            </div>
+            <p class="body-2">Bulls v Cape Mariners · Today 17:00</p>
+            <div class="chips" style="margin-top:12px">
+              <span class="chip chip-ok"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Ticket linked</span>
+              <span class="chip chip-ok"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Checked in · Gate 3</span>
+            </div>
+            <div class="seat-grid" style="grid-template-columns:repeat(3,1fr)">
+              <div><small>Block</small><strong>E</strong></div>
+              <div><small>Row</small><strong>05</strong></div>
+              <div><small>Seat</small><strong data-seat-value>••</strong></div>
+            </div>
+            <div class="row-gap">
+              <button class="btn btn-primary btn-sm" type="button" data-action="open-pass"><svg class="i" aria-hidden="true"><use href="#i-qr"/></svg>Open pass</button>
+              <button class="btn btn-quiet btn-sm" type="button" data-action="toggle-seat" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg><span>Show seat</span></button>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="home-next-title">
+            <div class="card-head">
+              <h3 class="title-3" id="home-next-title">Next home match</h3>
+              <span class="chip chip-demo">Demo</span>
+            </div>
+            <div class="fixture">
+              <div class="fx-date"><small>Sat</small><strong>14</strong><small>Nov</small></div>
+              <div>
+                <p class="title-3">Bulls v Dublin Harps</p>
+                <p class="caption" style="margin-top:4px">17:00 · Loftus Versfeld · Round 10</p>
+                <p class="caption" style="margin-top:6px">Kick-off in <span class="num" data-countdown="2026-11-14T17:00:00+02:00">—</span></p>
+              </div>
+            </div>
+            <div class="fx-actions">
+              <button class="btn btn-quiet btn-sm" type="button" data-action="fixture" data-id="evt-r10">Details</button>
+              <a class="btn btn-quiet btn-sm" href="https://tickets.bullsrugby.co.za/" target="_blank" rel="noopener">Tickets<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"/></svg></a>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="home-golden-title" style="padding:0">
+            <img data-asset="06" alt="" loading="lazy" style="width:100%;aspect-ratio:16/8;object-fit:cover">
+            <div style="padding:18px 20px 20px">
+              <p class="eyebrow gold" style="color:var(--gold-300)"><svg class="i i-sm" aria-hidden="true"><use href="#i-ticket"/></svg>Golden Ticket Drop</p>
+              <h3 class="title-3" id="home-golden-title">Win a ticket to a future home match</h3>
+              <p class="caption" style="margin-top:6px">For checked-in supporters. One entry per verified ticket. No purchase needed.</p>
+              <a class="btn btn-gold btn-sm" href="#/rewards" style="margin-top:14px">See the drop</a>
+            </div>
+          </article>
+        </div>
+
+        <section class="section" aria-labelledby="home-stories">
+          <div class="section-head">
+            <h3 class="title-2" id="home-stories">Matchday stories</h3>
+            <a class="link" href="#/club">Club<svg class="i i-sm" aria-hidden="true"><use href="#i-chev"/></svg></a>
+          </div>
+          <div class="rail" role="list">
+            <a class="story" role="listitem" href="#/club"><img data-asset="08" alt="" loading="lazy"><div class="story-body"><span class="chip chip-demo">Demo story</span><p class="title-3">The North Stand brings the noise</p></div></a>
+            <a class="story" role="listitem" href="#/live/evt-r9"><img data-asset="02" alt="" loading="lazy"><div class="story-body"><span class="chip chip-demo">Demo story</span><p class="title-3">Second-half pressure: how the Bulls are building</p></div></a>
+            <a class="story" role="listitem" href="#/club"><img data-asset="22" alt="" loading="lazy"><div class="story-body"><span class="chip chip-demo">Demo story</span><p class="title-3">Family Day: what to know before you go</p></div></a>
+            <a class="story" role="listitem" href="#/club"><img data-asset="13" alt="" loading="lazy"><div class="story-body"><span class="chip chip-demo">Demo story</span><p class="title-3">Supporter clubs: find your crew</p></div></a>
+            <a class="story" role="listitem" href="#/club"><img data-asset="16" alt="" loading="lazy"><div class="story-body"><span class="chip chip-demo">Demo story</span><p class="title-3">Inside the connected stadium</p></div></a>
+          </div>
+        </section>
+
+        <section class="section grid grid-2" aria-label="Offers">
+          <a class="feature" href="#/rewards" style="min-height:340px">
+            <img data-asset="10" alt="" loading="lazy">
+            <span class="chip chip-demo sponsored">Demo offer</span>
+            <div class="feature-body">
+              <p class="eyebrow"><svg class="i i-sm" aria-hidden="true"><use href="#i-food"/></svg>Special of the day</p>
+              <h3 class="title-2">Supporter Combo</h3>
+              <p class="body-2">Burger, chips and a soft drink from a participating vendor. Redeem in the app, collect at the counter.</p>
+            </div>
+          </a>
+          <a class="feature" href="#/rewards" style="min-height:340px">
+            <img data-asset="04" alt="" loading="lazy">
+            <span class="chip chip-demo sponsored">Demo reward</span>
+            <div class="feature-body">
+              <p class="eyebrow gold" style="color:var(--gold-300)"><svg class="i i-sm" aria-hidden="true"><use href="#i-star"/></svg>Bulls Rewards</p>
+              <h3 class="title-2">Points for showing up</h3>
+              <p class="body-2">Earn for verified attendance, quizzes and community moments. Every reward has a no-purchase path.</p>
+            </div>
+          </a>
+        </section>
+
+        <section class="section card" aria-labelledby="install-title" style="padding:0">
+          <div class="split" style="gap:0">
+            <img data-asset="15" alt="" loading="lazy" style="width:100%;height:100%;min-height:240px;object-fit:cover;object-position:30% 50%">
+            <div style="padding:24px">
+              <p class="eyebrow">One team · one app</p>
+              <h3 class="title-2" id="install-title">Keep Bulls One on your home screen</h3>
+              <p class="body-2" style="margin-top:8px">Bulls One runs in your browser and can sit on your home screen like an app.</p>
+              <ul class="list" style="margin-top:10px">
+                <li><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg></span><span class="li-main"><strong>iPhone (Safari)</strong><span>Tap Share, then “Add to Home Screen”.</span></span></li>
+                <li><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg></span><span class="li-main"><strong>Android (Chrome)</strong><span>Open the ⋮ menu, then “Install app” or “Add to Home screen”.</span></span></li>
+              </ul>
+              <button class="btn btn-primary btn-sm" type="button" data-action="install" id="installBtn" hidden style="margin-top:12px">Install Bulls One</button>
+              <p class="caption" style="margin-top:12px">Native iOS and Android apps are planned in the roadmap. Store listings come later.</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="foot">
+          <p><strong>Bulls One — The Loftus Experience</strong> is a concept prototype for the Vodacom Bulls and Loftus Versfeld Stadium, 416 Kirkness Street, Pretoria. It is not an official Bulls product and is not connected to live club, ticketing, payment or stadium systems. Imagery is generated concept art, not official Bulls photography; generated logos and sponsor marks are not approved brand artwork.</p>
+          <p style="margin-top:8px">Official information: <a href="https://bullsrugby.co.za/" target="_blank" rel="noopener">bullsrugby.co.za</a> · <a href="https://bullsrugby.co.za/gameday-info/" target="_blank" rel="noopener">Matchday info</a> · <a href="https://bullsrugby.co.za/faq/" target="_blank" rel="noopener">FAQ &amp; tickets</a> · <a href="#/privacy">Privacy notice (concept)</a> · <a href="#/assets">Asset library</a></p>
+        </footer>
+      </section>
+
+      <!-- ============================== FIXTURES ============================== -->
+      <section class="view" data-view="fixtures" aria-labelledby="fixtures-title">
+        <header class="view-head">
+          <p class="eyebrow">Club Championship · demo season</p>
+          <h2 class="large-title view-title" id="fixtures-title">Fixtures &amp; results</h2>
+        </header>
+        <div class="segmented" role="tablist" aria-label="Fixtures sections" data-seg="fixtures">
+          <span class="seg-ind" aria-hidden="true"></span>
+          <button class="seg-btn" role="tab" data-value="upcoming" aria-selected="true" id="tab-fx-up" aria-controls="panel-fx-up">Upcoming</button>
+          <button class="seg-btn" role="tab" data-value="results" aria-selected="false" id="tab-fx-res" aria-controls="panel-fx-res">Results</button>
+          <button class="seg-btn" role="tab" data-value="table" aria-selected="false" id="tab-fx-tab" aria-controls="panel-fx-tab">Table</button>
+        </div>
+        <div role="tabpanel" id="panel-fx-up" aria-labelledby="tab-fx-up" data-panel-of="fixtures" data-panel="upcoming">
+          <a class="card" href="#/live/evt-r9" style="display:block;text-decoration:none;color:inherit;margin-bottom:14px;background:linear-gradient(135deg,rgba(229,72,77,.18),rgba(12,24,56,.7) 50%)">
+            <div class="card-head" style="margin-bottom:8px"><span class="chip chip-live">LIVE · <span data-live-clock>54:00</span></span><span class="chip chip-demo">Demo</span></div>
+            <p class="title-2">Bulls <span class="num" data-score="home">24</span>–<span class="num" data-score="away">17</span> Cape Mariners</p>
+            <p class="caption" style="margin-top:4px">Today · Loftus Versfeld · Round 9 · Open the Live Centre</p>
+          </a>
+          <div class="grid grid-2" id="upcomingList"></div>
+        </div>
+        <div role="tabpanel" id="panel-fx-res" aria-labelledby="tab-fx-res" data-panel-of="fixtures" data-panel="results" hidden>
+          <div class="card"><ul class="list" id="resultsList"></ul></div>
+        </div>
+        <div role="tabpanel" id="panel-fx-tab" aria-labelledby="tab-fx-tab" data-panel-of="fixtures" data-panel="table" hidden>
+          <div class="card table-wrap">
+            <table class="standings">
+              <caption class="sr-only">Demo standings</caption>
+              <thead><tr><th scope="col">#</th><th scope="col">Team</th><th scope="col"><abbr title="Played">P</abbr></th><th scope="col"><abbr title="Won">W</abbr></th><th scope="col"><abbr title="Drawn">D</abbr></th><th scope="col"><abbr title="Lost">L</abbr></th><th scope="col"><abbr title="Points difference">PD</abbr></th><th scope="col"><abbr title="Points">Pts</abbr></th></tr></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <p class="source-note"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span><strong>Demo data.</strong> Teams, dates and results come from a mock provider and are fictional. Production fixtures must come from the club’s approved feed or CMS. <a href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Official fixtures</a>.</span></p>
+      </section>
+
+      <!-- ============================== LIVE ============================== -->
+      <section class="view" data-view="live" aria-labelledby="live-title">
+        <div class="live-hero">
+          <img data-asset="02" alt="" class="hero-img" loading="lazy">
+          <div class="hero-shade"></div>
+          <p class="eyebrow" style="justify-content:center">Round 9 · Loftus Versfeld</p>
+          <h2 class="sr-only view-title" id="live-title">Live Centre</h2>
+          <div class="scoreboard" role="group" aria-label="Live score, demo data">
+            <div class="sb-team"><span class="sb-badge" aria-hidden="true">BUL</span>Bulls</div>
+            <div class="sb-mid">
+              <div class="sb-score"><span data-score="home">24</span><span class="dash" aria-hidden="true">–</span><span class="sr-only"> to </span><span data-score="away">17</span></div>
+              <div class="sb-clock"><span class="chip chip-live">LIVE</span><span data-live-clock>54:00</span><span data-half>2nd half</span></div>
+            </div>
+            <div class="sb-team"><span class="sb-badge away" aria-hidden="true">MAR</span>Cape Mariners</div>
+          </div>
+          <div class="feed-status" id="feedStatus" aria-live="polite"></div>
+        </div>
+
+        <div class="seg-scroll" style="margin-top:20px">
+          <div class="segmented" role="tablist" aria-label="Live Centre sections" data-seg="live">
+            <span class="seg-ind" aria-hidden="true"></span>
+            <button class="seg-btn" role="tab" data-value="events" aria-selected="true">Match events</button>
+            <button class="seg-btn" role="tab" data-value="stats" aria-selected="false">Stats</button>
+            <button class="seg-btn" role="tab" data-value="lineup" aria-selected="false">Line-up</button>
+            <button class="seg-btn" role="tab" data-value="say" aria-selected="false">Have your say</button>
+          </div>
+        </div>
+        <div data-panel-of="live" data-panel="events" role="tabpanel" aria-label="Match events">
+          <div class="card"><ol class="timeline" id="eventList"></ol></div>
+        </div>
+        <div data-panel-of="live" data-panel="stats" role="tabpanel" aria-label="Stats" hidden>
+          <div class="card" id="statsList"></div>
+        </div>
+        <div data-panel-of="live" data-panel="lineup" role="tabpanel" aria-label="Line-up" hidden>
+          <div class="card">
+            <div class="card-head"><h3 class="title-3">Bulls starting XV</h3><span class="chip chip-demo">Fictional demo squad</span></div>
+            <ol class="lineup" id="lineupList"></ol>
+            <p class="caption" style="margin-top:14px">The opposition line-up appears when the licensed match-data feed provides it.</p>
+          </div>
+        </div>
+        <div data-panel-of="live" data-panel="say" role="tabpanel" aria-label="Have your say" hidden>
+          <div class="grid grid-2">
+            <form class="card" id="potmForm">
+              <fieldset>
+                <legend class="title-3">Player of the match</legend>
+                <p class="caption" style="margin:4px 0 14px">One vote per supporter. +10 points for voting.</p>
+                <div id="potmOptions"></div>
+              </fieldset>
+              <button class="btn btn-primary btn-block" type="submit" style="margin-top:14px">Vote</button>
+            </form>
+            <div class="card" style="padding:0">
+              <img data-asset="16" alt="" loading="lazy" style="width:100%;aspect-ratio:16/7;object-fit:cover">
+              <div style="padding:18px 20px 20px">
+                <h3 class="title-3">Predict the final score</h3>
+                <p class="caption" style="margin:4px 0 14px">50 points if you’re right. No cash, no betting — just points and bragging rights.</p>
+                <div class="predict" id="predict">
+                  <div><p class="caption">Bulls</p><div class="stepper"><button class="icon-btn" type="button" data-pred="home" data-d="-1" aria-label="Decrease Bulls score">−</button><output data-pred-out="home" aria-live="polite">27</output><button class="icon-btn" type="button" data-pred="home" data-d="1" aria-label="Increase Bulls score">+</button></div></div>
+                  <div><p class="caption">Mariners</p><div class="stepper"><button class="icon-btn" type="button" data-pred="away" data-d="-1" aria-label="Decrease Mariners score">−</button><output data-pred-out="away" aria-live="polite">20</output><button class="icon-btn" type="button" data-pred="away" data-d="1" aria-label="Increase Mariners score">+</button></div></div>
+                </div>
+                <button class="btn btn-quiet btn-block" type="button" data-action="lock-prediction" style="margin-top:14px">Lock in prediction</button>
+                <p class="caption" id="predictNote" style="margin-top:10px"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="source-note"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span><strong>Simulated feed.</strong> Scores, clock, events and stats are demo data from a mock provider. Bulls One never invents live scores in production — it shows the licensed feed with its timestamp and flags delays.</span></p>
+      </section>
+
+      <!-- ============================== MATCHDAY ============================== -->
+      <section class="view" data-view="matchday" aria-labelledby="matchday-title">
+        <header class="view-head">
+          <p class="eyebrow">Today · Loftus Versfeld · <span class="gold" style="color:var(--gold-300)">demo</span></p>
+          <h2 class="large-title view-title" id="matchday-title">Matchday</h2>
+        </header>
+        <div class="grid grid-2">
+          <article class="card pass-card" aria-labelledby="md-pass-title">
+            <div class="card-head">
+              <div>
+                <p class="eyebrow" style="margin-bottom:4px">Bulls v Cape Mariners · 17:00</p>
+                <h3 class="title-2" id="md-pass-title">Your seat tonight</h3>
+              </div>
+              <span class="chip chip-demo">Demo pass</span>
+            </div>
+            <div class="chips">
+              <span class="chip chip-ok"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Ticket linked · Ticketpro (demo)</span>
+              <span class="chip chip-ok"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Checked in · Gate 3 · 16:12</span>
+            </div>
+            <div class="seat-grid">
+              <div><small>Gate</small><strong>3</strong></div>
+              <div><small>Block</small><strong>E</strong></div>
+              <div><small>Row</small><strong>05</strong></div>
+              <div><small>Seat</small><strong data-seat-value>••</strong></div>
+            </div>
+            <div class="row-gap">
+              <button class="btn btn-primary btn-sm" type="button" data-action="open-pass"><svg class="i" aria-hidden="true"><use href="#i-qr"/></svg>Open digital pass</button>
+              <button class="btn btn-quiet btn-sm" type="button" data-action="toggle-seat" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg><span>Show seat</span></button>
+            </div>
+            <p class="caption" style="margin-top:12px">Check-in comes from the stadium’s gate scan, not your phone’s location. This demo pass is not valid for entry.</p>
+          </article>
+          <a class="feature" href="#/fan-cam/evt-r9" style="min-height:320px">
+            <img data-asset="14" alt="" loading="lazy" style="object-position:50% 25%">
+            <div class="feature-body">
+              <p class="eyebrow"><svg class="i i-sm" aria-hidden="true"><use href="#i-camera"/></svg>Fan Cam</p>
+              <h3 class="title-2">Your face. Our big screen.</h3>
+              <p class="body-2" data-fc-teaser>Choose a moment, add a photo and say exactly what you agree to share.</p>
+              <span class="btn btn-glass btn-sm" style="margin-top:14px;align-self:flex-start">Start Fan Cam<svg class="i i-sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+            </div>
+          </a>
+        </div>
+
+        <div class="section quick" aria-label="Matchday shortcuts">
+          <a href="#/stadium"><svg class="i i-lg" aria-hidden="true"><use href="#i-map"/></svg>Find my seat<span>Gate 3 → Block E</span></a>
+          <a href="#/rewards"><svg class="i i-lg" aria-hidden="true"><use href="#i-food"/></svg>Food &amp; offers<span>Special of the day</span></a>
+          <a href="#/rewards"><svg class="i i-lg" aria-hidden="true"><use href="#i-ticket"/></svg>Golden Ticket<span data-golden-short>Enter the drop</span></a>
+          <button type="button" data-action="help"><svg class="i i-lg" aria-hidden="true"><use href="#i-help"/></svg>Help &amp; safety<span>Help points, first aid</span></button>
+        </div>
+
+        <div class="section grid grid-2">
+          <article class="card" aria-labelledby="md-check-title">
+            <div class="card-head"><h3 class="title-3" id="md-check-title">Your matchday checklist</h3></div>
+            <ul class="list" id="mdChecklist"></ul>
+          </article>
+          <article class="card" aria-labelledby="md-sched-title">
+            <div class="card-head"><h3 class="title-3" id="md-sched-title">Tonight’s timeline</h3><span class="chip chip-demo">Demo times</span></div>
+            <ol class="sched">
+              <li class="done"><time>14:30</time><span class="dot" aria-hidden="true"></span><div><strong>Gates open</strong><span>All gates · accessible entry at Gate 4</span></div></li>
+              <li class="done"><time>16:30</time><span class="dot" aria-hidden="true"></span><div><strong>Pre-match show</strong><span>Fan zone and big-screen warm-up</span></div></li>
+              <li class="done"><time>17:00</time><span class="dot" aria-hidden="true"></span><div><strong>Kick-off</strong><span>Bulls v Cape Mariners</span></div></li>
+              <li class="done"><time>17:40</time><span class="dot" aria-hidden="true"></span><div><strong>Half-time quiz</strong><span>Answer in Rewards</span></div></li>
+              <li class="now"><time>60′–70′</time><span class="dot" aria-hidden="true"></span><div><strong>Golden Ticket Drop</strong><span>Open now for checked-in supporters</span></div></li>
+              <li><time>~18:40</time><span class="dot" aria-hidden="true"></span><div><strong>Full time</strong><span>Exit guidance and transport updates</span></div></li>
+            </ol>
+          </article>
+        </div>
+
+        <div class="section grid grid-2">
+          <article class="card" aria-labelledby="md-alerts-title">
+            <div class="card-head"><h3 class="title-3" id="md-alerts-title">Venue alerts</h3><span class="chip chip-demo">Demo</span></div>
+            <ul class="list">
+              <li><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg></span><span class="li-main"><strong>Golden Ticket Drop is open</strong><span>Enter before the 70th minute.</span></span></li>
+              <li><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-food"/></svg></span><span class="li-main"><strong>Short queues at the south concourse</strong><span>Near Blocks E–F.</span></span></li>
+              <li><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-access"/></svg></span><span class="li-main"><strong>Step-free route to Block E</strong><span>Via the lift beside Gate 4.</span></span></li>
+            </ul>
+          </article>
+          <a class="feature" href="https://bullsrugby.co.za/gameday-info/" target="_blank" rel="noopener" style="min-height:300px">
+            <img data-asset="07" alt="" loading="lazy">
+            <div class="feature-body">
+              <p class="eyebrow"><svg class="i i-sm" aria-hidden="true"><use href="#i-parking"/></svg>Getting here &amp; home</p>
+              <h3 class="title-2">Parking, transport and gates</h3>
+              <p class="body-2">Official matchday guidance from the club.</p>
+              <span class="btn btn-glass btn-sm" style="margin-top:14px;align-self:flex-start">Open official matchday info<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"/></svg></span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- ============================== FAN CAM ============================== -->
+      <section class="view" data-view="fancam" aria-labelledby="fancam-title">
+        <div class="fc-layout" style="padding-top:12px">
+          <div class="feature fc-hero">
+            <img data-asset="14" alt="" loading="lazy" style="object-position:50% 20%">
+            <div class="feature-body">
+              <p class="eyebrow"><svg class="i i-sm" aria-hidden="true"><use href="#i-camera"/></svg>Fan Cam · Bulls v Cape Mariners</p>
+              <h2 class="large-title view-title" id="fancam-title">Your moment on the big screen</h2>
+              <p class="body-2">A Bulls screen producer reviews every photo, name and permission before anything appears on the stadium screen. Approval isn’t guaranteed and timing depends on the match.</p>
+              <div class="chips" style="margin-top:14px">
+                <span class="chip chip-info"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg>Human approval</span>
+                <span class="chip chip-info"><svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg>Ticket-backed</span>
+                <span class="chip chip-info"><svg class="i" aria-hidden="true"><use href="#i-eye-off"/></svg>No facial recognition</span>
+                <span class="chip chip-info"><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg>Location data removed</span>
+              </div>
+            </div>
+          </div>
+          <div class="card" id="fcPanel" aria-live="polite"></div>
+        </div>
+        <section class="section" aria-labelledby="gallery-title">
+          <div class="section-head"><h3 class="title-2" id="gallery-title">Tonight’s fan gallery</h3><span class="chip chip-demo">Demo</span></div>
+          <p class="caption" style="margin:-6px 0 14px">Shows only approved moments whose supporters opted in to the gallery.</p>
+          <div id="fanGallery"></div>
+        </section>
+      </section>
+
+      <!-- ============================== STADIUM ============================== -->
+      <section class="view" data-view="stadium" aria-labelledby="stadium-title">
+        <div class="split" style="padding-top:12px">
+          <div>
+            <header class="view-head" style="padding-top:0">
+              <p class="eyebrow">Loftus Versfeld · schematic</p>
+              <h2 class="large-title view-title" id="stadium-title">Stadium guide</h2>
+              <p class="lede">Your route from Gate 3 to Block E, plus food, toilets, first aid and help points.</p>
+            </header>
+            <div class="map-wrap map">
+              <svg viewBox="0 0 400 300" role="img" aria-labelledby="mapTitle mapDesc">
+                <title id="mapTitle">Schematic stadium map (demo)</title>
+                <desc id="mapDesc">A pitch surrounded by four stands with blocks A to M. Your seat is in Block E in the south stand. A dashed route runs from Gate 3 in the south-east corner along the concourse to Block E. A green step-free route runs from Gate 4 in the south-west.</desc>
+                <rect x="8" y="8" width="384" height="284" rx="64" fill="#0A1530" stroke="rgba(255,255,255,.1)"/>
+                <rect x="26" y="26" width="348" height="248" rx="50" fill="none" stroke="rgba(94,182,255,.16)" stroke-width="12"/>
+                <!-- north stand -->
+                <rect class="stand" x="92" y="42" width="50" height="38" rx="6"/><text class="blk" x="117" y="61">A</text>
+                <rect class="stand" x="148" y="42" width="50" height="38" rx="6"/><text class="blk" x="173" y="61">B</text>
+                <rect class="stand" x="204" y="42" width="50" height="38" rx="6"/><text class="blk" x="229" y="61">C</text>
+                <rect class="stand" x="260" y="42" width="50" height="38" rx="6"/><text class="blk" x="285" y="61">D</text>
+                <!-- south stand -->
+                <rect class="stand" x="92" y="220" width="50" height="38" rx="6"/><text class="blk" x="117" y="239">H</text>
+                <rect class="stand" x="148" y="220" width="50" height="38" rx="6"/><text class="blk" x="173" y="239">G</text>
+                <rect class="stand" x="204" y="220" width="50" height="38" rx="6"/><text class="blk" x="229" y="239">F</text>
+                <rect class="stand you" x="260" y="220" width="50" height="38" rx="6"/><text class="blk" x="285" y="239">E</text>
+                <!-- west / east -->
+                <rect class="stand" x="42" y="92" width="40" height="56" rx="6"/><text class="blk" x="62" y="120">J</text>
+                <rect class="stand" x="42" y="152" width="40" height="56" rx="6"/><text class="blk" x="62" y="180">K</text>
+                <rect class="stand" x="318" y="92" width="40" height="56" rx="6"/><text class="blk" x="338" y="120">L</text>
+                <rect class="stand" x="318" y="152" width="40" height="56" rx="6"/><text class="blk" x="338" y="180">M</text>
+                <!-- pitch -->
+                <rect x="96" y="92" width="208" height="116" rx="4" fill="#0F5A3A"/>
+                <g stroke="rgba(255,255,255,.55)" stroke-width="1" fill="none">
+                  <rect x="106" y="98" width="188" height="104"/>
+                  <path d="M200 98v104"/>
+                  <path d="M140 98v104M260 98v104" stroke-dasharray="4 4"/>
+                </g>
+                <g stroke="#fff" stroke-width="1.6"><path d="M102 142v16M98 150h8M298 142v16M294 150h8"/></g>
+                <!-- routes -->
+                <path class="route" d="M366 266 L 300 266 Q 285 266 285 258"/>
+                <path class="route acc" data-acc-route hidden d="M34 266 L 270 266 Q 285 266 285 258"/>
+                <!-- seat marker -->
+                <g transform="translate(285 210)"><circle r="9" fill="#fff"/><circle r="4" fill="#2A66FF"/></g>
+                <!-- gates -->
+                <g class="gate" transform="translate(30 30)"><rect x="-14" y="-9" width="28" height="18" rx="9"/><text>G1</text></g>
+                <g class="gate" transform="translate(370 30)"><rect x="-14" y="-9" width="28" height="18" rx="9"/><text>G2</text></g>
+                <g class="gate" transform="translate(370 270)"><rect x="-14" y="-9" width="28" height="18" rx="9" style="fill:#93CEFF"/><text>G3</text></g>
+                <g class="gate" transform="translate(30 270)"><rect x="-14" y="-9" width="28" height="18" rx="9"/><text>G4</text></g>
+                <!-- amenities -->
+                <g class="amen" data-amen="food">
+                  <g class="pin" transform="translate(66 62)"><circle r="10" fill="#E0BE6A"/><use href="#i-food" x="-7" y="-7" width="14" height="14" fill="none" stroke="#1D1504" stroke-width="2.2"/></g>
+                  <g class="pin" transform="translate(334 238)"><circle r="10" fill="#E0BE6A"/><use href="#i-food" x="-7" y="-7" width="14" height="14" fill="none" stroke="#1D1504" stroke-width="2.2"/></g>
+                  <g class="pin" transform="translate(200 284)"><circle r="10" fill="#E0BE6A"/><use href="#i-food" x="-7" y="-7" width="14" height="14" fill="none" stroke="#1D1504" stroke-width="2.2"/></g>
+                </g>
+                <g class="amen" data-amen="wc">
+                  <g class="pin" transform="translate(334 62)"><circle r="10" fill="#5EB6FF"/><use href="#i-wc" x="-7" y="-7" width="14" height="14" fill="none" stroke="#06122E" stroke-width="2"/></g>
+                  <g class="pin" transform="translate(66 238)"><circle r="10" fill="#5EB6FF"/><use href="#i-wc" x="-7" y="-7" width="14" height="14" fill="none" stroke="#06122E" stroke-width="2"/></g>
+                </g>
+                <g class="amen" data-amen="medical">
+                  <g class="pin" transform="translate(200 16)"><circle r="10" fill="#FF6B6B"/><use href="#i-medical" x="-6" y="-6" width="12" height="12" fill="#fff" stroke="none"/></g>
+                  <g class="pin" transform="translate(244 284)"><circle r="10" fill="#FF6B6B"/><use href="#i-medical" x="-6" y="-6" width="12" height="12" fill="#fff" stroke="none"/></g>
+                </g>
+                <g class="amen" data-amen="help">
+                  <g class="pin" transform="translate(16 150)"><circle r="10" fill="#3DDC97"/><use href="#i-help" x="-7" y="-7" width="14" height="14" fill="none" stroke="#04170F" stroke-width="2.2"/></g>
+                  <g class="pin" transform="translate(384 150)"><circle r="10" fill="#3DDC97"/><use href="#i-help" x="-7" y="-7" width="14" height="14" fill="none" stroke="#04170F" stroke-width="2.2"/></g>
+                </g>
+                <g class="amen" data-amen="retail">
+                  <g class="pin" transform="translate(156 284)"><circle r="10" fill="#C9A9FF"/><use href="#i-bag" x="-7" y="-7" width="14" height="14" fill="none" stroke="#1A0B3A" stroke-width="2.2"/></g>
+                </g>
+              </svg>
+            </div>
+            <div class="filters" role="group" aria-label="Show on map">
+              <button class="filter" type="button" data-filter="food" aria-pressed="true"><span class="sw" style="background:#E0BE6A"></span>Food</button>
+              <button class="filter" type="button" data-filter="wc" aria-pressed="true"><span class="sw" style="background:#5EB6FF"></span>Toilets</button>
+              <button class="filter" type="button" data-filter="medical" aria-pressed="true"><span class="sw" style="background:#FF6B6B"></span>First aid</button>
+              <button class="filter" type="button" data-filter="help" aria-pressed="true"><span class="sw" style="background:#3DDC97"></span>Help points</button>
+              <button class="filter" type="button" data-filter="retail" aria-pressed="true"><span class="sw" style="background:#C9A9FF"></span>Retail</button>
+              <button class="filter" type="button" data-filter="acc" aria-pressed="false"><svg class="i i-sm" aria-hidden="true"><use href="#i-access"/></svg>Step-free route</button>
+            </div>
+            <div class="legend"><span><i></i>Your route from Gate 3</span><span><i class="acc"></i>Step-free route from Gate 4</span></div>
+            <p class="source-note"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span><strong>Schematic for demonstration — not the official Loftus map.</strong> Production uses the club’s official venue plans for blocks, gates and amenities.</span></p>
+          </div>
+          <div class="stack">
+            <div class="feature" style="min-height:260px"><img data-asset="05" alt="" loading="lazy"><div class="feature-body"><p class="eyebrow">Wayfinding</p><p class="title-2">Gate 3 → south concourse → Block E</p><p class="body-2">About 3 minutes on foot (demo estimate).</p></div></div>
+            <div class="card">
+              <ul class="navlist">
+                <li><a href="https://bullsrugby.co.za/gameday-info/" target="_blank" rel="noopener"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-parking"/></svg></span>Parking, transport &amp; ride-hailing<svg class="i chev" aria-hidden="true"><use href="#i-ext"/></svg></a></li>
+                <li><a href="https://bullsrugby.co.za/commercial/facilities/" target="_blank" rel="noopener"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg></span>Venue facilities<svg class="i chev" aria-hidden="true"><use href="#i-ext"/></svg></a></li>
+                <li><a href="#/stadium" data-action="help"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-medical"/></svg></span>First aid &amp; help points<svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+              </ul>
+            </div>
+            <a class="feature" href="#/rewards" style="min-height:240px"><img data-asset="21" alt="" loading="lazy"><span class="chip chip-demo sponsored">Sponsored · demo</span><div class="feature-body"><p class="eyebrow">Fan zone · south concourse</p><p class="title-2">Spin to win &amp; photo booth</p></div></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== REWARDS ============================== -->
+      <section class="view" data-view="rewards" aria-labelledby="rewards-title">
+        <header class="view-head">
+          <p class="eyebrow" style="color:var(--gold-300)">Bulls Rewards · demo</p>
+          <h2 class="large-title view-title" id="rewards-title">Rewards</h2>
+        </header>
+        <article class="card card-gold" aria-label="Rewards wallet">
+          <div class="wallet">
+            <div>
+              <p class="caption">Points balance</p>
+              <p class="points" id="pointsBal">0<small>PTS</small></p>
+              <p class="body-2" style="margin-top:10px"><span class="gold" style="color:var(--gold-300);font-weight:700">Blue Member</span> · 4 home matches in a row</p>
+              <div class="streak" aria-label="Attendance streak: 4 of 5 home matches"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+            </div>
+            <div class="id-card">
+              <div class="media-row" style="grid-template-columns:auto 1fr">
+                <span class="mono" aria-hidden="true" style="width:52px;height:52px;border-radius:16px">B1</span>
+                <div><p class="title-3">Lerato M.</p><p class="caption">Supporter ID · B1-DEMO-0042</p><p class="caption">Member since 2019 (demo)</p></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div class="section grid grid-2">
+          <article class="card" style="padding:0" aria-labelledby="gt-title">
+            <img data-asset="06" alt="" loading="lazy" style="width:100%;aspect-ratio:16/8;object-fit:cover">
+            <div style="padding:18px 20px 20px">
+              <div class="card-head" style="margin-bottom:6px"><h3 class="title-2" id="gt-title">Golden Ticket Drop</h3><span class="chip chip-gold" id="gtStatus">Open</span></div>
+              <p class="body-2">Win a ticket to a future home match. For supporters checked in at today’s match.</p>
+              <button class="btn btn-gold btn-block" type="button" data-action="enter-golden" style="margin-top:14px">Enter the drop</button>
+              <details class="rules">
+                <summary><svg class="i i-sm" aria-hidden="true"><use href="#i-info"/></svg>Rules, eligibility and draw method</summary>
+                <ul>
+                  <li>Eligibility: verified ticket and successful gate check-in at today’s match. Under-18s need guardian consent.</li>
+                  <li>One entry per verified ticket. No purchase necessary.</li>
+                  <li>Window: open now until the 70th minute (demo).</li>
+                  <li>Prize: one ticket to a future Bulls home match (demo prize, subject to availability).</li>
+                  <li>Draw: an authorised operator runs a random draw. The seed and result are recorded in the audit log.</li>
+                  <li>The winner is validated against ticket and attendance before any announcement. Seats are never revealed before validation.</li>
+                  <li>Winning is not guaranteed.</li>
+                </ul>
+              </details>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="quiz-title">
+            <div class="card-head"><h3 class="title-2" id="quiz-title">Half-time quick quiz</h3><span class="chip chip-info">+25 pts</span></div>
+            <p class="body-2" style="margin-bottom:14px">How many points is a try worth in rugby union?</p>
+            <div id="quizOpts" role="group" aria-label="Quiz answers">
+              <button class="quiz-opt" type="button" data-quiz="3">3 points</button>
+              <button class="quiz-opt" type="button" data-quiz="5">5 points</button>
+              <button class="quiz-opt" type="button" data-quiz="7">7 points</button>
+            </div>
+            <p class="caption" id="quizNote" style="margin-top:12px">One attempt per supporter. Sponsored by a quiz partner (demo).</p>
+          </article>
+        </div>
+
+        <section class="section" aria-labelledby="badges-title">
+          <div class="section-head"><h3 class="title-2" id="badges-title">Badges</h3></div>
+          <div class="badges" id="badgeGrid"></div>
+        </section>
+
+        <section class="section" aria-labelledby="offers-title">
+          <div class="section-head"><h3 class="title-2" id="offers-title">Offers today</h3><span class="chip chip-demo">Demo offers</span></div>
+          <div class="grid grid-3">
+            <article class="card" style="padding:0">
+              <img data-asset="10" alt="" loading="lazy" style="width:100%;aspect-ratio:4/3;object-fit:cover">
+              <div style="padding:16px 18px 18px">
+                <p class="title-3">Supporter Combo</p>
+                <p class="caption" style="margin-top:4px">Burger, chips and a soft drink · R95 (demo price) · North Stand Grill (demo vendor) · until full time</p>
+                <button class="btn btn-primary btn-sm btn-block" type="button" data-action="redeem" data-offer="combo" style="margin-top:12px">Redeem</button>
+              </div>
+            </article>
+            <article class="card" style="padding:0">
+              <img data-asset="04" alt="" loading="lazy" style="width:100%;aspect-ratio:4/3;object-fit:cover">
+              <div style="padding:16px 18px 18px">
+                <p class="title-3">Matchday merch drop</p>
+                <p class="caption" style="margin-top:4px">15% off scarves and caps at the club store (demo) · while stock lasts</p>
+                <button class="btn btn-primary btn-sm btn-block" type="button" data-action="redeem" data-offer="merch" style="margin-top:12px">Redeem</button>
+              </div>
+            </article>
+            <article class="card" style="padding:0;position:relative">
+              <img data-asset="21" alt="" loading="lazy" style="width:100%;aspect-ratio:4/3;object-fit:cover">
+              <span class="chip chip-demo sponsored">Sponsored · demo</span>
+              <div style="padding:16px 18px 18px">
+                <p class="title-3">Fan zone spin</p>
+                <p class="caption" style="margin-top:4px">One free spin of the prize wheel for checked-in supporters · south concourse</p>
+                <button class="btn btn-primary btn-sm btn-block" type="button" data-action="redeem" data-offer="spin" style="margin-top:12px">Get my spin code</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section card" aria-labelledby="ledger-title">
+          <div class="card-head"><h3 class="title-2" id="ledger-title">Points history</h3><span class="caption">Ledger · append-only</span></div>
+          <ul class="ledger" id="ledgerList"></ul>
+        </section>
+      </section>
+
+      <!-- ============================== CLUB ============================== -->
+      <section class="view" data-view="club" aria-labelledby="club-title">
+        <header class="view-head">
+          <p class="eyebrow">Vodacom Bulls · demo content</p>
+          <h2 class="large-title view-title" id="club-title">Club</h2>
+        </header>
+        <article class="card player-card" aria-labelledby="player-title">
+          <img data-asset="19" alt="" loading="lazy">
+          <div class="card-body">
+            <div class="chips"><span class="chip chip-demo">Fictional demo athlete</span></div>
+            <p class="eyebrow" style="margin-top:14px">Featured player · No. 8</p>
+            <h3 class="large-title" id="player-title" style="font-size:clamp(1.75rem,4vw,2.4rem)">S. Ndlovu</h3>
+            <p class="body-2" style="margin-top:8px">The player profile layout. In production, bios, stats and photography come from the club CMS and licensed data provider.</p>
+            <div class="kv">
+              <div><small>Position</small><strong>No. 8</strong></div>
+              <div><small>Apps</small><strong>—</strong></div>
+              <div><small>Tries</small><strong>—</strong></div>
+            </div>
+            <a class="btn btn-quiet btn-sm" href="#/live/evt-r9" style="margin-top:16px">Vote player of the match</a>
+          </div>
+        </article>
+        <section class="section" aria-labelledby="news-title">
+          <div class="section-head"><h3 class="title-2" id="news-title">Latest</h3><span class="chip chip-demo">Demo stories</span></div>
+          <div class="grid grid-2">
+            <article class="feature" style="min-height:300px"><img data-asset="08" alt="" loading="lazy"><div class="feature-body"><p class="eyebrow">Supporters</p><p class="title-2">The North Stand brings the noise</p><p class="body-2">How supporter groups plan the matchday atmosphere.</p></div></article>
+            <article class="feature" style="min-height:300px"><img data-asset="22" alt="" loading="lazy"><div class="feature-body"><p class="eyebrow">Family Day</p><p class="title-2">Bring the whole crew</p><p class="body-2">Family tickets, kids’ activities and quiet zones.</p></div></article>
+            <article class="feature" style="min-height:300px"><img data-asset="13" alt="" loading="lazy"><div class="feature-body"><p class="eyebrow">Community</p><p class="title-2">Supporter clubs: find your crew</p><p class="body-2">Moderated groups for supporters across South Africa.</p></div></article>
+            <article class="feature" style="min-height:300px"><img data-asset="16" alt="" loading="lazy"><div class="feature-body"><p class="eyebrow">Inside Loftus</p><p class="title-2">The connected stadium, explained</p><p class="body-2">Live polls, Fan Cam and section-vs-section challenges.</p></div></article>
+          </div>
+        </section>
+        <section class="section card" aria-labelledby="video-title">
+          <div class="card-head"><h3 class="title-2" id="video-title">Video</h3><span class="chip chip-demo">Placeholder</span></div>
+          <ul class="list">
+            <li><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-video"/></svg></span><span class="li-main"><strong>Tunnel cam: walk-out at Loftus</strong><span>Captions available · 2:14 (demo)</span></span></li>
+            <li><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-video"/></svg></span><span class="li-main"><strong>Training ground: lineout drills</strong><span>Captions available · 4:02 (demo)</span></span></li>
+            <li><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-video"/></svg></span><span class="li-main"><strong>Academy &amp; women’s rugby highlights</strong><span>Where rights allow · coming soon</span></span></li>
+          </ul>
+        </section>
+      </section>
+
+      <!-- ============================== PROFILE ============================== -->
+      <section class="view" data-view="profile" aria-labelledby="profile-title">
+        <header class="view-head">
+          <p class="eyebrow">Account · demo</p>
+          <h2 class="large-title view-title" id="profile-title">Profile &amp; privacy</h2>
+        </header>
+        <div class="grid grid-2">
+          <article class="card">
+            <div class="media-row" style="grid-template-columns:auto 1fr">
+              <span class="avatar" style="width:64px;height:64px;font-size:1.5rem" aria-hidden="true">L</span>
+              <div><p class="title-2">Lerato M.</p><p class="caption">Blue Member · since 2019 (demo) · B1-DEMO-0042</p></div>
+            </div>
+            <div class="divider"></div>
+            <h3 class="title-3">Linked tickets</h3>
+            <ul class="list" style="margin-top:6px">
+              <li><span class="li-icon ok"><svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg></span><span class="li-main"><strong>Bulls v Cape Mariners · today</strong><span>Ticketpro (demo) · ref ••••4821 · checked in</span></span></li>
+            </ul>
+            <button class="btn btn-quiet btn-sm" type="button" data-action="link-ticket" style="margin-top:12px"><svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg>Link another ticket</button>
+            <div class="divider"></div>
+            <div class="field">
+              <label for="langSel">Language</label>
+              <select class="select" id="langSel">
+                <option value="en">English</option>
+                <option value="af">Afrikaans (planned)</option>
+                <option value="zu">isiZulu (planned)</option>
+                <option value="nso">Sepedi (planned)</option>
+                <option value="st">Sesotho (planned)</option>
+                <option value="tn">Setswana (planned)</option>
+              </select>
+              <p class="hint">Translations need approved copy. English only in this prototype.</p>
+            </div>
+          </article>
+          <article class="card" style="padding:0">
+            <img data-asset="20" alt="" loading="lazy" style="width:100%;aspect-ratio:16/8;object-fit:cover;object-position:50% 40%">
+            <div style="padding:18px 20px 12px">
+              <h3 class="title-3">Notifications</h3>
+              <p class="caption" style="margin-top:4px">Marketing is always separate from essential matchday messages.</p>
+              <div id="prefList" style="margin-top:6px"></div>
+            </div>
+          </article>
+        </div>
+
+        <section class="section card" aria-labelledby="consent-title">
+          <div class="card-head"><h3 class="title-2" id="consent-title">Consent centre</h3><a class="link" href="#/privacy" style="font-weight:650">Privacy notice</a></div>
+          <p class="body-2" style="margin-bottom:6px">Every permission you’ve given, with its wording version. Withdraw any time; Fan Cam items not yet shown are withdrawn too.</p>
+          <ul class="list" id="consentList"></ul>
+        </section>
+
+        <section class="section grid grid-2">
+          <article class="card" aria-labelledby="data-title">
+            <h3 class="title-2" id="data-title">Your data</h3>
+            <p class="body-2" style="margin:6px 0 14px">Ask for a copy of your data, or ask us to correct, delete or stop using it.</p>
+            <div class="row-gap">
+              <button class="btn btn-quiet btn-sm" type="button" data-request="Access & export">Get a copy</button>
+              <button class="btn btn-quiet btn-sm" type="button" data-request="Correction">Correct</button>
+              <button class="btn btn-quiet btn-sm" type="button" data-request="Deletion">Delete</button>
+              <button class="btn btn-quiet btn-sm" type="button" data-request="Objection">Object</button>
+            </div>
+            <ul class="list" id="requestList" style="margin-top:10px"></ul>
+          </article>
+          <article class="card" aria-labelledby="more-title">
+            <h3 class="title-2" id="more-title">More</h3>
+            <ul class="navlist" style="margin-top:6px">
+              <li><a href="#/live/evt-r9"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-live"/></svg></span>Live Centre<svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+              <li><a href="#/fan-cam/evt-r9"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-camera"/></svg></span>Fan Cam<svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+              <li><a href="#/stadium"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-map"/></svg></span>Stadium guide<svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+              <li><a href="#/club"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-people"/></svg></span>Club<svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+              <li><a href="#/assets"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-grid"/></svg></span>Asset library (22 references)<svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+              <li><a href="#/operator"><span class="li-icon"><svg class="i" aria-hidden="true"><use href="#i-screen"/></svg></span>Staff: operator console<svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+            </ul>
+            <button class="btn btn-quiet btn-sm" type="button" data-action="reset" style="margin-top:14px"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg>Reset demo data</button>
+          </article>
+        </section>
+      </section>
+
+      <!-- ============================== PRIVACY ============================== -->
+      <section class="view" data-view="privacy" aria-labelledby="privacy-title">
+        <header class="view-head">
+          <p class="eyebrow">Concept notice · not legal advice</p>
+          <h2 class="large-title view-title" id="privacy-title">Privacy notice</h2>
+          <p class="lede">A plain-language draft of how Bulls One would handle personal information under South Africa’s Protection of Personal Information Act (POPIA). The club’s Information Officer and legal team must review it before launch.</p>
+        </header>
+        <div class="card prose">
+          <h3 style="margin-top:0">What we collect and why</h3>
+          <table>
+            <thead><tr><th scope="col">Information</th><th scope="col">Why</th></tr></thead>
+            <tbody>
+              <tr><td>Name, email or phone (account)</td><td>To run your account and send essential matchday messages.</td></tr>
+              <tr><td>Ticket reference, block, row and seat</td><td>To show your pass, guide you to your seat and confirm Fan Cam eligibility. We never store the raw ticket barcode.</td></tr>
+              <tr><td>Gate check-in (from the stadium system)</td><td>To confirm attendance for Fan Cam, rewards and prize draws. We don’t use GPS or Wi-Fi to decide you’re at your seat.</td></tr>
+              <tr><td>Fan Cam photo and display name</td><td>Only for the uses you switch on: stadium screen, app gallery, club marketing. Each is a separate choice.</td></tr>
+              <tr><td>Points, badges and redemptions</td><td>To run Bulls Rewards. Kept as a ledger so every change can be checked.</td></tr>
+            </tbody>
+          </table>
+          <h3>What we never do</h3>
+          <ul>
+            <li>No facial recognition, face matching, emotion detection or biometric templates.</li>
+            <li>No publishing your phone, email, full name, ticket barcode or exact seat on a public screen.</li>
+            <li>No selling or sharing your personal data with sponsors. They get aggregated reports only.</li>
+            <li>Nothing goes to a stadium screen without a human operator’s approval.</li>
+          </ul>
+          <h3>How long we keep it (proposed defaults)</h3>
+          <table>
+            <thead><tr><th scope="col">Item</th><th scope="col">Retention</th></tr></thead>
+            <tbody>
+              <tr><td>Raw Fan Cam uploads</td><td>Deleted 72 hours after the match</td></tr>
+              <tr><td>Rejected submissions</td><td>Deleted within 7 days</td></tr>
+              <tr><td>Approved screen creative</td><td>30 days, or longer only with marketing consent</td></tr>
+              <tr><td>Consent records and audit logs</td><td>As long as legally required to show what was agreed</td></tr>
+            </tbody>
+          </table>
+          <h3>Your rights</h3>
+          <p>You can ask for a copy of your information, or ask us to correct it, delete it or stop using it. You can withdraw consent at any time in the <a href="#/profile">consent centre</a>. A moment already shown live in the stadium can’t be un-shown, but we will stop any future use.</p>
+          <h3>Children</h3>
+          <p>Photos that include anyone under 18 need a parent’s or guardian’s permission. Without valid consent, they aren’t shown publicly.</p>
+          <p class="caption" style="margin-top:18px">Reference: <a href="https://www.gov.za/documents/protection-personal-information-act" target="_blank" rel="noopener">Protection of Personal Information Act 4 of 2013</a>. The concept wording is v1.2 (demo). It is not a certified legal document.</p>
+        </div>
+      </section>
+
+      <!-- ============================== OPERATOR ============================== -->
+      <section class="view" data-view="operator" aria-labelledby="operator-title">
+        <div id="opGate">
+          <header class="view-head">
+            <p class="eyebrow">Staff only · demo</p>
+            <h2 class="large-title view-title" id="operator-title">Operator console</h2>
+            <p class="lede">The match control room for screen producers: Fan Cam moderation, Screen Studio, prize draws and the audit log. Supporters can’t open it.</p>
+          </header>
+          <div class="grid grid-2">
+            <div class="card">
+              <div class="li-icon" style="width:52px;height:52px;border-radius:16px"><svg class="i i-lg" aria-hidden="true"><use href="#i-lock"/></svg></div>
+              <h3 class="title-2" style="margin-top:14px">Sign in as a demo operator</h3>
+              <p class="body-2" style="margin-top:6px">Production uses staff accounts with multi-factor authentication, role checks on the server, session timeouts and least-privilege access. This demo uses a placeholder code.</p>
+              <button class="btn btn-primary" type="button" data-action="op-signin" style="margin-top:16px"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg>Staff sign-in</button>
+            </div>
+            <div class="feature" style="min-height:280px"><img data-asset="18" alt="" loading="lazy"><div class="feature-body"><p class="eyebrow">Screen Studio</p><p class="title-2">A 16:9 preview that changes only after operator approval</p></div></div>
+          </div>
+        </div>
+        <div id="opConsole" hidden>
+          <header class="op-head">
+            <div>
+              <p class="eyebrow">Match control room · demo</p>
+              <h2 class="large-title" id="operator-title-2">Screen Studio</h2>
+              <p class="caption" style="margin-top:6px">Bulls v Cape Mariners · <span data-live-clock>54:00</span> · signed in as demo-op-01 (screen producer)</p>
+            </div>
+            <div class="op-status">
+              <span class="chip" id="screenChip">Fallback loop</span>
+              <button class="btn btn-danger btn-sm" type="button" data-action="kill" id="killBtn"><svg class="i" aria-hidden="true"><use href="#i-power"/></svg>Kill switch</button>
+              <button class="btn btn-quiet btn-sm" type="button" data-action="op-signout">Sign out</button>
+            </div>
+          </header>
+          <div class="seg-scroll">
+            <div class="segmented" role="tablist" aria-label="Operator sections" data-seg="operator">
+              <span class="seg-ind" aria-hidden="true"></span>
+              <button class="seg-btn" role="tab" data-value="queue" aria-selected="true">Queue &amp; studio</button>
+              <button class="seg-btn" role="tab" data-value="campaigns" aria-selected="false">Campaigns</button>
+              <button class="seg-btn" role="tab" data-value="audit" aria-selected="false">Audit log</button>
+            </div>
+          </div>
+          <div data-panel-of="operator" data-panel="queue" role="tabpanel" aria-label="Queue and studio">
+            <div class="op-grid">
+              <div>
+                <div class="q-filters" role="group" aria-label="Filter queue" id="qFilters"></div>
+                <div id="queueList"></div>
+              </div>
+              <div class="studio stack" id="studio"></div>
+            </div>
+          </div>
+          <div data-panel-of="operator" data-panel="campaigns" role="tabpanel" aria-label="Campaigns" hidden>
+            <div class="grid grid-2">
+              <article class="card" id="drawDesk"></article>
+              <form class="card" id="pushForm">
+                <h3 class="title-2">Push composer</h3>
+                <p class="caption" style="margin:4px 0 14px">Sends respect each supporter’s notification settings. Marketing needs a separate opt-in.</p>
+                <div class="field"><label for="pushSeg">Audience</label>
+                  <select class="select" id="pushSeg">
+                    <option value="essentials">Checked-in attendees · matchday essentials</option>
+                    <option value="offers">Opted-in supporters · offers &amp; partners (marketing)</option>
+                  </select>
+                </div>
+                <div class="field" style="margin-top:12px"><label for="pushMsg">Message <span class="counter" id="pushCount">0/120</span></label>
+                  <textarea class="input" id="pushMsg" rows="3" maxlength="120">Golden Ticket Drop is open — enter before the 70th minute.</textarea>
+                </div>
+                <button class="btn btn-primary btn-block" type="submit" style="margin-top:14px"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg>Send (simulated)</button>
+                <p class="caption" id="pushNote" style="margin-top:10px"></p>
+              </form>
+            </div>
+          </div>
+          <div data-panel-of="operator" data-panel="audit" role="tabpanel" aria-label="Audit log" hidden>
+            <div class="card">
+              <div class="card-head"><h3 class="title-2">Audit log</h3><span class="chip"><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg>Append-only</span></div>
+              <div class="table-wrap"><table class="audit"><thead><tr><th scope="col">Time</th><th scope="col">Actor</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Outcome</th></tr></thead><tbody id="auditBody"></tbody></table></div>
+            </div>
+          </div>
+          <p class="source-note"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span><strong>Simulated playout.</strong> No stadium LED system is connected. In production the operator command goes through a vendor-neutral playout adapter, once the venue’s AV supplier confirms its protocol. Mobile devices never connect to the screen controller.</span></p>
+        </div>
+      </section>
+
+      <!-- ============================== ASSETS ============================== -->
+      <section class="view" data-view="assets" aria-labelledby="assets-title">
+        <header class="view-head">
+          <p class="eyebrow">Handoff · embedded references</p>
+          <h2 class="large-title view-title" id="assets-title">Asset library</h2>
+          <p class="lede">The 22 visual references from the build document, embedded in this file with their metadata and the surfaces that use them.</p>
+        </header>
+        <p class="source-note" style="margin-top:0;margin-bottom:18px"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span><strong>Generated concept visuals — not official Vodacom Bulls photography.</strong> Some images contain AI-generated logos or sponsor marks that are not approved brand artwork. Replace them with club-approved, licensed photography before presenting externally.</span></p>
+        <div class="row-gap" style="margin-bottom:16px">
+          <button class="btn btn-quiet btn-sm" type="button" data-action="download-manifest"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Download metadata (JSON)</button>
+          <span class="caption" id="assetSummary"></span>
+        </div>
+        <div class="assets" id="assetGrid"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<nav class="tabbar" id="tabbar" aria-label="Primary">
+  <span class="tab-ind" aria-hidden="true"></span>
+  <a class="tab" href="#/" data-tab="home"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Home</a>
+  <a class="tab" href="#/fixtures" data-tab="fixtures"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>Fixtures</a>
+  <a class="tab" href="#/matchday/evt-r9" data-tab="matchday"><svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg>Matchday</a>
+  <a class="tab" href="#/rewards" data-tab="rewards"><svg class="i" aria-hidden="true"><use href="#i-gift"/></svg>Rewards</a>
+  <a class="tab" href="#/profile" data-tab="profile"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg>Profile</a>
+</nav>
+
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-grab" id="sheetGrab" aria-hidden="true"></div>
+  <div class="sheet-head" id="sheetHead">
+    <h2 id="sheetTitle">Sheet</h2>
+    <button class="icon-btn" type="button" id="sheetClose" aria-label="Close"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="asset-manifest">__ASSET_MANIFEST__</script>
+<script>
+__APP_JS__
+</script>
+</body>
+</html>
