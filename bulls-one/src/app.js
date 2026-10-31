@@ -112,11 +112,12 @@
   const DAY = 60 * 24;
 
   const MOMENTS = {
-    fancam: { label: 'Fan Cam celebration', desc: 'Show Loftus how you celebrate', asset: '01', head: (n) => `${n} IS ON THE BIG SCREEN!`, sub: 'Make some noise, Loftus!' },
-    welcome: { label: 'Welcome back', desc: 'For returning supporters', asset: '11', head: (n) => `WELCOME BACK, ${n}!`, sub: 'It’s good to have you with us at Loftus.' },
-    birthday: { label: 'Birthday', desc: 'Celebrate your day here', asset: '13', head: (n) => `HAPPY BIRTHDAY, ${n}!`, sub: 'Loftus is celebrating with you.' },
-    first: { label: 'First game at Loftus', desc: 'Your first match here', asset: '07', head: (n) => `${n}’S FIRST GAME AT LOFTUS!`, sub: 'Make some noise for our newest Bull.' },
-    family: { label: 'Family day', desc: 'Bring the whole crew', asset: '22', head: (n) => `THE ${n} FAMILY IS IN THE HOUSE!`, sub: 'Loftus welcomes the whole family.' },
+    // {n} marks the supporter's chosen name: set in lime italic on screen
+    fancam: { label: 'Fan Cam celebration', desc: 'Show Loftus how you celebrate', asset: '01', head: '{n} is on the big screen!', sub: 'Make some noise, Loftus!' },
+    welcome: { label: 'Welcome back', desc: 'For returning supporters', asset: '11', head: 'Welcome back, {n}!', sub: 'It’s good to have you with us at Loftus.' },
+    birthday: { label: 'Birthday', desc: 'Celebrate your day here', asset: '13', head: 'Happy birthday, {n}!', sub: 'Loftus is celebrating with you.' },
+    first: { label: 'First game at Loftus', desc: 'Your first match here', asset: '07', head: '{n}’s first game at Loftus!', sub: 'Make some noise for our newest Bull.' },
+    family: { label: 'Family day', desc: 'Bring the whole crew', asset: '22', head: 'The {n} family is in the house!', sub: 'Loftus welcomes the whole family.' },
   };
 
   function seed() {
@@ -358,7 +359,7 @@
   function moveTabInd(tab, instant) {
     const t = $(`.tab[data-tab="${tab}"]`);
     if (!t || !t.offsetWidth) return;
-    const x = t.offsetLeft + t.offsetWidth / 2 - 32;
+    const x = t.offsetLeft + (t.offsetWidth - tabInd.offsetWidth) / 2;
     instant ? tabX.set(x) : tabX.to(x);
   }
 
@@ -518,13 +519,13 @@
     let s = 4821;
     const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
     const n = 25; let r = '';
-    const fin = (x, y) => `<rect x="${x}" y="${y}" width="7" height="7" fill="#0A1530"/><rect x="${x + 1}" y="${y + 1}" width="5" height="5" fill="#fff"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3" fill="#0A1530"/>`;
+    const fin = (x, y) => `<rect x="${x}" y="${y}" width="7" height="7" fill="#0B0B0A"/><rect x="${x + 1}" y="${y + 1}" width="5" height="5" fill="#fff"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3" fill="#0B0B0A"/>`;
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
       const inF = (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9);
       const inC = x > 8 && x < 16 && y > 9 && y < 15;
       if (!inF && !inC && rnd() > 0.52) r += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
     }
-    return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" aria-hidden="true"><g fill="#0A1530">${r}</g>${fin(0, 0)}${fin(n - 7, 0)}${fin(0, n - 7)}<rect x="8.5" y="10" width="8" height="5" rx="1" fill="#2A66FF"/><text x="12.5" y="13.4" text-anchor="middle" font-size="2.6" font-weight="900" fill="#fff" font-family="system-ui,sans-serif">DEMO</text></svg>`;
+    return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" aria-hidden="true"><g fill="#0B0B0A">${r}</g>${fin(0, 0)}${fin(n - 7, 0)}${fin(0, n - 7)}<rect x="8.5" y="10" width="8" height="5" rx="0" fill="#D4E86E"/><text x="12.5" y="13.4" text-anchor="middle" font-size="2.4" font-weight="500" fill="#11130A" font-family="DM Mono,monospace" letter-spacing=".3">DEMO</text></svg>`;
   }
   function openPass(trigger) {
     Sheet.show(`
@@ -551,7 +552,7 @@
       <p class="body-2">Stewards and guest-services staff wear high-visibility vests. Help points and first aid are marked on the stadium map.</p>
       <ul class="navlist" style="margin-top:10px">
         <li><a href="#/stadium"><span class="li-icon ok">${ic('help')}</span>Find the nearest help point${ic('chev', 'i chev')}</a></li>
-        <li><a href="#/stadium"><span class="li-icon" style="background:rgba(255,107,107,.16);color:var(--err-text)">${ic('medical')}</span>First aid on the map${ic('chev', 'i chev')}</a></li>
+        <li><a href="#/stadium"><span class="li-icon" style="background:var(--err-soft);color:var(--err)">${ic('medical')}</span>First aid on the map${ic('chev', 'i chev')}</a></li>
         <li><a href="#/stadium"><span class="li-icon">${ic('access')}</span>Accessible routes and assistance${ic('chev', 'i chev')}</a></li>
       </ul>
       <p class="source-note">${ic('info')}<span><strong>In an emergency, follow steward instructions and stadium announcements.</strong> Emergency contacts load from the venue’s approved source. They are not hard-coded in this prototype.</span></p>
@@ -702,19 +703,21 @@
      Creative (identical in supporter preview and operator studio)
      ====================================================================== */
   const displayName = (s) => (s.moment === 'family' ? s.name.trim().replace(/\s*family$/i, '') : s.name.trim());
-  const headline = (s) => MOMENTS[s.moment].head(displayName(s).toUpperCase());
+  const headline = (s) => MOMENTS[s.moment].head.replace('{n}', displayName(s));
+  const headHTML = (s) => MOMENTS[s.moment].head.split('{n}').map(esc).join(`<em>${esc(displayName(s))}</em>`);
   const photoImg = (s, attrs = 'alt=""') => (s.photo ? `<img src="${s.photo}" ${attrs}>` : imgA(s.asset || MOMENTS[s.moment].asset, attrs));
-  const fallbackBG = () => `<div class="led-bg">${imgA('18')}<p class="loop-copy"><small>Bulls One · Loftus</small>Make some noise!</p></div>`;
+  const fallbackBG = () => `<div class="led-bg">${imgA('18')}<p class="loop-copy"><small>Bulls One · Loftus</small>Make some <em>noise!</em></p></div>`;
   function creativeHTML(s, { region = 'full', anim = false } = {}) {
-    const head = headline(s);
-    const size = head.length <= 22 ? 'xl' : head.length <= 32 ? 'lg' : 'md';
+    const head = headHTML(s);
+    const len = headline(s).length;
+    const size = len <= 22 ? 'xl' : len <= 32 ? 'lg' : 'md';
     const m = MOMENTS[s.moment];
     const block = s.consents.seat ? `<span class="cr-block">BLOCK ${esc(s.block)}</span>` : '';
     const a = anim ? ' materialize' : '';
     if (region === 'lower') {
-      return `<div class="creative lower${a}"><div class="lower-bar"><div class="cr-photo">${photoImg(s)}</div><div><span class="cr-tag">BULLS ONE · FAN CAM</span><p class="cr-head">${esc(head)}</p><p class="cr-sub">${esc(m.sub)}</p></div>${block}</div><span class="cr-demo">DEMO</span></div>`;
+      return `<div class="creative lower${a}"><div class="lower-bar"><div class="cr-photo">${photoImg(s)}</div><div><span class="cr-tag">BULLS ONE · FAN CAM</span><p class="cr-head">${head}</p><p class="cr-sub">${esc(m.sub)}</p></div>${block}</div><span class="cr-demo">DEMO</span></div>`;
     }
-    return `<div class="creative full${a}"><div class="cr-photo">${photoImg(s)}</div><div class="cr-copy"><span class="cr-tag">BULLS ONE · FAN CAM</span><p class="cr-head ${size}">${esc(head)}</p><p class="cr-sub">${esc(m.sub)}</p>${block}</div><span class="cr-mono">B1</span><span class="cr-demo">DEMO</span></div>`;
+    return `<div class="creative full${a}"><div class="cr-photo">${photoImg(s)}</div><div class="cr-copy"><span class="cr-tag">BULLS ONE · FAN CAM</span><p class="cr-head ${size}">${head}</p><p class="cr-sub">${esc(m.sub)}</p>${block}</div><span class="cr-mono">B1</span><span class="cr-demo">DEMO</span></div>`;
   }
   const ledLabel = (s) => `Stadium screen preview: ${headline(s)} ${MOMENTS[s.moment].sub}${s.consents.seat ? ` Block ${s.block}.` : ''}`;
   function ledHTML(s, opts = {}) {
@@ -946,7 +949,7 @@
     const canNew = usedSubs() < LIMIT && ['shown', 'rejected', 'withdrawn', 'expired'].includes(s.status);
     const recap = s.status === 'shown' ? `
       <div class="card-gold card" style="margin-top:16px">
-        <p class="eyebrow" style="color:var(--gold-300)">${ic('star', 'i i-sm')}Recap</p>
+        <p class="eyebrow" style="color:var(--champagne)">${ic('star', 'i i-sm')}Recap</p>
         <p class="title-2">You were on the big screen!</p>
         <p class="body-2" style="margin:6px 0 14px">North main LED · ${hm(s.shownAt)} · +50 points and the Fan Cam star badge.</p>
         ${ledHTML(s, { region: s.region || 'full' })}
@@ -1053,7 +1056,7 @@
         const c = document.createElement('canvas');
         c.width = 800; c.height = Math.round(fh * k);
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#0A1530'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.fillStyle = '#0B0B0A'; ctx.fillRect(0, 0, c.width, c.height);
         ctx.drawImage(img, sx.x * k, sy.x * k, W * scale() * k, H * scale() * k);
         return c.toDataURL('image/jpeg', 0.86);
       };
@@ -1265,7 +1268,7 @@
           <button class="btn btn-primary btn-sm" type="button" data-op="send" ${S.screen.killed || S.screen.cue ? 'disabled' : ''}>${ic('send')}Send to ${SCREENS[OP.screen]}</button>
           <button class="btn btn-quiet btn-sm" type="button" data-op="expire">${ic('history')}Remove from future use</button>
         </div>
-        ${S.screen.killed ? '<p class="caption" style="margin-top:6px;color:var(--err-text)">Kill switch is engaged. Re-arm the screen to send.</p>' : S.screen.cue ? '<p class="caption" style="margin-top:6px">Another cue is on air. Wait for it to finish.</p>' : ''}`;
+        ${S.screen.killed ? '<p class="caption" style="margin-top:6px;color:var(--err)">Kill switch is engaged. Re-arm the screen to send.</p>' : S.screen.cue ? '<p class="caption" style="margin-top:6px">Another cue is on air. Wait for it to finish.</p>' : ''}`;
     } else if (s.status === 'onair') {
       actions = `<p class="body-2" style="margin-top:14px">On air now. Use the kill switch to cut to the fallback loop.</p>`;
     } else if (s.status === 'shown') {
@@ -1279,8 +1282,8 @@
         ${ledHTML(s, { region: OP.region, guides: OP.guides })}
         <div class="row-gap" style="margin-top:12px">
           <div class="segmented" style="margin:0;flex:1;min-width:220px" role="group" aria-label="Screen region">
-            <button class="seg-btn" type="button" data-region="full" aria-pressed="${OP.region === 'full'}" style="${OP.region === 'full' ? 'background:rgba(255,255,255,.15);color:#fff' : ''}">Full screen</button>
-            <button class="seg-btn" type="button" data-region="lower" aria-pressed="${OP.region === 'lower'}" style="${OP.region === 'lower' ? 'background:rgba(255,255,255,.15);color:#fff' : ''}">Lower third</button>
+            <button class="seg-btn" type="button" data-region="full" aria-pressed="${OP.region === 'full'}">Full screen</button>
+            <button class="seg-btn" type="button" data-region="lower" aria-pressed="${OP.region === 'lower'}">Lower third</button>
           </div>
           <button class="filter" type="button" data-op="guides" aria-pressed="${OP.guides}">Safe area</button>
         </div>
@@ -1414,7 +1417,7 @@
     const entries = 1284 + (S.golden ? 1 : 0);
     const d = S.draw;
     desk.innerHTML = `
-      <div class="card-head"><div><p class="eyebrow" style="color:var(--gold-300)">Prize desk</p><h3 class="title-2">Golden Ticket Drop</h3></div>${d ? chip('chip-gold', 'check', 'Drawn') : chip('chip-info', 'clock', 'Open')}</div>
+      <div class="card-head"><div><p class="eyebrow" style="color:var(--champagne)">Prize desk</p><h3 class="title-2">Golden Ticket Drop</h3></div>${d ? chip('chip-gold', 'check', 'Drawn') : chip('chip-info', 'clock', 'Open')}</div>
       <div class="kv"><div><small>Entries</small><strong>${entries.toLocaleString('en-ZA')}</strong></div><div><small>Eligible</small><strong>${(entries - 37).toLocaleString('en-ZA')}</strong></div><div><small>Ineligible</small><strong>37</strong></div></div>
       <p class="caption" style="margin-top:10px">Ineligible: no gate check-in. Demo numbers.</p>
       ${d ? `
@@ -1496,13 +1499,33 @@
         <button class="q-item" type="button" data-role-pick="operator" aria-pressed="${session.role === 'operator'}"><span class="li-icon" style="width:40px;height:40px">${ic('screen')}</span><span><strong>Screen producer (staff)</strong><span class="meta">Moderation queue, Screen Studio, draws and audit log</span></span></button>
       </div>`, { title: 'Demo role', trigger });
   }
+  const MENU = [
+    ['#/', 'home', 'Home'], ['#/fixtures', 'fixtures', 'Fixtures & results'], ['#/live/evt-r9', 'live', 'Live Centre'],
+    ['#/matchday/evt-r9', 'matchday', 'Matchday'], ['#/fan-cam/evt-r9', 'fancam', 'Fan Cam'], ['#/stadium', 'stadium', 'Stadium guide'],
+    ['#/rewards', 'rewards', 'Rewards'], ['#/club', 'club', 'Club'], ['#/profile', 'profile', 'Profile & privacy'],
+  ];
+  function openMenu(trigger) {
+    const row = ([href, view, name], i) => `<li><a href="${href}" ${current === view ? 'aria-current="page"' : ''}><span class="idx">${String(i + 1).padStart(2, '0')}</span><span class="nm">${esc(name)}</span>${view === 'live' ? '<span class="chip chip-live tag">Live</span>' : ''}</a></li>`;
+    const pending = S.subs.filter((s) => s.status === 'pending').length;
+    Sheet.show(`
+      <nav aria-label="All sections"><ul class="menu-list">${MENU.map(row).join('')}</ul></nav>
+      <p class="fieldset-title" style="margin-top:28px">Staff · demo</p>
+      <ul class="menu-list">
+        <li><a href="#/operator" ${current === 'operator' ? 'aria-current="page"' : ''}><span class="idx">10</span><span class="nm">Operator console</span>${pending ? `<span class="chip chip-live tag">${pending} pending</span>` : ''}</a></li>
+        <li><a href="#/assets" ${current === 'assets' ? 'aria-current="page"' : ''}><span class="idx">11</span><span class="nm">Asset library</span></a></li>
+      </ul>
+      <button class="btn btn-quiet btn-block" type="button" data-action="role" style="margin-top:24px">${ic('swap')}Demo role: ${session.role === 'operator' ? 'Screen producer' : 'Supporter'}</button>
+      <p class="caption" style="margin-top:16px">Concept prototype · not an official Bulls product · all data is sample data.</p>`,
+    { title: 'Menu', trigger });
+    $$('.menu-list a', Sheet.body).forEach((a) => a.addEventListener('click', () => { if (a.getAttribute('href') === location.hash || (a.getAttribute('href') === '#/' && !location.hash)) Sheet.close(); }));
+  }
   function openSignIn(trigger) {
     Sheet.show(`
       <form id="mfaForm" novalidate>
         <p class="body-2">Enter the 6-digit code from your authenticator app.</p>
         <p class="caption" style="margin-top:4px">Demo placeholder: any 6 digits work. Production uses real staff accounts with MFA and server-side role checks.</p>
         <div class="field" style="margin-top:16px"><label for="mfaCode">Verification code</label>
-          <input class="input" id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="letter-spacing:.5em;font-size:1.5rem;text-align:center;font-weight:800" aria-describedby="mfaErr">
+          <input class="input" id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="letter-spacing:.5em;font:500 1.5rem/1 var(--mono);text-align:center" aria-describedby="mfaErr">
           <div id="mfaErr"></div></div>
         <button class="btn btn-primary btn-block" type="submit" style="margin-top:16px">${ic('shield')}Verify &amp; sign in</button>
       </form>`, { title: 'Staff sign-in', trigger, focus: '#mfaCode' });
@@ -1577,6 +1600,7 @@
       switch (a) {
         case 'dismiss-strip': S.stripDismissed = true; save(); updateGlobal(); break;
         case 'role': openRole(act); break;
+        case 'menu': openMenu(act); break;
         case 'open-pass': openPass(act); break;
         case 'toggle-seat': S.seatShown = !S.seatShown; save(); updateSeat(); break;
         case 'fixture': openFixture(act.dataset.id, act); break;

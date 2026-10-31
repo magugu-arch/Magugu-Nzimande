@@ -1,12 +1,13 @@
 """Build the single-file Bulls One prototype.
 
 Usage:
-    python3 -I build.py <briefing.docx> <out_dir> [apple_touch_icon.png]
+    python3 -I build.py <briefing.docx> <out_dir> [apple_touch_icon.png] [og_image.jpg]
 
 Reads the 22 reference images embedded in the briefing document (in document
 order), re-encodes them as WebP (which strips EXIF/GPS metadata), attaches
-their metadata, and inlines everything into one self-contained HTML file.
-Also writes og-image.jpg (1200x630) for the social-preview URL.
+their metadata, embeds the OFL fonts in fonts/, and inlines everything into one
+self-contained HTML file. Writes og-image.jpg (1200x630) for the social-preview
+URL: the supplied one if given, otherwise a crop of reference 15.
 """
 import base64
 import datetime as dt
@@ -24,7 +25,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 
 # Per-reference metadata: where it is used in the app, and descriptive alt text.
 META = {
-    "01": ("Fan Cam sample photo · Fan Cam “Fan Cam celebration” moment", "Smiling supporter in a blue jersey celebrating with one arm raised in a packed, floodlit stadium"),
+    "01": ("Home hero · Fan Cam sample photo · Fan Cam “Fan Cam celebration” moment · og-image.jpg", "Smiling supporter in a blue jersey celebrating with one arm raised in a packed, floodlit stadium"),
     "02": ("Live Centre hero · away-fixture detail · Home stories", "Rugby player in a blue kit sprints with the ball as opponents in white chase him under floodlights"),
     "03": ("Home · Fan Cam feature card", "Giant stadium LED screen showing a celebrating supporter above a cheering crowd at night"),
     "04": ("Home rewards card · Rewards merch offer", "Blue supporter jersey, cap, water bottle, gift box and phone arranged on a dark navy platform"),
@@ -32,13 +33,13 @@ META = {
     "06": ("Home · Rewards Golden Ticket Drop", "Glowing golden ticket on a giant stadium screen above supporters raising their phones"),
     "07": ("Matchday · getting here · Fan Cam “First game” moment", "Supporters in blue walk towards the stadium at dusk beneath lit screens"),
     "08": ("Home stories · Club news · operator queue sample", "Supporters with painted faces cheering in the stands during a night match"),
-    "09": ("Home hero · home-fixture detail", "Wide view of a packed, floodlit rugby stadium at night"),
+    "09": ("Home next-match card · home-fixture detail", "Wide view of a packed, floodlit rugby stadium at night"),
     "10": ("Home offer · Rewards Supporter Combo", "Burger, chips, chicken wings and a drink on a table overlooking the pitch"),
     "11": ("Fan Cam “Welcome back” moment · operator queue sample", "Smiling older supporter in a blue jersey and scarf seated in the stands"),
     "12": ("Digital pass sheet (concept reference)", "Phone showing a digital match ticket with block, row and seat and a QR code"),
     "13": ("Home stories · Club community · Fan Cam “Birthday” moment · operator queue sample", "Group of young supporters taking a selfie and cheering in the stands"),
     "14": ("Fan Cam hero · Matchday Fan Cam card", "Supporter cheering below a stadium screen that shows her face"),
-    "15": ("Home · install guidance · og-image.jpg", "Supporter holding a phone with the Bulls One app in a packed stadium beside the Bulls One campaign line"),
+    "15": ("Home · install guidance", "Supporter holding a phone with the Bulls One app in a packed stadium beside the Bulls One campaign line"),
     "16": ("Live Centre predictions · Club news · Home stories", "Supporters using phones in the stands while stadium screens show live engagement"),
     "17": ("Asset library (mobile home-screen concept)", "Smartphone on a navy background showing a Bulls One home-screen concept"),
     "18": ("Operator console · Screen Studio fallback loop", "Floodlit stadium with large LED screens and ribbon boards glowing blue around the pitch"),
@@ -88,6 +89,7 @@ def ratio(w, h):
 def main():
     docx, out_dir = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
     icon = pathlib.Path(sys.argv[3]) if len(sys.argv) > 3 else None
+    og_file = pathlib.Path(sys.argv[4]) if len(sys.argv) > 4 else None
     out_dir.mkdir(parents=True, exist_ok=True)
     images, captions = doc_images(docx)
     if len(images) != 22 or len(captions) != 22:
@@ -107,10 +109,27 @@ def main():
         if num == "15":
             og_src = Image.open(io.BytesIO(raw)).convert("RGB")
 
-    # Social preview image (1200x630) from the campaign hero, cropped from the left where the headline sits.
-    tw = round(og_src.height * 1200 / 630)
-    og = og_src.crop((0, 0, min(tw, og_src.width), og_src.height)).resize((1200, 630), Image.LANCZOS)
-    og.save(out_dir / "og-image.jpg", "JPEG", quality=84, optimize=True, progressive=True)
+    # Social preview image (1200x630): the supplied render, or a crop of the campaign hero.
+    if og_file and og_file.exists():
+        Image.open(og_file).convert("RGB").resize((1200, 630), Image.LANCZOS).save(out_dir / "og-image.jpg", "JPEG", quality=86, optimize=True, progressive=True)
+    else:
+        tw = round(og_src.height * 1200 / 630)
+        og = og_src.crop((0, 0, min(tw, og_src.width), og_src.height)).resize((1200, 630), Image.LANCZOS)
+        og.save(out_dir / "og-image.jpg", "JPEG", quality=84, optimize=True, progressive=True)
+
+    # Embedded fonts (SIL OFL 1.1 — licences in fonts/).
+    faces = [
+        ("Playfair Display", "playfair-display-latin-wght-normal.woff2", "normal", "400 900"),
+        ("Playfair Display", "playfair-display-latin-wght-italic.woff2", "italic", "400 900"),
+        ("DM Mono", "dm-mono-latin-400-normal.woff2", "normal", "400"),
+        ("DM Mono", "dm-mono-latin-500-normal.woff2", "normal", "500"),
+    ]
+    font_css = "\n".join(
+        f'@font-face{{font-family:"{fam}";src:url(data:font/woff2;base64,'
+        f'{base64.b64encode((HERE / "fonts" / f).read_bytes()).decode("ascii")}) format("woff2");'
+        f"font-style:{style};font-weight:{weight};font-display:swap}}"
+        for fam, f, style, weight in faces
+    )
 
     manifest = {
         "source": docx.name,
@@ -128,7 +147,7 @@ def main():
     if not icon_b64:
         head = re.sub(r'\s*<link rel="apple-touch-icon"[^>]*>', "", head)
     page = (
-        head.replace("__STYLES__", css).replace("__APPLE_TOUCH_ICON__", icon_b64)
+        head.replace("__FONTS__", font_css).replace("__STYLES__", css).replace("__APPLE_TOUCH_ICON__", icon_b64)
         + "\n"
         + body.replace("__ASSET_MANIFEST__", manifest_json).replace("__APP_JS__", js)
     )
