@@ -27,3 +27,25 @@ Also checked: every screen at 320 px to 1440 px wide with no sideways scrolling,
 - Card photos drift up to 7% of the card's height as the card crosses the screen. Story photos slide up to 6% of the card's width as the rail scrolls. At every scroll step on 8 screens, each photo still covers its frame.
 - With a mouse, the home hero leans up to 12 × 8 px away from the pointer on a critically damped spring, then settles back when the pointer leaves. Touch screens don't lean.
 - Reduce Motion: nothing moves. Switching the setting while the app is open turns parallax on or off and clears every offset.
+
+## Live public site
+
+On 31 October 2026, GitHub Actions opened the public link from GitHub's own servers: https://magugu-arch.github.io/Magugu-Nzimande/bulls-one/site/. All 17 of 17 checks passed (workflow `Bulls One live check`, run 41226847132; screenshots are in its `bulls-one-live-check` artifact).
+
+| Where | Check | Result | Detail |
+| --- | --- | --- | --- |
+| HTTP | App page is public | Pass | 200 · text/html · 4.37 MB |
+| HTTP | Manifest, service worker, icons and preview image served | Pass | 200, with the correct content types |
+| HTTP | Site root redirects to the app | Pass | 200 |
+| WhatsApp · link preview | Title, description and image tags | Pass | Bulls One — The Loftus Experience (concept prototype) |
+| WhatsApp · link preview | Preview image loads (JPEG, under 300 KB) | Pass | 106 KB |
+| iPhone · WebKit (Safari engine) | 12 screens route, all images show, no sideways scroll | Pass | 0 errors |
+| iPhone · WebKit (Safari engine) | Parallax runs | Pass | hero offset 123 px at 600 px scrolled |
+| iPhone · WebKit (Safari engine) | Add to Home Screen metadata | Pass | title "Bulls One", touch icon present |
+| Android · Chrome | 12 screens route, all images show, no sideways scroll | Pass | 0 errors |
+| Android · Chrome | Parallax runs | Pass | hero offset 123 px |
+| Android · Chrome | Install manifest with home-screen icons | Pass | standalone · 192 and 512 px icons |
+| Android · Chrome | Works offline after first visit | Pass | service worker in control; offline reload shows the app |
+| WhatsApp · in-app browser (Android WebView) | 12 screens route, all images show | Pass | 0 errors |
+
+These run in Playwright's WebKit and Chromium engines with each device's screen, touch input and browser identity. They are not physical phones.
