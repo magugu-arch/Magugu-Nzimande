@@ -16,13 +16,15 @@ permissions:
 
 jobs:
   live:
-    runs-on: ubuntu-latest
+    # Playwright 1.48's system-dependency installer targets Ubuntu 24.04
+    # package names (libicu74, libvpx9, libx264-164).
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install Playwright with WebKit and Chromium
         working-directory: bulls-one/tests
         run: |
