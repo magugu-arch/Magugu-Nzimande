@@ -15,6 +15,12 @@ official Bulls product: tickets, scores, rewards and screens are sample data.
   Android and iPhone and keeps working offline. Rebuild it with `--site-url`
   set to that address so WhatsApp link previews show the preview image.
 - **Device test results:** `TESTING.md`
+- **Marketing strategy deck:** `presentation/Bulls_One_Marketing_Strategy.pdf`
+  (26 slides, 16:9). The source is `presentation/src/deck.html` with its
+  images, Exo 2 fonts (SIL OFL) and the QR code for the public app. Rebuild
+  with `node render.js "$PWD/deck.html" "$PWD/../Bulls_One_Marketing_Strategy.pdf"`
+  from `presentation/src/`. The renderer also reports any text that overflows
+  its card or collides with a slide title.
 
 ## Public links
 
