@@ -318,6 +318,16 @@ a.feature:hover > :is(img, .pic) { transform: scale(1.03); }
 a.feature:active { transform: scale(0.99); transition: transform 0.1s ease-out; }
 .feature-tall { min-height: 460px; }
 
+/* ---------- parallax depth (app.js adds html.px; Reduce Motion leaves it off) ----------
+   Photos get a little overscan so they can drift inside their frames without
+   showing an edge: 8% top and bottom on cards (they travel ±7%), 7% left and
+   right on stories (±6%). With a mouse, the home hero is scaled 4% so its
+   pointer lean (±12px × ±8px) never uncovers the frame. */
+html.px .view .feature > .pic { top: -8%; bottom: -8%; height: auto; }
+html.px .view .story .pic { left: -7%; right: -7%; width: auto; }
+@media (hover: hover) and (pointer: fine) { html.px #home .hero > .hero-img { scale: 1.04; } }
+@media (prefers-reduced-motion: reduce) { .hero-img, .feature > .pic, .story .pic { translate: none !important; } }
+
 /* ---------- hero (editorial: portrait photo, serif headline, lime italic) ---------- */
 .hero { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: calc(100svh - var(--top-h)); margin: 0 calc(-1 * var(--gutter)); overflow: hidden; isolation: isolate; }
 .hero-img { position: absolute; top: 0; left: 0; width: 100%; height: auto; aspect-ratio: 4 / 5; max-height: 76%; object-fit: cover; object-position: 50% 0%; z-index: -2; }
@@ -1050,8 +1060,8 @@ html:not(.js) .tabbar { position: sticky; }
               <h3 class="title-3" id="home-next-title">Next home match</h3>
               <span class="chip chip-info">2026/27 URC</span>
             </div>
-            <div id="nextHome"><div class="fixture"><div class="fx-date"><small>Sat</small><strong>31</strong><small>Oct</small></div><div><p class="title-3">Bulls v Scarlets</p><p class="caption" style="margin-top:4px">16:00 SAST · Loftus Versfeld · Round 5</p><p class="caption" style="margin-top:6px">Today</p></div></div>
-      <div class="fx-actions"><button class="btn btn-quiet btn-sm" type="button" data-action="fixture" data-id="urc-r5">Details</button><a class="btn btn-quiet btn-sm" href="https://tickets.bullsrugby.co.za/" target="_blank" rel="noopener">Tickets<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></div></div>
+            <div id="nextHome"><div class="fixture"><div class="fx-date"><small>Sun</small><strong>21</strong><small>Feb</small></div><div><p class="title-3">Bulls v Stormers</p><p class="caption" style="margin-top:4px">14:00 SAST · Loftus Versfeld · Round 8</p><p class="caption" style="margin-top:6px">Kick-off in <span class="num" data-countdown="2027-02-21T12:00:00.000Z">112d 18h 33m</span></p></div></div>
+      <div class="fx-actions"><button class="btn btn-quiet btn-sm" type="button" data-action="fixture" data-id="urc-r8">Details</button><a class="btn btn-quiet btn-sm" href="https://tickets.bullsrugby.co.za/" target="_blank" rel="noopener">Tickets<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></div></div>
           </article>
 
           <article class="card" aria-labelledby="home-golden-title" style="padding:0">
@@ -1151,14 +1161,7 @@ html:not(.js) .tabbar { position: sticky; }
             <p class="title-2">Bulls <span class="num" data-score="home">24</span>–<span class="num" data-score="away">17</span> Cape Mariners</p>
             <p class="caption" style="margin-top:6px">Simulated match against a fictional opponent, used to demo the Live Centre and Fan Cam. Open the Live Centre.</p>
           </a>
-          <div id="upcomingList"><h3 class="month-head">October 2026<small>1 match</small></h3><div class="grid grid-2"><article class="card">
-      <div class="fixture"><div class="fx-date"><small>Sat</small><strong>31</strong><small>Oct</small></div>
-        <div><p class="title-3">Bulls v Scarlets</p><p class="caption" style="margin-top:4px">16:00 SAST · Loftus Versfeld, Pretoria</p><p class="caption">United Rugby Championship · Round 5</p><div class="chips" style="margin-top:10px"><span class="chip chip-info"><svg class="i" aria-hidden="true"><use href="#i-home"></use></svg>Home</span><span class="chip chip-live">Today</span><span class="chip chip-warn"><svg class="i" aria-hidden="true"><use href="#i-clock"></use></svg>Time provisional</span></div></div></div>
-      <div class="fx-actions">
-        <button class="btn btn-quiet btn-sm" type="button" data-action="fixture" data-id="urc-r5">Details</button>
-        <button class="btn btn-quiet btn-sm" type="button" data-action="calendar" data-id="urc-r5"><svg class="i i-sm" aria-hidden="true"><use href="#i-calendar"></use></svg>Add to calendar</button>
-        <a class="btn btn-quiet btn-sm" href="https://tickets.bullsrugby.co.za/" target="_blank" rel="noopener">Tickets<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a>
-      </div></article></div><h3 class="month-head">December 2026<small>3 matches</small></h3><div class="grid grid-2"><article class="card">
+          <div id="upcomingList"><h3 class="month-head">December 2026<small>3 matches</small></h3><div class="grid grid-2"><article class="card">
       <div class="fixture"><div class="fx-date"><small>Sat</small><strong>5</strong><small>Dec</small></div>
         <div><p class="title-3">Lions v Bulls</p><p class="caption" style="margin-top:4px">13:30 SAST · Ellis Park, Johannesburg</p><p class="caption">United Rugby Championship · Round 6</p><div class="chips" style="margin-top:10px"><span class="chip "><svg class="i" aria-hidden="true"><use href="#i-arrow"></use></svg>Away</span><span class="chip chip-warn"><svg class="i" aria-hidden="true"><use href="#i-clock"></use></svg>Time provisional</span></div></div></div>
       <div class="fx-actions">
@@ -1259,7 +1262,7 @@ html:not(.js) .tabbar { position: sticky; }
       </div></article></div></div>
         </div>
         <div role="tabpanel" id="panel-fx-res" aria-labelledby="tab-fx-res" data-panel-of="fixtures" data-panel="results" hidden>
-          <div class="card"><ul class="list" id="resultsList"><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-home"></use></svg></span><span class="li-main"><strong>Bulls v Ulster</strong><span>Sat 24 Oct · Loftus Versfeld, Pretoria · Round 4</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-home"></use></svg></span><span class="li-main"><strong>Bulls v Lions</strong><span>Sat 10 Oct · Loftus Versfeld, Pretoria · Round 3</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-arrow"></use></svg></span><span class="li-main"><strong>Munster v Bulls</strong><span>Sat 3 Oct · Ireland (venue TBC) · Round 2</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-arrow"></use></svg></span><span class="li-main"><strong>Zebre Parma v Bulls</strong><span>Sat 26 Sept · Parma, Italy · Round 1</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li></ul></div>
+          <div class="card"><ul class="list" id="resultsList"><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-home"></use></svg></span><span class="li-main"><strong>Bulls v Scarlets</strong><span>Sat 31 Oct · Loftus Versfeld, Pretoria · Round 5</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-home"></use></svg></span><span class="li-main"><strong>Bulls v Ulster</strong><span>Sat 24 Oct · Loftus Versfeld, Pretoria · Round 4</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-home"></use></svg></span><span class="li-main"><strong>Bulls v Lions</strong><span>Sat 10 Oct · Loftus Versfeld, Pretoria · Round 3</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-arrow"></use></svg></span><span class="li-main"><strong>Munster v Bulls</strong><span>Sat 3 Oct · Ireland (venue TBC) · Round 2</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li><li><span class="li-icon muted"><svg class="i" aria-hidden="true"><use href="#i-arrow"></use></svg></span><span class="li-main"><strong>Zebre Parma v Bulls</strong><span>Sat 26 Sept · Parma, Italy · Round 1</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result<svg class="i i-sm" aria-hidden="true"><use href="#i-ext"></use></svg></a></li></ul></div>
           <p class="caption" style="margin-top:12px">Scores aren’t copied into this concept. In production they come from the licensed match-data feed.</p>
         </div>
         <div role="tabpanel" id="panel-fx-tab" aria-labelledby="tab-fx-tab" data-panel-of="fixtures" data-panel="table" hidden>
@@ -1679,7 +1682,7 @@ html:not(.js) .tabbar { position: sticky; }
 
         <section class="section card" aria-labelledby="ledger-title">
           <div class="card-head"><h3 class="title-2" id="ledger-title">Points history</h3><span class="caption">Ledger · append-only</span></div>
-          <ul class="ledger" id="ledgerList"><li><span class="li-main"><strong>Verified attendance · Bulls v Cape Mariners</strong><span>31 Oct · 15:58</span></span><span class="d pos">+100</span></li><li><span class="li-main"><strong>Milestone · five home matches</strong><span>24 Oct · 16:00</span></span><span class="d pos">+250</span></li><li><span class="li-main"><strong>Half-time quiz · correct answer</strong><span>24 Oct · 14:30</span></span><span class="d pos">+25</span></li><li><span class="li-main"><strong>Verified attendance · Bulls v Ulster</strong><span>24 Oct · 13:20</span></span><span class="d pos">+100</span></li><li><span class="li-main"><strong>Redeemed · supporter cap</strong><span>10 Oct · 15:40</span></span><span class="d neg">−600</span></li><li><span class="li-main"><strong>Verified attendance · Bulls v Lions</strong><span>10 Oct · 13:10</span></span><span class="d pos">+100</span></li><li><span class="li-main"><strong>Opening balance (migrated, demo)</strong><span>12 Sept · 12:00</span></span><span class="d pos">+2&nbsp;505</span></li></ul>
+          <ul class="ledger" id="ledgerList"><li><span class="li-main"><strong>Verified attendance · Bulls v Cape Mariners</strong><span>31 Oct · 18:38</span></span><span class="d pos">+100</span></li><li><span class="li-main"><strong>Milestone · five home matches</strong><span>24 Oct · 16:00</span></span><span class="d pos">+250</span></li><li><span class="li-main"><strong>Half-time quiz · correct answer</strong><span>24 Oct · 14:30</span></span><span class="d pos">+25</span></li><li><span class="li-main"><strong>Verified attendance · Bulls v Ulster</strong><span>24 Oct · 13:20</span></span><span class="d pos">+100</span></li><li><span class="li-main"><strong>Redeemed · supporter cap</strong><span>10 Oct · 15:40</span></span><span class="d neg">−600</span></li><li><span class="li-main"><strong>Verified attendance · Bulls v Lions</strong><span>10 Oct · 13:10</span></span><span class="d pos">+100</span></li><li><span class="li-main"><strong>Opening balance (migrated, demo)</strong><span>12 Sept · 12:00</span></span><span class="d pos">+2&nbsp;505</span></li></ul>
         </section>
       </section>
 
@@ -2703,6 +2706,7 @@ html:not(.js) .tabbar { position: sticky; }
     window.scrollTo(0, 0);
     current = view; currentParam = param;
     meta.render && meta.render(param);
+    Parallax.sync();
     if (param === 'get-app') requestAnimationFrame(() => $('#get-app').scrollIntoView({ block: 'start', behavior: reduced() || first ? 'auto' : 'smooth' }));
     $$('[data-seg]', el).forEach((s) => SEGS.get(s.dataset.seg)?.refresh());
     observeTitle(el);
@@ -2724,6 +2728,148 @@ html:not(.js) .tabbar { position: sticky; }
     titleObs.observe(t);
   }
   addEventListener('scroll', () => $('#topbar').classList.toggle('scrolled', scrollY > 8), { passive: true });
+
+  /* ======================================================================
+     Parallax depth. Photos sit one layer behind the page:
+     - the home and live heroes move at a third of the scroll speed,
+     - card photos drift inside their frames as the card crosses the screen,
+     - story photos slide against the rail as it scrolls sideways,
+     - with a mouse, the home hero leans away from the pointer on two
+       critically damped springs (X and Y independent).
+     Only the `translate` property is written (composited, and separate from
+     the hover `transform: scale`). Each frame reads every rect before any
+     write, and only boxes on or near the screen are touched. Reduce Motion
+     switches all of it off and clears the offsets.
+     ====================================================================== */
+  const Parallax = (() => {
+    const root = document.documentElement;
+    const mqHover = matchMedia('(hover: hover) and (pointer: fine)');
+    const HERO_RATE = 0.32;   // hero photo travels at a third of the scroll
+    const RAMP = 160;         // px over which the hero eases into that rate (no kink at the top)
+    const DRIFT = 0.07;       // card photos travel ±7% of the card height (8% overscan in CSS)
+    const SLIDE = 0.06;       // story photos travel ±6% of the card width (7% overscan in CSS)
+    const LEAN = { x: 12, y: 8 }; // px the home hero leans at the pointer's furthest reach
+    const BOXES = '.hero, .live-hero, .feature, .rail';
+    const visible = new Set();
+    const last = new WeakMap();
+    let on = false, frame = 0, io = null, heroY = 0;
+    const lean = {
+      x: new Spring(0, { damping: 1, response: 0.9, restDelta: 0.05 }),
+      y: new Spring(0, { damping: 1, response: 0.9, restDelta: 0.05 }),
+    };
+    const homeHero = $('#home .hero');
+    const homeImg = homeHero && $('.hero-img', homeHero);
+
+    const layer = (box) => (box.matches('.rail') ? null : $(':scope > .pic, :scope > .hero-img', box));
+    // Eases from rate 0 to HERO_RATE over RAMP px: the offset never exceeds the
+    // distance scrolled past the top, so the gap it opens stays off screen.
+    const ease = (u) => (u <= 0 ? 0 : u < RAMP ? (u * u) / (2 * RAMP) : u - RAMP / 2);
+    function write(el, x, y) {
+      const v = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
+      if (last.get(el) === v) return;
+      last.set(el, v);
+      el.style.translate = v;
+    }
+    function writeHero() { if (homeImg) write(homeImg, lean.x.x, heroY + lean.y.x); }
+
+    function update(boxes) {
+      frame = 0;
+      if (!on) return;
+      const vh = innerHeight;
+      const jobs = [];
+      // Read phase: every rect first.
+      boxes.forEach((box) => {
+        if (!box.isConnected) { visible.delete(box); return; }
+        if (box.matches('.rail')) {
+          const rr = box.getBoundingClientRect();
+          if (!rr.width) return;
+          $$(':scope > .story', box).forEach((card) => {
+            const img = $('.pic', card);
+            if (!img) return;
+            const r = card.getBoundingClientRect();
+            const p = clamp((r.left + r.width / 2 - (rr.left + rr.width / 2)) / (rr.width / 2 + r.width / 2), -1, 1);
+            jobs.push([img, -p * SLIDE * r.width, 0]);
+          });
+          return;
+        }
+        const img = layer(box);
+        if (!img) return;
+        const r = box.getBoundingClientRect();
+        if (!r.height) return;
+        if (box.matches('.hero, .live-hero')) {
+          const y = HERO_RATE * ease(Math.min(-r.top, r.height));
+          if (img === homeImg) { heroY = y; jobs.push([img, null, 0]); } else jobs.push([img, 0, y]);
+          return;
+        }
+        const p = clamp((r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2), -1, 1);
+        jobs.push([img, 0, -p * DRIFT * r.height]);
+      });
+      // Write phase.
+      jobs.forEach(([img, x, y]) => (x === null ? writeHero() : write(img, x, y)));
+    }
+    const schedule = () => { if (on && !frame) frame = requestAnimationFrame(() => update(visible)); };
+
+    function watch(view) {
+      if (!('IntersectionObserver' in window)) { $$(BOXES, view).forEach((b) => visible.add(b)); return; }
+      $$(BOXES, view).forEach((b) => io.observe(b));
+    }
+    function start() {
+      on = true;
+      root.classList.add('px');
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            const imgs = e.target.matches('.rail') ? $$('.story .pic', e.target) : [layer(e.target)].filter(Boolean);
+            if (e.isIntersecting) visible.add(e.target); else visible.delete(e.target);
+            // Promote layers only while they can move, to keep GPU memory low.
+            imgs.forEach((img) => { img.style.willChange = e.isIntersecting ? 'translate' : ''; });
+          });
+          schedule();
+        }, { rootMargin: '20% 0px' });
+      }
+      $$('.view').forEach(watch);
+      sync();
+    }
+    function stop() {
+      on = false;
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      io && io.disconnect(); io = null;
+      visible.clear();
+      lean.x.set(0); lean.y.set(0); heroY = 0;
+      root.classList.remove('px');
+      $$('.hero-img, .feature > .pic, .story .pic').forEach((el) => { el.style.translate = ''; el.style.willChange = ''; last.delete(el); });
+    }
+    // Called after each route: place the new screen's photos in the same
+    // frame it appears, before the observer has reported anything.
+    function sync() {
+      if (!on) return;
+      const view = $('.view.active');
+      if (!view) return;
+      const boxes = $$(BOXES, view);
+      if (io) boxes.forEach((b) => io.observe(b)); // picks up cards a render added
+      update(boxes);
+    }
+
+    if (homeHero) {
+      homeHero.addEventListener('pointermove', (e) => {
+        if (!on || e.pointerType !== 'mouse' || !mqHover.matches) return;
+        const r = homeHero.getBoundingClientRect();
+        const nx = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5);
+        const ny = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5);
+        lean.x.to(-nx * 2 * LEAN.x);
+        lean.y.to(-ny * 2 * LEAN.y);
+      });
+      homeHero.addEventListener('pointerleave', () => { if (on) { lean.x.to(0); lean.y.to(0); } });
+      lean.x.onUpdate = lean.y.onUpdate = () => { if (on) writeHero(); };
+    }
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule);
+    document.addEventListener('scroll', (e) => { if (e.target !== document && e.target.matches && e.target.matches('.rail')) schedule(); }, { capture: true, passive: true });
+    const apply = () => (reduced() ? on && stop() : !on && start());
+    mqReduce.addEventListener ? mqReduce.addEventListener('change', apply) : mqReduce.addListener(apply);
+    return { init: apply, sync };
+  })();
 
   /* ======================================================================
      Live match (simulated feed — demo data)
@@ -4124,6 +4270,7 @@ html:not(.js) .tabbar { position: sticky; }
   updateGlobal();
   updateScores();
   route();
+  Parallax.init();
   addEventListener('hashchange', route);
   addEventListener('resize', () => {
     const m = VIEWS[current];

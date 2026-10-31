@@ -188,6 +188,16 @@ a.feature:hover > :is(img, .pic) { transform: scale(1.03); }
 a.feature:active { transform: scale(0.99); transition: transform 0.1s ease-out; }
 .feature-tall { min-height: 460px; }
 
+/* ---------- parallax depth (app.js adds html.px; Reduce Motion leaves it off) ----------
+   Photos get a little overscan so they can drift inside their frames without
+   showing an edge: 8% top and bottom on cards (they travel ±7%), 7% left and
+   right on stories (±6%). With a mouse, the home hero is scaled 4% so its
+   pointer lean (±12px × ±8px) never uncovers the frame. */
+html.px .view .feature > .pic { top: -8%; bottom: -8%; height: auto; }
+html.px .view .story .pic { left: -7%; right: -7%; width: auto; }
+@media (hover: hover) and (pointer: fine) { html.px #home .hero > .hero-img { scale: 1.04; } }
+@media (prefers-reduced-motion: reduce) { .hero-img, .feature > .pic, .story .pic { translate: none !important; } }
+
 /* ---------- hero (editorial: portrait photo, serif headline, lime italic) ---------- */
 .hero { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: calc(100svh - var(--top-h)); margin: 0 calc(-1 * var(--gutter)); overflow: hidden; isolation: isolate; }
 .hero-img { position: absolute; top: 0; left: 0; width: 100%; height: auto; aspect-ratio: 4 / 5; max-height: 76%; object-fit: cover; object-position: 50% 0%; z-index: -2; }

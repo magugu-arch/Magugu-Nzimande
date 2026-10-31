@@ -440,6 +440,7 @@
     window.scrollTo(0, 0);
     current = view; currentParam = param;
     meta.render && meta.render(param);
+    Parallax.sync();
     if (param === 'get-app') requestAnimationFrame(() => $('#get-app').scrollIntoView({ block: 'start', behavior: reduced() || first ? 'auto' : 'smooth' }));
     $$('[data-seg]', el).forEach((s) => SEGS.get(s.dataset.seg)?.refresh());
     observeTitle(el);
@@ -461,6 +462,148 @@
     titleObs.observe(t);
   }
   addEventListener('scroll', () => $('#topbar').classList.toggle('scrolled', scrollY > 8), { passive: true });
+
+  /* ======================================================================
+     Parallax depth. Photos sit one layer behind the page:
+     - the home and live heroes move at a third of the scroll speed,
+     - card photos drift inside their frames as the card crosses the screen,
+     - story photos slide against the rail as it scrolls sideways,
+     - with a mouse, the home hero leans away from the pointer on two
+       critically damped springs (X and Y independent).
+     Only the `translate` property is written (composited, and separate from
+     the hover `transform: scale`). Each frame reads every rect before any
+     write, and only boxes on or near the screen are touched. Reduce Motion
+     switches all of it off and clears the offsets.
+     ====================================================================== */
+  const Parallax = (() => {
+    const root = document.documentElement;
+    const mqHover = matchMedia('(hover: hover) and (pointer: fine)');
+    const HERO_RATE = 0.32;   // hero photo travels at a third of the scroll
+    const RAMP = 160;         // px over which the hero eases into that rate (no kink at the top)
+    const DRIFT = 0.07;       // card photos travel ±7% of the card height (8% overscan in CSS)
+    const SLIDE = 0.06;       // story photos travel ±6% of the card width (7% overscan in CSS)
+    const LEAN = { x: 12, y: 8 }; // px the home hero leans at the pointer's furthest reach
+    const BOXES = '.hero, .live-hero, .feature, .rail';
+    const visible = new Set();
+    const last = new WeakMap();
+    let on = false, frame = 0, io = null, heroY = 0;
+    const lean = {
+      x: new Spring(0, { damping: 1, response: 0.9, restDelta: 0.05 }),
+      y: new Spring(0, { damping: 1, response: 0.9, restDelta: 0.05 }),
+    };
+    const homeHero = $('#home .hero');
+    const homeImg = homeHero && $('.hero-img', homeHero);
+
+    const layer = (box) => (box.matches('.rail') ? null : $(':scope > .pic, :scope > .hero-img', box));
+    // Eases from rate 0 to HERO_RATE over RAMP px: the offset never exceeds the
+    // distance scrolled past the top, so the gap it opens stays off screen.
+    const ease = (u) => (u <= 0 ? 0 : u < RAMP ? (u * u) / (2 * RAMP) : u - RAMP / 2);
+    function write(el, x, y) {
+      const v = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
+      if (last.get(el) === v) return;
+      last.set(el, v);
+      el.style.translate = v;
+    }
+    function writeHero() { if (homeImg) write(homeImg, lean.x.x, heroY + lean.y.x); }
+
+    function update(boxes) {
+      frame = 0;
+      if (!on) return;
+      const vh = innerHeight;
+      const jobs = [];
+      // Read phase: every rect first.
+      boxes.forEach((box) => {
+        if (!box.isConnected) { visible.delete(box); return; }
+        if (box.matches('.rail')) {
+          const rr = box.getBoundingClientRect();
+          if (!rr.width) return;
+          $$(':scope > .story', box).forEach((card) => {
+            const img = $('.pic', card);
+            if (!img) return;
+            const r = card.getBoundingClientRect();
+            const p = clamp((r.left + r.width / 2 - (rr.left + rr.width / 2)) / (rr.width / 2 + r.width / 2), -1, 1);
+            jobs.push([img, -p * SLIDE * r.width, 0]);
+          });
+          return;
+        }
+        const img = layer(box);
+        if (!img) return;
+        const r = box.getBoundingClientRect();
+        if (!r.height) return;
+        if (box.matches('.hero, .live-hero')) {
+          const y = HERO_RATE * ease(Math.min(-r.top, r.height));
+          if (img === homeImg) { heroY = y; jobs.push([img, null, 0]); } else jobs.push([img, 0, y]);
+          return;
+        }
+        const p = clamp((r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2), -1, 1);
+        jobs.push([img, 0, -p * DRIFT * r.height]);
+      });
+      // Write phase.
+      jobs.forEach(([img, x, y]) => (x === null ? writeHero() : write(img, x, y)));
+    }
+    const schedule = () => { if (on && !frame) frame = requestAnimationFrame(() => update(visible)); };
+
+    function watch(view) {
+      if (!('IntersectionObserver' in window)) { $$(BOXES, view).forEach((b) => visible.add(b)); return; }
+      $$(BOXES, view).forEach((b) => io.observe(b));
+    }
+    function start() {
+      on = true;
+      root.classList.add('px');
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            const imgs = e.target.matches('.rail') ? $$('.story .pic', e.target) : [layer(e.target)].filter(Boolean);
+            if (e.isIntersecting) visible.add(e.target); else visible.delete(e.target);
+            // Promote layers only while they can move, to keep GPU memory low.
+            imgs.forEach((img) => { img.style.willChange = e.isIntersecting ? 'translate' : ''; });
+          });
+          schedule();
+        }, { rootMargin: '20% 0px' });
+      }
+      $$('.view').forEach(watch);
+      sync();
+    }
+    function stop() {
+      on = false;
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      io && io.disconnect(); io = null;
+      visible.clear();
+      lean.x.set(0); lean.y.set(0); heroY = 0;
+      root.classList.remove('px');
+      $$('.hero-img, .feature > .pic, .story .pic').forEach((el) => { el.style.translate = ''; el.style.willChange = ''; last.delete(el); });
+    }
+    // Called after each route: place the new screen's photos in the same
+    // frame it appears, before the observer has reported anything.
+    function sync() {
+      if (!on) return;
+      const view = $('.view.active');
+      if (!view) return;
+      const boxes = $$(BOXES, view);
+      if (io) boxes.forEach((b) => io.observe(b)); // picks up cards a render added
+      update(boxes);
+    }
+
+    if (homeHero) {
+      homeHero.addEventListener('pointermove', (e) => {
+        if (!on || e.pointerType !== 'mouse' || !mqHover.matches) return;
+        const r = homeHero.getBoundingClientRect();
+        const nx = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5);
+        const ny = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5);
+        lean.x.to(-nx * 2 * LEAN.x);
+        lean.y.to(-ny * 2 * LEAN.y);
+      });
+      homeHero.addEventListener('pointerleave', () => { if (on) { lean.x.to(0); lean.y.to(0); } });
+      lean.x.onUpdate = lean.y.onUpdate = () => { if (on) writeHero(); };
+    }
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule);
+    document.addEventListener('scroll', (e) => { if (e.target !== document && e.target.matches && e.target.matches('.rail')) schedule(); }, { capture: true, passive: true });
+    const apply = () => (reduced() ? on && stop() : !on && start());
+    mqReduce.addEventListener ? mqReduce.addEventListener('change', apply) : mqReduce.addListener(apply);
+    return { init: apply, sync };
+  })();
 
   /* ======================================================================
      Live match (simulated feed — demo data)
@@ -1861,6 +2004,7 @@
   updateGlobal();
   updateScores();
   route();
+  Parallax.init();
   addEventListener('hashchange', route);
   addEventListener('resize', () => {
     const m = VIEWS[current];
