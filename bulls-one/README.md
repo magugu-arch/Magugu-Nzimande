@@ -16,6 +16,17 @@ official Bulls product: tickets, scores, rewards and screens are sample data.
   set to that address so WhatsApp link previews show the preview image.
 - **Device test results:** `TESTING.md`
 
+## Public links
+
+| Link | Status |
+| --- | --- |
+| [claude.ai app](https://claude.ai/artifact/SZ2ZYsZXFVykdLkdVtqs91) | Live, private. Owner: Share → anyone with the link to make it public. |
+| [GitHub Pages: installable app](https://magugu-arch.github.io/Magugu-Nzimande/bulls-one/site/) | Built and pushed. Owner: repo Settings → Pages → Deploy from a branch → `claude/bbq-chicken-app-czgvuz`, `/ (root)` → Save. Live a minute or two later. |
+| [Download the single file](https://github.com/magugu-arch/Magugu-Nzimande/raw/claude/bbq-chicken-app-czgvuz/bulls-one/Bulls_One_Loftus_Experience.html) | Public now (the repo is public). |
+
+The repo root has a `.nojekyll` file so GitHub Pages serves the files exactly
+as built.
+
 ## Opening and sharing it
 
 | Where | How |
