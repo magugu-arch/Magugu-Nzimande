@@ -21,31 +21,53 @@
   document.addEventListener('touchstart', () => {}, { passive: true }); // enables :active press feedback on iOS
 
   /* ======================================================================
-     Embedded assets → Blob URLs (decoded once, reused everywhere)
+     Embedded assets. Each image is one CSS data URI (class .aNN), so it
+     shows without JavaScript and under strict viewers that block blob: URLs.
+     The JSON manifest carries the metadata only.
      ====================================================================== */
-  const manifestEl = $('#asset-manifest');
-  const MANIFEST = JSON.parse(manifestEl.textContent);
-  manifestEl.remove();
-  const ASSETS = MANIFEST.assets.map((a) => {
-    const bin = atob(a.data);
-    const u8 = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-    const { data, ...meta } = a;
-    return { ...meta, url: URL.createObjectURL(new Blob([u8], { type: a.format })) };
-  });
+  const MANIFEST = JSON.parse($('#asset-manifest').textContent);
+  const ASSETS = MANIFEST.assets;
   const A = Object.fromEntries(ASSETS.map((a) => [a.id, a]));
-  function hydrate(root = document) {
-    $$('img[data-asset]', root).forEach((img) => {
-      if (img.dataset.ready) return;
-      const a = A[img.dataset.asset];
-      if (!a) return;
-      if (!img.hasAttribute('alt')) img.alt = a.alt;
-      img.decoding = 'async';
-      img.src = a.url;
-      img.dataset.ready = '1';
-    });
+  const hydrate = () => {}; // images are CSS-backed; nothing to hydrate
+  const pic = (id, { label = '', style = '', cls = '' } = {}) =>
+    `<span class="pic a${id}${cls ? ` ${cls}` : ''}"${style ? ` style="${style}"` : ''} ${label ? `role="img" aria-label="${esc(label)}"` : 'aria-hidden="true"'}></span>`;
+  function assetURL(id) { // the image's data URI, read back from its CSS rule (for the photo framer's canvas)
+    const el = document.createElement('span');
+    el.className = `a${id}`; el.hidden = true;
+    document.body.append(el);
+    const bg = getComputedStyle(el).backgroundImage;
+    el.remove();
+    const m = /^url\(["']?(.*?)["']?\)$/.exec(bg);
+    return m ? m[1] : '';
   }
-  const imgA = (id, attrs = 'alt=""') => `<img data-asset="${id}" ${attrs}>`;
+
+  /* ======================================================================
+     Where the page is running: the claude.ai viewer, a web server, or a
+     downloaded file. Saves go through the viewer's downloads capability
+     when present (plain download links are inert there).
+     ====================================================================== */
+  const APP_URL = /^https?:/.test('__APP_URL__') ? '__APP_URL__' : '';
+  const inViewer = () => typeof (window.claude && window.claude.use) === 'function';
+  const isFileCopy = location.protocol === 'file:';
+  let dlCap = null;
+  const getDownloads = () => (inViewer() ? (dlCap || (dlCap = window.claude.use('downloads').catch(() => null))) : Promise.resolve(null));
+  async function saveFile(filename, data, type) {
+    if (inViewer()) {
+      const d = await getDownloads();
+      if (!d) { toast('Saving isn’t available in this view', 'Open the app in Safari or Chrome to save files.', 'info'); return false; }
+      try { await d.save({ filename, data }); return true; }
+      catch (e) {
+        if (e && e.code === 'declined') return false;
+        toast('Couldn’t save the file', (e && e.message) || 'Try again in a moment.', 'info');
+        return false;
+      }
+    }
+    const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type }));
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    return true;
+  }
 
   /* ======================================================================
      Physics: springs (damping ratio + response), projection, rubber-band
@@ -106,9 +128,10 @@
   /* ======================================================================
      State (demo data, persisted locally — never sent anywhere)
      ====================================================================== */
-  const KEY = 'bulls-one-demo-v1';
+  const KEY = 'bulls-one-demo-v2';
   const T0 = Date.now();
   const ago = (m) => T0 - m * 60000;
+  const at = (iso) => Date.parse(iso);
   const DAY = 60 * 24;
 
   const MOMENTS = {
@@ -123,7 +146,6 @@
   function seed() {
     return {
       v: 1,
-      stripDismissed: false,
       seatShown: false,
       subs: [
         { id: 'FC-1042', name: 'Kobus', moment: 'welcome', asset: '11', block: 'C', gate: 'Gate 2', checkIn: '15:48', consents: { screen: true, gallery: true, marketing: false, seat: false }, minor: false, flags: [], status: 'pending', at: ago(9) },
@@ -132,12 +154,12 @@
         { id: 'FC-1045', name: 'Ref Is Blind', moment: 'fancam', asset: '08', block: 'H', gate: 'Gate 4', checkIn: '16:20', consents: { screen: true, gallery: false, marketing: false, seat: false }, minor: false, flags: ['Word filter: possible abuse of match officials (aid only)'], status: 'pending', at: ago(2) },
       ],
       ledger: [
-        { t: ago(DAY * 49), label: 'Opening balance (migrated, demo)', d: 2505 },
-        { t: ago(DAY * 21), label: 'Verified attendance · Bulls v Dublin Harps', d: 100 },
-        { t: ago(DAY * 21), label: 'Redeemed · supporter cap', d: -600 },
-        { t: ago(DAY * 7), label: 'Verified attendance · Bulls v Highveld Comets', d: 100 },
-        { t: ago(DAY * 7), label: 'Half-time quiz · correct answer', d: 25 },
-        { t: ago(DAY * 7), label: 'Milestone · five home matches', d: 250 },
+        { t: at('2026-09-12T12:00:00+02:00'), label: 'Opening balance (migrated, demo)', d: 2505 },
+        { t: at('2026-10-10T13:10:00+02:00'), label: 'Verified attendance · Bulls v Lions', d: 100 },
+        { t: at('2026-10-10T15:40:00+02:00'), label: 'Redeemed · supporter cap', d: -600 },
+        { t: at('2026-10-24T13:20:00+02:00'), label: 'Verified attendance · Bulls v Ulster', d: 100 },
+        { t: at('2026-10-24T14:30:00+02:00'), label: 'Half-time quiz · correct answer', d: 25 },
+        { t: at('2026-10-24T16:00:00+02:00'), label: 'Milestone · five home matches', d: 250 },
         { t: ago(48), label: 'Verified attendance · Bulls v Cape Mariners', d: 100 },
       ],
       audit: [
@@ -381,13 +403,23 @@
     operator: { title: 'Operator console', tab: 'profile', render: renderOperator },
     assets: { title: 'Asset library', tab: 'profile', render: renderAssets },
   };
-  const SEG_TO_VIEW = { '': 'home', fixtures: 'fixtures', live: 'live', matchday: 'matchday', 'fan-cam': 'fancam', stadium: 'stadium', rewards: 'rewards', club: 'club', profile: 'profile', privacy: 'privacy', operator: 'operator', assets: 'assets' };
+  // Routes are plain #names (shareable from the claude.ai viewer and usable as
+  // anchors when JavaScript is off). Older #/path links still resolve.
+  const SEG_TO_VIEW = { '': 'home', home: 'home', fixtures: 'fixtures', live: 'live', matchday: 'matchday', 'fan-cam': 'fancam', stadium: 'stadium', rewards: 'rewards', club: 'club', profile: 'profile', privacy: 'privacy', operator: 'operator', assets: 'assets' };
   const ORDER = Object.keys(VIEWS);
   let current = null, currentParam = null, first = true, titleObs = null;
 
   function parseHash() {
-    const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
-    return { view: SEG_TO_VIEW[parts[0] || ''] || 'home', param: parts[1] || null };
+    const h = decodeURIComponent(location.hash.replace(/^#/, ''));
+    if (h.startsWith('/')) {
+      const parts = h.split('/').filter(Boolean);
+      return { view: SEG_TO_VIEW[parts[0] || ''] || 'home', param: parts[1] || null };
+    }
+    let m;
+    if ((m = /^fixture-([\w-]+)$/.exec(h))) return { view: 'fixtures', param: m[1] };
+    if ((m = /^operator-(campaigns|audit|screens|fan-cam)$/.exec(h))) return { view: 'operator', param: m[1] };
+    if (h === 'get-app') return { view: 'home', param: 'get-app' };
+    return { view: SEG_TO_VIEW[h] || 'home', param: null };
   }
   function route() {
     const { view, param } = parseHash();
@@ -405,9 +437,10 @@
     moveTabInd(meta.tab, first);
     document.title = view === 'home' ? BASE_TITLE : `${meta.title} · Bulls One — The Loftus Experience`;
     $('#topbarTitle').textContent = meta.title;
-    if (!first) window.scrollTo(0, 0);
+    window.scrollTo(0, 0);
     current = view; currentParam = param;
     meta.render && meta.render(param);
+    if (param === 'get-app') requestAnimationFrame(() => $('#get-app').scrollIntoView({ block: 'start', behavior: reduced() || first ? 'auto' : 'smooth' }));
     $$('[data-seg]', el).forEach((s) => SEGS.get(s.dataset.seg)?.refresh());
     observeTitle(el);
     if (!first) {
@@ -496,7 +529,7 @@
   /* ======================================================================
      HOME / shared bits
      ====================================================================== */
-  function renderHome() { updateSeat(); }
+  function renderHome() { updateSeat(); renderNextHome(); }
   function updateSeat() {
     $$('[data-seat-value]').forEach((e) => { e.textContent = S.seatShown ? '50' : '••'; });
     $$('[data-action="toggle-seat"]').forEach((b) => {
@@ -512,7 +545,6 @@
     rb.dataset.role = session.role;
     $('#roleLabel').textContent = session.role === 'operator' ? 'Operator' : 'Supporter';
     rb.setAttribute('aria-label', `Demo role: ${session.role === 'operator' ? 'screen producer (staff)' : 'supporter'}. Change role`);
-    $('#demoStrip').hidden = S.stripDismissed;
   }
 
   function qrSVG() {
@@ -531,7 +563,7 @@
     Sheet.show(`
       <div class="pass">
         <div class="card-head" style="margin-bottom:6px">
-          <div><p class="eyebrow" style="color:rgba(255,255,255,.8)">Bulls One · digital pass</p><p class="title-2">Bulls v Cape Mariners</p><p class="caption" style="color:rgba(255,255,255,.78)">Today · 17:00 · Loftus Versfeld</p></div>
+          <div><p class="eyebrow" style="color:rgba(255,255,255,.8)">Bulls One · digital pass</p><p class="title-2">Bulls v Cape Mariners</p><p class="caption" style="color:rgba(255,255,255,.78)">Demo match · 17:00 · Loftus Versfeld</p></div>
           <span class="mono" aria-hidden="true">B1</span>
         </div>
         <div class="seat-grid"><div><small>Gate</small><strong>3</strong></div><div><small>Block</small><strong>E</strong></div><div><small>Row</small><strong>05</strong></div><div><small>Seat</small><strong>50</strong></div></div>
@@ -544,16 +576,16 @@
         <li><span class="li-icon">${ic('download')}</span><span class="li-main"><strong>Offline access</strong><span>Only where the ticket provider allows secure offline storage.</span></span></li>
       </ul>
       <a class="btn btn-primary btn-block" href="https://tickets.bullsrugby.co.za/" target="_blank" rel="noopener" style="margin-top:8px">Open the official ticket portal ${ic('ext', 'i i-sm')}</a>
-      <div class="media-row" style="margin-top:18px">${imgA('12', 'alt="Concept reference: a phone showing a digital match ticket with block, row and seat"')}<p class="caption">Concept reference for the pass layout (generated image). The prototype never implies that an unverified ticket is valid for entry.</p></div>
+      <div class="media-row" style="margin-top:18px">${pic('12', { label: 'Concept reference: a phone showing a digital match ticket with block, row and seat' })}<p class="caption">Concept reference for the pass layout (generated image). The prototype never implies that an unverified ticket is valid for entry.</p></div>
     `, { title: 'Digital pass · demo', trigger });
   }
   function openHelp(trigger) {
     Sheet.show(`
       <p class="body-2">Stewards and guest-services staff wear high-visibility vests. Help points and first aid are marked on the stadium map.</p>
       <ul class="navlist" style="margin-top:10px">
-        <li><a href="#/stadium"><span class="li-icon ok">${ic('help')}</span>Find the nearest help point${ic('chev', 'i chev')}</a></li>
-        <li><a href="#/stadium"><span class="li-icon" style="background:var(--err-soft);color:var(--err)">${ic('medical')}</span>First aid on the map${ic('chev', 'i chev')}</a></li>
-        <li><a href="#/stadium"><span class="li-icon">${ic('access')}</span>Accessible routes and assistance${ic('chev', 'i chev')}</a></li>
+        <li><a href="#stadium"><span class="li-icon ok">${ic('help')}</span>Find the nearest help point${ic('chev', 'i chev')}</a></li>
+        <li><a href="#stadium"><span class="li-icon" style="background:var(--err-soft);color:var(--err)">${ic('medical')}</span>First aid on the map${ic('chev', 'i chev')}</a></li>
+        <li><a href="#stadium"><span class="li-icon">${ic('access')}</span>Accessible routes and assistance${ic('chev', 'i chev')}</a></li>
       </ul>
       <p class="source-note">${ic('info')}<span><strong>In an emergency, follow steward instructions and stadium announcements.</strong> Emergency contacts load from the venue’s approved source. They are not hard-coded in this prototype.</span></p>
       <button class="btn btn-quiet btn-block" type="button" data-action="report" style="margin-top:14px">${ic('flag')}Report an issue to guest services (demo)</button>
@@ -561,80 +593,143 @@
   }
 
   /* ======================================================================
-     FIXTURES
+     FIXTURES: 2026/27 season, compiled 31 Oct 2026 from public United Rugby
+     Championship and club listings (bullsrugby.co.za, unitedrugby.com,
+     sharksrugby.co.za, Yahoo Sports). Kick-off times are SAST and
+     provisional; time: null = to be confirmed. Results and the log are
+     deliberately not copied: production reads them from the licensed feed.
      ====================================================================== */
+  const URC = 'United Rugby Championship';
   const FIXTURES = [
-    { id: 'evt-r10', iso: '2026-11-14T17:00:00+02:00', opp: 'Dublin Harps', home: true, round: 'Round 10' },
-    { id: 'evt-r11', iso: '2026-11-21T15:00:00+02:00', opp: 'Durban Breakers', home: false, round: 'Round 11', venue: 'Away · Durban (demo)' },
-    { id: 'evt-r12', iso: '2026-12-05T19:00:00+02:00', opp: 'Glasgow Thistles', home: true, round: 'Round 12' },
-    { id: 'evt-r13', iso: '2026-12-12T17:30:00+02:00', opp: 'Highveld Comets', home: false, round: 'Round 13', venue: 'Away · Johannesburg (demo)' },
+    { id: 'urc-r1', comp: URC, round: 'Round 1', date: '2026-09-26', time: '18:30', opp: 'Zebre Parma', home: false, venue: 'Parma, Italy' },
+    { id: 'urc-r2', comp: URC, round: 'Round 2', date: '2026-10-03', time: null, opp: 'Munster', home: false, venue: 'Ireland (venue TBC)' },
+    { id: 'urc-r3', comp: URC, round: 'Round 3', date: '2026-10-10', time: '13:30', opp: 'Lions', home: true },
+    { id: 'urc-r4', comp: URC, round: 'Round 4', date: '2026-10-24', time: '13:45', opp: 'Ulster', home: true },
+    { id: 'urc-r5', comp: URC, round: 'Round 5', date: '2026-10-31', time: '16:00', opp: 'Scarlets', home: true, note: 'Listings range from 14:00 to 17:00.' },
+    { id: 'urc-r6', comp: URC, round: 'Round 6', date: '2026-12-05', time: '13:30', opp: 'Lions', home: false, venue: 'Ellis Park, Johannesburg', note: 'Sources disagree on the kick-off time.' },
+    { id: 'ecc-r2', comp: 'Investec Champions Cup', round: 'Pool round 2', date: '2026-12-12', time: null, opp: 'Montpellier', home: false, venue: 'Montpellier, France' },
+    { id: 'urc-r7', comp: URC, round: 'Round 7', date: '2026-12-19', time: '17:30', opp: 'Sharks', home: false, venue: 'Kings Park, Durban', note: 'The Sharks list 18:30.' },
+    { id: 'urc-r9', comp: URC, round: 'Round 9', date: '2027-01-03', time: null, opp: 'Stormers', home: false, venue: 'Cape Town' },
+    { id: 'urc-r10', comp: URC, round: 'Round 10', date: '2027-01-23', time: null, opp: 'Benetton', home: false, venue: 'Treviso, Italy' },
+    { id: 'urc-r11', comp: URC, round: 'Round 11', date: '2027-01-30', time: null, opp: 'Leinster', home: false, venue: 'Dublin, Ireland' },
+    { id: 'urc-r8', comp: URC, round: 'Round 8', date: '2027-02-21', time: '14:00', opp: 'Stormers', home: true },
+    { id: 'urc-r12', comp: URC, round: 'Round 12', date: '2027-02-27', time: '16:00', opp: 'Sharks', home: true, note: 'The Sharks list 17:00.' },
+    { id: 'urc-r13', comp: URC, round: 'Round 13', date: '2027-03-20', time: '16:00', opp: 'Dragons', home: true },
+    { id: 'urc-r14', comp: URC, round: 'Round 14', date: '2027-03-27', time: '13:00', opp: 'Edinburgh', home: true },
+    { id: 'urc-r15', comp: URC, round: 'Round 15', date: '2027-04-17', time: null, opp: 'Ospreys', home: false, venue: 'Wales (venue TBC)' },
+    { id: 'urc-r16', comp: URC, round: 'Round 16', date: '2027-04-23', time: null, opp: 'Cardiff', home: false, venue: 'Cardiff, Wales', note: 'Date to be confirmed.' },
+    { id: 'urc-r17', comp: URC, round: 'Round 17', date: '2027-05-08', time: '16:00', opp: 'Glasgow Warriors', home: true },
+    { id: 'urc-r18', comp: URC, round: 'Round 18', date: '2027-05-15', time: '13:30', opp: 'Connacht', home: true },
   ];
-  const RESULTS = [
-    { day: 'Sat 24 Oct', opp: 'Highveld Comets', home: true, us: 31, them: 20 },
-    { day: 'Sat 17 Oct', opp: 'Glasgow Thistles', home: false, us: 18, them: 22 },
-    { day: 'Sat 10 Oct', opp: 'Dublin Harps', home: true, us: 27, them: 13 },
-    { day: 'Fri 2 Oct', opp: 'Durban Breakers', home: false, us: 24, them: 24 },
-  ];
-  const TABLE = [['Bulls', 8, 5, 1, 2, 64, 27], ['Dublin Harps', 8, 5, 0, 3, 41, 25], ['Cape Mariners', 8, 4, 1, 3, 22, 21], ['Glasgow Thistles', 8, 4, 0, 4, 9, 19], ['Durban Breakers', 8, 3, 1, 4, -18, 16], ['Highveld Comets', 8, 1, 1, 6, -118, 7]];
+  const fxStart = (f) => Date.parse(`${f.date}T${f.time || '12:00'}:00+02:00`);
+  const fxDone = (f) => Date.now() > fxStart(f) + (f.time ? 2.5 : 14) * 36e5;
+  const byStart = (a, b) => fxStart(a) - fxStart(b);
   const fxTitle = (f) => (f.home ? `Bulls v ${f.opp}` : `${f.opp} v Bulls`);
-  const fxVenue = (f) => (f.home ? 'Loftus Versfeld' : f.venue);
-  const fxParts = (iso) => {
-    const d = new Date(iso);
+  const fxVenue = (f) => (f.home ? 'Loftus Versfeld, Pretoria' : f.venue);
+  const fxTime = (f) => (f.time ? `${f.time} SAST` : 'Kick-off TBC');
+  const isToday = (f) => new Date().toLocaleDateString('en-CA', { timeZone: TZ }) === f.date;
+  const fxParts = (f) => {
+    const d = new Date(`${f.date}T12:00:00+02:00`);
     const p = (o) => d.toLocaleDateString('en-ZA', { timeZone: TZ, ...o });
-    return { wd: p({ weekday: 'short' }), day: p({ day: 'numeric' }), mon: p({ month: 'short' }), time: d.toLocaleTimeString('en-ZA', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }) };
+    return { wd: p({ weekday: 'short' }), day: p({ day: 'numeric' }), mon: p({ month: 'short' }), month: p({ month: 'long', year: 'numeric' }), long: p({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) };
   };
+  const ticketsBtn = (cls = 'btn-quiet') => `<a class="btn ${cls} btn-sm" href="https://tickets.bullsrugby.co.za/" target="_blank" rel="noopener">Tickets${ic('ext', 'i i-sm')}</a>`;
+  const dateBlock = (p) => `<div class="fx-date"><small>${esc(p.wd)}</small><strong>${esc(p.day)}</strong><small>${esc(p.mon)}</small></div>`;
+  function fxCard(f) {
+    const p = fxParts(f);
+    const chips = [
+      f.home ? chip('chip-info', 'home', 'Home') : chip('', 'arrow', 'Away'),
+      isToday(f) ? chip('chip-live', '', 'Today') : '',
+      f.comp !== URC ? chip('chip-gold', 'trophy', 'Champions Cup') : '',
+      !f.time ? chip('chip-warn', 'clock', 'Time TBC') : f.note ? chip('chip-warn', 'clock', 'Time provisional') : '',
+    ].join('');
+    return `<article class="card">
+      <div class="fixture">${dateBlock(p)}
+        <div><p class="title-3">${esc(fxTitle(f))}</p><p class="caption" style="margin-top:4px">${esc(fxTime(f))} · ${esc(fxVenue(f))}</p><p class="caption">${esc(f.comp)} · ${esc(f.round)}</p><div class="chips" style="margin-top:10px">${chips}</div></div></div>
+      <div class="fx-actions">
+        <button class="btn btn-quiet btn-sm" type="button" data-action="fixture" data-id="${f.id}">Details</button>
+        <button class="btn btn-quiet btn-sm" type="button" data-action="calendar" data-id="${f.id}">${ic('calendar', 'i i-sm')}Add to calendar</button>
+        ${f.home ? ticketsBtn() : ''}
+      </div></article>`;
+  }
   function renderFixtures(param) {
-    $('#upcomingList').innerHTML = FIXTURES.map((f) => {
-      const p = fxParts(f.iso);
-      return `<article class="card">
-        <div class="fixture"><div class="fx-date"><small>${esc(p.wd)}</small><strong>${esc(p.day)}</strong><small>${esc(p.mon)}</small></div>
-          <div><p class="title-3">${esc(fxTitle(f))}</p><p class="caption" style="margin-top:4px">${p.time} · ${esc(fxVenue(f))} · ${f.round}</p><div class="chips" style="margin-top:8px">${chip('chip-demo', '', 'Demo')}${f.home ? chip('chip-info', 'home', 'Home') : chip('', 'arrow', 'Away')}</div></div></div>
-        <div class="fx-actions">
-          <button class="btn btn-quiet btn-sm" type="button" data-action="fixture" data-id="${f.id}">Details</button>
-          <button class="btn btn-quiet btn-sm" type="button" data-action="ics" data-id="${f.id}">${ic('calendar', 'i i-sm')}Add to calendar</button>
-          ${f.home ? `<a class="btn btn-quiet btn-sm" href="https://tickets.bullsrugby.co.za/" target="_blank" rel="noopener">Tickets${ic('ext', 'i i-sm')}</a>` : ''}
-        </div></article>`;
-    }).join('');
-    $('#resultsList').innerHTML = RESULTS.map((r) => {
-      const res = r.us > r.them ? ['W', 'chip-ok', 'Won'] : r.us < r.them ? ['L', 'chip-err', 'Lost'] : ['D', 'chip-warn', 'Drawn'];
-      return `<li><span class="chip ${res[1]}" aria-label="${res[2]}" style="min-width:32px;justify-content:center">${res[0]}</span><span class="li-main"><strong>${r.home ? `Bulls v ${esc(r.opp)}` : `${esc(r.opp)} v Bulls`}</strong><span>${r.day} · ${r.home ? 'Loftus Versfeld' : 'Away'} · demo result</span></span><span class="li-end result">${r.home ? `${r.us}–${r.them}` : `${r.them}–${r.us}`}</span></li>`;
-    }).join('');
-    $('#tableBody').innerHTML = TABLE.map((t, i) => `<tr class="${t[0] === 'Bulls' ? 'us' : ''}"><td>${i + 1}</td><td>${t[0]}</td><td>${t[1]}</td><td>${t[2]}</td><td>${t[3]}</td><td>${t[4]}</td><td>${t[5] > 0 ? '+' : ''}${t[5]}</td><td><strong>${t[6]}</strong></td></tr>`).join('');
+    const groups = [];
+    FIXTURES.filter((f) => !fxDone(f)).sort(byStart).forEach((f) => {
+      const m = fxParts(f).month;
+      let g = groups.find((x) => x.m === m);
+      if (!g) groups.push((g = { m, list: [] }));
+      g.list.push(f);
+    });
+    $('#upcomingList').innerHTML = groups.length
+      ? groups.map((g) => `<h3 class="month-head">${esc(g.m)}<small>${g.list.length} ${g.list.length > 1 ? 'matches' : 'match'}</small></h3><div class="grid grid-2">${g.list.map(fxCard).join('')}</div>`).join('')
+      : '<div class="empty">No more fixtures in this list. The next season’s fixtures appear on bullsrugby.co.za.</div>';
+    const played = FIXTURES.filter(fxDone).sort((a, b) => byStart(b, a));
+    $('#resultsList').innerHTML = played.length
+      ? played.map((f) => { const p = fxParts(f); return `<li><span class="li-icon muted">${ic(f.home ? 'home' : 'arrow')}</span><span class="li-main"><strong>${esc(fxTitle(f))}</strong><span>${esc(`${p.wd} ${p.day} ${p.mon}`)} · ${esc(fxVenue(f))} · ${esc(f.round)}</span></span><a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result${ic('ext', 'i i-sm')}</a></li>`; }).join('')
+      : '<li class="li"><span class="li-main"><strong>No matches played yet this season.</strong></span></li>';
     if (param && FIXTURES.some((f) => f.id === param)) requestAnimationFrame(() => openFixture(param));
+  }
+  function renderNextHome() {
+    const el = $('#nextHome');
+    if (!el) return;
+    const f = FIXTURES.filter((x) => x.home && !fxDone(x)).sort(byStart)[0];
+    if (!f) { el.innerHTML = '<p class="body-2">The next home fixture appears here once it is announced.</p>'; return; }
+    const p = fxParts(f);
+    const when = isToday(f) ? 'Today' : `Kick-off in <span class="num" data-countdown="${new Date(fxStart(f)).toISOString()}">${fmtCountdown(fxStart(f))}</span>`;
+    el.innerHTML = `<div class="fixture">${dateBlock(p)}<div><p class="title-3">${esc(fxTitle(f))}</p><p class="caption" style="margin-top:4px">${esc(fxTime(f))} · Loftus Versfeld · ${esc(f.round)}</p><p class="caption" style="margin-top:6px">${when}${f.time ? '' : ' · time TBC'}</p></div></div>
+      <div class="fx-actions"><button class="btn btn-quiet btn-sm" type="button" data-action="fixture" data-id="${f.id}">Details</button>${ticketsBtn()}</div>`;
   }
   function openFixture(id, trigger) {
     const f = FIXTURES.find((x) => x.id === id);
     if (!f) return;
-    const p = fxParts(f.iso);
+    const p = fxParts(f), done = fxDone(f);
+    const timeLine = done ? 'Played' : f.time ? `Kick-off in <span class="num" data-countdown="${new Date(fxStart(f)).toISOString()}">${fmtCountdown(fxStart(f))}</span>` : 'Kick-off time to be confirmed';
     Sheet.show(`
-      <div class="feature" style="min-height:200px">${imgA(f.home ? '09' : '02')}<div class="feature-body"><div class="chips">${chip('chip-demo', '', 'Demo fixture')}</div><p class="title-2" style="margin-top:8px">${esc(fxTitle(f))}</p></div></div>
+      <div class="feature" style="min-height:200px">${pic(f.home ? '09' : '02')}<div class="feature-body"><div class="chips">${chip('chip-info', '', f.comp)}${f.home ? chip('', 'home', 'Home') : chip('', 'arrow', 'Away')}</div><p class="title-2" style="margin-top:10px">${esc(fxTitle(f))}</p></div></div>
       <ul class="list" style="margin-top:8px">
-        <li><span class="li-icon">${ic('calendar')}</span><span class="li-main"><strong>${esc(`${p.wd} ${p.day} ${p.mon}`)} · ${p.time} SAST</strong><span>Kick-off in <span class="num" data-countdown="${f.iso}">${fmtCountdown(f.iso)}</span></span></span></li>
+        <li><span class="li-icon">${ic('calendar')}</span><span class="li-main"><strong>${esc(p.long)} · ${esc(fxTime(f))}</strong><span>${timeLine}</span></span></li>
         <li><span class="li-icon">${ic('pin')}</span><span class="li-main"><strong>${esc(fxVenue(f))}</strong><span>${f.home ? '416 Kirkness Street, Pretoria' : 'Travelling supporters: check the host venue’s guidance'}</span></span></li>
-        <li><span class="li-icon">${ic('trophy')}</span><span class="li-main"><strong>Club Championship · ${f.round}</strong><span>Fictional competition for demo purposes</span></span></li>
+        <li><span class="li-icon">${ic('trophy')}</span><span class="li-main"><strong>${esc(f.comp)} · ${esc(f.round)}</strong><span>2026/27 season</span></span></li>
+        ${f.note || !f.time ? `<li><span class="li-icon muted">${ic('clock')}</span><span class="li-main"><strong>${f.time ? 'Kick-off time provisional' : 'Kick-off time to be confirmed'}</strong><span>${esc(f.note || 'Not yet published in the listings we checked.')} Confirm on bullsrugby.co.za.</span></span></li>` : ''}
         <li><span class="li-icon muted">${ic('info')}</span><span class="li-main"><strong>Weather</strong><span>Shown only when a reliable weather feed is connected.</span></span></li>
       </ul>
-      <div class="row-gap" style="margin-top:12px">
-        ${f.home ? `<a class="btn btn-primary btn-sm" href="https://tickets.bullsrugby.co.za/" target="_blank" rel="noopener">Official tickets${ic('ext', 'i i-sm')}</a>` : ''}
-        <button class="btn btn-quiet btn-sm" type="button" data-action="ics" data-id="${f.id}">${ic('calendar', 'i i-sm')}Add to calendar</button>
+      <div class="row-gap" style="margin-top:14px">
+        ${f.home && !done ? ticketsBtn('btn-primary') : ''}
+        ${done ? `<a class="btn btn-quiet btn-sm" href="https://bullsrugby.co.za/" target="_blank" rel="noopener">Result on bullsrugby.co.za${ic('ext', 'i i-sm')}</a>` : `<button class="btn btn-quiet btn-sm" type="button" data-action="calendar" data-id="${f.id}">${ic('calendar', 'i i-sm')}Add to calendar</button>`}
       </div>`, { title: fxTitle(f), trigger });
   }
-  function download(name, text, type) {
-    const url = URL.createObjectURL(new Blob([text], { type }));
-    const a = document.createElement('a');
-    a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  function calInfo(f) {
+    const z = (x) => x.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const day = f.date.replace(/-/g, '');
+    const next = new Date(`${f.date}T12:00:00Z`); next.setUTCDate(next.getUTCDate() + 1);
+    const nextDay = next.toISOString().slice(0, 10).replace(/-/g, '');
+    const loc = f.home ? 'Loftus Versfeld Stadium, 416 Kirkness Street, Pretoria' : f.venue;
+    const details = `${f.comp} · ${f.round}. ${f.time ? 'Kick-off time provisional' : 'Kick-off time to be confirmed'}: confirm on bullsrugby.co.za. Added from the Bulls One concept prototype.`;
+    const startZ = z(new Date(fxStart(f))), endZ = z(new Date(fxStart(f) + 2 * 36e5));
+    const google = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(fxTitle(f))}&dates=${f.time ? `${startZ}/${endZ}` : `${day}/${nextDay}`}&location=${encodeURIComponent(loc)}&details=${encodeURIComponent(details)}`;
+    return { day, nextDay, startZ, endZ, loc, details, google };
   }
-  function downloadICS(id) {
+  function openCalendar(id, trigger) {
     const f = FIXTURES.find((x) => x.id === id);
     if (!f) return;
-    const icsEsc = (s) => s.replace(/[,;\\]/g, (c) => '\\' + c);
-    const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-    const start = new Date(f.iso), end = new Date(start.getTime() + 2 * 36e5);
-    const loc = f.home ? 'Loftus Versfeld Stadium, 416 Kirkness Street, Pretoria' : f.venue;
-    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bulls One//Concept Prototype//EN', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', `UID:${f.id}@bulls-one.example`, `DTSTAMP:${fmt(new Date())}`, `DTSTART:${fmt(start)}`, `DTEND:${fmt(end)}`, `SUMMARY:${icsEsc(fxTitle(f))} (DEMO)`, `LOCATION:${icsEsc(loc)}`, 'DESCRIPTION:Demo fixture from the Bulls One concept prototype. Confirm official fixtures at bullsrugby.co.za.', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
-    download(`bulls-one-${f.id}.ics`, ics, 'text/calendar');
-    toast('Calendar file downloaded', `${fxTitle(f)} · demo fixture`, 'calendar');
+    const c = calInfo(f);
+    Sheet.show(`
+      <p class="body-2">${esc(fxTitle(f))} · ${esc(fxParts(f).long)} · ${esc(fxTime(f))}</p>
+      <div class="stack" style="margin-top:18px">
+        <a class="btn btn-primary btn-block" href="${c.google}" target="_blank" rel="noopener">${ic('calendar')}Google Calendar${ic('ext', 'i i-sm')}</a>
+        ${inViewer() ? '' : `<button class="btn btn-quiet btn-block" type="button" data-action="ics" data-id="${f.id}">${ic('download')}Apple or Outlook (.ics file)</button>`}
+      </div>
+      <p class="caption" style="margin-top:14px">Times are provisional until the club confirms them.${inViewer() ? ' The downloaded app file also offers an .ics file for Apple and Outlook calendars.' : ''}</p>`, { title: 'Add to calendar', trigger });
+  }
+  async function downloadICS(id) {
+    const f = FIXTURES.find((x) => x.id === id);
+    if (!f) return;
+    const c = calInfo(f);
+    const icsEsc = (t) => t.replace(/[,;\\]/g, (ch) => '\\' + ch);
+    const when = f.time ? [`DTSTART:${c.startZ}`, `DTEND:${c.endZ}`] : [`DTSTART;VALUE=DATE:${c.day}`, `DTEND;VALUE=DATE:${c.nextDay}`];
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bulls One//Concept Prototype//EN', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', `UID:${f.id}-2026-27@bulls-one.example`, `DTSTAMP:${calInfo(f).startZ.slice(0, 8)}T000000Z`, ...when, `SUMMARY:${icsEsc(fxTitle(f))}`, `LOCATION:${icsEsc(c.loc)}`, `DESCRIPTION:${icsEsc(c.details)}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    Sheet.close();
+    if (await saveFile(`bulls-one-${f.id}.ics`, ics, 'text/calendar')) toast('Calendar file saved', `${fxTitle(f)} · open it to add the match`, 'calendar');
   }
 
   /* ======================================================================
@@ -705,8 +800,8 @@
   const displayName = (s) => (s.moment === 'family' ? s.name.trim().replace(/\s*family$/i, '') : s.name.trim());
   const headline = (s) => MOMENTS[s.moment].head.replace('{n}', displayName(s));
   const headHTML = (s) => MOMENTS[s.moment].head.split('{n}').map(esc).join(`<em>${esc(displayName(s))}</em>`);
-  const photoImg = (s, attrs = 'alt=""') => (s.photo ? `<img src="${s.photo}" ${attrs}>` : imgA(s.asset || MOMENTS[s.moment].asset, attrs));
-  const fallbackBG = () => `<div class="led-bg">${imgA('18')}<p class="loop-copy"><small>Bulls One · Loftus</small>Make some <em>noise!</em></p></div>`;
+  const photoImg = (s, label = '') => (s.photo ? `<img src="${s.photo}" alt="${esc(label)}">` : pic(s.asset || MOMENTS[s.moment].asset, { label }));
+  const fallbackBG = () => `<div class="led-bg">${pic('18')}<p class="loop-copy"><small>Bulls One · Loftus</small>Make some <em>noise!</em></p></div>`;
   function creativeHTML(s, { region = 'full', anim = false } = {}) {
     const head = headHTML(s);
     const len = headline(s).length;
@@ -747,7 +842,7 @@
   function renderGallery() {
     const items = S.subs.filter((s) => ['approved', 'onair', 'shown'].includes(s.status) && s.consents.gallery);
     $('#fanGallery').innerHTML = items.length
-      ? `<div class="gallery">${items.map((s) => `<figure>${photoImg(s, `alt="${esc(displayName(s))}’s Fan Cam photo"`)}<figcaption>${esc(displayName(s))} · ${esc(MOMENTS[s.moment].label)}</figcaption></figure>`).join('')}</div>`
+      ? `<div class="gallery">${items.map((s) => `<figure>${photoImg(s, `${displayName(s)}’s Fan Cam photo`)}<figcaption>${esc(displayName(s))} · ${esc(MOMENTS[s.moment].label)}</figcaption></figure>`).join('')}</div>`
       : `<div class="empty">No gallery moments yet. Approved moments appear here only when the supporter opted in.</div>`;
     hydrate($('#fanGallery'));
   }
@@ -792,7 +887,7 @@
       return `<fieldset><legend class="title-2" tabindex="-1">Choose your moment</legend>
         <p class="body-2" style="margin:6px 0 14px">This sets the message on the big screen.</p>
         <div class="choices">${Object.entries(MOMENTS).map(([k, m]) => `
-          <label class="choice">${imgA(m.asset)}<input class="check" type="radio" name="fcMoment" value="${k}" ${d.moment === k ? 'checked' : ''}><strong>${esc(m.label)}</strong><span>${esc(m.desc)}</span></label>`).join('')}
+          <label class="choice">${pic(m.asset)}<input class="check" type="radio" name="fcMoment" value="${k}" ${d.moment === k ? 'checked' : ''}><strong>${esc(m.label)}</strong><span>${esc(m.desc)}</span></label>`).join('')}
         </div></fieldset>${errHTML(FC.err.moment)}`;
     }
     if (st === 2) {
@@ -1081,7 +1176,7 @@
     if (a === 'next') fcNext();
     else if (a === 'back') fcBack();
     else if (a === 'submit') { if (validateStep(3)) fcSubmit(); else { FC.step = 3; renderFC(true); } }
-    else if (a === 'sample') { FC.d.src = A['01'].url; FC.d.kind = 'sample'; FC.d.crop = null; FC.d.photo = null; FC.err.photo = null; renderFC(); }
+    else if (a === 'sample') { FC.d.src = assetURL('01'); FC.d.kind = 'sample'; FC.d.crop = null; FC.d.photo = null; FC.err.photo = null; renderFC(); }
     else if (a === 'new') { FC.creating = true; FC.d = blankDraft(); FC.step = 0; FC.dir = 'fwd'; renderFC(true); }
     else if (a === 'cancel') { FC.creating = false; FC.d = blankDraft(); FC.step = 0; renderFC(); }
     else if (a === 'withdraw') {
@@ -1154,7 +1249,7 @@
     const fresh = !code;
     if (fresh) { code = rid('B1', 6); S.redemptions[id] = code; audit('supporter (Lerato)', 'Offer redeemed', o.title, 'Single-use code issued'); save(); haptic(12); }
     Sheet.show(`
-      ${imgA(o.asset, 'alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:18px"')}
+      ${pic(o.asset, { style: 'width:100%;aspect-ratio:16/9' })}
       <div class="card" style="text-align:center;margin-top:14px">
         <p class="caption">Show this single-use code at the counter</p>
         <p class="code" style="margin:8px 0">${code}</p>
@@ -1500,9 +1595,9 @@
       </div>`, { title: 'Demo role', trigger });
   }
   const MENU = [
-    ['#/', 'home', 'Home'], ['#/fixtures', 'fixtures', 'Fixtures & results'], ['#/live/evt-r9', 'live', 'Live Centre'],
-    ['#/matchday/evt-r9', 'matchday', 'Matchday'], ['#/fan-cam/evt-r9', 'fancam', 'Fan Cam'], ['#/stadium', 'stadium', 'Stadium guide'],
-    ['#/rewards', 'rewards', 'Rewards'], ['#/club', 'club', 'Club'], ['#/profile', 'profile', 'Profile & privacy'],
+    ['#home', 'home', 'Home'], ['#fixtures', 'fixtures', 'Fixtures & results'], ['#live', 'live', 'Live Centre'],
+    ['#matchday', 'matchday', 'Matchday'], ['#fan-cam', 'fancam', 'Fan Cam'], ['#stadium', 'stadium', 'Stadium guide'],
+    ['#rewards', 'rewards', 'Rewards'], ['#club', 'club', 'Club'], ['#profile', 'profile', 'Profile & privacy'],
   ];
   function openMenu(trigger) {
     const row = ([href, view, name], i) => `<li><a href="${href}" ${current === view ? 'aria-current="page"' : ''}><span class="idx">${String(i + 1).padStart(2, '0')}</span><span class="nm">${esc(name)}</span>${view === 'live' ? '<span class="chip chip-live tag">Live</span>' : ''}</a></li>`;
@@ -1511,13 +1606,13 @@
       <nav aria-label="All sections"><ul class="menu-list">${MENU.map(row).join('')}</ul></nav>
       <p class="fieldset-title" style="margin-top:28px">Staff · demo</p>
       <ul class="menu-list">
-        <li><a href="#/operator" ${current === 'operator' ? 'aria-current="page"' : ''}><span class="idx">10</span><span class="nm">Operator console</span>${pending ? `<span class="chip chip-live tag">${pending} pending</span>` : ''}</a></li>
-        <li><a href="#/assets" ${current === 'assets' ? 'aria-current="page"' : ''}><span class="idx">11</span><span class="nm">Asset library</span></a></li>
+        <li><a href="#operator" ${current === 'operator' ? 'aria-current="page"' : ''}><span class="idx">10</span><span class="nm">Operator console</span>${pending ? `<span class="chip chip-live tag">${pending} pending</span>` : ''}</a></li>
+        <li><a href="#assets" ${current === 'assets' ? 'aria-current="page"' : ''}><span class="idx">11</span><span class="nm">Asset library</span></a></li>
       </ul>
       <button class="btn btn-quiet btn-block" type="button" data-action="role" style="margin-top:24px">${ic('swap')}Demo role: ${session.role === 'operator' ? 'Screen producer' : 'Supporter'}</button>
       <p class="caption" style="margin-top:16px">Concept prototype · not an official Bulls product · all data is sample data.</p>`,
     { title: 'Menu', trigger });
-    $$('.menu-list a', Sheet.body).forEach((a) => a.addEventListener('click', () => { if (a.getAttribute('href') === location.hash || (a.getAttribute('href') === '#/' && !location.hash)) Sheet.close(); }));
+    $$('.menu-list a', Sheet.body).forEach((a) => a.addEventListener('click', () => { if (a.getAttribute('href') === location.hash || (a.getAttribute('href') === '#home' && !location.hash)) Sheet.close(); }));
   }
   function openSignIn(trigger) {
     Sheet.show(`
@@ -1538,7 +1633,7 @@
       save();
       Sheet.close();
       updateGlobal();
-      go('#/operator');
+      go('#operator');
       toast('Signed in as demo-op-01', 'Screen producer · session ends when you switch back', 'shield');
     });
   }
@@ -1564,7 +1659,7 @@
     $('#assetSummary').textContent = `${ASSETS.length} images · ${(total / 1048576).toFixed(1)} MB embedded (WebP, metadata stripped)`;
     grid.innerHTML = ASSETS.map((a) => `
       <article class="asset">
-        <button type="button" data-asset-open="${a.id}" aria-label="Enlarge reference ${a.id}: ${esc(a.title)}">${imgA(a.id, 'alt="" loading="lazy"')}</button>
+        <button type="button" data-asset-open="${a.id}" aria-label="Enlarge reference ${a.id}: ${esc(a.title)}">${pic(a.id)}</button>
         <div class="asset-meta">
           <p class="eyebrow" style="margin-bottom:4px">Ref ${a.id}</p>
           <p class="title-3">${esc(a.title)}</p>
@@ -1581,7 +1676,7 @@
   }
   function openAsset(id, trigger) {
     const a = A[id];
-    Sheet.show(`<div class="lightbox">${imgA(a.id, `alt="${esc(a.alt)}"`)}</div>
+    Sheet.show(`<div class="lightbox">${pic(a.id, { label: a.alt, style: `aspect-ratio:${a.width}/${a.height}` })}</div>
       <dl class="summary"><dt>Reference</dt><dd>${a.id} · ${esc(a.title)}</dd><dt>Source file</dt><dd>${esc(a.file)}</dd><dt>Used in</dt><dd>${esc(a.use)}</dd><dt>Original</dt><dd>${a.srcWidth}×${a.srcHeight} JPEG</dd><dt>Embedded</dt><dd>${a.width}×${a.height} WebP · ${Math.round(a.bytes / 1024)} KB</dd><dt>Alt text</dt><dd>${esc(a.alt)}</dd></dl>
       <p class="caption" style="margin-top:12px">Generated concept visual. Not official Bulls photography or approved brand artwork.</p>`, { title: `Reference ${a.id}`, trigger, wide: true });
   }
@@ -1598,13 +1693,15 @@
       const a = act.dataset.action;
       if (act.tagName === 'A' && a === 'help') e.preventDefault();
       switch (a) {
-        case 'dismiss-strip': S.stripDismissed = true; save(); updateGlobal(); break;
         case 'role': openRole(act); break;
         case 'menu': openMenu(act); break;
         case 'open-pass': openPass(act); break;
         case 'toggle-seat': S.seatShown = !S.seatShown; save(); updateSeat(); break;
         case 'fixture': openFixture(act.dataset.id, act); break;
         case 'ics': downloadICS(act.dataset.id); break;
+        case 'calendar': openCalendar(act.dataset.id, act); break;
+        case 'download-app': downloadApp(act); break;
+        case 'copy-link': copyAppLink(); break;
         case 'help': openHelp(act); break;
         case 'report': Sheet.close(); toast('Report sent to guest services (demo)', 'A steward will follow up at Block E.', 'flag'); break;
         case 'install': if (installEvt) { installEvt.prompt(); installEvt = null; $('#installBtn').hidden = true; } break;
@@ -1636,10 +1733,10 @@
           }, act);
           break;
         case 'op-signin': openSignIn(act); break;
-        case 'op-signout': signOut(); go('#/'); toast('Signed out', 'Back to the supporter app.', 'user'); break;
+        case 'op-signout': signOut(); go('#home'); toast('Signed out', 'Back to the supporter app.', 'user'); break;
         case 'kill': killSwitch(); break;
         case 'download-manifest':
-          download('bulls-one-asset-metadata.json', JSON.stringify({ source: MANIFEST.source, generated: MANIFEST.generated, note: MANIFEST.note, assets: ASSETS.map(({ url, ...m }) => m) }, null, 2), 'application/json');
+          saveFile('bulls-one-asset-metadata.json', JSON.stringify(MANIFEST, null, 2), 'application/json');
           break;
         default: break;
       }
@@ -1648,8 +1745,8 @@
     const rp = t.closest('[data-role-pick]');
     if (rp) {
       const r = rp.dataset.rolePick;
-      if (r === 'operator') { if (session.op) { Sheet.close(); go('#/operator'); } else openSignIn(rp); }
-      else { const was = session.op; signOut(); Sheet.close(); if (current === 'operator') go('#/'); else rerender(); if (was) toast('Signed out of the staff console', 'Back to the supporter app.', 'user'); }
+      if (r === 'operator') { if (session.op) { Sheet.close(); go('#operator'); } else openSignIn(rp); }
+      else { const was = session.op; signOut(); Sheet.close(); if (current === 'operator') go('#home'); else rerender(); if (was) toast('Signed out of the staff console', 'Back to the supporter app.', 'user'); }
       return;
     }
     const q = t.closest('[data-quiz]');
@@ -1716,8 +1813,45 @@
   });
 
   /* ======================================================================
+     Get the app: link, WhatsApp share, download of the single-file app
+     ====================================================================== */
+  function setupGetApp() {
+    const msg = `Bulls One — The Loftus Experience (concept prototype)${APP_URL ? `\n${APP_URL}` : ''}`;
+    $('#waShare').href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    $$('[data-app-link]').forEach((e) => { e.hidden = !APP_URL; });
+    if (APP_URL) $('#appLink').textContent = APP_URL;
+    $('#dlApp').hidden = isFileCopy;
+    $('#dlNote').textContent = isFileCopy
+      ? 'You’re using the downloaded copy. It already works offline; send this file on WhatsApp as a document.'
+      : 'Bulls_One_Loftus_Experience.html · about 4 MB · every image built in · works offline';
+  }
+  async function downloadApp(btn) {
+    const label = btn.innerHTML;
+    btn.disabled = true; btn.textContent = 'Preparing…';
+    try {
+      const res = await fetch(inViewer() ? 'Bulls_One_Loftus_Experience.html' : location.href.split('#')[0]);
+      if (!res.ok) throw new Error(String(res.status));
+      const blob = new Blob([await res.blob()], { type: 'text/html' });
+      if (await saveFile('Bulls_One_Loftus_Experience.html', blob, 'text/html')) toast('App file ready', 'Open it in Chrome or Safari, or send it on WhatsApp.', 'download');
+    } catch (_) {
+      toast('Couldn’t prepare the download', 'Open the app link in your browser and try again.', 'info');
+    } finally { btn.disabled = false; btn.innerHTML = label; }
+  }
+  function copyAppLink() {
+    const code = $('#appLink');
+    const selectIt = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      toast('Link selected', 'Copy the highlighted link.', 'info');
+    };
+    try { navigator.clipboard.writeText(APP_URL).then(() => toast('Link copied', 'Paste it into WhatsApp or your browser.', 'check'), selectIt); }
+    catch (_) { selectIt(); }
+  }
+
+  /* ======================================================================
      Boot
      ====================================================================== */
+  setupGetApp();
   $$('[data-seg]').forEach(initSeg);
   updateGlobal();
   updateScores();

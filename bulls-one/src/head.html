@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bulls One — The Loftus Experience | Supporter App Concept</title>
-<meta name="description" content="Bulls One is a concept supporter app for the Vodacom Bulls at Loftus Versfeld Stadium, Pretoria: fixtures, a live match centre, a digital matchday pass, a stadium guide, rewards and a moderated Fan Cam that can put your moment on the big screen.">
+<title>Bulls One — The Loftus Experience</title>
+<script>document.documentElement.classList.add("js")</script>
+<meta name="description" content="Concept prototype, not an official Vodacom Bulls product. Bulls One is a concept supporter app for the Vodacom Bulls at Loftus Versfeld Stadium, Pretoria: fixtures, a live match centre, a digital matchday pass, a stadium guide, rewards and a moderated Fan Cam that can put your moment on the big screen.">
 
 <!--
   CONCEPT PROTOTYPE — not an official Bulls product.
   Kept out of search until Blue Bulls Company approves a public release.
   On the approved public deployment: switch robots to "index, follow" and replace
-  every https://example.com/bulls-one/ URL below with the real deployed URL.
+  the __SITE_URL__ placeholder (build.py --site-url) with the real deployed URL.
 -->
 <meta name="robots" content="noindex, nofollow">
-<link rel="canonical" href="https://example.com/bulls-one/">
+<link rel="canonical" href="__SITE_URL__">
 
 <meta name="application-name" content="Bulls One">
 <meta name="theme-color" content="#151513">
@@ -29,10 +30,10 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Bulls One">
 <meta property="og:locale" content="en_ZA">
-<meta property="og:title" content="Bulls One — The Loftus Experience">
-<meta property="og:description" content="Your team. Your seat. Your moment. A concept matchday companion for Vodacom Bulls supporters at Loftus Versfeld.">
-<meta property="og:url" content="https://example.com/bulls-one/">
-<meta property="og:image" content="https://example.com/bulls-one/og-image.jpg">
+<meta property="og:title" content="Bulls One — The Loftus Experience (concept prototype)">
+<meta property="og:description" content="Your team. Your seat. Your moment. A concept prototype matchday companion, not an official club product, imagined for Vodacom Bulls supporters at Loftus Versfeld.">
+<meta property="og:url" content="__SITE_URL__">
+<meta property="og:image" content="__SITE_URL__og-image.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -40,9 +41,9 @@
 
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Bulls One — The Loftus Experience">
-<meta name="twitter:description" content="Your team. Your seat. Your moment. A concept matchday companion for Vodacom Bulls supporters at Loftus Versfeld.">
-<meta name="twitter:image" content="https://example.com/bulls-one/og-image.jpg">
+<meta name="twitter:title" content="Bulls One — The Loftus Experience (concept prototype)">
+<meta name="twitter:description" content="Your team. Your seat. Your moment. A concept prototype matchday companion, not an official club product, imagined for Vodacom Bulls supporters at Loftus Versfeld.">
+<meta name="twitter:image" content="__SITE_URL__og-image.jpg">
 <meta name="twitter:image:alt" content="Bulls One — Your team. Your seat. Your moment. A supporter celebrates in a packed, floodlit rugby stadium.">
 
 <!-- Icons: temporary B1 monogram. Replace with approved Bulls brand assets. -->
@@ -56,10 +57,10 @@
   "@graph": [
     {
       "@type": "WebApplication",
-      "@id": "https://example.com/bulls-one/#app",
+      "@id": "__SITE_URL__#app",
       "name": "Bulls One",
       "alternateName": "Bulls One — The Loftus Experience",
-      "url": "https://example.com/bulls-one/",
+      "url": "__SITE_URL__",
       "description": "Concept supporter app and matchday companion for Vodacom Bulls supporters at Loftus Versfeld Stadium: fixtures, live match centre, digital pass, stadium guide, rewards and a moderated Fan Cam.",
       "applicationCategory": "SportsApplication",
       "operatingSystem": "Any modern web browser",
@@ -67,20 +68,20 @@
       "inLanguage": "en-ZA",
       "isAccessibleForFree": true,
       "creativeWorkStatus": "Concept prototype",
-      "image": "https://example.com/bulls-one/og-image.jpg",
-      "about": { "@id": "https://example.com/bulls-one/#team" }
+      "image": "__SITE_URL__og-image.jpg",
+      "about": { "@id": "__SITE_URL__#team" }
     },
     {
       "@type": "SportsTeam",
-      "@id": "https://example.com/bulls-one/#team",
+      "@id": "__SITE_URL__#team",
       "name": "Vodacom Bulls",
       "sport": "Rugby union",
       "url": "https://bullsrugby.co.za/",
-      "location": { "@id": "https://example.com/bulls-one/#venue" }
+      "location": { "@id": "__SITE_URL__#venue" }
     },
     {
       "@type": "StadiumOrArena",
-      "@id": "https://example.com/bulls-one/#venue",
+      "@id": "__SITE_URL__#venue",
       "name": "Loftus Versfeld Stadium",
       "address": {
         "@type": "PostalAddress",
@@ -96,6 +97,10 @@
 <style>
 /* Playfair Display & DM Mono — SIL Open Font License 1.1 */
 __FONTS__
+</style>
+<style id="asset-css">
+/* The 22 reference images, each embedded once as a data URI (WebP, metadata stripped). */
+__ASSET_CSS__
 </style>
 <style>
 __STYLES__

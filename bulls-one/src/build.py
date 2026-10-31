@@ -1,7 +1,13 @@
 """Build the single-file Bulls One prototype.
 
 Usage:
-    python3 -I build.py <briefing.docx> <out_dir> [apple_touch_icon.png] [og_image.jpg]
+    python3 -I build.py <briefing.docx> <out_dir> [--icon apple_touch_icon.png]
+        [--og og_image.png] [--site-url https://host/path/] [--app-url https://link]
+
+--site-url fills the canonical, Open Graph and structured-data URLs (where the
+file will be hosted); --app-url is the shareable link the app offers for
+WhatsApp and "copy link". Run prerender.js on the output afterwards so the
+page reads fully when JavaScript is off (iPhone Files, WhatsApp previews).
 
 Reads the 22 reference images embedded in the briefing document (in document
 order), re-encodes them as WebP (which strips EXIF/GPS metadata), attaches
@@ -9,6 +15,7 @@ their metadata, embeds the OFL fonts in fonts/, and inlines everything into one
 self-contained HTML file. Writes og-image.jpg (1200x630) for the social-preview
 URL: the supplied one if given, otherwise a crop of reference 15.
 """
+import argparse
 import base64
 import datetime as dt
 import html
@@ -17,6 +24,7 @@ import json
 import pathlib
 import re
 import sys
+import urllib.parse
 import zipfile
 
 from PIL import Image
@@ -39,9 +47,9 @@ META = {
     "12": ("Digital pass sheet (concept reference)", "Phone showing a digital match ticket with block, row and seat and a QR code"),
     "13": ("Home stories · Club community · Fan Cam “Birthday” moment · operator queue sample", "Group of young supporters taking a selfie and cheering in the stands"),
     "14": ("Fan Cam hero · Matchday Fan Cam card", "Supporter cheering below a stadium screen that shows her face"),
-    "15": ("Home · install guidance", "Supporter holding a phone with the Bulls One app in a packed stadium beside the Bulls One campaign line"),
+    "15": ("Asset library · campaign reference", "Supporter holding a phone with the Bulls One app in a packed stadium beside the Bulls One campaign line"),
     "16": ("Live Centre predictions · Club news · Home stories", "Supporters using phones in the stands while stadium screens show live engagement"),
-    "17": ("Asset library (mobile home-screen concept)", "Smartphone on a navy background showing a Bulls One home-screen concept"),
+    "17": ("Home · Take Bulls One with you (get the app)", "Smartphone on a navy background showing a Bulls One home-screen concept"),
     "18": ("Operator console · Screen Studio fallback loop", "Floodlit stadium with large LED screens and ribbon boards glowing blue around the pitch"),
     "19": ("Club · featured player profile", "Rugby player in a blue jersey holding a ball against a dark blue studio background"),
     "20": ("Profile · notification settings", "Hand holding a phone with a blue notification in front of a floodlit stadium"),
@@ -87,15 +95,24 @@ def ratio(w, h):
 
 
 def main():
-    docx, out_dir = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
-    icon = pathlib.Path(sys.argv[3]) if len(sys.argv) > 3 else None
-    og_file = pathlib.Path(sys.argv[4]) if len(sys.argv) > 4 else None
+    ap = argparse.ArgumentParser()
+    ap.add_argument("docx"); ap.add_argument("out_dir")
+    ap.add_argument("--icon"); ap.add_argument("--og")
+    ap.add_argument("--site-url", default="https://example.com/bulls-one/")
+    ap.add_argument("--app-url", default="")
+    a = ap.parse_args()
+    docx, out_dir = pathlib.Path(a.docx), pathlib.Path(a.out_dir)
+    icon = pathlib.Path(a.icon) if a.icon else None
+    og_file = pathlib.Path(a.og) if a.og else None
+    site_url = a.site_url if a.site_url.endswith("/") else a.site_url + "/"
+    app_url = a.app_url
     out_dir.mkdir(parents=True, exist_ok=True)
     images, captions = doc_images(docx)
     if len(images) != 22 or len(captions) != 22:
         sys.exit(f"expected 22 images/captions, got {len(images)}/{len(captions)}")
 
     assets = []
+    asset_css = []
     og_src = None
     for raw, (num, title, fname) in zip(images, captions):
         data, (w, h), (sw, sh), im = encode(raw)
@@ -104,8 +121,8 @@ def main():
             "id": num, "title": title.strip(), "file": fname, "use": use, "alt": alt,
             "width": w, "height": h, "srcWidth": sw, "srcHeight": sh, "ratio": ratio(w, h),
             "format": "image/webp", "bytes": len(data),
-            "data": base64.b64encode(data).decode("ascii"),
         })
+        asset_css.append(f".a{num}{{background-image:url(data:image/webp;base64,{base64.b64encode(data).decode('ascii')})}}")
         if num == "15":
             og_src = Image.open(io.BytesIO(raw)).convert("RGB")
 
@@ -147,10 +164,19 @@ def main():
     if not icon_b64:
         head = re.sub(r'\s*<link rel="apple-touch-icon"[^>]*>', "", head)
     page = (
-        head.replace("__FONTS__", font_css).replace("__STYLES__", css).replace("__APPLE_TOUCH_ICON__", icon_b64)
+        head.replace("__FONTS__", font_css).replace("__ASSET_CSS__", "\n".join(asset_css)).replace("__STYLES__", css).replace("__APPLE_TOUCH_ICON__", icon_b64)
         + "\n"
         + body.replace("__ASSET_MANIFEST__", manifest_json).replace("__APP_JS__", js)
     )
+    for m in META:  # alt text for images placed in the markup
+        page = page.replace(f"__ALT_{m}__", html.escape(META[m][1], quote=True))
+    share = "Bulls One — The Loftus Experience (concept prototype)" + (f"\n{app_url}" if app_url else "")
+    page = (page.replace("__SITE_URL__", site_url).replace("__APP_URL_TEXT__", html.escape(app_url) if app_url else "the hosted app link")
+                .replace("__APP_URL__", app_url).replace("__WA_HREF__", "https://wa.me/?text=" + urllib.parse.quote(share))
+                .replace("__APP_LINK_HIDDEN__", "" if app_url else "hidden"))
+    left = re.findall(r"__[A-Z_]+__", page)
+    if left:
+        sys.exit(f"unfilled placeholders: {sorted(set(left))}")
     out = out_dir / "Bulls_One_Loftus_Experience.html"
     out.write_text(page, "utf8")
     total = sum(a["bytes"] for a in assets)
