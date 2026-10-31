@@ -1,0 +1,39 @@
+name: Bulls One live check
+
+# Opens the public GitHub Pages site the way supporters will: an iPhone in
+# WebKit (Safari's engine), an Android phone in Chromium, WhatsApp's link
+# preview fetch and WhatsApp's in-app browser.
+on:
+  push:
+    branches: ['claude/bbq-chicken-app-czgvuz']
+    paths:
+      - '.github/workflows/bulls-one-live-check.yml'
+      - 'bulls-one/tests/live-check.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright with WebKit and Chromium
+        working-directory: bulls-one/tests
+        run: |
+          npm init -y > /dev/null
+          npm install playwright@1.48.2 --no-audit --no-fund
+          npx playwright install --with-deps webkit chromium
+      - name: Check the public site
+        working-directory: bulls-one/tests
+        run: node live-check.js https://magugu-arch.github.io/Magugu-Nzimande/bulls-one/site/ shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bulls-one-live-check
+          path: bulls-one/tests/shots
