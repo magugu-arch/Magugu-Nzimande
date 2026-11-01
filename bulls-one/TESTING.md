@@ -52,4 +52,4 @@ These run in Playwright's WebKit and Chromium engines with each device's screen,
 
 ## Physical devices
 
-On 1 November 2026 the owner opened the public app on physical devices (iPhone, Android and WhatsApp) and confirmed everything works.
+On 1 November 2026 the owner reported: "I have checked, everything is done." The report does not name the devices or platforms checked.
