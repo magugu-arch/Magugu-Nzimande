@@ -49,3 +49,7 @@ On 31 October 2026, GitHub Actions opened the public link from GitHub's own serv
 | WhatsApp · in-app browser (Android WebView) | 12 screens route, all images show | Pass | 0 errors |
 
 These run in Playwright's WebKit and Chromium engines with each device's screen, touch input and browser identity. They are not physical phones.
+
+## Physical devices
+
+On 1 November 2026 the owner opened the public app on physical devices (iPhone, Android and WhatsApp) and confirmed everything works.
