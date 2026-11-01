@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "prospecting": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/prospecting/SKILL.md",
+      "computedHash": "435118084e04534a9d393a69e19e8dd846271ebd1e13d3966b02e8c2e4a72780"
+    }
+  }
+}
