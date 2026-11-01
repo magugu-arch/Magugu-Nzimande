@@ -42,15 +42,17 @@
   }
 
   /* ======================================================================
-     Where the page is running: the claude.ai viewer, a web server, or a
+     Where the page is running: an embedding viewer, a web server, or a
      downloaded file. Saves go through the viewer's downloads capability
      when present (plain download links are inert there).
      ====================================================================== */
   const APP_URL = /^https?:/.test('__APP_URL__') ? '__APP_URL__' : '';
-  const inViewer = () => typeof (window.claude && window.claude.use) === 'function';
+  const VIEWER_HOST = '__VIEWER_HOST__'; // set at build time; empty for the standalone file
+  const viewerAPI = () => (VIEWER_HOST ? window[VIEWER_HOST] : null);
+  const inViewer = () => !!viewerAPI() && typeof viewerAPI().use === 'function';
   const isFileCopy = location.protocol === 'file:';
   let dlCap = null;
-  const getDownloads = () => (inViewer() ? (dlCap || (dlCap = window.claude.use('downloads').catch(() => null))) : Promise.resolve(null));
+  const getDownloads = () => (inViewer() ? (dlCap || (dlCap = viewerAPI().use('downloads').catch(() => null))) : Promise.resolve(null));
   async function saveFile(filename, data, type) {
     if (inViewer()) {
       const d = await getDownloads();
@@ -403,7 +405,7 @@
     operator: { title: 'Operator console', tab: 'profile', render: renderOperator },
     assets: { title: 'Asset library', tab: 'profile', render: renderAssets },
   };
-  // Routes are plain #names (shareable from the claude.ai viewer and usable as
+  // Routes are plain #names (shareable from any viewer and usable as
   // anchors when JavaScript is off). Older #/path links still resolve.
   const SEG_TO_VIEW = { '': 'home', home: 'home', fixtures: 'fixtures', live: 'live', matchday: 'matchday', 'fan-cam': 'fancam', stadium: 'stadium', rewards: 'rewards', club: 'club', profile: 'profile', privacy: 'privacy', operator: 'operator', assets: 'assets' };
   const ORDER = Object.keys(VIEWS);

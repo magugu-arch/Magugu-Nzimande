@@ -58,10 +58,17 @@ From `src/`, with the briefing document as input:
 
 ```sh
 python3 -I build.py <briefing.docx> .. --icon <apple-touch-icon.png> --og <og.png> \
-    --app-url https://claude.ai/artifact/SZ2ZYsZXFVykdLkdVtqs91 \
-    [--site-url https://your-host/bulls-one/]
+    --app-url https://magugu-arch.github.io/Magugu-Nzimande/bulls-one/site/ \
+    --site-url https://magugu-arch.github.io/Magugu-Nzimande/bulls-one/site/
 node prerender.js ../Bulls_One_Loftus_Experience.html
-python3 -I make_artifact.py ../Bulls_One_Loftus_Experience.html ../dist/artifact/index.html
+```
+
+The standalone file and the site name no build tools. The claude.ai viewer copy
+is built separately into `dist/` with `--viewer-host claude` (it uses the
+viewer's download API), then:
+
+```sh
+python3 -I make_artifact.py ../dist/viewer/Bulls_One_Loftus_Experience.html ../dist/artifact/index.html
 ```
 
 Hosted site build (adds the manifest, service worker and icons):

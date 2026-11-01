@@ -103,6 +103,7 @@ def main():
     ap.add_argument("--app-url", default="")
     ap.add_argument("--pwa", action="store_true", help="hosted site build: manifest, service worker and icons beside the page")
     ap.add_argument("--out-name", default="Bulls_One_Loftus_Experience.html")
+    ap.add_argument("--viewer-host", default="", help="global the embedding viewer exposes (empty for the standalone file)")
     a = ap.parse_args()
     docx, out_dir = pathlib.Path(a.docx), pathlib.Path(a.out_dir)
     icon = pathlib.Path(a.icon) if a.icon else None
@@ -178,7 +179,8 @@ def main():
                 .replace("__APP_URL__", app_url).replace("__WA_HREF__", "https://wa.me/?text=" + urllib.parse.quote(share))
                 .replace("__APP_LINK_HIDDEN__", "" if app_url else "hidden")
                 .replace("__PWA_LINKS__", '<link rel="manifest" href="manifest.webmanifest">' if a.pwa else "")
-                .replace("'__PWA__'", "'on'" if a.pwa else "'off'"))
+                .replace("'__PWA__'", "'on'" if a.pwa else "'off'")
+                .replace("'__VIEWER_HOST__'", repr(a.viewer_host)))
     left = re.findall(r"__[A-Z_]+__", page)
     if left:
         sys.exit(f"unfilled placeholders: {sorted(set(left))}")
