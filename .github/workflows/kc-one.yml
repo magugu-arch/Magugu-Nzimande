@@ -1,0 +1,90 @@
+name: Kaizer Chiefs One
+
+# The Kaizer Chiefs One workspace has its own lockfile and checks. The root
+# bb.q workflow is unaffected (it ignores kaizer-chiefs-one/).
+on:
+  push:
+    paths:
+      - 'kaizer-chiefs-one/**'
+      - '.github/workflows/kc-one.yml'
+  pull_request:
+    paths:
+      - 'kaizer-chiefs-one/**'
+      - '.github/workflows/kc-one.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: kaizer-chiefs-one
+
+jobs:
+  verify:
+    name: Typecheck, lint, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: kaizer-chiefs-one/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Formatting
+        run: npm run format:check
+      # Tokens, contracts, mobile, admin, and the RLS policy tests (PGlite).
+      - name: Test
+        run: npm test
+      - name: Build the admin portal
+        run: npm run build:admin
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - name: Bundle the mobile app for iOS and Android
+        run: npm run export:mobile
+
+  screens:
+    name: Render every screen and drive the admin
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: kaizer-chiefs-one/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Export the mobile app for web
+        run: npm run export:web -w @kc-one/mobile
+      # 30 routes at 390pt and 320pt: overflow, blank screens, console errors.
+      - name: Sweep the mobile screens
+        run: node apps/mobile/scripts/screens.mjs --out .screens/mobile
+      - name: Build and start the admin
+        run: |
+          npm run build:admin
+          (npm run start -w @kc-one/admin > admin.log 2>&1 &)
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:3100/sign-in > /dev/null && break; sleep 1; done
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - name: Admin role and moderation smoke test
+        run: node apps/admin/scripts/smoke.mjs http://127.0.0.1:3100 --shots .screens/admin
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kc-one-screens
+          path: kaizer-chiefs-one/.screens

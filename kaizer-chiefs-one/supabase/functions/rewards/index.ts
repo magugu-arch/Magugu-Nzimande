@@ -45,7 +45,8 @@ Deno.serve(async (req) => {
     //   2. if the row already existed, return its current state;
     //   3. call the provider with the same idempotency key;
     //   4. update the row to confirmed/failed with the provider reference.
-    logEvent('rewards.redeem_adapter_missing', { user: user.user.id });
+    // No user id in logs: they are correlated by request id at the gateway.
+    logEvent('rewards.redeem_adapter_missing');
     return unavailable(
       'integration_pending',
       'Nothing was redeemed. The rewards adapter is not connected yet.',
