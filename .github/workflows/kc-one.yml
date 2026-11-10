@@ -91,6 +91,10 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
       - name: Admin role and moderation smoke test
         run: node apps/admin/scripts/smoke.mjs http://127.0.0.1:3100 --shots .screens/admin
+      # The committed single file, opened from disk as iPhone, Android and
+      # with JavaScript off (WhatsApp and Files previews).
+      - name: Single-file app checks
+        run: node single-file/tests/check.mjs --shots .screens/single-file
       - uses: actions/upload-artifact@v4
         if: always()
         with:

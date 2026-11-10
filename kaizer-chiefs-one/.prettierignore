@@ -8,3 +8,8 @@ apps/mobile/assets
 docs/reference
 *.md
 *.sql
+
+# Single-file build: generated output and HTML templates with placeholders
+single-file/*.html
+single-file/src/*.html
+single-file/tests/last-run.json

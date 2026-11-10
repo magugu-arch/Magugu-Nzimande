@@ -35,8 +35,20 @@ module.exports = defineConfig([
     },
   },
   {
-    files: ['**/scripts/**/*.mjs', '**/scripts/**/*.js'],
+    files: ['**/scripts/**/*.mjs', '**/scripts/**/*.js', 'single-file/tests/**/*.mjs'],
+    languageOptions: { globals: { Buffer: 'readonly', process: 'readonly' } },
     rules: { 'no-console': 'off' },
+  },
+  {
+    // The single-file app's script is ES5-style on purpose, so it also runs in
+    // older Android WebViews and in-app browsers that open a downloaded file.
+    files: ['single-file/src/app.js'],
+    languageOptions: { sourceType: 'script' },
+    rules: {
+      'no-var': 'off',
+      'prefer-const': 'off',
+      'no-unused-vars': ['warn', { caughtErrors: 'none' }],
+    },
   },
   {
     files: ['**/jest.setup.js', '**/__tests__/**/*.{ts,tsx,js}'],

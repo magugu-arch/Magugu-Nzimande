@@ -18,3 +18,6 @@ coverage/
 # Supabase CLI local state
 supabase/.temp/
 supabase/.branches/
+
+# Local record of the last single-file check run
+single-file/tests/last-run.json
