@@ -53,6 +53,14 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
       - name: Bundle the mobile app for iOS and Android
         run: npm run export:mobile
+      # Server-only values must never reach a browser or the app binary.
+      - name: Secrets stay out of client bundles
+        run: |
+          if grep -rlE "SERVICE_ROLE|ADMIN_SESSION_SECRET|local-development-only|createHmac" \
+              apps/admin/.next/static apps/mobile/dist; then
+            echo "::error::A server-only value appears in a client bundle."
+            exit 1
+          fi
 
   screens:
     name: Render every screen and drive the admin
