@@ -10,5 +10,8 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.16",
     "@types/node": "^22.19.0"
+  },
+  "dependencies": {
+    "@kc-one/contracts": "*"
   }
 }
