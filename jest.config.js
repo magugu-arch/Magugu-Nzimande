@@ -1,6 +1,9 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // kaizer-chiefs-one is a separate workspace with its own test runners.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/kaizer-chiefs-one/'],
+  modulePathIgnorePatterns: ['<rootDir>/kaizer-chiefs-one/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@assets/(.*)$': '<rootDir>/assets/$1',

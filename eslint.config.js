@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // A separate workspace with its own lint config and dependencies.
+      'kaizer-chiefs-one/**',
     ],
   },
   {

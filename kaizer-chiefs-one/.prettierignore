@@ -1,0 +1,10 @@
+node_modules
+.expo
+dist
+.next
+.screens
+package-lock.json
+apps/mobile/assets
+docs/reference
+*.md
+*.sql

@@ -1,0 +1,41 @@
+{
+  "name": "kaizer-chiefs-one",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kaizer Chiefs One App: proposed supporter app, admin portal and backend foundation. Not an official club product.",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "supabase"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "mobile": "npm run start -w @kc-one/mobile",
+    "mobile:web": "npm run web -w @kc-one/mobile",
+    "admin": "npm run dev -w @kc-one/admin",
+    "build:admin": "npm run build -w @kc-one/admin",
+    "export:mobile": "npm run export -w @kc-one/mobile",
+    "screens": "node apps/mobile/scripts/screens.mjs"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.0"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-test-renderer": "19.2.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

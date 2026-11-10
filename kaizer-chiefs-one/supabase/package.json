@@ -1,0 +1,14 @@
+{
+  "name": "@kc-one/supabase",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Migrations, RLS policies and policy tests. Tests run the migrations in PGlite (Postgres in WebAssembly), so no Docker is needed.",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
+    "@types/node": "^22.19.0"
+  }
+}
