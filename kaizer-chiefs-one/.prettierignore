@@ -13,3 +13,6 @@ docs/reference
 single-file/*.html
 single-file/src/*.html
 single-file/tests/last-run.json
+
+# Strategy deck: generated page
+deck/deck.html

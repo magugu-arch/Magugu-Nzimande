@@ -95,6 +95,9 @@ jobs:
       # with JavaScript off (WhatsApp and Files previews).
       - name: Single-file app checks
         run: node single-file/tests/check.mjs --shots .screens/single-file
+      # Strategy deck: the figures add up and nothing overflows a card or a page.
+      - name: Check the strategy deck
+        run: node deck/build.mjs --check
       - uses: actions/upload-artifact@v4
         if: always()
         with:

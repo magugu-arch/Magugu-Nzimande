@@ -40,6 +40,19 @@ module.exports = defineConfig([
     rules: { 'no-console': 'off' },
   },
   {
+    // The strategy deck's build scripts run in Node; build.mjs also passes
+    // functions into the page it lays out.
+    files: ['deck/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        document: 'readonly',
+        getComputedStyle: 'readonly',
+      },
+    },
+    rules: { 'no-console': 'off' },
+  },
+  {
     // The single-file app's script is ES5-style on purpose, so it also runs in
     // older Android WebViews and in-app browsers that open a downloaded file.
     files: ['single-file/src/app.js'],
