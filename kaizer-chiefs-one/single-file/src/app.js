@@ -9,9 +9,12 @@
 
   // The file as it arrived, before this script changes anything, so "Share
   // this file" can hand on an exact working copy even when opened from disk.
+  // (The tags are assembled from pieces so this script never contains a
+  // literal document wrapper, which matters when the page is embedded.)
   var PRISTINE =
-    '<!doctype html>\n' +
-    document.documentElement.outerHTML.replace(/(<html[^>]*?) class="js"/, '$1');
+    '<!' +
+    'doctype html>\n' +
+    document.documentElement.outerHTML.replace(new RegExp('(<' + 'html[^>]*?) class="js"'), '$1');
   var FILE_NAME = 'Kaizer_Chiefs_One_Concept.html';
 
   var $ = function (s, r) {
@@ -133,6 +136,116 @@
       t.hidden = true;
     }, 2800);
   }
+
+  /* ------------------------------------------------------------------
+     Parallax. Photographs sit further back than the interface: a hero
+     photo travels at about a third of the scroll speed, card photos drift
+     inside their frames as they cross the screen or their rail, and with
+     a mouse the hero leans slightly away from the pointer on two
+     independent springs. Only transforms change, once per frame, with all
+     reads before all writes. Reduce Motion turns every part of it off and
+     clears the offsets, including when the setting changes while open.
+     ------------------------------------------------------------------ */
+  var HERO_RATE = 0.32;
+  var DRIFT_Y = 0.07; // of the frame's height; the image overscans by 8%
+  var DRIFT_X = 0.06; // of the frame's width; the image overscans by 7%
+  var LEAN_X = 12;
+  var LEAN_Y = 8;
+  var plx = { hero: null, heroImg: null, ys: [], xs: [], raf: 0 };
+  var finePointer = window.matchMedia
+    ? window.matchMedia('(hover: hover) and (pointer: fine)')
+    : { matches: false };
+  var leanX = new Spring(0, { response: 0.5, precision: 0.02 });
+  var leanY = new Spring(0, { response: 0.5, precision: 0.02 });
+  leanX.onUpdate = schedulePlx;
+  leanY.onUpdate = schedulePlx;
+
+  function clearPlx() {
+    if (plx.heroImg) plx.heroImg.style.transform = '';
+    plx.ys.concat(plx.xs).forEach(function (p) {
+      p.img.style.transform = '';
+    });
+  }
+  function collectPlx(view) {
+    clearPlx();
+    plx.hero = $('.hero', view);
+    plx.heroImg = plx.hero ? $('.img', plx.hero) : null;
+    plx.ys = $$('.plx-y', view).map(function (f) {
+      return { frame: f, img: $('.img', f) };
+    });
+    plx.xs = $$('.plx-x', view).map(function (f) {
+      return { frame: f, img: $('.img', f), rail: f.parentNode };
+    });
+    leanX.jump(0);
+    leanY.jump(0);
+    schedulePlx();
+  }
+  function schedulePlx() {
+    if (!plx.raf) plx.raf = requestAnimationFrame(paintPlx);
+  }
+  function paintPlx() {
+    plx.raf = 0;
+    if (reduceMotion.matches) {
+      clearPlx();
+      return;
+    }
+    var vh = window.innerHeight;
+    var writes = [];
+    if (plx.heroImg) {
+      var hr = plx.hero.getBoundingClientRect();
+      var travelled = Math.max(0, Math.min(-hr.top, hr.height));
+      writes.push([plx.heroImg, leanX.x, travelled * HERO_RATE + leanY.x]);
+    }
+    plx.ys.forEach(function (p) {
+      var r = p.frame.getBoundingClientRect();
+      if (!r.height || r.bottom < -60 || r.top > vh + 60) return;
+      var c = Math.max(0, Math.min(1, (r.top + r.height / 2) / vh));
+      writes.push([p.img, 0, (0.5 - c) * 2 * DRIFT_Y * r.height]);
+    });
+    plx.xs.forEach(function (p) {
+      var r = p.frame.getBoundingClientRect();
+      if (!r.width || r.bottom < -60 || r.top > vh + 60) return;
+      var rr = p.rail.getBoundingClientRect();
+      var c = Math.max(0, Math.min(1, (r.left + r.width / 2 - rr.left) / rr.width));
+      writes.push([p.img, (0.5 - c) * 2 * DRIFT_X * r.width, 0]);
+    });
+    writes.forEach(function (w) {
+      w[0].style.transform = 'translate3d(' + w[1].toFixed(2) + 'px,' + w[2].toFixed(2) + 'px,0)';
+    });
+  }
+  window.addEventListener('scroll', schedulePlx, { passive: true });
+  // Rails scroll sideways; their scroll events do not bubble, so capture them.
+  document.addEventListener('scroll', schedulePlx, { passive: true, capture: true });
+
+  function relax() {
+    leanX.to(0);
+    leanY.to(0);
+  }
+  document.addEventListener(
+    'pointermove',
+    function (e) {
+      if (!plx.hero || e.pointerType !== 'mouse' || !finePointer.matches || reduceMotion.matches)
+        return;
+      var r = plx.hero.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
+        relax();
+        return;
+      }
+      leanX.to((-(e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * LEAN_X);
+      leanY.to((-(e.clientY - (r.top + r.height / 2)) / (r.height / 2)) * LEAN_Y);
+    },
+    { passive: true },
+  );
+  document.documentElement.addEventListener('mouseleave', relax);
+
+  function onMotionPref() {
+    leanX.jump(0);
+    leanY.jump(0);
+    if (reduceMotion.matches) clearPlx();
+    else schedulePlx();
+  }
+  if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', onMotionPref);
+  else if (reduceMotion.addListener) reduceMotion.addListener(onMotionPref);
 
   /* ------------------------------------------------------------------
      Routing
@@ -285,6 +398,7 @@
       panels.forEach(function (p) {
         p.classList.toggle('is-active', p.dataset.panelId === name);
       });
+      schedulePlx();
       if (!btn || !btn.offsetWidth) return;
       if (animate) {
         sx.to(btn.offsetLeft);
@@ -732,7 +846,12 @@
   /* ------------------------------------------------------------------
      Save / share this file
      ------------------------------------------------------------------ */
-  var hosted = /^https?:$/.test(location.protocol);
+  // Inside the claude.ai viewer the page cannot start a download itself; the
+  // viewer's downloads capability asks the person first. Anywhere else there
+  // is no window.claude at all.
+  var viewer = window.claude && typeof window.claude.use === 'function' ? window.claude : null;
+  var viewerDownloads = null;
+  var hosted = !viewer && /^https?:$/.test(location.protocol);
   var shareFileObj = null;
   try {
     shareFileObj = new File([PRISTINE], FILE_NAME, { type: 'text/html' });
@@ -740,13 +859,28 @@
   } catch (e) {
     shareFileObj = null;
   }
-  $$('[data-action="share-file"]').forEach(function (b) {
-    b.hidden = !shareFileObj;
-  });
-  // Opened from Downloads, Files or WhatsApp it already is the file.
-  $$('[data-action="save-file"]').forEach(function (b) {
-    b.hidden = !hosted;
-  });
+  function syncFileButtons() {
+    $$('[data-action="share-file"]').forEach(function (b) {
+      b.hidden = !shareFileObj;
+    });
+    // Opened from Downloads, Files or WhatsApp it already is the file.
+    $$('[data-action="save-file"]').forEach(function (b) {
+      b.hidden = !(hosted || viewerDownloads);
+    });
+    $$('.btn-pair.js-only').forEach(function (pair) {
+      pair.hidden = !$('button:not([hidden])', pair);
+    });
+  }
+  syncFileButtons();
+  if (viewer) {
+    viewer.use('downloads').then(
+      function (d) {
+        viewerDownloads = d || null;
+        syncFileButtons();
+      },
+      function () {},
+    );
+  }
 
   function shareFile() {
     if (!shareFileObj) return;
@@ -761,6 +895,32 @@
       });
   }
   function saveFile() {
+    if (viewerDownloads) {
+      // The standalone file is published beside this page.
+      fetch(FILE_NAME)
+        .then(function (r) {
+          if (!r.ok) throw new Error('missing');
+          return r.blob();
+        })
+        .then(function (blob) {
+          return viewerDownloads.save({ filename: FILE_NAME, data: blob });
+        })
+        .then(
+          function () {
+            toast('Saved.');
+          },
+          function (err) {
+            var code = err && err.code;
+            if (code === 'declined') return;
+            toast(
+              code === 'rate_limited'
+                ? 'One moment, then try again.'
+                : 'Saving is not available here.',
+            );
+          },
+        );
+      return;
+    }
     var go = function (blob) {
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -787,6 +947,7 @@
      ------------------------------------------------------------------ */
   function onShow(v) {
     layoutSegs(v);
+    collectPlx(v);
     if (v.id === 'match' && pendingSeg) {
       var s = segs.filter(function (x) {
         return v.contains(x.el);
@@ -806,6 +967,7 @@
     if (current) {
       layoutSegs(current);
       setTab(tabFor(current));
+      schedulePlx();
     }
   });
 

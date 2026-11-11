@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
+import Animated from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { MAX_AGE_MS, visibleModules, type ContentItem, type HomeModule } from '@kc-one/contracts';
 import {
@@ -20,6 +21,7 @@ import {
   Screen,
   SectionTitle,
   Text,
+  useScrollOffset,
 } from '@/components';
 import { capabilities } from '@/config/env';
 import { isImageKey } from '@/config/imagery';
@@ -141,6 +143,7 @@ function Hero({ item, unread }: { item: ContentItem; unread: number }) {
             fade="full"
             position="right"
             tag="hero"
+            parallax
           />
         ) : null}
         <AppHeader
@@ -257,20 +260,24 @@ function NewsRail({ title, items }: { title: string; items: ContentItem[] }) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const cardW = Math.min(width * 0.72, 320);
+  // The rail's scroll position drives a small slide of each photo in its card.
+  const { offset: scrollX, onScroll } = useScrollOffset('x');
   if (items.length === 0) return null;
   return (
     <View style={styles.section}>
       <Column>
         <SectionTitle title={title} />
       </Column>
-      <ScrollView
+      <Animated.ScrollView
         horizontal
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
         snapToInterval={cardW + space.md}
         contentContainerStyle={{ paddingHorizontal: gutter, gap: space.md }}
       >
-        {items.map((item) => (
+        {items.map((item, index) => (
           <PressableScale
             key={item.id}
             onPress={() => router.push(`/news/${item.id}`)}
@@ -286,6 +293,7 @@ function NewsRail({ title, items }: { title: string; items: ContentItem[] }) {
                   fade="bottom"
                   decorative
                   tag="top-right"
+                  drift={{ scrollX, origin: index * (cardW + space.md), span: cardW }}
                 />
               ) : null}
               <View style={styles.newsText}>
@@ -302,7 +310,7 @@ function NewsRail({ title, items }: { title: string; items: ContentItem[] }) {
             </View>
           </PressableScale>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }

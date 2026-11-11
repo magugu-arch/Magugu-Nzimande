@@ -66,7 +66,7 @@
  "name": "Kaizer Chiefs One",
  "status": "Concept prototype. Not an official Kaizer Chiefs product and not approved by the club.",
  "built": "2026-11-10",
- "sourceRevision": "e232787",
+ "sourceRevision": "35d4271",
  "brief": "Kaizer Chiefs One App: Product and Claude Code Brief, 10 November 2026",
  "referenceCanvas": "https://higgsfield.ai/canvas/04f1701f-1b16-479d-97f4-d196c135b398",
  "content": "All content is DEMO or SAMPLE. No fixtures, scores, players, membership, tickets, prices, balances or partner offers are real.",
@@ -242,14 +242,23 @@
 *::after {
   box-sizing: border-box;
 }
+:root {
+  /* One deliberate look: black and gold. */
+  color-scheme: dark;
+  --page: #070707;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --gl: max(20px, env(safe-area-inset-left, 0px));
+  --gr: max(20px, env(safe-area-inset-right, 0px));
+}
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  background: #070707;
+  background: var(--page);
 }
 body {
   margin: 0;
-  background: #070707;
+  background: var(--page);
   color: var(--text);
   font:
     400 1rem/1.55 Inter,
@@ -520,7 +529,8 @@ hr.rule {
 
 /* ---------- Layout ---------- */
 .col {
-  padding: 0 20px;
+  padding-left: var(--gl);
+  padding-right: var(--gr);
   display: grid;
   gap: 20px;
   align-content: start;
@@ -534,10 +544,10 @@ hr.rule {
   z-index: 2;
 }
 .view {
-  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+  padding-bottom: calc(110px + var(--safe-bottom));
 }
 .view[data-chrome='none'] {
-  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  padding-bottom: calc(40px + var(--safe-bottom));
 }
 .stack {
   display: grid;
@@ -614,7 +624,7 @@ hr.rule {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: calc(env(safe-area-inset-top) + 14px) 20px 16px;
+  padding: 14px var(--gr) 16px var(--gl);
 }
 .masthead--over {
   position: absolute;
@@ -675,6 +685,7 @@ hr.rule {
   position: relative;
   height: min(58vh, 560px);
   min-height: 400px;
+  overflow: hidden;
 }
 .hero--tall {
   height: min(64vh, 620px);
@@ -686,7 +697,8 @@ hr.rule {
 }
 .hero .img {
   position: absolute;
-  inset: 0;
+  inset: -14px -18px;
+  will-change: transform;
 }
 .hero::after {
   content: '';
@@ -711,7 +723,7 @@ hr.rule {
 }
 .hero-tag {
   position: absolute;
-  right: 12px;
+  right: max(12px, env(safe-area-inset-right, 0px));
   bottom: 84px;
   z-index: 2;
 }
@@ -720,8 +732,8 @@ hr.rule {
 }
 .hero > .back {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 12px);
-  left: 20px;
+  top: 12px;
+  left: var(--gl);
   z-index: 3;
 }
 
@@ -863,7 +875,7 @@ hr.rule {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: calc(env(safe-area-inset-top) + 10px) 20px 12px;
+  padding: 10px var(--gr) 12px var(--gl);
 }
 .bar h1 {
   flex: 1;
@@ -1013,9 +1025,9 @@ hr.rule {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding: 4px 20px 8px;
+  padding: 4px var(--gr) 8px var(--gl);
   scroll-snap-type: x mandatory;
-  scroll-padding: 20px;
+  scroll-padding: var(--gl);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
@@ -2024,7 +2036,7 @@ html.js .hatch.is-shown {
   width: 100%;
   max-width: 480px;
   display: flex;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 0 env(safe-area-inset-right, 0px) var(--safe-bottom) env(safe-area-inset-left, 0px);
   background: var(--chrome);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   backdrop-filter: blur(20px) saturate(160%);
@@ -2079,7 +2091,7 @@ html.js .hatch.is-shown {
   transform: translate(-50%, 100%);
   display: grid;
   gap: 12px;
-  padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+  padding: 12px var(--gr) calc(20px + var(--safe-bottom)) var(--gl);
   background: var(--bg-raised);
   border-top: 1px solid var(--line-2);
   border-radius: 24px 24px 0 0;
@@ -2103,7 +2115,7 @@ html.js .hatch.is-shown {
   position: fixed;
   z-index: 50;
   left: 50%;
-  bottom: calc(80px + env(safe-area-inset-bottom));
+  bottom: calc(80px + var(--safe-bottom));
   transform: translateX(-50%);
   max-width: min(440px, calc(100% - 40px));
   padding: 12px 16px;
@@ -2112,6 +2124,38 @@ html.js .hatch.is-shown {
   color: var(--ink);
   font-size: 0.875rem;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Concept strip: on every screen, first thing in view ---------- */
+.concept-strip {
+  margin: 0;
+  padding: calc(var(--safe-top) + 6px) var(--gr) 6px var(--gl);
+  background: var(--page);
+  border-bottom: 1px solid var(--line);
+  font:
+    500 0.625rem/1.4 'DM Mono',
+    ui-monospace,
+    monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--text-2);
+}
+
+/* ---------- Parallax frames ----------
+   The photograph is a little larger than its frame, so it can drift inside
+   it without ever showing an edge. Offsets are set by the script; without
+   it (or with Reduce Motion) the picture simply sits still. */
+.plx {
+  isolation: isolate;
+}
+.plx-y > .img {
+  inset: -8% 0;
+  will-change: transform;
+}
+.plx-x > .img {
+  inset: 0 -7%;
+  will-change: transform;
 }
 
 /* ---------- Focus ---------- */
@@ -2125,6 +2169,10 @@ button:focus-visible,
 /* ---------- JavaScript on: one screen at a time ---------- */
 html.js .view {
   display: none;
+  /* Opening the file at a screen (file.html#home) makes the browser jump to
+     that element. This margin lands the jump at the very top instead, so the
+     concept strip above the screen is never scrolled away on arrival. */
+  scroll-margin-top: 240px;
 }
 html.js .view.is-active {
   display: block;
@@ -2158,14 +2206,14 @@ html:not(.js) .view {
 }
 html:not(.js) .view + .view {
   margin-top: 48px;
-  border-top: 6px solid #070707;
+  border-top: 6px solid var(--page);
   padding-top: 0;
 }
 html:not(.js) .view::before {
   content: attr(aria-label);
   display: block;
-  padding: 12px 20px;
-  background: #070707;
+  padding: 12px var(--gr) 12px var(--gl);
+  background: var(--page);
   font:
     500 0.6875rem/1.3 'DM Mono',
     monospace;
@@ -2180,7 +2228,7 @@ html:not(.js) .panel {
   margin-top: 8px;
 }
 .nojs-intro {
-  padding: calc(env(safe-area-inset-top) + 24px) 20px 24px;
+  padding: 24px var(--gr) 24px var(--gl);
   gap: 16px;
   border-bottom: 1px solid var(--line);
 }
@@ -2318,6 +2366,8 @@ html:not(.js) .nojs-intro {
 
 <div class="app" id="app">
 
+<p class="concept-strip">Concept · Not an official club app</p>
+
 <!-- Shown only when JavaScript is off (WhatsApp and Files previews, Android's HTML viewer). -->
 <header class="nojs-intro nojs-only">
   <p class="eyebrow">Kaizer Chiefs One · Concept prototype</p>
@@ -2401,18 +2451,18 @@ html:not(.js) .nojs-intro {
 
   <div class="section-head col"><h2>Latest</h2></div>
   <div class="rail" role="list">
-    <a class="story press" role="listitem" href="#story-matchday" aria-label="Matchday, sample. Your matchday, in one place."><div class="img i-fancam" aria-hidden="true"></div><span class="tag concept">Concept image</span><div class="story-text"><span class="tag demo">Sample</span><span class="micro gold">Matchday · Sample</span><b>Your matchday, in one place</b></div></a>
-    <a class="story press" role="listitem" href="#story-women" aria-label="Women’s football, sample. Together before kick-off."><div class="img i-women" aria-hidden="true"></div><span class="tag concept">Concept image</span><div class="story-text"><span class="tag demo">Sample</span><span class="micro gold">Women’s football · Sample</span><b>Together before kick-off</b></div></a>
-    <a class="story press" role="listitem" href="#story-academy" aria-label="Academy, sample. Where the next generation learns the game."><div class="img i-academy" aria-hidden="true"></div><span class="tag concept">Concept image</span><div class="story-text"><span class="tag demo">Sample</span><span class="micro gold">Academy · Sample</span><b>Where the next generation learns the game</b></div></a>
-    <a class="story press" role="listitem" href="#story-community" aria-label="Community, sample. Football in the neighbourhood."><div class="img i-community" aria-hidden="true"></div><span class="tag concept">Concept image</span><div class="story-text"><span class="tag demo">Sample</span><span class="micro gold">Community · Sample</span><b>Football in the neighbourhood</b></div></a>
+    <a class="story plx plx-x press" role="listitem" href="#story-matchday" aria-label="Matchday, sample. Your matchday, in one place."><div class="img i-fancam" aria-hidden="true"></div><span class="tag concept">Concept image</span><div class="story-text"><span class="tag demo">Sample</span><span class="micro gold">Matchday · Sample</span><b>Your matchday, in one place</b></div></a>
+    <a class="story plx plx-x press" role="listitem" href="#story-women" aria-label="Women’s football, sample. Together before kick-off."><div class="img i-women" aria-hidden="true"></div><span class="tag concept">Concept image</span><div class="story-text"><span class="tag demo">Sample</span><span class="micro gold">Women’s football · Sample</span><b>Together before kick-off</b></div></a>
+    <a class="story plx plx-x press" role="listitem" href="#story-academy" aria-label="Academy, sample. Where the next generation learns the game."><div class="img i-academy" aria-hidden="true"></div><span class="tag concept">Concept image</span><div class="story-text"><span class="tag demo">Sample</span><span class="micro gold">Academy · Sample</span><b>Where the next generation learns the game</b></div></a>
+    <a class="story plx plx-x press" role="listitem" href="#story-community" aria-label="Community, sample. Football in the neighbourhood."><div class="img i-community" aria-hidden="true"></div><span class="tag concept">Concept image</span><div class="story-text"><span class="tag demo">Sample</span><span class="micro gold">Community · Sample</span><b>Football in the neighbourhood</b></div></a>
   </div>
 
   <div class="section-head col"><h2>Fan Moments</h2><a class="link" href="#share">+ Share yours</a></div>
   <div class="rail rail--tight" role="list">
-    <a class="moment-tile press" role="listitem" href="#moment" aria-label="Fan Moment: Scarves up, sample"><div class="img i-portrait pos-top" aria-hidden="true"></div><span class="tag demo on-img">Demo</span></a>
-    <a class="moment-tile press" role="listitem" href="#fan" aria-label="Fan Moment: Under the lights, sample"><div class="img i-stadium" aria-hidden="true"></div><span class="tag demo on-img">Demo</span></a>
-    <a class="moment-tile press" role="listitem" href="#fan" aria-label="Fan Moment: On the big screen, sample"><div class="img i-fancam" aria-hidden="true"></div><span class="tag demo on-img">Demo</span></a>
-    <a class="moment-tile press" role="listitem" href="#fan" aria-label="Fan Moment: Hands in, sample"><div class="img i-women" aria-hidden="true"></div><span class="tag demo on-img">Demo</span></a>
+    <a class="moment-tile plx plx-x press" role="listitem" href="#moment" aria-label="Fan Moment: Scarves up, sample"><div class="img i-portrait pos-top" aria-hidden="true"></div><span class="tag demo on-img">Demo</span></a>
+    <a class="moment-tile plx plx-x press" role="listitem" href="#fan" aria-label="Fan Moment: Under the lights, sample"><div class="img i-stadium" aria-hidden="true"></div><span class="tag demo on-img">Demo</span></a>
+    <a class="moment-tile plx plx-x press" role="listitem" href="#fan" aria-label="Fan Moment: On the big screen, sample"><div class="img i-fancam" aria-hidden="true"></div><span class="tag demo on-img">Demo</span></a>
+    <a class="moment-tile plx plx-x press" role="listitem" href="#fan" aria-label="Fan Moment: Hands in, sample"><div class="img i-women" aria-hidden="true"></div><span class="tag demo on-img">Demo</span></a>
   </div>
 
   <div class="col">
@@ -2583,7 +2633,7 @@ html:not(.js) .nojs-intro {
 
     <div class="panel" data-panel-id="squad" role="tabpanel">
       <h2 class="nojs-only panel-title">Squad</h2>
-      <div class="squad-hero"><div class="img i-squad pos-top" role="img" aria-label="Six players in black and gold kit standing together in a lit stadium tunnel."></div><span class="tag concept hero-tag">Concept image</span></div>
+      <div class="squad-hero plx plx-y"><div class="img i-squad pos-top" role="img" aria-label="Six players in black and gold kit standing together in a lit stadium tunnel."></div><span class="tag concept hero-tag">Concept image</span></div>
       <div class="chips js-only" role="radiogroup" aria-label="Team" data-filter="team">
         <button class="chip chip--on press" role="radio" aria-checked="true" data-value="first">First team</button>
         <button class="chip press" role="radio" aria-checked="false" data-value="women">Women</button>
@@ -2686,10 +2736,10 @@ html:not(.js) .nojs-intro {
     <div class="btn-pair"><a class="btn btn--secondary btn--sm press" href="#mine">My moments</a><a class="btn btn--secondary btn--sm press" href="#community">Community rules</a></div>
     <div class="section-head"><h2>From the stands</h2></div>
     <div class="moments">
-      <a class="moment press" href="#moment" aria-label="Scarves up. Demo supporter."><div class="img i-portrait pos-top" aria-hidden="true"></div><div class="moment-foot"><span class="tag demo on-img">Demo</span><span>Sample moment · Scarves up</span></div></a>
-      <a class="moment press" href="#moment" aria-label="Under the lights. Demo supporter."><div class="img i-stadium" aria-hidden="true"></div><div class="moment-foot"><span class="tag demo on-img">Demo</span><span>Sample moment · Under the lights</span></div></a>
-      <a class="moment press" href="#moment" aria-label="On the big screen. Demo supporter."><div class="img i-fancam" aria-hidden="true"></div><div class="moment-foot"><span class="tag demo on-img">Demo</span><span>Sample moment · On the big screen</span></div></a>
-      <a class="moment press" href="#moment" aria-label="Hands in. Demo supporter."><div class="img i-women" aria-hidden="true"></div><div class="moment-foot"><span class="tag demo on-img">Demo</span><span>Sample moment · Hands in</span></div></a>
+      <a class="moment plx plx-y press" href="#moment" aria-label="Scarves up. Demo supporter."><div class="img i-portrait pos-top" aria-hidden="true"></div><div class="moment-foot"><span class="tag demo on-img">Demo</span><span>Sample moment · Scarves up</span></div></a>
+      <a class="moment plx plx-y press" href="#moment" aria-label="Under the lights. Demo supporter."><div class="img i-stadium" aria-hidden="true"></div><div class="moment-foot"><span class="tag demo on-img">Demo</span><span>Sample moment · Under the lights</span></div></a>
+      <a class="moment plx plx-y press" href="#moment" aria-label="On the big screen. Demo supporter."><div class="img i-fancam" aria-hidden="true"></div><div class="moment-foot"><span class="tag demo on-img">Demo</span><span>Sample moment · On the big screen</span></div></a>
+      <a class="moment plx plx-y press" href="#moment" aria-label="Hands in. Demo supporter."><div class="img i-women" aria-hidden="true"></div><div class="moment-foot"><span class="tag demo on-img">Demo</span><span>Sample moment · Hands in</span></div></a>
     </div>
     <p class="provenance"><span class="tag demo">Demo</span> Sample content · not club data</p>
     <div class="section-head"><h2>For the family</h2></div>
@@ -2771,7 +2821,7 @@ html:not(.js) .nojs-intro {
 <section class="view" id="moment" data-depth="1" data-parent="fan" aria-label="Fan Moment">
   <header class="bar"><a class="glass back press" href="#fan" data-back aria-label="Back"><svg class="ico" aria-hidden="true"><use href="#i-back"/></svg></a><h1>Fan Moment</h1><button class="btn btn--ghost btn--sm press js-only" type="button" data-action="report"><svg class="ico" aria-hidden="true"><use href="#i-flag"/></svg> Report</button><span class="bar-space nojs-only"></span></header>
   <div class="col">
-    <div class="moment-media"><div class="img i-portrait pos-top" role="img" aria-label="A supporter in the stands holding a black and gold scarf above her head, laughing."></div><span class="tag concept hero-tag">Concept image</span></div>
+    <div class="moment-media plx plx-y"><div class="img i-portrait pos-top" role="img" aria-label="A supporter in the stands holding a black and gold scarf above her head, laughing."></div><span class="tag concept hero-tag">Concept image</span></div>
     <p class="row-inline"><span class="tag demo">Demo</span><span class="muted">Demo supporter</span></p>
     <h2 class="title-3">Sample moment · Scarves up</h2>
     <div class="notice" data-report-result hidden><svg class="ico gold" aria-hidden="true"><use href="#i-info"/></svg><div><b>Report not sent</b><p>In the live app this report goes straight to the moderation team. In the demo, nothing was sent.</p></div></div>
@@ -2854,7 +2904,7 @@ html:not(.js) .nojs-intro {
 <section class="view" id="shop" data-depth="1" data-parent="home" aria-label="Shop">
   <header class="bar"><a class="glass back press" href="#home" data-back aria-label="Back"><svg class="ico" aria-hidden="true"><use href="#i-back"/></svg></a><h1>Shop</h1><span class="bar-space"></span></header>
   <div class="col">
-    <div class="shop-hero"><div class="img i-merch pos-top" role="img" aria-label="Black and gold merchandise: a scarf, cap, folded jersey, mug, lanyard, key ring and wristband."></div><span class="tag concept hero-tag">Concept image</span></div>
+    <div class="shop-hero plx plx-y"><div class="img i-merch pos-top" role="img" aria-label="Black and gold merchandise: a scarf, cap, folded jersey, mug, lanyard, key ring and wristband."></div><span class="tag concept hero-tag">Concept image</span></div>
     <p class="eyebrow">Official store</p>
     <h1 class="headline headline--md">Wear <em>the gold.</em></h1>
     <div class="products">
@@ -2969,7 +3019,7 @@ html:not(.js) .nojs-intro {
       <button class="btn btn--secondary btn--sm press" type="button" data-action="save-file" hidden><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Save this file</button>
     </div>
     <ul class="group">
-      <li class="row"><span class="grow">Built</span><span class="muted">2026-11-10 · e232787</span></li>
+      <li class="row"><span class="grow">Built</span><span class="muted">2026-11-10 · 35d4271</span></li>
       <li class="row"><span class="grow">Works offline</span><span class="muted">Yes, everything is inside this file</span></li>
       <li class="row"><span class="grow">Collects data</span><span class="muted">No</span></li>
     </ul>
@@ -3045,9 +3095,12 @@ html:not(.js) .nojs-intro {
 
   // The file as it arrived, before this script changes anything, so "Share
   // this file" can hand on an exact working copy even when opened from disk.
+  // (The tags are assembled from pieces so this script never contains a
+  // literal document wrapper, which matters when the page is embedded.)
   var PRISTINE =
-    '<!doctype html>\n' +
-    document.documentElement.outerHTML.replace(/(<html[^>]*?) class="js"/, '$1');
+    '<!' +
+    'doctype html>\n' +
+    document.documentElement.outerHTML.replace(new RegExp('(<' + 'html[^>]*?) class="js"'), '$1');
   var FILE_NAME = 'Kaizer_Chiefs_One_Concept.html';
 
   var $ = function (s, r) {
@@ -3169,6 +3222,116 @@ html:not(.js) .nojs-intro {
       t.hidden = true;
     }, 2800);
   }
+
+  /* ------------------------------------------------------------------
+     Parallax. Photographs sit further back than the interface: a hero
+     photo travels at about a third of the scroll speed, card photos drift
+     inside their frames as they cross the screen or their rail, and with
+     a mouse the hero leans slightly away from the pointer on two
+     independent springs. Only transforms change, once per frame, with all
+     reads before all writes. Reduce Motion turns every part of it off and
+     clears the offsets, including when the setting changes while open.
+     ------------------------------------------------------------------ */
+  var HERO_RATE = 0.32;
+  var DRIFT_Y = 0.07; // of the frame's height; the image overscans by 8%
+  var DRIFT_X = 0.06; // of the frame's width; the image overscans by 7%
+  var LEAN_X = 12;
+  var LEAN_Y = 8;
+  var plx = { hero: null, heroImg: null, ys: [], xs: [], raf: 0 };
+  var finePointer = window.matchMedia
+    ? window.matchMedia('(hover: hover) and (pointer: fine)')
+    : { matches: false };
+  var leanX = new Spring(0, { response: 0.5, precision: 0.02 });
+  var leanY = new Spring(0, { response: 0.5, precision: 0.02 });
+  leanX.onUpdate = schedulePlx;
+  leanY.onUpdate = schedulePlx;
+
+  function clearPlx() {
+    if (plx.heroImg) plx.heroImg.style.transform = '';
+    plx.ys.concat(plx.xs).forEach(function (p) {
+      p.img.style.transform = '';
+    });
+  }
+  function collectPlx(view) {
+    clearPlx();
+    plx.hero = $('.hero', view);
+    plx.heroImg = plx.hero ? $('.img', plx.hero) : null;
+    plx.ys = $$('.plx-y', view).map(function (f) {
+      return { frame: f, img: $('.img', f) };
+    });
+    plx.xs = $$('.plx-x', view).map(function (f) {
+      return { frame: f, img: $('.img', f), rail: f.parentNode };
+    });
+    leanX.jump(0);
+    leanY.jump(0);
+    schedulePlx();
+  }
+  function schedulePlx() {
+    if (!plx.raf) plx.raf = requestAnimationFrame(paintPlx);
+  }
+  function paintPlx() {
+    plx.raf = 0;
+    if (reduceMotion.matches) {
+      clearPlx();
+      return;
+    }
+    var vh = window.innerHeight;
+    var writes = [];
+    if (plx.heroImg) {
+      var hr = plx.hero.getBoundingClientRect();
+      var travelled = Math.max(0, Math.min(-hr.top, hr.height));
+      writes.push([plx.heroImg, leanX.x, travelled * HERO_RATE + leanY.x]);
+    }
+    plx.ys.forEach(function (p) {
+      var r = p.frame.getBoundingClientRect();
+      if (!r.height || r.bottom < -60 || r.top > vh + 60) return;
+      var c = Math.max(0, Math.min(1, (r.top + r.height / 2) / vh));
+      writes.push([p.img, 0, (0.5 - c) * 2 * DRIFT_Y * r.height]);
+    });
+    plx.xs.forEach(function (p) {
+      var r = p.frame.getBoundingClientRect();
+      if (!r.width || r.bottom < -60 || r.top > vh + 60) return;
+      var rr = p.rail.getBoundingClientRect();
+      var c = Math.max(0, Math.min(1, (r.left + r.width / 2 - rr.left) / rr.width));
+      writes.push([p.img, (0.5 - c) * 2 * DRIFT_X * r.width, 0]);
+    });
+    writes.forEach(function (w) {
+      w[0].style.transform = 'translate3d(' + w[1].toFixed(2) + 'px,' + w[2].toFixed(2) + 'px,0)';
+    });
+  }
+  window.addEventListener('scroll', schedulePlx, { passive: true });
+  // Rails scroll sideways; their scroll events do not bubble, so capture them.
+  document.addEventListener('scroll', schedulePlx, { passive: true, capture: true });
+
+  function relax() {
+    leanX.to(0);
+    leanY.to(0);
+  }
+  document.addEventListener(
+    'pointermove',
+    function (e) {
+      if (!plx.hero || e.pointerType !== 'mouse' || !finePointer.matches || reduceMotion.matches)
+        return;
+      var r = plx.hero.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
+        relax();
+        return;
+      }
+      leanX.to((-(e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * LEAN_X);
+      leanY.to((-(e.clientY - (r.top + r.height / 2)) / (r.height / 2)) * LEAN_Y);
+    },
+    { passive: true },
+  );
+  document.documentElement.addEventListener('mouseleave', relax);
+
+  function onMotionPref() {
+    leanX.jump(0);
+    leanY.jump(0);
+    if (reduceMotion.matches) clearPlx();
+    else schedulePlx();
+  }
+  if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', onMotionPref);
+  else if (reduceMotion.addListener) reduceMotion.addListener(onMotionPref);
 
   /* ------------------------------------------------------------------
      Routing
@@ -3321,6 +3484,7 @@ html:not(.js) .nojs-intro {
       panels.forEach(function (p) {
         p.classList.toggle('is-active', p.dataset.panelId === name);
       });
+      schedulePlx();
       if (!btn || !btn.offsetWidth) return;
       if (animate) {
         sx.to(btn.offsetLeft);
@@ -3768,7 +3932,12 @@ html:not(.js) .nojs-intro {
   /* ------------------------------------------------------------------
      Save / share this file
      ------------------------------------------------------------------ */
-  var hosted = /^https?:$/.test(location.protocol);
+  // Inside the claude.ai viewer the page cannot start a download itself; the
+  // viewer's downloads capability asks the person first. Anywhere else there
+  // is no window.claude at all.
+  var viewer = window.claude && typeof window.claude.use === 'function' ? window.claude : null;
+  var viewerDownloads = null;
+  var hosted = !viewer && /^https?:$/.test(location.protocol);
   var shareFileObj = null;
   try {
     shareFileObj = new File([PRISTINE], FILE_NAME, { type: 'text/html' });
@@ -3776,13 +3945,28 @@ html:not(.js) .nojs-intro {
   } catch (e) {
     shareFileObj = null;
   }
-  $$('[data-action="share-file"]').forEach(function (b) {
-    b.hidden = !shareFileObj;
-  });
-  // Opened from Downloads, Files or WhatsApp it already is the file.
-  $$('[data-action="save-file"]').forEach(function (b) {
-    b.hidden = !hosted;
-  });
+  function syncFileButtons() {
+    $$('[data-action="share-file"]').forEach(function (b) {
+      b.hidden = !shareFileObj;
+    });
+    // Opened from Downloads, Files or WhatsApp it already is the file.
+    $$('[data-action="save-file"]').forEach(function (b) {
+      b.hidden = !(hosted || viewerDownloads);
+    });
+    $$('.btn-pair.js-only').forEach(function (pair) {
+      pair.hidden = !$('button:not([hidden])', pair);
+    });
+  }
+  syncFileButtons();
+  if (viewer) {
+    viewer.use('downloads').then(
+      function (d) {
+        viewerDownloads = d || null;
+        syncFileButtons();
+      },
+      function () {},
+    );
+  }
 
   function shareFile() {
     if (!shareFileObj) return;
@@ -3797,6 +3981,32 @@ html:not(.js) .nojs-intro {
       });
   }
   function saveFile() {
+    if (viewerDownloads) {
+      // The standalone file is published beside this page.
+      fetch(FILE_NAME)
+        .then(function (r) {
+          if (!r.ok) throw new Error('missing');
+          return r.blob();
+        })
+        .then(function (blob) {
+          return viewerDownloads.save({ filename: FILE_NAME, data: blob });
+        })
+        .then(
+          function () {
+            toast('Saved.');
+          },
+          function (err) {
+            var code = err && err.code;
+            if (code === 'declined') return;
+            toast(
+              code === 'rate_limited'
+                ? 'One moment, then try again.'
+                : 'Saving is not available here.',
+            );
+          },
+        );
+      return;
+    }
     var go = function (blob) {
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -3823,6 +4033,7 @@ html:not(.js) .nojs-intro {
      ------------------------------------------------------------------ */
   function onShow(v) {
     layoutSegs(v);
+    collectPlx(v);
     if (v.id === 'match' && pendingSeg) {
       var s = segs.filter(function (x) {
         return v.contains(x.el);
@@ -3842,6 +4053,7 @@ html:not(.js) .nojs-intro {
     if (current) {
       layoutSegs(current);
       setTab(tabFor(current));
+      schedulePlx();
     }
   });
 

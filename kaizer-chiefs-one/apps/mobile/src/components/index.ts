@@ -9,6 +9,7 @@ export * from './Surfaces';
 export * from './StateViews';
 export * from './SegmentedControl';
 export * from './Screen';
+export * from './Parallax';
 export * from './AppHeader';
 export * from './Sheet';
 export * from './Fields';

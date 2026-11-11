@@ -129,8 +129,11 @@ async function sweep(name, ctxOpts) {
       );
       const intro = document.querySelector('.nojs-intro').offsetHeight;
       const top = v ? v.getBoundingClientRect().top + window.scrollY : -1;
+      // The concept strip sits above every screen; the screen follows it directly.
+      const strip = document.querySelector('.concept-strip');
+      const stripH = strip.offsetHeight;
       return {
-        one: active.length === 1 && v.id === id && intro === 0 && top === 0,
+        one: active.length === 1 && v.id === id && intro === 0 && stripH > 0 && top === stripH,
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         text: v ? v.innerText.trim().length : 0,
         images: imgs.length,
@@ -341,6 +344,262 @@ async function shot(page, label) {
     errors.length === 0,
     errors.slice(0, 2).join(' | '),
   );
+  await ctx.close();
+}
+
+// ---- Opening the file straight at a screen ---------------------------------
+{
+  const ctx = await browser.newContext({ ...devices['iPhone 15'], deviceScaleFactor: 1 });
+  let bad = [];
+  for (const id of ['welcome', 'home', 'match-centre', 'tickets', 'about']) {
+    const page = await ctx.newPage();
+    await page.goto(url + '#' + id);
+    await page.waitForTimeout(500);
+    const m = await page.evaluate(() => {
+      const strip = document.querySelector('.concept-strip').getBoundingClientRect();
+      return {
+        y: window.scrollY,
+        top: strip.top,
+        text: document.querySelector('.concept-strip').innerText,
+      };
+    });
+    if (m.y !== 0 || m.top !== 0 || !/not an official club app/i.test(m.text))
+      bad.push(`${id}: ${JSON.stringify(m)}`);
+    await page.close();
+  }
+  check(
+    'iPhone · file (JS on)',
+    'opened straight at a screen, the concept strip is the first thing in view',
+    bad.length === 0,
+    bad.slice(0, 2).join(' | '),
+  );
+  await ctx.close();
+}
+
+// ---- Parallax -------------------------------------------------------------
+// Helpers run in the page: the photo's offset, and whether it still covers its frame.
+const plxProbe = `(sel) => [...document.querySelectorAll(sel)].filter((f) => f.offsetWidth > 0).map((f) => {
+  const img = f.querySelector('.img');
+  const a = f.getBoundingClientRect(), b = img.getBoundingClientRect();
+  const m = new DOMMatrix(getComputedStyle(img).transform);
+  // The part of the frame that is on screen: the photo must cover all of it.
+  const t = Math.max(a.top, 0), bt = Math.min(a.bottom, innerHeight);
+  const l = Math.max(a.left, 0), r = Math.min(a.right, innerWidth);
+  const onScreen = bt > t && r > l;
+  return {
+    x: m.m41, y: m.m42, h: a.height, onScreen,
+    covers: !onScreen || (b.left <= l + 0.6 && b.right >= r - 0.6 && b.top <= t + 0.6 && b.bottom >= bt - 0.6),
+  };
+})`;
+const go = async (page, id) => {
+  await page.evaluate((h) => {
+    location.hash = h;
+  }, id);
+  await page.waitForTimeout(500);
+};
+const scrollTo = async (page, y) => {
+  await page.evaluate((top) => window.scrollTo(0, top), y);
+  await page.waitForTimeout(120);
+};
+
+{
+  const where = 'Parallax · phone (touch)';
+  const ctx = await browser.newContext({ ...devices['iPhone 15'], deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(url + '#home');
+  await page.waitForTimeout(500);
+
+  // Hero: about a third of the scroll speed, and its top edge never comes into view.
+  const strip = await page.evaluate(() => document.querySelector('.concept-strip').offsetHeight);
+  let heroOk = true;
+  const seen = [];
+  for (const y of [0, 60, 180, 320, 500]) {
+    await scrollTo(page, y);
+    const [h] = await page.evaluate(`(${plxProbe})('#home .hero')`);
+    // It stops travelling once the hero has scrolled away.
+    const want = Math.min(Math.max(0, y - strip), h.h) * 0.32;
+    seen.push(Math.round(h.y));
+    if (Math.abs(h.y - want) > 1.5 || Math.abs(h.x) > 0.01 || !h.covers) heroOk = false;
+  }
+  check(
+    where,
+    'hero photo moves at about a third of the scroll speed and always covers its frame',
+    heroOk,
+    `offsets ${seen.join(', ')} px`,
+  );
+
+  // Story rail: photos slide inside their cards as the rail scrolls.
+  await scrollTo(page, 900);
+  await page.evaluate(() =>
+    document.querySelector('#home .rail').scrollIntoView({ block: 'center' }),
+  );
+  await page.waitForTimeout(150);
+  const railAt = async (x) => {
+    await page.evaluate((left) => {
+      document.querySelector('#home .rail').scrollLeft = left;
+    }, x);
+    await page.waitForTimeout(150);
+    return page.evaluate(`(${plxProbe})('#home .rail .story')`);
+  };
+  const r0 = await railAt(0);
+  const r1 = await railAt(220);
+  const r2 = await railAt(520);
+  const railCovers = [...r0, ...r1, ...r2].every((c) => c.covers);
+  const railMoves = r0[0].x !== r1[0].x && r1[1].x !== r2[1].x;
+  const railMax = Math.max(...[...r0, ...r1, ...r2].map((c) => Math.abs(c.x)));
+  check(
+    where,
+    'story photos slide as the rail scrolls and always cover their cards',
+    railCovers && railMoves && railMax <= 0.06 * 300 + 1,
+    `up to ${railMax.toFixed(1)} px`,
+  );
+
+  // Fan Moments grid: photos drift as cards cross the screen.
+  await go(page, 'fan');
+  let driftOk = true;
+  let driftSeen = 0;
+  const first = [];
+  for (const y of [0, 150, 300, 450, 600, 800]) {
+    await scrollTo(page, y);
+    const cards = await page.evaluate(`(${plxProbe})('#fan .moment')`);
+    for (const c of cards) if (c.onScreen && !c.covers) driftOk = false;
+    if (cards[0].onScreen) first.push(cards[0].y);
+    driftSeen = Math.max(driftSeen, ...cards.filter((c) => c.onScreen).map((c) => Math.abs(c.y)));
+  }
+  const driftMoves = new Set(first.map((v) => v.toFixed(1))).size > 1;
+  check(
+    where,
+    'card photos drift as cards cross the screen and always cover their frames',
+    driftOk && driftMoves && driftSeen > 2,
+    `up to ${driftSeen.toFixed(1)} px`,
+  );
+
+  // Touch screens do not lean.
+  await go(page, 'home');
+  await page.touchscreen.tap(200, 200).catch(() => {});
+  await page.waitForTimeout(400);
+  const hash = await page.evaluate(() => location.hash);
+  if (hash !== '#home') await go(page, 'home');
+  const [noLean] = await page.evaluate(`(${plxProbe})('#home .hero')`);
+  check(where, 'touch screens do not lean', Math.abs(noLean.x) < 0.01);
+
+  // Reduce Motion while the app is open: every offset clears, then returns.
+  await scrollTo(page, 320);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForTimeout(250);
+  const off = await page.evaluate(
+    () => [...document.querySelectorAll('.img')].filter((i) => i.style.transform).length,
+  );
+  await scrollTo(page, 400);
+  const stillOff = await page.evaluate(
+    () => [...document.querySelectorAll('.img')].filter((i) => i.style.transform).length,
+  );
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.waitForTimeout(250);
+  const [back] = await page.evaluate(`(${plxProbe})('#home .hero')`);
+  check(
+    where,
+    'Reduce Motion switched on while open clears every offset; off again restores them',
+    off === 0 && stillOff === 0 && back.y > 50,
+    `after: ${back.y.toFixed(0)} px`,
+  );
+  check(where, 'no script errors', errors.length === 0, errors.slice(0, 2).join(' | '));
+  await ctx.close();
+}
+
+{
+  const where = 'Parallax · Reduce Motion from the start';
+  const ctx = await browser.newContext({
+    ...devices['iPhone 15'],
+    deviceScaleFactor: 1,
+    reducedMotion: 'reduce',
+  });
+  const page = await ctx.newPage();
+  await page.goto(url + '#home');
+  await page.waitForTimeout(400);
+  await scrollTo(page, 400);
+  await page.evaluate(() => {
+    document.querySelector('#home .rail').scrollLeft = 300;
+  });
+  await page.waitForTimeout(200);
+  const moved = await page.evaluate(
+    () => [...document.querySelectorAll('.img')].filter((i) => i.style.transform).length,
+  );
+  check(where, 'nothing moves', moved === 0);
+  await ctx.close();
+}
+
+{
+  const where = 'Parallax · desktop with a mouse';
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(url + '#home');
+  await page.waitForTimeout(500);
+  const box = await page.locator('#home .hero').boundingBox();
+  // Pointer near the hero's top-left corner: the photo leans away, down and right.
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
+  await page.mouse.move(box.x + 12, box.y + 12, { steps: 6 });
+  await page.waitForTimeout(140);
+  const [mid] = await page.evaluate(`(${plxProbe})('#home .hero')`);
+  await page.waitForTimeout(1300);
+  const [lean] = await page.evaluate(`(${plxProbe})('#home .hero')`);
+  const leanOk = lean.x > 8 && lean.x <= 12.01 && lean.y > 5 && lean.y <= 8.01 && lean.covers;
+  check(
+    where,
+    'hero leans away from the pointer, within 12 × 8 px, still covering its frame',
+    leanOk,
+    `${lean.x.toFixed(1)} × ${lean.y.toFixed(1)} px`,
+  );
+  check(
+    where,
+    'the lean eases in on a spring (part-way after 140 ms)',
+    mid.x > 0.3 && mid.x < lean.x - 0.3,
+    `${mid.x.toFixed(1)} px on the way to ${lean.x.toFixed(1)}`,
+  );
+  // Opposite corner: reverses mid-flight without a jump, ending on the other side.
+  await page.mouse.move(box.x + box.width - 12, box.y + box.height - 12, { steps: 6 });
+  await page.waitForTimeout(60);
+  const [turn] = await page.evaluate(`(${plxProbe})('#home .hero')`);
+  await page.waitForTimeout(1300);
+  const [far] = await page.evaluate(`(${plxProbe})('#home .hero')`);
+  check(
+    where,
+    'reversing the pointer redirects the lean from where it is',
+    turn.x < lean.x + 0.01 && turn.x > far.x && far.x < -8 && far.covers,
+    `${lean.x.toFixed(1)} → ${turn.x.toFixed(1)} → ${far.x.toFixed(1)} px`,
+  );
+  // Leaving the hero settles it back.
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height + 200, { steps: 4 });
+  await page.waitForTimeout(1400);
+  const [rest] = await page.evaluate(`(${plxProbe})('#home .hero')`);
+  check(
+    where,
+    'leaving the hero settles the photo back',
+    Math.abs(rest.x) < 0.2 && Math.abs(rest.y) < 0.2,
+  );
+  // Every screen at desktop width, scrolled: no photo ever shows an edge.
+  let edge = [];
+  for (const r of ROUTES) {
+    await go(page, r);
+    for (const y of [0, 240, 700]) {
+      await scrollTo(page, y);
+      const all = await page.evaluate(
+        `(${plxProbe})('.view.is-active .hero, .view.is-active .plx')`,
+      );
+      if (all.some((c) => c.onScreen && !c.covers)) edge.push(`${r}@${y}`);
+    }
+  }
+  check(
+    where,
+    'on all 24 screens, scrolled, every photo covers its frame',
+    edge.length === 0,
+    edge.slice(0, 4).join(', '),
+  );
+  check(where, 'no script errors', errors.length === 0, errors.slice(0, 2).join(' | '));
   await ctx.close();
 }
 

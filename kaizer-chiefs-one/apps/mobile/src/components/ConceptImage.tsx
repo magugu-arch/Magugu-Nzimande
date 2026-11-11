@@ -2,6 +2,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Image, type ImageContentPosition } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { imagery, type ImageKey } from '@/config/imagery';
+import { DriftLayer, ParallaxLayer, type Drift } from './Parallax';
 import { DemoTag } from './Tags';
 import { color } from '@/theme';
 
@@ -17,6 +18,8 @@ export function ConceptImage({
   position = 'center',
   tag = 'top-left',
   decorative,
+  parallax,
+  drift,
 }: {
   imageKey: ImageKey;
   style?: StyleProp<ViewStyle>;
@@ -26,20 +29,33 @@ export function ConceptImage({
   tag?: 'top-left' | 'bottom-left' | 'top-right' | 'hero' | 'none';
   /** True when adjacent text already describes the picture. */
   decorative?: boolean;
+  /** Hero photo: travel at a fraction of the page's scroll speed. */
+  parallax?: boolean;
+  /** Photo in a horizontal rail: slide inside the card as the rail scrolls. */
+  drift?: Drift;
 }) {
   const entry = imagery[imageKey];
+  const image = (
+    <Image
+      source={entry.source}
+      style={StyleSheet.absoluteFill}
+      contentFit="cover"
+      contentPosition={position}
+      transition={180}
+      accessible={!decorative}
+      accessibilityLabel={decorative ? undefined : entry.alt}
+      accessibilityIgnoresInvertColors
+    />
+  );
   return (
     <View style={[styles.wrap, style]}>
-      <Image
-        source={entry.source}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        contentPosition={position}
-        transition={180}
-        accessible={!decorative}
-        accessibilityLabel={decorative ? undefined : entry.alt}
-        accessibilityIgnoresInvertColors
-      />
+      {parallax ? (
+        <ParallaxLayer>{image}</ParallaxLayer>
+      ) : drift ? (
+        <DriftLayer {...drift}>{image}</DriftLayer>
+      ) : (
+        image
+      )}
       {fade !== 'none' ? (
         <LinearGradient
           pointerEvents="none"

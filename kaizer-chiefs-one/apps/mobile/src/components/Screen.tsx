@@ -2,16 +2,17 @@ import type { ReactNode } from 'react';
 import {
   Platform,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BlurView } from 'expo-blur';
+import { ScrollYProvider, useScrollOffset } from './Parallax';
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
 import { color, gutter, maxContentWidth, radius, space, TAB_BAR_HEIGHT } from '@/theme';
@@ -42,10 +43,14 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const bottom = (inTabs ? TAB_BAR_HEIGHT + insets.bottom : insets.bottom) + space.xxxl;
+  // The page's scroll position, shared with any hero photo for parallax.
+  const { offset, onScroll } = useScrollOffset('y');
   return (
     <View style={styles.fill}>
-      <ScrollView
+      <Animated.ScrollView
         style={styles.fill}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentInsetAdjustmentBehavior="never"
         contentContainerStyle={[
           {
@@ -65,9 +70,13 @@ export function Screen({
           ) : undefined
         }
       >
-        {header}
-        <View style={[!edgeToEdge && styles.gutter, styles.content, contentStyle]}>{children}</View>
-      </ScrollView>
+        <ScrollYProvider value={offset}>
+          {header}
+          <View style={[!edgeToEdge && styles.gutter, styles.content, contentStyle]}>
+            {children}
+          </View>
+        </ScrollYProvider>
+      </Animated.ScrollView>
     </View>
   );
 }

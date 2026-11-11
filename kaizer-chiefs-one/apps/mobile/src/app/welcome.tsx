@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -12,7 +12,9 @@ import {
   HeaderPill,
   Headline,
   Rule,
+  ScrollYProvider,
   Text,
+  useScrollOffset,
 } from '@/components';
 import { useOnboarding } from '@/state/session';
 import { color, gutter, maxContentWidth, space } from '@/theme';
@@ -49,21 +51,27 @@ export default function Welcome() {
   const finish = useOnboarding((s) => s.finish);
   const heroHeight = Math.min(Math.max(height * 0.6, 420), 640);
   const enter = (i: number) => FadeInDown.duration(520).delay(120 + i * 70);
+  const { offset, onScroll } = useScrollOffset('y');
 
   return (
     <View style={styles.fill}>
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={{ paddingBottom: insets.bottom + space.xxxl }}
         bounces={false}
       >
         <View style={{ height: heroHeight }}>
-          <ConceptImage
-            imageKey="supporterPortrait"
-            style={StyleSheet.absoluteFill}
-            fade="full"
-            position={{ top: '18%', left: '50%' }}
-            tag="hero"
-          />
+          <ScrollYProvider value={offset}>
+            <ConceptImage
+              imageKey="supporterPortrait"
+              style={StyleSheet.absoluteFill}
+              fade="full"
+              position={{ top: '18%', left: '50%' }}
+              tag="hero"
+              parallax
+            />
+          </ScrollYProvider>
           <AppHeader
             overlay
             subline="One club · One family"
@@ -141,7 +149,7 @@ export default function Welcome() {
             </Text>
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }

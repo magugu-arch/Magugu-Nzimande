@@ -49,6 +49,29 @@ top, and decides from a projection of your flick whether to close, carrying your
 spring. Reduce Motion swaps all of it for instant changes; Reduce Transparency and Increase
 Contrast are respected.
 
+### Parallax
+
+Photographs sit further back than the interface.
+
+- **Hero photos** (Welcome, Home, the four stories) travel at about a third of the scroll speed
+  (0.32×), so they leave the screen more slowly than the text over them. The photo is clipped to
+  its frame and its top edge is never on screen.
+- **Card photos** drift inside their frames as the cards cross the screen: up to 7% of the card's
+  height in the Fan Moments grid, the squad and shop headers and the Fan Moment detail.
+- **Photos in the Home rails** slide up to 6% of the card's width as the rail scrolls sideways.
+- **With a mouse**, the hero leans up to 12 × 8 px away from the pointer on two independent,
+  critically damped springs, changes direction from wherever it is, and settles back when the
+  pointer leaves. Touch screens do not lean.
+- **Reduce Motion** switches all of it off and clears every offset, including when the setting
+  is changed while the app is open. Without JavaScript the photos simply sit still.
+
+Only `transform` changes, once per frame, with every measurement read before anything is written.
+Each photo is slightly larger than its frame, so an offset never exposes an edge; the checks
+confirm that on all 24 screens.
+
+A slim strip, "Concept · Not an official club app", is the first thing on every screen, including
+when the file is opened straight at a screen (`file.html#home`).
+
 ## Rebuilding
 
 From `kaizer-chiefs-one/` (needs Python 3 with Pillow, and the workspace's `node_modules` for the
@@ -62,6 +85,21 @@ node single-file/tests/check.mjs --shots .screens/sf      # 29 checks, screensho
 Sources are in `src/`: `head.html` (metadata), `body.html` (every screen), `styles.css`,
 `app.js`, `fonts/` (with licences) and `build.py`, which also generates the fixture, result and
 squad blocks and the image register.
+
+## claude.ai Artifact
+
+Published privately at https://claude.ai/artifact/EMEZcv2TquLc6c9HbsdzAi (only the owner can open
+it until they share it from the page's Share menu). It is the same app, built for the viewer:
+
+```bash
+python3 -I single-file/src/make_artifact.py single-file/Kaizer_Chiefs_One_Concept.html <out.html>
+```
+
+`make_artifact.py` drops the document wrapper (the viewer supplies its own), keeps the title first,
+and leaves the top safe area to the viewer. Publish the result with the standalone file as a
+supporting file named `Kaizer_Chiefs_One_Concept.html` and the `downloads` capability: the page's
+**Save this file** button then hands that exact file to the viewer, which asks the person before
+saving. Web Share is not available inside the viewer, so **Share this file** hides itself there.
 
 **Link previews.** When the file is hosted on a web address, rebuild with
 `--site-url https://your-host/path/` and upload `og-image.jpg` beside it, so WhatsApp and other

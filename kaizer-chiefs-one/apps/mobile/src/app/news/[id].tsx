@@ -44,6 +44,7 @@ export default function Article() {
                     style={StyleSheet.absoluteFill}
                     fade="bottom"
                     tag="hero"
+                    parallax
                   />
                 ) : null}
               </View>

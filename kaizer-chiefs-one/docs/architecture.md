@@ -79,6 +79,9 @@ apps/mobile/src
 - `Sheet`: tracks the finger 1:1, rubber-bands past its resting point, projects the flick with
   Apple's deceleration formula to decide whether to close, and hands the finger's velocity to the
   closing spring. It leaves along the path it entered.
+- Parallax (`components/Parallax.tsx`): a hero photo moves at 0.32× the page's scroll and photos in
+  the Home story rail slide up to 6% of their card's width, both computed on the UI thread from
+  Reanimated scroll handlers. Reduce Motion switches them off.
 - Spring values are tokens (`packages/ui/src/motion.ts`) expressed as damping ratio and response,
   converted to stiffness and damping for Reanimated.
 

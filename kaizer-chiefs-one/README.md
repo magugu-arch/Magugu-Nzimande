@@ -18,7 +18,7 @@ supplies its approved artwork.
 | `packages/ui` | Design tokens: colour, type, spacing, radii, elevation, breakpoints, states, springs. |
 | `packages/contracts` | zod schemas, domain types, provider interfaces, RBAC and capability flags. |
 | `supabase` | Migrations, RLS policies, storage rules, edge function stubs and policy tests. |
-| `single-file` | [`Kaizer_Chiefs_One_Concept.html`](single-file/Kaizer_Chiefs_One_Concept.html): the concept app as one self-contained 1.5 MB file that opens offline on Android and iPhone and reads as a WhatsApp document. See its [README](single-file/README.md). |
+| `single-file` | [`Kaizer_Chiefs_One_Concept.html`](single-file/Kaizer_Chiefs_One_Concept.html): the concept app as one self-contained 1.5 MB file that opens offline on Android and iPhone and reads as a WhatsApp document, with parallax. Also published as a private claude.ai Artifact. See its [README](single-file/README.md). |
 | `docs` | [Discovery](docs/discovery.md), [architecture](docs/architecture.md), [integration contracts](docs/integration-contracts.md), [security and privacy](docs/security-privacy.md), [brand assets](docs/brand-assets.md), [decisions](docs/decisions.md), [open decisions](docs/open-decisions.md), [release checklist](docs/release-checklist.md). |
 
 ## Run it
@@ -86,7 +86,9 @@ honest paragraph and a single flat gold call to action. It is typeset in the bri
 (Barlow Condensed, Inter and DM Mono; Amakhosi Gold on Deep Black with Warm Ivory reading
 surfaces). Motion follows Apple's fluid-interface guidance: press feedback on touch-down, springs that
 start from the current value and can be interrupted, a bottom sheet that tracks the finger, projects
-momentum and hands off velocity, and Reduce Motion replaced by cross-fades.
+momentum and hands off velocity, and Reduce Motion replaced by cross-fades. Photographs sit further back
+than the interface: hero photos travel at about a third of the scroll speed and rail photos slide
+inside their cards, switched off under Reduce Motion.
 
 All colour and type values are proposals in `packages/ui` and are replaced in one place when the
 club's CI manual arrives.
