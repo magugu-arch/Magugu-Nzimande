@@ -1,0 +1,97 @@
+<body>
+<a class="skip" href="#stage">Skip to content</a>
+
+<nav class="nojs-index" aria-label="Contents">
+  <div class="crest" style="width:64px;height:64px" role="img" aria-label="Mamelodi Sundowns crest"></div>
+  <h1 class="lt" style="margin-top:8px">Sundowns One</h1>
+  <p class="muted">Concept prototype, not an official Mamelodi Sundowns product. Sample data. Open the link in a browser to use it; this preview shows every screen in order.</p>
+  <ul>
+    <li><a href="#today">Today</a></li><li><a href="#matches">Matches</a></li><li><a href="#live">Match Centre</a></li>
+    <li><a href="#matchday">Matchday</a></li><li><a href="#planner">Planner</a></li><li><a href="#stadium">Stadium guide</a></li>
+    <li><a href="#travel">Getting there</a></li><li><a href="#food">Food and drink</a></li><li><a href="#access">Accessibility</a></li>
+    <li><a href="#passport">Passport</a></li><li><a href="#fanzone">Fan Zone</a></li><li><a href="#watch">Watch and Listen</a></li>
+    <li><a href="#community">Community</a></li><li><a href="#experiences">Experiences</a></li><li><a href="#store">Official Store</a></li>
+    <li><a href="#partners">Partner World</a></li><li><a href="#impact">Club Impact</a></li><li><a href="#ask">Ask Sundowns</a></li>
+    <li><a href="#help">Help and safety</a></li><li><a href="#profile">You</a></li><li><a href="#assets">Asset library</a></li>
+    <li><a href="#about">About</a></li><li><a href="#more">More</a></li>
+  </ul>
+</nav>
+
+<header class="navbar" id="navbar">
+  <div class="nav-inner">
+    <div class="nav-lead"><button type="button" class="nav-back tap" id="navBack" hidden>{{icon:chevL}}<span id="navBackLabel">Back</span></button></div>
+    <div class="nav-title" id="navTitle" aria-hidden="true"></div>
+    <div class="nav-trail" id="navTrail"></div>
+  </div>
+</header>
+
+<aside class="sidebar" aria-label="Sundowns One">
+  <div class="side-brand"><div class="crest" role="img" aria-label="Mamelodi Sundowns crest"></div><div><b>Sundowns One</b><span>Concept prototype</span></div></div>
+  <ul class="side-nav">
+    <li><a href="#today">{{icon:today}}Today</a></li>
+    <li><a href="#matches">{{icon:ball}}Matches</a></li>
+    <li><a href="#matchday">{{icon:ticket}}Matchday</a></li>
+    <li><a href="#passport">{{icon:passport}}Passport</a></li>
+    <li class="sec eyebrow">Yellow Nation</li>
+    <li><a href="#fanzone">{{icon:trophy}}Fan Zone</a></li>
+    <li><a href="#watch">{{icon:play}}Watch and Listen</a></li>
+    <li><a href="#community">{{icon:people}}Community</a></li>
+    <li><a href="#experiences">{{icon:sparkles}}Experiences</a></li>
+    <li><a href="#store">{{icon:bag}}Official Store</a></li>
+    <li class="sec eyebrow">Help</li>
+    <li><a href="#ask">{{icon:bubble}}Ask Sundowns</a></li>
+    <li><a href="#help">{{icon:cross}}Help and safety</a></li>
+    <li><a href="#partners">{{icon:gift}}Partner World</a></li>
+    <li><a href="#impact">{{icon:heart}}Club Impact</a></li>
+    <li><a href="#profile">{{icon:sliders}}You</a></li>
+    <li><a href="#more">{{icon:more}}More</a></li>
+  </ul>
+</aside>
+
+<main id="stage" class="stage" tabindex="-1">
+  <section class="screen" id="today" aria-label="Today"></section>
+  <section class="screen" id="matches" aria-label="Matches"></section>
+  <section class="screen" id="live" aria-label="Match Centre"></section>
+  <section class="screen" id="matchday" aria-label="Matchday"></section>
+  <section class="screen" id="planner" aria-label="Matchday planner"></section>
+  <section class="screen" id="stadium" aria-label="Stadium guide"></section>
+  <section class="screen" id="travel" aria-label="Getting there"></section>
+  <section class="screen" id="food" aria-label="Food and drink"></section>
+  <section class="screen" id="access" aria-label="Accessibility and family"></section>
+  <section class="screen" id="passport" aria-label="Passport"></section>
+  <section class="screen" id="fanzone" aria-label="Fan Zone"></section>
+  <section class="screen" id="watch" aria-label="Watch and Listen"></section>
+  <section class="screen" id="community" aria-label="Community"></section>
+  <section class="screen" id="experiences" aria-label="Experiences"></section>
+  <section class="screen" id="store" aria-label="Official Store"></section>
+  <section class="screen" id="partners" aria-label="Partner World"></section>
+  <section class="screen" id="impact" aria-label="Club Impact"></section>
+  <section class="screen" id="ask" aria-label="Ask Sundowns"></section>
+  <section class="screen" id="help" aria-label="Help and safety"></section>
+  <section class="screen" id="profile" aria-label="You"></section>
+  <section class="screen" id="assets" aria-label="Asset library"></section>
+  <section class="screen" id="about" aria-label="About this concept"></section>
+  <section class="screen" id="more" aria-label="More"></section>
+</main>
+
+<nav class="tabbar" aria-label="Main">
+  <ul>
+    <li><a href="#today" data-tab="today">{{icon:today}}<span>Today</span></a></li>
+    <li><a href="#matches" data-tab="matches">{{icon:ball}}<span>Matches</span></a></li>
+    <li><a href="#matchday" data-tab="matchday">{{icon:ticket}}<span>Matchday</span></a></li>
+    <li><a href="#passport" data-tab="passport">{{icon:passport}}<span>Passport</span></a></li>
+    <li><a href="#more" data-tab="more">{{icon:more}}<span>More</span></a></li>
+  </ul>
+</nav>
+
+<div id="sheetRoot"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="assetData">__ASSET_DATA__</script>
+<script type="application/json" id="iconData">__ICON_DATA__</script>
+<script type="application/json" id="panelData">__PANEL_DATA__</script>
+<script>
+__APP_JS__
+</script>
+</body>
+</html>
