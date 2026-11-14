@@ -1102,7 +1102,7 @@ ${list([
       body: `<div style="display:flex;gap:6px;flex-wrap:wrap">${SAMPLE}${pill(TEAMS[f.team])}${pill(f.comp)}</div>
 <dl class="kv"><dt>Date</dt><dd>${when(f, { weekday: 'long', day: 'numeric', month: 'long' })}</dd><dt>Kick-off</dt><dd>${kick(f)} SAST</dd><dt>Venue</dt><dd>${venue(f)}</dd>${past ? `<dt>Result</dt><dd>${USS[f.team]} ${f.us}, ${esc(f.opp)} ${f.them} (sample)</dd>` : ''}</dl>
 ${past ? note('Invented result for the prototype.') : `<div class="row-actions"><button type="button" class="btn btn-primary tap" data-act="tickets" data-arg="${f.id}">${ic('ticket')}Tickets</button><button type="button" class="btn btn-tinted tap" data-act="planFor" data-arg="${f.id}">Plan</button></div>
-<div class="row-actions"><button type="button" class="btn btn-tinted tap" data-act="calendar" data-arg="${f.id}">${ic('calendar')}Add to calendar</button><button type="button" class="btn btn-tinted tap" data-act="shareFixture" data-arg="${f.id}">${ic('share')}Share</button></div>
+<div class="row-actions">${CONFIG.viewer === 'on' ? '' : `<button type="button" class="btn btn-tinted tap" data-act="calendar" data-arg="${f.id}">${ic('calendar')}Add to calendar</button>`}<button type="button" class="btn btn-tinted tap" data-act="shareFixture" data-arg="${f.id}">${ic('share')}Share</button></div>
 ${note('Sample fixture with a fictional opponent. Don’t add it to a real calendar expecting a match.')}`}`,
     });
   }
@@ -1192,6 +1192,11 @@ ${topic === 'data' ? '<p class="muted sub">Requests about your personal informat
     async installNow() { if (!installPrompt) return; installPrompt.prompt(); const r = await installPrompt.userChoice.catch(() => null); installPrompt = null; closeSheet(); if (r && r.outcome === 'accepted') toast('Sundowns One installed'); },
     shareApp() { const l = appLink(); shareText(`Sundowns One — the Yellow Nation in one app (concept prototype).${l ? '' : ' Ask me for the app file.'}`); },
     copyLink() { shareText('Sundowns One — the Yellow Nation in one app (concept prototype).'); },
+    copyShare() {
+      const t = $('#shareBody').textContent;
+      const sel = () => { const r = document.createRange(); r.selectNodeContents($('#shareBody')); const w = getSelection(); w.removeAllRanges(); w.addRange(r); toast('Text selected: copy it'); };
+      try { navigator.clipboard.writeText(t).then(() => toast('Copied'), sel); } catch { sel(); }
+    },
     pickFixture() {
       openSheet({
         title: 'Which match?',
@@ -1435,6 +1440,14 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
   }
   async function shareText(text) {
     const url = appLink();
+    if (CONFIG.viewer === 'on') {
+      const full = url ? `${text}\n${url}` : text;
+      openSheet({
+        title: 'Share',
+        body: `<p class="callout" id="shareBody">${esc(full)}</p><div class="row-actions"><a class="btn btn-primary tap" href="https://wa.me/?text=${encodeURIComponent(full)}" target="_blank" rel="noopener">${ic('message')}WhatsApp</a><button type="button" class="btn btn-tinted tap" data-act="copyShare">${ic('doc')}Copy</button></div>`,
+      });
+      return;
+    }
     if (navigator.share) {
       try { await navigator.share(url ? { title: 'Sundowns One', text, url } : { title: 'Sundowns One', text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
     }
@@ -1456,10 +1469,11 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
   // ---------- preferences ----------
   function applyPrefs() {
     const r = document.documentElement;
-    if (state.appearance === 'system') r.removeAttribute('data-theme'); else r.dataset.theme = state.appearance;
+    if (state.appearance === 'system') { if (r.dataset.themeBy === 'app') { r.removeAttribute('data-theme'); delete r.dataset.themeBy; } }
+    else { r.dataset.theme = state.appearance; r.dataset.themeBy = 'app'; }
     if (state.textSize === 'default') r.removeAttribute('data-text'); else r.dataset.text = state.textSize;
     r.classList.toggle('lowdata', !!state.lowData);
-    const dark = state.appearance === 'dark' || (state.appearance === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    const dark = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
     $$('meta[name="theme-color"]').forEach((m) => {
       if (state.appearance === 'system') m.setAttribute('content', /dark/.test(m.media) ? '#040a07' : '#f2f3ee');
       else m.setAttribute('content', dark ? '#040a07' : '#f2f3ee');

@@ -909,7 +909,7 @@ p a, .list-foot a, .sec-note a, .foot-note a { text-decoration: underline; text-
   <div class="teams"><span class="badge us"><div class="crest" role="img" aria-label="Mamelodi Sundowns crest"></div></span><span class="vs">v</span><span class="badge them" aria-hidden="true">HR</span></div>
   <h2 id="nextT" class="t3">Sundowns v Highveld Rovers</h2>
   <div class="meta"><span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>Sat, 21 Nov · 15:30</span><span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-6.8-6-6.8-11.3a6.8 6.8 0 0 1 13.6 0C18.8 15 12 21 12 21z"></path><circle cx="12" cy="9.7" r="2.5"></circle></svg>Loftus Versfeld</span><span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.8"></circle><path d="M12 7.6l3.3 2.4-1.3 3.9H10L8.7 10z"></path><path d="M12 3.2v4.4M15.3 10l4.9-1.6M14 13.9l2.9 4.2M10 13.9l-2.9 4.2M8.7 10L3.8 8.4"></path></svg>League</span></div>
-  <div class="cd" data-countdown="f1" role="timer" aria-label="7 days, 7 hours and 27 minutes to kick-off"><div><b class="num">07</b><small>days</small></div><div><b class="num">07</b><small>hrs</small></div><div><b class="num">27</b><small>min</small></div></div>
+  <div class="cd" data-countdown="f1" role="timer" aria-label="7 days, 7 hours and 11 minutes to kick-off"><div><b class="num">07</b><small>days</small></div><div><b class="num">07</b><small>hrs</small></div><div><b class="num">11</b><small>min</small></div></div>
   <div class="btns"><button type="button" class="btn btn-primary btn-sm tap" data-act="tickets" data-arg="f1"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h14a1.5 1.5 0 0 1 1.5 1.5V10a2 2 0 0 0 0 4v2.5A1.5 1.5 0 0 1 19 18H5a1.5 1.5 0 0 1-1.5-1.5V14a2 2 0 0 0 0-4z"></path><path d="M14.5 6.5v11" stroke-dasharray="1.6 2.2"></path></svg>Tickets</button><button type="button" class="btn btn-tinted btn-sm tap" data-act="planFor" data-arg="f1">Plan</button><button type="button" class="btn btn-tinted btn-sm tap" data-act="shareFixture" data-arg="f1"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11M8 7.3l4-3.8 4 3.8M7.5 10.5H6.2A1.7 1.7 0 0 0 4.5 12.2v6.6a1.7 1.7 0 0 0 1.7 1.7h11.6a1.7 1.7 0 0 0 1.7-1.7v-6.6a1.7 1.7 0 0 0-1.7-1.7h-1.3"></path></svg>Share</button></div>
 </section>
 
@@ -2446,7 +2446,7 @@ ${list([
       body: `<div style="display:flex;gap:6px;flex-wrap:wrap">${SAMPLE}${pill(TEAMS[f.team])}${pill(f.comp)}</div>
 <dl class="kv"><dt>Date</dt><dd>${when(f, { weekday: 'long', day: 'numeric', month: 'long' })}</dd><dt>Kick-off</dt><dd>${kick(f)} SAST</dd><dt>Venue</dt><dd>${venue(f)}</dd>${past ? `<dt>Result</dt><dd>${USS[f.team]} ${f.us}, ${esc(f.opp)} ${f.them} (sample)</dd>` : ''}</dl>
 ${past ? note('Invented result for the prototype.') : `<div class="row-actions"><button type="button" class="btn btn-primary tap" data-act="tickets" data-arg="${f.id}">${ic('ticket')}Tickets</button><button type="button" class="btn btn-tinted tap" data-act="planFor" data-arg="${f.id}">Plan</button></div>
-<div class="row-actions"><button type="button" class="btn btn-tinted tap" data-act="calendar" data-arg="${f.id}">${ic('calendar')}Add to calendar</button><button type="button" class="btn btn-tinted tap" data-act="shareFixture" data-arg="${f.id}">${ic('share')}Share</button></div>
+<div class="row-actions">${CONFIG.viewer === 'on' ? '' : `<button type="button" class="btn btn-tinted tap" data-act="calendar" data-arg="${f.id}">${ic('calendar')}Add to calendar</button>`}<button type="button" class="btn btn-tinted tap" data-act="shareFixture" data-arg="${f.id}">${ic('share')}Share</button></div>
 ${note('Sample fixture with a fictional opponent. Don’t add it to a real calendar expecting a match.')}`}`,
     });
   }
@@ -2536,6 +2536,11 @@ ${topic === 'data' ? '<p class="muted sub">Requests about your personal informat
     async installNow() { if (!installPrompt) return; installPrompt.prompt(); const r = await installPrompt.userChoice.catch(() => null); installPrompt = null; closeSheet(); if (r && r.outcome === 'accepted') toast('Sundowns One installed'); },
     shareApp() { const l = appLink(); shareText(`Sundowns One — the Yellow Nation in one app (concept prototype).${l ? '' : ' Ask me for the app file.'}`); },
     copyLink() { shareText('Sundowns One — the Yellow Nation in one app (concept prototype).'); },
+    copyShare() {
+      const t = $('#shareBody').textContent;
+      const sel = () => { const r = document.createRange(); r.selectNodeContents($('#shareBody')); const w = getSelection(); w.removeAllRanges(); w.addRange(r); toast('Text selected: copy it'); };
+      try { navigator.clipboard.writeText(t).then(() => toast('Copied'), sel); } catch { sel(); }
+    },
     pickFixture() {
       openSheet({
         title: 'Which match?',
@@ -2779,6 +2784,14 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
   }
   async function shareText(text) {
     const url = appLink();
+    if (CONFIG.viewer === 'on') {
+      const full = url ? `${text}\n${url}` : text;
+      openSheet({
+        title: 'Share',
+        body: `<p class="callout" id="shareBody">${esc(full)}</p><div class="row-actions"><a class="btn btn-primary tap" href="https://wa.me/?text=${encodeURIComponent(full)}" target="_blank" rel="noopener">${ic('message')}WhatsApp</a><button type="button" class="btn btn-tinted tap" data-act="copyShare">${ic('doc')}Copy</button></div>`,
+      });
+      return;
+    }
     if (navigator.share) {
       try { await navigator.share(url ? { title: 'Sundowns One', text, url } : { title: 'Sundowns One', text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
     }
@@ -2800,10 +2813,11 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
   // ---------- preferences ----------
   function applyPrefs() {
     const r = document.documentElement;
-    if (state.appearance === 'system') r.removeAttribute('data-theme'); else r.dataset.theme = state.appearance;
+    if (state.appearance === 'system') { if (r.dataset.themeBy === 'app') { r.removeAttribute('data-theme'); delete r.dataset.themeBy; } }
+    else { r.dataset.theme = state.appearance; r.dataset.themeBy = 'app'; }
     if (state.textSize === 'default') r.removeAttribute('data-text'); else r.dataset.text = state.textSize;
     r.classList.toggle('lowdata', !!state.lowData);
-    const dark = state.appearance === 'dark' || (state.appearance === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    const dark = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
     $$('meta[name="theme-color"]').forEach((m) => {
       if (state.appearance === 'system') m.setAttribute('content', /dark/.test(m.media) ? '#040a07' : '#f2f3ee');
       else m.setAttribute('content', dark ? '#040a07' : '#f2f3ee');
