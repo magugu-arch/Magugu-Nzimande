@@ -9,6 +9,7 @@
 @font-face { font-family: "Exo 2"; font-weight: 400; font-style: normal; src: url(fonts/exo-2-latin-400-normal.woff2) format("woff2"); }
 @font-face { font-family: "Exo 2"; font-weight: 500; font-style: normal; src: url(fonts/exo-2-latin-500-normal.woff2) format("woff2"); }
 @font-face { font-family: "Exo 2"; font-weight: 600; font-style: normal; src: url(fonts/exo-2-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "Exo 2"; font-weight: 700; font-style: normal; src: url(fonts/exo-2-latin-700-normal.woff2) format("woff2"); }
 
 /* Layout: the Kaizer Chiefs proposal's system (warm canvas, glass-white cards with
    one dark card per row, photo-frame dividers with section pills), recoloured
@@ -91,6 +92,8 @@ h1.t { font: 300 62px/1.0 "Exo 2"; text-transform: uppercase; letter-spacing: -0
 .frame h1 { position: absolute; top: 112px; left: 60px; right: 60px; text-align: center; font: 300 96px/1.0 "Exo 2"; text-transform: uppercase; letter-spacing: -0.008em; color: #fff; }
 .frame h1.bl { top: auto; bottom: 50px; left: 48px; right: auto; text-align: left; font-size: 72px; line-height: 1.02; }
 .frame h1 em { font-style: normal; color: var(--yellow); }
+/* Cover title: bold, a touch smaller and tighter so the heavier lines keep their width. */
+.frame h1.cover { font-weight: 700; font-size: 88px; line-height: 1.02; letter-spacing: -0.012em; }
 .frame .br { position: absolute; right: 48px; bottom: 50px; max-width: 860px; text-align: right; font: 300 29px/1.3 "Exo 2"; text-transform: uppercase; color: #fff; }
 .cta { position: absolute; left: 54px; bottom: 54px; height: 76px; padding: 0 34px 0 10px; border-radius: 40px; background: linear-gradient(180deg, #FFFFFF, #E7E6DF); display: flex; align-items: center; gap: 22px; }
 .cta .ic { width: 58px; height: 58px; border-radius: 50%; background: var(--deep); display: grid; place-items: center; color: var(--yellow); }
@@ -226,7 +229,7 @@ dl.gw dd { font: 400 16.5px/1.38 "Exo 2"; text-transform: none; letter-spacing: 
     <div class="tl">Fan app strategy and investment</div>
     <div class="ctag">Concept image</div>
     <div class="tr">November 2026</div>
-    <h1>Sundowns One —<br>the Yellow Nation, <em>one tap away.</em></h1>
+    <h1 class="cover">Sundowns One —<br>the Yellow Nation, <em>one tap away.</em></h1>
     <div class="cta"><div class="ic"><svg><use href="#i-cal"/></svg></div><span>Prepared for Mamelodi Sundowns</span><svg><use href="#ar"/></svg></div>
     <div class="br">A strategy for the fan app as the club’s marketing system, partner platform and new source of revenue.</div>
   </div>
