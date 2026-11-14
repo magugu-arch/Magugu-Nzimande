@@ -16,7 +16,8 @@
 <link rel="canonical" href="__SITE_URL__">
 
 <meta name="application-name" content="Sundowns One">
-<meta name="theme-color" content="#f2f3ee">
+<meta name="theme-color" content="#f2f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#040a07" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta name="format-detection" content="telephone=no">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -40,6 +41,29 @@
 <meta name="twitter:title" content="Sundowns One — The Yellow Nation. One home. (concept prototype)">
 <meta name="twitter:description" content="A concept supporter app for the Yellow Nation. Not an official club product; sample data.">
 <meta name="twitter:image" content="__SITE_URL__og-image.jpg">
+<meta name="twitter:image:alt" content="Sundowns One: supporters in yellow and green cheer under floodlights at sunset.">
+
+<!-- Structured data: describes only what is true of a concept prototype. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Sundowns One (concept prototype)",
+  "alternateName": "Sundowns One",
+  "description": "Concept prototype of a supporter app for the Yellow Nation: matchday planning, an official-seller ticket handoff, a stadium guide, the Yellow Nation Passport, a Fan Zone and supporters everywhere. Not an official Mamelodi Sundowns product; all data is sample data.",
+  "url": "__SITE_URL__",
+  "image": "__SITE_URL__og-image.jpg",
+  "applicationCategory": "SportsApplication",
+  "operatingSystem": "Any modern browser: iOS, Android, desktop",
+  "browserRequirements": "Interactive with JavaScript; every screen still reads without it",
+  "inLanguage": "en-ZA",
+  "isAccessibleForFree": true,
+  "creativeWorkStatus": "Concept",
+  "creator": { "@type": "Organization", "name": "LegacyLeverage Creative Agency" },
+  "accessibilityFeature": ["alternativeText", "highContrastDisplay", "largePrint", "structuralNavigation", "displayTransformability"],
+  "accessibilityHazard": "none"
+}
+</script>
 
 <link rel="icon" type="image/png" href="data:image/png;base64,__FAVICON__">
 <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,__APPLE_TOUCH_ICON__">

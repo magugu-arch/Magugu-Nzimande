@@ -174,6 +174,56 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
   }
   await ctx.close();
 
+  // Parallax: the hero photo lags the page, card photos drift but always cover
+  // their frames, and the tab lens sits under the active tab.
+  const mctx = await browser.newContext({ ...devices['iPhone 13'] });
+  const mp = await mctx.newPage();
+  const merr = [];
+  mp.on('pageerror', (e) => merr.push(e.message));
+  await mp.goto(url);
+  await mp.waitForTimeout(400);
+  const gaps = [];
+  let heroShift = 0;
+  for (const r of ['today', 'matchday', 'passport', 'fanzone', 'community']) {
+    await mp.evaluate((x) => window.SundownsOne.navigate(x), r);
+    await mp.waitForTimeout(700);
+    const H = await mp.evaluate(() => document.documentElement.scrollHeight);
+    for (let y = 0; y < H; y += 240) {
+      await mp.evaluate((v) => window.scrollTo(0, v), y);
+      await mp.waitForTimeout(60);
+      const res = await mp.evaluate((sec) => {
+        const out = [];
+        const m = document.querySelector(`#${sec} .imm-media`);
+        const shift = m ? new DOMMatrix(getComputedStyle(m).transform).m42 : 0;
+        document.querySelectorAll(`#${sec} .pcard .ph, #${sec} .media .ph, #${sec} .step .ph, #${sec} .imm-media`).forEach((el) => {
+          // the frame is where the photo sits before its parallax transform,
+          // clipped to what can be seen: the viewport, and the rail for rail cards
+          const keep = el.style.transform;
+          el.style.transform = 'none';
+          const f0 = el.getBoundingClientRect();
+          el.style.transform = keep;
+          const b = el.getBoundingClientRect();
+          const f = { top: Math.max(f0.top, 0), bottom: Math.min(f0.bottom, innerHeight), left: f0.left, right: f0.right };
+          const rail = el.closest('.rail');
+          if (rail) { const rr = rail.getBoundingClientRect(); f.left = Math.max(f.left, rr.left); f.right = Math.min(f.right, rr.right); }
+          if (f.bottom <= f.top || f.right <= f.left) return;
+          if (b.left > f.left + 0.5 || b.right < f.right - 0.5 || b.top > f.top + 0.5 || b.bottom < f.bottom - 0.5) out.push(el.className);
+        });
+        return { out, shift };
+      }, r);
+      if (r === 'today' && y === 480) heroShift = res.shift;
+      if (res.out.length) gaps.push(`${r}@${y}: ${res.out[0]}`);
+    }
+  }
+  check('Parallax: the Today photo moves slower than the page', heroShift > 60, `${heroShift.toFixed(0)} px behind at 480 px scrolled`);
+  check('Parallax: every photo still covers its frame at every scroll step (5 screens)', gaps.length === 0, gaps.slice(0, 3).join(' ; '));
+  await mp.evaluate(() => window.SundownsOne.navigate('passport'));
+  await mp.waitForTimeout(800);
+  const lens = await mp.evaluate(() => { const l = document.querySelector('.tabbar .lens').getBoundingClientRect(); const a = document.querySelector('.tabbar a[aria-current="page"]').getBoundingClientRect(); return Math.abs(l.left - a.left) + Math.abs(l.width - a.width); });
+  check('Tab bar lens settles under the active tab', lens < 2, `${lens.toFixed(1)} px off`);
+  check('Parallax: no script errors', merr.length === 0, merr.join(' | '));
+  await mctx.close();
+
   // Dark mode and reduced motion.
   const dctx = await browser.newContext({ ...devices['iPhone 13'], colorScheme: 'dark', reducedMotion: 'reduce' });
   const dp = await dctx.newPage();
@@ -184,6 +234,13 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
   await dp.evaluate(() => window.SundownsOne.navigate('planner'));
   await dp.waitForTimeout(150);
   const instant = await dp.evaluate(() => getComputedStyle(document.getElementById('planner')).transform);
+  await dp.evaluate(() => window.SundownsOne.navigate('today'));
+  await dp.waitForTimeout(300);
+  await dp.evaluate(() => window.scrollTo(0, 500));
+  await dp.waitForTimeout(200);
+  const still = await dp.evaluate(() => getComputedStyle(document.querySelector('#today .imm-media')).transform);
+  check('Reduce Motion: parallax stays still', still === 'none', still);
+  await dp.evaluate(() => window.scrollTo(0, 0));
   const bg = await dp.evaluate(() => getComputedStyle(document.body).backgroundColor);
   check('Dark mode follows the system', bg === 'rgb(4, 10, 7)', bg);
   check('Reduce Motion: screens change without sliding', instant === 'none' && derr.length === 0, instant);
@@ -216,7 +273,7 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
     const off = await pp.evaluate(() => ({ title: document.title, screen: document.querySelector('.screen.active') && document.querySelector('.screen.active').id }));
     await pp.evaluate(() => window.SundownsOne.navigate('passport'));
     await pp.waitForTimeout(800);
-    const img = await pp.evaluate(async () => { const el = document.querySelector('#passport .pcard .ph'); const u = getComputedStyle(el).backgroundImage.slice(5, -2); try { const r = await fetch(u); return r.ok; } catch { return false; } });
+    const img = await pp.evaluate(async () => { const el = document.querySelector('#passport .imm-media .ph'); const u = getComputedStyle(el).backgroundImage.slice(5, -2); try { const r = await fetch(u); return r.ok; } catch { return false; } });
     check('Offline: the app and photos already seen still open with no connection', controlled && !!off.screen && img, `controlled=${controlled} · ${JSON.stringify(off)} · photo=${img}`);
     await pctx.close();
   }

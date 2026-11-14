@@ -8,7 +8,7 @@
   const data = (id) => JSON.parse(document.getElementById(id).textContent);
   const ICONS = data('iconData');
   const PANELS = data('panelData');
-  const CONFIG = { appUrl: '__APP_URL__', pwa: '__PWA__' };
+  const CONFIG = { appUrl: '__APP_URL__', pwa: '__PWA__', viewer: '__VIEWER__' };
   const ASSETS = data('assetData');
   const A = Object.fromEntries(ASSETS.assets.map((a) => [a.id, a]));
 
@@ -255,7 +255,7 @@
   function steps(id) {
     const a = A[id], p = PANELS[id];
     if (!a || !p) return '';
-    return `<div class="rail steps" data-steps aria-label="${esc(a.title.replace('Storyboard: ', ''))}, ${a.steps.length} steps">${a.steps.map((s, i) => {
+    return `<div class="rail steps" data-steps tabindex="0" role="region" aria-label="${esc(a.title.replace('Storyboard: ', ''))}, ${a.steps.length} steps">${a.steps.map((s, i) => {
       const [, , w, h] = p.panels[i];
       return `<figure class="step" style="margin:0"><div class="ph a${id} p${id}-${i}" style="aspect-ratio:${w}/${h}" aria-hidden="true"></div><figcaption class="sb"><b>${String(i + 1).padStart(2, '0')}</b><span>${s}</span></figcaption></figure>`;
     }).join('')}</div><div class="dots" role="group" aria-label="Choose a step">${a.steps.map((s, i) => `<button type="button" data-act="step" data-arg="${i}" aria-label="Step ${i + 1}: ${esc(s)}" aria-current="${i === 0}"></button>`).join('')}</div>`;
@@ -263,6 +263,33 @@
   function ring(value, max, label, size = 64) {
     const r = 26, C = 2 * Math.PI * r, off = C * (1 - clamp(value / max, 0, 1));
     return `<div class="ring" style="width:${size}px;height:${size}px" role="img" aria-label="${esc(label)}"><svg viewBox="0 0 64 64"><circle class="track" cx="32" cy="32" r="${r}"/><circle class="val" cx="32" cy="32" r="${r}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><b>${value}/${max}</b></div>`;
+  }
+  // A full-bleed photo header. The photo moves slower than the page (parallax),
+  // stretches on pull-down, and the large title hands over to the bar on scroll.
+  function immersive(id, o) {
+    return `<header class="imm${o.lean ? ' lean' : ''}"><div class="imm-media">${ph(id, '', false).replace('class="ph', `style="${o.pos ? `background-position:${o.pos}` : ''}" class="ph`)}</div>${o.top ? `<div class="imm-top">${o.top}</div>` : ''}<div class="imm-body">${o.eyebrow ? `<p class="eyebrow">${o.eyebrow}</p>` : ''}<h1 class="lt" data-lt tabindex="-1">${o.title}</h1>${o.sub ? `<p class="imm-sub">${o.sub}</p>` : ''}${o.actions ? `<div class="btns">${o.actions}</div>` : ''}</div></header>`;
+  }
+  // The Passport as a member card: metallic edge, a sheen that follows you.
+  function memberCard(mini) {
+    const b = balance(), v = verified();
+    return `<${mini ? 'button type="button" data-go="passport"' : 'section'} class="mcard${mini ? ' tap' : ''}" aria-label="Yellow Nation Passport: ${b} points, ${v} of 5 verified matches to your next milestone (sample)"><span class="sheen" aria-hidden="true"></span>
+<span class="mc-top"><span class="mc-brand">YELLOW NATION PASSPORT</span>${crest('crest mc-crest')}</span>
+<span class="mc-mid"><span class="mc-pts num">${b.toLocaleString('en-ZA')}</span><span class="mc-lbl">points</span></span>
+<span class="mc-foot"><span>MEMBER · SAMPLE<br><b>${v} of 5 verified matches</b></span>${ring(v, 5, `${v} of 5`, 54)}</span></${mini ? 'button' : 'section'}>`;
+  }
+  function countdown(f) {
+    const ms = Math.max(0, f.date.getTime() - Date.now());
+    const d = Math.floor(ms / 864e5), h = Math.floor((ms % 864e5) / 36e5), m = Math.floor((ms % 36e5) / 6e4);
+    const tile = (n, l) => `<div><b class="num">${String(n).padStart(2, '0')}</b><small>${l}</small></div>`;
+    return `<div class="cd" data-countdown="${f.id}" role="timer" aria-label="${d} days, ${h} hours and ${m} minutes to kick-off">${tile(d, d === 1 ? 'day' : 'days')}${tile(h, 'hrs')}${tile(m, 'min')}</div>`;
+  }
+  function pass(f) {
+    return `<section class="pass" aria-labelledby="passT"><div class="ps-top">${crest('crest')}<span><b>Sundowns One</b><small>Matchday pass · sample</small></span>${pill('Linked', 'glass')}</div>
+<div class="ps-main"><h3 id="passT">${esc(matchName(f))}</h3><p>${when(f, { weekday: 'long', day: 'numeric', month: 'long' })} · ${kick(f)} · Loftus Versfeld</p>
+<dl class="ps-grid">${[['Gate', 'C'], ['Block', '118'], ['Row', '14'], ['Seat', '22']].map(([k, v]) => `<div><dt>${k}</dt><dd class="num">${v}</dd></div>`).join('')}</dl></div>
+<div class="perf" aria-hidden="true"></div>
+<div class="ps-foot">${ic('lock')}<span>Your entry code stays in the official seller’s wallet. Sundowns One never makes its own ticket codes.</span></div>
+<div class="ps-actions"><button type="button" class="btn btn-primary btn-sm tap" data-act="wallet">${ic('ticket')}Open seller wallet</button><button type="button" class="btn btn-glass btn-sm tap" data-go="stadium">Find my seat</button><button type="button" class="btn btn-plain btn-sm tap" style="color:#fff" data-act="unlinkTicket">Unlink</button></div></section>`;
   }
   const badgeUs = () => `<span class="badge us">${crest('crest')}</span>`;
   const badgeThem = (f) => `<span class="badge them" aria-hidden="true">${f.ab}</span>`;
@@ -279,18 +306,14 @@
   function rToday() {
     const f = nextHome();
     const done = planProgress();
-    const b = balance();
-    return `<div class="wrap">
-${head('Today', { eyebrow: fmt(new Date(), { weekday: 'long', day: 'numeric', month: 'long' }), trail: `<button type="button" class="avatar tap" data-go="profile" aria-label="You: profile and settings">${ic('person')}</button>` })}
-<button type="button" class="concept pill sample tap" data-go="about">${ic('info')}Concept prototype · sample data</button>
-<section class="pcard hero r-hero" aria-label="Sundowns One">${ph('7676', 'hero-ph')}<div class="body">${crest()}<div><p class="eyebrow">The Yellow Nation · One home</p><h2>The Sky is<br><span>the Limit.</span></h2><p>Your club, your people and every matchday, in one place.</p><div class="btns"><button type="button" class="btn btn-primary tap" data-go="planner">Plan your matchday</button><button type="button" class="btn btn-glass tap" data-go="matches">Matches</button></div></div></div></section>
+    return `${immersive('7676', { pos: '74% 40%', lean: true, top: `${crest('crest imm-crest')}<span class="imm-tools"><button type="button" class="pill glass tap" data-go="about">${ic('info')}Concept · sample data</button><button type="button" class="avatar glass tap" data-go="profile" aria-label="You: profile and settings">${ic('person')}</button></span>`, eyebrow: `${fmt(new Date(), { weekday: 'long', day: 'numeric', month: 'long' })} · The Yellow Nation`, title: 'The Sky is<br><span>the Limit.</span>', sub: 'Your club, your people and every matchday, in one place.', actions: `<button type="button" class="btn btn-primary tap" data-go="planner">Plan your matchday</button><button type="button" class="btn btn-glass tap" data-go="matches">Matches</button>` })}<div class="wrap">
 
-<section class="card next" style="margin-top:14px" aria-labelledby="nextT">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><p class="eyebrow">Next home match</p>${SAMPLE}</div>
+<section class="card next" aria-labelledby="nextT">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><p class="eyebrow">${daysTo(f) === 0 ? 'Today · home match' : 'Next home match'}</p>${SAMPLE}</div>
   <div class="teams">${badgeUs()}<span class="vs">v</span>${badgeThem(f)}</div>
-  <h3 id="nextT" class="t3">${esc(matchName(f))}</h3>
+  <h2 id="nextT" class="t3">${esc(matchName(f))}</h2>
   <div class="meta"><span>${ic('calendar')}${when(f)} · ${kick(f)}</span><span>${ic('pin')}Loftus Versfeld</span><span>${ic('ball')}${f.comp}</span></div>
-  <div class="count" style="margin-top:14px"><b>${daysTo(f)}</b><span class="muted">${daysTo(f) === 1 ? 'day' : 'days'} to go</span></div>
+  ${countdown(f)}
   <div class="btns"><button type="button" class="btn btn-primary btn-sm tap" data-act="tickets" data-arg="${f.id}">${ic('ticket')}Tickets</button><button type="button" class="btn btn-tinted btn-sm tap" data-act="planFor" data-arg="${f.id}">Plan</button><button type="button" class="btn btn-tinted btn-sm tap" data-act="shareFixture" data-arg="${f.id}">${ic('share')}Share</button></div>
 </section>
 
@@ -309,10 +332,10 @@ ${sec('Quick actions')}
 </nav>
 
 ${sec('Your Passport', { link: '<button type="button" class="tap" data-go="passport">See all</button>' })}
-<button type="button" class="pcard r-mid tap" data-go="passport">${ph('7699')}<div class="body"><div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px"><div><p class="eyebrow">Yellow Nation Passport</p><p class="pp-balance" style="color:#fff">${b.toLocaleString('en-ZA')}</p><p>points · sample</p></div>${ring(verified(), 5, `${verified()} of 5 verified matches to your next milestone`)}</div><p style="margin-top:10px">${5 - verified()} more verified matches to your next milestone.</p></div></button>
+${memberCard(true)}
 
 ${sec('From the club')}
-<div class="rail">
+<div class="rail" role="region" aria-label="From the club">
   <button type="button" class="card media tap" data-act="watchItem" data-arg="w1">${ph('7697')}<div class="mb"><p class="eyebrow">Sundowns TV</p><h3>Inside the studio: the week ahead</h3><p>12 min · sample</p></div></button>
   <button type="button" class="card media tap" data-act="watchItem" data-arg="w4">${ph('7704')}<div class="mb"><p class="eyebrow">Sundowns Ladies</p><h3>On the training ground</h3><p>7 min · sample</p></div></button>
   <button type="button" class="card media tap" data-go="community">${ph('7692')}<div class="mb"><p class="eyebrow">Community</p><h3>Watch parties near you</h3><p>Branches and screenings</p></div></button>
@@ -345,7 +368,7 @@ ${footNote()}
 ${head('Matches')}
 ${seg('matches', [['fixtures', 'Fixtures'], ['results', 'Results']], 'Fixtures or results')}
 <div class="chips" role="group" aria-label="Team" style="margin-top:12px">${[['all', 'All teams'], ['men', 'Men'], ['women', 'Women'], ['academy', 'Academy']].map(([k, t]) => `<button type="button" class="chip tap" data-act="teamFilter" data-arg="${k}" aria-pressed="${tf === k}">${t}</button>`).join('')}</div>
-<button type="button" class="pcard r-short tap" style="margin-top:14px" data-go="live">${ph('7679')}<div class="body"><div style="display:flex;gap:6px;margin-bottom:8px">${pill('● Live preview')}${SAMPLE}</div><h3 class="t3">Match Centre</h3><p>Timeline, stats and the Player of the Match vote, as they'd look during a game.</p></div></button>
+<button type="button" class="pcard r-short tap" style="margin-top:14px" data-go="live">${ph('7679')}<div class="body"><div style="display:flex;gap:6px;margin-bottom:8px">${pill('● Live preview')}${SAMPLE}</div><h2 class="t3">Match Centre</h2><p>Timeline, stats and the Player of the Match vote, as they'd look during a game.</p></div></button>
 <div style="margin-top:14px">${note('Sample fixtures with fictional opponents and dates set from today. The official fixture feed replaces them.')}</div>
 <div data-panel-of="matches" data-panel="fixtures" ${panelHidden('matches', 'fixtures', 'fixtures')}>
 ${Object.entries(byMonth).map(([m, fs]) => `<h2 class="eyebrow" style="margin:22px 4px 8px">${m}</h2>${list(fs.map((f) => fixtureRow(f).replace('<li ', `<li ${show(f) ? '' : 'hidden '}`)))}`).join('')}
@@ -403,23 +426,13 @@ ${footNote()}
   function rMatchday() {
     const f = nextHome();
     const done = planProgress();
-    return `<div class="wrap">
-${head('Matchday', { eyebrow: `${when(f)} · ${esc(matchName(f))}` })}
-<section class="pcard r-tall" aria-label="Your matchday">${ph('7687')}<div class="body"><p class="eyebrow">Matchday</p><h2 class="t1">Your matchday, sorted.</h2><p>Ticket, travel, gate, seat and food, in the order you need them.</p></div></section>
+    return `${immersive('7687', { pos: 'center 32%', eyebrow: `${when(f)} · ${esc(matchName(f))}`, title: 'Matchday', sub: 'Your matchday, sorted: ticket, travel, gate, seat and food, in the order you need them.' })}<div class="wrap">
 
-<section class="card card-pad" style="margin-top:14px" aria-labelledby="tkT">
-${state.ticketLinked ? `
-  <div style="display:flex;justify-content:space-between;align-items:center"><p class="eyebrow">Your ticket</p>${SAMPLE}</div>
-  <h3 id="tkT">${esc(matchName(f))}</h3>
-  <dl class="kv" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 0;text-align:center">${[['Gate', 'C'], ['Block', '118'], ['Row', '14'], ['Seat', '22']].map(([k, v]) => `<div style="background:var(--fill);border-radius:12px;padding:8px 4px"><dt class="cap muted">${k}</dt><dd style="margin:0;font-size:1.375rem;font-weight:750" class="num">${v}</dd></div>`).join('')}</dl>
-  <div style="margin-top:14px">${note('Your entry code stays in the official seller’s wallet. Sundowns One never makes its own ticket codes.', 'info', 'lock')}</div>
-  <div class="btns"><button type="button" class="btn btn-primary btn-sm tap" data-act="wallet">${ic('ticket')}Open seller wallet</button><button type="button" class="btn btn-tinted btn-sm tap" data-go="stadium">Find my seat</button><button type="button" class="btn btn-plain btn-sm tap" data-act="unlinkTicket">Unlink</button></div>`
-    : `
+${state.ticketLinked ? pass(f) : `<section class="card card-pad" aria-labelledby="tkT">
   <p class="eyebrow">Your ticket</p>
-  <h3 id="tkT">No ticket linked yet</h3>
+  <h2 id="tkT" class="t3">No ticket linked yet</h2>
   <p class="muted">Buy from the official ticket seller, then link it here to see your gate and seat.</p>
-  <div class="btns"><button type="button" class="btn btn-primary btn-sm tap" data-act="tickets" data-arg="${f.id}">${ic('ticket')}Get tickets</button><button type="button" class="btn btn-tinted btn-sm tap" data-act="linkTicket">Link a ticket (demo)</button></div>`}
-</section>
+  <div class="btns"><button type="button" class="btn btn-primary btn-sm tap" data-act="tickets" data-arg="${f.id}">${ic('ticket')}Get tickets</button><button type="button" class="btn btn-tinted btn-sm tap" data-act="linkTicket">Link a ticket (demo)</button></div></section>`}
 
 ${sec('How matchday works')}
 ${steps('7718')}
@@ -450,9 +463,7 @@ ${footNote()}
     const p = state.planner;
     const f = fixture(p.fixture) || nextHome();
     const done = p.checks.length;
-    return `<div class="wrap">
-${head('Matchday planner')}
-<section class="pcard r-mid" aria-label="Matchday planner">${ph('7688')}<div class="body"><p class="eyebrow">Plan together</p><h2 class="t1">Less stress. More matchday.</h2><p>Your plan stays on this phone.</p></div></section>
+    return `${immersive('7688', { pos: 'center 40%', eyebrow: 'Plan together', title: 'Matchday planner', sub: 'Less stress, more matchday. Your plan stays on this phone.' })}<div class="wrap">
 
 ${sec('The match')}
 ${list([row({ act: 'pickFixture', icon: 'calendar', c: '#0c3e2e', t: esc(matchName(f)), s: `${when(f, { weekday: 'long', day: 'numeric', month: 'long' })} · ${kick(f)} · sample` })])}
@@ -529,7 +540,7 @@ ${state.ticketLinked ? `${sec('Your seat', { note: 'Sample ticket. Gate and seat
       : `<div style="margin-top:14px"><button type="button" class="card card-pad tap" style="width:100%;text-align:left;display:flex;gap:14px;align-items:center" data-go="matchday"><span class="ic lg soft">${ic('seat')}</span><span><b class="hd">Link your ticket to see your seat</b><br><span class="muted sub">Your gate, block, row and seat appear here.</span></span></button></div>`}
 
 ${sec('Finding your way')}
-<div class="rail">
+<div class="rail" tabindex="0" role="region" aria-label="Finding your way">
   <figure class="card media" style="margin:0">${ph('7685', 'port')}<figcaption class="mb"><h3>Use the gate on your ticket</h3><p>Signs list the gates and sections from the concourse.</p></figcaption></figure>
   <figure class="card media" style="margin:0">${ph('7682', 'port')}<figcaption class="mb"><h3>Follow the section numbers</h3><p>Pillars show which sections are on each side.</p></figcaption></figure>
   <figure class="card media" style="margin:0">${ph('7707', 'port')}<figcaption class="mb"><h3>Ask at an information desk</h3><p>People who can help, at every main entrance.</p></figcaption></figure>
@@ -552,10 +563,7 @@ ${footNote()}
   }
 
   function rTravel() {
-    return `<div class="wrap">
-${head('Getting there')}
-<section class="pcard r-mid" aria-label="Getting there">${ph('7683')}<div class="body"><p class="eyebrow">Getting there</p><h2 class="t1">Arrive relaxed.</h2><p>${HOME_VENUE}</p></div></section>
-<div class="btns"><a class="btn btn-primary tap" href="https://maps.google.com/?q=Loftus+Versfeld+Stadium+Pretoria" target="_blank" rel="noopener">${ic('map')}Open in Maps</a><button type="button" class="btn btn-tinted tap" data-go="planner">Add to my plan</button></div>
+    return `${immersive('7683', { pos: '45% center', eyebrow: HOME_VENUE, title: 'Getting there', sub: 'Arrive relaxed.', actions: `<a class="btn btn-primary tap" href="https://maps.google.com/?q=Loftus+Versfeld+Stadium+Pretoria" target="_blank" rel="noopener">${ic('map')}Open in Maps</a><button type="button" class="btn btn-glass tap" data-go="planner">Add to my plan</button>` })}<div class="wrap">
 ${sec('Ways to get there', { note: 'Details come from the venue’s approved transport plan. Sundowns One never guesses a route or a car park.' })}
 ${list([
       row({ icon: 'car', c: '#2563eb', t: 'Driving and parking', s: 'Approved parking areas and when they open', act: 'travelInfo', arg: 'car' }),
@@ -574,9 +582,7 @@ ${footNote()}
   function rFood() {
     const items = Object.values(state.tray).reduce((a, b) => a + b, 0);
     const order = state.order;
-    return `<div class="wrap">
-${head('Food and drink')}
-<section class="pcard r-tall" aria-label="Food and drink">${ph('7684')}<div class="body"><p class="eyebrow">Concourse food</p><h2 class="t1">Eat well. Miss nothing.</h2><p>See what’s on, and order ahead where it’s offered.</p></div></section>
+    return `${immersive('7684', { pos: 'center 35%', eyebrow: 'Concourse food', title: 'Food and drink', sub: 'Eat well, miss nothing. Order ahead where it’s offered.' })}<div class="wrap">
 ${sec('Order ahead · pilot')}
 ${steps('7725')}
 <div style="margin-top:14px">${note('Order-ahead runs only at counters that can take payment, give refunds and hand over orders. You can always order at the counter.')}</div>
@@ -589,9 +595,7 @@ ${footNote()}
   }
 
   function rAccess() {
-    return `<div class="wrap">
-${head('Accessibility and family')}
-<section class="pcard r-mid" aria-label="Accessibility">${ph('7691')}<div class="body"><p class="eyebrow">Everyone belongs here</p><h2 class="t1">Get in, your way.</h2><p>Step-free routes, stewards who help, and a person to talk to.</p></div></section>
+    return `${immersive('7691', { pos: '40% center', eyebrow: 'Everyone belongs here', title: 'Accessibility and family', sub: 'Step-free routes, stewards who help, and a person to talk to.' })}<div class="wrap">
 ${sec('Accessibility', { note: 'Services are confirmed with the venue and tested with supporters who use them before launch.' })}
 ${list([
       row({ icon: 'access', c: '#0f766e', t: 'Accessible entrance', s: 'Step-free, with stewards on hand' }),
@@ -618,9 +622,8 @@ ${footNote()}
       ['Home match', v >= 1], ['Home match', v >= 2], ['Home match', v >= 3], ['Away day', false],
       ['Cup tie', false], ['Sundowns Ladies', false], ['Community day', false], ['Heritage quiz', state.quiz.done],
     ];
-    return `<div class="wrap">
-${head('Passport', { trail: `<button type="button" class="nav-btn tap" data-act="passportRules" aria-label="Passport rules">${ic('info')}</button>` })}
-<section class="pcard r-tall" aria-label="Your Yellow Nation Passport">${ph('7699')}<div class="body"><div style="display:flex;justify-content:space-between;align-items:center"><p class="eyebrow">Yellow Nation Passport</p>${SAMPLE}</div><div style="margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:12px"><div><p class="pp-balance" style="color:#fff">${b.toLocaleString('en-ZA')}</p><p>points</p></div>${ring(v, 5, `${v} of 5 verified matches to your next milestone`, 72)}</div><p style="margin-top:12px">${v} verified matches this season. ${5 - v} more to your next milestone.</p></div></section>
+    return `${immersive('7699', { pos: 'center 30%', top: `<span></span><span class="imm-tools"><button type="button" class="nav-btn glass tap" data-act="passportRules" aria-label="Passport rules">${ic('info')}</button></span>`, eyebrow: 'Yellow Nation', title: 'Passport', sub: 'Belonging is the reward. Stamps and points for turning up and taking part.' })}<div class="wrap">
+${memberCard()}
 
 ${sec('Stamps', { note: 'Each stamp is for something you did: a verified match, a community day, a quiz.' })}
 <div class="stamps">${stamps.map(([t, got]) => `<div class="stamp ${got ? 'got' : ''}" role="img" aria-label="${t}: ${got ? 'collected' : 'not yet'}"><span>${got ? ic('star') : ''}${t}</span></div>`).join('')}</div>
@@ -647,9 +650,7 @@ ${footNote()}
     const pr = state.prediction;
     const qz = state.quiz;
     const score = QUIZ.filter((q, i) => qz.answers[i] === q.c).length;
-    return `<div class="wrap">
-${head('Fan Zone')}
-<section class="pcard r-tall" aria-label="Fan Zone">${ph('7689')}<div class="body"><p class="eyebrow">The Yellow Nation lives here</p><h2 class="t1">Play along.</h2><p>No betting. Just bragging rights.</p></div></section>
+    return `${immersive('7689', { pos: '40% center', eyebrow: 'The Yellow Nation lives here', title: 'Fan Zone', sub: 'Play along. No betting, just bragging rights.' })}<div class="wrap">
 
 ${sec('Predict the score', { note: `${esc(matchName(f))} · ${when(f)} · sample fixture` })}
 <section class="card"><div class="ph a7693" style="aspect-ratio:16/8;background-position:center 30%" role="img" aria-label="${esc(alt('7693'))}"></div><div class="card-pad">
@@ -686,10 +687,8 @@ ${footNote()}
 
   function rWatch() {
     const item = (w) => `<button type="button" class="card media tap" data-act="watchItem" data-arg="${w.id}" data-type="${w.type}">${ph(w.img)}<div class="mb"><p class="eyebrow">${w.type === 'audio' ? 'Listen' : 'Watch'} · ${w.len}</p><h3>${w.t}</h3><p>${w.rights}</p></div></button>`;
-    return `<div class="wrap">
-${head('Watch and Listen')}
-<button type="button" class="pcard r-tall tap" data-act="watchItem" data-arg="w1">${ph('7697')}<div class="body"><div style="display:flex;gap:6px;margin-bottom:8px">${pill(`${ic('play')}Sundowns TV`)}${SAMPLE}</div><h2 class="t1">Inside the studio.</h2><p>The week ahead, with the people who make the club.</p></div></button>
-<div style="margin-top:16px">${seg('watch', [['all', 'All'], ['video', 'Video'], ['audio', 'Audio']], 'Show')}</div>
+    return `${immersive('7697', { pos: '45% center', eyebrow: `Sundowns TV · sample`, title: 'Watch and Listen', sub: 'Inside the studio: the week ahead, with the people who make the club.', actions: `<button type="button" class="btn btn-primary tap" data-act="watchItem" data-arg="w1">${ic('play')}Watch now</button>` })}<div class="wrap">
+${sec('Latest')}<div>${seg('watch', [['all', 'All'], ['video', 'Video'], ['audio', 'Audio']], 'Show')}</div>
 <div class="grid2 wide3" style="margin-top:14px" id="watchGrid">${WATCH.map((w) => `<div data-type="${w.type}" ${(state.segs.watch || 'all') === 'all' || state.segs.watch === w.type ? '' : 'hidden'}>${item(w)}</div>`).join('')}</div>
 <div style="margin-top:14px">${note('Every video and clip carries its rights before it goes live. Captions and transcripts come as standard, and low-data audio is there for matchdays.', 'info')}</div>
 ${footNote()}
@@ -699,9 +698,7 @@ ${footNote()}
   function rCommunity() {
     const f = nextHome();
     const away = FIXTURES.find((x) => !x.home && x.team === 'men');
-    return `<div class="wrap">
-${head('Community')}
-<section class="pcard r-tall" aria-label="Community">${ph('7692')}<div class="body"><p class="eyebrow">Your people</p><h2 class="t1">The Yellow Nation, everywhere.</h2><p>Branches, watch parties, away days and Masandawana around the world.</p></div></section>
+    return `${immersive('7692', { pos: '35% center', eyebrow: 'Your people', title: 'Community', sub: 'Branches, watch parties, away days and Masandawana around the world.' })}<div class="wrap">
 <div style="margin-top:16px">${seg('community', [['near', 'Near you'], ['global', 'Global'], ['away', 'Away days']], 'Community')}</div>
 
 <div data-panel-of="community" data-panel="near" ${panelHidden('community', 'near', 'near')}>
@@ -737,9 +734,7 @@ ${footNote()}
   }
 
   function rExperiences() {
-    return `<div class="wrap">
-${head('Experiences')}
-<button type="button" class="pcard r-tall tap" data-act="experience" data-arg="hosp">${ph('7705')}<div class="body"><p class="eyebrow">Hospitality</p><h2 class="t1">Matchday, upgraded.</h2><p>A lounge seat, a proper meal and the whole pitch in view.</p></div></button>
+    return `${immersive('7705', { pos: '30% center', eyebrow: 'Hospitality and more', title: 'Experiences', sub: 'Matchday, upgraded: a lounge seat, a proper meal and the whole pitch in view.', actions: `<button type="button" class="btn btn-primary tap" data-act="experience" data-arg="hosp">See hospitality</button>` })}<div class="wrap">
 <div style="margin-top:14px">${note('Registering interest isn’t a booking. Dates, prices and availability come from the booking provider.')}</div>
 ${sec('Choose an experience')}
 <div class="grid2">${EXPERIENCES.slice(1).map((e) => `<button type="button" class="card media tap" data-act="experience" data-arg="${e.id}">${ph(e.img, 'sq')}<div class="mb"><p class="eyebrow">${e.k}</p><h3>${e.t}</h3>${state.interests.includes(e.id) ? `<p>${pill(`${ic('check')}Interested`, 'ok')}</p>` : ''}</div></button>`).join('')}</div>
@@ -748,9 +743,7 @@ ${footNote()}
   }
 
   function rStore() {
-    return `<div class="wrap">
-${head('Official Store')}
-<section class="pcard r-tall" aria-label="Official Store">${ph('7698')}<div class="body"><p class="eyebrow">Official Store</p><h2 class="t1">Wear the yellow.</h2><p>Kits, training wear and gifts from the official store.</p><div class="btns"><button type="button" class="btn btn-primary tap" data-act="storeOpen">${ic('bag')}Shop the official store</button></div></div></section>
+    return `${immersive('7698', { pos: '40% 30%', eyebrow: 'Wear the yellow', title: 'Official Store', sub: 'Kits, training wear and gifts from the official store.', actions: `<button type="button" class="btn btn-primary tap" data-act="storeOpen">${ic('bag')}Shop the official store</button>` })}<div class="wrap">
 <div class="chips" role="group" aria-label="Categories" style="margin-top:16px">${['Kits', 'Training', 'Lifestyle', 'Kids', 'Accessories', 'Gifts'].map((c) => `<button type="button" class="chip tap" data-act="storeOpen" data-arg="${c}">${c}</button>`).join('')}</div>
 <div style="margin-top:14px">${note('Products, prices, member discounts and stock come from the official store. Sundowns One doesn’t take payment.')}</div>
 ${sec('On matchday')}
@@ -773,7 +766,7 @@ ${footNote()}
     return `<div class="wrap">
 ${head('Partner World')}
 ${note('No partner is named until a contract is signed. These are the kinds of useful things a partner could fund.')}
-<section class="card media" style="margin-top:14px">${ph('7700')}<div class="mb"><p class="eyebrow">Member benefit · partner TBC</p><h3>Your membership, at the till</h3><p>Show your Passport and a partner-funded benefit applies. A claim only counts once it’s actually redeemed.</p></div></section>
+<section class="card media" style="margin-top:14px">${ph('7700')}<div class="mb"><p class="eyebrow">Member benefit · partner TBC</p><h2>Your membership, at the till</h2><p>Show your Passport and a partner-funded benefit applies. A claim only counts once it’s actually redeemed.</p></div></section>
 ${sec('What partners could make possible')}
 ${list(props.map(([t, s, i, c]) => row({ icon: i, c, t, s })))}
 ${sec('Your details stay yours')}
@@ -783,9 +776,7 @@ ${footNote()}
   }
 
   function rImpact() {
-    return `<div class="wrap">
-${head('Club Impact')}
-<section class="pcard r-tall" aria-label="Club Impact">${ph('7701')}<div class="body"><p class="eyebrow">Next generation</p><h2 class="t1">Football that builds futures.</h2><p>Programmes in schools, townships and communities.</p></div></section>
+    return `${immersive('7701', { pos: 'center 40%', eyebrow: 'Next generation', title: 'Club Impact', sub: 'Football that builds futures, in schools, townships and communities.' })}<div class="wrap">
 ${sec('Programmes', { note: 'Outcomes are published once each programme owner has verified them.' })}
 <div class="grid2">
   <section class="card media">${ph('7704', 'sq')}<div class="mb"><p class="eyebrow">Women and girls</p><h3>Room to play, and to lead</h3></div></section>
@@ -838,7 +829,7 @@ ${footNote()}
   function rAsk() {
     return `<div class="wrap">
 ${head('Ask Sundowns')}
-<section class="card media">${ph('7707')}<div class="mb"><p class="eyebrow">A guide, not the final word</p><h3>Answers with their source, or a person</h3><p>Every answer says where it came from. If there isn’t a checked answer, it says so.</p></div></section>
+<section class="card media">${ph('7707')}<div class="mb"><p class="eyebrow">A guide, not the final word</p><h2>Answers with their source, or a person</h2><p>Every answer says where it came from. If there isn’t a checked answer, it says so.</p></div></section>
 <div class="chips" role="group" aria-label="Try asking" style="margin-top:16px">${['How do I get tickets?', 'Where is the accessible entrance?', 'When is the next match?', 'How do Passport points work?', 'Can I get a refund?'].map((q) => `<button type="button" class="chip tap" data-act="askChip" data-arg="${esc(q)}">${q}</button>`).join('')}</div>
 <div class="chat" id="chatLog" aria-live="polite" style="margin-top:16px">${chatHTML()}</div>
 <form class="composer" data-form="ask"><label class="vh" for="askInput">Ask a question</label><input id="askInput" autocomplete="off" enterkeyhint="send" placeholder="Ask about matchday, tickets, the Passport…" maxlength="200"><button type="submit" aria-label="Send">${ic('send')}</button></form>
@@ -911,6 +902,8 @@ ${footNote()}
   function rMore() {
     return `<div class="wrap">
 ${head('More')}
+<button type="button" class="card get-app tap" data-act="install"><span class="ic lg" style="--c:#0c3e2e">${crest('crest')}</span><span class="rt"><b>Get Sundowns One</b><small>Add it to your home screen, or share it on WhatsApp</small></span>${ic('chevR', 'chev')}</button>
+<div class="spacer"></div><div class="spacer"></div>
 ${list([
       row({ go: 'fanzone', icon: 'trophy', c: '#c2410c', t: 'Fan Zone', s: 'Predictor, quiz and stadium games' }),
       row({ go: 'watch', icon: 'play', c: '#0c3e2e', t: 'Watch and Listen', s: 'Sundowns TV, podcasts and radio' }),
@@ -946,7 +939,7 @@ ${head('Asset library', { eyebrow: `${ASSETS.assets.length} supplied images` })}
 <p class="muted">${esc(ASSETS.note)}</p>
 <div class="kpis" style="margin-top:14px"><div><b>${(counts.use || 0) + (counts.cropped || 0) + (counts.review || 0)}</b><small>Placed in the app</small></div><div><b>${counts.hold || 0}</b><small>On hold</small></div><div><b>${counts.staff || 0}</b><small>Club Studio</small></div></div>
 <div class="chips" role="group" aria-label="Filter by status" style="margin-top:14px">${[['all', 'All'], ...Object.entries(label)].map(([k, t]) => `<button type="button" class="chip tap" data-act="assetFilter" data-arg="${k}" aria-pressed="${filt === k}">${t}${k === 'all' ? '' : ` · ${counts[k] || 0}`}</button>`).join('')}</div>
-<div class="agrid" style="margin-top:14px">${ASSETS.assets.map((a) => `<div data-status="${a.status}" ${filt === 'all' || filt === a.status ? '' : 'hidden'}><button type="button" class="card media tap" data-act="asset" data-arg="${a.id}">${a.id === '7674' ? `<div class="crest-tile" style="aspect-ratio:4/3" role="img" aria-label="${esc(a.alt)}"><div class="crest" style="width:60%;height:80%;margin:auto"></div></div>` : ph(a.id)}<div class="mb"><p class="cap faint">IMG_${a.id}</p><h3>${esc(a.title)}</h3><p>${pill(label[a.status], cls[a.status])}</p></div></button></div>`).join('')}</div>
+<h2 class="vh">Images</h2><div class="agrid" style="margin-top:14px">${ASSETS.assets.map((a) => `<div data-status="${a.status}" ${filt === 'all' || filt === a.status ? '' : 'hidden'}><button type="button" class="card media tap" data-act="asset" data-arg="${a.id}">${a.id === '7674' ? `<div class="crest-tile" style="aspect-ratio:4/3" role="img" aria-label="${esc(a.alt)}"><div class="crest" style="width:60%;height:80%;margin:auto"></div></div>` : ph(a.id)}<div class="mb"><p class="cap faint">IMG_${a.id}</p><h3>${esc(a.title)}</h3><p>${pill(label[a.status], cls[a.status])}</p></div></button></div>`).join('')}</div>
 ${footNote()}
 </div>`;
   }
@@ -1195,6 +1188,10 @@ ${topic === 'data' ? '<p class="muted sub">Requests about your personal informat
     },
     resetPlan() { state.planner = JSON.parse(JSON.stringify(DEFAULTS.planner)); save(); rerender(); toast('Plan cleared'); },
     crew() { crewSheet(); },
+    install() { installSheet(); },
+    async installNow() { if (!installPrompt) return; installPrompt.prompt(); const r = await installPrompt.userChoice.catch(() => null); installPrompt = null; closeSheet(); if (r && r.outcome === 'accepted') toast('Sundowns One installed'); },
+    shareApp() { const l = appLink(); shareText(`Sundowns One — the Yellow Nation in one app (concept prototype).${l ? '' : ' Ask me for the app file.'}`); },
+    copyLink() { shareText('Sundowns One — the Yellow Nation in one app (concept prototype).'); },
     pickFixture() {
       openSheet({
         title: 'Which match?',
@@ -1437,7 +1434,7 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
     if (log) { log.innerHTML = chatHTML(); const last = log.lastElementChild; last && last.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'end' }); }
   }
   async function shareText(text) {
-    const url = CONFIG.appUrl || '';
+    const url = appLink();
     if (navigator.share) {
       try { await navigator.share(url ? { title: 'Sundowns One', text, url } : { title: 'Sundowns One', text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
     }
@@ -1463,8 +1460,10 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
     if (state.textSize === 'default') r.removeAttribute('data-text'); else r.dataset.text = state.textSize;
     r.classList.toggle('lowdata', !!state.lowData);
     const dark = state.appearance === 'dark' || (state.appearance === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
-    const m = $('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', dark ? '#040a07' : '#f2f3ee');
+    $$('meta[name="theme-color"]').forEach((m) => {
+      if (state.appearance === 'system') m.setAttribute('content', /dark/.test(m.media) ? '#040a07' : '#f2f3ee');
+      else m.setAttribute('content', dark ? '#040a07' : '#f2f3ee');
+    });
   }
 
   // ---------- router: push slides in from the right, back returns the same way ----------
@@ -1479,6 +1478,7 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
     const el = section(r);
     el.innerHTML = ROUTES[r].render();
     bindSteps(el);
+    bindMotion(el);
   }
   function rerender() {
     if (!current) return;
@@ -1497,6 +1497,7 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
     const attr = el.dataset.act ? 'data-act' : el.dataset.change ? 'data-change' : 'data-go';
     return `[${attr}="${a}"]${el.dataset.arg != null ? `[data-arg="${CSS.escape(el.dataset.arg)}"]` : ''}`;
   }
+  const hist = (fn, st, url) => { try { history[fn](st, '', url); } catch { /* sandboxed viewer: keep going without history */ } };
   function navigate(to, o = {}) {
     if (!ROUTES[to]) to = 'today';
     if (sheetNow) killSheet(sheetNow);
@@ -1510,7 +1511,7 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
     else { mode = 'push'; next = chain(to); }
     if (o.mode) mode = o.mode;
     stack = next;
-    if (o.history !== false) history.pushState({ stack }, '', '#' + to);
+    if (o.history !== false) hist('pushState', { stack }, '#' + to);
     show(to, mode);
   }
   // Back always returns to the screen its label names.
@@ -1518,7 +1519,7 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
     if (stack.length < 2) return;
     if (sheetNow) killSheet(sheetNow);
     stack = stack.slice(0, -1);
-    history.replaceState({ stack }, '', '#' + stack[stack.length - 1]);
+    hist('replaceState', { stack }, '#' + stack[stack.length - 1]);
     show(stack[stack.length - 1], 'pop');
   }
   window.addEventListener('popstate', (e) => {
@@ -1586,6 +1587,7 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
   function after(to, prev) {
     document.title = to === 'today' ? 'Sundowns One' : `${ROUTES[to].title} · Sundowns One`;
     observeTitle();
+    queueParallax();
     if (prev) { const h = $(`#${to} [data-lt]`); if (h) h.focus({ preventScroll: true }); }
     if (to === 'ask') { const log = $('#chatLog'); if (log && chat.length > 1) log.lastElementChild.scrollIntoView({ block: 'end' }); }
   }
@@ -1597,6 +1599,8 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
     if (stack.length > 1) { const P = ROUTES[stack[stack.length - 2]]; b.hidden = false; $('#navBackLabel').textContent = P.short || P.title; b.setAttribute('aria-label', `Back to ${P.title}`); } else b.hidden = true;
     $('#navTitle').textContent = R.title;
     $('#navbar').classList.remove('compact');
+    $('#navbar').classList.toggle('over', !!$(`#${to} .imm`));
+    moveLens(R.tab);
   }
   // The large title hands over to the compact bar title as it scrolls under it.
   let io = null;
@@ -1625,6 +1629,141 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
           $$('button', dots).forEach((d, j) => d.setAttribute('aria-current', String(i === j)));
         });
       }, { passive: true });
+    });
+  }
+
+
+  // ---------- motion: parallax, lean, sheen, tab lens ----------
+  // Photos move slower than the page so the screen has depth. Everything here
+  // animates transform or opacity only, and stops under Reduce Motion.
+  const fine = matchMedia('(hover: hover) and (pointer: fine)');
+  const visible = new Set();
+  const pio = 'IntersectionObserver' in window ? new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target))), { rootMargin: '120px 0px' }) : null;
+  function bindMotion(root) {
+    if (pio) $$('.pcard .ph, .media .ph, .step .ph, .card > .ph, .mcard', root).forEach((el) => { if (!el.closest('.rail, .agrid')) pio.observe(el); });
+    $$('.rail', root).forEach((rail) => {
+      if (rail._px) return;
+      rail._px = true;
+      let t = 0;
+      const run = () => { t = 0; railParallax(rail); };
+      rail.addEventListener('scroll', () => { if (!t) t = requestAnimationFrame(run); }, { passive: true });
+      requestAnimationFrame(run);
+    });
+    const lean = $('.imm.lean', root);
+    if (lean) bindLean(lean);
+    $$('.mcard', root).forEach((card) => {
+      card.addEventListener('pointermove', (e) => { if (e.pointerType !== 'mouse' || reduceMotion.matches) return; const r = card.getBoundingClientRect(); card.style.setProperty('--shine', (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(3)); });
+    });
+  }
+  function railParallax(rail) {
+    if (reduceMotion.matches) return;
+    const r = rail.getBoundingClientRect(), cx = r.left + r.width / 2;
+    for (const card of rail.children) {
+      const ph = card.querySelector('.ph');
+      if (!ph) continue;
+      const c = card.getBoundingClientRect();
+      const q = clamp((c.left + c.width / 2 - cx) / (r.width / 2 + c.width / 2), -1, 1);
+      ph.style.transform = `translate3d(${(q * -6).toFixed(2)}%,0,0) scale(1.14)`;
+    }
+  }
+  let pxQueued = 0;
+  function queueParallax() { if (!pxQueued) pxQueued = requestAnimationFrame(parallax); }
+  function parallax() {
+    pxQueued = 0;
+    if (reduceMotion.matches || !current) return;
+    const sec = section(current);
+    const y = window.scrollY, vh = window.innerHeight;
+    const imm = $('.imm', sec);
+    if (imm) {
+      const media = imm.firstElementChild, body = $('.imm-body', imm), h = imm.offsetHeight;
+      if (y < 0) { media.style.transform = `scale(${(1 + -y / h).toFixed(4)})`; body.style.opacity = 1; body.style.transform = ''; }
+      else if (y < h * 1.3) {
+        // ease in over the first 160 px so the photo never jolts at the top
+        const e = y < 160 ? (y * y) / 320 : y - 80;
+        media.style.transform = `translate3d(0,${(e * 0.42).toFixed(1)}px,0)`;
+        body.style.opacity = clamp(1 - y / (h * 0.62), 0, 1).toFixed(3);
+        body.style.transform = `translate3d(0,${(y * 0.12).toFixed(1)}px,0)`;
+      }
+    }
+    for (const el of visible) {
+      if (!el.isConnected) { visible.delete(el); continue; }
+      if (!sec.contains(el)) continue;
+      const fr = (el.classList.contains('mcard') ? el : el.parentElement).getBoundingClientRect();
+      const p = clamp((fr.top + fr.height / 2 - vh / 2) / (vh / 2 + fr.height / 2), -1, 1);
+      if (el.classList.contains('mcard')) { if (!fine.matches) el.style.setProperty('--shine', p.toFixed(3)); }
+      else el.style.transform = `translate3d(0,${(p * -7).toFixed(2)}%,0) scale(1.15)`;
+    }
+  }
+  window.addEventListener('scroll', queueParallax, { passive: true });
+  window.addEventListener('resize', () => { queueParallax(); moveLens(null, true); }, { passive: true });
+  reduceMotion.addEventListener?.('change', () => {
+    $$('.imm-media, .imm-body, .ph, .mcard').forEach((el) => { el.style.transform = ''; el.style.opacity = ''; el.style.removeProperty('--shine'); });
+    queueParallax();
+  });
+  // With a mouse, the Today photo leans gently away from the pointer, on two
+  // critically damped springs (X and Y move independently).
+  function bindLean(imm) {
+    const ph = $('.imm-media .ph', imm);
+    let lx = 0, ly = 0;
+    const apply = () => { ph.style.transform = `translate3d(${lx.toFixed(2)}px,${ly.toFixed(2)}px,0) scale(1.04)`; };
+    const sx = new Spring({ value: 0, damping: 1, response: 0.55, precision: 0.05, onUpdate: (v) => { lx = v; apply(); } });
+    const sy = new Spring({ value: 0, damping: 1, response: 0.55, precision: 0.05, onUpdate: (v) => { ly = v; apply(); } });
+    imm.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse' || reduceMotion.matches) return;
+      const r = imm.getBoundingClientRect();
+      sx.to(-(((e.clientX - r.left) / r.width) * 2 - 1) * 12);
+      sy.to(-(((e.clientY - r.top) / r.height) * 2 - 1) * 8);
+    });
+    imm.addEventListener('pointerleave', () => { sx.to(0); sy.to(0); });
+  }
+  // The glass lens under the active tab slides to the new tab on a spring.
+  let lensSpring = null, lensTab = 'today';
+  function moveLens(tab, instant) {
+    const lens = $('.tabbar .lens');
+    if (!lens) return;
+    if (tab) lensTab = tab;
+    const links = $$('.tabbar a');
+    const i = Math.max(0, links.findIndex((a) => a.dataset.tab === lensTab));
+    const x = i * lens.offsetWidth;
+    if (!lensSpring) lensSpring = new Spring({ value: x, damping: 1, response: 0.38, precision: 0.3, onUpdate: (v) => { lens.style.transform = `translate3d(${v.toFixed(1)}px,0,0)`; } });
+    if (instant || reduceMotion.matches || !lens.offsetWidth) lensSpring.set(x); else lensSpring.to(x);
+  }
+  // Countdowns tick while their screen is open.
+  setInterval(() => {
+    const cd = current && $(`#${current} [data-countdown]`);
+    if (cd) cd.outerHTML = countdown(fixture(cd.dataset.countdown));
+  }, 30000);
+
+  // ---------- getting the app: home screen, WhatsApp, the file ----------
+  let installPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; });
+  // In an embedding viewer the page's own address isn't shareable, and there's no file beside it.
+  const hosted = /^https?:$/.test(location.protocol) && CONFIG.viewer !== 'on';
+  const appLink = () => CONFIG.appUrl || (hosted ? location.href.split('#')[0] : '');
+  function installSheet() {
+    const ua = navigator.userAgent;
+    const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    state.segs.install = state.segs.install || (ios ? 'ios' : 'android');
+    openSheet({
+      title: 'Get Sundowns One',
+      body: `${standalone ? note('You’re already using the installed app.', 'info', 'check') : ''}
+${seg('install', [['ios', 'iPhone'], ['android', 'Android']], 'Your phone')}
+<div data-panel-of="install" data-panel="ios" ${panelHidden('install', 'ios', 'ios')}>${list([
+        row({ icon: 'globe', soft: true, t: '1. Open the link in Safari', s: hosted ? 'You’re in the right place if this is Safari' : 'Ask for the Sundowns One link' }),
+        row({ icon: 'share', soft: true, t: '2. Tap Share', s: 'The square with an arrow, in the toolbar' }),
+        row({ icon: 'plus', soft: true, t: '3. Tap Add to Home Screen', s: 'Scroll down the share sheet if you don’t see it' }),
+        row({ icon: 'check', soft: true, t: '4. Tap Add', s: 'Sundowns One opens full screen, like an app' }),
+      ])}</div>
+<div data-panel-of="install" data-panel="android" ${panelHidden('install', 'android', 'ios')}>${installPrompt ? `<button type="button" class="btn btn-primary btn-block tap" data-act="installNow">${ic('download')}Install now</button>` : ''}${list([
+        row({ icon: 'globe', soft: true, t: '1. Open the link in Chrome' }),
+        row({ icon: 'more', soft: true, t: '2. Tap ⋮ (top right)' }),
+        row({ icon: 'plus', soft: true, t: '3. Tap Install app or Add to Home screen' }),
+        row({ icon: 'check', soft: true, t: '4. Open it from your home screen', s: 'Works offline after the first visit' }),
+      ])}</div>
+<h3 class="hd">Share with your crew</h3>
+<div class="row-actions"><button type="button" class="btn btn-primary tap" data-act="shareApp">${ic('message')}WhatsApp</button>${hosted ? `<a class="btn btn-tinted tap" href="Sundowns_One_Fan_App.html" download>${ic('download')}App file</a>` : `<button type="button" class="btn btn-tinted tap" data-act="copyLink">${ic('share')}Share</button>`}</div>
+<p class="cap muted">${hosted ? 'WhatsApp sends the link, with its preview. The app file is the whole app in one file: send it as a WhatsApp document and it opens in any browser, even offline.' : 'You’re using the app file. Send it as a WhatsApp document and it opens in any browser, even offline.'} A concept prototype: not on the App Store or Google Play.</p>`,
     });
   }
 
@@ -1668,7 +1807,7 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
   const start = (location.hash || '#today').slice(1);
   const first = ROUTES[start] ? start : 'today';
   stack = chain(first);
-  history.replaceState({ stack }, '', '#' + first);
+  hist('replaceState', { stack }, '#' + first);
   show(first, 'tab');
   ACT.welcome = () => {
       openSheet({

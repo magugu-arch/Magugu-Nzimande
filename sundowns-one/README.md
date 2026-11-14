@@ -13,8 +13,9 @@ own browser storage.
 
 | File | What it is |
 | --- | --- |
-| `Sundowns_One_Fan_App.html` | The whole app in one file (3.7 MB): every image, the crest and the icons are embedded. Works offline. Opens on any phone or computer. |
-| `site/` | The installable web app for hosting: `index.html` plus `img/`, a web app manifest, an offline service worker and home-screen icons. Photos load only when a screen shows them. Upload the folder to any web host. |
+| `Sundowns_One_Fan_App.html` | The whole app in one file (3.9 MB): every image, the crest, icons and metadata embedded. Works offline. Opens on any phone or computer, and can be sent as a WhatsApp document. |
+| `site/` | The installable web app: `index.html` (0.3 MB) plus `img/`, a web app manifest, an offline service worker, home-screen icons and a copy of the single file for its download button. Photos load only when a screen shows them. |
+| `Sundowns_One_Artifact.html` | The same app formatted for the claude.ai Artifact viewer (no document wrapper, no file links, no service worker). |
 | `og-image.jpg` | 1200 × 630 social preview (WhatsApp, X, LinkedIn). |
 | `TESTING.md` | What was tested and how. |
 
@@ -60,6 +61,31 @@ Built to Apple's interface principles, for the web:
   solid, Increase Contrast strengthens edges, and text size goes to 125%.
 - Brand colours come from the supplied material: club yellow, and the deep
   green (#0C3E2E) of the storyboard caption bars.
+
+### Premium layer
+
+- **Immersive headers with parallax.** Thirteen screens open on a full-bleed
+  photo that moves at under half the page's speed, eases in over the first
+  160 px so it never jolts, fades its title as it goes, and stretches when you
+  pull down past the top (iPhone rubber-band). With a mouse, the Today photo
+  leans gently away from the pointer on two critically damped springs.
+- **Photos with depth.** Card photos drift up to 7% as they cross the screen;
+  photos in sideways rails slide as the rail scrolls. Every photo is scaled so
+  it always covers its frame (tested at every scroll step).
+- **Floating glass tab bar** with a lens that slides to the active tab on a
+  spring, in the style of iOS 26.
+- **Wallet-style matchday pass** with gate, block, row and seat, a
+  perforation, and no home-made ticket code.
+- **Passport member card** with a metallic edge, a guilloché texture and a
+  sheen that follows the pointer, or the scroll on a phone.
+- **Live countdown** to kick-off, and a scroll-edge fade under the top bar
+  instead of a hard line.
+- **Get Sundowns One** (More, first row): Add to Home Screen steps for iPhone
+  and Android, an Install button where Android Chrome offers one, Share on
+  WhatsApp, and the app file to send as a document.
+- **Metadata:** Open Graph and X cards with a 1200 × 630 preview, structured
+  data (schema.org WebApplication, marked as a concept), theme colours for
+  light and dark, home-screen icons and a web app manifest.
 
 ## What the app promises (from the brief)
 
@@ -123,10 +149,14 @@ python3 -I prepare_images.py <folder with the 51 uploads>
 # 2. The single file, then write each screen's first render into it
 python3 -I build.py ..
 node prerender.js ../Sundowns_One_Fan_App.html
-# 3. The installable site
+# 3. The installable site, with the single file beside it for its download button
 python3 -I build.py ../site --pwa --out-name index.html \
     --site-url https://your-host/sundowns-one/ --app-url https://your-host/sundowns-one/
 node prerender.js ../site/index.html
+cp ../Sundowns_One_Fan_App.html ../site/
+# 3b. The claude.ai Artifact format
+python3 -I build.py /tmp/viewer --viewer && node prerender.js /tmp/viewer/Sundowns_One_Fan_App.html
+python3 -I make_artifact.py /tmp/viewer/Sundowns_One_Fan_App.html ../Sundowns_One_Artifact.html
 # 4. Check it
 node ../tests/check.js ../Sundowns_One_Fan_App.html
 ```
@@ -139,13 +169,14 @@ once the club approves a public release.
 
 | Source file | Purpose |
 | --- | --- |
-| `src/app.js` | The app: data, screens, router, springs, sheets |
+| `src/app.js` | The app: data, screens, router, springs, sheets, parallax |
 | `src/styles.css` | Design system: tokens, type scale, components, accessibility modes |
 | `src/head.html`, `src/body.html` | Page shell and metadata |
 | `src/icons.json` | Line icons on a 24-point grid |
 | `src/assets.json` | The 51 images: title, alt text, use, status, notes, crops |
 | `src/panels.json` | Measured photo panels inside each storyboard |
 | `src/pwa/` | Manifest, service worker, home-screen icons |
+| `src/make_artifact.py` | Reformats a build for the claude.ai Artifact viewer |
 
 ## Before this goes near production
 

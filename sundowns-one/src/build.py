@@ -43,6 +43,7 @@ def main():
     ap.add_argument("--app-url", default="")
     ap.add_argument("--pwa", action="store_true", help="hosted site build: images as files, manifest, service worker and icons")
     ap.add_argument("--out-name", default="Sundowns_One_Fan_App.html")
+    ap.add_argument("--viewer", action="store_true", help="for an embedding viewer (claude.ai Artifact): no file links, no service worker")
     a = ap.parse_args()
     out = pathlib.Path(a.out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -83,6 +84,7 @@ def main():
     js = (HERE / "app.js").read_text("utf8")
     js = (js.replace("'__APP_URL__'", json.dumps(a.app_url))
             .replace("'__PWA__'", "'on'" if a.pwa else "'off'")
+            .replace("'__VIEWER__'", "'on'" if a.viewer else "'off'")
             .replace("__BUILD_DATE__", dt.date.today().strftime("%-d %B %Y")))
 
     head = (HERE / "head.html").read_text("utf8")

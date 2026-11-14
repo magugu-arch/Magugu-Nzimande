@@ -1,15 +1,18 @@
 # Test results
 
 Run on 14 November 2026 with `tests/check.js` in Playwright's Chromium,
-emulating each device's screen size, touch input and browser identity. These
-are browser-engine checks, not physical phones: WebKit (Safari's engine) isn't
-installed in the build environment, so check once on a real iPhone and a
-lower-cost Android phone before a pitch.
+emulating each device's screen size, touch input and browser identity, and an
+accessibility audit with axe-core 4.10. These are browser-engine checks, not
+physical phones: WebKit (Safari's engine) isn't installed in the build
+environment, so check once on a real iPhone and a lower-cost Android phone
+before a pitch.
 
 | Build | Result |
 | --- | --- |
-| Single file, `Sundowns_One_Fan_App.html`, opened as a file | 24 of 24 pass |
-| Hosted site, `site/`, served over HTTP | 26 of 26 pass |
+| Single file, `Sundowns_One_Fan_App.html`, opened as a file | 29 of 29 pass |
+| Hosted site, `site/`, served over HTTP | 31 of 31 pass |
+| Accessibility (axe-core, WCAG 2.2 AA and best practice): 23 screens, the top and tab bars, 10 sheets, light and dark | No violations |
+| Artifact format, `Sundowns_One_Artifact.html`, in a viewer-style wrapper | 23 of 23 screens, no errors |
 
 ## What's checked
 
@@ -22,11 +25,20 @@ lower-cost Android phone before a pitch.
 | Passport | The club history quiz pays +20 points once |
 | Consent | Message choices start off, nothing in the sheet is pre-ticked, and each change is recorded |
 | Ask Sundowns | Answers cite a source; a refund question goes to a person; an unknown question gets "no checked answer" |
+| Parallax | The Today photo trails the page (168 px behind at 480 px scrolled); on Today, Matchday, Passport, Fan Zone and Community every photo still covers its frame at every 240 px scroll step; the tab lens settles under the active tab |
 | Low-data mode | Photos are dropped |
-| Accessibility settings | Dark mode follows the system; with Reduce Motion, screens change without sliding |
+| Accessibility settings | Dark mode follows the system; with Reduce Motion, screens change without sliding and parallax stays still |
 | JavaScript off | All 23 screens read in full (prerendered), as in iPhone Files or a WhatsApp document preview |
 | Install (site only) | Manifest is served with `display: standalone` and 192 and 512 px icons |
 | Offline (site only) | After one visit the service worker is in control; with the connection off, the app reloads and photos already seen still load |
+
+## Fixed in this round
+
+The axe audit found, and this round fixed: green-on-dark text in system dark
+mode (four light-only colour rules also matched dark mode), footnote text
+below 4.5:1 contrast, links told apart by colour alone, headings that skipped a
+level, carousels that couldn't be scrolled from the keyboard, and the emergency
+buttons at 4.43:1.
 
 Lint: `npx eslint sundowns-one` reports no errors or warnings with the repo's
 configuration.
