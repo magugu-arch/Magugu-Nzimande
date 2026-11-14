@@ -62,6 +62,17 @@ Built to Apple's interface principles, for the web:
 - Brand colours come from the supplied material: club yellow, and the deep
   green (#0C3E2E) of the storyboard caption bars.
 
+### Editorial direction
+
+Art-directed from a supplied reference: a warm near-black ground, a
+high-contrast serif (Playfair Display) whose accent words turn italic and
+yellow, spaced mono labels (DM Mono) led by a short rule, square all-caps
+calls to action, outlined filters, and hero photos that dissolve into the
+page. Every hero pairs a label naming the screen with an editorial headline
+("Your matchday, *sorted.*"). Today opens on a masthead: crest, wordmark and
+a You button. Dark is the house look; Day (light) and Automatic are in You →
+Display. Both fonts are embedded under the SIL Open Font License (`src/fonts/`).
+
 ### Premium layer
 
 - **Immersive headers with parallax.** Thirteen screens open on a full-bleed

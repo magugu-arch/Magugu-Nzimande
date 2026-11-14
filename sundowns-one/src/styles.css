@@ -1,25 +1,77 @@
 /* Sundowns One — fan app styles.
-   Type: the platform's system font (SF Pro on Apple devices, Roboto on Android),
-   with size-specific tracking. Colour: club yellow and the deep green of the
-   supplied storyboards, light and dark. Motion lives in app.js (springs). */
+   Editorial night: a warm near-black ground, Sundowns yellow, a high-contrast
+   serif (Playfair Display) whose accent words turn italic and yellow, spaced
+   mono labels (DM Mono) after a short rule, and square all-caps calls to
+   action. Everything you read at length stays in the platform's system font.
+   Dark is the house look; Day (light) is a choice in You → Display.
+   Motion lives in app.js (springs). */
 
 :root {
-  --yellow: #f6cf35;
-  --on-yellow: #0b2a1e;
+  --yellow: #f2d443;
+  --on-yellow: #12160f;
   --green: #0c3e2e;
   --green-2: #11643f;
   --gold: #c9a54a;
 
-  --bg: #f2f3ee;
+  --bg: #0b0f0c;
+  --bg-2: #121713;
+  --surface: #131a15;
+  --surface-2: #1a221c;
+  --fill: rgba(242, 239, 230, 0.07);
+  --fill-2: rgba(242, 239, 230, 0.13);
+  --label: #f2efe6;
+  --label-2: rgba(242, 239, 230, 0.7);
+  --label-3: rgba(242, 239, 230, 0.46);
+  --sep: rgba(242, 239, 230, 0.11);
+  --line: rgba(242, 239, 230, 0.26);
+  --tint: #f2d443;
+  --tint-fill: rgba(242, 212, 67, 0.12);
+  --danger: #ff7b6f;
+  --danger-fill: rgba(255, 123, 111, 0.13);
+  --ok: #5fd394;
+  --sample: #f4c76c;
+  --sample-fill: rgba(244, 199, 108, 0.13);
+  --material: rgba(13, 18, 14, 0.74);
+  --material-edge: rgba(255, 255, 255, 0.08);
+  --card-edge: rgba(242, 239, 230, 0.075);
+  --shadow: none;
+  --scrim: rgba(0, 0, 0, 0.62);
+  --lens: rgba(242, 239, 230, 0.12);
+  --thumb: #2b342e;
+  --accent-ink: #f2d443;
+
+  --display: "Playfair Display", "Bodoni 72", Didot, "Times New Roman", Georgia, serif;
+  --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --r-card: 18px;
+  --r-list: 14px;
+  --nav-h: 44px;
+  --tab-h: 64px;
+  --side-w: 0px;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --flow-safe-t: var(--safe-t);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --gutter: 16px;
+  --press: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  color-scheme: dark;
+  font: 100%/1.4 -apple-system, system-ui, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+/* Day: chosen in You → Display (or by a viewer set to light). */
+:root[data-theme="light"] {
+  --bg: #f3f1ea;
   --bg-2: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f6f7f3;
-  --fill: rgba(12, 62, 46, 0.07);
-  --fill-2: rgba(12, 62, 46, 0.13);
-  --label: #0b1a13;
-  --label-2: rgba(11, 26, 19, 0.66);
-  --label-3: rgba(11, 26, 19, 0.45);
-  --sep: rgba(11, 26, 19, 0.13);
+  --surface-2: #f7f5ef;
+  --fill: rgba(18, 22, 16, 0.06);
+  --fill-2: rgba(18, 22, 16, 0.12);
+  --label: #121610;
+  --label-2: rgba(18, 22, 16, 0.7);
+  --label-3: rgba(18, 22, 16, 0.5);
+  --sep: rgba(18, 22, 16, 0.12);
+  --line: rgba(18, 22, 16, 0.3);
   --tint: #11643f;
   --tint-fill: rgba(17, 100, 63, 0.1);
   --danger: #9f1c14;
@@ -27,83 +79,18 @@
   --ok: #17703f;
   --sample: #8a5a00;
   --sample-fill: rgba(176, 116, 0, 0.12);
-  --material: rgba(244, 245, 240, 0.74);
-  --material-edge: rgba(255, 255, 255, 0.55);
-  --card-edge: transparent;
+  --material: rgba(246, 244, 238, 0.76);
+  --material-edge: rgba(255, 255, 255, 0.6);
+  --card-edge: rgba(18, 22, 16, 0.06);
   --shadow: 0 1px 1px rgba(10, 30, 20, 0.04), 0 6px 14px rgba(10, 30, 20, 0.05), 0 18px 40px rgba(10, 30, 20, 0.06);
   --scrim: rgba(3, 12, 8, 0.42);
-
-  --r-card: 22px;
-  --r-list: 14px;
-  --nav-h: 44px;
-  --tab-h: 64px;
   --lens: rgba(12, 62, 46, 0.09);
-  --side-w: 0px;
-  --safe-t: env(safe-area-inset-top, 0px);
-  --safe-b: env(safe-area-inset-bottom, 0px);
-  --gutter: 16px;
-  --press: cubic-bezier(0.2, 0.8, 0.2, 1);
-
-  color-scheme: light dark;
-  font: 100%/1.4 -apple-system, system-ui, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  --thumb: #ffffff;
+  --accent-ink: #11643f;
+  color-scheme: light;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #040a07;
-    --bg-2: #0c1611;
-    --surface: #101c16;
-    --surface-2: #16241d;
-    --fill: rgba(255, 255, 255, 0.08);
-    --fill-2: rgba(255, 255, 255, 0.14);
-    --label: #f1f4ee;
-    --label-2: rgba(241, 244, 238, 0.68);
-    --label-3: rgba(241, 244, 238, 0.46);
-    --sep: rgba(255, 255, 255, 0.12);
-    --tint: #ffd60a;
-    --tint-fill: rgba(255, 214, 10, 0.13);
-    --danger: #ff6b5f;
-    --danger-fill: rgba(255, 107, 95, 0.13);
-    --ok: #4fd18b;
-    --sample: #ffc55c;
-    --sample-fill: rgba(255, 197, 92, 0.14);
-    --material: rgba(10, 20, 15, 0.72);
-    --material-edge: rgba(255, 255, 255, 0.07);
-    --card-edge: rgba(255, 255, 255, 0.06);
-    --shadow: none;
-    --scrim: rgba(0, 0, 0, 0.55);
-    --lens: rgba(255, 255, 255, 0.13);
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #040a07;
-  --bg-2: #0c1611;
-  --surface: #101c16;
-  --surface-2: #16241d;
-  --fill: rgba(255, 255, 255, 0.08);
-  --fill-2: rgba(255, 255, 255, 0.14);
-  --label: #f1f4ee;
-  --label-2: rgba(241, 244, 238, 0.68);
-  --label-3: rgba(241, 244, 238, 0.46);
-  --sep: rgba(255, 255, 255, 0.12);
-  --tint: #ffd60a;
-  --tint-fill: rgba(255, 214, 10, 0.13);
-  --danger: #ff6b5f;
-  --danger-fill: rgba(255, 107, 95, 0.13);
-  --ok: #4fd18b;
-  --sample: #ffc55c;
-  --sample-fill: rgba(255, 197, 92, 0.14);
-  --material: rgba(10, 20, 15, 0.72);
-  --material-edge: rgba(255, 255, 255, 0.07);
-  --card-edge: rgba(255, 255, 255, 0.06);
-  --shadow: none;
-  --scrim: rgba(0, 0, 0, 0.55);
-  --lens: rgba(255, 255, 255, 0.13);
-  color-scheme: dark;
-}
-:root[data-theme="light"] { color-scheme: light; }
+/* Inside an embedding viewer the page's own top inset is already padded. */
+html.viewer { --flow-safe-t: 0px; }
 
 /* Text size follows the setting in You → Text size (rem everywhere). */
 :root[data-text="large"] { font-size: 112.5%; }
@@ -189,7 +176,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; }
 .screen {
   background: var(--bg);
   min-height: 100vh;
-  padding: calc(var(--safe-t) + var(--nav-h) + 4px) var(--gutter) calc(var(--tab-h) + var(--safe-b) + 48px);
+  padding: calc(var(--flow-safe-t) + var(--nav-h) + 4px) var(--gutter) calc(var(--tab-h) + var(--safe-b) + 48px);
 }
 html.js .screen:not(.active) { display: none; }
 .screen > .wrap { max-width: 720px; margin: 0 auto; }
@@ -341,8 +328,6 @@ html.js .screen:not(.active) { display: none; }
 .seg button { position: relative; z-index: 1; font-size: 0.9375rem; font-weight: 550; border-radius: 8px; padding: 6px 8px; color: var(--label); }
 .seg button[aria-pressed="true"] { font-weight: 650; }
 .seg .thumb { position: absolute; top: 2px; bottom: 2px; left: 2px; border-radius: 8px; background: var(--bg-2); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04); transition: transform 0.36s cubic-bezier(0.25, 0.9, 0.25, 1); }
-:root[data-theme="dark"] .seg .thumb { background: #2b3a32; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .seg .thumb { background: #2b3a32; } }
 
 /* Switch (role="switch" on a checkbox). */
 .switch { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 51px; height: 31px; border-radius: 999px; background: var(--fill-2); cursor: pointer; transition: background-color 0.25s; margin: 0; }
@@ -564,9 +549,11 @@ html.lowdata .step .ph, html.lowdata .media .ph { background-image: repeating-li
   .btn-glass { background: rgba(4, 18, 11, 0.7); }
 }
 @media (prefers-contrast: more) {
-  :root { --sep: rgba(11, 26, 19, 0.4); --label-2: rgba(11, 26, 19, 0.85); --label-3: rgba(11, 26, 19, 0.7); --card-edge: rgba(11, 26, 19, 0.35); }
+  :root { --sep: rgba(242, 239, 230, 0.4); --label-2: rgba(242, 239, 230, 0.9); --label-3: rgba(242, 239, 230, 0.75); --card-edge: rgba(242, 239, 230, 0.35); }
+  :root[data-theme="light"] { --sep: rgba(18, 22, 16, 0.4); --label-2: rgba(18, 22, 16, 0.88); --label-3: rgba(18, 22, 16, 0.72); --card-edge: rgba(18, 22, 16, 0.35); }
   .navbar::before, .tabbar, .sidebar { background: var(--bg-2); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .pcard::after { background: linear-gradient(180deg, rgba(4, 18, 11, 0.25), rgba(4, 18, 11, 0.95)); }
+}
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; scroll-behavior: auto !important; }
@@ -595,7 +582,7 @@ html:not(.js) .screen { min-height: 0; padding-top: 28px; padding-bottom: 28px; 
 .imm {
   position: relative; isolation: isolate; overflow: hidden; color: #fff;
   display: flex; flex-direction: column; justify-content: flex-end;
-  margin: calc(-1 * (var(--safe-t) + var(--nav-h) + 4px)) calc(-1 * var(--gutter)) 18px;
+  margin: calc(-1 * (var(--flow-safe-t) + var(--nav-h) + 4px)) calc(-1 * var(--gutter)) 18px;
   height: min(74vh, 640px); min-height: 460px; background: var(--green);
 }
 .imm-media { position: absolute; inset: 0; z-index: -2; transform-origin: 50% 100%; will-change: transform; }
@@ -700,3 +687,86 @@ html:not(.js) .imm { margin-top: -28px; }
 /* Links inside running text are underlined, not told apart by colour alone. */
 p a, .list-foot a, .sec-note a, .foot-note a { text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
 .rail[tabindex]:focus-visible { outline-offset: -2px; border-radius: 18px; }
+
+
+/* ---------- Editorial layer ---------- */
+/* Display serif for headlines and big numbers; its accent words go italic. */
+.lt, .t1, .t2, .t3, .sec-head h2, .pass h3, .mc-pts, .cd b, .date-tile b, .score, .board .sc, .ps-grid dd, .kpis b { font-family: var(--display); }
+.lt { font-size: 2.5rem; font-weight: 500; line-height: 1.04; letter-spacing: -0.02em; text-wrap: balance; }
+.t1 { font-size: 2rem; font-weight: 500; line-height: 1.08; letter-spacing: -0.015em; }
+.t2 { font-size: 1.625rem; font-weight: 500; line-height: 1.12; letter-spacing: -0.012em; }
+.t3 { font-size: 1.375rem; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
+.lt em, .t1 em, .t2 em, .t3 em, .sec-head h2 em { font-style: italic; font-weight: 400; color: var(--accent-ink); }
+.sec-head { margin-top: 42px; }
+.sec-head h2 { font-size: 1.75rem; font-weight: 500; line-height: 1.15; letter-spacing: -0.015em; }
+.sec-head a, .sec-head button { font: 500 0.6875rem/1.4 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-ink); }
+.score, .board .sc { font-weight: 600; }
+.cd b { font-size: 2.125rem; font-weight: 500; }
+.date-tile b { font-weight: 500; font-size: 1.375rem; }
+.kpis b { font-weight: 500; }
+
+/* Mono labels, spaced. */
+.eyebrow { font: 500 0.6875rem/1.45 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--label-2); }
+.lt-head .eyebrow, .imm .eyebrow { display: flex; align-items: baseline; gap: 14px; color: var(--accent-ink); letter-spacing: 0.2em; }
+.lt-head .eyebrow::before, .imm .eyebrow::before { content: ""; flex: none; width: 34px; height: 1.5px; background: currentColor; transform: translateY(-0.32em); }
+.pill { font: 500 0.625rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; }
+.cd small, .ps-grid dt, .mc-brand, .mc-foot, .date-tile small, .kpis small { font-family: var(--mono); letter-spacing: 0.12em; }
+.mc-foot b { font-family: -apple-system, system-ui, sans-serif; letter-spacing: 0; }
+
+/* Calls to action: square, tracked capitals. */
+.btn { border-radius: 4px; min-height: 52px; padding: 0 22px; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.btn svg { width: 18px; height: 18px; }
+.btn-sm { min-height: 40px; padding: 0 14px; font-size: 0.6875rem; letter-spacing: 0.12em; }
+.btn-tinted { background: transparent; color: var(--label); box-shadow: inset 0 0 0 1px var(--line); }
+.btn-glass { background: rgba(11, 15, 12, 0.3); color: #fff; box-shadow: inset 0 0 0 1px rgba(242, 239, 230, 0.5); }
+.btn-plain { text-transform: none; letter-spacing: -0.01em; font-size: 1rem; font-weight: 500; color: var(--tint); }
+.btn.tap:active { transform: scale(0.985); }
+
+/* Filters and answers: outlined; chosen = yellow. */
+.chip { background: transparent; box-shadow: inset 0 0 0 1px var(--line); font-weight: 500; }
+.chip[aria-pressed="true"] { background: var(--yellow); color: var(--on-yellow); box-shadow: none; }
+.seg .thumb { background: var(--thumb); }
+
+/* Heroes: the photo dissolves into the night below it. */
+.imm { height: min(82vh, 740px); min-height: 540px; }
+.imm::after { background: linear-gradient(180deg, rgba(11, 15, 12, 0) 24%, rgba(11, 15, 12, 0.48) 50%, rgba(11, 15, 12, 0.9) 78%, var(--bg) 100%); }
+:root[data-theme="light"] .imm::after { background: linear-gradient(180deg, rgba(4, 18, 11, 0) 34%, rgba(4, 18, 11, 0.5) 60%, rgba(4, 18, 11, 0.92) 100%); }
+.imm-body { padding-bottom: 34px; }
+.imm .eyebrow { color: var(--yellow); font-size: 0.75rem; }
+.imm .lt { font-family: var(--display); font-weight: 400; font-size: 3.25rem; line-height: 0.98; letter-spacing: -0.022em; margin-top: 16px; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.3); }
+.imm .lt em { color: var(--yellow); font-weight: 400; }
+.imm-sub { margin-top: 18px; font-size: 1.125rem; line-height: 1.55; color: rgba(242, 239, 230, 0.84); }
+.imm .btns { margin-top: 26px; gap: 10px; }
+@media (max-width: 699px) { .imm .btns .btn { flex: 1 1 100%; } }
+@media (min-width: 700px) { .imm .lt { font-size: 4.75rem; } }
+@media (max-width: 359px) { .imm .lt { font-size: 2.75rem; } }
+
+/* Today's masthead: crest and wordmark, the way a title page opens. */
+.wordmark { display: flex; align-items: center; gap: 11px; color: #fff; }
+.wordmark .crest { width: 40px; height: 40px; filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.35)); }
+.wordmark b { display: block; font: 400 1.1875rem/1 var(--display); letter-spacing: 0.09em; text-transform: uppercase; }
+.wordmark small { display: block; margin-top: 6px; font: 400 0.5625rem/1 var(--mono); letter-spacing: 0.26em; text-transform: uppercase; color: rgba(242, 239, 230, 0.72); }
+.menu-pill { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 12px; border-radius: 999px; font: 500 0.6875rem/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
+.menu-pill svg { width: 18px; height: 18px; }
+.concept-line { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; font: 400 0.6875rem/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: rgba(242, 239, 230, 0.74); }
+.concept-line svg { width: 14px; height: 14px; color: var(--yellow); }
+
+/* Cards a touch tighter and calmer at night. */
+.tabbar a[aria-current="page"] { color: var(--accent-ink); }
+.quick a, .quick button { font-size: 0.75rem; }
+.stamp { font-family: var(--mono); font-size: 0.5625rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.next .vs { font-family: var(--display); font-style: italic; font-size: 1.125rem; }
+/* Big numbers sit on the line and in columns. */
+.cd b, .date-tile b, .score, .board .sc, .ps-grid dd, .mc-pts, .kpis b, .num { font-variant-numeric: lining-nums tabular-nums; }
+/* A screen sliding in from the right must never widen the page mid-transition. */
+.stage { overflow-x: hidden; }
+@supports (overflow: clip) { .stage { overflow-x: clip; } html { overflow-x: clip; } }
+/* Labels in narrow cards stay on one line where they can. */
+.grid2 .media .eyebrow, .agrid .media .eyebrow, .rail .media .eyebrow { letter-spacing: 0.08em; font-size: 0.625rem; }
+.kpis small { font-family: inherit; letter-spacing: 0; }
+.wordmark b { white-space: nowrap; }
+@media (max-width: 374px) {
+  .wordmark b { font-size: 1rem; letter-spacing: 0.06em; }
+  .wordmark small { display: none; }
+  .wordmark .crest { width: 34px; height: 34px; }
+}

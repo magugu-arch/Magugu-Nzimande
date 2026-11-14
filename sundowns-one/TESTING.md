@@ -9,9 +9,9 @@ before a pitch.
 
 | Build | Result |
 | --- | --- |
-| Single file, `Sundowns_One_Fan_App.html`, opened as a file | 29 of 29 pass |
-| Hosted site, `site/`, served over HTTP | 31 of 31 pass |
-| Accessibility (axe-core, WCAG 2.2 AA and best practice): 23 screens, the top and tab bars, 10 sheets, light and dark | No violations |
+| Single file, `Sundowns_One_Fan_App.html`, opened as a file | 31 of 31 pass |
+| Hosted site, `site/`, served over HTTP | 33 of 33 pass |
+| Accessibility (axe-core, WCAG 2.2 AA and best practice): 23 screens, the top and tab bars, 10 sheets, Dark and Day | No violations |
 | Artifact format, `Sundowns_One_Artifact.html`, in a viewer-style wrapper | 23 of 23 screens, no errors |
 
 ## What's checked
@@ -27,12 +27,23 @@ before a pitch.
 | Ask Sundowns | Answers cite a source; a refund question goes to a person; an unknown question gets "no checked answer" |
 | Parallax | The Today photo trails the page (168 px behind at 480 px scrolled); on Today, Matchday, Passport, Fan Zone and Community every photo still covers its frame at every 240 px scroll step; the tab lens settles under the active tab |
 | Low-data mode | Photos are dropped |
-| Accessibility settings | Dark mode follows the system; with Reduce Motion, screens change without sliding and parallax stays still |
+| Appearance | Dark by default, Day when chosen in You → Display, kept after a reload |
+| Transitions | No sideways overflow while a screen slides in (measured 120 ms into the slide) |
+| Accessibility settings | With Reduce Motion, screens change without sliding and parallax stays still |
 | JavaScript off | All 23 screens read in full (prerendered), as in iPhone Files or a WhatsApp document preview |
 | Install (site only) | Manifest is served with `display: standalone` and 192 and 512 px icons |
 | Offline (site only) | After one visit the service worker is in control; with the connection off, the app reloads and photos already seen still load |
 
-## Fixed in this round
+## Fixed in the editorial round
+
+A screen sliding in from the right made the page twice as wide for about a
+quarter of a second (780 px on a 390 px phone), which can show as a sideways
+wobble or zoom mid-transition; the stage now clips it. Also fixed: the
+serif's old-style numerals in the countdown and scores (now lining figures),
+mono labels wrapping in narrow cards, and the wordmark crowding the You button
+on 320 px phones.
+
+## Fixed in the previous round
 
 The axe audit found, and this round fixed: green-on-dark text in system dark
 mode (four light-only colour rules also matched dark mode), footnote text

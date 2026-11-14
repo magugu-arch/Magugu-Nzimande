@@ -78,7 +78,7 @@
   const DEFAULTS = {
     seenWelcome: false,
     teams: { men: true, women: true, academy: true },
-    appearance: 'system',
+    appearance: 'dark',
     textSize: 'default',
     lowData: false,
     consent: { matches: { push: false, whatsapp: false, email: false }, club: { push: false, whatsapp: false, email: false }, partners: { push: false, whatsapp: false, email: false } },
@@ -267,7 +267,7 @@
   // A full-bleed photo header. The photo moves slower than the page (parallax),
   // stretches on pull-down, and the large title hands over to the bar on scroll.
   function immersive(id, o) {
-    return `<header class="imm${o.lean ? ' lean' : ''}"><div class="imm-media">${ph(id, '', false).replace('class="ph', `style="${o.pos ? `background-position:${o.pos}` : ''}" class="ph`)}</div>${o.top ? `<div class="imm-top">${o.top}</div>` : ''}<div class="imm-body">${o.eyebrow ? `<p class="eyebrow">${o.eyebrow}</p>` : ''}<h1 class="lt" data-lt tabindex="-1">${o.title}</h1>${o.sub ? `<p class="imm-sub">${o.sub}</p>` : ''}${o.actions ? `<div class="btns">${o.actions}</div>` : ''}</div></header>`;
+    return `<header class="imm${o.lean ? ' lean' : ''}"><div class="imm-media">${ph(id, '', false).replace('class="ph', `style="${o.pos ? `background-position:${o.pos}` : ''}" class="ph`)}</div>${o.top ? `<div class="imm-top">${o.top}</div>` : ''}<div class="imm-body">${o.eyebrow ? `<p class="eyebrow">${o.eyebrow}</p>` : ''}<h1 class="lt" data-lt tabindex="-1">${o.title}</h1>${o.sub ? `<p class="imm-sub">${o.sub}</p>` : ''}${o.actions ? `<div class="btns">${o.actions}</div>` : ''}${o.after || ''}</div></header>`;
   }
   // The Passport as a member card: metallic edge, a sheen that follows you.
   function memberCard(mini) {
@@ -306,7 +306,7 @@
   function rToday() {
     const f = nextHome();
     const done = planProgress();
-    return `${immersive('7676', { pos: '74% 40%', lean: true, top: `${crest('crest imm-crest')}<span class="imm-tools"><button type="button" class="pill glass tap" data-go="about">${ic('info')}Concept · sample data</button><button type="button" class="avatar glass tap" data-go="profile" aria-label="You: profile and settings">${ic('person')}</button></span>`, eyebrow: `${fmt(new Date(), { weekday: 'long', day: 'numeric', month: 'long' })} · The Yellow Nation`, title: 'The Sky is<br><span>the Limit.</span>', sub: 'Your club, your people and every matchday, in one place.', actions: `<button type="button" class="btn btn-primary tap" data-go="planner">Plan your matchday</button><button type="button" class="btn btn-glass tap" data-go="matches">Matches</button>` })}<div class="wrap">
+    return `${immersive('7676', { pos: '74% 40%', lean: true, top: `<span class="wordmark">${crest('crest')}<span><b>Sundowns One</b><small>Matchday · Passport · Nation</small></span></span><button type="button" class="menu-pill glass tap" data-go="profile" aria-label="You: profile and settings">${ic('person')}You</button>`, eyebrow: `The Yellow Nation · ${fmt(new Date(), { weekday: 'long', day: 'numeric', month: 'long' })}`, title: 'The Sky is<br><em>the Limit.</em>', sub: 'Your club, your people and every matchday, in one place.', actions: `<button type="button" class="btn btn-primary tap" data-go="planner">Plan your matchday${ic('arrowR')}</button><button type="button" class="btn btn-glass tap" data-go="matches">See the fixtures</button>`, after: `<button type="button" class="concept-line tap" data-go="about">${ic('info')}Concept prototype · sample data</button>` })}<div class="wrap">
 
 <section class="card next" aria-labelledby="nextT">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><p class="eyebrow">${daysTo(f) === 0 ? 'Today · home match' : 'Next home match'}</p>${SAMPLE}</div>
@@ -365,7 +365,7 @@ ${footNote()}
     const byMonth = {};
     FIXTURES.forEach((f) => { (byMonth[fmt(f.date, { month: 'long', year: 'numeric' })] ||= []).push(f); });
     return `<div class="wrap">
-${head('Matches')}
+${head('Every <em>match.</em>', { eyebrow: 'Matches · all teams' })}
 ${seg('matches', [['fixtures', 'Fixtures'], ['results', 'Results']], 'Fixtures or results')}
 <div class="chips" role="group" aria-label="Team" style="margin-top:12px">${[['all', 'All teams'], ['men', 'Men'], ['women', 'Women'], ['academy', 'Academy']].map(([k, t]) => `<button type="button" class="chip tap" data-act="teamFilter" data-arg="${k}" aria-pressed="${tf === k}">${t}</button>`).join('')}</div>
 <button type="button" class="pcard r-short tap" style="margin-top:14px" data-go="live">${ph('7679')}<div class="body"><div style="display:flex;gap:6px;margin-bottom:8px">${pill('● Live preview')}${SAMPLE}</div><h2 class="t3">Match Centre</h2><p>Timeline, stats and the Player of the Match vote, as they'd look during a game.</p></div></button>
@@ -388,7 +388,7 @@ ${footNote()}
     const opts = [['a', 'Player A'], ['b', 'Player B'], ['c', 'Player C']];
     const share = { a: 46, b: 31, c: 23 };
     return `<div class="wrap">
-${head('Match Centre', { eyebrow: 'Sample match · not a real result' })}
+${head('Match <em>Centre</em>', { eyebrow: 'Sample match · not a real result' })}
 <section class="pcard r-mid" aria-label="Scoreboard, sample">${ph('7677', '', true)}<div class="body" style="justify-content:center">
   <div class="board">
     <div>${badgeUs()}<p class="nm">${USS.men}</p></div>
@@ -426,7 +426,7 @@ ${footNote()}
   function rMatchday() {
     const f = nextHome();
     const done = planProgress();
-    return `${immersive('7687', { pos: 'center 32%', eyebrow: `${when(f)} · ${esc(matchName(f))}`, title: 'Matchday', sub: 'Your matchday, sorted: ticket, travel, gate, seat and food, in the order you need them.' })}<div class="wrap">
+    return `${immersive('7687', { pos: 'center 32%', eyebrow: `Matchday · ${when(f)} · ${esc(matchName(f))}`, title: 'Your matchday,<br><em>sorted.</em>', sub: 'Ticket, travel, gate, seat and food, in the order you need them.' })}<div class="wrap">
 
 ${state.ticketLinked ? pass(f) : `<section class="card card-pad" aria-labelledby="tkT">
   <p class="eyebrow">Your ticket</p>
@@ -463,7 +463,7 @@ ${footNote()}
     const p = state.planner;
     const f = fixture(p.fixture) || nextHome();
     const done = p.checks.length;
-    return `${immersive('7688', { pos: 'center 40%', eyebrow: 'Plan together', title: 'Matchday planner', sub: 'Less stress, more matchday. Your plan stays on this phone.' })}<div class="wrap">
+    return `${immersive('7688', { pos: 'center 40%', eyebrow: 'Matchday planner', title: 'Less stress.<br><em>More matchday.</em>', sub: 'Crew, travel, budget and a checklist. Your plan stays on this phone.' })}<div class="wrap">
 
 ${sec('The match')}
 ${list([row({ act: 'pickFixture', icon: 'calendar', c: '#0c3e2e', t: esc(matchName(f)), s: `${when(f, { weekday: 'long', day: 'numeric', month: 'long' })} · ${kick(f)} · sample` })])}
@@ -529,7 +529,7 @@ ${footNote()}
 
   function rStadium() {
     return `<div class="wrap">
-${head('Stadium guide', { eyebrow: 'Loftus Versfeld · illustrative' })}
+${head('Find <em>your way.</em>', { eyebrow: 'Stadium guide · illustrative' })}
 ${note('Illustrative map. The venue’s approved, versioned plan replaces it before anyone relies on it.')}
 <div class="chips" role="group" aria-label="Show on the map" style="margin-top:14px">${[['all', 'Everything'], ['gate', 'Gates'], ['food', 'Food'], ['wc', 'Toilets'], ['aid', 'First aid'], ['access', 'Accessible'], ['help', 'Help points']].map(([k, t], i) => `<button type="button" class="chip tap" data-act="mapFilter" data-arg="${k}" aria-pressed="${i === 0}">${t}</button>`).join('')}</div>
 <div style="margin-top:12px">${stadiumMap()}</div>
@@ -563,7 +563,7 @@ ${footNote()}
   }
 
   function rTravel() {
-    return `${immersive('7683', { pos: '45% center', eyebrow: HOME_VENUE, title: 'Getting there', sub: 'Arrive relaxed.', actions: `<a class="btn btn-primary tap" href="https://maps.google.com/?q=Loftus+Versfeld+Stadium+Pretoria" target="_blank" rel="noopener">${ic('map')}Open in Maps</a><button type="button" class="btn btn-glass tap" data-go="planner">Add to my plan</button>` })}<div class="wrap">
+    return `${immersive('7683', { pos: '45% center', eyebrow: 'Getting there · Loftus Versfeld', title: 'Arrive<br><em>relaxed.</em>', sub: HOME_VENUE, actions: `<a class="btn btn-primary tap" href="https://maps.google.com/?q=Loftus+Versfeld+Stadium+Pretoria" target="_blank" rel="noopener">${ic('map')}Open in Maps</a><button type="button" class="btn btn-glass tap" data-go="planner">Add to my plan</button>` })}<div class="wrap">
 ${sec('Ways to get there', { note: 'Details come from the venue’s approved transport plan. Sundowns One never guesses a route or a car park.' })}
 ${list([
       row({ icon: 'car', c: '#2563eb', t: 'Driving and parking', s: 'Approved parking areas and when they open', act: 'travelInfo', arg: 'car' }),
@@ -582,7 +582,7 @@ ${footNote()}
   function rFood() {
     const items = Object.values(state.tray).reduce((a, b) => a + b, 0);
     const order = state.order;
-    return `${immersive('7684', { pos: 'center 35%', eyebrow: 'Concourse food', title: 'Food and drink', sub: 'Eat well, miss nothing. Order ahead where it’s offered.' })}<div class="wrap">
+    return `${immersive('7684', { pos: 'center 35%', eyebrow: 'Food and drink', title: 'Eat well.<br><em>Miss nothing.</em>', sub: 'See what’s on, and order ahead where it’s offered.' })}<div class="wrap">
 ${sec('Order ahead · pilot')}
 ${steps('7725')}
 <div style="margin-top:14px">${note('Order-ahead runs only at counters that can take payment, give refunds and hand over orders. You can always order at the counter.')}</div>
@@ -595,7 +595,7 @@ ${footNote()}
   }
 
   function rAccess() {
-    return `${immersive('7691', { pos: '40% center', eyebrow: 'Everyone belongs here', title: 'Accessibility and family', sub: 'Step-free routes, stewards who help, and a person to talk to.' })}<div class="wrap">
+    return `${immersive('7691', { pos: '40% center', eyebrow: 'Accessibility and family', title: 'Get in,<br><em>your way.</em>', sub: 'Step-free routes, stewards who help, and a person to talk to.' })}<div class="wrap">
 ${sec('Accessibility', { note: 'Services are confirmed with the venue and tested with supporters who use them before launch.' })}
 ${list([
       row({ icon: 'access', c: '#0f766e', t: 'Accessible entrance', s: 'Step-free, with stewards on hand' }),
@@ -622,7 +622,7 @@ ${footNote()}
       ['Home match', v >= 1], ['Home match', v >= 2], ['Home match', v >= 3], ['Away day', false],
       ['Cup tie', false], ['Sundowns Ladies', false], ['Community day', false], ['Heritage quiz', state.quiz.done],
     ];
-    return `${immersive('7699', { pos: 'center 30%', top: `<span></span><span class="imm-tools"><button type="button" class="nav-btn glass tap" data-act="passportRules" aria-label="Passport rules">${ic('info')}</button></span>`, eyebrow: 'Yellow Nation', title: 'Passport', sub: 'Belonging is the reward. Stamps and points for turning up and taking part.' })}<div class="wrap">
+    return `${immersive('7699', { pos: 'center 30%', top: `<span></span><span class="imm-tools"><button type="button" class="nav-btn glass tap" data-act="passportRules" aria-label="Passport rules">${ic('info')}</button></span>`, eyebrow: 'Yellow Nation Passport', title: 'Belonging is<br><em>the reward.</em>', sub: 'Stamps and points for turning up and taking part.' })}<div class="wrap">
 ${memberCard()}
 
 ${sec('Stamps', { note: 'Each stamp is for something you did: a verified match, a community day, a quiz.' })}
@@ -650,7 +650,7 @@ ${footNote()}
     const pr = state.prediction;
     const qz = state.quiz;
     const score = QUIZ.filter((q, i) => qz.answers[i] === q.c).length;
-    return `${immersive('7689', { pos: '40% center', eyebrow: 'The Yellow Nation lives here', title: 'Fan Zone', sub: 'Play along. No betting, just bragging rights.' })}<div class="wrap">
+    return `${immersive('7689', { pos: '40% center', eyebrow: 'Fan Zone', title: 'Play along.<br><em>No betting.</em>', sub: 'Predict, quiz and take the stadium challenge. Bragging rights only.' })}<div class="wrap">
 
 ${sec('Predict the score', { note: `${esc(matchName(f))} · ${when(f)} · sample fixture` })}
 <section class="card"><div class="ph a7693" style="aspect-ratio:16/8;background-position:center 30%" role="img" aria-label="${esc(alt('7693'))}"></div><div class="card-pad">
@@ -687,7 +687,7 @@ ${footNote()}
 
   function rWatch() {
     const item = (w) => `<button type="button" class="card media tap" data-act="watchItem" data-arg="${w.id}" data-type="${w.type}">${ph(w.img)}<div class="mb"><p class="eyebrow">${w.type === 'audio' ? 'Listen' : 'Watch'} · ${w.len}</p><h3>${w.t}</h3><p>${w.rights}</p></div></button>`;
-    return `${immersive('7697', { pos: '45% center', eyebrow: `Sundowns TV · sample`, title: 'Watch and Listen', sub: 'Inside the studio: the week ahead, with the people who make the club.', actions: `<button type="button" class="btn btn-primary tap" data-act="watchItem" data-arg="w1">${ic('play')}Watch now</button>` })}<div class="wrap">
+    return `${immersive('7697', { pos: '45% center', eyebrow: 'Watch and Listen · Sundowns TV', title: 'Inside<br><em>the studio.</em>', sub: 'The week ahead, with the people who make the club. Sample content.', actions: `<button type="button" class="btn btn-primary tap" data-act="watchItem" data-arg="w1">${ic('play')}Watch now</button>` })}<div class="wrap">
 ${sec('Latest')}<div>${seg('watch', [['all', 'All'], ['video', 'Video'], ['audio', 'Audio']], 'Show')}</div>
 <div class="grid2 wide3" style="margin-top:14px" id="watchGrid">${WATCH.map((w) => `<div data-type="${w.type}" ${(state.segs.watch || 'all') === 'all' || state.segs.watch === w.type ? '' : 'hidden'}>${item(w)}</div>`).join('')}</div>
 <div style="margin-top:14px">${note('Every video and clip carries its rights before it goes live. Captions and transcripts come as standard, and low-data audio is there for matchdays.', 'info')}</div>
@@ -698,7 +698,7 @@ ${footNote()}
   function rCommunity() {
     const f = nextHome();
     const away = FIXTURES.find((x) => !x.home && x.team === 'men');
-    return `${immersive('7692', { pos: '35% center', eyebrow: 'Your people', title: 'Community', sub: 'Branches, watch parties, away days and Masandawana around the world.' })}<div class="wrap">
+    return `${immersive('7692', { pos: '35% center', eyebrow: 'Community', title: 'Different places.<br><em>One family.</em>', sub: 'Branches, watch parties, away days and Masandawana around the world.' })}<div class="wrap">
 <div style="margin-top:16px">${seg('community', [['near', 'Near you'], ['global', 'Global'], ['away', 'Away days']], 'Community')}</div>
 
 <div data-panel-of="community" data-panel="near" ${panelHidden('community', 'near', 'near')}>
@@ -734,7 +734,7 @@ ${footNote()}
   }
 
   function rExperiences() {
-    return `${immersive('7705', { pos: '30% center', eyebrow: 'Hospitality and more', title: 'Experiences', sub: 'Matchday, upgraded: a lounge seat, a proper meal and the whole pitch in view.', actions: `<button type="button" class="btn btn-primary tap" data-act="experience" data-arg="hosp">See hospitality</button>` })}<div class="wrap">
+    return `${immersive('7705', { pos: '30% center', eyebrow: 'Experiences', title: 'Matchday,<br><em>upgraded.</em>', sub: 'A lounge seat, a proper meal and the whole pitch in view.', actions: `<button type="button" class="btn btn-primary tap" data-act="experience" data-arg="hosp">See hospitality${ic('arrowR')}</button>` })}<div class="wrap">
 <div style="margin-top:14px">${note('Registering interest isn’t a booking. Dates, prices and availability come from the booking provider.')}</div>
 ${sec('Choose an experience')}
 <div class="grid2">${EXPERIENCES.slice(1).map((e) => `<button type="button" class="card media tap" data-act="experience" data-arg="${e.id}">${ph(e.img, 'sq')}<div class="mb"><p class="eyebrow">${e.k}</p><h3>${e.t}</h3>${state.interests.includes(e.id) ? `<p>${pill(`${ic('check')}Interested`, 'ok')}</p>` : ''}</div></button>`).join('')}</div>
@@ -743,7 +743,7 @@ ${footNote()}
   }
 
   function rStore() {
-    return `${immersive('7698', { pos: '40% 30%', eyebrow: 'Wear the yellow', title: 'Official Store', sub: 'Kits, training wear and gifts from the official store.', actions: `<button type="button" class="btn btn-primary tap" data-act="storeOpen">${ic('bag')}Shop the official store</button>` })}<div class="wrap">
+    return `${immersive('7698', { pos: '40% 30%', eyebrow: 'Official Store', title: 'Wear<br><em>the yellow.</em>', sub: 'Kits, training wear and gifts from the official store.', actions: `<button type="button" class="btn btn-primary tap" data-act="storeOpen">Shop the official store${ic('arrowR')}</button>` })}<div class="wrap">
 <div class="chips" role="group" aria-label="Categories" style="margin-top:16px">${['Kits', 'Training', 'Lifestyle', 'Kids', 'Accessories', 'Gifts'].map((c) => `<button type="button" class="chip tap" data-act="storeOpen" data-arg="${c}">${c}</button>`).join('')}</div>
 <div style="margin-top:14px">${note('Products, prices, member discounts and stock come from the official store. Sundowns One doesn’t take payment.')}</div>
 ${sec('On matchday')}
@@ -764,7 +764,7 @@ ${footNote()}
       ['Global Masandawana Partner', 'Connects supporters abroad.', 'globe', '#11643f'],
     ];
     return `<div class="wrap">
-${head('Partner World')}
+${head('Partner <em>World</em>', { eyebrow: 'Partners · to be confirmed' })}
 ${note('No partner is named until a contract is signed. These are the kinds of useful things a partner could fund.')}
 <section class="card media" style="margin-top:14px">${ph('7700')}<div class="mb"><p class="eyebrow">Member benefit · partner TBC</p><h2>Your membership, at the till</h2><p>Show your Passport and a partner-funded benefit applies. A claim only counts once it’s actually redeemed.</p></div></section>
 ${sec('What partners could make possible')}
@@ -776,7 +776,7 @@ ${footNote()}
   }
 
   function rImpact() {
-    return `${immersive('7701', { pos: 'center 40%', eyebrow: 'Next generation', title: 'Club Impact', sub: 'Football that builds futures, in schools, townships and communities.' })}<div class="wrap">
+    return `${immersive('7701', { pos: 'center 40%', eyebrow: 'Club Impact', title: 'Football that<br><em>builds futures.</em>', sub: 'Programmes in schools, townships and communities.' })}<div class="wrap">
 ${sec('Programmes', { note: 'Outcomes are published once each programme owner has verified them.' })}
 <div class="grid2">
   <section class="card media">${ph('7704', 'sq')}<div class="mb"><p class="eyebrow">Women and girls</p><h3>Room to play, and to lead</h3></div></section>
@@ -828,7 +828,7 @@ ${footNote()}
   }
   function rAsk() {
     return `<div class="wrap">
-${head('Ask Sundowns')}
+${head('Ask <em>Sundowns</em>', { eyebrow: 'Answers with sources' })}
 <section class="card media">${ph('7707')}<div class="mb"><p class="eyebrow">A guide, not the final word</p><h2>Answers with their source, or a person</h2><p>Every answer says where it came from. If there isn’t a checked answer, it says so.</p></div></section>
 <div class="chips" role="group" aria-label="Try asking" style="margin-top:16px">${['How do I get tickets?', 'Where is the accessible entrance?', 'When is the next match?', 'How do Passport points work?', 'Can I get a refund?'].map((q) => `<button type="button" class="chip tap" data-act="askChip" data-arg="${esc(q)}">${q}</button>`).join('')}</div>
 <div class="chat" id="chatLog" aria-live="polite" style="margin-top:16px">${chatHTML()}</div>
@@ -839,7 +839,7 @@ ${head('Ask Sundowns')}
 
   function rHelp() {
     return `<div class="wrap">
-${head('Help and safety')}
+${head('Help is <em>close.</em>', { eyebrow: 'Help and safety' })}
 <section class="card card-pad" style="background:var(--danger-fill);box-shadow:none" aria-labelledby="emT"><div style="display:flex;gap:12px"><span class="ic lg" style="--c:#c0352b">${ic('warn')}</span><div><h2 id="emT" class="t3">In an emergency</h2><p style="margin-top:4px">Tell the nearest steward or go to a help point. From a mobile, call 112.</p></div></div><div class="btns"><a class="btn btn-danger btn-sm" href="tel:112">${ic('phone')}112</a><a class="btn btn-danger btn-sm" href="tel:10177">Ambulance 10177</a><a class="btn btn-danger btn-sm" href="tel:10111">Police 10111</a></div></section>
 <p class="list-foot">Safety messages never depend on your marketing choices.</p>
 ${sec('At the stadium')}
@@ -858,8 +858,9 @@ ${footNote()}
 
   const channelsOn = (p) => CHANNELS.filter(([c]) => state.consent[p][c]).map(([, t]) => t.replace(' notifications', ''));
   function rProfile() {
+    state.segs.appearance = state.appearance;
     return `<div class="wrap">
-${head('You')}
+${head('Your <em>choices.</em>', { eyebrow: 'You · settings and privacy' })}
 <section class="card card-pad" style="display:flex;gap:14px;align-items:center"><span class="avatar" style="width:56px;height:56px;margin:0">${ic('person')}</span><div style="flex:1"><h2 class="t3">Browsing as a guest</h2><p class="muted sub">Everything public works without an account. Sign in only to link tickets or membership.</p></div></section>
 
 ${sec('Teams you follow')}
@@ -871,7 +872,7 @@ ${state.consentLog.length ? `<p class="list-foot">Your last change: ${esc(state.
 
 ${sec('Display')}
 <ul class="list">
-  <li><div class="row" style="display:block"><b style="display:block;font-weight:500;margin-bottom:10px">Appearance</b>${seg('appearance', [['system', 'Automatic'], ['light', 'Light'], ['dark', 'Dark']], 'Appearance').replace('data-seg="appearance"', 'data-seg="appearance" data-apply="appearance"')}</div></li>
+  <li><div class="row" style="display:block"><b style="display:block;font-weight:500;margin-bottom:10px">Appearance</b>${seg('appearance', [['dark', 'Dark'], ['light', 'Light'], ['system', 'Automatic']], 'Appearance').replace('data-seg="appearance"', 'data-seg="appearance" data-apply="appearance"')}</div></li>
   <li><div class="row" style="display:block"><b style="display:block;font-weight:500;margin-bottom:10px">Text size</b>${seg('textSize', [['default', 'Default'], ['large', 'Large'], ['xl', 'Larger']], 'Text size').replace('data-seg="textSize"', 'data-seg="textSize" data-apply="textSize"')}</div></li>
 </ul>
 
@@ -901,7 +902,7 @@ ${footNote()}
 
   function rMore() {
     return `<div class="wrap">
-${head('More')}
+${head('<em>More</em>', { eyebrow: 'All of Sundowns One' })}
 <button type="button" class="card get-app tap" data-act="install"><span class="ic lg" style="--c:#0c3e2e">${crest('crest')}</span><span class="rt"><b>Get Sundowns One</b><small>Add it to your home screen, or share it on WhatsApp</small></span>${ic('chevR', 'chev')}</button>
 <div class="spacer"></div><div class="spacer"></div>
 ${list([
@@ -935,7 +936,7 @@ ${footNote()}
     const label = { use: 'In the app', cropped: 'Cropped', review: 'Review', hold: 'Hold', staff: 'Staff' };
     const cls = { use: 'ok', cropped: 'tint', review: 'sample', hold: 'warn', staff: '' };
     return `<div class="wrap">
-${head('Asset library', { eyebrow: `${ASSETS.assets.length} supplied images` })}
+${head('Asset <em>library</em>', { eyebrow: `${ASSETS.assets.length} supplied images` })}
 <p class="muted">${esc(ASSETS.note)}</p>
 <div class="kpis" style="margin-top:14px"><div><b>${(counts.use || 0) + (counts.cropped || 0) + (counts.review || 0)}</b><small>Placed in the app</small></div><div><b>${counts.hold || 0}</b><small>On hold</small></div><div><b>${counts.staff || 0}</b><small>Club Studio</small></div></div>
 <div class="chips" role="group" aria-label="Filter by status" style="margin-top:14px">${[['all', 'All'], ...Object.entries(label)].map(([k, t]) => `<button type="button" class="chip tap" data-act="assetFilter" data-arg="${k}" aria-pressed="${filt === k}">${t}${k === 'all' ? '' : ` · ${counts[k] || 0}`}</button>`).join('')}</div>
@@ -946,7 +947,7 @@ ${footNote()}
 
   function rAbout() {
     return `<div class="wrap">
-${head('About this concept')}
+${head('About this <em>concept</em>', { eyebrow: 'Sundowns One' })}
 <section class="card card-pad" style="text-align:center">${crest('crest crest-lg')}<h2 class="t1" style="margin-top:10px">Sundowns One</h2><p class="muted">The Yellow Nation. One home.</p><p class="cap faint" style="margin-top:8px">Concept prototype · built ${'__BUILD_DATE__'}</p></section>
 ${sec('What this is')}
 <section class="card card-pad stack"><p>A concept supporter app for Mamelodi Sundowns, prepared by LegacyLeverage Creative Agency. It is not an official club product and has not been approved by the club.</p><p>It shows how one app could take a supporter from finding a match to coming back for the next one: tickets through the official seller, a matchday plan, the stadium, the Passport, the Fan Zone and the wider Yellow Nation.</p></section>
@@ -1469,15 +1470,14 @@ ${note('Registering interest isn’t a booking or a guarantee.')}
   // ---------- preferences ----------
   function applyPrefs() {
     const r = document.documentElement;
-    if (state.appearance === 'system') { if (r.dataset.themeBy === 'app') { r.removeAttribute('data-theme'); delete r.dataset.themeBy; } }
-    else { r.dataset.theme = state.appearance; r.dataset.themeBy = 'app'; }
+    // Dark needs no attribute (it's the default), so a viewer's own choice still shows.
+    const want = state.appearance === 'light' ? 'light' : state.appearance === 'system' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : null;
+    if (want) { r.dataset.theme = want; r.dataset.themeBy = 'app'; }
+    else if (r.dataset.themeBy === 'app') { r.removeAttribute('data-theme'); delete r.dataset.themeBy; }
     if (state.textSize === 'default') r.removeAttribute('data-text'); else r.dataset.text = state.textSize;
     r.classList.toggle('lowdata', !!state.lowData);
-    const dark = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
-    $$('meta[name="theme-color"]').forEach((m) => {
-      if (state.appearance === 'system') m.setAttribute('content', /dark/.test(m.media) ? '#040a07' : '#f2f3ee');
-      else m.setAttribute('content', dark ? '#040a07' : '#f2f3ee');
-    });
+    const light = r.dataset.theme === 'light';
+    $$('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', light ? '#f3f1ea' : '#0b0f0c'));
   }
 
   // ---------- router: push slides in from the right, back returns the same way ----------
@@ -1817,6 +1817,7 @@ ${seg('install', [['ios', 'iPhone'], ['android', 'Android']], 'Your phone')}
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyPrefs);
 
   // ---------- boot ----------
+  if (CONFIG.viewer === 'on') document.documentElement.classList.add('viewer');
   applyPrefs();
   const start = (location.hash || '#today').slice(1);
   const first = ROUTES[start] ? start : 'today';

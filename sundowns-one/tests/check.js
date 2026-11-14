@@ -67,9 +67,12 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
   await page.waitForTimeout(400);
   check('Deep link opens the right screen', await page.evaluate(() => document.getElementById('matchday').classList.contains('active')));
 
-  // Push and back.
+  // Push and back. Mid-slide, the page must not get wider than the phone.
   await page.click('#matchday [data-go="planner"]');
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(120);
+  const midWidth = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+  check('No sideways overflow while a screen slides in', midWidth <= 1, `${midWidth} px extra at 120 ms`);
+  await page.waitForTimeout(600);
   const backLabel = await page.textContent('#navBackLabel');
   check('Planner pushes with a back button naming Matchday', (await page.isVisible('#navBack')) && backLabel === 'Matchday', backLabel);
   await page.fill('#b_ticket', '250');
@@ -224,6 +227,23 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
   check('Parallax: no script errors', merr.length === 0, merr.join(' | '));
   await mctx.close();
 
+  // Light when the supporter chooses it, and back.
+  const lctx = await browser.newContext({ ...devices['iPhone 13'], colorScheme: 'light' });
+  const lp = await lctx.newPage();
+  await lp.goto(url);
+  await lp.waitForTimeout(300);
+  const bgStart = await lp.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await lp.evaluate(() => window.SundownsOne.navigate('profile'));
+  await lp.waitForTimeout(600);
+  await lp.click('[data-seg="appearance"] [data-arg="light"]');
+  await lp.waitForTimeout(300);
+  const bgLight = await lp.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await lp.reload();
+  await lp.waitForTimeout(400);
+  const kept = await lp.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  check('Appearance: dark by default, Light when chosen, kept after reload', bgStart === 'rgb(11, 15, 12)' && bgLight === 'rgb(243, 241, 234)' && kept === bgLight, `${bgStart} → ${bgLight} → ${kept}`);
+  await lctx.close();
+
   // Dark mode and reduced motion.
   const dctx = await browser.newContext({ ...devices['iPhone 13'], colorScheme: 'dark', reducedMotion: 'reduce' });
   const dp = await dctx.newPage();
@@ -242,7 +262,7 @@ const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); c
   check('Reduce Motion: parallax stays still', still === 'none', still);
   await dp.evaluate(() => window.scrollTo(0, 0));
   const bg = await dp.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  check('Dark mode follows the system', bg === 'rgb(4, 10, 7)', bg);
+  check('Dark is the house look', bg === 'rgb(11, 15, 12)', bg);
   check('Reduce Motion: screens change without sliding', instant === 'none' && derr.length === 0, instant);
   if (shots) { for (const r of ['today', 'passport', 'matchday']) { await dp.evaluate((x) => window.SundownsOne.navigate(x), r); await dp.waitForTimeout(300); await dp.screenshot({ path: `${shots}/dark-${r}.png` }); } }
   await dctx.close();

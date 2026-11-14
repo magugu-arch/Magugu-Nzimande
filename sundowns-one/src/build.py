@@ -72,6 +72,14 @@ def main():
             py = 0 if ih == h else t / (ih - h) * 100
             css.append(f".p{aid}-{i}{{background-size:{sx:.3f}% {sy:.3f}%;background-position:{px:.3f}% {py:.3f}%}}")
     css.append(f".crest{{background-image:url(data:image/webp;base64,{b64(HERE / 'brand' / 'crest.webp')})}}")
+    # Embedded fonts (SIL OFL 1.1, licences in fonts/): the display serif and the label mono.
+    for fam, f, style, weight in (
+        ("Playfair Display", "playfair-display-latin-wght-normal.woff2", "normal", "400 900"),
+        ("Playfair Display", "playfair-display-latin-wght-italic.woff2", "italic", "400 900"),
+        ("DM Mono", "dm-mono-latin-400-normal.woff2", "normal", "400"),
+        ("DM Mono", "dm-mono-latin-500-normal.woff2", "normal", "500"),
+    ):
+        css.append(f'@font-face{{font-family:"{fam}";src:url(data:font/woff2;base64,{b64(HERE / "fonts" / f)}) format("woff2");font-style:{style};font-weight:{weight};font-display:swap}}')
 
     public = {
         "note": assets["note"],
