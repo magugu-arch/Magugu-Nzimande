@@ -160,6 +160,43 @@ table { border-collapse: collapse; width: 100%; }
 .big { font: 600 64px/1 "Exo 2"; letter-spacing: -0.01em; }
 .lbl { font: 600 15px/1 "Exo 2"; letter-spacing: 0.14em; text-transform: uppercase; }
 .small { font: 400 15px/1.45 "Exo 2"; color: var(--muted); }
+
+/* ---------- Legibility ----------
+   Headings stay in capitals; everything people read at length is in sentence
+   case at reading size, left-aligned, in full-strength ink. Secondary text is
+   darkened to clear 4.5:1 on the canvas; chart labels start at 15px. */
+:root { --muted: #555B51; --ink-2: #2B3128; --body: #232820; --body-dark: #DCE5DD; }
+.hdr { color: #5B6157; }
+.lede { font-size: 22px; line-height: 1.5; color: var(--ink-2); }
+.eyebrow { font-size: 16px; }
+.card h3 { font-weight: 400; }
+.card .txt { margin-left: 0; max-width: 600px; text-align: left; font: 400 19.5px/1.45 "Exo 2"; text-transform: none; letter-spacing: 0; color: var(--body); }
+.card.dark .txt { color: var(--body-dark); }
+.card .sub { font-size: 14px; }
+.bul { gap: 12px; }
+.bul li { padding-left: 26px; font: 400 19px/1.4 "Exo 2"; text-transform: none; letter-spacing: 0; color: var(--body); }
+.bul li::before { top: 0.5em; }
+.dark .bul li { color: var(--body-dark); }
+.pcard .meta { font: 400 17px/1.42 "Exo 2"; text-transform: none; letter-spacing: 0; color: var(--body); }
+.pcard .meta p + p { margin-top: 7px; }
+.dark.pcard .meta { color: var(--body-dark); }
+dl.gw { grid-template-columns: 84px 1fr; row-gap: 10px; }
+dl.gw dt { font-size: 12.5px; line-height: 1.6; }
+dl.gw dd { font: 400 16.5px/1.38 "Exo 2"; text-transform: none; letter-spacing: 0; color: var(--body); }
+.dark dl.gw dd { color: var(--body-dark); }
+.step .who b { font-size: 13px; }
+.step .who p { font: 400 16.5px/1.42 "Exo 2"; text-transform: none; letter-spacing: 0; color: var(--body); }
+.dark.step .who p { color: var(--body-dark); }
+.cal .who p { font-size: 16px; }
+.cal .q { font-size: 19px; }
+.tbl th { font-size: 13.5px; }
+.tbl td { font-size: 18.5px; line-height: 1.38; color: var(--body); }
+.tbl .ds { font-size: 16px; color: var(--muted); }
+.fn, .small { font-size: 16px; color: var(--muted); }
+.cap { font-size: 15px; color: var(--muted); }
+.frame .br { font-weight: 400; text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4); }
+.frame h1 { text-shadow: 0 2px 30px rgba(0, 0, 0, 0.3); }
+.bar p { font-weight: 400; }
 </style>
 </head>
 <body>
@@ -210,15 +247,15 @@ table { border-collapse: collapse; width: 100%; }
   <div class="hdr"><div class="brand"><i></i><b>Sundowns One</b>· Fan app strategy and investment</div><div>Executive summary</div><div class="pg">02 / 28</div></div>
   <div class="head">
     <div><p class="eyebrow">Executive summary</p><h1 class="t">One fan app. An owned channel that<br>fills Loftus and pays its own way.</h1></div>
-    <p class="lede">Sundowns is followed far beyond Loftus. Sundowns One turns that following into a known relationship with every supporter who says yes, and turns the relationship into tickets, members, partner revenue and reach the club owns.</p>
+    <p class="lede">Sundowns is followed far beyond Loftus. Sundowns One turns that following into a known relationship, and the relationship into tickets, members, partner revenue and reach the club owns.</p>
   </div>
   <div class="body"><div class="g3 rows2">
     <div class="card"><h3>R2 400 000<br>to build</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">The Yellow Nation edition: iOS, Android and web from one codebase. Fixed price, excluding VAT.</p></div>
-    <div class="card"><h3>28 weeks<br>to launch</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">A closed pilot on a test build at week 22. Both app stores and the web at week 28, on a home match.</p></div>
-    <div class="card dark"><h3>About R5.1m of value<br>a season</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">Base case, illustrative: extra tickets, memberships, store, three partners and paid reach replaced. Pays back in about six months of a full season.</p></div>
-    <div class="card"><h3>Partners fund<br>the build</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">Three app properties at indicative fees bring R2.3m a season: 96% of the build cost, every season they are sold.</p></div>
-    <div class="card"><h3>App, code and data:<br>the club’s</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">Transferred on final payment. Supporter data is collected under POPIA, with a clear yes for marketing.</p></div>
-    <div class="card"><h3>A week-3 gate<br>before the build</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">Ticketing, membership, match-data and venue providers are confirmed first. If they differ, we re-scope with you.</p></div>
+    <div class="card"><h3>28 weeks<br>to launch</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">A closed pilot at week 22. Both app stores and the web at week 28, on a home match day.</p></div>
+    <div class="card dark"><h3>About R5.1m of value<br>a season</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">Base case, illustrative: tickets, memberships, store, partners and reach. Pays back in about six months of a full season.</p></div>
+    <div class="card"><h3>Partners fund<br>the build</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">Three partner properties bring R2.3m a season: 96% of the build cost, every season they are sold.</p></div>
+    <div class="card"><h3>App, code and data:<br>the club’s</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">Handed over on final payment. Supporter data is collected under POPIA, with a clear yes for marketing.</p></div>
+    <div class="card"><h3>A week-3 gate<br>before the build</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt">Ticketing, membership, match-data and venue providers are confirmed first, or we re-scope with you.</p></div>
   </div></div>
 </section>
 
@@ -227,15 +264,15 @@ table { border-collapse: collapse; width: 100%; }
   <div class="hdr"><div class="brand"><i></i><b>Sundowns One</b>· Fan app strategy and investment</div><div>The opportunity</div><div class="pg">03 / 28</div></div>
   <div class="head">
     <div><p class="eyebrow">The opportunity</p><h1 class="t">Why a fan app, and why it creates<br>value beyond matchday</h1></div>
-    <p class="lede">What asset does this money create, and how does it earn? A matchday companion, a rewards programme, a partner platform and a marketing channel in one. It compounds: every supporter it gains can be reached again.</p>
+    <p class="lede">A matchday companion, a rewards programme, a partner platform and a marketing channel in one. It compounds: every supporter it gains can be reached again.</p>
   </div>
   <div class="body"><div class="g3 rows2">
-    <div class="card"><p class="num">01</p><h3>Own the relationship</h3><p class="txt">Social reach is rented and rationed. A supporter who opts in can be reached directly with a fixture, a ticket release or a reward, at almost no cost per message.</p></div>
-    <div class="card"><p class="num">02</p><h3>Know who is in the stands</h3><p class="txt">A supporter can follow the club for decades without the club knowing their name. Tickets, membership and the Passport turn a crowd into known supporters, with permission.</p></div>
-    <div class="card dark"><p class="num">03</p><h3>Turn first-timers<br>into regulars</h3><p class="txt">The north star is repeat verified attendance. The app plans the first visit, welcomes it, and gives a reason to come back for the second.</p></div>
-    <div class="card"><p class="num">04</p><h3>Earn between matchdays</h3><p class="txt">Fifteen home league matches a season. Match Centre, stories, the Fan Zone and the store give supporters a reason to open the app on the days between.</p></div>
-    <div class="card"><p class="num">05</p><h3>Make partner spend<br>provable</h3><p class="txt">Partners value an audience that can be counted. Opted-in reach and verified redemptions replace estimates with evidence.</p></div>
-    <div class="card"><p class="num">06</p><h3>The Yellow Nation,<br>everywhere</h3><p class="txt">Supporters far from Pretoria follow every kick-off in their own time zone, find a watch party and plan the trip to Loftus.</p></div>
+    <div class="card"><p class="num">01</p><h3>Own the relationship</h3><p class="txt">Social reach is rented. A supporter who opts in can be reached directly, at almost no cost per message.</p></div>
+    <div class="card"><p class="num">02</p><h3>Know who is in the stands</h3><p class="txt">Tickets, membership and the Passport turn an anonymous crowd into known supporters, with their permission.</p></div>
+    <div class="card dark"><p class="num">03</p><h3>Turn first-timers<br>into regulars</h3><p class="txt">The north star is repeat verified attendance. The app plans the first visit and gives a reason for the second.</p></div>
+    <div class="card"><p class="num">04</p><h3>Earn between matchdays</h3><p class="txt">Fifteen home league matches a season. Match Centre, stories, the Fan Zone and the store fill the days between.</p></div>
+    <div class="card"><p class="num">05</p><h3>Make partner spend<br>provable</h3><p class="txt">Opted-in reach and verified redemptions replace estimates with evidence partners can count.</p></div>
+    <div class="card"><p class="num">06</p><h3>The Yellow Nation,<br>everywhere</h3><p class="txt">Supporters far from Pretoria get kick-off in their time zone, watch parties and a plan to visit Loftus.</p></div>
   </div></div>
 </section>
 
@@ -248,12 +285,12 @@ table { border-collapse: collapse; width: 100%; }
   </div>
   <div class="body" style="display:flex;flex-direction:column;gap:22px">
     <div class="g4" style="flex:1">
-      <div class="card"><svg class="ic-big"><use href="#i-plus"/></svg><h3>More known<br>supporters</h3><ul class="bul"><li>Join from a stadium QR code, a ticket, social or a friend’s invite</li><li>Guest mode first; sign up when it earns something</li><li>Every ticket and membership links to a profile</li></ul></div>
-      <div class="card dark"><svg class="ic-big"><use href="#i-x"/></svg><h3>More matches<br>per supporter</h3><ul class="bul"><li>A first-match guide and planner for the first visit</li><li>Bring Your Crew and the Second Match Challenge</li><li>Passport stamps that count every verified visit</li></ul></div>
+      <div class="card"><svg class="ic-big"><use href="#i-plus"/></svg><h3>More known<br>supporters</h3><ul class="bul"><li>Join from a stadium QR code, a ticket or a friend’s invite</li><li>Guest mode first; sign up when it earns something</li><li>Every ticket and membership links to a profile</li></ul></div>
+      <div class="card dark"><svg class="ic-big"><use href="#i-x"/></svg><h3>More matches<br>per supporter</h3><ul class="bul"><li>A first-match guide and planner</li><li>Bring Your Crew and the Second Match Challenge</li><li>Passport stamps for every verified visit</li></ul></div>
       <div class="card"><svg class="ic-big"><use href="#i-up"/></svg><h3>More value<br>per supporter</h3><ul class="bul"><li>Tickets, membership and the store in one place</li><li>Offers by segment, not by blanket discount</li><li>Renewal and win-back journeys</li></ul></div>
-      <div class="card"><svg class="ic-big"><use href="#i-swap"/></svg><h3>More value<br>for partners</h3><ul class="bul"><li>Opted-in reach, counted rather than estimated</li><li>Offers and redemptions tracked to their source</li><li>Aggregated reports; personal data stays with the club</li></ul></div>
+      <div class="card"><svg class="ic-big"><use href="#i-swap"/></svg><h3>More value<br>for partners</h3><ul class="bul"><li>Opted-in reach, counted rather than estimated</li><li>Offers and redemptions tracked to their source</li><li>Totals for partners; personal data stays with the club</li></ul></div>
     </div>
-    <div class="card bar" style="height:142px;flex:none"><span class="tag">North star</span><p style="font-size:27px">Repeat verified attendance: the supporter who comes back. <em>Every feature, campaign and partner is judged by it.</em></p></div>
+    <div class="card bar" style="height:142px;flex:none"><span class="tag">North star</span><p style="font-size:25px">Repeat verified attendance: the supporter who comes back. <em>Every feature, campaign and partner is judged by it.</em></p></div>
   </div>
 </section>
 
@@ -313,9 +350,9 @@ table { border-collapse: collapse; width: 100%; }
   <div class="body hi" style="display:flex;flex-direction:column;gap:22px">
     <div class="banner"><img src="img/7691.jpg" alt="" style="object-position:50% 38%"><span class="ctag">Concept image</span></div>
     <div class="g3" style="flex:1">
-      <div class="card"><h3>Tickets and the pass</h3><p class="sub">Official seller, verified entry</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">Tickets come only from the official seller. Linked to the app, the pass shows gate, block, row and seat; the entry code stays in the seller’s wallet.</p></div>
-      <div class="card"><h3>The matchday planner</h3><p class="sub">Crew, travel, budget</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">Crew size, travel choice, the supporter’s own budget and a six-step checklist. A plan shared on WhatsApp carries the match, never a ticket or a location.</p></div>
-      <div class="card dark"><h3>Stadium guide and help</h3><p class="sub">Gates, seats, services</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">A venue-approved map of gates, seats, food, toilets, first aid and accessible routes, with stewards and a real person for money, entry and safety.</p></div>
+      <div class="card"><h3>Tickets and the pass</h3><p class="sub">Official seller, verified entry</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">Tickets come only from the official seller. The pass shows gate, block, row and seat; the entry code stays in the seller’s wallet.</p></div>
+      <div class="card"><h3>The matchday planner</h3><p class="sub">Crew, travel, budget</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">Crew size, travel, the supporter’s own budget and a six-step checklist. A shared plan never includes a ticket or a location.</p></div>
+      <div class="card dark"><h3>Stadium guide and help</h3><p class="sub">Gates, seats, services</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">A venue-approved map of gates, seats, food, first aid and accessible routes, and a real person for money, entry and safety.</p></div>
     </div>
   </div>
 </section>
@@ -327,9 +364,9 @@ table { border-collapse: collapse; width: 100%; }
   <div class="body hi" style="display:flex;flex-direction:column;gap:22px">
     <div class="banner"><img src="img/7696.jpg" alt="" style="object-position:50% 45%"><span class="ctag">Concept image</span></div>
     <div class="g3" style="flex:1">
-      <div class="card"><h3>Match Centre</h3><p class="sub">The daily habit</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">Fixtures, results and live match events from a licensed feed, each with its source and time. Nothing is shown that the feed has not confirmed.</p></div>
-      <div class="card"><h3>Fan Zone and community</h3><p class="sub">Play, share, find your people</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">A score predictor, club quiz and stadium QR challenge, with no betting. Verified branches, watch parties and kick-off times for Masandawana abroad.</p></div>
-      <div class="card dark"><h3>Yellow Nation Passport</h3><p class="sub">Every verified visit counts</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">Stamps and points for verified attendance and approved activity, never for a marketing yes. Rewards funded by the club or its partners, on an auditable ledger.</p></div>
+      <div class="card"><h3>Match Centre</h3><p class="sub">The daily habit</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">Fixtures, results and live events from a licensed feed, each with its source and time. Nothing unconfirmed is shown.</p></div>
+      <div class="card"><h3>Fan Zone and community</h3><p class="sub">Play, share, find your people</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">A score predictor, club quiz and stadium QR challenge, with no betting. Verified branches and watch parties, at home and abroad.</p></div>
+      <div class="card dark"><h3>Yellow Nation Passport</h3><p class="sub">Every verified visit counts</p><svg class="arrow"><use href="#ar"/></svg><p class="txt">Stamps for verified visits and approved activity, never for saying yes to marketing. Rewards sit on an auditable ledger.</p></div>
     </div>
   </div>
 </section>
@@ -343,13 +380,13 @@ table { border-collapse: collapse; width: 100%; }
   </div>
   <div class="body" style="display:flex;flex-direction:column;gap:22px">
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:18px;flex:1">
-      <div class="card step"><p class="n">01</p><h3>Discover</h3><div class="who"><b>Supporter</b><p>Finds the app from a stadium QR code, a shared fixture or a friend.</p><b class="g">The club gets</b><p>The source of every sign-up.</p></div></div>
-      <div class="card step"><p class="n">02</p><h3>Join</h3><div class="who"><b>Supporter</b><p>Browses as a guest, then signs up when it earns something.</p><b class="g">The club gets</b><p>A known supporter, with consent.</p></div></div>
-      <div class="card step"><p class="n">03</p><h3>Plan</h3><div class="who"><b>Supporter</b><p>Plans the crew, travel and budget for a fixture.</p><b class="g">The club gets</b><p>Matchday intent, a week early.</p></div></div>
+      <div class="card step"><p class="n">01</p><h3>Discover</h3><div class="who"><b>Supporter</b><p>Finds the app from a stadium QR code or a friend.</p><b class="g">The club gets</b><p>The source of every sign-up.</p></div></div>
+      <div class="card step"><p class="n">02</p><h3>Join</h3><div class="who"><b>Supporter</b><p>Browses as a guest, then signs up.</p><b class="g">The club gets</b><p>A known supporter, with consent.</p></div></div>
+      <div class="card step"><p class="n">03</p><h3>Plan</h3><div class="who"><b>Supporter</b><p>Plans the crew, travel and budget.</p><b class="g">The club gets</b><p>Matchday intent, a week early.</p></div></div>
       <div class="card step"><p class="n">04</p><h3>Book</h3><div class="who"><b>Supporter</b><p>Buys from the official seller and links the ticket.</p><b class="g">The club gets</b><p>A seat sold, linked to a profile.</p></div></div>
       <div class="card dark step"><p class="n">05</p><h3>Attend</h3><div class="who"><b>Supporter</b><p>Shows the seller’s entry code at the gate.</p><b class="g">The club gets</b><p>A verified attendance.</p></div></div>
-      <div class="card step"><p class="n">06</p><h3>Earn</h3><div class="who"><b>Supporter</b><p>Gets a Passport stamp and sees what it unlocks.</p><b class="g">The club gets</b><p>A reason to return, without discounting.</p></div></div>
-      <div class="card step"><p class="n">07</p><h3>Return</h3><div class="who"><b>Supporter</b><p>Comes back for the next match, renews or shops.</p><b class="g">The club gets</b><p>Repeat attendance and spend, measured.</p></div></div>
+      <div class="card step"><p class="n">06</p><h3>Earn</h3><div class="who"><b>Supporter</b><p>Gets a Passport stamp.</p><b class="g">The club gets</b><p>A reason to return, without discounts.</p></div></div>
+      <div class="card step"><p class="n">07</p><h3>Return</h3><div class="who"><b>Supporter</b><p>Comes back, renews or shops.</p><b class="g">The club gets</b><p>Repeat attendance and spend, measured.</p></div></div>
     </div>
     <div class="card bar" style="height:140px;flex:none"><span class="tag">Underneath</span><p style="font-size:26px">Every step writes to one supporter record. <em>That is how a ticket triggers its reminder, a visit earns its stamp and a campaign proves it worked.</em></p></div>
   </div>
@@ -371,11 +408,11 @@ table { border-collapse: collapse; width: 100%; }
       <div><div class="phone"><div class="scr"><img src="img/app-fanzone.jpg" alt=""></div></div><p class="cap">Fan Zone</p></div>
       <div><div class="phone"><div class="scr"><img src="img/app-global.jpg" alt=""></div></div><p class="cap">Global</p></div>
     </div>
-    <div class="g4" style="position:absolute;left:0;right:0;bottom:0;height:136px">
-      <div class="card" style="padding:24px 30px"><h3 style="font-size:28px">23 screens</h3><p class="txt" style="max-width:none;font-size:14.5px">Every screen at phone, small-phone and desktop widths, in dark and light.</p></div>
-      <div class="card" style="padding:24px 30px"><h3 style="font-size:28px">31 automated checks</h3><p class="txt" style="max-width:none;font-size:14.5px">Planner sums, consent, the Passport ledger, parallax and offline. All passing.</p></div>
-      <div class="card" style="padding:24px 30px"><h3 style="font-size:28px">Zero accessibility errors</h3><p class="txt" style="max-width:none;font-size:14.5px">Audited to WCAG 2.2 AA across 23 screens and 10 sheets.</p></div>
-      <div class="card dark" style="padding:24px 30px"><h3 style="font-size:28px">One offline file</h3><p class="txt" style="max-width:none;font-size:14.5px">The whole app in about 4 MB, shared by WhatsApp; it also installs to the home screen.</p></div>
+    <div class="g4" style="position:absolute;left:0;right:0;bottom:0;height:160px">
+      <div class="card" style="padding:24px 30px"><h3 style="font-size:28px">23 screens</h3><p class="txt" style="max-width:none;font-size:17px">Phone, small phone and desktop, in dark and light.</p></div>
+      <div class="card" style="padding:24px 30px"><h3 style="font-size:28px">31 automated checks</h3><p class="txt" style="max-width:none;font-size:17px">Planner, consent, Passport, parallax and offline. All passing.</p></div>
+      <div class="card" style="padding:24px 30px"><h3 style="font-size:28px">Zero accessibility errors</h3><p class="txt" style="max-width:none;font-size:17px">WCAG 2.2 AA, across 23 screens and 10 sheets.</p></div>
+      <div class="card dark" style="padding:24px 30px"><h3 style="font-size:28px">One offline file</h3><p class="txt" style="max-width:none;font-size:17px">The whole app in about 4 MB, shared by WhatsApp.</p></div>
     </div>
   </div>
 </section>
@@ -411,9 +448,9 @@ table { border-collapse: collapse; width: 100%; }
     <div style="display:grid;grid-template-columns:952px 1fr;gap:22px;height:100%">
       <div class="card" id="loop" style="padding:0"></div>
       <div style="display:grid;grid-template-rows:1.2fr 1fr 1fr;gap:22px">
-        <div class="card dark"><h3>How it compounds</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:640px">Paid media buys a supporter’s attention once. The loop keeps what the first sign-up earned: the plan, the crew, the stamp and the shared moment each carry the club to someone new. The app tracks every turn.</p></div>
-        <div class="card"><h3>A ticket is rarely for one</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:640px">Bring Your Crew rewards the supporter who invites only when the friend’s entry is verified, never for a click.</p></div>
-        <div class="card"><h3>A moment is an invitation</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:640px">An approved fan photo or prediction card carries the club, and a tracked link, into a supporter’s own circle.</p></div>
+        <div class="card dark"><h3>How it compounds</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:640px">Paid media buys attention once. The loop keeps it: the plan, the crew, the stamp and the shared moment each carry the club to someone new, and the app tracks every turn.</p></div>
+        <div class="card"><h3>A ticket is rarely for one</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:640px">Bring Your Crew rewards the inviter only when the friend’s entry is verified, never for a click.</p></div>
+        <div class="card"><h3>A moment is an invitation</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:640px">An approved fan photo or prediction card carries the club, with a tracked link, into a supporter’s own circle.</p></div>
       </div>
     </div>
   </div>
@@ -428,14 +465,14 @@ table { border-collapse: collapse; width: 100%; }
   </div>
   <div class="body" style="display:flex;flex-direction:column;gap:22px">
     <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:16px;flex:1">
-      <div class="card step cal"><p class="n">T−28 to T−21</p><h3>Reveal</h3><p class="q">“I haven’t heard about it.”</p><div class="who"><b>The app</b><p>Fixture reveal, a shareable page, the branch toolkit.</p><b class="g">Measure</b><p>Fixture page visits</p></div></div>
-      <div class="card step cal"><p class="n">T−20 to T−14</p><h3>Explain</h3><p class="q">“How does the day work?”</p><div class="who"><b>The app</b><p>Ticket route, travel, family and member information.</p><b class="g">Measure</b><p>Ticket taps</p></div></div>
-      <div class="card step cal"><p class="n">T−13 to T−7</p><h3>Commit</h3><p class="q">“Give me a reason.”</p><div class="who"><b>The app</b><p>Bring Your Crew, branch push, member benefit.</p><b class="g">Measure</b><p>Tickets by source</p></div></div>
-      <div class="card step cal"><p class="n">T−6 to T−2</p><h3>Organise</h3><p class="q">“Let’s sort the details.”</p><div class="who"><b>The app</b><p>Planner, crew plan, reminder choices.</p><b class="g">Measure</b><p>Plans completed</p></div></div>
-      <div class="card step cal"><p class="n">T−1 to kick-off</p><h3>Arrive</h3><p class="q">“Help me get in.”</p><div class="who"><b>The app</b><p>Pass, gate and seat, venue notices.</p><b class="g">Measure</b><p>Verified attendance</p></div></div>
-      <div class="card step cal"><p class="n">Matchday</p><h3>Enjoy</h3><p class="q">“Make it a great day.”</p><div class="who"><b>The app</b><p>QR challenge, food, Player of the Match.</p><b class="g">Measure</b><p>Participation</p></div></div>
-      <div class="card step cal"><p class="n">T+1 to T+3</p><h3>Relive</h3><p class="q">“Let me relive it.”</p><div class="who"><b>The app</b><p>Highlights, Passport stamp, a one-question survey.</p><b class="g">Measure</b><p>Return visits</p></div></div>
-      <div class="card dark step cal"><p class="n">T+4 onward</p><h3>Return</h3><p class="q">“Bring me back.”</p><div class="who"><b>The app</b><p>Second Match Challenge, the next fixture.</p><b class="g">Measure</b><p>Repeat attendance</p></div></div>
+      <div class="card step cal"><p class="n">T−28 to T−21</p><h3>Reveal</h3><p class="q">“I haven’t heard about it.”</p><div class="who"><b>The app</b><p>Fixture reveal and a shareable page.</p><b class="g">Measure</b><p>Fixture page visits</p></div></div>
+      <div class="card step cal"><p class="n">T−20 to T−14</p><h3>Explain</h3><p class="q">“How does the day work?”</p><div class="who"><b>The app</b><p>Ticket route, travel and family information.</p><b class="g">Measure</b><p>Ticket taps</p></div></div>
+      <div class="card step cal"><p class="n">T−13 to T−7</p><h3>Commit</h3><p class="q">“Give me a reason.”</p><div class="who"><b>The app</b><p>Bring Your Crew and branch pushes.</p><b class="g">Measure</b><p>Tickets by source</p></div></div>
+      <div class="card step cal"><p class="n">T−6 to T−2</p><h3>Organise</h3><p class="q">“Let’s sort the details.”</p><div class="who"><b>The app</b><p>Planner, crew plan, reminders.</p><b class="g">Measure</b><p>Plans completed</p></div></div>
+      <div class="card step cal"><p class="n">T−1 to kick-off</p><h3>Arrive</h3><p class="q">“Help me get in.”</p><div class="who"><b>The app</b><p>Pass, gate, seat and venue notices.</p><b class="g">Measure</b><p>Verified attendance</p></div></div>
+      <div class="card step cal"><p class="n">Matchday</p><h3>Enjoy</h3><p class="q">“Make it a great day.”</p><div class="who"><b>The app</b><p>QR challenge, food, Player of the Match vote.</p><b class="g">Measure</b><p>Participation</p></div></div>
+      <div class="card step cal"><p class="n">T+1 to T+3</p><h3>Relive</h3><p class="q">“Let me relive it.”</p><div class="who"><b>The app</b><p>Highlights, a stamp and a one-question survey.</p><b class="g">Measure</b><p>Return visits</p></div></div>
+      <div class="card dark step cal"><p class="n">T+4 onward</p><h3>Return</h3><p class="q">“Bring me back.”</p><div class="who"><b>The app</b><p>Second Match Challenge and the next fixture.</p><b class="g">Measure</b><p>Repeat attendance</p></div></div>
     </div>
     <div class="card bar" style="height:132px;flex:none"><span class="tag">A season</span><p style="font-size:26px">15 home matches × 8 steps = 120 planned moments, <em>each one drafted, approved and measured.</em></p></div>
   </div>
@@ -451,7 +488,7 @@ table { border-collapse: collapse; width: 100%; }
   <div class="body hi" style="top:222px;bottom:96px">
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:22px;height:100%">
       <div class="card pcard"><div class="ph" style="height:290px"><img src="img/7682.jpg" alt="" style="object-position:50% 30%"></div><h3>First Match Promise</h3>
-        <dl class="gw"><dt>Goal</dt><dd>First verified visits</dd><dt>Who</dt><dd>Followers who have never attended</dd><dt>Where</dt><dd>Social, web, WhatsApp</dd><dt>Moves</dt><dd>Tickets</dd></dl></div>
+        <dl class="gw"><dt>Goal</dt><dd>First verified visits</dd><dt>Who</dt><dd>Followers who have never been</dd><dt>Where</dt><dd>Social, web, WhatsApp</dd><dt>Moves</dt><dd>Tickets</dd></dl></div>
       <div class="card pcard"><div class="ph" style="height:290px"><img src="img/7681.jpg" alt="" style="object-position:50% 30%"></div><h3>Bring Your Crew</h3>
         <dl class="gw"><dt>Goal</dt><dd>Groups, not singles</dd><dt>Who</dt><dd>Regulars and branches</dd><dt>Where</dt><dd>WhatsApp, in-app</dd><dt>Moves</dt><dd>Tickets</dd></dl></div>
       <div class="card dark pcard"><div class="ph" style="height:290px"><img src="img/7687.jpg" alt="" style="object-position:50% 40%"></div><h3>Second Match Challenge</h3>
@@ -461,7 +498,7 @@ table { border-collapse: collapse; width: 100%; }
       <div class="card pcard"><div class="ph" style="height:300px"><img src="img/7692.jpg" alt="" style="object-position:20% 50%"></div><h3>Family Matchday</h3>
         <dl class="gw"><dt>Goal</dt><dd>Families back each month</dd><dt>Who</dt><dd>Guardians, with consent</dd><dt>Where</dt><dd>Email, in-app</dd><dt>Moves</dt><dd>Tickets, members</dd></dl></div>
       <div class="card pcard"><div class="ph" style="height:300px"><img src="img/7694.jpg" alt="" style="object-position:86% 50%"></div><h3>Global Masandawana</h3>
-        <dl class="gw"><dt>Goal</dt><dd>Active days from afar</dd><dt>Who</dt><dd>Supporters outside SA</dd><dt>Where</dt><dd>Social, email, WhatsApp Channel</dd><dt>Moves</dt><dd>Members, store</dd></dl></div>
+        <dl class="gw"><dt>Goal</dt><dd>Active days from afar</dd><dt>Who</dt><dd>Supporters outside SA</dd><dt>Where</dt><dd>Social, email, WhatsApp</dd><dt>Moves</dt><dd>Members, store</dd></dl></div>
     </div>
   </div>
   <p class="fn">Sample campaign structures. Final copy, offers, prices and dates are written with and approved by the club before anything goes live. Concept imagery, not club photography.</p>
@@ -474,14 +511,14 @@ table { border-collapse: collapse; width: 100%; }
   <div class="body">
     <div style="display:grid;grid-template-columns:1fr 590px;gap:22px;height:100%">
       <div class="card" style="padding:34px 34px 28px">
-        <div style="display:flex;gap:36px;font:600 13px/1 'Exo 2';letter-spacing:.16em;text-transform:uppercase;color:#6A7066">
+        <div style="display:flex;gap:36px;font:600 13px/1 'Exo 2';letter-spacing:.16em;text-transform:uppercase;color:#555B51">
           <span style="display:flex;align-items:center;gap:10px"><i style="width:12px;height:12px;border-radius:50%;background:#13170F"></i>Service message: always sent</span>
           <span style="display:flex;align-items:center;gap:10px"><i style="width:12px;height:12px;border-radius:50%;background:#0E6B40"></i>Marketing message: only with consent</span>
         </div>
         <div id="steps" style="position:relative;display:grid;grid-template-columns:repeat(7,1fr);margin-top:30px"></div>
-        <p style="margin-top:auto;font:600 13px/1 'Exo 2';letter-spacing:.18em;text-transform:uppercase;color:#6A7066">What supporters receive</p>
+        <p style="margin-top:auto;font:600 13px/1 'Exo 2';letter-spacing:.18em;text-transform:uppercase;color:#555B51">What supporters receive</p>
         <div id="notes" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px"></div>
-        <p style="margin-top:18px;font:400 14.5px/1.45 'Exo 2';color:#6A7066">Sample messages with a placeholder fixture; final wording, reward values and timings are set by the club. *WhatsApp switches on only once the club approves the provider, the sender, the templates and the consent wording.</p>
+        <p style="margin-top:18px;font:400 16px/1.45 'Exo 2';color:#555B51">Sample messages; the club sets final wording and timings. *WhatsApp switches on only once the club approves the provider, templates and consent wording.</p>
       </div>
       <div class="card dark"><h3>Guardrails, built in</h3><svg class="arrow"><use href="#ar"/></svg>
         <ul class="bul"><li>Consent recorded per channel and purpose, with wording and version</li><li>A global suppression list, checked again just before every send</li><li>Frequency caps and quiet hours</li><li>Every campaign approved by a second person</li><li>Service and safety messages never carry promotions</li><li>One-tap opt-out, honoured immediately</li></ul></div>
@@ -500,7 +537,7 @@ table { border-collapse: collapse; width: 100%; }
     <div class="banner" style="height:170px"><img src="img/7683.jpg" alt="" style="object-position:50% 62%"><span class="ctag">Concept image</span></div>
     <div class="g3" style="flex:1">
       <div class="card"><p class="num">Weeks −6 to 0</p><h3>Seed</h3><svg class="arrow"><use href="#ar"/></svg>
-        <ul class="bul"><li>A briefing for stewards, ticket office and store staff</li><li>QR codes on tickets, seats and the big screen, tracked by location</li><li>Links on the club’s website, socials and WhatsApp Channel</li><li>A first look for supporters who already said yes to email</li></ul></div>
+        <ul class="bul"><li>A briefing for stewards, ticket office and store staff</li><li>QR codes on tickets, seats and the big screen, tracked by spot</li><li>Links on the club’s website, socials and WhatsApp</li><li>A first look for supporters already on the email list</li></ul></div>
       <div class="card dark"><p class="num">Days 1 to 30</p><h3>Launch</h3><svg class="arrow"><use href="#ar"/></svg>
         <ul class="bul"><li>A home match as launch day</li><li>A founding-supporter Passport stamp, value set by the club</li><li>“Scan to join” at every gate and on the big screen</li><li>The Presenting Partner’s launch moment, once sold</li></ul></div>
       <div class="card"><p class="num">Days 31 to 90</p><h3>Compound</h3><svg class="arrow"><use href="#ar"/></svg>
@@ -530,7 +567,7 @@ table { border-collapse: collapse; width: 100%; }
         <p class="small" style="margin-top:auto">Illustrative base case, explained on slide 23. Each figure is replaced with a measured one from month one.</p>
       </div>
       <div class="card dark"><h3>North star:<br>repeat verified<br>attendance</h3><svg class="arrow"><use href="#ar"/></svg>
-        <p class="txt" style="max-width:none">First to second visit within 30, 60 and 90 days, by source. Attributed is not incremental: value is claimed only where a holdout group shows the app made the difference.</p></div>
+        <p class="txt" style="max-width:none">First to second visit within 30, 60 and 90 days, by source. Value is claimed only where a holdout group shows the app made the difference.</p></div>
     </div>
   </div>
 </section>
@@ -544,7 +581,7 @@ table { border-collapse: collapse; width: 100%; }
     <div class="ctag">Concept image</div>
     <div class="tr">18 / 28</div>
     <h1 class="bl">Partners: sponsorship<br><em>built into the app.</em></h1>
-    <div class="br" style="max-width:600px">Useful experiences that supporters choose, and evidence partners can take to their boards. The club sells access through the app, never the audience itself.</div>
+    <div class="br" style="max-width:600px">Useful experiences supporters choose, and evidence partners can take to their boards. Access through the app, never the audience itself.</div>
   </div>
   <div class="foot">
     <div class="dotbtn"><i></i></div>
@@ -569,7 +606,7 @@ table { border-collapse: collapse; width: 100%; }
     <div class="g4" style="flex:1">
       <div class="card"><h3>Counted reach</h3><ul class="bul"><li>Opted-in supporters by segment and region</li><li>Real numbers, not follower counts</li><li>Reported for every campaign</li></ul></div>
       <div class="card"><h3>Proven response</h3><ul class="bul"><li>Offers tracked from view to verified redemption</li><li>QR and link attribution, at Loftus and online</li><li>Holdout groups show what a campaign added</li></ul></div>
-      <div class="card"><h3>Useful inventory</h3><ul class="bul"><li>Properties that make matchday easier: planner, rewards, Fan Zone</li><li>Every partner placement labelled as one</li><li>One partner moment on Today, never clutter</li></ul></div>
+      <div class="card"><h3>Useful inventory</h3><ul class="bul"><li>Properties that make matchday easier</li><li>Every partner placement labelled as one</li><li>One partner moment on Today, never clutter</li></ul></div>
       <div class="card dark"><h3>The club keeps<br>the data</h3><ul class="bul"><li>Partners receive aggregated reports only</li><li>Personal data is never sold or handed over</li><li>Consent per purpose, under POPIA</li><li>Every partner and offer approved by the club</li></ul></div>
     </div>
     <div class="card bar" style="height:132px;flex:none"><span class="tag">Principle</span><p style="font-size:26px">Partners buy access to an audience through the club, never the audience itself. <em>That keeps supporters opted in.</em></p></div>
@@ -587,17 +624,17 @@ table { border-collapse: collapse; width: 100%; }
     <div style="display:grid;grid-template-columns:1fr 470px;gap:22px;height:100%">
       <div class="card" style="padding:30px 34px 22px">
         <table class="tbl"><thead><tr><th style="width:46px"></th><th style="width:30%">Property</th><th>Supporters get</th><th style="width:28%">The partner gets, and proves</th><th class="r" style="width:13%">Season fee</th></tr></thead><tbody>
-          <tr><td class="ix">01</td><td class="nm">Presenting Partner of Sundowns One</td><td>A richer app with partner-funded experiences</td><td>“Presented by” credit on welcome, launch and season recap · reach, engagement</td><td class="r nm">R1 200 000</td></tr>
-          <tr><td class="ix">02</td><td class="nm">Yellow Nation Passport Partner</td><td>Rewards for turning up</td><td>Milestone moments, reward drops · redemptions, repeat visits</td><td class="r nm">R600 000</td></tr>
-          <tr><td class="ix">03</td><td class="nm">Matchday Experience Partner</td><td>An easier arrival</td><td>Planner and getting-there guide · plans completed, offer claims</td><td class="r nm">R500 000</td></tr>
-          <tr><td class="ix">04</td><td class="nm">12th Player Partner</td><td>Predictor, quiz and stadium QR games</td><td>The Fan Zone and matchday challenge · players, QR scans</td><td class="r nm">R400 000</td></tr>
-          <tr><td class="ix">05</td><td class="nm">Family Matchday Partner</td><td>A confident first family match</td><td>First-match guide, family days · attendance; no targeting of children</td><td class="r nm">R300 000</td></tr>
-          <tr><td class="ix">06</td><td class="nm">Global Masandawana Partner</td><td>Kick-off in their time zone, watch parties</td><td>Global evenings and chapter events · participation</td><td class="r nm">R300 000</td></tr>
+          <tr><td class="ix">01</td><td class="nm">Presenting Partner of Sundowns One</td><td>Partner-funded experiences across the app</td><td>“Presented by” credit; reach and engagement report</td><td class="r nm">R1 200 000</td></tr>
+          <tr><td class="ix">02</td><td class="nm">Yellow Nation Passport Partner</td><td>Rewards for turning up</td><td>Milestone moments; redemptions and repeat visits</td><td class="r nm">R600 000</td></tr>
+          <tr><td class="ix">03</td><td class="nm">Matchday Experience Partner</td><td>An easier arrival</td><td>Planner and travel guide; plans completed</td><td class="r nm">R500 000</td></tr>
+          <tr><td class="ix">04</td><td class="nm">12th Player Partner</td><td>Predictor, quiz and QR games</td><td>The Fan Zone; players and QR scans</td><td class="r nm">R400 000</td></tr>
+          <tr><td class="ix">05</td><td class="nm">Family Matchday Partner</td><td>A confident first family match</td><td>First-match guide; attendance, with no targeting of children</td><td class="r nm">R300 000</td></tr>
+          <tr><td class="ix">06</td><td class="nm">Global Masandawana Partner</td><td>Kick-off in their time zone, watch parties</td><td>Global evenings; participation</td><td class="r nm">R300 000</td></tr>
           <tr class="tot"><td></td><td class="nm">All six, a season</td><td></td><td></td><td class="r nm" style="font-size:21px">R3 300 000</td></tr>
         </tbody></table>
       </div>
       <div style="display:grid;grid-template-rows:1.3fr 1fr;gap:22px">
-        <div class="card dark"><p class="num">Base case</p><h3>Three properties,<br>R2.3m a season</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:none">Presenting, Passport and Matchday Experience: the three most tied to the app’s daily use.</p></div>
+        <div class="card dark"><p class="num">Base case</p><h3>Three properties,<br>R2.3m a season</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:none">Presenting, Passport and Matchday Experience: the three most used every day.</p></div>
         <div class="card"><p class="num">Conservative case</p><h3>Two smaller ones,<br>R0.9m a season</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:none">Matchday Experience and 12th Player only.</p></div>
       </div>
     </div>
@@ -616,8 +653,8 @@ table { border-collapse: collapse; width: 100%; }
     <div style="display:grid;grid-template-columns:1100px 1fr;gap:22px;height:100%">
       <div class="card" id="fund" style="padding:34px 40px 28px"></div>
       <div style="display:grid;grid-template-rows:1fr 1fr;gap:22px">
-        <div class="card dark"><h3>Sell the launch as<br>a partnership</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:none">Offer the Presenting Partner a three-season launch partnership at R1.2m a season: R3.6m, one and a half times the build, contracted before the first line of code.</p></div>
-        <div class="card"><h3>Reports, not impressions</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:none">Exposure, engagement, intent, conversion, retention and incrementality, in that order. A view is not a person; a claim is not a redemption.</p></div>
+        <div class="card dark"><h3>Sell the launch as<br>a partnership</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:none">Offer the Presenting Partner three seasons at R1.2m: R3.6m, one and a half times the build, signed before the build starts.</p></div>
+        <div class="card"><h3>Reports, not impressions</h3><svg class="arrow"><use href="#ar"/></svg><p class="txt" style="max-width:none">Reach, engagement, conversion and return visits, proven with holdout groups. A claim is not a redemption.</p></div>
       </div>
     </div>
   </div>
@@ -632,7 +669,7 @@ table { border-collapse: collapse; width: 100%; }
     <div class="ctag">Concept image</div>
     <div class="tr">22 / 28</div>
     <h1 class="bl">The value, the investment<br><em>and the return.</em></h1>
-    <div class="br" style="max-width:600px">R2 400 000 to build, about R5.1m of value a season in the base case, and a plan that shows the club its numbers every month.</div>
+    <div class="br" style="max-width:600px">R2 400 000 to build. About R5.1m of value a season in the base case, with the numbers reported every month.</div>
   </div>
   <div class="foot">
     <div class="dotbtn"><i></i></div>
@@ -669,7 +706,7 @@ table { border-collapse: collapse; width: 100%; }
       </div>
     </div>
   </div>
-  <p class="fn" style="top:1000px">Per full season live. Tickets: extra verified attendances × 15 home league matches × R80 average ticket. Memberships × R300. Store: known supporters who buy × R800 basket × 25% club share. Partners: from the rate card. Paid reach: known supporters × 24 messages × R0.20. Illustrative scenarios, not club figures or forecasts.</p>
+  <p class="fn" style="top:1000px">Per full season live. Tickets: extra visits × 15 home matches × R80. Memberships × R300. Store: buyers × R800 basket × 25% club share. Partners: rate card. Reach: known supporters × 24 messages × R0.20. Illustrative, not club figures or forecasts.</p>
 </section>
 
 <!-- ============================ 24 RETURN ============================ -->
@@ -683,7 +720,7 @@ table { border-collapse: collapse; width: 100%; }
     <div style="display:grid;grid-template-columns:1180px 1fr;gap:22px;height:590px">
       <div class="card" id="payback" style="padding:30px 34px 22px"></div>
       <div class="card dark"><h3>Base case: R11.5m<br>net over three seasons</h3><svg class="arrow"><use href="#ar"/></svg>
-        <p class="txt" style="max-width:none">R15.3m of value against R3.84m to build and run for three seasons: about R4 back for every R1. Conservative: R1.61 back, R2.35m net. Stretch: R7 back, R23.1m net.</p></div>
+        <p class="txt" style="max-width:none">R15.3m of value against R3.84m to build and run: about R4 back for every R1. Conservative: R1.61 back, R2.35m net. Stretch: R7 back, R23.1m net.</p></div>
     </div>
     <div class="g4" style="position:absolute;left:0;right:0;bottom:0;height:122px">
       <div class="card" style="padding:22px 26px"><p class="num" style="margin-bottom:12px">Not counted above</p><h3 style="font-size:25px">Stronger partner renewals</h3></div>
@@ -710,7 +747,7 @@ table { border-collapse: collapse; width: 100%; }
       <div style="text-align:right"><p class="lbl" style="font-size:12.5px;color:#C3CFC5">Total, fixed price, excluding VAT</p><p style="margin-top:10px;font:600 40px/1 'Exo 2';color:#F2D443">R2 400 000</p></div>
     </div>
   </div>
-  <p class="fn">Effort in person-days for a senior team: 3 480 hours at R690 an hour, the rate in our current proposals. iOS, Android and web from one codebase. On final payment the club owns the code, designs and data.</p>
+  <p class="fn">A senior team: 3 480 hours at R690 an hour, the rate in our current proposals. iOS, Android and web from one codebase. On final payment the club owns the code, designs and data.</p>
 </section>
 
 <!-- ============================ 26 TIMELINE ============================ -->
@@ -731,7 +768,7 @@ table { border-collapse: collapse; width: 100%; }
             <tr class="tot"><td><span class="nm">Total</span></td><td class="r nm">100%</td><td class="r nm">R2 400 000</td></tr>
           </tbody></table>
         </div>
-        <div class="card dark" style="padding:28px 34px"><h3 style="font-size:27px">Nothing is paid for work<br>you have not seen</h3><p class="txt" style="max-width:none;font-size:14.5px">After signature, each payment follows something the club can use: a test build on its own phones, the app live, a month of live operation. Running costs: about R40 000 a month after launch.</p></div>
+        <div class="card dark" style="padding:28px 34px"><h3 style="font-size:27px">Nothing is paid for work<br>you have not seen</h3><p class="txt" style="max-width:none;font-size:17px">Each later payment follows a test build, the live app, then a month of operation. Running costs: about R40 000 a month.</p></div>
       </div>
     </div>
   </div>
@@ -745,18 +782,18 @@ table { border-collapse: collapse; width: 100%; }
     <div style="display:grid;grid-template-columns:1fr 590px;gap:22px;height:100%">
       <div class="card" style="padding:30px 34px 18px">
         <table class="tbl"><thead><tr><th style="width:290px">Risk</th><th>How we manage it</th></tr></thead><tbody>
-          <tr><td class="nm" style="font-size:16.5px">Providers differ from our assumption</td><td>Week-3 gate: ticketing, membership, match-data and venue providers, their APIs and test access are confirmed before build spend, and re-scoped with you if needed.</td></tr>
+          <tr><td class="nm" style="font-size:16.5px">Providers differ from our assumption</td><td>Week-3 gate: providers, their APIs and test access are confirmed before build spend, and re-scoped with you if needed.</td></tr>
           <tr><td class="nm" style="font-size:16.5px">Partners sign slower than planned</td><td>Without any partner, the base case still brings R2.81m a season, 97.5% of the first year’s cost. The rate card is tested with partners during discovery.</td></tr>
-          <tr><td class="nm" style="font-size:16.5px">Low adoption after launch</td><td>Stadium QR codes, a briefing at the gates, a founding-supporter stamp and the eight-step calendar drive sign-ups. The console shows what works every week.</td></tr>
+          <tr><td class="nm" style="font-size:16.5px">Low adoption after launch</td><td>Stadium QR codes, a gate briefing, a founding-supporter stamp and the eight-step calendar. Results are reviewed weekly.</td></tr>
           <tr><td class="nm" style="font-size:16.5px">Supporters feel over-messaged</td><td>Consent per channel, frequency caps, quiet hours and one-tap opt-out. The opt-out rate is a reported measure.</td></tr>
-          <tr><td class="nm" style="font-size:16.5px">Privacy and POPIA</td><td>Data is minimised, consent is recorded with its wording and version, marketing switches on only after legal sign-off, and partners see totals only.</td></tr>
-          <tr><td class="nm" style="font-size:16.5px">Brand and image rights</td><td>Only the club’s approved crest, marks and licensed photography ship. Concept imagery stays labelled until it is replaced; rival-sport and third-party branding is already excluded.</td></tr>
-          <tr><td class="nm" style="font-size:16.5px">Matchday peaks at Loftus</td><td>Load tests at kick-off volumes, a low-data mode, and the last confirmed match data stays on screen with its time if the signal drops.</td></tr>
-          <tr><td class="nm" style="font-size:16.5px;border-bottom:0">Scope grows during the build</td><td style="border-bottom:0">Fixed price for the listed scope. Anything new goes through a written change request with its own price, approved first.</td></tr>
+          <tr><td class="nm" style="font-size:16.5px">Privacy and POPIA</td><td>Minimal data, consent recorded with its wording, marketing only after legal sign-off, and totals only for partners.</td></tr>
+          <tr><td class="nm" style="font-size:16.5px">Brand and image rights</td><td>Only the club’s approved crest, marks and licensed photography ship. Concept imagery stays labelled until replaced.</td></tr>
+          <tr><td class="nm" style="font-size:16.5px">Matchday peaks at Loftus</td><td>Load tests at kick-off volumes, a low-data mode, and the last confirmed data stays on screen if the signal drops.</td></tr>
+          <tr><td class="nm" style="font-size:16.5px;border-bottom:0">Scope grows during the build</td><td style="border-bottom:0">Fixed price for the listed scope. Anything new is priced and approved in writing first.</td></tr>
         </tbody></table>
       </div>
       <div class="card dark"><h3>What this rests on</h3><svg class="arrow"><use href="#ar"/></svg>
-        <ul class="bul"><li>The club confirms its ticketing, membership, match-data and venue providers by week 3</li><li>The club supplies its approved crest, CI manual and licensed photography</li><li>Apple, Google and messaging accounts open in the club’s name, paid at cost</li><li>Fixtures, scores, prices and member status always come from the club’s systems</li><li>English at launch; further languages in a later phase</li><li>On final payment, the club owns the code, designs and data</li></ul></div>
+        <ul class="bul"><li>The club confirms its providers by week 3</li><li>The club supplies its crest, CI manual and licensed photography</li><li>Apple, Google and messaging accounts in the club’s name, at cost</li><li>Fixtures, scores, prices and member status come from the club’s systems</li><li>English at launch; further languages in a later phase</li><li>On final payment, the club owns the code, designs and data</li></ul></div>
     </div>
   </div>
 </section>
@@ -771,7 +808,7 @@ table { border-collapse: collapse; width: 100%; }
     <div class="tr">To talk</div>
     <h1 class="bl" style="bottom:156px">See the working app —<br><em>here and now.</em></h1>
     <div class="cta"><div class="ic"><svg><use href="#i-cal"/></svg></div><span>Book a walkthrough</span><svg><use href="#ar"/></svg></div>
-    <div class="br" style="max-width:620px">Approve the Yellow Nation edition and discovery starts within five working days. Nothing beyond it is spent until the week-3 gate confirms the plan.</div>
+    <div class="br" style="max-width:620px">Approve the Yellow Nation edition and discovery starts within five working days. The week-3 gate confirms the plan before build spend.</div>
   </div>
   <div class="foot">
     <div class="dotbtn"><i></i></div>
@@ -786,7 +823,7 @@ table { border-collapse: collapse; width: 100%; }
 </section>
 
 <script>
-const G = '#0E6B40', Y = '#E3B91B', INK = '#13170F', MUTED = '#6A7066';
+const G = '#0E6B40', Y = '#E3B91B', INK = '#13170F', MUTED = '#555B51';
 const R = (n) => 'R' + Math.round(n).toLocaleString('en-ZA').replace(/,/g, ' ');
 const Rm = (n) => 'R' + (n / 1e6).toFixed(Math.abs(n) >= 1e7 ? 1 : 2) + 'm';
 
@@ -826,33 +863,33 @@ const Rm = (n) => 'R' + (n / 1e6).toFixed(Math.abs(n) >= 1e7 ? 1 : 2) + 'm';
 (() => {
   const steps = [
     ['Welcome', 'When a supporter opts in', 'Email · push', 'm'],
-    ['Fixture reveal', 'Four weeks out, for teams they follow', 'Push · email', 'm'],
+    ['Fixture reveal', 'Four weeks out', 'Push · email', 'm'],
     ['Ticket ready', 'When a ticket is linked', 'In-app · email · push', 's'],
-    ['Matchday morning', 'Gate, route and notices', 'Push · in-app', 's'],
+    ['Matchday morning', 'Gate and route', 'Push · in-app', 's'],
     ['Thank you', 'After a verified attendance', 'In-app · push', 's'],
     ['Second-match invite', 'After a first visit', 'Push · email', 'm'],
-    ['Win-back', 'After a quiet spell the club sets', 'Email · push · WhatsApp*', 'm'],
+    ['Win-back', 'After a quiet spell', 'Email · push · WhatsApp*', 'm'],
   ];
   const host = document.getElementById('steps');
   host.innerHTML = `<div style="position:absolute;left:8px;right:24px;top:8px;height:1.5px;background:rgba(19,23,15,.18)"></div>` + steps.map(([t, w, c, k]) => `
     <div style="position:relative;padding-right:14px">
       <i style="display:block;width:16px;height:16px;border-radius:50%;background:${k === 's' ? INK : G};position:relative;z-index:1"></i>
       <p style="margin-top:20px;font:400 20px/1.12 'Exo 2';text-transform:uppercase">${t}</p>
-      <p style="margin-top:10px;font:400 14px/1.4 'Exo 2';text-transform:uppercase;color:#343A31">${w}</p>
-      <p style="margin-top:10px;font:600 12px/1.45 'Exo 2';letter-spacing:.14em;text-transform:uppercase;color:${G}">${c}</p>
+      <p style="margin-top:10px;font:400 16px/1.38 'Exo 2';color:#2B3128">${w}</p>
+      <p style="margin-top:10px;font:600 12.5px/1.45 'Exo 2';letter-spacing:.12em;text-transform:uppercase;color:${G}">${c}</p>
     </div>`).join('');
   const notes = [
-    ['Now', 'Your seat is ready', 'Sundowns v Opponent A. Gate C, Block 118. Your entry code stays in the official seller’s wallet.'],
+    ['Now', 'Your seat is ready', 'Sundowns v Opponent A. Gate C, Block 118. Your entry code is in the seller’s wallet.'],
     ['Day before', 'Matchday tomorrow', 'Kick-off 15:30 at Loftus Versfeld. Your crew plan and gate are in the app.'],
-    ['Full-time', 'Thank you for being there', 'Your attendance is verified: a new Passport stamp. Two more to your next milestone.'],
-    ['With consent', 'It has been a while', 'The next home match is close. Bring a friend: you both earn when they are through the gate.'],
+    ['Full-time', 'Thank you for being there', 'Your visit is verified: a new Passport stamp. Two more to your next milestone.'],
+    ['With consent', 'It has been a while', 'The next home match is close. Bring a friend and you both earn.'],
   ];
   document.getElementById('notes').innerHTML = notes.map(([w, t, b], i) => `
     <div style="background:#fff;border-radius:16px;padding:16px 18px 18px;border:1px solid rgba(19,23,15,.1)">
       <div style="display:flex;align-items:center;gap:9px;white-space:nowrap;font:600 11.5px/1 'Exo 2';letter-spacing:.13em;text-transform:uppercase;color:${MUTED}">
         <span style="width:26px;height:26px;border-radius:7px;background:#0F2C20;color:#F2D443;display:grid;place-items:center;font:600 11px/1 'Exo 2';letter-spacing:0">S1</span>Sundowns One<span style="margin-left:auto;${i === 3 ? 'color:' + G : ''}">${w}</span></div>
       <p style="margin-top:14px;font:600 18px/1.2 'Exo 2'">${t}</p>
-      <p style="margin-top:6px;font:400 15px/1.42 'Exo 2';color:#343A31">${b}</p>
+      <p style="margin-top:6px;font:400 16.5px/1.42 'Exo 2';color:#2B3128">${b}</p>
     </div>`).join('');
 })();
 
@@ -870,18 +907,18 @@ const Rm = (n) => 'R' + (n / 1e6).toFixed(Math.abs(n) >= 1e7 ? 1 : 2) + 'm';
   let h = `<p class="lbl">Partner fees against the build, R millions</p><div style="position:relative;height:${H - 30}px;margin-top:24px">`;
   for (let v = 0; v <= max; v++) {
     const x = LW + v * scale;
-    h += `<div style="position:absolute;left:${x}px;top:0;bottom:30px;width:1px;background:rgba(19,23,15,${v === 0 ? .3 : .08})"></div><span style="position:absolute;left:${x}px;bottom:4px;transform:translateX(-50%);font:500 13px/1 'Exo 2';color:${MUTED}">${v}</span>`;
+    h += `<div style="position:absolute;left:${x}px;top:0;bottom:30px;width:1px;background:rgba(19,23,15,${v === 0 ? .3 : .08})"></div><span style="position:absolute;left:${x}px;bottom:4px;transform:translateX(-50%);font:500 15px/1 'Exo 2';color:${MUTED}">${v}</span>`;
   }
   const bx = LW + 2.4 * scale;
-  h += `<div style="position:absolute;left:${bx}px;top:-6px;bottom:30px;border-left:2px dashed ${INK}"></div><span style="position:absolute;left:${bx + 8}px;top:-8px;font:600 12.5px/1 'Exo 2';letter-spacing:.14em;text-transform:uppercase">Build R2.4m</span>`;
+  h += `<div style="position:absolute;left:${bx}px;top:-6px;bottom:30px;border-left:2px dashed ${INK}"></div><span style="position:absolute;left:${bx + 8}px;top:-10px;font:600 14px/1 'Exo 2';letter-spacing:.12em;text-transform:uppercase">Build R2.4m</span>`;
   rows.forEach((r, i) => {
     const top = 22 + i * rowH, bh = Math.min(64, rowH - 40);
-    h += `<div style="position:absolute;left:0;top:${top + bh / 2 - 22}px;width:${LW - 24}px"><p style="font:500 18px/1.2 'Exo 2';text-transform:uppercase">${r.t}</p><p style="margin-top:5px;font:400 14px/1.3 'Exo 2';color:${MUTED}">${r.s}</p></div>`;
+    h += `<div style="position:absolute;left:0;top:${top + bh / 2 - 22}px;width:${LW - 24}px"><p style="font:500 18px/1.2 'Exo 2';text-transform:uppercase">${r.t}</p><p style="margin-top:6px;font:400 16px/1.3 'Exo 2';color:${MUTED}">${r.s}</p></div>`;
     let x = LW;
     r.parts.forEach(([v, c, l]) => {
       const w = v * scale;
       const fg = c === Y || c === '#7FB596' ? INK : '#fff';
-      h += `<div style="position:absolute;left:${x}px;top:${top}px;width:${w - 2}px;height:${bh}px;background:${c};border-radius:${x === LW ? '10px 0 0 10px' : '0'};display:flex;align-items:center;justify-content:center;font:600 15px/1 'Exo 2';color:${fg};letter-spacing:.04em">${l}</div>`;
+      h += `<div style="position:absolute;left:${x}px;top:${top}px;width:${w - 2}px;height:${bh}px;background:${c};border-radius:${x === LW ? '10px 0 0 10px' : '0'};display:flex;align-items:center;justify-content:center;font:600 16px/1 'Exo 2';color:${fg};letter-spacing:.02em">${l}</div>`;
       x += w;
     });
     h += `<span style="position:absolute;left:${x + 8}px;top:${top + bh / 2 - 17}px;padding:4px 8px;border-radius:8px;background:#F4F3EE;font:600 26px/1 'Exo 2'">${r.total}</span>`;
@@ -900,27 +937,27 @@ const Rm = (n) => 'R' + (n / 1e6).toFixed(Math.abs(n) >= 1e7 ? 1 : 2) + 'm';
   const n = lines.length + 1, gap = 22, LAX = 46, bw = (W - LAX - gap * n) / n;
   let s = `<svg width="${W}" height="${H}" style="display:block">`;
   s += `<text x="0" y="16" font-family="Exo 2" font-weight="600" font-size="15" letter-spacing="2.1" fill="${INK}">BASE CASE: HOW A SEASON ADDS UP, R MILLIONS</text>`;
-  for (let v = 0; v <= max; v++) s += `<line x1="${LAX}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(19,23,15,${v === 0 ? .35 : .08})"/><text x="${LAX - 10}" y="${y(v) + 5}" text-anchor="end" font-family="Exo 2" font-size="13" fill="${MUTED}">${v}</text>`;
+  for (let v = 0; v <= max; v++) s += `<line x1="${LAX}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(19,23,15,${v === 0 ? .35 : .08})"/><text x="${LAX - 10}" y="${y(v) + 5}" text-anchor="end" font-family="Exo 2" font-size="15" fill="${MUTED}">${v}</text>`;
   let acc = 0;
   lines.forEach(([t, v], i) => {
     const x = LAX + gap + i * (bw + gap);
     const fill = t === 'Partners' ? G : '#0F2C20';
     s += `<rect x="${x}" y="${y(acc + v)}" width="${bw}" height="${y(acc) - y(acc + v)}" rx="6" fill="${fill}"/>`;
-    s += `<text x="${x + bw / 2}" y="${y(acc + v) - 10}" text-anchor="middle" font-family="Exo 2" font-weight="600" font-size="17" fill="${INK}">${v >= 1 ? 'R' + v.toFixed(2) + 'm' : 'R' + Math.round(v * 1000) + 'k'}</text>`;
+    s += `<text x="${x + bw / 2}" y="${y(acc + v) - 10}" text-anchor="middle" font-family="Exo 2" font-weight="600" font-size="18" fill="${INK}">${v >= 1 ? 'R' + v.toFixed(2) + 'm' : 'R' + Math.round(v * 1000) + 'k'}</text>`;
     if (i < lines.length - 1) s += `<line x1="${x + bw}" x2="${x + bw + gap}" y1="${y(acc + v)}" y2="${y(acc + v)}" stroke="${MUTED}" stroke-dasharray="3 3"/>`;
     const words = t.split(' ');
     const l1 = words.length > 2 ? words.slice(0, 2).join(' ') : words[0], l2 = words.length > 2 ? words.slice(2).join(' ') : words.slice(1).join(' ');
-    s += `<text x="${x + bw / 2}" y="${H - bottom + 26}" text-anchor="middle" font-family="Exo 2" font-weight="500" font-size="13.5" letter-spacing="1.2" fill="${INK}">${l1.toUpperCase()}</text>`;
-    if (l2) s += `<text x="${x + bw / 2}" y="${H - bottom + 44}" text-anchor="middle" font-family="Exo 2" font-weight="500" font-size="13.5" letter-spacing="1.2" fill="${INK}">${l2.toUpperCase()}</text>`;
+    s += `<text x="${x + bw / 2}" y="${H - bottom + 26}" text-anchor="middle" font-family="Exo 2" font-weight="500" font-size="15" letter-spacing="0.8" fill="${INK}">${l1.toUpperCase()}</text>`;
+    if (l2) s += `<text x="${x + bw / 2}" y="${H - bottom + 44}" text-anchor="middle" font-family="Exo 2" font-weight="500" font-size="15" letter-spacing="0.8" fill="${INK}">${l2.toUpperCase()}</text>`;
     acc += v;
   });
   const tx = LAX + gap + lines.length * (bw + gap);
   s += `<rect x="${tx}" y="${y(total)}" width="${bw}" height="${y(0) - y(total)}" rx="6" fill="${Y}"/>`;
   s += `<text x="${tx + bw / 2}" y="${y(total) - 10}" text-anchor="middle" font-family="Exo 2" font-weight="600" font-size="19" fill="${INK}">R5.11m</text>`;
-  s += `<text x="${tx + bw / 2}" y="${H - bottom + 26}" text-anchor="middle" font-family="Exo 2" font-weight="600" font-size="13.5" letter-spacing="1.2" fill="${INK}">A SEASON</text>`;
+  s += `<text x="${tx + bw / 2}" y="${H - bottom + 26}" text-anchor="middle" font-family="Exo 2" font-weight="600" font-size="15" letter-spacing="0.8" fill="${INK}">A SEASON</text>`;
   [[2.4, 'Build, R2.4m'], [2.88, 'Year one: build and running, R2.88m']].forEach(([v, l], k) => {
     s += `<line x1="${LAX}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="${k ? '#9A5B00' : INK}" stroke-width="1.6" stroke-dasharray="7 5"/>`;
-    s += `<text x="${LAX + 8}" y="${y(v) + (k ? -8 : 18)}" font-family="Exo 2" font-weight="600" font-size="12.5" letter-spacing="1.5" fill="${k ? '#9A5B00' : INK}">${l.toUpperCase()}</text>`;
+    s += `<text x="${LAX + 8}" y="${y(v) + (k ? -8 : 18)}" font-family="Exo 2" font-weight="600" font-size="14" letter-spacing="1.1" fill="${k ? '#9A5B00' : INK}">${l.toUpperCase()}</text>`;
   });
   s += '</svg>';
   host.innerHTML = s;
@@ -940,10 +977,10 @@ const Rm = (n) => 'R' + (n / 1e6).toFixed(Math.abs(n) >= 1e7 ? 1 : 2) + 'm';
   const X = (m) => L + (m / months) * cw, Yv = (v) => T + ch - ((v - ymin) / (ymax - ymin)) * ch;
   let s = `<svg width="${W}" height="${H}" style="display:block">`;
   s += `<text x="0" y="16" font-family="Exo 2" font-weight="600" font-size="15" letter-spacing="2.1" fill="${INK}">THE CLUB’S CUMULATIVE POSITION AFTER LAUNCH, R MILLIONS</text>`;
-  for (let v = ymin; v <= ymax; v += 4) s += `<line x1="${L}" x2="${L + cw}" y1="${Yv(v)}" y2="${Yv(v)}" stroke="rgba(19,23,15,${v === 0 ? .45 : .08})" stroke-width="${v === 0 ? 1.5 : 1}"/><text x="${L - 10}" y="${Yv(v) + 5}" text-anchor="end" font-family="Exo 2" font-size="13" fill="${MUTED}">${v}</text>`;
-  for (let m = 0; m <= months; m += 6) s += `<text x="${X(m)}" y="${T + ch + 26}" text-anchor="middle" font-family="Exo 2" font-size="13" fill="${MUTED}">${m}</text>`;
-  s += `<text x="${L + cw}" y="${T + ch + 46}" text-anchor="end" font-family="Exo 2" font-weight="600" font-size="12" letter-spacing="1.6" fill="${MUTED}">MONTHS AFTER LAUNCH</text>`;
-  [12, 24].forEach((m) => { s += `<line x1="${X(m)}" x2="${X(m)}" y1="${T}" y2="${T + ch}" stroke="rgba(19,23,15,.1)" stroke-dasharray="4 4"/><text x="${X(m) + 6}" y="${T + 14}" font-family="Exo 2" font-weight="600" font-size="11.5" letter-spacing="1.4" fill="${MUTED}">${m === 12 ? 'SEASON 1' : 'SEASON 2'}</text>`; });
+  for (let v = ymin; v <= ymax; v += 4) s += `<line x1="${L}" x2="${L + cw}" y1="${Yv(v)}" y2="${Yv(v)}" stroke="rgba(19,23,15,${v === 0 ? .45 : .08})" stroke-width="${v === 0 ? 1.5 : 1}"/><text x="${L - 10}" y="${Yv(v) + 5}" text-anchor="end" font-family="Exo 2" font-size="15" fill="${MUTED}">${v}</text>`;
+  for (let m = 0; m <= months; m += 6) s += `<text x="${X(m)}" y="${T + ch + 26}" text-anchor="middle" font-family="Exo 2" font-size="15" fill="${MUTED}">${m}</text>`;
+  s += `<text x="${L + cw}" y="${T + ch + 46}" text-anchor="end" font-family="Exo 2" font-weight="600" font-size="13.5" letter-spacing="1.3" fill="${MUTED}">MONTHS AFTER LAUNCH</text>`;
+  [12, 24].forEach((m) => { s += `<line x1="${X(m)}" x2="${X(m)}" y1="${T}" y2="${T + ch}" stroke="rgba(19,23,15,.1)" stroke-dasharray="4 4"/><text x="${X(m) + 6}" y="${T + ch - 10}" font-family="Exo 2" font-weight="600" font-size="13" letter-spacing="1.2" fill="${MUTED}">${m === 12 ? 'SEASON 1' : 'SEASON 2'}</text>`; });
   const legend = [];
   cases.forEach((c) => {
     const net = c.v / 12 - run;
@@ -952,16 +989,16 @@ const Rm = (n) => 'R' + (n / 1e6).toFixed(Math.abs(n) >= 1e7 ? 1 : 2) + 'm';
     s += `<circle cx="${X(be)}" cy="${Yv(0)}" r="7" fill="#fff" stroke="${c.c === Y ? '#9A7A00' : c.c}" stroke-width="3"/>`;
     legend.push([c, be]);
     const end = -build + net * months;
-    s += `<text x="${X(months) + 12}" y="${Yv(end) - 4}" font-family="Exo 2" font-weight="600" font-size="18" fill="${INK}">${Rm(end * 1e6)}</text><text x="${X(months) + 12}" y="${Yv(end) + 14}" font-family="Exo 2" font-weight="500" font-size="12" letter-spacing="1.3" fill="${MUTED}">${c.t.toUpperCase()}</text>`;
+    s += `<text x="${X(months) + 12}" y="${Yv(end) - 4}" font-family="Exo 2" font-weight="600" font-size="18" fill="${INK}">${Rm(end * 1e6)}</text><text x="${X(months) + 12}" y="${Yv(end) + 14}" font-family="Exo 2" font-weight="500" font-size="13.5" letter-spacing="1.1" fill="${MUTED}">${c.t.toUpperCase()}</text>`;
   });
-  s += `<text x="${X(0) + 6}" y="${Yv(-build) + 24}" font-family="Exo 2" font-weight="600" font-size="12.5" letter-spacing="1.4" fill="${INK}">START: THE R2.4M BUILD</text>`;
+  s += `<text x="${X(0) + 6}" y="${Yv(-build) + 24}" font-family="Exo 2" font-weight="600" font-size="14" letter-spacing="1.1" fill="${INK}">START: THE R2.4M BUILD</text>`;
   legend.reverse().forEach(([c, be], i) => {
     const lx = L + 24, ly = T + 26 + i * 34;
     s += `<line x1="${lx}" x2="${lx + 34}" y1="${ly}" y2="${ly}" stroke="${c.c}" stroke-width="${c.w + 1}" stroke-linecap="round"/><circle cx="${lx + 17}" cy="${ly}" r="5.5" fill="#fff" stroke="${c.c === Y ? '#9A7A00' : c.c}" stroke-width="2.5"/>`;
-    s += `<text x="${lx + 48}" y="${ly + 5}" font-family="Exo 2" font-weight="600" font-size="15" fill="${INK}">${c.t}: pays back in ${be.toFixed(1)} months</text>`;
+    s += `<text x="${lx + 48}" y="${ly + 5}" font-family="Exo 2" font-weight="600" font-size="17" fill="${INK}">${c.t}: pays back in ${be.toFixed(1)} months</text>`;
   });
   s += '</svg>';
-  host.innerHTML = s + `<p style="margin-top:6px;font:400 14px/1.45 'Exo 2';color:${MUTED}">Value counted evenly at each case’s full-season rate from launch, less R40 000 a month to run. In practice it builds over the first months; the conservative case allows for a slow start. Excluding VAT.</p>`;
+  host.innerHTML = s + `<p style="margin-top:6px;font:400 16px/1.45 'Exo 2';color:${MUTED}">Value counted evenly from launch, less R40 000 a month to run. In practice it builds over the first months; the conservative case allows for that. Excluding VAT.</p>`;
 })();
 
 /* Costing tables (slide 25) */
@@ -986,7 +1023,7 @@ const Rm = (n) => 'R' + (n / 1e6).toFixed(Math.abs(n) >= 1e7 ? 1 : 2) + 'm';
   ];
   const days = items.reduce((a, [, , d]) => a + d, 0);
   if (days !== 435) throw new Error('costing does not add up: ' + days);
-  const row = ([t, d, n], i) => `<tr><td class="ix" style="padding:11px 0">${String(i + 1).padStart(2, '0')}</td><td style="padding:11px 0"><span class="nm" style="font-size:16.5px">${t}</span><span class="ds" style="font-size:14px;margin-top:2px">${d}</span></td><td class="r" style="padding:11px 0;width:64px;font-size:18px">${n}</td><td class="r" style="padding:11px 0;width:132px;font-size:18px">${R(n * 5520)}</td></tr>`;
+  const row = ([t, d, n], i) => `<tr><td class="ix" style="padding:11px 0">${String(i + 1).padStart(2, '0')}</td><td style="padding:11px 0"><span class="nm" style="font-size:17px">${t}</span><span class="ds" style="font-size:15.5px;margin-top:3px">${d}</span></td><td class="r" style="padding:11px 0;width:64px;font-size:18px">${n}</td><td class="r" style="padding:11px 0;width:132px;font-size:18px">${R(n * 5520)}</td></tr>`;
   const head = '<thead><tr><th></th><th>Deliverable</th><th class="r">Days</th><th class="r">Price</th></tr></thead>';
   document.getElementById('costA').innerHTML = head + '<tbody>' + items.slice(0, 8).map((r, i) => row(r, i)).join('') + '</tbody>';
   document.getElementById('costB').innerHTML = head + '<tbody>' + items.slice(8).map((r, i) => row(r, i + 8)).join('') + '</tbody>';
@@ -1010,16 +1047,16 @@ const Rm = (n) => 'R' + (n / 1e6).toFixed(Math.abs(n) >= 1e7 ? 1 : 2) + 'm';
   const host = document.getElementById('gantt');
   const LW = 300, CW = host.clientWidth - 68 - LW, ww = CW / weeks;
   let h = `<div style="position:relative;height:100%">`;
-  for (let i = 0; i < weeks; i++) h += `<span style="position:absolute;left:${LW + i * ww}px;width:${ww}px;top:0;text-align:center;font:500 11.5px/1 'Exo 2';color:${MUTED}">${i + 1}</span>`;
+  for (let i = 0; i < weeks; i++) h += `<span style="position:absolute;left:${LW + i * ww}px;width:${ww}px;top:0;text-align:center;font:500 13px/1 'Exo 2';color:${MUTED}">${i + 1}</span>`;
   for (let i = 0; i <= weeks; i++) h += `<div style="position:absolute;left:${LW + i * ww}px;top:24px;bottom:66px;width:1px;background:rgba(19,23,15,${i % 4 === 0 ? .1 : .045})"></div>`;
   rows.forEach(([t, s, a, b, k], r) => {
     const top = 42 + r * 62;
-    h += `<div style="position:absolute;left:0;top:${top - 2}px;width:${LW - 18}px"><p style="font:500 15.5px/1.2 'Exo 2';text-transform:uppercase">${t}</p>${s ? `<p style="margin-top:4px;font:600 11.5px/1.3 'Exo 2';letter-spacing:.13em;text-transform:uppercase;color:${MUTED}">${s}</p>` : ''}</div>`;
+    h += `<div style="position:absolute;left:0;top:${top - 2}px;width:${LW - 18}px"><p style="font:500 16.5px/1.2 'Exo 2';text-transform:uppercase">${t}</p>${s ? `<p style="margin-top:4px;font:600 12.5px/1.3 'Exo 2';letter-spacing:.1em;text-transform:uppercase;color:${MUTED}">${s}</p>` : ''}</div>`;
     const x = LW + a * ww + 2, w = Math.max((b - a) * ww - 4, 22);
     const bg = k === 'ac' ? Y : k === 'dk' ? '#0F2C20' : '#E9DC9A';
     h += `<div style="position:absolute;left:${x}px;top:${top}px;width:${w}px;height:20px;border-radius:10px;background:${bg}"></div>`;
   });
-  h += `<p style="position:absolute;left:0;right:0;bottom:0;font:400 14.5px/1.42 'Exo 2';color:${MUTED}">Weeks from signature. Yellow bars mark the points where the club sees and approves progress. Plan the signature date so that week 28 lands on a home match.</p>`;
+  h += `<p style="position:absolute;left:0;right:0;bottom:0;font:400 16px/1.42 'Exo 2';color:${MUTED}">Weeks from signature. Yellow marks where the club sees and approves progress. Sign so that week 28 lands on a home match.</p>`;
   h += '</div>';
   host.innerHTML = h;
 })();
