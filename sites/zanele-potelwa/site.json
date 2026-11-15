@@ -1,0 +1,25 @@
+{
+  "siteUrl": "",
+  "ogImageUrl": "",
+  "indexable": false,
+  "enquiries": {
+    "email": "info@legacyleverage.co.za",
+    "consentVersion": "2026-11-v1"
+  },
+  "formats": {
+    "zanele-edit": "in development",
+    "travel": "concept",
+    "style": "concept",
+    "next-voice": "concept",
+    "live": "concept"
+  },
+  "events": [
+    {
+      "title": "32nd South African Music Awards",
+      "start": "2026",
+      "venue": "Sun City",
+      "role": "Co-host",
+      "status": "completed"
+    }
+  ]
+}

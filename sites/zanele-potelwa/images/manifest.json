@@ -1,0 +1,167 @@
+{
+  "note": "The 18 supplied masters (IMG_7876–IMG_7896, PNG) are not committed; build.mjs --masters <dir> re-derives these files from them. width is the derivative's pixel width, crop is [left, top, right, bottom] in master pixels. Source filenames are preserved, as the website brief's asset register asks.",
+  "images": [
+    {
+      "id": "IMG_7876",
+      "title": "Radio / television studio",
+      "section": "Shows & media",
+      "alt": "Zanele Potelwa presenting at a broadcast desk in a green dress, with studio cameras either side",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7877",
+      "title": "Live hosting / The People's Champion Live",
+      "section": "Events",
+      "alt": "Zanele Potelwa on stage with a handheld microphone in a yellow-gold dress, stage lights behind her",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7878",
+      "title": "Presenter / broadcast experience",
+      "section": "Shows & media",
+      "alt": "Zanele Potelwa presenting in a television studio in a yellow-gold dress, one hand open towards the camera",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7880",
+      "title": "Backstage / show preparation",
+      "section": "About",
+      "alt": "Zanele Potelwa reading presenter cue cards in a backstage corridor",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7881",
+      "title": "The Zanele Edit / conversation",
+      "section": "The Zanele Edit",
+      "alt": "Zanele Potelwa seated in an armchair in an interview lounge, wearing a yellow-gold dress",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7883",
+      "title": "Personality / full-length portrait",
+      "section": "Four pillars",
+      "alt": "Full-length portrait of Zanele Potelwa walking through a sunlit corridor in a yellow-gold dress",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7884",
+      "title": "Homepage hero",
+      "section": "Hero",
+      "alt": "Zanele Potelwa standing in a yellow-gold dress beside a warm, wood-panelled lounge set",
+      "master": [1344, 752],
+      "width": 1344,
+      "variants": [
+        {
+          "id": "IMG_7884-tall",
+          "crop": [640, 0, 1260, 752],
+          "width": 620
+        }
+      ]
+    },
+    {
+      "id": "IMG_7885",
+      "title": "Audience connection / live experience",
+      "section": "The Slate",
+      "alt": "Zanele Potelwa on stage with open arms, facing a live audience",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7887",
+      "title": "Production / collaboration",
+      "section": "The Slate",
+      "alt": "Zanele Potelwa in an ivory suit talking with a crew member on a television set",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7888",
+      "title": "Professional portrait / press",
+      "section": "About",
+      "alt": "Close-up portrait of Zanele Potelwa in a cobalt-blue top, smiling",
+      "master": [896, 1120],
+      "width": 896
+    },
+    {
+      "id": "IMG_7889",
+      "title": "Travel / lifestyle / Africa",
+      "section": "The Slate",
+      "alt": "Zanele Potelwa in a teal dress on a Johannesburg rooftop at golden hour",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7890",
+      "title": "Event arrival / public appearances",
+      "section": "Book Zanele",
+      "alt": "Zanele Potelwa arriving at an evening event in a black tailored jumpsuit",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7891",
+      "title": "Lifestyle / personality",
+      "section": "The Slate",
+      "alt": "Zanele Potelwa seated on a garden bench in a blush-pink dress",
+      "master": [896, 1120],
+      "width": 896
+    },
+    {
+      "id": "IMG_7892",
+      "title": "Interview / brand conversation",
+      "section": "The Zanele Edit",
+      "alt": "Zanele Potelwa in an ivory suit, laughing during an interview",
+      "master": [896, 1120],
+      "width": 896
+    },
+    {
+      "id": "IMG_7893",
+      "title": "Editorial / about Zanele",
+      "section": "About",
+      "alt": "Zanele Potelwa seated in a cream armchair in a burgundy dress",
+      "master": [896, 1120],
+      "width": 896
+    },
+    {
+      "id": "IMG_7894",
+      "title": "Broadcast production / studio walk-through",
+      "section": "Shows & media",
+      "alt": "Zanele Potelwa walking across a television studio floor in an emerald-green dress, with camera crew in the foreground",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7895",
+      "title": "Dressing room / preparation",
+      "section": "Partnerships",
+      "alt": "Zanele Potelwa holding cue cards in a dressing room, wearing a plum satin blouse",
+      "master": [1344, 752],
+      "width": 1344
+    },
+    {
+      "id": "IMG_7896",
+      "title": "Radio / on-air audio identity",
+      "section": "Shows & media",
+      "alt": "Zanele Potelwa in a radio studio wearing headphones beside a broadcast microphone",
+      "master": [1344, 752],
+      "width": 1344
+    }
+  ],
+  "og": {
+    "from": "IMG_7878",
+    "crop": [0, 0, 1344, 706],
+    "size": [1200, 630],
+    "alt": "Zanele Potelwa presenting in a television studio in a yellow-gold dress"
+  },
+  "icon": {
+    "from": "IMG_7888",
+    "crop": [98, 20, 798, 720],
+    "sizes": { "apple-touch-icon": 180, "icon-192": 192, "icon-512": 512 }
+  }
+}
