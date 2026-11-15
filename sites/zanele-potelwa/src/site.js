@@ -27,22 +27,48 @@
       /* ---------- Menu ----------
          A native <details>, so it opens with scripts off. With them on it
          also holds focus inside, closes on Escape and hands focus back. */
-      let menu = document.querySelector('.menu');
+      const menu = document.querySelector('.menu');
       if (menu) {
-        let summary = menu.querySelector('summary');
-        menu.addEventListener('toggle', function () {
-          header.classList.toggle('menu-open', menu.open);
-          root.classList.toggle('viewer-open', menu.open);
+        const summary = menu.querySelector('summary');
+        let leaving = 0;
+        const hold = function (on) {
+          header.classList.toggle('menu-open', on);
+          root.classList.toggle('viewer-open', on);
+        };
+        menu.addEventListener('toggle', function () { hold(menu.open); });
+        // The panel leaves by the path it arrived on, and the page beneath is
+        // free to scroll the moment it starts to go. Caught on the way out,
+        // it simply stays.
+        const leave = function () {
+          if (!menu.open || leaving) return;
+          root.classList.remove('viewer-open');
+          if (reduce.matches) { menu.open = false; return; }
+          menu.classList.add('is-leaving');
+          leaving = window.setTimeout(function () {
+            leaving = 0;
+            menu.classList.remove('is-leaving');
+            menu.open = false;
+          }, 230);
+        };
+        const stay = function () {
+          window.clearTimeout(leaving);
+          leaving = 0;
+          menu.classList.remove('is-leaving');
+          hold(true);
+        };
+        summary.addEventListener('click', function (e) {
+          if (leaving) { e.preventDefault(); stay(); }
+          else if (menu.open) { e.preventDefault(); leave(); }
         });
         slice(menu.querySelectorAll('a')).forEach(function (a) {
-          a.addEventListener('click', function () { menu.open = false; });
+          a.addEventListener('click', leave);
         });
         document.addEventListener('keydown', function (e) {
           if (!menu.open) return;
-          if (e.key === 'Escape') { menu.open = false; summary.focus(); return; }
+          if (e.key === 'Escape') { leave(); summary.focus(); return; }
           if (e.key !== 'Tab') return;
-          let stops = [summary].concat(slice(menu.querySelectorAll('a')));
-          let at = stops.indexOf(document.activeElement);
+          const stops = [summary].concat(slice(menu.querySelectorAll('a')));
+          const at = stops.indexOf(document.activeElement);
           if (e.shiftKey && at <= 0) { e.preventDefault(); stops[stops.length - 1].focus(); }
           else if (!e.shiftKey && (at === stops.length - 1 || at < 0)) { e.preventDefault(); stops[0].focus(); }
         });

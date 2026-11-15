@@ -91,6 +91,7 @@
       --header: 4.75rem;
       --gap: clamp(0.625rem, 1.2vw, 1rem);
       --ease: cubic-bezier(0.2, 0.75, 0.25, 1);
+      --spark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round'%3E%3Cpath d='M12 3v18M3 12h18M5.64 5.64l12.72 12.72M18.36 5.64 5.64 18.36'/%3E%3C/svg%3E");
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -183,6 +184,10 @@
     }
     .link { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; color: inherit; font: 600 0.75rem/1.2 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 1.5px; text-underline-offset: 0.45em; }
 
+    /* The eight-spoked mark. Drawn as a shape so it is always one colour:
+       the character it replaces becomes a colour emoji on phones. */
+    .spark { display: inline-block; flex: none; width: 0.7em; height: 0.7em; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; }
+
     /* A format's status, from site.json. */
     .status {
       display: inline-flex; align-items: center; gap: 0.5em; padding: 0.42em 0.85em; border: 1px solid currentColor; border-radius: 999px;
@@ -206,7 +211,7 @@
     .bar { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: var(--header); max-width: var(--max); margin-inline: auto; padding-left: var(--pad-l); padding-right: var(--pad-r); }
     .brand { display: flex; flex-direction: column; gap: 5px; color: var(--ivory); text-decoration: none; }
     .brand strong { display: flex; align-items: center; gap: 0.45em; font: 500 1.375rem/1 var(--serif); letter-spacing: -0.02em; }
-    .brand strong i { color: var(--gold); font: 400 0.8em/1 var(--sans); font-style: normal; }
+    .brand strong .spark { color: var(--gold); width: 0.62em; height: 0.62em; }
     .brand span { color: var(--gold); font: 600 0.5625rem/1 var(--sans); letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; }
     @media (max-width: 380px) { .brand span { letter-spacing: 0.12em; } }
     .nav { display: none; align-items: center; gap: clamp(16px, 2.2vw, 36px); }
@@ -237,7 +242,10 @@
       padding: calc(var(--header) + env(safe-area-inset-top) + 1rem) var(--pad-r) calc(2.5rem + env(safe-area-inset-bottom)) var(--pad-l);
       background: var(--forest-deep); color: var(--ivory);
       animation: menu-in 0.32s var(--ease);
+      transition: opacity 0.22s ease-in, transform 0.22s ease-in;
     }
+    /* It leaves by the path it arrived on. Caught on the way out, it turns back. */
+    .menu.is-leaving .menu-panel { opacity: 0; transform: translateY(-8px); pointer-events: none; }
     .menu-panel a:not(.button) { padding: 0.3rem 0; color: var(--ivory); font: 350 clamp(1.875rem, 8vw, 3rem)/1.15 var(--serif); letter-spacing: -0.03em; text-decoration: none; }
     .menu-panel a:not(.button):active { color: var(--gold); }
     .menu-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1.5rem; }
@@ -358,7 +366,7 @@
     .marquee { overflow: hidden; padding: 16px 0; background: var(--gold); color: var(--charcoal); }
     .marquee-track { display: flex; width: max-content; animation: marquee 38s linear infinite; }
     .marquee-track span { display: flex; align-items: center; gap: 22px; padding-right: 22px; font: italic 400 clamp(1.125rem, 2.1vw, 1.75rem)/1.2 var(--serif); letter-spacing: -0.01em; white-space: nowrap; }
-    .marquee-track b { font: 400 0.75rem/1 var(--sans); }
+    .marquee-track .spark { width: 0.5em; height: 0.5em; }
     @keyframes marquee { to { transform: translateX(-50%); } }
 
     /* Photographs: each figure sets the shape, the image fills it. */
@@ -670,7 +678,10 @@
     .community .h2 { margin-bottom: 1.5rem; }
     .reasons { margin: 1.75rem 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
     .reasons li { display: grid; grid-template-columns: 1.5rem 1fr; gap: 0.5rem; padding: 0.85rem 0; border-bottom: 1px solid var(--line); color: var(--text-2); line-height: 1.55; }
-    .reasons li::before { content: "✳"; color: var(--accent); font-size: 0.8125rem; line-height: 1.9; }
+    .reasons li::before {
+      content: ""; width: 0.75rem; height: 0.75rem; margin-top: 0.42rem; background: var(--accent);
+      -webkit-mask: var(--spark) center / contain no-repeat; mask: var(--spark) center / contain no-repeat;
+    }
     @media (min-width: 1000px) { .community { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; } }
 
     /* Press & contact */
@@ -770,16 +781,20 @@
 </head>
 <body id="top">
   <a class="skip" href="#main">Skip to content</a>
+  <!-- The eight-spoked mark, drawn once. As a typed character (U+2733) phones swap it for a colour emoji. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="spark" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.64 5.64l12.72 12.72M18.36 5.64 5.64 18.36"/></symbol>
+  </svg>
 
   <header class="site-header">
     <div class="bar">
-      <a class="brand" href="#top"><strong>Zanele <i aria-hidden="true">✳</i></strong><span>Potelwa / The People’s Champion</span></a>
+      <a class="brand" href="#top"><strong>Zanele <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg></strong><span>Potelwa / The People’s Champion</span></a>
       <nav class="nav" aria-label="Main">
         <a href="#about">About</a>
         <a href="#shows">Shows</a>
         <a href="#events">Events</a>
         <a href="#partnerships">Partnerships</a>
-        <a class="nav-cta" href="#book" data-track="nav_book">Book Zanele ↗</a>
+        <a class="nav-cta" href="#book" data-track="nav_book">Book Zanele ↗&#xFE0E;</a>
       </nav>
       <details class="menu">
         <summary aria-label="Menu"><span class="when-closed" aria-hidden="true">Menu +</span><span class="when-open" aria-hidden="true">Close ×</span></summary>
@@ -793,8 +808,8 @@
           <a href="#community">Community</a>
           <a href="#contact">Press &amp; contact</a>
           <div class="menu-ctas">
-            <a class="button button--fill" href="#book" data-track="menu_book">Book Zanele <span class="arrow" aria-hidden="true">↗</span></a>
-            <a class="button" href="#brief" data-track="menu_brief">Work with Zanele <span class="arrow" aria-hidden="true">↗</span></a>
+            <a class="button button--fill" href="#book" data-track="menu_book">Book Zanele <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
+            <a class="button" href="#brief" data-track="menu_brief">Work with Zanele <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
           </div>
         </nav>
       </details>
@@ -815,8 +830,8 @@
         <div class="hero-bottom">
           <p class="hero-intro"><strong>Stories. Style. Sound. Experiences.</strong> <span>A South African media personality bringing people closer to the people, places and culture shaping contemporary African life.</span></p>
           <div class="hero-ctas">
-            <a class="button button--fill" href="#edit" data-track="hero_edit">Explore The Zanele Edit <span class="arrow" aria-hidden="true">↘</span></a>
-            <a class="button" href="#partnerships" data-track="hero_partner">Work with Zanele <span class="arrow" aria-hidden="true">↗</span></a>
+            <a class="button button--fill" href="#edit" data-track="hero_edit">Explore The Zanele Edit <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></a>
+            <a class="button" href="#partnerships" data-track="hero_partner">Work with Zanele <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
           </div>
         </div>
       </div>
@@ -826,8 +841,8 @@
     <div class="marquee">
       <p class="sr-only">Stories, style, sound and experiences.</p>
       <div class="marquee-track" aria-hidden="true">
-        <span>Stories <b>✳</b> Style <b>✳</b> Sound <b>✳</b> Experiences <b>✳</b> The People’s Champion <b>✳</b></span>
-        <span>Stories <b>✳</b> Style <b>✳</b> Sound <b>✳</b> Experiences <b>✳</b> The People’s Champion <b>✳</b></span>
+        <span>Stories <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg> Style <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg> Sound <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg> Experiences <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg> The People’s Champion <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg></span>
+        <span>Stories <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg> Style <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg> Sound <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg> Experiences <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg> The People’s Champion <svg class="spark" aria-hidden="true" focusable="false"><use href="#spark"/></svg></span>
       </div>
     </div>
 
@@ -842,7 +857,7 @@
             <p>Bringing people closer to the stories, people, places, style and experiences shaping contemporary African life, with warmth, curiosity, energy and purpose.</p>
             <p class="by">The promise behind the platform</p>
           </div>
-          <a class="button" href="#contact">Press &amp; media kit <span class="arrow" aria-hidden="true">↘</span></a>
+          <a class="button" href="#contact">Press &amp; media kit <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></a>
         </div>
         <div class="story-visual" data-reveal>
           <figure class="ph r45">
@@ -905,19 +920,19 @@
         <div class="studio-grid">
           <figure class="ph r169 a" data-reveal>
             <img src="images/IMG_7896.jpg" width="1344" height="752" alt="Zanele Potelwa in a radio studio wearing headphones beside a broadcast microphone" loading="lazy" decoding="async" data-zoom>
-            <figcaption><span>Radio</span><span>↗</span></figcaption>
+            <figcaption><span>Radio</span><span>↗&#xFE0E;</span></figcaption>
           </figure>
           <figure class="ph r32 b" data-reveal>
             <img src="images/IMG_7876.jpg" width="1344" height="752" alt="Zanele Potelwa presenting at a broadcast desk in a green dress, with studio cameras either side" loading="lazy" decoding="async" data-zoom>
-            <figcaption><span>Television</span><span>↗</span></figcaption>
+            <figcaption><span>Television</span><span>↗&#xFE0E;</span></figcaption>
           </figure>
           <figure class="ph r45 c" data-reveal>
             <img src="images/IMG_7894.jpg" width="1344" height="752" alt="Zanele Potelwa walking across a television studio floor in an emerald-green dress, with camera crew in the foreground" loading="lazy" decoding="async" data-zoom style="object-position:36% 50%">
-            <figcaption><span>On set</span><span>↗</span></figcaption>
+            <figcaption><span>On set</span><span>↗&#xFE0E;</span></figcaption>
           </figure>
           <figure class="ph r45 d" data-reveal>
             <img src="images/IMG_7878.jpg" width="1344" height="752" alt="Zanele Potelwa presenting in a television studio in a yellow-gold dress, one hand open towards the camera" loading="lazy" decoding="async" data-zoom>
-            <figcaption><span>Presenting</span><span>↗</span></figcaption>
+            <figcaption><span>Presenting</span><span>↗&#xFE0E;</span></figcaption>
           </figure>
         </div>
 
@@ -961,8 +976,8 @@
               <li><b>The Culture</b><span>Fashion, beauty, music, food and the creatives shaping what comes next.</span></li>
             </ul>
             <div class="actions">
-              <a class="button button--fill" href="#community" data-track="edit_follow">Be first to watch <span class="arrow" aria-hidden="true">↘</span></a>
-              <a class="button" href="#brief" data-track="edit_partner">Partner on the season <span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="button button--fill" href="#community" data-track="edit_follow">Be first to watch <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></a>
+              <a class="button" href="#brief" data-track="edit_partner">Partner on the season <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
             </div>
           </div>
         </article>
@@ -1010,7 +1025,7 @@
         <ul class="pillars">
           <li data-reveal>
             <a class="pillar p-gold" href="#shows">
-              <span class="no" aria-hidden="true">01</span><span class="go" aria-hidden="true">↗</span>
+              <span class="no" aria-hidden="true">01</span><span class="go" aria-hidden="true">↗&#xFE0E;</span>
               <h3>The Presenter</h3>
               <p>Broadcasting, entertainment, interviewing, live hosting and moderation.</p>
               <span class="to">Shows &amp; media</span>
@@ -1018,7 +1033,7 @@
           </li>
           <li data-reveal>
             <a class="pillar p-fuchsia" href="#slate">
-              <span class="no" aria-hidden="true">02</span><span class="go" aria-hidden="true">↗</span>
+              <span class="no" aria-hidden="true">02</span><span class="go" aria-hidden="true">↗&#xFE0E;</span>
               <h3>The Personality</h3>
               <p>Fashion, beauty, lifestyle, travel, music and personal expression.</p>
               <span class="to">The Slate</span>
@@ -1026,7 +1041,7 @@
           </li>
           <li data-reveal>
             <a class="pillar p-green" href="#events">
-              <span class="no" aria-hidden="true">03</span><span class="go" aria-hidden="true">↗</span>
+              <span class="no" aria-hidden="true">03</span><span class="go" aria-hidden="true">↗&#xFE0E;</span>
               <h3>The Connector</h3>
               <p>People, conversations, audience participation, partnerships and experiences.</p>
               <span class="to">Events &amp; appearances</span>
@@ -1034,7 +1049,7 @@
           </li>
           <li data-reveal>
             <a class="pillar p-ink" href="#partnerships">
-              <span class="no" aria-hidden="true">04</span><span class="go" aria-hidden="true">↗</span>
+              <span class="no" aria-hidden="true">04</span><span class="go" aria-hidden="true">↗&#xFE0E;</span>
               <h3>The Builder</h3>
               <p>Entrepreneurship, mentorship, creative opportunity and community impact.</p>
               <span class="to">Partnerships</span>
@@ -1110,7 +1125,7 @@
         <div class="slate-foot" data-reveal>
           <p class="micro">Working titles. A format is announced here only once its name, rights and launch timing are approved.</p>
           <div class="actions">
-            <a class="button" href="#brief" data-track="slate_partner">Partner on a format <span class="arrow" aria-hidden="true">↗</span></a>
+            <a class="button" href="#brief" data-track="slate_partner">Partner on a format <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
           </div>
         </div>
       </div>
@@ -1133,7 +1148,7 @@
             <p class="meta">Upcoming</p>
             <p class="big-note">No public dates are listed yet.</p>
 <p>Appearances are published here once they are confirmed and approved for public release. Private engagements are never listed.</p>
-            <a class="button" href="#community" data-track="events_updates">Get event updates <span class="arrow" aria-hidden="true">↘</span></a>
+            <a class="button" href="#community" data-track="events_updates">Get event updates <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></a>
           </div>
           <div class="card" data-reveal>
             <p class="meta">On air</p>
@@ -1176,7 +1191,7 @@
               <li><b>03</b><span>You receive a scoped proposal: concept, deliverables, usage rights and reporting.</span></li>
             </ol>
             <div class="actions">
-              <a class="button button--fill" href="#brief" data-track="partner_brief">Send a partnership brief <span class="arrow" aria-hidden="true">↘</span></a>
+              <a class="button button--fill" href="#brief" data-track="partner_brief">Send a partnership brief <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></a>
             </div>
           </div>
         </div>
@@ -1229,7 +1244,7 @@
               <p class="big-note">Open this page in a browser to fill in the brief step by step.</p>
               <p>If it has opened inside a chat or a file preview, use “Open in Safari” or “Open in Chrome”. Or write to the team directly, with the questions already laid out in the email.</p>
               <div class="actions">
-                <a class="button button--fill" href="mailto:info@legacyleverage.co.za?subject=Partnership%20brief%20%E2%80%94%20Zanele%20Potelwa&amp;body=Brand%20or%20company%3A%0D%0ACategory%3A%0D%0APartnership%20in%20mind%20(paid%20pilot%2C%20seasonal%20programme%2C%20annual%20partnership)%3A%0D%0AObjective%3A%0D%0ATarget%20audience%20and%20territory%3A%0D%0ACampaign%20timing%3A%0D%0ADeliverables%20in%20mind%3A%0D%0AUsage%20rights%20and%20exclusivity%20needed%3A%0D%0ABudget%20range%3A%0D%0AYour%20name%2C%20role%20and%20phone%3A">Email a brief <span class="arrow" aria-hidden="true">↗</span></a>
+                <a class="button button--fill" href="mailto:info@legacyleverage.co.za?subject=Partnership%20brief%20%E2%80%94%20Zanele%20Potelwa&amp;body=Brand%20or%20company%3A%0D%0ACategory%3A%0D%0APartnership%20in%20mind%20(paid%20pilot%2C%20seasonal%20programme%2C%20annual%20partnership)%3A%0D%0AObjective%3A%0D%0ATarget%20audience%20and%20territory%3A%0D%0ACampaign%20timing%3A%0D%0ADeliverables%20in%20mind%3A%0D%0AUsage%20rights%20and%20exclusivity%20needed%3A%0D%0ABudget%20range%3A%0D%0AYour%20name%2C%20role%20and%20phone%3A">Email a brief <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
               </div>
             </div>
 
@@ -1275,7 +1290,7 @@
                     </div>
                   </div>
                   <div class="step-actions">
-                    <button class="button button--fill" type="button" data-next>Continue <span class="arrow" aria-hidden="true">↘</span></button>
+                    <button class="button button--fill" type="button" data-next>Continue <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></button>
                   </div>
                 </fieldset>
 
@@ -1315,7 +1330,7 @@
                     </div>
                   </div>
                   <div class="step-actions">
-                    <button class="button button--fill" type="button" data-next>Continue <span class="arrow" aria-hidden="true">↘</span></button>
+                    <button class="button button--fill" type="button" data-next>Continue <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></button>
                     <button class="back" type="button" data-back>← Back</button>
                   </div>
                 </fieldset>
@@ -1347,7 +1362,7 @@
                     </div>
                   </div>
                   <div class="step-actions">
-                    <button class="button button--fill" type="button" data-next>Review the brief <span class="arrow" aria-hidden="true">↘</span></button>
+                    <button class="button button--fill" type="button" data-next>Review the brief <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></button>
                     <button class="back" type="button" data-back>← Back</button>
                   </div>
                 </fieldset>
@@ -1356,7 +1371,7 @@
                   <h3 class="step-title" tabindex="-1">Review and send.</h3>
                   <dl class="review" data-review></dl>
                   <div class="step-actions">
-                    <a class="button button--fill" href="#" data-mail data-track="brief_send">Email the brief <span class="arrow" aria-hidden="true">↗</span></a>
+                    <a class="button button--fill" href="#" data-mail data-track="brief_send">Email the brief <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
                     <button class="button" type="button" data-copy>Copy the brief</button>
                     <button class="back" type="button" data-back>← Edit details</button>
                   </div>
@@ -1368,7 +1383,7 @@
                   <p class="result-ref" data-done-ref></p>
                   <p class="lede">Your email app should now be open with the brief written out. It reaches Zanele’s team only once you send it from there. Nothing has been sent from this page.</p>
                   <div class="step-actions">
-                    <a class="button button--fill" href="#" data-mail>Open the email again <span class="arrow" aria-hidden="true">↗</span></a>
+                    <a class="button button--fill" href="#" data-mail>Open the email again <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
                     <button class="button" type="button" data-copy>Copy the brief</button>
                     <button class="back" type="button" data-restart>Start a new brief</button>
                   </div>
@@ -1416,7 +1431,7 @@
             <p class="big-note">Open this page in a browser to request availability step by step.</p>
             <p>If it has opened inside a chat or a file preview, use “Open in Safari” or “Open in Chrome”. Or write to the team directly, with the questions already laid out in the email.</p>
             <div class="actions">
-              <a class="button button--fill" href="mailto:info@legacyleverage.co.za?subject=Booking%20request%20%E2%80%94%20Zanele%20Potelwa&amp;body=Role%20requested%20(MC%2C%20awards%20host%2C%20moderator%2C%20launch%20host%2C%20speaker)%3A%0D%0AEvent%20name%20and%20type%3A%0D%0ADate%20and%20start%20time%3A%0D%0AVenue%2C%20city%20and%20country%3A%0D%0AExpected%20audience%3A%0D%0AOrganiser%20and%20your%20name%3A%0D%0APhone%3A%0D%0ABudget%20range%3A%0D%0AFormat%2C%20languages%2C%20travel%20and%20recording%20notes%3A%0D%0A%0D%0AI%20understand%20that%20sending%20this%20request%20does%20not%20reserve%20the%20date.">Email a booking request <span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="button button--fill" href="mailto:info@legacyleverage.co.za?subject=Booking%20request%20%E2%80%94%20Zanele%20Potelwa&amp;body=Role%20requested%20(MC%2C%20awards%20host%2C%20moderator%2C%20launch%20host%2C%20speaker)%3A%0D%0AEvent%20name%20and%20type%3A%0D%0ADate%20and%20start%20time%3A%0D%0AVenue%2C%20city%20and%20country%3A%0D%0AExpected%20audience%3A%0D%0AOrganiser%20and%20your%20name%3A%0D%0APhone%3A%0D%0ABudget%20range%3A%0D%0AFormat%2C%20languages%2C%20travel%20and%20recording%20notes%3A%0D%0A%0D%0AI%20understand%20that%20sending%20this%20request%20does%20not%20reserve%20the%20date.">Email a booking request <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
             </div>
           </div>
 
@@ -1485,7 +1500,7 @@
                   </div>
                 </div>
                 <div class="step-actions">
-                  <button class="button button--fill" type="button" data-next>Continue <span class="arrow" aria-hidden="true">↘</span></button>
+                  <button class="button button--fill" type="button" data-next>Continue <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></button>
                 </div>
               </fieldset>
 
@@ -1531,7 +1546,7 @@
                   </div>
                 </div>
                 <div class="step-actions">
-                  <button class="button button--fill" type="button" data-next>Review the request <span class="arrow" aria-hidden="true">↘</span></button>
+                  <button class="button button--fill" type="button" data-next>Review the request <span class="arrow" aria-hidden="true">↘&#xFE0E;</span></button>
                   <button class="back" type="button" data-back>← Back</button>
                 </div>
               </fieldset>
@@ -1541,7 +1556,7 @@
                 <p class="notice" data-notice hidden></p>
                 <dl class="review" data-review></dl>
                 <div class="step-actions">
-                  <a class="button button--fill" href="#" data-mail data-track="book_send">Email the request <span class="arrow" aria-hidden="true">↗</span></a>
+                  <a class="button button--fill" href="#" data-mail data-track="book_send">Email the request <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
                   <button class="button" type="button" data-copy>Copy the request</button>
                   <button class="back" type="button" data-back>← Edit details</button>
                 </div>
@@ -1553,7 +1568,7 @@
                 <p class="result-ref" data-done-ref></p>
                 <p class="lede">Your email app should now be open with the request written out. It reaches Zanele’s team only once you send it from there. Nothing has been sent from this page, and the date is not held.</p>
                 <div class="step-actions">
-                  <a class="button button--fill" href="#" data-mail>Open the email again <span class="arrow" aria-hidden="true">↗</span></a>
+                  <a class="button button--fill" href="#" data-mail>Open the email again <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
                   <button class="button" type="button" data-copy>Copy the request</button>
                   <button class="back" type="button" data-restart>Start a new request</button>
                 </div>
@@ -1584,7 +1599,7 @@
             <p class="big-note">Opt in with one email.</p>
             <p>Tell the team how you would like to hear from them: by email, on WhatsApp, or both.</p>
             <div class="actions">
-              <a class="button button--fill" href="mailto:info@legacyleverage.co.za?subject=Join%20the%20community%20%E2%80%94%20Zanele%20Potelwa&amp;body=Please%20add%20me%20to%20the%20community%20list.%0D%0A%0D%0AName%3A%0D%0AEmail%20updates%20(yes%20%2F%20no)%3A%0D%0AWhatsApp%20updates%20(yes%20%2F%20no)%20and%20number%3A%0D%0A%0D%0AI%20am%20opting%20in%20to%20new-episode%20alerts%2C%20selected%20public%20events%20and%20approved%20updates.%20I%20can%20opt%20out%20at%20any%20time.">Join the community <span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="button button--fill" href="mailto:info@legacyleverage.co.za?subject=Join%20the%20community%20%E2%80%94%20Zanele%20Potelwa&amp;body=Please%20add%20me%20to%20the%20community%20list.%0D%0A%0D%0AName%3A%0D%0AEmail%20updates%20(yes%20%2F%20no)%3A%0D%0AWhatsApp%20updates%20(yes%20%2F%20no)%20and%20number%3A%0D%0A%0D%0AI%20am%20opting%20in%20to%20new-episode%20alerts%2C%20selected%20public%20events%20and%20approved%20updates.%20I%20can%20opt%20out%20at%20any%20time.">Join the community <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
             </div>
           </div>
 
@@ -1613,7 +1628,7 @@
                 </div>
               </div>
               <div class="step-actions">
-                <button class="button button--fill" type="submit" data-track="community_join">Join the community <span class="arrow" aria-hidden="true">↗</span></button>
+                <button class="button button--fill" type="submit" data-track="community_join">Join the community <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></button>
               </div>
               <p class="micro after">Each channel is a separate choice, and you can opt out of either at any time. The list is not connected to a mailing service yet: joining opens an email to Zanele’s team with your opt-in written out. Nothing is stored on this page.</p>
             </div>
@@ -1621,7 +1636,7 @@
               <h3 class="step-title" tabindex="-1">One more tap: press send.</h3>
               <p class="lede">Your email app should now be open with your opt-in written out. You are on the list once you send it. Nothing has been sent from this page.</p>
               <div class="step-actions">
-                <a class="button button--fill" href="#" data-join-mail>Open the email again <span class="arrow" aria-hidden="true">↗</span></a>
+                <a class="button button--fill" href="#" data-join-mail>Open the email again <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
                 <button class="back" type="button" data-join-edit>← Change my choices</button>
               </div>
             </div>
@@ -1644,19 +1659,19 @@
             <p class="meta">Press &amp; media</p>
             <h3>The media kit</h3>
             <p>An approved biography, photographs and showreel, released by Zanele’s team on request.</p>
-            <a class="button" href="mailto:info@legacyleverage.co.za?subject=Media%20kit%20request%20%E2%80%94%20Zanele%20Potelwa&amp;body=Publication%20or%20programme%3A%0D%0AWhat%20you%20are%20working%20on%3A%0D%0ADeadline%3A%0D%0AYour%20name%20and%20phone%3A" data-track="press_kit">Request the media kit <span class="arrow" aria-hidden="true">↗</span></a>
+            <a class="button" href="mailto:info@legacyleverage.co.za?subject=Media%20kit%20request%20%E2%80%94%20Zanele%20Potelwa&amp;body=Publication%20or%20programme%3A%0D%0AWhat%20you%20are%20working%20on%3A%0D%0ADeadline%3A%0D%0AYour%20name%20and%20phone%3A" data-track="press_kit">Request the media kit <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
           </div>
           <div class="card" data-reveal>
             <p class="meta">General enquiries</p>
             <h3>Zanele’s team</h3>
             <p>For interviews, collaborations and questions that are not a booking or a brand brief.</p>
-            <a class="button" href="mailto:info@legacyleverage.co.za?subject=Enquiry%20%E2%80%94%20Zanele%20Potelwa" data-track="general_email">Email the team <span class="arrow" aria-hidden="true">↗</span></a>
+            <a class="button" href="mailto:info@legacyleverage.co.za?subject=Enquiry%20%E2%80%94%20Zanele%20Potelwa" data-track="general_email">Email the team <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
           </div>
           <div class="card js-only" data-reveal>
             <p class="meta">Photographs</p>
             <h3>See all 18, full screen</h3>
             <p>Tap any photograph on this page to open it. Swipe between them, drag down to close.</p>
-            <button class="button" type="button" data-open-viewer data-track="viewer_open">Open the photographs <span class="arrow" aria-hidden="true">↗</span></button>
+            <button class="button" type="button" data-open-viewer data-track="viewer_open">Open the photographs <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></button>
           </div>
         </div>
       </div>
@@ -1682,7 +1697,7 @@
       <div class="foot-mid">
         <p class="preview-note">Concept preview prepared for review. It is not yet Zanele Potelwa’s official website. Format names are working titles and need her approval before use. Imagery is art-direction reference: final photography, credits and usage rights are confirmed before launch.</p>
         <div class="actions js-only" data-share hidden style="margin-top:0">
-          <a class="button" href="#" target="_blank" rel="noopener" data-share-whatsapp data-track="share_whatsapp">Share on WhatsApp <span class="arrow" aria-hidden="true">↗</span></a>
+          <a class="button" href="#" target="_blank" rel="noopener" data-share-whatsapp data-track="share_whatsapp">Share on WhatsApp <span class="arrow" aria-hidden="true">↗&#xFE0E;</span></a>
         </div>
         <details class="privacy">
           <summary>Privacy on this page</summary>
@@ -1744,22 +1759,48 @@
       /* ---------- Menu ----------
          A native <details>, so it opens with scripts off. With them on it
          also holds focus inside, closes on Escape and hands focus back. */
-      let menu = document.querySelector('.menu');
+      const menu = document.querySelector('.menu');
       if (menu) {
-        let summary = menu.querySelector('summary');
-        menu.addEventListener('toggle', function () {
-          header.classList.toggle('menu-open', menu.open);
-          root.classList.toggle('viewer-open', menu.open);
+        const summary = menu.querySelector('summary');
+        let leaving = 0;
+        const hold = function (on) {
+          header.classList.toggle('menu-open', on);
+          root.classList.toggle('viewer-open', on);
+        };
+        menu.addEventListener('toggle', function () { hold(menu.open); });
+        // The panel leaves by the path it arrived on, and the page beneath is
+        // free to scroll the moment it starts to go. Caught on the way out,
+        // it simply stays.
+        const leave = function () {
+          if (!menu.open || leaving) return;
+          root.classList.remove('viewer-open');
+          if (reduce.matches) { menu.open = false; return; }
+          menu.classList.add('is-leaving');
+          leaving = window.setTimeout(function () {
+            leaving = 0;
+            menu.classList.remove('is-leaving');
+            menu.open = false;
+          }, 230);
+        };
+        const stay = function () {
+          window.clearTimeout(leaving);
+          leaving = 0;
+          menu.classList.remove('is-leaving');
+          hold(true);
+        };
+        summary.addEventListener('click', function (e) {
+          if (leaving) { e.preventDefault(); stay(); }
+          else if (menu.open) { e.preventDefault(); leave(); }
         });
         slice(menu.querySelectorAll('a')).forEach(function (a) {
-          a.addEventListener('click', function () { menu.open = false; });
+          a.addEventListener('click', leave);
         });
         document.addEventListener('keydown', function (e) {
           if (!menu.open) return;
-          if (e.key === 'Escape') { menu.open = false; summary.focus(); return; }
+          if (e.key === 'Escape') { leave(); summary.focus(); return; }
           if (e.key !== 'Tab') return;
-          let stops = [summary].concat(slice(menu.querySelectorAll('a')));
-          let at = stops.indexOf(document.activeElement);
+          const stops = [summary].concat(slice(menu.querySelectorAll('a')));
+          const at = stops.indexOf(document.activeElement);
           if (e.shiftKey && at <= 0) { e.preventDefault(); stops[stops.length - 1].focus(); }
           else if (!e.shiftKey && (at === stops.length - 1 || at < 0)) { e.preventDefault(); stops[0].focus(); }
         });

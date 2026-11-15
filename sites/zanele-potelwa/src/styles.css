@@ -42,6 +42,7 @@
       --header: 4.75rem;
       --gap: clamp(0.625rem, 1.2vw, 1rem);
       --ease: cubic-bezier(0.2, 0.75, 0.25, 1);
+      --spark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round'%3E%3Cpath d='M12 3v18M3 12h18M5.64 5.64l12.72 12.72M18.36 5.64 5.64 18.36'/%3E%3C/svg%3E");
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -134,6 +135,10 @@
     }
     .link { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; color: inherit; font: 600 0.75rem/1.2 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 1.5px; text-underline-offset: 0.45em; }
 
+    /* The eight-spoked mark. Drawn as a shape so it is always one colour:
+       the character it replaces becomes a colour emoji on phones. */
+    .spark { display: inline-block; flex: none; width: 0.7em; height: 0.7em; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; }
+
     /* A format's status, from site.json. */
     .status {
       display: inline-flex; align-items: center; gap: 0.5em; padding: 0.42em 0.85em; border: 1px solid currentColor; border-radius: 999px;
@@ -157,7 +162,7 @@
     .bar { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: var(--header); max-width: var(--max); margin-inline: auto; padding-left: var(--pad-l); padding-right: var(--pad-r); }
     .brand { display: flex; flex-direction: column; gap: 5px; color: var(--ivory); text-decoration: none; }
     .brand strong { display: flex; align-items: center; gap: 0.45em; font: 500 1.375rem/1 var(--serif); letter-spacing: -0.02em; }
-    .brand strong i { color: var(--gold); font: 400 0.8em/1 var(--sans); font-style: normal; }
+    .brand strong .spark { color: var(--gold); width: 0.62em; height: 0.62em; }
     .brand span { color: var(--gold); font: 600 0.5625rem/1 var(--sans); letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; }
     @media (max-width: 380px) { .brand span { letter-spacing: 0.12em; } }
     .nav { display: none; align-items: center; gap: clamp(16px, 2.2vw, 36px); }
@@ -188,7 +193,10 @@
       padding: calc(var(--header) + env(safe-area-inset-top) + 1rem) var(--pad-r) calc(2.5rem + env(safe-area-inset-bottom)) var(--pad-l);
       background: var(--forest-deep); color: var(--ivory);
       animation: menu-in 0.32s var(--ease);
+      transition: opacity 0.22s ease-in, transform 0.22s ease-in;
     }
+    /* It leaves by the path it arrived on. Caught on the way out, it turns back. */
+    .menu.is-leaving .menu-panel { opacity: 0; transform: translateY(-8px); pointer-events: none; }
     .menu-panel a:not(.button) { padding: 0.3rem 0; color: var(--ivory); font: 350 clamp(1.875rem, 8vw, 3rem)/1.15 var(--serif); letter-spacing: -0.03em; text-decoration: none; }
     .menu-panel a:not(.button):active { color: var(--gold); }
     .menu-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1.5rem; }
@@ -309,7 +317,7 @@
     .marquee { overflow: hidden; padding: 16px 0; background: var(--gold); color: var(--charcoal); }
     .marquee-track { display: flex; width: max-content; animation: marquee 38s linear infinite; }
     .marquee-track span { display: flex; align-items: center; gap: 22px; padding-right: 22px; font: italic 400 clamp(1.125rem, 2.1vw, 1.75rem)/1.2 var(--serif); letter-spacing: -0.01em; white-space: nowrap; }
-    .marquee-track b { font: 400 0.75rem/1 var(--sans); }
+    .marquee-track .spark { width: 0.5em; height: 0.5em; }
     @keyframes marquee { to { transform: translateX(-50%); } }
 
     /* Photographs: each figure sets the shape, the image fills it. */
@@ -621,7 +629,10 @@
     .community .h2 { margin-bottom: 1.5rem; }
     .reasons { margin: 1.75rem 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
     .reasons li { display: grid; grid-template-columns: 1.5rem 1fr; gap: 0.5rem; padding: 0.85rem 0; border-bottom: 1px solid var(--line); color: var(--text-2); line-height: 1.55; }
-    .reasons li::before { content: "✳"; color: var(--accent); font-size: 0.8125rem; line-height: 1.9; }
+    .reasons li::before {
+      content: ""; width: 0.75rem; height: 0.75rem; margin-top: 0.42rem; background: var(--accent);
+      -webkit-mask: var(--spark) center / contain no-repeat; mask: var(--spark) center / contain no-repeat;
+    }
     @media (min-width: 1000px) { .community { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; } }
 
     /* Press & contact */

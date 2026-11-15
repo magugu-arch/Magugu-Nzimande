@@ -244,7 +244,7 @@ function eventRow(event) {
   const links = [];
   if (event.url && state !== 'cancelled') {
     links.push(
-      `<a class="link" href="${attr(event.url)}" target="_blank" rel="noopener">${text(event.action ?? 'Details')} <span aria-hidden="true">↗</span></a>`,
+      `<a class="link" href="${attr(event.url)}" target="_blank" rel="noopener">${text(event.action ?? 'Details')} <span aria-hidden="true">↗&#xFE0E;</span></a>`,
     );
   }
   const calendar = state === 'scheduled' ? ics(event, at) : '';

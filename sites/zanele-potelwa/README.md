@@ -150,6 +150,12 @@ one rebuild (update `master` sizes and crops in `images/manifest.json`).
   photograph, and drops to cross-fades under *Reduce Motion*.
 - The header and the phone dock are translucent materials; they turn solid
   under *Reduce Transparency* and *Increase Contrast*.
+- The eight-spoked mark beside the name, in the marquee and in the community
+  list is drawn as a shape, not typed. The character it resembles (U+2733) is
+  an emoji on phones and shows up as a green tile. The arrows are pinned to
+  their text form for the same reason.
+- The phone menu leaves by the path it arrived on, and can be caught on the
+  way out.
 - On a phone the portrait hero reserves the frame down to her shoulders, so
   the title never sits on her face however short the screen is.
 
