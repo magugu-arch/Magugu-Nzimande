@@ -17,12 +17,7 @@ import { QueryBoundary } from '@/components/QueryBoundary';
 import { formatDateTime } from '@/lib/format';
 import { useConsoleQuery } from '../console-data';
 import styles from '../console.module.css';
-import {
-  Ref,
-  SUPPORT_CHANNEL_WORDS,
-  SUPPORT_KIND_WORDS,
-  SUPPORT_STATUS_WORDS,
-} from '../words';
+import { Ref, SUPPORT_CHANNEL_WORDS, SUPPORT_KIND_WORDS, SUPPORT_STATUS_WORDS } from '../words';
 
 function SupportCard({ request }: { request: SupportRequest }) {
   const shared = request.sharedContext;

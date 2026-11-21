@@ -153,8 +153,8 @@ function CaseReview({ caseId }: { caseId: string }) {
                           ))}
                         </ul>
                         <p className={consoleStyles.note}>
-                          Built by fixed rules from the record on this page. No model is used and
-                          no outcome is suggested.
+                          Built by fixed rules from the record on this page. No model is used and no
+                          outcome is suggested.
                         </p>
                       </Stack>
                     </Card>
@@ -166,9 +166,7 @@ function CaseReview({ caseId }: { caseId: string }) {
                   id="actions"
                   intro="Each action is recorded against your staff reference and shown in the audit trail."
                 >
-                  {session ? (
-                    <CaseActions item={current} staffRef={session.subjectRef} />
-                  ) : null}
+                  {session ? <CaseActions item={current} staffRef={session.subjectRef} /> : null}
                 </Section>
               </Stack>
             </Split>
@@ -196,8 +194,8 @@ function CaseReview({ caseId }: { caseId: string }) {
                   <DataTable
                     caption={
                       <>
-                        Who opened or changed <Ref>{caseId}</Ref>, when and with what result.
-                        Opaque references only.
+                        Who opened or changed <Ref>{caseId}</Ref>, when and with what result. Opaque
+                        references only.
                       </>
                     }
                     columns={[

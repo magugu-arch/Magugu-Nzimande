@@ -125,10 +125,7 @@ export function DashboardScreen() {
                         {support.data ? (
                           support.data.length
                         ) : (
-                          <span
-                            className={styles.note}
-                            style={{ fontFamily: 'var(--font-body)' }}
-                          >
+                          <span className={styles.note} style={{ fontFamily: 'var(--font-body)' }}>
                             {support.isError ? 'Not available' : '…'}
                           </span>
                         )}

@@ -103,7 +103,11 @@ export function StaffSignInScreen() {
                 <ul className={styles.plainList}>
                   {members.map((member) => (
                     <li key={member.staffRef}>
-                      <button type="button" className={styles.choice} onClick={() => signIn(member)}>
+                      <button
+                        type="button"
+                        className={styles.choice}
+                        onClick={() => signIn(member)}
+                      >
                         <Avatar initials={member.initials} size="lg" tone="gold" />
                         <span>
                           <span className={styles.choiceName}>{member.displayName}</span>

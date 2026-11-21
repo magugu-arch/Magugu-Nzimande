@@ -70,7 +70,11 @@ describe('summariseCase', () => {
       ...base,
       status: 'ACTION_REQUIRED',
       statusDetail: 'We need something from you',
-      nextAction: { type: 'PROVIDE_INFORMATION', description: 'FREE TEXT FROM AN OFFICIAL', dueAt: null },
+      nextAction: {
+        type: 'PROVIDE_INFORMATION',
+        description: 'FREE TEXT FROM AN OFFICIAL',
+        dueAt: null,
+      },
     };
     const summary = summariseCase(waiting, [
       ...events,

@@ -12,6 +12,8 @@ export default defineConfig([
     rules: {
       // The full accessibility rule set, not only the handful Next enables.
       ...jsxA11y.flatConfigs.recommended.rules,
+      // `role` on our own components (<RequireRole role="staff">) is not an ARIA role.
+      'jsx-a11y/aria-role': ['error', { ignoreNonDOM: true }],
       // Static export: images are pre-optimised by scripts/derive-assets.mjs and
       // rendered through the manifest-driven <Photo>, so <img> is intentional.
       '@next/next/no-img-element': 'off',
