@@ -16,3 +16,6 @@ apps/mobile/ios/
 apps/mobile/android/
 # throwaway captures from tests/e2e
 tests/e2e/.artifacts/
+# single-file build: the web bundle it is assembled from, and compressed images
+apps/mobile/dist-single/
+single/.cache/

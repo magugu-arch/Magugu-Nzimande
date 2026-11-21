@@ -2,7 +2,7 @@
   "name": "scarlets-one",
   "version": "0.1.0",
   "private": true,
-  "description": "Scarlets One \u2014 supporter app concept. Not an official Scarlets product.",
+  "description": "Scarlets One — supporter app concept. Not an official Scarlets product.",
   "workspaces": [
     "apps/*",
     "packages/*",
@@ -15,6 +15,8 @@
     "mobile": "npm run start -w @scarlets/mobile",
     "mobile:web": "npm run web -w @scarlets/mobile",
     "mobile:export": "npm run export:web -w @scarlets/mobile",
+    "single:build": "node single/build.mjs",
+    "single:check": "node single/check.mjs",
     "admin": "npm run dev -w @scarlets/admin",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint . && npm run lint -w @scarlets/admin",
@@ -38,6 +40,7 @@
     "eslint-config-prettier": "^10.1.8",
     "playwright": "1.63.0",
     "prettier": "^3.9.6",
+    "sharp": "0.35.5",
     "typescript": "~6.0.3",
     "vitest": "^5.1.1"
   }

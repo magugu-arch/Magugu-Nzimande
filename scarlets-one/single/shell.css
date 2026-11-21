@@ -1,0 +1,218 @@
+/* The page around the app: the reset Expo's web export ships, a splash while
+   the app starts, and the still preview shown where JavaScript does not run. */
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #f6f2ec;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+#root {
+  display: flex;
+  height: 100%;
+  flex: 1;
+}
+.so-m {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+/* ---- splash: only while the app is starting */
+#so-splash {
+  display: none;
+}
+.js #so-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #3b101b;
+  color: #f6f2ec;
+  font:
+    600 20px/1.2 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  letter-spacing: -0.01em;
+}
+.js #so-splash i {
+  width: 132px;
+  height: 66px;
+  background-size: contain;
+}
+.js #so-splash small {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.7;
+  letter-spacing: 0;
+}
+.js.so-ready #so-splash {
+  display: none;
+}
+
+/* ---- still preview: only where JavaScript does not run */
+#so-static {
+  display: none;
+}
+html:not(.js) body {
+  background: #191619;
+}
+html:not(.js) #root,
+html:not(.js) #so-splash {
+  display: none;
+}
+html:not(.js) #so-static {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 390px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  background: #f6f2ec;
+  color: #191619;
+  font:
+    400 15px/1.45 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+.so-radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.so-strip {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 44px;
+  padding: 0 14px;
+  background: #3b101b;
+  color: #f6f2ec;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.so-strip label {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 2px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.so-strip .so-strip-back,
+#so-t-about:checked ~ .so-strip label[for='so-t-about'],
+#so-t-library:checked ~ .so-strip label[for='so-t-about'] {
+  display: none;
+}
+#so-t-about:checked ~ .so-strip .so-strip-back,
+#so-t-library:checked ~ .so-strip .so-strip-back {
+  display: flex;
+}
+.so-radio:focus-visible ~ .so-strip {
+  box-shadow: inset 0 0 0 2px #f6f2ec;
+}
+.so-frames {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.so-frame {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+  /* Keeps anything the app pins to the screen inside the frame. */
+  transform: translateZ(0);
+}
+#so-t-home:checked ~ .so-frames [data-frame='home'],
+#so-t-match:checked ~ .so-frames [data-frame='match'],
+#so-t-matchday:checked ~ .so-frames [data-frame='matchday'],
+#so-t-passport:checked ~ .so-frames [data-frame='passport'],
+#so-t-fan-zone:checked ~ .so-frames [data-frame='fan-zone'],
+#so-t-library:checked ~ .so-frames [data-frame='library'],
+#so-t-about:checked ~ .so-frames [data-frame='about'] {
+  display: flex;
+}
+.so-tab {
+  cursor: pointer;
+}
+.so-about {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.so-about-body {
+  padding: 28px 22px 40px;
+}
+.so-about-crest {
+  display: block;
+  width: 120px;
+  height: 60px;
+  background-size: contain;
+  background-position: left center;
+}
+.so-about h1 {
+  margin: 14px 0 4px;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.so-about h2 {
+  margin: 26px 0 6px;
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.so-about p {
+  margin: 0 0 10px;
+  color: #3d383b;
+}
+.so-about .so-lead {
+  color: #5e5a5c;
+  font-size: 16px;
+}
+.so-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 26px;
+}
+.so-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: #c8102e;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.so-button-quiet {
+  background: #eae4db;
+  color: #191619;
+}

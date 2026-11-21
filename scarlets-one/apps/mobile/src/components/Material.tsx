@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
 import type { ReactNode } from 'react';
-import { Platform, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useReduceTransparency } from '@/lib/motion';
 import { useTheme } from '@/theme';
 
@@ -45,16 +45,26 @@ export function Material({ children, style, intensity = 60, dark }: MaterialProp
       </View>
     );
   }
+  // The blur's own tint is thin enough for a dark photo or card to show
+  // through and wash out the labels. A second tint on top keeps chrome
+  // legible over anything while content still shows beneath it.
   return (
-    <BlurView
-      intensity={intensity}
-      tint={isDark ? 'dark' : 'light'}
-      style={[
-        { backgroundColor: isDark ? 'rgba(20,17,20,0.62)' : theme.material, overflow: 'hidden' },
-        style,
-      ]}
-    >
+    <View style={[{ overflow: 'hidden' }, style]}>
+      <BlurView
+        intensity={intensity}
+        tint={isDark ? 'dark' : 'light'}
+        style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}
+      />
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            pointerEvents: 'none',
+            backgroundColor: isDark ? 'rgba(20,17,20,0.62)' : theme.material,
+          },
+        ]}
+      />
       {children}
-    </BlurView>
+    </View>
   );
 }

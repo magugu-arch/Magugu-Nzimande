@@ -99,6 +99,14 @@ jobs:
       - name: Console roles and audit log
         run: npm run e2e:admin
 
+      # The whole app in one HTML file, for sharing. Building it proves the
+      # router replacements still match this Expo version; the checks open it
+      # from storage, with JavaScript off, with storage refused and over HTTP.
+      - name: Build the single-file app and open it as a phone would
+        run: |
+          npm run single:build
+          npm run single:check
+
       - name: Keep the failure screenshot
         if: failure()
         uses: actions/upload-artifact@v4

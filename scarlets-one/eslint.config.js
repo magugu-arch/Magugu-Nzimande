@@ -20,6 +20,8 @@ module.exports = defineConfig([
       // Deno, not Node: checked by the Supabase CLI when deployed.
       'supabase/functions/**',
       'tests/e2e/.artifacts/**',
+      '**/dist-single/**',
+      'single/.cache/**',
     ],
   },
   {
@@ -57,6 +59,40 @@ module.exports = defineConfig([
       },
     },
     rules: { 'no-console': 'off' },
+  },
+  {
+    // The single-file build: Node scripts, plus code that runs in the page
+    // (the two start-up scripts, and functions handed to the test browser).
+    files: ['single/**'],
+    languageOptions: {
+      globals: {
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        module: 'writable',
+        require: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        console: 'readonly',
+        window: 'readonly',
+        document: 'readonly',
+        getComputedStyle: 'readonly',
+        localStorage: 'readonly',
+        atob: 'readonly',
+        Blob: 'readonly',
+        URL: 'readonly',
+        Image: 'readonly',
+        MutationObserver: 'readonly',
+        PopStateEvent: 'readonly',
+        DOMException: 'readonly',
+        setTimeout: 'readonly',
+      },
+    },
+    rules: { 'no-console': 'off' },
+  },
+  {
+    // Not compiled, and they must run wherever the app can: plain ES5.
+    files: ['single/runtime.js', 'single/boot.js'],
+    rules: { 'no-var': 'off', 'no-unused-vars': ['warn', { caughtErrors: 'none' }] },
   },
   {
     files: ['**/*.test.{ts,tsx}', '**/jest.setup.js'],

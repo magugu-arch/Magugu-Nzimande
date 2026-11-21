@@ -28,6 +28,7 @@ Built from `Scarlets_One_Fan_App_Product_and_Claude_Code_Briefing.docx`
 | `supabase`            | Postgres schema, row-level security, retention, and their tests.                                                            |
 | `assets/reference`    | The 39 supplied visuals, app-ready, with a manifest.                                                                        |
 | `tests/e2e`           | Browser journeys for the app and the console.                                                                               |
+| `Scarlets_One.html`   | The whole supporter app in one file, for sharing. Built by `single/`.                                                       |
 | `docs`                | Design system, integrations, data model.                                                                                    |
 
 ## Run it
@@ -48,6 +49,24 @@ Open **More → Demo controls** to move it through a matchday (two weeks out,
 matchday morning, live, half-time, full time, no fixture) and to make each
 provider run late, go down or lose the network.
 
+## One file to share
+
+`Scarlets_One.html` (7.5 MB) is the supporter app in a single file with its
+metadata, all 39 images and the icon font embedded. It loads nothing from the
+internet, so it can be sent as a WhatsApp document or copied to a phone.
+
+- **Android:** open it with Chrome and it is the working app.
+- **iPhone:** a file preview cannot run an app, so it shows a still copy of
+  the real screens: the tabs switch and the pages scroll. The working app on
+  an iPhone needs the file hosted at a web address, which has not been done.
+
+```sh
+npm run single:build    # rebuild the file
+npm run single:check    # 34 checks: file with and without JavaScript, storage refused, served over HTTP
+```
+
+`docs/single-file.md` has the detail, the check results and what is untested.
+
 ## Check it
 
 ```sh
@@ -64,8 +83,8 @@ npm run e2e:admin       # console roles and audit log in a browser
 
 Verified in this repository on 21 November 2026:
 
-- **533 automated tests pass**: domain rules 41, design tokens and motion 61,
-  mock providers 37, API contract 24, app 21, console 205, database 144.
+- **536 automated tests pass**: domain rules 41, design tokens and motion 61,
+  mock providers 37, API contract 24, app 24, console 205, database 144.
 - **Supporter journeys, 21 of 21 checks**, in Chromium at iPhone 14 size
   against the exported web build: onboarding, language switch, ticket
   link-out, fixture and Match Centre, the withheld league table, checklist,
@@ -75,6 +94,9 @@ Verified in this repository on 21 November 2026:
 - **Console, 13 of 13 checks**, in Chromium: sign-in, publishing gated on a
   preview confirmation, the audit record, an editor with no publish control
   and refused by URL, a moderator who cannot edit content.
+- **The single file, 34 of 34 checks**, in Chromium: opened from storage as
+  an Android phone would, with JavaScript off as a file preview shows it,
+  with storage refused, and served over HTTP.
 - The app's JavaScript **bundles for iOS and Android** without error.
 - The database migrations apply to **PostgreSQL 18** (in-process) as a role
   that is neither superuser nor `BYPASSRLS`.
