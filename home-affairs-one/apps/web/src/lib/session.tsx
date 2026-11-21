@@ -19,7 +19,7 @@ interface SessionContextValue {
   signInCitizen(account: PersonAccount, method: Exclude<SignInMethod, 'workforce'>): Session;
   signInStaff(staff: StaffMember): Session;
   signInPartner(partner: Partner): Session;
-  /** Raises a verified session to A3 for one sensitive action. Throws if not allowed. */
+  /** Raises a verified session to A3 for a short window (10 minutes). Throws if not allowed. */
   stepUp(): Session;
   signOut(): void;
 }

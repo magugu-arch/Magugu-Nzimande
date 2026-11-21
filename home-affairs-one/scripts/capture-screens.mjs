@@ -9,7 +9,7 @@
  * captured is what a person would see. Output is git-ignored.
  */
 import { spawn } from 'node:child_process';
-import { mkdirSync, rmSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 
@@ -27,53 +27,8 @@ const outDir = path.resolve(root, flag('out', '.shots'));
 const port = Number(flag('port', '4188'));
 const base = `http://127.0.0.1:${port}`;
 
-/** persona: who to sign in as before visiting. `null` is signed out. */
-const SCREENS = [
-  { name: 'welcome', path: '/', persona: null },
-  { name: 'sign-in', path: '/sign-in/', persona: null },
-  { name: 'home', path: '/home/', persona: 'Thandi M.' },
-  { name: 'home-visitor', path: '/home/', persona: 'Aisha K.' },
-  { name: 'services', path: '/services/', persona: null },
-  { name: 'service-smart-id', path: '/services/smart-id-replacement/', persona: null },
-  { name: 'service-eta', path: '/services/eta/', persona: null },
-  { name: 'service-resident', path: '/services/resident-services/', persona: null },
-  { name: 'search', path: '/search/?q=passport', persona: 'Thandi M.' },
-  { name: 'guide', path: '/guide/', persona: null },
-  { name: 'apply', path: '/apply/?service=SMART_ID_REPLACEMENT', persona: 'Thandi M.' },
-  { name: 'applications', path: '/applications/', persona: 'Thandi M.' },
-  { name: 'case-action', path: '/applications/case/?id=CASE-DEMO-000041', persona: 'Thandi M.' },
-  {
-    name: 'case-production',
-    path: '/applications/case/?id=CASE-DEMO-002481',
-    persona: 'Thandi M.',
-  },
-  { name: 'appointments', path: '/appointments/?case=CASE-DEMO-000041', persona: 'Thandi M.' },
-  { name: 'messages', path: '/messages/', persona: 'Thandi M.' },
-  { name: 'messages-empty', path: '/messages/', persona: 'Aisha K.', method: 'passkey-or-code' },
-  { name: 'message-prefs', path: '/messages/preferences/', persona: 'Thandi M.' },
-  { name: 'whatsapp', path: '/messages/whatsapp/', persona: 'Thandi M.' },
-  { name: 'help', path: '/help/', persona: null },
-  { name: 'help-callback', path: '/help/callback/', persona: 'Thandi M.' },
-  { name: 'official-channels', path: '/help/official-channels/', persona: null },
-  { name: 'service-points', path: '/service-points/', persona: null },
-  { name: 'service-point', path: '/service-points/point/?id=SP-DEMO-1001', persona: null },
-  { name: 'abroad', path: '/abroad/', persona: 'Lerato N.' },
-  { name: 'profile', path: '/profile/', persona: 'Thandi M.' },
-  { name: 'profile-security', path: '/profile/security/', persona: 'Thandi M.' },
-  { name: 'profile-family', path: '/profile/family/', persona: 'Sipho D.' },
-  { name: 'profile-privacy', path: '/profile/privacy/', persona: 'Thandi M.' },
-  { name: 'profile-accessibility', path: '/profile/accessibility/', persona: null },
-  { name: 'prototype-controls', path: '/profile/prototype/', persona: 'Thandi M.' },
-  { name: 'wallet', path: '/wallet/', persona: 'Thandi M.' },
-  { name: 'more', path: '/more/', persona: 'Thandi M.' },
-  { name: 'about', path: '/about/', persona: null },
-  { name: 'staff-sign-in', path: '/staff/', persona: null },
-  { name: 'staff-queue', path: '/staff/queue/', persona: 'staff:Nomsa P.' },
-  { name: 'staff-case', path: '/staff/case/?id=CASE-DEMO-000063', persona: 'staff:Nomsa P.' },
-  { name: 'staff-dashboard', path: '/staff/dashboard/', persona: 'staff:Nomsa P.' },
-  { name: 'staff-audit', path: '/staff/audit/', persona: 'staff:Nomsa P.' },
-  { name: 'partner', path: '/partner/', persona: 'partner:Sample Bank (demo)' },
-];
+/** The screen list is shared with the Playwright suites. `persona: null` is signed out. */
+const SCREENS = JSON.parse(readFileSync(path.join(root, 'tests', 'routes.json'), 'utf8'));
 
 const DEVICES = {
   phone: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },

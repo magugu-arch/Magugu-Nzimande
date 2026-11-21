@@ -134,7 +134,7 @@ On Windows PowerShell, set a variable first: `$env:NEXT_PUBLIC_FLAG_PROFILE = 'p
 All demo data is created in the browser the first time each mock service is used, and kept in
 `localStorage`. Changing seed data in code has no effect on a browser that already holds data.
 
-- **In the app:** use the "reset demo data" control. It calls `resetDemoData()`
+- **In the app:** use the "reset demo data" control, where the build has one. It calls `resetDemoData()`
   (`apps/web/src/lib/gateway.ts`): every `hao.v1:` key is removed, `sessionStorage` is emptied and
   the page reloads with fresh sample data.
 - **From the browser console**, if you cannot reach the control:

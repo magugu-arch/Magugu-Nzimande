@@ -1,0 +1,90 @@
+[
+  { "name": "welcome", "path": "/", "persona": null },
+  { "name": "sign-in", "path": "/sign-in/", "persona": null },
+  { "name": "services", "path": "/services/", "persona": null },
+  { "name": "service-smart-id", "path": "/services/smart-id-replacement/", "persona": null },
+  { "name": "service-eta", "path": "/services/eta/", "persona": null },
+  { "name": "service-resident", "path": "/services/resident-services/", "persona": null },
+  { "name": "guide", "path": "/guide/", "persona": null },
+  { "name": "guidance", "path": "/help/guidance/", "persona": null },
+  { "name": "help", "path": "/help/", "persona": null },
+  { "name": "help-complaint", "path": "/help/complaint/", "persona": null },
+  { "name": "official-channels", "path": "/help/official-channels/", "persona": null },
+  { "name": "service-points", "path": "/service-points/", "persona": null },
+  { "name": "service-point", "path": "/service-points/point/?id=SP-DEMO-1001", "persona": null },
+  { "name": "profile-accessibility", "path": "/profile/accessibility/", "persona": null },
+  { "name": "prototype-controls", "path": "/profile/prototype/", "persona": null },
+  { "name": "more-signed-out", "path": "/more/", "persona": null },
+  { "name": "about", "path": "/about/", "persona": null },
+  { "name": "offline", "path": "/offline/", "persona": null },
+  { "name": "applications-signed-out", "path": "/applications/", "persona": null },
+  { "name": "staff-sign-in", "path": "/staff/", "persona": null },
+  { "name": "partner-sign-in", "path": "/partner/", "persona": null },
+
+  { "name": "home", "path": "/home/", "persona": "Thandi M." },
+  { "name": "search", "path": "/search/?q=passport", "persona": "Thandi M." },
+  { "name": "apply", "path": "/apply/?service=SMART_ID_REPLACEMENT", "persona": "Thandi M." },
+  { "name": "applications", "path": "/applications/", "persona": "Thandi M." },
+  {
+    "name": "case-action",
+    "path": "/applications/case/?id=CASE-DEMO-000041",
+    "persona": "Thandi M."
+  },
+  {
+    "name": "case-production",
+    "path": "/applications/case/?id=CASE-DEMO-002481",
+    "persona": "Thandi M."
+  },
+  {
+    "name": "case-completed",
+    "path": "/applications/case/?id=CASE-DEMO-000017",
+    "persona": "Thandi M."
+  },
+  {
+    "name": "appointments-case",
+    "path": "/appointments/?case=CASE-DEMO-000041",
+    "persona": "Thandi M."
+  },
+  { "name": "appointments", "path": "/appointments/", "persona": "Thandi M." },
+  { "name": "messages", "path": "/messages/", "persona": "Thandi M." },
+  { "name": "message-prefs", "path": "/messages/preferences/", "persona": "Thandi M." },
+  { "name": "whatsapp", "path": "/messages/whatsapp/", "persona": "Thandi M." },
+  {
+    "name": "help-callback",
+    "path": "/help/callback/?case=CASE-DEMO-000041",
+    "persona": "Thandi M."
+  },
+  { "name": "profile", "path": "/profile/", "persona": "Thandi M." },
+  { "name": "profile-security", "path": "/profile/security/", "persona": "Thandi M." },
+  { "name": "profile-privacy", "path": "/profile/privacy/", "persona": "Thandi M." },
+  { "name": "wallet", "path": "/wallet/", "persona": "Thandi M." },
+  { "name": "more", "path": "/more/", "persona": "Thandi M." },
+
+  { "name": "home-guardian", "path": "/home/", "persona": "Sipho D." },
+  { "name": "profile-family", "path": "/profile/family/", "persona": "Sipho D." },
+  {
+    "name": "apply-resume",
+    "path": "/apply/?service=ADULT_PASSPORT&draft=DRAFT-DEMO-1001",
+    "persona": "Sipho D."
+  },
+
+  { "name": "home-visitor", "path": "/home/", "persona": "Aisha K." },
+  { "name": "messages-basic-access", "path": "/messages/", "persona": "Aisha K." },
+  { "name": "profile-security-basic", "path": "/profile/security/", "persona": "Aisha K." },
+
+  { "name": "abroad", "path": "/abroad/", "persona": "Lerato N." },
+  {
+    "name": "case-abroad",
+    "path": "/applications/case/?id=CASE-DEMO-000078",
+    "persona": "Lerato N."
+  },
+  { "name": "appointments-abroad", "path": "/appointments/", "persona": "Lerato N." },
+
+  { "name": "staff-queue", "path": "/staff/queue/", "persona": "staff:Nomsa P." },
+  { "name": "staff-case", "path": "/staff/case/?id=CASE-DEMO-000063", "persona": "staff:Nomsa P." },
+  { "name": "staff-dashboard", "path": "/staff/dashboard/", "persona": "staff:Nomsa P." },
+  { "name": "staff-support", "path": "/staff/support/", "persona": "staff:Nomsa P." },
+  { "name": "staff-audit", "path": "/staff/audit/", "persona": "staff:Nomsa P." },
+
+  { "name": "partner", "path": "/partner/", "persona": "partner:Sample Bank (demo)" }
+]

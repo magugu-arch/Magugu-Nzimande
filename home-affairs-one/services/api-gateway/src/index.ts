@@ -138,9 +138,19 @@ const CHANNEL_FOR_ROLE: Record<Role | 'system', AuditEvent['channel']> = {
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 let correlationCounter = 0;
-function nextCorrelationId(now: Date): string {
-  correlationCounter += 1;
-  return `CORR-${now.getTime().toString(36).toUpperCase()}-${String(correlationCounter).padStart(4, '0')}`;
+
+/**
+ * `CORR-MX0A-1B2C-0001`: time in base 36 and a counter, in groups of four.
+ * Grouping matters: the audit trail refuses anything with a long run of digits
+ * (it could be an identity or phone number), and an ungrouped timestamp will
+ * sometimes be all digits. A refused audit write must never be the reason a
+ * record is missing.
+ */
+export function nextCorrelationId(now: Date): string {
+  correlationCounter = (correlationCounter % 9999) + 1;
+  const time = now.getTime().toString(36).toUpperCase().padStart(8, '0');
+  const groups = time.match(/.{1,4}/g) ?? [time];
+  return `CORR-${groups.join('-')}-${String(correlationCounter).padStart(4, '0')}`;
 }
 
 /* ------------------------------------------------------------------ */

@@ -27,7 +27,7 @@ export interface Session {
   accountTier: AssuranceTier;
   method: SignInMethod;
   signedInAt: string;
-  /** A step-up to A3 covers one sensitive action and then expires. */
+  /** A step-up to A3 lasts for a short window (`STEP_UP_MINUTES`) and then expires. */
   stepUpExpiresAt: string | null;
   synthetic: true;
 }

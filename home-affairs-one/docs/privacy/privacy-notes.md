@@ -102,7 +102,7 @@ only network traffic is the browser downloading the site's own files.
 
 To clear it:
 
-1. **In the app:** use the "reset demo data" control. It calls `resetDemoData()`
+1. **In the app:** use the "reset demo data" control, where the build has one. It calls `resetDemoData()`
    (`apps/web/src/lib/gateway.ts`), which removes every `hao.v1:` key, empties `sessionStorage` and
    reloads with fresh sample data.
 2. **In the browser:** clear site data for the site's address (in Chrome or Edge: developer tools →

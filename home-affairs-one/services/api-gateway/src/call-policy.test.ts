@@ -2,7 +2,13 @@ import type { AuditEvent, AuditPort } from '@hao/api-contracts';
 import { TOPICS, createLocalPlatform, type Platform } from '@hao/local-platform';
 import { GatewayError, type MutationOptions } from '@hao/shared-types';
 import { describe, expect, it, vi } from 'vitest';
-import { createCallPolicy, type GatewayActor, type GatewayCallRecord } from './index';
+import { createAuditService } from '@hao/audit-service';
+import {
+  createCallPolicy,
+  nextCorrelationId,
+  type GatewayActor,
+  type GatewayCallRecord,
+} from './index';
 
 /** A fake service with one method per behaviour the policy must handle. */
 function fakePort() {
@@ -192,5 +198,31 @@ describe('gateway call policy', () => {
       channel: 'STAFF_CONSOLE',
       resource: { ref: 'CASE-DEMO-000041' },
     });
+  });
+});
+
+describe('correlation ids', () => {
+  it('never contain a run of digits the audit trail would refuse', async () => {
+    const platform = createLocalPlatform({ now: () => new Date('2026-11-21T08:00:00Z') });
+    const audit = createAuditService(platform);
+    // Sweep two years of timestamps, including ones whose base-36 form is all digits.
+    const start = Date.UTC(2026, 10, 21);
+    for (let step = 0; step < 4000; step += 1) {
+      const id = nextCorrelationId(new Date(start + step * 15_800_000));
+      expect(id).toMatch(/^CORR(-[0-9A-Z]{4}){3}$/);
+      expect(id).not.toMatch(/\d{6}/);
+    }
+    const allDigits = nextCorrelationId(new Date(parseInt('MX001466', 36)));
+    await expect(
+      audit.record({
+        actor: { role: 'citizen', ref: 'PERSON-DEMO-7X3Q' },
+        action: 'demo.check',
+        resource: { type: 'demo', ref: 'CASE-DEMO-000041' },
+        purpose: 'service-request',
+        outcome: 'SUCCESS',
+        channel: 'WEB',
+        correlationId: allDigits,
+      }),
+    ).resolves.toMatchObject({ correlationId: allDigits });
   });
 });
