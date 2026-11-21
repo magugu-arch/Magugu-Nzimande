@@ -4,7 +4,7 @@
 //
 // What is fact and what is assumption:
 // - The scope and days are our estimate for the brief's full supporter app.
-// - The day rate is the proposer's (see RATE_NOTE).
+// - The day rate and the currency are the proposer's (see `currency`).
 // - Running costs are allowances, to be replaced by supplier quotes.
 // - The value model is illustrative. It uses no club figures.
 
@@ -13,12 +13,23 @@ export const PROPOSER = 'LegacyLeverage Creative Agency';
 
 /* ----------------------------------------------------------------- the rate */
 
-export const DAY_RATE = 250; // pounds, one senior person for one 8-hour day
+/**
+ * The whole proposal is priced in one currency, so that cost, value and
+ * payback can be compared without converting. To change it, change this and
+ * the figures: nothing else names a currency.
+ */
+export const currency = {
+  symbol: '€',
+  plural: 'euros',
+  /** One hundredth of the unit, for the per-message value. */
+  cent: 'cents',
+  /** Rand per unit: mid-market rate published for 15 November 2026 (currency.wiki). */
+  zarPer: 18.66,
+  rateDate: '15 November 2026',
+};
+
+export const DAY_RATE = 250; // one senior person for one 8-hour day
 export const HOURS_PER_DAY = 8;
-/** Mid-market rate published on 17 November 2026 (keycurrency.co.uk). */
-export const ZAR_PER_GBP = 22.35;
-export const RATE_NOTE =
-  'in line with the R690 an hour in our current proposals, at about R22 to £1';
 
 /* -------------------------------------------------- the build, line by line */
 
@@ -174,7 +185,7 @@ export const build = {
     return this.days * DAY_RATE;
   },
   get zar() {
-    return this.price * ZAR_PER_GBP;
+    return this.price * currency.zarPer;
   },
 };
 
@@ -410,9 +421,9 @@ export const seasonValue = Object.fromEntries(
 );
 
 export const valueFootnote =
-  `Per full season live. Tickets: extra visits × ${HOME_MATCHES} home matches × £${TICKET_YIELD}. ` +
-  `Memberships × £${MEMBERSHIP_VALUE}. Store: buyers × £${BASKET} basket × ${CLUB_SHARE * 100}% club share. ` +
-  `Partners: rate card. Reach: known supporters × ${MESSAGES} messages × ${MESSAGE_VALUE * 100}p. ` +
+  `Per full season live. Tickets: extra visits × ${HOME_MATCHES} home matches × ${currency.symbol}${TICKET_YIELD}. ` +
+  `Memberships × ${currency.symbol}${MEMBERSHIP_VALUE}. Store: buyers × ${currency.symbol}${BASKET} basket × ${CLUB_SHARE * 100}% club share. ` +
+  `Partners: rate card. Reach: known supporters × ${MESSAGES} messages × ${MESSAGE_VALUE * 100} ${currency.cent}. ` +
   'Illustrative, not club figures or forecasts.';
 
 /** Months after launch at which cumulative value, less running costs, repays the build. */
@@ -486,7 +497,7 @@ const assert = (condition, message) => {
 const sum = (list, pick) => list.reduce((total, item) => total + pick(item), 0);
 
 assert(build.days === 500, `expected 500 days, got ${build.days}`);
-assert(build.price === 125_000, `expected £125,000, got ${build.price}`);
+assert(build.price === 125_000, `expected a 125,000 build, got ${build.price}`);
 assert(sum(roleTotals, (r) => r.days) === build.days, 'disciplines do not add up to the build');
 assert(sum(phases, (p) => p.days) === build.days, 'phases do not add up to the build');
 assert(sum(deliverables, (d) => d.price) === build.price, 'lines do not add up to the price');

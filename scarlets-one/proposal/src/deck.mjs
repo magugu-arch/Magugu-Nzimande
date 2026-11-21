@@ -19,7 +19,7 @@ import {
   HOME_MATCHES,
   PROPOSER,
   TODAY,
-  ZAR_PER_GBP,
+  currency,
   audit,
   build,
   deliverables,
@@ -540,7 +540,7 @@ slides.push(
       `In the base case, three properties bring ${money(partnerCases.base)} a season against a ${money(build.price)} build: ${pct(partnerCases.base / build.price)} of it, every season they are sold. It is the app’s largest value line, and one the club can sell before launch.`,
     )}
 <div class="body" style="display:grid;grid-template-columns:1.66fr 1fr;gap:22px">
-<div class="card" style="padding:32px 40px 24px"><div class="cap">Partner fees against the build, £ thousands</div>${partnerBars()}</div>
+<div class="card" style="padding:32px 40px 24px"><div class="cap">Partner fees against the build, ${currency.symbol} thousands</div>${partnerBars()}</div>
 <div class="stack">
 ${card({ dark: true, title: 'Sell the launch as<br>a partnership', txt: `Offer the presenting partner three seasons at ${money(partners[0].fee)}: ${money(partners[0].fee * 3)}, ${pct((partners[0].fee * 3) / build.price)} of the build, signed before the build starts.` })}
 ${card({ title: 'Reports, not impressions', txt: 'Reach, engagement, conversion and return visits, proven with holdout groups. A claim is not a redemption.' })}
@@ -579,7 +579,7 @@ slides.push(
 <div><span>In rand, for reference</span><b>about R${(build.zar / 1e6).toFixed(2)} million</b></div>
 <div class="main"><span>Total, fixed price, excluding VAT</span><b>${money(build.price)}</b></div>
 </div></div>
-<p class="fn">A senior team at ${money(DAY_RATE)} a day: in line with the R690 an hour in our current proposals, at about R22 to £1 (mid-market rate R${ZAR_PER_GBP} on 17 November 2026). iOS, Android and web from one codebase. On final payment the club owns the code, designs and data.</p>`,
+<p class="fn">A senior team at ${money(DAY_RATE)} a day. Priced in ${currency.plural}; in rand, about R${(build.zar / 1e6).toFixed(2)} million at R${currency.zarPer} to ${currency.symbol}1, the mid-market rate on ${currency.rateDate}. iOS, Android and web from one codebase. On final payment the club owns the code, designs and data.</p>`,
   ),
 );
 
@@ -690,7 +690,7 @@ slides.push(
       'Five value lines, each tied to a number the app moves and the club can count. Illustrative: every assumption is replaced with the club’s own figures in discovery.',
     )}
 <div class="body fnote" style="display:grid;grid-template-columns:1.1fr 1fr;gap:22px">
-<div class="card" style="padding:30px 36px 12px"><div class="cap">Base case: how a season adds up, £ thousands</div>${waterfall()}</div>
+<div class="card" style="padding:30px 36px 12px"><div class="cap">Base case: how a season adds up, ${currency.symbol} thousands</div>${waterfall()}</div>
 <div class="card" style="padding:30px 36px"><div class="cap">Value a season, three cases</div><table class="tbl">
 <tr><th>Value line</th><th class="r">Conservative</th><th class="r">Base</th><th class="r">Stretch</th></tr>
 ${valueLines.map((line) => `<tr><td class="nm">${line.name}<span class="ds">${line.cases.conservative.assumption} · ${line.cases.base.assumption} · ${line.cases.stretch.assumption} ${line.unit}</span></td><td class="r">${money(line.cases.conservative.value)}</td><td class="r">${money(line.cases.base.value)}</td><td class="r">${money(line.cases.stretch.value)}</td></tr>`).join('')}
@@ -719,7 +719,7 @@ slides.push(
 <div class="body" style="display:grid;grid-template-rows:1fr auto;gap:20px">
 <div style="display:grid;grid-template-columns:2.02fr 1fr;gap:22px">
 <div class="card" style="padding:28px 36px 16px"><div class="cap" style="margin-bottom:14px">The club’s cumulative position after launch</div>${returnLegend()}${returnLines()}</div>
-${card({ dark: true, title: `Base case: ${money(base.net)}<br>net over three seasons`, txt: `${money(base.threeSeasonValue)} of value against ${money(threeYearCost)} to build and run: about £${base.perPound.toFixed(0)} back for every £1. Conservative: £${returns.conservative.perPound.toFixed(2)} back, ${money(returns.conservative.net)} net. Stretch: £${returns.stretch.perPound.toFixed(2)} back, ${money(returns.stretch.net)} net.` })}
+${card({ dark: true, title: `Base case: ${money(base.net)}<br>net over three seasons`, txt: `${money(base.threeSeasonValue)} of value against ${money(threeYearCost)} to build and run: about ${currency.symbol}${base.perPound.toFixed(0)} back for every ${currency.symbol}1. Conservative: ${currency.symbol}${returns.conservative.perPound.toFixed(2)} back, ${money(returns.conservative.net)} net. Stretch: ${currency.symbol}${returns.stretch.perPound.toFixed(2)} back, ${money(returns.stretch.net)} net.` })}
 </div>
 <div class="g4">${notCounted.map((title) => `<div class="card" style="padding:22px 30px 24px"><div class="num" style="margin-bottom:12px;font-size:12.5px">Not counted above</div><h3 style="font-size:25px">${title}</h3></div>`).join('')}</div>
 </div>`,
@@ -785,8 +785,8 @@ const risks = [
     'Load tests at kick-off volumes, a low-data mode, and the last confirmed data stays on screen if the signal drops.',
   ],
   [
-    'Scope grows, or the pound moves',
-    'Fixed price in pounds for the listed scope, set on signature. Anything new is priced and approved in writing first.',
+    'Scope grows, or the currency moves',
+    `Fixed price in ${currency.plural} for the listed scope, set on signature. Anything new is priced and approved in writing first.`,
   ],
 ];
 slides.push(

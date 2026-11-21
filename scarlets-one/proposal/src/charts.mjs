@@ -8,6 +8,7 @@
 // static, so every charted value is also printed in a table on the same slide.
 import {
   build,
+  currency,
   ownership,
   partnerCases,
   partners,
@@ -20,10 +21,10 @@ import {
   yearOneCost,
 } from './data.mjs';
 
-export const money = (n) => `£${Math.round(n).toLocaleString('en-GB')}`;
+export const money = (n) => `${currency.symbol}${Math.round(n).toLocaleString('en-GB')}`;
 export const k = (n, digits = 0) => {
   const value = n / 1000;
-  return `£${value.toFixed(Number.isInteger(value) ? 0 : digits || 1)}k`;
+  return `${currency.symbol}${value.toFixed(Number.isInteger(value) ? 0 : digits || 1)}k`;
 };
 
 const SERIES = { conservative: '#2A6FB5', base: '#C8102E', stretch: '#B07A1E' };
