@@ -61,7 +61,9 @@
 .card h2 {
   font-size: var(--text-xl);
 }
-.fill {
+.fill,
+.card > div[role],
+.form > div[role] {
   align-self: stretch;
 }
 .quiet {

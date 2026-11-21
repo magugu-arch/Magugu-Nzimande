@@ -1,0 +1,440 @@
+/* Header: title beside a decorative photograph ------------------------ */
+.head {
+  display: grid;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-5);
+}
+.headPhoto {
+  aspect-ratio: 21 / 9;
+}
+@media (min-width: 60rem) {
+  .head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+    gap: var(--space-7);
+  }
+  .headPhoto {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* Finder: filters beside results -------------------------------------- */
+.finder {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+}
+.finder > * {
+  min-width: 0;
+}
+@media (min-width: 60rem) {
+  .finder {
+    grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  }
+}
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.filtersTitle,
+.resultsTitle {
+  font-size: var(--text-xl);
+}
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.fieldset legend {
+  padding: 0;
+  font-weight: 700;
+}
+.checks {
+  display: grid;
+  margin-top: var(--space-1);
+}
+@media (min-width: 30rem) and (max-width: 59.99rem) {
+  .checks {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--space-4);
+  }
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.resultsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+}
+.count {
+  min-height: 1.5em;
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Result cards --------------------------------------------------------- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cards > li {
+  min-width: 0;
+}
+.pointCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+}
+.pointName {
+  font-size: var(--text-lg);
+  line-height: 1.3;
+}
+.pointTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.pointPlace {
+  font-weight: 600;
+}
+.pointNote {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.pointHours {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.pointHours svg {
+  width: 1.1em;
+  height: 1.1em;
+  margin-top: 0.2em;
+}
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: auto 0 0;
+  padding: var(--space-2) 0 0;
+  list-style: none;
+}
+
+/* Schematic map -------------------------------------------------------- */
+.mapLayout {
+  display: grid;
+  gap: var(--space-4);
+  align-items: start;
+}
+.mapLayout > * {
+  min-width: 0;
+}
+@media (min-width: 72rem) {
+  .mapLayout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  }
+}
+.mapColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.mapFigure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+/* A soft grid in the product palette: clearly a diagram, not a real map. */
+.map {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background-color: var(--teal-50);
+  background-image:
+    linear-gradient(var(--navy-100) 1px, transparent 1px),
+    linear-gradient(90deg, var(--navy-100) 1px, transparent 1px);
+  background-size: 2.5rem 2.5rem;
+  background-position: center;
+}
+@media (min-width: 36rem) {
+  .map {
+    aspect-ratio: 16 / 11;
+  }
+}
+.mapSmall {
+  max-width: 30rem;
+  aspect-ratio: 16 / 10;
+}
+/* Pins are placed inside this inset box, so one near an edge is never clipped. */
+.mapInner {
+  position: absolute;
+  inset: 1.75rem;
+}
+.mapCaption,
+.mapHint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.pin {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+.pin:focus-visible {
+  z-index: 3;
+  border-radius: 50%;
+}
+.pinStatic {
+  cursor: default;
+}
+.pinDot {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--navy-900);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-inverse);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) ease;
+}
+.pin:hover .pinDot {
+  background: var(--blue-600);
+}
+/* Selected: larger, ringed and gold — size and ring carry it, not colour alone. */
+.pinSelected {
+  z-index: 2;
+}
+.pinSelected .pinDot,
+.pinSelected:hover .pinDot {
+  border-color: var(--navy-900);
+  background: var(--gold-500);
+  color: var(--navy-950);
+  transform: scale(1.18);
+}
+
+.mapList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  list-style: none;
+}
+.mapList > li + li {
+  border-top: 1px solid var(--color-border);
+}
+.mapItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+.mapItem:hover {
+  background: var(--color-surface-sunken);
+}
+.mapItem:focus-visible {
+  outline-offset: -3px;
+}
+.mapItemSelected {
+  background: var(--gold-50);
+  box-shadow: inset 4px 0 0 var(--gold-500);
+}
+.mapItemNumber {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--navy-900);
+  color: var(--color-text-inverse);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.mapItemSelected .mapItemNumber {
+  background: var(--gold-500);
+  color: var(--navy-950);
+  outline: 2px solid var(--navy-900);
+}
+.mapItemText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+.mapItemName {
+  font-weight: 700;
+  line-height: 1.35;
+}
+.mapItemMeta {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Link card to /abroad/ ------------------------------------------------ */
+.abroad {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-4);
+  align-items: center;
+}
+.abroadIcon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--navy-900);
+}
+.abroadText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.abroadText p {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.abroadTitle {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+.abroadArrow {
+  color: var(--ink-600);
+}
+
+/* Access for everyone -------------------------------------------------- */
+.access {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.access h3 {
+  margin-top: var(--space-2);
+}
+.access p,
+.accessNote {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Point page ----------------------------------------------------------- */
+.illustration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+.illustration figcaption {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.availability {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.plainList,
+.linkList,
+.checkList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.linkList a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  font-weight: 700;
+}
+.linkList {
+  gap: 0;
+}
+.checkList li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  align-items: start;
+}
+.checkList svg {
+  width: 1.2em;
+  height: 1.2em;
+  margin-top: 0.2em;
+  color: var(--green-700);
+}
+.columns {
+  display: grid;
+  gap: var(--space-5);
+}
+@media (min-width: 48rem) {
+  .columns {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-7);
+  }
+}
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.muted {
+  color: var(--color-text-muted);
+}
+.nextTitle {
+  font-size: var(--text-xl);
+}

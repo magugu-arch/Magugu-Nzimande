@@ -209,7 +209,7 @@ export function ApplicationsScreen() {
       <PhotoHeader
         title="My applications"
         lede="Everything you have applied for, in one timeline."
-        photo={<Photo asset="A30" ratio="4 / 5" shape="arch" sizes="11rem" priority />}
+        photo={<Photo asset="A30" ratio="4 / 5" shape="arch" sizes="11rem" />}
       />
 
       <Stack gap={5}>

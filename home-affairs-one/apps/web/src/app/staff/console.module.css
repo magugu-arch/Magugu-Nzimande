@@ -1,0 +1,458 @@
+/* Chrome and shared pieces for the staff console and the partner sandbox.
+   Deliberately unlike the public service: a solid navy bar with a gold rule,
+   no bottom tab bar, denser content. */
+
+.frame {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* Bar ---------------------------------------------------------------- */
+.bar {
+  background: var(--navy-900);
+  border-bottom: 3px solid var(--gold-500);
+  color: var(--color-text-inverse);
+}
+.barInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding-block: var(--space-3);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: var(--touch-target);
+  color: #fff;
+  text-decoration: none;
+}
+.brand:hover {
+  color: #fff;
+}
+/* The mark's tile is navy too, so it gets a hairline to sit on the bar. */
+.brandMark {
+  flex: none;
+  border-radius: 9px;
+  box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.4);
+}
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+.brandName {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.surface {
+  color: var(--gold-200);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.barEnd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin-inline-start: auto;
+}
+.who {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) 0.625rem;
+  min-width: 0;
+}
+.whoText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.whoName {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.whoDetail {
+  color: var(--color-text-inverse-muted);
+  font-size: var(--text-xs);
+}
+.barLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--touch-target);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.barLink:hover {
+  color: var(--gold-200);
+}
+.barLink svg {
+  width: 1rem;
+  height: 1rem;
+}
+@media (max-width: 47.9375rem) {
+  .barEnd {
+    width: 100%;
+    margin-inline-start: 0;
+    justify-content: space-between;
+  }
+}
+
+/* Navigation: wraps onto a second row on narrow screens, never clips. */
+.nav {
+  border-top: 1px solid rgb(255 255 255 / 0.16);
+}
+.navList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-1);
+  margin: 0;
+  margin-inline: -0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.navLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--touch-target);
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  color: var(--color-text-inverse-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.navLink:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+}
+.navLink[aria-current] {
+  color: #fff;
+}
+.navLink[aria-current]::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0.75rem;
+  bottom: 0.25rem;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--gold-500);
+}
+.navLink svg {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+/* The slim line under the bar. */
+.official {
+  background: var(--gold-50);
+  border-bottom: 1px solid var(--gold-200);
+  color: var(--ink-900);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.officialInner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-block: 0.4375rem;
+}
+.officialInner svg {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--gold-700);
+}
+
+.main {
+  flex: 1;
+  padding-bottom: var(--space-8);
+}
+.main:focus {
+  outline: none;
+}
+
+/* Small shared pieces -------------------------------------------------- */
+.mono {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+}
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.count {
+  color: var(--ink-700);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.filters {
+  display: grid;
+  gap: var(--space-4);
+  align-items: end;
+}
+@media (min-width: 40rem) {
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 18rem));
+  }
+}
+.plainList {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Sign-in choices (staff members, partners) ---------------------------- */
+.choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3) var(--space-4);
+  align-items: center;
+  width: 100%;
+  padding: var(--space-4);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-base) var(--ease-out);
+}
+.choice:hover {
+  border-color: var(--color-action);
+  box-shadow: var(--shadow-md);
+}
+.choice > svg {
+  color: var(--ink-600);
+}
+.choiceName {
+  display: block;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.choiceRole {
+  display: block;
+  color: var(--ink-700);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.choiceDetail {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Data table: a real table on wide screens, one card per row below 60rem. */
+.tableWrap {
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.table caption {
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text-muted);
+  text-align: start;
+}
+.table th,
+.table td {
+  padding: 0.6875rem var(--space-4);
+  text-align: start;
+  vertical-align: top;
+}
+.table thead th {
+  background: var(--color-surface-sunken);
+  border-block: 1px solid var(--color-border);
+  color: var(--ink-700);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.table tbody th {
+  font-weight: 700;
+}
+.table tbody tr + tr > * {
+  border-top: 1px solid var(--color-border);
+}
+.cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 59.9375rem) {
+  .tableWrap {
+    overflow: visible;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .table,
+  .table caption,
+  .table tr,
+  .table tbody th,
+  .table td {
+    display: block;
+  }
+  .table caption {
+    padding-inline: 0;
+  }
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .table tbody {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .table tbody tr {
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .table tbody tr + tr > * {
+    border-top: 0;
+  }
+  .table tbody th,
+  .table tbody td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 34%) minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: start;
+    padding: 0.3125rem 0;
+  }
+  /* The column heading, repeated beside each value. */
+  .table tbody th::before,
+  .table tbody td::before {
+    content: attr(data-label);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    line-height: 1.6;
+  }
+}
+
+/* Dashboard ------------------------------------------------------------ */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(11.5rem, 100%), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+.tile {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 0.375rem;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--navy-900);
+  border-radius: var(--radius-md);
+}
+.tile dt {
+  color: var(--ink-700);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.tile dd {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 560;
+  line-height: 1;
+}
+
+/* Bar list: label, number as text, and a bar whose width is the share. */
+.bars {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.3125rem var(--space-3);
+  align-items: baseline;
+}
+.barLabel {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.barValue {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.barTrack {
+  grid-column: 1 / -1;
+  height: 0.625rem;
+  overflow: hidden;
+  background: var(--navy-50);
+  border-radius: var(--radius-pill);
+}
+.barFill {
+  display: block;
+  height: 100%;
+  background: var(--blue-600);
+  border-radius: var(--radius-pill);
+}
+
+.headerRow {
+  display: grid;
+  gap: var(--space-5);
+  align-items: center;
+}
+.headerPhoto {
+  display: none;
+}
+@media (min-width: 60rem) {
+  .headerRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    gap: var(--space-7);
+  }
+  .headerPhoto {
+    display: block;
+  }
+}
