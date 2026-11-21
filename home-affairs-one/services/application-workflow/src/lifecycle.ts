@@ -290,6 +290,18 @@ export const steps = {
     ...(awaitingVisit ? scheduled : {}),
   }),
 
+  /** The person cancelled their booking; the in-person step still has to happen. */
+  appointmentCancelled: (awaitingVisit: boolean): WorkflowStep => ({
+    type: 'APPOINTMENT_CHANGED',
+    actor: 'APPLICANT',
+    title: 'Appointment cancelled',
+    detail: 'Book a new time at your chosen service point when you are ready.',
+    appointmentId: null,
+    ...(awaitingVisit
+      ? { ...actionRequired(NEXT_ACTIONS.bookAppointment), reach: 'capture' as const }
+      : {}),
+  }),
+
   captureCompleted: (actor: Actor): WorkflowStep => ({
     type: 'CAPTURE_COMPLETED',
     actor,

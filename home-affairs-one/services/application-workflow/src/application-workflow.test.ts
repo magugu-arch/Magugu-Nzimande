@@ -1597,3 +1597,36 @@ describe('storage', () => {
     expect(await again.listCases(thandi)).toHaveLength(4);
   });
 });
+
+describe('cancelling an appointment', () => {
+  it('sends a scheduled application back to needing an appointment', async () => {
+    const platform = createLocalPlatform({ now: () => new Date('2026-11-21T08:00:00Z') });
+    const workflow = createWorkflowService(platform, {
+      catalogue: {
+        getService: async () => {
+          throw new Error('not needed: the seeded case is already open');
+        },
+      },
+    });
+    const before = await workflow.getCase(DEMO.cases.passportAbroadScheduled);
+    expect(before.status).toBe('SCHEDULED');
+    expect(before.appointmentId).not.toBeNull();
+
+    const after = await workflow.clearAppointment(before.caseId, { idempotencyKey: 'cancel-1' });
+    expect(after).toMatchObject({
+      status: 'ACTION_REQUIRED',
+      appointmentId: null,
+      nextAction: { type: 'BOOK_APPOINTMENT' },
+      servicePointId: before.servicePointId,
+    });
+    const events = await workflow.listCaseEvents(before.caseId);
+    expect(events.at(-1)).toMatchObject({
+      type: 'APPOINTMENT_CHANGED',
+      title: 'Appointment cancelled',
+    });
+
+    // Clearing again is a no-op, not a second event.
+    await workflow.clearAppointment(before.caseId, { idempotencyKey: 'cancel-2' });
+    expect(await workflow.listCaseEvents(before.caseId)).toHaveLength(events.length);
+  });
+});

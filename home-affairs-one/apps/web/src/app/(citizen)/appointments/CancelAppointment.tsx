@@ -25,9 +25,21 @@ export function CancelAppointment({
 }) {
   // A key exists while the dialog is open: one key for this decision to cancel.
   const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
-  const cancel = useGatewayMutation((g, key: string) =>
-    g.appointments.cancel(appointment.appointmentId, { idempotencyKey: key }),
-  );
+  const cancel = useGatewayMutation(async (g, key: string) => {
+    const cancelled = await g.appointments.cancel(appointment.appointmentId, {
+      idempotencyKey: key,
+    });
+    // Tell the application too, so it goes back to "book an appointment" rather
+    // than still saying the appointment is confirmed.
+    if (appointment.caseId) {
+      try {
+        await g.workflow.clearAppointment(appointment.caseId, { idempotencyKey: `${key}:case` });
+      } catch {
+        // The booking is released either way; a closed application needs no update.
+      }
+    }
+    return cancelled;
+  });
   const close = () => setIdempotencyKey(null);
 
   const time =

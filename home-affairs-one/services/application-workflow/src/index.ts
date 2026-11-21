@@ -421,6 +421,13 @@ export function createWorkflowService(
       );
     },
 
+    async clearAppointment(caseId, _options) {
+      await ensureSeeded();
+      const current = requireOpenCase(caseId);
+      if (current.appointmentId === null) return current;
+      return commit(current, steps.appointmentCancelled(isAwaitingVisit(current)));
+    },
+
     async provideInformation(caseId, response, _options) {
       await ensureSeeded();
       const current = requireOpenCase(caseId);

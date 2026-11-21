@@ -7,28 +7,38 @@ import { findService } from '@/lib/catalogue';
 import { getGateway } from '@/lib/gateway';
 import { SessionProvider, useSession } from '@/lib/session';
 import { ApplyFlow } from './ApplyFlow';
+import { ApplyScreen } from './ApplyScreen';
 
 const router = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn() }));
+const address = vi.hoisted(() => ({ search: '' }));
 vi.mock('next/navigation', () => ({
   useRouter: () => router,
-  useSearchParams: () => new URLSearchParams('service=SMART_ID_REPLACEMENT'),
+  useSearchParams: () => new URLSearchParams(address.search),
   usePathname: () => '/apply/',
 }));
 
 let sessionApi: ReturnType<typeof useSession> | null = null;
 
-/** Stands in for the page: the guard has run and the service is known. */
-function Harness({ code }: { code: string }) {
-  const api = useSession();
-  sessionApi = api;
-  const service = findService(code);
-  if (!api.session || !service) return null;
-  return <ApplyFlow service={service} session={api.session} initialDraft={null} />;
+function CaptureSession() {
+  sessionApi = useSession();
+  return null;
 }
 
-/** Renders the flow for a demo person signed in the way the sign-in screen does it. */
+/** Stands in for the page: the guard has run and the service is known. */
+function Harness({ code }: { code: string | null }) {
+  const { session } = useSession();
+  if (code === null) return <ApplyScreen />;
+  const service = findService(code);
+  if (!session || !service) return null;
+  return <ApplyFlow service={service} session={session} initialDraft={null} />;
+}
+
+/**
+ * Renders the flow for a demo person signed in the way the sign-in screen does
+ * it. With `code` null the whole screen is rendered, reading the address.
+ */
 async function renderFlow(
-  code: string,
+  code: string | null,
   personToken: string,
   method: 'passkey' | 'verified-contact',
 ) {
@@ -41,6 +51,17 @@ async function renderFlow(
       mutations: { retry: false, networkMode: 'always' },
     },
   });
+  // Sign in first, as the sign-in screen would, so the flow opens with the right session.
+  const signIn = render(
+    <SessionProvider>
+      <CaptureSession />
+    </SessionProvider>,
+  );
+  act(() => {
+    sessionApi?.signInCitizen(account, method);
+  });
+  signIn.unmount();
+
   render(
     <QueryClientProvider client={client}>
       <SessionProvider>
@@ -48,9 +69,7 @@ async function renderFlow(
       </SessionProvider>
     </QueryClientProvider>,
   );
-  act(() => {
-    sessionApi?.signInCitizen(account, method);
-  });
+  return client;
 }
 
 const stepHeading = (name: string) => screen.findByRole('heading', { level: 2, name });
@@ -59,6 +78,7 @@ describe('the guided application journey', () => {
   beforeEach(() => {
     router.replace.mockClear();
     router.push.mockClear();
+    address.search = '';
     // jsdom has no layout, so it does not implement scrolling.
     Element.prototype.scrollIntoView = vi.fn();
   });
@@ -200,5 +220,59 @@ describe('the guided application journey', () => {
       '/service-points/',
     );
     expect(screen.queryByRole('button', { name: 'Submit application' })).toBeNull();
+  }, 30_000);
+
+  it('resumes a saved draft at the step it was left on, and keeps going if the draft changes', async () => {
+    const user = userEvent.setup();
+    const draftId = DEMO.drafts.siphoPassport;
+    const saved = await getGateway().workflow.getDraft(draftId);
+    address.search = `service=ADULT_PASSPORT&draft=${draftId}`;
+    const client = await renderFlow(null, DEMO.persons.sipho, 'passkey');
+
+    const resumed = await stepHeading(
+      saved.currentStepId === 'passport-details' ? 'About your passport' : 'Your details',
+    );
+    expect(resumed).not.toHaveFocus(); // Opening the page does not steal focus.
+    expect(screen.getByText(/^Saved /)).toBeInTheDocument();
+    expect(router.replace).not.toHaveBeenCalled();
+
+    // The flow owns the answers once it has opened: losing the stored draft (as submitting
+    // does) must not swap the screen for "not found".
+    await act(async () => {
+      await getGateway().workflow.deleteDraft(draftId, { idempotencyKey: 'test:delete-draft' });
+      await client.invalidateQueries();
+    });
+    expect(screen.getByRole('heading', { level: 2 })).toBe(resumed);
+
+    // "Save and exit" is a real link, so it still works if scripting fails.
+    expect(screen.getByRole('link', { name: 'Save and exit' })).toHaveAttribute(
+      'href',
+      '/applications/',
+    );
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+    await screen.findByRole('heading', { level: 2 });
+  }, 30_000);
+
+  it('treats a draft from another person or service as not found, with a way forward', async () => {
+    const draftId = DEMO.drafts.siphoPassport;
+
+    address.search = `service=ADULT_PASSPORT&draft=${draftId}`;
+    await renderFlow(null, DEMO.persons.thandi, 'passkey');
+    await screen.findByRole('heading', { level: 2, name: 'We could not find that draft' });
+    expect(screen.getByRole('link', { name: 'Start a new application' })).toHaveAttribute(
+      'href',
+      '/apply/?service=ADULT_PASSPORT',
+    );
+  }, 30_000);
+
+  it('explains why a service cannot be started here', async () => {
+    address.search = 'service=SMART_ID_FIRST';
+    await renderFlow(null, DEMO.persons.thandi, 'passkey');
+    await screen.findByRole('heading', { level: 2, name: 'This service cannot be started here' });
+    expect(screen.getByRole('link', { name: 'Go to the service page' })).toHaveAttribute(
+      'href',
+      '/services/smart-id-first/',
+    );
+    expect(screen.getByRole('link', { name: 'Get help' })).toHaveAttribute('href', '/help/');
   }, 30_000);
 });

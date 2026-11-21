@@ -87,10 +87,15 @@ export function useApplication({
   const [draft, setDraft] = useState<ApplicationDraft | null>(initialDraft);
   const [savedAt, setSavedAt] = useState<string | null>(initialDraft?.updatedAt ?? null);
   const [answers, setAnswers] = useState<Answers>(() => initialDraft?.answers ?? {});
-  /** Once "Confirm it is you" is part of the journey it stays, so the step count does not jump. */
-  const [includeVerify, setIncludeVerify] = useState(
+  /**
+   * "Confirm it is you" is part of the journey whenever the session is below the
+   * tier the service needs. Once it has been shown it stays, so the step count
+   * does not jump when the check succeeds.
+   */
+  const [verifyShown, setVerifyShown] = useState(
     () => !meetsTier(session.tier, service.requiredTier),
   );
+  const includeVerify = verifyShown || !meetsTier(session.tier, service.requiredTier);
   const steps = useMemo(() => buildSteps(service, { includeVerify }), [service, includeVerify]);
   const [stepId, setStepId] = useState<string>(() =>
     initialDraft ? resumeStepId(steps, initialDraft.currentStepId) : STEP.before,
@@ -360,6 +365,7 @@ export function useApplication({
 
   /** The step-up is asked for explicitly here, never silently. */
   async function confirmIdentity() {
+    setVerifyShown(true);
     try {
       stepUp();
     } catch {
@@ -420,7 +426,7 @@ export function useApplication({
     const tier = currentTier(session, new Date());
     if (!meetsTier(tier, service.requiredTier)) {
       // The step-up ran out (or was never done): ask again rather than send and be refused.
-      setIncludeVerify(true);
+      setVerifyShown(true);
       setStepUpLapsed(true);
       moveTo(STEP.verify, {
         steps: buildSteps(service, { includeVerify: true }),

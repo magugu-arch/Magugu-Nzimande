@@ -176,6 +176,11 @@ export interface WorkflowPort {
     appointmentId: string,
     options: MutationOptions,
   ): Promise<ApplicationCase>;
+  /**
+   * Called when the person cancels their booking. The in-person step still has
+   * to happen, so the application goes back to needing an appointment.
+   */
+  clearAppointment(caseId: string, options: MutationOptions): Promise<ApplicationCase>;
   /** The applicant answers a request for information. Free text only; no file contents. */
   provideInformation(
     caseId: string,
