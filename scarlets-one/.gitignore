@@ -19,3 +19,6 @@ tests/e2e/.artifacts/
 # single-file build: the web bundle it is assembled from, and compressed images
 apps/mobile/dist-single/
 single/.cache/
+# proposal deck: the generated HTML page and review images
+proposal/build/
+proposal/.cache/

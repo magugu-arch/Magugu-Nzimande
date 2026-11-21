@@ -1,0 +1,1109 @@
+/* Scarlets One proposal: a 1920 x 1080 slide deck, printed to PDF.
+   Layout follows the supplied reference deck: warm paper, soft cards, one dark
+   card per slide for emphasis, light uppercase display type. */
+@font-face {
+  font-family: 'Exo 2';
+  font-weight: 300;
+  font-style: normal;
+  src: url(../fonts/exo-2-latin-300-normal.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Exo 2';
+  font-weight: 300;
+  font-style: italic;
+  src: url(../fonts/exo-2-latin-300-italic.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Exo 2';
+  font-weight: 400;
+  font-style: normal;
+  src: url(../fonts/exo-2-latin-400-normal.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Exo 2';
+  font-weight: 500;
+  font-style: normal;
+  src: url(../fonts/exo-2-latin-500-normal.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Exo 2';
+  font-weight: 600;
+  font-style: normal;
+  src: url(../fonts/exo-2-latin-600-normal.woff2) format('woff2');
+}
+
+@page {
+  size: 1920px 1080px;
+  margin: 0;
+}
+:root {
+  --bg: #efece7;
+  --ink: #191619;
+  --ink-2: #3d383b;
+  --muted: #6e686a;
+  --line: rgba(25, 22, 25, 0.13);
+  --accent: #c8102e;
+  --accent-soft: #f4dcdd;
+  --wine: #3b101b;
+  --on-dark: #f8f4ee;
+  --on-dark-2: #e9dcdb;
+  --gold: #e7c683;
+  /* chart series, validated for colour-blind separation on the card surface */
+  --s-base: #c8102e;
+  --s-stretch: #b07a1e;
+  --s-conservative: #2a6fb5;
+  --mark: #3b101b;
+  --grid: #dedad3;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  background: var(--bg);
+}
+body {
+  font-family: 'Exo 2', sans-serif;
+  color: var(--ink);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  font-feature-settings: 'lnum' 1;
+}
+.slide {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--bg);
+  break-after: page;
+  isolation: isolate;
+}
+.slide:last-child {
+  break-after: auto;
+}
+
+/* ---- header strip */
+.hdr {
+  position: absolute;
+  top: 40px;
+  left: 58px;
+  right: 58px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  font: 500 13px/1 'Exo 2';
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hdr .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hdr .brand b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.hdr .brand i {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.hdr .pg {
+  text-align: right;
+}
+
+/* ---- title block */
+.head {
+  position: absolute;
+  top: 92px;
+  left: 58px;
+  right: 58px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 60px;
+}
+.eyebrow {
+  margin-bottom: 22px;
+  font: 600 15px/1 'Exo 2';
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+h1.t {
+  font: 300 62px/1.02 'Exo 2';
+  letter-spacing: -0.006em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.lede {
+  flex: none;
+  width: 572px;
+  padding-bottom: 4px;
+  font: 400 21px/1.5 'Exo 2';
+  color: var(--ink-2);
+}
+.body {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 282px;
+  bottom: 48px;
+}
+.body.hi {
+  top: 216px;
+}
+.body.fnote {
+  bottom: 92px;
+}
+.fn {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 1010px;
+  font: 400 15px/1.4 'Exo 2';
+  color: var(--muted);
+}
+
+/* ---- cards */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 34px 34px 32px;
+  border: 1px solid #fdfcfa;
+  border-radius: 26px;
+  background: linear-gradient(165deg, #ffffff 0%, #f7f5f1 46%, #e8e4dd 100%);
+}
+.card.dark {
+  border-color: #5a2030;
+  background: linear-gradient(165deg, #5c1b2b 0%, #3b101b 46%, #1f0810 100%);
+  color: var(--on-dark);
+}
+/* A soft shadow under each card, drawn as a gradient so it stays vector in the PDF. */
+.card::before,
+.phone::before {
+  content: '';
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: -18px;
+  z-index: -1;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(40, 20, 24, 0.2), rgba(40, 20, 24, 0));
+}
+.card.dark::before {
+  background: radial-gradient(closest-side, rgba(40, 8, 16, 0.4), rgba(40, 8, 16, 0));
+}
+.card h3 {
+  font: 300 34px/1.08 'Exo 2';
+  letter-spacing: 0.002em;
+  text-transform: uppercase;
+}
+.card .num {
+  margin-bottom: 20px;
+  font: 600 14px/1 'Exo 2';
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.card .sub {
+  margin-top: 14px;
+  font: 600 14px/1.2 'Exo 2';
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.card .txt {
+  margin-top: auto;
+  padding-top: 20px;
+  font: 400 19px/1.5 'Exo 2';
+  color: var(--ink-2);
+}
+.card.dark .txt {
+  color: var(--on-dark-2);
+}
+.card.dark .num,
+.card.dark .sub {
+  color: var(--gold);
+}
+.arrow {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  width: 32px;
+  height: 32px;
+  color: inherit;
+}
+.g2,
+.g3,
+.g4,
+.g6,
+.g7,
+.g8 {
+  display: grid;
+  gap: 22px;
+}
+.g2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.g3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.g4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+.g6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+.g7 {
+  grid-template-columns: repeat(7, 1fr);
+  gap: 18px;
+}
+.g8 {
+  grid-template-columns: repeat(8, 1fr);
+  gap: 16px;
+}
+.rows2 {
+  grid-template-rows: 1fr 1fr;
+  height: 100%;
+}
+.fill {
+  height: 100%;
+}
+.stack {
+  display: grid;
+  gap: 22px;
+  height: 100%;
+}
+
+.bul {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 20px;
+  list-style: none;
+}
+.bul li {
+  position: relative;
+  padding-left: 26px;
+  font: 400 18.5px/1.42 'Exo 2';
+  color: var(--ink-2);
+}
+.bul li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.5em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.dark .bul li {
+  color: var(--on-dark-2);
+}
+.dark .bul li::before {
+  background: var(--gold);
+}
+
+.strip {
+  flex-direction: row;
+  align-items: center;
+  gap: 44px;
+  padding: 30px 40px;
+}
+.tag {
+  flex: none;
+  padding: 10px 16px;
+  border-radius: 30px;
+  background: var(--accent-soft);
+  font: 600 13px/1 'Exo 2';
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.strip p {
+  font: 300 27px/1.28 'Exo 2';
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.strip p em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.banner {
+  position: relative;
+  height: 204px;
+  overflow: hidden;
+  border-radius: 26px;
+}
+.banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.concept {
+  position: absolute;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: rgba(25, 12, 16, 0.72);
+  font: 600 11.5px/1 'Exo 2';
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.banner .concept {
+  right: 18px;
+  bottom: 16px;
+}
+
+/* ---- photo slides: cover, part dividers, close */
+.frame {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 40px;
+  height: 905px;
+  overflow: hidden;
+  border-radius: 32px;
+  background: #1a0a0f;
+}
+.frame > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.frame .ov {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(22, 6, 11, 0.66) 0%,
+    rgba(22, 6, 11, 0.28) 36%,
+    rgba(22, 6, 11, 0.36) 58%,
+    rgba(22, 6, 11, 0.84) 100%
+  );
+}
+.frame .tl,
+.frame .tr {
+  position: absolute;
+  top: 40px;
+  font: 300 22px/1 'Exo 2';
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.frame .tl {
+  left: 44px;
+}
+.frame .tr {
+  right: 44px;
+}
+.frame .concept {
+  left: 44px;
+  top: 76px;
+}
+.frame h1 {
+  position: absolute;
+  color: #fff;
+  font: 300 84px/1.02 'Exo 2';
+  letter-spacing: -0.008em;
+  text-transform: uppercase;
+}
+.frame h1 em {
+  font-style: normal;
+  color: var(--gold);
+}
+.frame h1.top {
+  top: 118px;
+  left: 60px;
+  right: 60px;
+  text-align: center;
+  font-size: 92px;
+}
+.frame h1.cover {
+  font-weight: 600;
+}
+.frame h1.low {
+  left: 50px;
+  bottom: 50px;
+  max-width: 1050px;
+  font-size: 76px;
+}
+.frame .br {
+  position: absolute;
+  right: 48px;
+  bottom: 52px;
+  max-width: 640px;
+  text-align: right;
+  font: 300 28px/1.3 'Exo 2';
+  text-transform: uppercase;
+  color: #fff;
+}
+.cta {
+  position: absolute;
+  left: 54px;
+  bottom: 54px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  height: 76px;
+  padding: 0 34px 0 10px;
+  border-radius: 40px;
+  background: linear-gradient(180deg, #ffffff, #ece8e1);
+}
+.cta .ic {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--wine);
+  color: var(--gold);
+}
+.cta .ic svg {
+  width: 24px;
+  height: 24px;
+}
+.cta span {
+  font: italic 300 27px/1 'Exo 2';
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.cta > svg {
+  width: 26px;
+  height: 26px;
+  color: var(--accent);
+}
+.foot {
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 970px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 62px;
+}
+.dotbtn {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--wine);
+}
+.dotbtn i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.navp {
+  display: flex;
+  gap: 22px;
+}
+.navp span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 38px;
+  padding: 0 22px 0 6px;
+  border-radius: 20px;
+  background: var(--wine);
+  font: 500 13px/1 'Exo 2';
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #f3ebe6;
+}
+.navp span.on {
+  background: var(--gold);
+  color: #2a1210;
+}
+.navp span svg {
+  width: 26px;
+  height: 26px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+}
+.navp span.on svg {
+  border-color: rgba(42, 18, 16, 0.4);
+}
+.foot .meta {
+  text-align: right;
+  font: 500 12.5px/1.65 'Exo 2';
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---- people cards */
+.pcard {
+  padding: 12px 12px 26px;
+}
+.pcard .ph {
+  flex: none;
+  height: 312px;
+  overflow: hidden;
+  border-radius: 18px;
+}
+.pcard .ph img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pcard h3 {
+  margin: 24px 12px 0;
+  font-size: 29px;
+}
+.pcard .meta {
+  margin: auto 12px 0;
+  padding-top: 16px;
+  font: 400 16.5px/1.45 'Exo 2';
+  color: var(--ink-2);
+}
+.pcard .meta p + p {
+  margin-top: 5px;
+}
+.pcard .meta b {
+  font-weight: 600;
+  color: var(--accent);
+}
+.dark.pcard .meta {
+  color: var(--on-dark-2);
+}
+.dark.pcard .meta b {
+  color: var(--gold);
+}
+
+/* ---- step cards: journey and calendar */
+.step {
+  padding: 30px 24px;
+}
+.step .n {
+  font: 300 46px/1 'Exo 2';
+  color: var(--accent);
+}
+.dark.step .n {
+  color: var(--gold);
+}
+.step h3 {
+  margin-top: 10px;
+  font-size: 28px;
+}
+.step .when {
+  font: 600 13px/1 'Exo 2';
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.dark.step .when {
+  color: var(--gold);
+}
+.step .q {
+  margin-top: 12px;
+  font: italic 300 19px/1.3 'Exo 2';
+  color: var(--ink-2);
+}
+.dark.step .q {
+  color: var(--on-dark-2);
+}
+.step .who {
+  margin-top: auto;
+}
+.step .who b {
+  display: block;
+  font: 600 13px/1.3 'Exo 2';
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.step .who b.g {
+  margin-top: 16px;
+  color: var(--accent);
+}
+.dark.step .who b {
+  color: #fff;
+}
+.dark.step .who b.g {
+  color: var(--gold);
+}
+.step .who p {
+  margin-top: 4px;
+  font: 400 16px/1.42 'Exo 2';
+  color: var(--ink-2);
+}
+.dark.step .who p {
+  color: var(--on-dark-2);
+}
+
+/* ---- tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tbl th {
+  padding: 0 0 14px;
+  border-bottom: 1.5px solid rgba(25, 22, 25, 0.55);
+  text-align: left;
+  font: 600 13px/1.2 'Exo 2';
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.tbl td {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  font: 400 18px/1.35 'Exo 2';
+  color: var(--ink-2);
+}
+.tbl td.r,
+.tbl th.r {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tbl td.r {
+  color: var(--ink);
+  white-space: nowrap;
+}
+.tbl .ix {
+  width: 46px;
+  font: 600 14px/1.7 'Exo 2';
+  letter-spacing: 0.12em;
+  color: var(--accent);
+}
+.tbl .nm {
+  font: 500 18px/1.3 'Exo 2';
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.tbl .ds {
+  display: block;
+  margin-top: 4px;
+  font: 400 15px/1.35 'Exo 2';
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+.tbl tr.sum td {
+  border-bottom: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+.tbl tr.sum td.big {
+  font-size: 22px;
+}
+.tbl.tight td {
+  padding: 7px 0;
+}
+.tbl.tight .ds {
+  margin-top: 2px;
+  font-size: 14.5px;
+}
+.cap {
+  margin-bottom: 18px;
+  font: 600 14px/1.2 'Exo 2';
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.note {
+  margin-top: auto;
+  padding-top: 16px;
+  font: 400 15.5px/1.45 'Exo 2';
+  color: var(--muted);
+}
+
+/* the audit matrix */
+.matrix th,
+.matrix td {
+  padding: 6.5px 0;
+  border-bottom: 1px solid var(--line);
+  font: 400 16px/1.25 'Exo 2';
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--ink-2);
+}
+.matrix th {
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid rgba(25, 22, 25, 0.55);
+  vertical-align: bottom;
+  font: 600 12px/1.25 'Exo 2';
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.matrix .l {
+  text-align: left;
+}
+.matrix td.nm {
+  font: 500 15.5px/1.25 'Exo 2';
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.matrix td.ix {
+  width: 40px;
+  font: 600 13px/1.4 'Exo 2';
+  letter-spacing: 0.12em;
+  text-align: left;
+  color: var(--accent);
+}
+.matrix td.z {
+  color: #b8b2b0;
+}
+.matrix td.tot,
+.matrix th.tot {
+  color: var(--ink);
+  font-weight: 600;
+}
+.matrix tr.sum td {
+  padding-top: 13px;
+  border-top: 1.5px solid rgba(25, 22, 25, 0.55);
+  border-bottom: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+.matrix tr.sum.money td {
+  padding-top: 4px;
+  border-top: 0;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+/* the total bar under the costing */
+.totalbar {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 40px;
+}
+.totalbar div span {
+  display: block;
+  margin-bottom: 12px;
+  font: 600 12.5px/1 'Exo 2';
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--on-dark-2);
+}
+.totalbar div b {
+  font: 400 28px/1 'Exo 2';
+  font-variant-numeric: tabular-nums;
+  color: var(--on-dark);
+}
+.totalbar div.main {
+  text-align: right;
+}
+.totalbar div.main b {
+  font: 600 40px/1 'Exo 2';
+  color: var(--gold);
+}
+
+/* ---- phones */
+.phone {
+  position: relative;
+  padding: 9px;
+  border-radius: 42px;
+  background: #171013;
+}
+.phone .scr {
+  aspect-ratio: 390 / 844;
+  overflow: hidden;
+  border-radius: 33px;
+  background: #141114;
+}
+.phone .scr img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+.pcap {
+  margin-top: 18px;
+  text-align: center;
+  font: 500 14px/1 'Exo 2';
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat {
+  padding: 28px 30px;
+}
+.stat h3 {
+  font-size: 30px;
+}
+.stat .txt {
+  padding-top: 12px;
+  font-size: 18px;
+}
+
+/* ---- charts (inline SVG) */
+.chart text {
+  font-family: 'Exo 2', sans-serif;
+  fill: var(--ink);
+}
+.chart .tick {
+  font-size: 15px;
+  fill: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.chart .lbl {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.chart .cs {
+  font-size: 15.5px;
+  fill: var(--muted);
+}
+.chart .val {
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  /* a halo in the surface colour, so a value stays readable across a line */
+  paint-order: stroke;
+  stroke: #f8f6f2;
+  stroke-width: 7px;
+  stroke-linejoin: round;
+}
+.chart .val.s {
+  font-size: 18px;
+}
+.chart .in {
+  font-size: 15px;
+  font-weight: 600;
+  fill: #fff;
+}
+.chart .ref {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.chart .grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+.chart .axis {
+  stroke: #a8a19f;
+  stroke-width: 1;
+}
+
+/* ---- timeline */
+.gantt {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  row-gap: 0;
+  align-items: center;
+}
+.gantt .wk {
+  display: grid;
+  grid-template-columns: repeat(34, 1fr);
+  font: 500 12.5px/1 'Exo 2';
+  color: var(--muted);
+  text-align: center;
+}
+.gantt .lab {
+  padding: 15px 16px 15px 0;
+  font: 500 16.5px/1.2 'Exo 2';
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.gantt .lab small {
+  display: block;
+  margin-top: 4px;
+  font: 600 11.5px/1 'Exo 2';
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+.gantt .track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(34, 1fr);
+  align-self: stretch;
+  align-items: center;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--grid) 0,
+    var(--grid) 1px,
+    transparent 1px,
+    transparent calc(100% / 34)
+  );
+}
+.gantt .b {
+  height: 20px;
+  border-radius: 10px;
+  background: var(--wine);
+}
+.gantt .b.gate {
+  background: var(--s-stretch);
+}
+.gantt .b.soft {
+  background: #e3c9a0;
+}
+.gantt .m {
+  justify-self: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--s-stretch);
+}
+
+/* ---- loop diagram and message timeline */
+.pill {
+  fill: #fff;
+  stroke: #e1dcd4;
+}
+.loop text {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  fill: var(--ink);
+}
+.msgs {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 18px;
+  margin-top: 26px;
+  padding-top: 26px;
+  background: linear-gradient(#c9c3bd, #c9c3bd) 0 6px / 100% 1.5px no-repeat;
+}
+.msgs div {
+  position: relative;
+}
+.msgs div::before {
+  content: '';
+  position: absolute;
+  top: -27px;
+  left: 0;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.msgs div.mk::before {
+  background: var(--accent);
+}
+.msgs h4 {
+  font: 400 21px/1.15 'Exo 2';
+  text-transform: uppercase;
+}
+.msgs p {
+  margin-top: 8px;
+  font: 400 16.5px/1.35 'Exo 2';
+  color: var(--ink-2);
+}
+.msgs small {
+  display: block;
+  margin-top: 10px;
+  font: 600 12px/1.5 'Exo 2';
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.key {
+  display: flex;
+  gap: 40px;
+  font: 600 13px/1 'Exo 2';
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.key span::before {
+  content: '';
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  margin-right: 12px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.key span.mk::before {
+  background: var(--accent);
+}
+.notes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-top: auto;
+}
+.notes div {
+  padding: 18px 20px 20px;
+  border: 1px solid #e6e1d9;
+  border-radius: 16px;
+  background: #fff;
+}
+.notes small {
+  display: flex;
+  justify-content: space-between;
+  font: 600 11.5px/1 'Exo 2';
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.notes b {
+  display: block;
+  margin-top: 14px;
+  font: 600 18px/1.2 'Exo 2';
+}
+.notes p {
+  margin-top: 6px;
+  font: 400 16px/1.42 'Exo 2';
+  color: var(--ink-2);
+}
+
+/* small helpers */
+.kpi {
+  font: 300 58px/1 'Exo 2';
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.kpi small {
+  display: block;
+  margin-top: 10px;
+  font: 600 13px/1.3 'Exo 2';
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dark .kpi small {
+  color: var(--on-dark-2);
+}
+.legend {
+  display: flex;
+  gap: 28px;
+  font: 500 15px/1 'Exo 2';
+  color: var(--ink-2);
+}
+.legend span::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 9px;
+  border-radius: 3px;
+  background: var(--c);
+  vertical-align: -1px;
+}

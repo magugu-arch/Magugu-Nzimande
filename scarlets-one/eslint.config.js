@@ -22,6 +22,8 @@ module.exports = defineConfig([
       'tests/e2e/.artifacts/**',
       '**/dist-single/**',
       'single/.cache/**',
+      'proposal/build/**',
+      'proposal/.cache/**',
     ],
   },
   {
@@ -61,9 +63,10 @@ module.exports = defineConfig([
     rules: { 'no-console': 'off' },
   },
   {
-    // The single-file build: Node scripts, plus code that runs in the page
-    // (the two start-up scripts, and functions handed to the test browser).
-    files: ['single/**'],
+    // The single-file build and the proposal deck: Node scripts, plus code
+    // that runs in the page (the two start-up scripts, and functions handed
+    // to the test browser).
+    files: ['single/**', 'proposal/**'],
     languageOptions: {
       globals: {
         __dirname: 'readonly',

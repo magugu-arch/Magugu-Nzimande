@@ -19,6 +19,8 @@
     "single:check": "node single/check.mjs",
     "single:artifact": "node single/build.mjs --target=artifact",
     "single:check:artifact": "node single/check-artifact.mjs",
+    "proposal:shots": "node proposal/src/shots.mjs",
+    "proposal:build": "node proposal/src/deck.mjs && node proposal/src/render.mjs",
     "admin": "npm run dev -w @scarlets/admin",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint . && npm run lint -w @scarlets/admin",

@@ -29,6 +29,7 @@ Built from `Scarlets_One_Fan_App_Product_and_Claude_Code_Briefing.docx`
 | `assets/reference`    | The 39 supplied visuals, app-ready, with a manifest.                                                                        |
 | `tests/e2e`           | Browser journeys for the app and the console.                                                                               |
 | `Scarlets_One.html`   | The whole supporter app in one file, for sharing. Built by `single/`.                                                       |
+| `proposal`            | The proposal deck with the audited costing, as a PDF, and the script that builds it.                                        |
 | `docs`                | Design system, integrations, data model.                                                                                    |
 
 ## Run it

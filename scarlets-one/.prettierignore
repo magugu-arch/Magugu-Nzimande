@@ -11,3 +11,5 @@ package-lock.json
 dist-single
 single/.cache
 Scarlets_One.html
+proposal/build
+proposal/.cache
