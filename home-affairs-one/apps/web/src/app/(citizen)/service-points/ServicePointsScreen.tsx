@@ -277,7 +277,10 @@ export function ServicePointsScreen() {
                   const selected = items.find((point) => point.id === selectedId) ?? null;
                   if (view === 'list') {
                     return (
-                      <ul className={styles.cards} aria-busy={points.isPlaceholderData || undefined}>
+                      <ul
+                        className={styles.cards}
+                        aria-busy={points.isPlaceholderData || undefined}
+                      >
                         {items.map((point) => (
                           <li key={point.id}>
                             <PointCard point={point} />

@@ -48,7 +48,11 @@ const VERIFICATION: Record<
     tone: 'attention',
     icon: <Hourglass aria-hidden="true" />,
   },
-  NOT_VERIFIED: { label: 'Not verified', tone: 'neutral', icon: <CircleDashed aria-hidden="true" /> },
+  NOT_VERIFIED: {
+    label: 'Not verified',
+    tone: 'neutral',
+    icon: <CircleDashed aria-hidden="true" />,
+  },
 };
 
 function LinkCard({ link }: { link: FamilyLink }) {
@@ -119,9 +123,8 @@ export function FamilyScreen() {
           <div className={styles.featureText}>
             <h2 id="guardians-heading">Guardians and children</h2>
             <p>
-              A parent or guardian often needs to apply, book or collect for a child. That has to
-              be possible without treating a child’s identity as something the whole family can
-              open.
+              A parent or guardian often needs to apply, book or collect for a child. That has to be
+              possible without treating a child’s identity as something the whole family can open.
             </p>
             <Notice tone="info" title="How children’s records are protected">
               <p>
@@ -131,8 +134,8 @@ export function FamilyScreen() {
               </p>
             </Notice>
             <p className={styles.small}>
-              The rules for age, guardian authority and safeguarding still have to be set with
-              Home Affairs. Nothing on this page is a legal rule.
+              The rules for age, guardian authority and safeguarding still have to be set with Home
+              Affairs. Nothing on this page is a legal rule.
             </p>
           </div>
           <Photo
@@ -164,8 +167,8 @@ export function FamilyScreen() {
               >
                 <p>
                   You are not recorded as a guardian for anyone, and you have not asked anyone to
-                  help you. Linking a person is not available online yet — see “Link a person”
-                  below for what you can do today.
+                  help you. Linking a person is not available online yet — see “Link a person” below
+                  for what you can do today.
                 </p>
               </EmptyState>
             }
@@ -180,7 +183,10 @@ export function FamilyScreen() {
           </QueryBoundary>
         </Section>
 
-        <section className={cx(styles.feature, styles.featureReverse)} aria-labelledby="helper-heading">
+        <section
+          className={cx(styles.feature, styles.featureReverse)}
+          aria-labelledby="helper-heading"
+        >
           <div className={styles.featureText}>
             <h2 id="helper-heading">Someone helping you</h2>
             <p>

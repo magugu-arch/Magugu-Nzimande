@@ -101,8 +101,8 @@ function PointDetail({ point }: { point: ServicePoint }) {
       <Split gap={6} aside="24rem">
         <Stack gap={4}>
           <SampleNotice>
-            This is a synthetic location. The address, hours and status are placeholders, not a
-            real office or a real opening promise.
+            This is a synthetic location. The address, hours and status are placeholders, not a real
+            office or a real opening promise.
           </SampleNotice>
           <DescriptionList items={facts} />
         </Stack>
@@ -206,11 +206,9 @@ function PointDetail({ point }: { point: ServicePoint }) {
 
 export function PointScreen() {
   const id = useSearchParams().get('id');
-  const point = useGatewayQuery(
-    ['point', id],
-    (g) => g.appointments.getServicePoint(id ?? ''),
-    { enabled: Boolean(id) },
-  );
+  const point = useGatewayQuery(['point', id], (g) => g.appointments.getServicePoint(id ?? ''), {
+    enabled: Boolean(id),
+  });
   const found = point.data;
   const isMission = found?.kind === 'MISSION_ABROAD';
 

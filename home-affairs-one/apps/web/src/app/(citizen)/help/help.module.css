@@ -1,0 +1,193 @@
+.page {
+  padding-bottom: var(--space-7);
+}
+/* Leave room for the sticky top bar when the "Contact centre" card jumps here. */
+.anchor {
+  scroll-margin-top: calc(var(--topbar-height) + var(--space-5));
+}
+
+/* Contact centre: three plain points, each with an icon */
+.points {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.points li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: start;
+}
+.points svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.15rem;
+  color: var(--blue-600);
+}
+
+/* Editorial blocks: photograph and text, alternating sides on desktop */
+.editorials {
+  display: grid;
+  gap: var(--space-7);
+}
+.editorial {
+  display: grid;
+  gap: var(--space-5);
+  align-items: center;
+}
+.editorial > * {
+  min-width: 0;
+}
+.editorialText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.editorialText h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 560;
+  letter-spacing: -0.012em;
+  line-height: var(--leading-tight);
+}
+.editorialText p {
+  max-width: 34rem;
+}
+.small {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+@media (min-width: 60rem) {
+  .editorial {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+  .editorialFlip > :first-child {
+    order: 2;
+  }
+}
+
+/* Official channels page ---------------------------------------------- */
+.layout {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+  padding-bottom: var(--space-7);
+}
+.layout > * {
+  min-width: 0;
+}
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.asidePhoto {
+  max-width: 20rem;
+}
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    gap: var(--space-8);
+  }
+  .aside {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-5));
+    padding-top: var(--space-6);
+  }
+}
+.never {
+  font-size: var(--text-base);
+}
+.channel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+}
+.channelHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.channelHead h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.channelHead svg {
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  color: var(--blue-600);
+}
+.channelFacts {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+.channelFacts dt {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.channelFacts dt svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+.channelFacts dd {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.carries {
+  color: var(--green-700);
+}
+.neverCarries {
+  color: var(--red-700);
+}
+.steps {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  /* An empty marker, not "none": Safari keeps announcing this as a list. */
+  list-style-type: '';
+  counter-reset: step;
+}
+.steps li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: start;
+  counter-increment: step;
+}
+.steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--navy-900);
+  color: var(--color-text-inverse);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.steps strong {
+  display: block;
+}
+.plainList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: 1.2rem;
+}
+.mask {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

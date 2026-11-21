@@ -68,19 +68,14 @@ export function HelpScreen() {
               Service offices, partner bank points and mobile units, with their accessibility
               details.
             </PhotoCard>
-            <PhotoCard
-              asset="A34"
-              href="#contact-centre"
-              title="Contact centre"
-              cta="How it works"
-            >
+            <PhotoCard asset="A34" href="#contact-centre" title="Contact centre" cta="How it works">
               Speak to an adviser who can see the same timeline you do, after a security check.
             </PhotoCard>
           </Grid>
         </Section>
 
         {/* The anchor target for the "Contact centre" card above. */}
-        <div id="contact-centre" className={styles.anchor} tabIndex={-1}>
+        <div id="contact-centre" className={styles.anchor}>
           <Section title="Contact centre" id="contact-centre-section">
             <Card>
               <Stack gap={4}>
@@ -96,16 +91,16 @@ export function HelpScreen() {
                   <li>
                     <History aria-hidden="true" />
                     <span>
-                      <strong>They see the same timeline you do.</strong> The adviser works from
-                      the status and history shown in your applications, so you do not have to
-                      explain it from the beginning.
+                      <strong>They see the same timeline you do.</strong> The adviser works from the
+                      status and history shown in your applications, so you do not have to explain
+                      it from the beginning.
                     </span>
                   </li>
                   <li>
                     <ShieldAlert aria-hidden="true" />
                     <span>
-                      <strong>They will never ask for your password or one-time PIN,</strong> or
-                      for a payment to a personal account.{' '}
+                      <strong>They will never ask for your password or one-time PIN,</strong> or for
+                      a payment to a personal account.{' '}
                       <AppLink href="/help/official-channels/">Know the official channels</AppLink>
                     </span>
                   </li>
@@ -130,7 +125,12 @@ export function HelpScreen() {
         <Section title="Help that fits you" id="fits">
           <div className={styles.editorials}>
             <article className={styles.editorial}>
-              <Photo asset="A40" ratio="4 / 3" shape="soft" sizes="(min-width: 60rem) 32rem, 100vw" />
+              <Photo
+                asset="A40"
+                ratio="4 / 3"
+                shape="soft"
+                sizes="(min-width: 60rem) 32rem, 100vw"
+              />
               <div className={styles.editorialText}>
                 <h3>Someone you trust can help you</h3>
                 <p>
@@ -149,12 +149,17 @@ export function HelpScreen() {
             </article>
 
             <article className={`${styles.editorial} ${styles.editorialFlip}`}>
-              <Photo asset="A27" ratio="4 / 3" shape="soft" sizes="(min-width: 60rem) 32rem, 100vw" />
+              <Photo
+                asset="A27"
+                ratio="4 / 3"
+                shape="soft"
+                sizes="(min-width: 60rem) 32rem, 100vw"
+              />
               <div className={styles.editorialText}>
                 <h3>Help by voice, in your language</h3>
                 <p>
-                  Listening can be easier than reading. The aim is spoken guidance for each step,
-                  in the language you choose.
+                  Listening can be easier than reading. The aim is spoken guidance for each step, in
+                  the language you choose.
                 </p>
                 <FutureNotice>
                   Multilingual voice guidance is a future capability. Critical legal translations

@@ -90,8 +90,8 @@ function HowTimesAreShown({ signedIn }: { signedIn: boolean }) {
       </ul>
       {signedIn ? null : (
         <p>
-          <AppLink href={`/sign-in/?next=${encodeURIComponent('/abroad/')}`}>Sign in</AppLink> with a
-          verified account to see your own appointments here.
+          <AppLink href={`/sign-in/?next=${encodeURIComponent('/abroad/')}`}>Sign in</AppLink> with
+          a verified account to see your own appointments here.
         </p>
       )}
     </Notice>
@@ -279,8 +279,8 @@ export function AbroadScreen() {
             <div className={styles.editorialText}>
               <h2 id="collecting-heading">Collecting your document</h2>
               <p>
-                Your identity is checked again at the handover, wherever that happens, so a
-                finished document only ever reaches the right person.
+                Your identity is checked again at the handover, wherever that happens, so a finished
+                document only ever reaches the right person.
               </p>
               <p>
                 Whether you collect in person or a courier brings it depends on the mission. The

@@ -79,8 +79,8 @@ export function AccessibilityScreen() {
                   <strong>This is how text looks at this size.</strong>
                 </p>
                 <p>
-                  Apply, track and get help in one secure place — on your phone, on the web, or
-                  with a person beside you.
+                  Apply, track and get help in one secure place — on your phone, on the web, or with
+                  a person beside you.
                 </p>
               </div>
             </div>

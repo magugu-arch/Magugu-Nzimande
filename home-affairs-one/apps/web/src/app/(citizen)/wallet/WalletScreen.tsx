@@ -225,8 +225,8 @@ export function WalletScreen() {
           />
           <div className={styles.concept}>
             <FutureNotice>
-              A design concept. Nothing here is a valid credential, and nothing can be presented
-              or verified. Physical documents remain valid.
+              A design concept. Nothing here is a valid credential, and nothing can be presented or
+              verified. Physical documents remain valid.
             </FutureNotice>
           </div>
         </div>
@@ -263,14 +263,22 @@ export function WalletScreen() {
                   </LinkButton>
                 }
               >
-                <p>There are no concept panels for this account. Your physical documents remain valid.</p>
+                <p>
+                  There are no concept panels for this account. Your physical documents remain
+                  valid.
+                </p>
               </EmptyState>
             }
           >
             {(items) => (
               <Grid gap={4} min="15rem">
                 {items.map((tile) => (
-                  <Card as="article" key={tile.credentialId} tone={TILE_TONE[tile.type]} className={styles.tile}>
+                  <Card
+                    as="article"
+                    key={tile.credentialId}
+                    tone={TILE_TONE[tile.type]}
+                    className={styles.tile}
+                  >
                     <div>
                       <Tag icon={<CircleDashed aria-hidden="true" />}>Concept only</Tag>
                     </div>

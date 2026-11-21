@@ -239,7 +239,11 @@ export function PrivacyScreen() {
             {(items) => (
               <Grid gap={4} min="20rem">
                 {items.map((consent) => (
-                  <Receipt key={consent.consentRef} consent={consent} onWithdraw={() => open(consent)} />
+                  <Receipt
+                    key={consent.consentRef}
+                    consent={consent}
+                    onWithdraw={() => open(consent)}
+                  />
                 ))}
               </Grid>
             )}

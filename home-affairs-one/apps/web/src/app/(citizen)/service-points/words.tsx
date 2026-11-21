@@ -53,7 +53,11 @@ const AVAILABILITY: Record<
 > = {
   OPEN: { label: 'Open today', tone: 'success', icon: <CircleCheck aria-hidden="true" /> },
   LIMITED: { label: 'Limited service', tone: 'attention', icon: <CircleDot aria-hidden="true" /> },
-  CLOSED_TODAY: { label: 'Closed today', tone: 'neutral', icon: <CircleMinus aria-hidden="true" /> },
+  CLOSED_TODAY: {
+    label: 'Closed today',
+    tone: 'neutral',
+    icon: <CircleMinus aria-hidden="true" />,
+  },
   NOT_REPORTED: {
     label: 'Status not reported',
     tone: 'neutral',

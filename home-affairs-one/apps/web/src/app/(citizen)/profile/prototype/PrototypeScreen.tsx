@@ -175,7 +175,9 @@ export function PrototypeScreen() {
         eyebrow="Prototype controls"
         title="Tools for reviewers"
         lede="These switches are for people reviewing the concept. They are not part of the real service."
-        back={signedIn ? { href: '/profile/', label: 'Profile' } : { href: '/more/', label: 'More' }}
+        back={
+          signedIn ? { href: '/profile/', label: 'Profile' } : { href: '/more/', label: 'More' }
+        }
       />
 
       <Stack gap={7}>
@@ -234,8 +236,8 @@ export function PrototypeScreen() {
           {network === 'normal' ? null : (
             <Notice tone="attention" role="status" title="The simulated connection is not normal">
               <p>
-                Every screen is affected until you change it. Remember to switch it back to
-                Normal when you have finished.
+                Every screen is affected until you change it. Remember to switch it back to Normal
+                when you have finished.
               </p>
             </Notice>
           )}
@@ -249,8 +251,8 @@ export function PrototypeScreen() {
           {calls.length === 0 ? (
             <Notice tone="neutral" icon={<Info aria-hidden="true" />}>
               <p>
-                No calls yet. They appear here as you use the app — change the simulated
-                connection, or open another screen and come back.
+                No calls yet. They appear here as you use the app — change the simulated connection,
+                or open another screen and come back.
               </p>
             </Notice>
           ) : (

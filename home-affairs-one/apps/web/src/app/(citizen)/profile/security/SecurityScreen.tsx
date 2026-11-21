@@ -115,8 +115,8 @@ export function SecurityScreen() {
           <Stack gap={4}>
             <p>
               Signing in is not proof of identity. Signing in to an account, having your identity
-              checked, and having authority to act for someone else are three different things —
-              and each sensitive step asks for the one it needs.
+              checked, and having authority to act for someone else are three different things — and
+              each sensitive step asks for the one it needs.
             </p>
 
             <ol className={styles.ladder}>
@@ -178,8 +178,8 @@ export function SecurityScreen() {
                   <h3>Moving up to a verified account</h3>
                   <p>
                     A verified account needs your identity to be checked in a way Home Affairs
-                    approves — for example in person at a service point. How that check will work
-                    is not decided yet, so this prototype cannot do it for you.
+                    approves — for example in person at a service point. How that check will work is
+                    not decided yet, so this prototype cannot do it for you.
                   </p>
                   <p>
                     To see the verified experience, sign in as one of the other demo people. An
@@ -221,8 +221,8 @@ export function SecurityScreen() {
                   {passkeyAdded ? (
                     <Notice tone="neutral" title="This was a demonstration">
                       <p>
-                        No real passkey was created and nothing was stored on your device. The
-                        demo account now simply records that one exists. Sign in again to use it.
+                        No real passkey was created and nothing was stored on your device. The demo
+                        account now simply records that one exists. Sign in again to use it.
                       </p>
                     </Notice>
                   ) : null}
@@ -289,7 +289,9 @@ export function SecurityScreen() {
                       const failed = verify.isError && verify.variables === contact.channel;
                       return (
                         <li key={contact.channel} className={styles.contact}>
-                          <span className={styles.contactIcon}>{CONTACT_ICON[contact.channel]}</span>
+                          <span className={styles.contactIcon}>
+                            {CONTACT_ICON[contact.channel]}
+                          </span>
                           <span className={styles.contactText}>
                             <span className={styles.contactLabel}>
                               {CONTACT_LABEL[contact.channel]}
@@ -305,7 +307,11 @@ export function SecurityScreen() {
                           {contact.verified ? null : (
                             <div className={styles.contactAction}>
                               {failed ? (
-                                <Notice tone="danger" role="alert" title="This contact was not verified">
+                                <Notice
+                                  tone="danger"
+                                  role="alert"
+                                  title="This contact was not verified"
+                                >
                                   <p>{verify.error.safeMessage}</p>
                                   <p>Reference for support: {verify.error.traceRef}</p>
                                 </Notice>
@@ -337,8 +343,8 @@ export function SecurityScreen() {
                     </Notice>
                   ) : null}
                   <p className={styles.small}>
-                    In a real service, verifying means entering a code sent to that contact. We
-                    will never ask for a code by phone, WhatsApp, SMS or email.
+                    In a real service, verifying means entering a code sent to that contact. We will
+                    never ask for a code by phone, WhatsApp, SMS or email.
                   </p>
                 </Stack>
               </Card>
@@ -378,7 +384,11 @@ export function SecurityScreen() {
 
         <Section title="If you lose your phone" id="recovery">
           <Stack gap={4}>
-            <QueryBoundary query={account} loadingLabel="Loading your recovery status" loadingRows={1}>
+            <QueryBoundary
+              query={account}
+              loadingLabel="Loading your recovery status"
+              loadingRows={1}
+            >
               {(person) => {
                 const missing = missingForRecovery(person);
                 return person.recoveryState === 'READY' ? (
@@ -393,7 +403,10 @@ export function SecurityScreen() {
                   <Notice tone="attention" title="Recovery is not fully set up">
                     {missing.length > 0 ? (
                       <>
-                        <p>If you lost your phone today, getting back in would be harder. Still to do:</p>
+                        <p>
+                          If you lost your phone today, getting back in would be harder. Still to
+                          do:
+                        </p>
                         <ul className={styles.plainList}>
                           {missing.map((item) => (
                             <li key={item}>{item}</li>
@@ -415,8 +428,8 @@ export function SecurityScreen() {
             <ol className={styles.steps}>
               <li>Confirm a contact you verified earlier.</li>
               <li>
-                Pass a stronger check, or visit a service point where an adviser can confirm who
-                you are.
+                Pass a stronger check, or visit a service point where an adviser can confirm who you
+                are.
               </li>
               <li>Set up a new passkey. Old devices are signed out.</li>
             </ol>

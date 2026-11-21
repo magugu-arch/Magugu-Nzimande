@@ -70,7 +70,11 @@ export function ProfileScreen() {
       <Split gap={6}>
         <Stack gap={6}>
           <Section title="Contact details" id="contacts">
-            <QueryBoundary query={account} loadingLabel="Loading your contact details" loadingRows={2}>
+            <QueryBoundary
+              query={account}
+              loadingLabel="Loading your contact details"
+              loadingRows={2}
+            >
               {(person) => (
                 <Card>
                   <Stack gap={3}>
@@ -78,7 +82,9 @@ export function ProfileScreen() {
                       <ul className={styles.contacts}>
                         {person.contacts.map((contact) => (
                           <li key={contact.channel} className={styles.contact}>
-                            <span className={styles.contactIcon}>{CONTACT_ICON[contact.channel]}</span>
+                            <span className={styles.contactIcon}>
+                              {CONTACT_ICON[contact.channel]}
+                            </span>
                             <span className={styles.contactText}>
                               <span className={styles.contactLabel}>
                                 {CONTACT_LABEL[contact.channel]}
@@ -156,8 +162,8 @@ export function ProfileScreen() {
             </h2>
             <p>{tierInfo.summary}</p>
             <p>
-              Signing in shows you control this account. How much you can do depends on how
-              strongly your identity has been checked.
+              Signing in shows you control this account. How much you can do depends on how strongly
+              your identity has been checked.
             </p>
             <AppLink href="/profile/security/">
               <ShieldCheck aria-hidden="true" size={18} />

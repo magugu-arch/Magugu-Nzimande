@@ -170,8 +170,7 @@ function ComplaintForm({
         <Notice tone="info" title="A complaint does not affect your application">
           <p>
             A complaint is how you tell us that something was not good enough, so that it can be
-            looked at and put right. It is kept apart from the decision on any application you
-            have.
+            looked at and put right. It is kept apart from the decision on any application you have.
           </p>
         </Notice>
 
@@ -299,12 +298,7 @@ export function ComplaintScreen() {
           </div>
         ) : citizen.ready ? (
           <div>
-            <ComplaintForm
-              key={round}
-              citizen={citizen}
-              initialCase={caseParam}
-              onDone={setSent}
-            />
+            <ComplaintForm key={round} citizen={citizen} initialCase={caseParam} onDone={setSent} />
           </div>
         ) : (
           <div>

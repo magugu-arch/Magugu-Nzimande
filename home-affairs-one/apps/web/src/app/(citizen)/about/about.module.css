@@ -1,0 +1,184 @@
+/* Hero ------------------------------------------------------------------ */
+.hero {
+  display: grid;
+  gap: var(--space-2);
+  align-items: center;
+  padding-bottom: var(--space-7);
+}
+@media (min-width: 60rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: var(--space-7);
+  }
+}
+
+/* What this is / is not -------------------------------------------------- */
+.columnTitle {
+  font-size: var(--text-xl);
+}
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: start;
+}
+.list svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.2rem;
+}
+.yes svg {
+  color: var(--green-600);
+}
+.no svg {
+  color: var(--red-600);
+}
+
+/* The rules -------------------------------------------------------------- */
+.rules {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+}
+.rulesText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.rulesText h2 {
+  font-size: var(--text-3xl);
+}
+.ruleList {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: rule;
+}
+.ruleList li {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  gap: 0 var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-strong);
+  counter-increment: rule;
+}
+.ruleList li::before {
+  content: counter(rule);
+  grid-row: span 2;
+  color: var(--gold-700);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: 1.2;
+}
+.ruleList p {
+  grid-column: 2;
+  color: var(--color-text-muted);
+}
+.rulesPhoto {
+  width: 100%;
+  max-width: 24rem;
+}
+@media (min-width: 60rem) {
+  .rules {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+  .ruleList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-6);
+  }
+  .rulesPhoto {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-5));
+    max-width: none;
+  }
+}
+
+/* Why it exists ---------------------------------------------------------- */
+.story {
+  display: grid;
+  gap: var(--space-5);
+  align-items: center;
+}
+.storyPhoto {
+  width: 100%;
+  max-width: 14rem;
+}
+.storyText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 40rem;
+}
+.storyText h2 {
+  font-size: var(--text-3xl);
+}
+.storyText p {
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: 1.5;
+}
+@media (min-width: 48rem) {
+  .story {
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+  .storyPhoto {
+    max-width: none;
+  }
+}
+
+/* Photographs ------------------------------------------------------------ */
+.credits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 44rem;
+}
+.count {
+  color: var(--ink-700);
+}
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(8.5rem, 100%), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gallery > li {
+  min-width: 0;
+}
+.shot {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.shotBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.shotId {
+  font-weight: 700;
+}
+.shotNote {
+  color: var(--ink-700);
+  font-size: var(--text-xs);
+}
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

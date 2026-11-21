@@ -1,0 +1,67 @@
+.events {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.event {
+  display: grid;
+  gap: 0.125rem;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.event:first-child {
+  padding-top: 0;
+}
+.event:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.eventTitle {
+  font-weight: 700;
+  line-height: 1.35;
+}
+.eventDetail {
+  font-size: var(--text-sm);
+}
+.eventMeta {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.assistLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--navy-900);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.assistLabel svg {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.125rem;
+}
+.assistList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: 1.125rem;
+}
+
+.actionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+.actionForm {
+  display: grid;
+  gap: var(--space-4);
+}
+.actionForm > div:last-child {
+  justify-self: start;
+}

@@ -21,7 +21,12 @@ function pinPosition(point: ServicePoint): CSSProperties {
  * sample service point. Pins are buttons in the same order as the numbered
  * list beside the map, so the keyboard order matches the numbers.
  */
-export function SchematicMap({ points, selectedId = null, onSelect, size = 'full' }: SchematicMapProps) {
+export function SchematicMap({
+  points,
+  selectedId = null,
+  onSelect,
+  size = 'full',
+}: SchematicMapProps) {
   const only = points.length === 1 ? points[0] : undefined;
   return (
     <figure className={styles.mapFigure}>

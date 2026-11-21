@@ -1,4 +1,5 @@
-import { DEMO } from '@hao/api-contracts';
+import '@testing-library/jest-dom/vitest';
+import { DEMO, type PersonAccount } from '@hao/api-contracts';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -17,11 +18,16 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/apply/',
 }));
 
-let sessionApi: ReturnType<typeof useSession> | null = null;
+type Method = 'passkey' | 'verified-contact';
 
-function CaptureSession() {
-  sessionApi = useSession();
-  return null;
+/** Signs a demo person in the way the sign-in screen does, through the session store. */
+function SignIn({ account, method }: { account: PersonAccount; method: Method }) {
+  const { signInCitizen } = useSession();
+  return (
+    <button type="button" onClick={() => signInCitizen(account, method)}>
+      Sign in for the test
+    </button>
+  );
 }
 
 /** Stands in for the page: the guard has run and the service is known. */
@@ -37,11 +43,7 @@ function Harness({ code }: { code: string | null }) {
  * Renders the flow for a demo person signed in the way the sign-in screen does
  * it. With `code` null the whole screen is rendered, reading the address.
  */
-async function renderFlow(
-  code: string | null,
-  personToken: string,
-  method: 'passkey' | 'verified-contact',
-) {
+async function renderFlow(code: string | null, personToken: string, method: Method) {
   const gateway = getGateway();
   gateway.platform.settings.set({ latencyMs: 0 });
   const account = await gateway.identity.getAccount(personToken);
@@ -54,12 +56,10 @@ async function renderFlow(
   // Sign in first, as the sign-in screen would, so the flow opens with the right session.
   const signIn = render(
     <SessionProvider>
-      <CaptureSession />
+      <SignIn account={account} method={method} />
     </SessionProvider>,
   );
-  act(() => {
-    sessionApi?.signInCitizen(account, method);
-  });
+  await userEvent.click(screen.getByRole('button', { name: 'Sign in for the test' }));
   signIn.unmount();
 
   render(
