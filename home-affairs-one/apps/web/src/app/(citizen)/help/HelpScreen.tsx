@@ -74,8 +74,8 @@ export function HelpScreen() {
           </Grid>
         </Section>
 
-        {/* The anchor target for the "Contact centre" card above. */}
-        <div id="contact-centre" className={styles.anchor}>
+        {/* The anchor target for the "Contact centre" card above; the page already offsets for the top bar. */}
+        <div id="contact-centre">
           <Section title="Contact centre" id="contact-centre-section">
             <Card>
               <Stack gap={4}>

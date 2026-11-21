@@ -1,11 +1,11 @@
 import type { EvidenceItem, FormField, FormStep, ProfileField } from '@hao/api-contracts';
+import { meetsTier } from '@hao/shared-types';
 import { describe, expect, it } from 'vitest';
 import { findService } from '@/lib/catalogue';
 import {
   buildSteps,
   currentTier,
   isOwnDraft,
-  needsStepUp,
   nextStepId,
   previousStepId,
   resumeStepId,
@@ -213,10 +213,10 @@ describe('step-up tier', () => {
 
   it('keeps A3 while the step-up is live and drops back when it lapses', () => {
     expect(currentTier(steppedUp, now)).toBe('A3');
-    expect(needsStepUp(steppedUp, 'A3', now)).toBe(false);
+    expect(meetsTier(currentTier(steppedUp, now), 'A3')).toBe(true);
     const later = new Date('2026-11-21T10:05:00Z');
     expect(currentTier(steppedUp, later)).toBe('A2');
-    expect(needsStepUp(steppedUp, 'A3', later)).toBe(true);
+    expect(meetsTier(currentTier(steppedUp, later), 'A3')).toBe(false);
   });
 
   it('never lets a one-time-code session pass for a verified one', () => {
@@ -227,8 +227,8 @@ describe('step-up tier', () => {
       stepUpExpiresAt: null,
     };
     expect(currentTier(basic, now)).toBe('A1');
-    expect(needsStepUp(basic, 'A2', now)).toBe(true);
-    expect(needsStepUp(basic, 'A1', now)).toBe(false);
+    expect(meetsTier(currentTier(basic, now), 'A2')).toBe(false);
+    expect(meetsTier(currentTier(basic, now), 'A1')).toBe(true);
   });
 });
 

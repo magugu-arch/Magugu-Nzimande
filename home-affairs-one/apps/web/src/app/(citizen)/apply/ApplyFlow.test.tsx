@@ -117,7 +117,8 @@ describe('the guided application journey', () => {
 
     // Supporting evidence: no file input anywhere, only a synthetic placeholder.
     await stepHeading('Supporting evidence');
-    expect(document.querySelector('input[type="file"]')).toBeNull();
+    const inputs = Array.from(document.querySelectorAll('input'));
+    expect(inputs.filter((input) => input.type === 'file')).toEqual([]);
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     await screen.findByRole('link', { name: /Attach a synthetic placeholder for/ });
     await user.click(screen.getByRole('button', { name: 'Attach a synthetic placeholder' }));

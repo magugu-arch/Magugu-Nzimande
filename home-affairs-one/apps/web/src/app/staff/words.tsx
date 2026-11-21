@@ -86,14 +86,14 @@ export const AUDIT_COLUMNS = {
   },
   action: { header: 'Action', cell: (event) => <Ref>{event.action}</Ref> },
   resource: {
-    header: 'Record',
+    header: 'Resource',
     cell: (event) => (
       <>
         {event.resource.type} <Ref>{event.resource.ref}</Ref>
       </>
     ),
   },
-  outcome: { header: 'Result', cell: (event) => <OutcomeTag outcome={event.outcome} /> },
+  outcome: { header: 'Outcome', cell: (event) => <OutcomeTag outcome={event.outcome} /> },
   channel: { header: 'Channel', cell: (event) => AUDIT_CHANNEL_WORDS[event.channel] },
   correlation: {
     header: 'Correlation ID',

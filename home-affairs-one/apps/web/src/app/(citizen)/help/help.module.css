@@ -1,11 +1,6 @@
 .page {
   padding-bottom: var(--space-7);
 }
-/* Leave room for the sticky top bar when the "Contact centre" card jumps here. */
-.anchor {
-  scroll-margin-top: calc(var(--topbar-height) + var(--space-5));
-}
-
 /* Contact centre: three plain points, each with an icon */
 .points {
   display: grid;

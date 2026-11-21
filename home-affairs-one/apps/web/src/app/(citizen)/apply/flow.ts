@@ -4,7 +4,7 @@
  */
 import type { ApplicationDraft, FormStep, ServiceDefinition } from '@hao/api-contracts';
 import { tierForSignIn, type Session } from '@hao/auth-client';
-import { meetsTier, type AssuranceTier } from '@hao/shared-types';
+import type { AssuranceTier } from '@hao/shared-types';
 
 /** Step ids that are not form steps. Form steps keep the ids the catalogue gives them. */
 export const STEP = {
@@ -124,13 +124,4 @@ export function currentTier(
     return tierForSignIn(session.accountTier, session.method);
   }
   return session.tier;
-}
-
-/** True when the person must confirm it is them before this service can be submitted. */
-export function needsStepUp(
-  session: Pick<Session, 'tier' | 'accountTier' | 'method' | 'stepUpExpiresAt'>,
-  requiredTier: AssuranceTier,
-  now: Date,
-): boolean {
-  return !meetsTier(currentTier(session, now), requiredTier);
 }
