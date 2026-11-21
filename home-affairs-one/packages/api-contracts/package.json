@@ -1,0 +1,17 @@
+{
+  "name": "@hao/api-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typed contracts (zod schemas, adapter ports, OpenAPI) for every mocked integration.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@hao/shared-types": "*",
+    "zod": "^4.6.7"
+  }
+}

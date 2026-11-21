@@ -1,0 +1,18 @@
+{
+  "name": "@hao/payments-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Payment sandbox stub. No money moves; no card data.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@hao/api-contracts": "*",
+    "@hao/local-platform": "*",
+    "@hao/shared-types": "*"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@hao/design-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Design tokens and accessible React components for Home Affairs One.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css",
+    "./base.css": "./src/base.css"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "dependencies": {
+    "lucide-react": "^1.77.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

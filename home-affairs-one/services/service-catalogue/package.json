@@ -1,0 +1,18 @@
+{
+  "name": "@hao/service-catalogue",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Versioned sample service catalogue and guidance. Sample content only.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@hao/api-contracts": "*",
+    "@hao/local-platform": "*",
+    "@hao/shared-types": "*"
+  }
+}

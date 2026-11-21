@@ -1,0 +1,321 @@
+/* Concept ribbon: always visible, never dismissible. */
+.ribbon {
+  background: var(--navy-950);
+  color: var(--color-text-inverse-muted);
+  font-size: var(--text-xs);
+  line-height: 1.35;
+}
+.ribbonInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  min-height: 2rem;
+  padding-block: 0.375rem;
+  text-align: center;
+}
+.ribbon strong {
+  color: var(--gold-200);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ribbon a {
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ribbonLong {
+  display: none;
+}
+@media (min-width: 48rem) {
+  .ribbonShort {
+    display: none;
+  }
+  .ribbonLong {
+    display: inline;
+  }
+}
+
+/* Top bar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgb(255 255 255 / 0.92);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+.topbarInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--topbar-height);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: var(--touch-target);
+  color: var(--navy-900);
+  text-decoration: none;
+}
+.brand:hover {
+  color: var(--navy-900);
+}
+.brandName {
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.brandName em {
+  color: var(--gold-700);
+  font-style: normal;
+}
+
+.nav {
+  display: none;
+  flex: 1;
+  justify-content: center;
+}
+.navList {
+  display: flex;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.navLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0 0.75rem;
+  border-radius: 10px;
+  color: var(--ink-700);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.navLink:hover {
+  background: var(--navy-50);
+  color: var(--navy-900);
+}
+.navLink[aria-current='page'] {
+  color: var(--navy-900);
+}
+.navLink[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0.75rem;
+  bottom: 0.25rem;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--gold-500);
+}
+
+.topbarEnd {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-inline-start: auto;
+}
+.account {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--touch-target);
+  padding: 0.125rem 0.5rem 0.125rem 0.125rem;
+  border-radius: var(--radius-pill);
+  color: var(--navy-900);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+.account:hover {
+  background: var(--navy-50);
+  color: var(--navy-900);
+}
+.accountName {
+  display: none;
+}
+.iconLink {
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border-radius: 50%;
+  color: var(--navy-900);
+}
+.iconLink:hover {
+  background: var(--navy-50);
+  color: var(--navy-900);
+}
+.iconLink svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+/* Bottom tab bar (phones and tablets) */
+.tabbar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  background: rgb(255 255 255 / 0.96);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabList {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-height: var(--tabbar-height);
+  padding: 0.375rem 0.125rem;
+  color: var(--ink-600);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.tab:hover {
+  color: var(--navy-900);
+}
+.tab svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.tab[aria-current='page'] {
+  color: var(--navy-900);
+}
+.tab[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  inset-inline: 22%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--gold-500);
+}
+.tab:focus-visible {
+  outline-offset: -3px;
+}
+.tabIcon {
+  position: relative;
+}
+.badge {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.65rem;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.3rem;
+  border-radius: var(--radius-pill);
+  background: var(--red-600);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+}
+
+/* Page frame */
+.frame {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.main {
+  flex: 1;
+  padding-bottom: calc(var(--tabbar-height) + var(--space-7) + env(safe-area-inset-bottom));
+}
+.main:focus {
+  outline: none;
+}
+
+/* Footer */
+.footer {
+  background: var(--navy-900);
+  color: var(--color-text-inverse-muted);
+  font-size: var(--text-sm);
+  padding-block: var(--space-7) calc(var(--tabbar-height) + var(--space-6));
+}
+.footerGrid {
+  display: grid;
+  gap: var(--space-6);
+}
+.footer h2 {
+  margin-bottom: var(--space-3);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.footer ul {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  color: #fff;
+}
+.footerBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: var(--space-3);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.footerSmall {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid rgb(255 255 255 / 0.16);
+  font-size: var(--text-xs);
+}
+
+@media (min-width: 64rem) {
+  .nav {
+    display: flex;
+  }
+  .accountName {
+    display: inline;
+  }
+  .tabbar {
+    display: none;
+  }
+  .main {
+    padding-bottom: var(--space-8);
+  }
+  .footer {
+    padding-bottom: var(--space-7);
+  }
+  .footerGrid {
+    grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
+  }
+}

@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+coverage
+test-results
+playwright-report
+package-lock.json
+assets/masters
+apps/web/public
+apps/web/src/generated
+apps/web/next-env.d.ts
+docs/product/home-affairs-one-brief.md
+docs/design/asset-manifest.md
+.shots

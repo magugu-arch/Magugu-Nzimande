@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // A separate project with its own toolchain and lint config.
+      'home-affairs-one/**',
     ],
   },
   {

@@ -1,0 +1,53 @@
+{
+  "name": "home-affairs-one",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Home Affairs One — a non-production concept prototype. Not an official Department of Home Affairs product.",
+  "workspaces": [
+    "apps/web",
+    "packages/*",
+    "services/*",
+    "infrastructure/local"
+  ],
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "dev": "npm run assets:derive && npm run dev -w @hao/web",
+    "build": "npm run assets:derive && npm run build -w @hao/web",
+    "preview": "node scripts/serve-static.mjs apps/web/out 4173",
+    "assets:derive": "node scripts/derive-assets.mjs",
+    "assets:check": "node scripts/check-assets.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run assets:check"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "1.63.0",
+    "@testing-library/jest-dom": "^8.0.0",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.13",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.6",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "jsdom": "^31.0.1",
+    "prettier": "^3.10.1",
+    "sharp": "^0.35.5",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.0",
+    "vitest": "^5.1.1",
+    "yaml": "^2.9.1"
+  }
+}

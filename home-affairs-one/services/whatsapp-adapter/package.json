@@ -1,0 +1,18 @@
+{
+  "name": "@hao/whatsapp-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WhatsApp adapter mock: opt-in, approved templates, webhook events, secure hand-off.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@hao/api-contracts": "*",
+    "@hao/local-platform": "*",
+    "@hao/shared-types": "*"
+  }
+}

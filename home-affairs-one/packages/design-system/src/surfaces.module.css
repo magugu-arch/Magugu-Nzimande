@@ -1,0 +1,291 @@
+/* Card ------------------------------------------------------------- */
+.card {
+  position: relative;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.sunken {
+  background: var(--color-surface-sunken);
+  border-color: transparent;
+}
+.brand {
+  background: var(--navy-900);
+  border-color: transparent;
+  color: var(--color-text-inverse);
+}
+.brand a {
+  color: #fff;
+}
+.attention {
+  background: var(--gold-50);
+  border-color: var(--gold-200);
+}
+.info {
+  background: var(--blue-50);
+  border-color: var(--blue-100);
+}
+.success {
+  background: var(--green-50);
+  border-color: var(--green-100);
+}
+.flush {
+  padding: 0;
+  overflow: hidden;
+}
+.compact {
+  padding: var(--space-4);
+}
+.interactive {
+  transition:
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) ease;
+}
+.interactive:hover,
+.interactive:focus-within {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+/* Put this on the card's main link: the whole card becomes the target. */
+.stretched {
+  color: inherit;
+  text-decoration: none;
+}
+.stretched::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.stretched:hover {
+  color: inherit;
+  text-decoration: underline;
+}
+.stretched:focus-visible {
+  outline: none;
+}
+.stretched:focus-visible::after {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Tag -------------------------------------------------------------- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.tag svg {
+  width: 0.95em;
+  height: 0.95em;
+  flex: none;
+}
+.tagNeutral {
+  background: var(--navy-50);
+  border-color: var(--line);
+  color: var(--ink-700);
+}
+.tagInfo {
+  background: var(--blue-50);
+  border-color: var(--blue-100);
+  color: var(--blue-700);
+}
+.tagAttention {
+  background: var(--gold-100);
+  border-color: var(--gold-200);
+  color: var(--gold-700);
+}
+.tagSuccess {
+  background: var(--green-50);
+  border-color: var(--green-100);
+  color: var(--green-700);
+}
+.tagDanger {
+  background: var(--red-50);
+  border-color: var(--red-100);
+  color: var(--red-700);
+}
+.tagBrand {
+  background: var(--navy-900);
+  color: #fff;
+}
+.tagTeal {
+  background: var(--teal-50);
+  border-color: var(--teal-100);
+  color: var(--teal-700);
+}
+
+/* Notice ----------------------------------------------------------- */
+.notice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid;
+  border-inline-start-width: 4px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.notice > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+}
+.noticeTitle {
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.noticeBody > * + * {
+  margin-top: var(--space-2);
+}
+.noticeInfo {
+  background: var(--blue-50);
+  border-color: var(--blue-100);
+  border-inline-start-color: var(--blue-600);
+}
+.noticeInfo > svg {
+  color: var(--blue-600);
+}
+.noticeAttention {
+  background: var(--gold-50);
+  border-color: var(--gold-200);
+  border-inline-start-color: var(--gold-500);
+}
+.noticeAttention > svg {
+  color: var(--gold-700);
+}
+.noticeSuccess {
+  background: var(--green-50);
+  border-color: var(--green-100);
+  border-inline-start-color: var(--green-600);
+}
+.noticeSuccess > svg {
+  color: var(--green-600);
+}
+.noticeDanger {
+  background: var(--red-50);
+  border-color: var(--red-100);
+  border-inline-start-color: var(--red-600);
+}
+.noticeDanger > svg {
+  color: var(--red-600);
+}
+.noticeNeutral {
+  background: var(--color-surface-sunken);
+  border-color: var(--color-border);
+  border-inline-start-color: var(--ink-600);
+}
+.noticeNeutral > svg {
+  color: var(--ink-600);
+}
+
+/* Avatar ----------------------------------------------------------- */
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--navy-900);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.avatarLg {
+  width: 4rem;
+  height: 4rem;
+  font-size: var(--text-lg);
+}
+.avatarGold {
+  background: var(--gold-100);
+  color: var(--navy-900);
+}
+
+/* Description list -------------------------------------------------- */
+.dl {
+  display: grid;
+  gap: 0;
+}
+.dlRow {
+  display: grid;
+  gap: 0.125rem var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.dlRow:last-child {
+  border-bottom: 0;
+}
+.dlRow dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.dlRow dd {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 36rem) {
+  .dlRow {
+    grid-template-columns: minmax(9rem, 14rem) 1fr;
+    align-items: baseline;
+  }
+}
+
+/* Disclosure -------------------------------------------------------- */
+.disclosure {
+  font-size: var(--text-sm);
+}
+.disclosure summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--touch-target);
+  color: var(--color-link);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.disclosure summary::-webkit-details-marker {
+  display: none;
+}
+.disclosure summary::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--duration-fast) ease;
+}
+.disclosure[open] summary::before {
+  transform: rotate(45deg);
+}
+.disclosureBody {
+  padding: 0 0 var(--space-3) var(--space-4);
+  border-inline-start: 2px solid var(--gold-500);
+  color: var(--color-text-muted);
+}
+.disclosureBody > * + * {
+  margin-top: var(--space-2);
+}
+
+/* Divider ----------------------------------------------------------- */
+.divider {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--color-border);
+}

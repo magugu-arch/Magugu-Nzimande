@@ -1,0 +1,186 @@
+/* Photo card: image on top, text below, whole card is the link. */
+.photoCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.photoCardBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) var(--space-5);
+}
+.photoCardTitle {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+.photoCardText {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.photoCardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+.go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: auto;
+  padding-top: var(--space-2);
+  color: var(--color-link);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.go svg {
+  width: 1.1em;
+  height: 1.1em;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.photoCard:hover .go svg,
+.row:hover .rowChevron {
+  transform: translateX(3px);
+}
+
+/* Icon tile: quick service shortcut */
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  height: 100%;
+  min-height: 7.25rem;
+}
+.tileIcon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: 12px;
+  background: var(--navy-50);
+  color: var(--navy-900);
+}
+.tileIcon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+.tileTitle {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+.tileHint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+/* Row: a list item that links somewhere (cases, messages, settings) */
+.rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3) var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--duration-fast) ease;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.row:hover,
+.row:focus-within {
+  background: var(--color-surface-sunken);
+}
+.rowLead {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: var(--navy-50);
+  color: var(--navy-900);
+}
+.rowLead svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.rowTitle {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+.rowTitle a {
+  color: inherit;
+  text-decoration: none;
+}
+.rowTitle a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.rowTitle a:focus-visible {
+  outline: none;
+}
+.rowTitle a:focus-visible::after {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+  border-radius: var(--radius-sm);
+}
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.rowText {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.rowChevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--ink-600);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.rowUnread .rowTitle::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-inline-end: 0.5rem;
+  border-radius: 50%;
+  background: var(--blue-600);
+  vertical-align: middle;
+}

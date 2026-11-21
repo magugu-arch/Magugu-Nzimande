@@ -10,5 +10,8 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|standard-navigation|@tanstack/.*)',
   ],
+  // Home Affairs One is a separate project with its own (Vitest) test runner.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/home-affairs-one/'],
+  modulePathIgnorePatterns: ['<rootDir>/home-affairs-one/'],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
 };

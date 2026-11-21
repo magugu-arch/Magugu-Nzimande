@@ -1,0 +1,24 @@
+.frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background-color: var(--photo-color, var(--navy-100));
+}
+.frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.arch {
+  border-radius: var(--radius-arch);
+}
+.square {
+  border-radius: 0;
+}
+.circle {
+  border-radius: 50%;
+}
+.soft {
+  border-radius: var(--radius-lg);
+}
