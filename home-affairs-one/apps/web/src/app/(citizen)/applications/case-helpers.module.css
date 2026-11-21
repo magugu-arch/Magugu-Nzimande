@@ -1,0 +1,43 @@
+/* Appointment day and time */
+.when {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.whenDay {
+  font-weight: 700;
+}
+.whenTime {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+  font-variant-numeric: tabular-nums;
+}
+.whenNote {
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+.whenAlt {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Page header with a photograph beside it on wide screens */
+.photoHeader {
+  display: grid;
+  gap: var(--space-6);
+  align-items: center;
+}
+.photoHeaderImage {
+  display: none;
+}
+@media (min-width: 60rem) {
+  .photoHeader {
+    grid-template-columns: minmax(0, 1fr) 11rem;
+  }
+  .photoHeaderImage {
+    display: block;
+    padding-block: var(--space-5) var(--space-4);
+  }
+}

@@ -1,0 +1,133 @@
+/*
+ * Shared by the messaging screens: a main column with an aside that holds a
+ * photograph on wide screens. The photograph is context only, so it is not
+ * shown (or downloaded) on phones.
+ */
+.layout {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+}
+.layout > * {
+  min-width: 0;
+}
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.photoWrap,
+.photoAside {
+  display: none;
+}
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    gap: var(--space-8);
+  }
+  .aside {
+    padding-top: var(--space-6);
+  }
+  .photoWrap {
+    display: block;
+  }
+  .photoAside {
+    display: block;
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-5));
+    padding-top: var(--space-6);
+  }
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+/* Inbox ------------------------------------------------------------- */
+.inbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.listHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+}
+.listHead h2 {
+  font-size: var(--text-xl);
+}
+.count {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Safety card, after concept screen 3 */
+.safety {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.safety > svg {
+  color: var(--gold-200);
+}
+.safety h2 {
+  font-size: var(--text-xl);
+}
+.safety p {
+  color: var(--color-text-inverse-muted);
+}
+.safety a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--touch-target);
+  font-weight: 700;
+}
+.safety a svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* One message ------------------------------------------------------- */
+.sent {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 62ch;
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.footer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  color: var(--ink-700);
+  font-size: var(--text-sm);
+}
+.footer svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+}
+.footer p + p {
+  margin-top: var(--space-2);
+  font-weight: 700;
+}
+.footerMeta {
+  overflow-wrap: anywhere;
+}

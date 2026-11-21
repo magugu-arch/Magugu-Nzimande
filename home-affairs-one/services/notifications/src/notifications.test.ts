@@ -258,17 +258,17 @@ describe('seed data', () => {
 /* ------------------------------------------------------------------ */
 
 describe('preferences', () => {
-  it('default to everything on except WhatsApp, for any person', async () => {
+  it('default to the secure inbox only: every other channel is opt-in', async () => {
     const { notifications } = setup();
     const preferences = await notifications.listPreferences(NEW_PERSON);
     for (const preference of preferences) ChannelPreferenceSchema.parse(preference);
     expect(preferences.map((preference) => preference.channel)).toEqual([...CHANNELS]);
     expect(preferences.map((preference) => [preference.channel, preference.enabled])).toEqual([
       ['SECURE_INBOX', true],
-      ['PUSH', true],
+      ['PUSH', false],
       ['WHATSAPP', false],
-      ['EMAIL', true],
-      ['SMS', true],
+      ['EMAIL', false],
+      ['SMS', false],
     ]);
     for (const preference of preferences) {
       expect(preference.purpose).toBe('TRANSACTIONAL');

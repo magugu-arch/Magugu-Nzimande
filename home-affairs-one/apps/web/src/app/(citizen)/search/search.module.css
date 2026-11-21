@@ -1,0 +1,38 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Field and button: stacked on phones, side by side when there is room. */
+.form {
+  display: grid;
+  gap: var(--space-3);
+  align-items: end;
+  max-width: 44rem;
+}
+@media (min-width: 36rem) {
+  .form {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.summary {
+  font-weight: 700;
+}
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+.count {
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  letter-spacing: 0;
+}

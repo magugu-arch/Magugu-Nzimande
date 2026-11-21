@@ -31,13 +31,13 @@ export interface PersonPreferences {
 
 export const DEFAULT_LANGUAGE = 'en-ZA';
 
-/**
- * Default preferences: everything on except WhatsApp, which is opt-in only.
- * Each channel that is on carries a record of when it was agreed to.
- */
-export function defaultPreferences(platform: Platform, consentedAt: string): ChannelPreference[] {
+function preferencesWith(
+  platform: Platform,
+  consentedAt: string,
+  isOn: (channel: Channel) => boolean,
+): ChannelPreference[] {
   return CHANNELS.map((channel) => {
-    const enabled = channel !== 'WHATSAPP';
+    const enabled = isOn(channel);
     return {
       channel,
       enabled,
@@ -48,6 +48,23 @@ export function defaultPreferences(platform: Platform, consentedAt: string): Cha
       updatedAt: consentedAt,
     };
   });
+}
+
+/**
+ * Preferences for someone who has not chosen yet: only the secure inbox, which
+ * is always on. Every other channel is opt-in (brief §8: per-channel consent),
+ * so nothing is sent outside the service until the person switches it on.
+ */
+export function defaultPreferences(platform: Platform, consentedAt: string): ChannelPreference[] {
+  return preferencesWith(platform, consentedAt, (channel) => channel === 'SECURE_INBOX');
+}
+
+/**
+ * The demo people's recorded choices: when they set up their accounts they
+ * switched on app, email and SMS reminders. WhatsApp is a separate opt-in.
+ */
+function demoPersonPreferences(platform: Platform, consentedAt: string): ChannelPreference[] {
+  return preferencesWith(platform, consentedAt, (channel) => channel !== 'WHATSAPP');
 }
 
 export interface NotificationsSeed {
@@ -68,7 +85,7 @@ export function buildNotificationsSeed(platform: Platform): NotificationsSeed {
   const whatsAppOptedIn = ago(18 * HOUR);
   const preferences: PersonPreferences[] = [thandi, sipho, lerato, aisha].map((personToken) => ({
     personToken,
-    preferences: defaultPreferences(platform, accountSetUp).map((preference) =>
+    preferences: demoPersonPreferences(platform, accountSetUp).map((preference) =>
       personToken === thandi && preference.channel === 'WHATSAPP'
         ? {
             ...preference,

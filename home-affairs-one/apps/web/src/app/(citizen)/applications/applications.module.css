@@ -1,0 +1,88 @@
+.count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.75rem;
+  margin-inline-start: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--navy-50);
+  color: var(--navy-900);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.confirm:focus-visible {
+  border-radius: var(--radius-sm);
+}
+
+/* Drafts: a row with its own actions, so it is not one big link. */
+.drafts {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.draft {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3) var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.draft:last-child {
+  border-bottom: 0;
+}
+.draftIcon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: var(--gold-100);
+  color: var(--navy-900);
+}
+.draftIcon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.draftBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.draftTitle {
+  font-size: var(--text-base);
+  line-height: 1.35;
+}
+.draftMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.draftActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  grid-column: 1 / -1;
+}
+@media (min-width: 40rem) {
+  .draft {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .draftActions {
+    grid-column: auto;
+    justify-content: flex-end;
+  }
+}
