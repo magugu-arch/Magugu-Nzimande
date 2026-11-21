@@ -45,6 +45,12 @@ import {
 
 const NO_EVIDENCE: EvidenceItem[] = [];
 
+/** A one-off message shown at the top of the step the person has just arrived on. */
+export interface FlashMessage {
+  tone: 'success' | 'attention';
+  text: string;
+}
+
 export interface UseApplicationArgs {
   service: ServiceDefinition;
   session: Session;
@@ -92,7 +98,7 @@ export function useApplication({
   /** Counts step changes, so the screen knows when to move focus to the new heading. */
   const [nav, setNav] = useState(0);
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
-  const [flash, setFlash] = useState<string | null>(null);
+  const [flash, setFlash] = useState<FlashMessage | null>(null);
   /** Only ever set by the person ticking the box. Not saved, not restored. */
   const [declared, setDeclared] = useState(false);
   const [problems, setProblems] = useState<{ list: FieldProblem[]; nonce: number }>({
@@ -187,7 +193,12 @@ export function useApplication({
 
   function moveTo(
     target: string,
-    options: { steps?: ApplyStep[]; prefix?: string; flash?: string; focusField?: string } = {},
+    options: {
+      steps?: ApplyStep[];
+      prefix?: string;
+      flash?: FlashMessage;
+      focusField?: string;
+    } = {},
   ) {
     setStepId(target);
     setNav((count) => count + 1);
@@ -221,6 +232,14 @@ export function useApplication({
       });
       setDraft(saved);
       setSavedAt(saved.updatedAt);
+      if (!draft) {
+        // The address now carries the draft, so a refresh resumes it. This screen keeps running.
+        onDraftCreated?.(saved.draftId);
+        router.replace(
+          `/apply/?service=${encodeURIComponent(service.code)}&draft=${encodeURIComponent(saved.draftId)}`,
+          { scroll: false },
+        );
+      }
       return saved;
     } catch (error) {
       setSaveError(asGatewayError(error));
@@ -274,17 +293,8 @@ export function useApplication({
 
     const target = nextStepId(steps, stepId);
     if (!target) return;
-    const creating = draft === null;
     const saved = await persist(target);
     if (!saved) return;
-    if (creating) {
-      // The address now carries the draft, so a refresh resumes it. This screen keeps running.
-      onDraftCreated?.(saved.draftId);
-      router.replace(
-        `/apply/?service=${encodeURIComponent(service.code)}&draft=${encodeURIComponent(saved.draftId)}`,
-        { scroll: false },
-      );
-    }
     moveTo(target);
   }
 
@@ -364,7 +374,10 @@ export function useApplication({
     if (target && saved) {
       moveTo(target, {
         prefix: 'You have confirmed it is you.',
-        flash: `You have confirmed it is you. This check lasts ${STEP_UP_MINUTES} minutes.`,
+        flash: {
+          tone: 'success',
+          text: `You have confirmed it is you. This check lasts ${STEP_UP_MINUTES} minutes.`,
+        },
       });
     } else {
       announce('You have confirmed it is you.');
@@ -411,7 +424,10 @@ export function useApplication({
       setStepUpLapsed(true);
       moveTo(STEP.verify, {
         steps: buildSteps(service, { includeVerify: true }),
-        flash: 'Your identity check has run out. Confirm it is you again, then submit.',
+        flash: {
+          tone: 'attention',
+          text: 'Your identity check has run out. Confirm it is you again, then submit.',
+        },
       });
       return;
     }
@@ -433,6 +449,7 @@ export function useApplication({
 
   return {
     service,
+    session,
     formSteps,
     steps,
     stepId,
@@ -450,6 +467,7 @@ export function useApplication({
     feeCents,
     receipt,
     paymentTaken,
+    paidRef,
     lastPayment,
     verified,
     verifyFailed,

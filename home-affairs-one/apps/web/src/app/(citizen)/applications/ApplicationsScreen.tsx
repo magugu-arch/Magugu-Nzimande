@@ -216,9 +216,7 @@ export function ApplicationsScreen() {
         {deleted ? (
           <div ref={confirmation} tabIndex={-1} className={styles.confirm}>
             <Notice tone="success" role="status" title="Draft deleted">
-              <p>
-                “{deleted.title}” was removed from this device. It was never submitted.
-              </p>
+              <p>“{deleted.title}” was removed from this device. It was never submitted.</p>
             </Notice>
           </div>
         ) : null}

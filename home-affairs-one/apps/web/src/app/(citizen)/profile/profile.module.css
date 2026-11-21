@@ -1,0 +1,413 @@
+/* Shared by the profile hub and its sub-screens. */
+
+/* Hub header: avatar beside the name ------------------------------------ */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding-block: var(--space-6) var(--space-5);
+}
+.head > header {
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding-block: 0;
+}
+.head h1 {
+  overflow-wrap: anywhere;
+}
+
+.small {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Contacts -------------------------------------------------------------- */
+.contacts {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.contact:first-child {
+  padding-top: 0;
+}
+.contact:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.contactIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: var(--navy-50);
+  color: var(--navy-900);
+}
+.contactIcon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.contactText {
+  display: flex;
+  flex: 1 1 8rem;
+  flex-direction: column;
+  min-width: 0;
+}
+.contactLabel {
+  font-weight: 700;
+  line-height: 1.35;
+}
+.contactValue {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.contactAction {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+/* "Your level" card in the hub aside ------------------------------------ */
+.level {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.levelLabel {
+  color: var(--gold-200);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.level h2 {
+  font-family: var(--font-body);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.level p:not(.levelLabel) {
+  color: var(--color-text-inverse-muted);
+  font-size: var(--text-sm);
+}
+.level a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: var(--touch-target);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* Assurance ladder ------------------------------------------------------ */
+.ladder {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rung {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.rungHere {
+  border: 2px solid var(--navy-900);
+  background: var(--gold-50);
+}
+.rungCode {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--navy-50);
+  color: var(--navy-900);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.rungHere .rungCode {
+  background: var(--navy-900);
+  color: var(--color-text-inverse);
+}
+.rungBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.rungHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.rungExamples {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.rungHere .rungExamples {
+  color: var(--ink-700);
+}
+
+/* Generic pieces --------------------------------------------------------- */
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+.cardHead h3 {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.steps {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: 1.4rem;
+}
+.plainList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: 1.2rem;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 62ch;
+}
+
+/* Text beside a photograph ---------------------------------------------- */
+.feature {
+  display: grid;
+  gap: var(--space-5);
+  align-items: center;
+}
+.featureText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 40rem;
+}
+.featureText h2 {
+  font-size: var(--text-2xl);
+}
+.featurePhoto {
+  width: 100%;
+  max-width: 14rem;
+}
+@media (min-width: 48rem) {
+  .feature {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+    gap: var(--space-7);
+  }
+  .featureReverse {
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+  }
+  .featureReverse .featurePhoto {
+    order: -1;
+  }
+  .featurePhoto {
+    max-width: none;
+  }
+}
+
+/* Header with a photograph in the aside --------------------------------- */
+.headSplit {
+  display: grid;
+  gap: var(--space-2);
+  align-items: center;
+  padding-bottom: var(--space-5);
+}
+.headPhoto {
+  width: 100%;
+  max-width: 12rem;
+}
+@media (min-width: 48rem) {
+  .headSplit {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 17rem);
+    gap: var(--space-7);
+  }
+  .headPhoto {
+    max-width: none;
+    margin-top: var(--space-6);
+  }
+}
+
+/* Family and delegate links --------------------------------------------- */
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.person h3 {
+  overflow-wrap: anywhere;
+}
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+}
+.linkCard h4 {
+  font-size: var(--text-sm);
+}
+
+/* Consent receipts ------------------------------------------------------- */
+.receipt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+}
+.receiptFoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin-top: auto;
+}
+.principles {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.principle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 2px solid var(--navy-900);
+}
+.principle svg {
+  grid-row: span 2;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.15rem;
+  color: var(--blue-600);
+}
+.principle p {
+  grid-column: 2;
+  color: var(--color-text-muted);
+}
+@media (min-width: 40rem) {
+  .principles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+}
+.device {
+  display: grid;
+  grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: center;
+}
+.result:focus {
+  outline: none;
+}
+
+/* Accessibility settings ------------------------------------------------- */
+.sample {
+  padding: var(--space-4);
+  border-inline-start: 4px solid var(--gold-500);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+}
+.sample p + p {
+  margin-top: var(--space-2);
+}
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.saver {
+  display: grid;
+  gap: var(--space-4);
+  align-items: center;
+}
+@media (min-width: 36rem) {
+  .saver {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 13rem);
+    gap: var(--space-5);
+  }
+}
+
+/* Prototype controls ----------------------------------------------------- */
+.calls {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.call {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+.call:last-child {
+  border-bottom: 0;
+}
+.callTime {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.callName {
+  flex: 1 1 10rem;
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.callFacts {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  color: var(--color-text-muted);
+}
+.sectionActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
