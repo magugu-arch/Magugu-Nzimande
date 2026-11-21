@@ -10,7 +10,7 @@ import { useGatewayMutation } from '@/lib/queries';
 import { formatAppointmentDay, SAST } from '../applications/case-helpers';
 import styles from './appointments.module.css';
 
-export const CANCELLED_MESSAGE = 'Appointment cancelled. Book a new time when you are ready.';
+const CANCELLED_MESSAGE = 'Appointment cancelled. Book a new time when you are ready.';
 
 /** "Cancel appointment" with its confirmation dialog. The booking is only released after a yes. */
 export function CancelAppointment({

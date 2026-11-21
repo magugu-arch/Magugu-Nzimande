@@ -144,7 +144,7 @@
   gap: 0.75rem;
   align-items: start;
   min-height: var(--touch-target);
-  padding-block: 0.375rem;
+  padding-block: 0.5rem 0.125rem;
   cursor: pointer;
 }
 .pointLabel input,
@@ -155,12 +155,8 @@
   accent-color: var(--color-action);
   cursor: pointer;
 }
-.pointText {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
 .pointName {
+  padding-top: 0.125rem;
   font-weight: 700;
   line-height: 1.35;
 }

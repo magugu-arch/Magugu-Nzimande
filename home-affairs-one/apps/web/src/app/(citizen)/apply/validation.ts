@@ -161,7 +161,11 @@ export function profileValue(field: FormField, profile: ProfileField[]): string 
  * are read-only in the form, so the profile always wins; a value the profile no
  * longer holds is cleared rather than left behind from an earlier save.
  */
-export function applyProfile(steps: FormStep[], answers: Answers, profile: ProfileField[]): Answers {
+export function applyProfile(
+  steps: FormStep[],
+  answers: Answers,
+  profile: ProfileField[],
+): Answers {
   const next: Answers = { ...answers };
   for (const field of steps.flatMap((step) => step.fields)) {
     if (field.profileKey) next[field.id] = profileValue(field, profile) ?? '';
@@ -178,7 +182,8 @@ export function answersToSave(steps: FormStep[], answers: Answers): Answers {
   const out: Answers = {};
   for (const field of steps.flatMap((step) => step.fields)) {
     if (field.type === 'evidence') continue;
-    out[field.id] = field.type === 'checkbox' ? answers[field.id] === true : textOf(answers, field.id);
+    out[field.id] =
+      field.type === 'checkbox' ? answers[field.id] === true : textOf(answers, field.id);
   }
   return out;
 }

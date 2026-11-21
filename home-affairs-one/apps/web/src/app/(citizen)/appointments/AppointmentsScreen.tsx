@@ -84,9 +84,7 @@ function MyAppointments({ token }: { token: string }) {
   const cases = useGatewayQuery(['cases', token], (g) => g.workflow.listCases(token), {
     enabled: token !== '',
   });
-  const visitedCases = new Set(
-    (cases.data ?? []).filter(isCaptureDone).map((item) => item.caseId),
-  );
+  const visitedCases = new Set((cases.data ?? []).filter(isCaptureDone).map((item) => item.caseId));
   const wasVisited = (appointment: Appointment) =>
     appointment.caseId !== null && visitedCases.has(appointment.caseId);
 

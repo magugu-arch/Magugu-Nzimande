@@ -105,7 +105,10 @@ describe('buildSteps', () => {
   });
 
   it('leaves payment out when the service has no sample amount', () => {
-    const noFee = { ...service(SMART_ID), fee: { kind: 'TO_BE_CONFIRMED' as const, note: 'Later' } };
+    const noFee = {
+      ...service(SMART_ID),
+      fee: { kind: 'TO_BE_CONFIRMED' as const, note: 'Later' },
+    };
     const zeroFee = {
       ...service(SMART_ID),
       fee: { kind: 'SAMPLE' as const, amountCents: 0, currency: 'ZAR' as const, note: 'Sample' },
@@ -314,8 +317,12 @@ describe('validateField and validateStep', () => {
 
   it('rejects a date that does not exist, even on an optional field', () => {
     const date = field({ id: 'when', type: 'date', label: 'Date of birth', required: false });
-    expect(validateField(date, { when: '2024-02-31' }, [])).toBe('Date of birth must be a real date');
-    expect(validateField(date, { when: '31/02/2024' }, [])).toBe('Date of birth must be a real date');
+    expect(validateField(date, { when: '2024-02-31' }, [])).toBe(
+      'Date of birth must be a real date',
+    );
+    expect(validateField(date, { when: '31/02/2024' }, [])).toBe(
+      'Date of birth must be a real date',
+    );
     expect(validateField(date, { when: '2024-02-29' }, [])).toBeNull();
     expect(validateField(date, {}, [])).toBeNull();
   });

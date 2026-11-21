@@ -36,14 +36,7 @@ import {
   FileSearch,
   TriangleAlert,
 } from 'lucide-react';
-import {
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type ReactNode,
-  type RefObject,
-} from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
 import { Photo } from '@/components/Photo';
 import { QueryBoundary } from '@/components/QueryBoundary';
 import { formatTime, formatTimeInZone } from '@/lib/format';
@@ -58,7 +51,7 @@ import {
   servicePointHref,
 } from '../applications/case-helpers';
 import styles from './appointments.module.css';
-import { CANCELLED_MESSAGE, CancelAppointment } from './CancelAppointment';
+import { CancelAppointment } from './CancelAppointment';
 
 const STEPS = ['Choose a service point', 'Choose a time', 'Confirmed'];
 const STEP_INDEX = { point: 0, time: 1, confirmed: 2 } as const;
@@ -422,21 +415,20 @@ function PointStep({
                           name="service-point"
                           value={point.id}
                           checked={selected === point.id}
+                          aria-describedby={`${point.id}-about`}
                           onChange={() => {
                             setSelected(point.id);
                             setError(null);
                             intentKey.current = null;
                           }}
                         />
-                        <span className={styles.pointText}>
-                          <span className={styles.pointName}>{point.name}</span>
-                          <span className={styles.pointMeta}>
-                            {KIND_WORDS[point.kind]} · {point.area}, {point.region}
-                            {point.kind === 'MISSION_ABROAD' ? `, ${point.country}` : ''}
-                          </span>
-                        </span>
+                        <span className={styles.pointName}>{point.name}</span>
                       </label>
                       <div className={styles.pointExtra}>
+                        <p id={`${point.id}-about`} className={styles.pointMeta}>
+                          {KIND_WORDS[point.kind]} · {point.area}, {point.region}
+                          {point.kind === 'MISSION_ABROAD' ? `, ${point.country}` : ''}
+                        </p>
                         <p className={styles.pointStatus}>
                           <Tag tone={availability.tone} icon={availability.icon}>
                             {availability.label}
@@ -612,22 +604,23 @@ function TimeStep({
 
   return (
     <div className={styles.step}>
+      {/* Outside the boundary, so focus has somewhere to land while the times load. */}
+      <h2 ref={heading} tabIndex={-1} className={styles.focusTarget}>
+        {booked ? 'Choose a new time' : 'Choose a time'}
+      </h2>
+
+      {cancelled ? (
+        <Notice tone="success" role="status" title="Appointment cancelled">
+          <p>Book a new time when you are ready.</p>
+        </Notice>
+      ) : null}
+
       <QueryBoundary query={calendar} loadingLabel="Loading available times">
         {({ point, slots }) => {
           const abroad = point.timeZone !== SAST;
           const anyFree = slots.some((slot) => slot.available);
           return (
             <>
-              <h2 ref={heading} tabIndex={-1} className={styles.focusTarget}>
-                {booked ? 'Choose a new time' : 'Choose a time'}
-              </h2>
-
-              {cancelled ? (
-                <Notice tone="success" role="status" title="Appointment cancelled">
-                  <p>Book a new time when you are ready.</p>
-                </Notice>
-              ) : null}
-
               <p>
                 At <strong>{point.name}</strong>.{' '}
                 <AppLink href={servicePointHref(point.id)}>Service point details</AppLink>
@@ -838,5 +831,3 @@ function ConfirmedStep({
     </div>
   );
 }
-
-export { CANCELLED_MESSAGE };

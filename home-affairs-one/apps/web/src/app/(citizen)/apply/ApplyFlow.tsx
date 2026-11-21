@@ -143,7 +143,9 @@ export function ApplyFlow({ service, session, initialDraft, onDraftCreated }: Ap
         <aside className={styles.aside} aria-label="About this application">
           {step?.kind === 'review' ? <ReviewAside /> : null}
           <Card tone="sunken" padding="compact">
-            <p className={styles.asideTitle}>Stop and come back any time</p>
+            <p className={styles.asideTitle}>
+              {done ? 'Your application is with us' : 'Stop and come back any time'}
+            </p>
             <p className={styles.hint}>
               {done
                 ? 'You can follow this application from “My applications”.'

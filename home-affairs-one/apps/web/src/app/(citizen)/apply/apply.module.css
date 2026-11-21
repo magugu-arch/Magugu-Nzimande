@@ -1,0 +1,288 @@
+.page {
+  padding-bottom: var(--space-8);
+}
+
+/* One reading column; on wide screens a quiet aside sits beside it. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, var(--content-narrow));
+  justify-content: center;
+  gap: var(--space-7);
+  align-items: start;
+}
+.main {
+  min-width: 0;
+}
+.aside {
+  display: none;
+}
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, var(--content-narrow)) minmax(14rem, 17rem);
+  }
+  .aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-5));
+    padding-top: var(--space-7);
+  }
+}
+.asideTitle {
+  font-weight: 700;
+}
+.reviewAside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Progress: stepper, saved status and the way out */
+.top {
+  /* Step changes scroll here; keep it clear of the fixed top bar. */
+  scroll-margin-top: calc(var(--topbar-height) + var(--space-4));
+}
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--space-4);
+  min-height: var(--touch-target);
+}
+.saved {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.exit {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* The step itself */
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-top: var(--space-5);
+}
+.stepHeading:focus-visible {
+  outline-offset: 4px;
+}
+.intro {
+  max-width: 60ch;
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: 1.45;
+}
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Journey steps and requirements: a title with a sentence under it */
+.journey,
+.requirements {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding-inline-start: 1.5rem;
+}
+.journey li,
+.requirements li {
+  padding-inline-start: 0.25rem;
+}
+.journey strong,
+.requirements strong {
+  display: block;
+}
+.journey span,
+.requirements span {
+  color: var(--color-text-muted);
+}
+
+.photoCard {
+  display: grid;
+  overflow: hidden;
+}
+.photoCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+}
+
+/* Fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  /* A link from the error summary lands here, below the fixed top bar. */
+  scroll-margin-top: calc(var(--topbar-height) + var(--space-4));
+}
+.labelTag {
+  margin-inline-start: 0.25rem;
+  vertical-align: middle;
+}
+.optional {
+  margin-inline-start: 0.375rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.fieldError {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  color: var(--red-700);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.fieldError svg {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+  margin-top: 0.15em;
+}
+
+/* Evidence: a labelled stand-in, never a file */
+.evidence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.evidenceLabel {
+  font-weight: 700;
+  line-height: 1.35;
+}
+.evidenceCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-4);
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+.evidenceCard > svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.125rem;
+  color: var(--green-700);
+}
+.evidenceCard > button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.evidenceText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.evidenceName {
+  font-weight: 700;
+}
+.evidenceMeta {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+@media (min-width: 36rem) {
+  .evidenceCard {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .evidenceCard > button {
+    grid-column: auto;
+  }
+}
+
+/* Error summary and other regions that take focus */
+.summary {
+  border-radius: var(--radius-md);
+  scroll-margin-top: calc(var(--topbar-height) + var(--space-4));
+}
+.summaryList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: 1.25rem;
+}
+.summaryList a {
+  font-weight: 700;
+}
+.trace {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+.noticeAction {
+  margin-top: var(--space-2);
+}
+
+/* Review */
+.reviewHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--space-4);
+}
+.reviewHead a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.missing {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.sandboxTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.sandboxTitle svg {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.2rem;
+}
+
+/* Actions: the main button first and full width on phones, a row from tablets up */
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+@media (min-width: 36rem) {
+  .actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}
