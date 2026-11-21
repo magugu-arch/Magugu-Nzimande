@@ -69,12 +69,8 @@ function LinkCard({ link }: { link: FamilyLink }) {
       </div>
       <DescriptionList
         items={[
-          { term: 'Relationship', description: RELATIONSHIP[link.relationship] },
           { term: 'Authority', description: AUTHORITY[link.authority] },
-          {
-            term: 'Ends',
-            description: link.expiresAt ? formatDate(link.expiresAt) : 'No end date recorded',
-          },
+          ...(link.expiresAt ? [{ term: 'Ends', description: formatDate(link.expiresAt) }] : []),
         ]}
       />
       <div>
