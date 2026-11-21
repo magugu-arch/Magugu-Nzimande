@@ -1,0 +1,178 @@
+.reference {
+  color: var(--color-text-muted);
+}
+.reference strong {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Two columns on wide screens. On phones the columns dissolve into one list so
+ * the appointment can sit between the milestones and the activity log. Only
+ * blocks without controls are passed over, so the tab order still follows the
+ * order on screen.
+ */
+.main,
+.side {
+  display: contents;
+}
+.main > *,
+.side > * {
+  min-width: 0;
+}
+.appointmentSlot {
+  order: 1;
+}
+.activitySlot {
+  order: 2;
+}
+.sideRest {
+  order: 3;
+}
+@media (min-width: 60rem) {
+  .main,
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    min-width: 0;
+  }
+  .appointmentSlot,
+  .activitySlot,
+  .sideRest {
+    order: 0;
+  }
+}
+
+.flash:focus-visible {
+  border-radius: var(--radius-sm);
+}
+
+/* Cards on this screen share one inner rhythm. */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.card > * {
+  max-width: 100%;
+}
+.card h2 {
+  font-size: var(--text-xl);
+}
+.fill {
+  align-self: stretch;
+}
+.quiet {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Status card */
+.statusLabel {
+  color: var(--ink-700);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.card .statusText {
+  font-size: var(--text-3xl);
+}
+.statusUpdated {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* What the official asked for */
+.request {
+  align-self: stretch;
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 4px solid var(--gold-500);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  align-self: stretch;
+}
+.form > :first-child {
+  align-self: stretch;
+}
+
+/* Photo beside text: collection and completed */
+.media {
+  display: grid;
+  gap: var(--space-4);
+  align-items: center;
+}
+.mediaRound {
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+}
+@media (min-width: 36rem) {
+  .mediaWide {
+    grid-template-columns: 12rem minmax(0, 1fr);
+  }
+}
+
+/* Activity log */
+.activity {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.activity li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.activity li:last-child {
+  border-bottom: 0;
+}
+.activityTitle {
+  font-weight: 700;
+}
+.activityDetail {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.activityMeta {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.place {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.place strong {
+  overflow-wrap: anywhere;
+}
+
+/* A destructive action that stays quiet until it is chosen. */
+.dangerQuiet {
+  color: var(--red-700);
+}
+.dangerQuiet:hover {
+  background: var(--red-50);
+  color: var(--red-700);
+}
+
+.after {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin-top: var(--space-6);
+}
