@@ -1,0 +1,66 @@
+/* ---- added when the page is published as a claude.ai Artifact */
+
+/* The ground behind the app follows the viewer's theme. The app paints its
+   own screens; this shows only around them, in a phone's system-bar strips. */
+:root {
+  --so-ground: #f6f2ec;
+  --so-note: #3b101b;
+  --so-note-text: #f6f2ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --so-ground: #141114;
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --so-ground: #141114;
+  color-scheme: dark;
+}
+body {
+  background: var(--so-ground);
+}
+
+/* A hosted link travels: every screen says what this is. */
+#so-concept {
+  display: none;
+}
+.js body {
+  display: flex;
+  flex-direction: column;
+}
+.js #so-concept {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding-block: 5px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--so-note);
+  color: var(--so-note-text);
+  font:
+    600 12px/1.3 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+.js #root {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+/* The Artifact frame already keeps the page clear of a phone's top and bottom
+   system bars. The app measures those insets with a hidden probe element and
+   would add the same space a second time: make the probe read zero. */
+div[style*='safe-area-inset'] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}

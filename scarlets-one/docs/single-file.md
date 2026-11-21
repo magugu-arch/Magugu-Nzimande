@@ -12,13 +12,13 @@ in its metadata, on its first screen and in "About this file".
 
 The same file behaves in one of two ways, depending on what opens it.
 
-| Opened with                                                  | What you get                                                                                              |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Android, Chrome (or Samsung Internet, Edge, Firefox)         | The working app: every screen and every interaction.                                                      |
-| Android, "HTML Viewer"                                       | The still preview (see below). That viewer does not run scripts.                                          |
-| iPhone or iPad, from WhatsApp or the Files app               | The still preview. Apple's file preview does not run scripts, and iOS cannot open a local file in Safari. |
-| A computer, any browser                                      | The working app.                                                                                          |
-| Any phone, from a web link (if the file is hosted somewhere) | The working app, in Safari or Chrome.                                                                     |
+| Opened with                                           | What you get                                                                                              |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Android, Chrome (or Samsung Internet, Edge, Firefox)  | The working app: every screen and every interaction.                                                      |
+| Android, "HTML Viewer"                                | The still preview (see below). That viewer does not run scripts.                                          |
+| iPhone or iPad, from WhatsApp or the Files app        | The still preview. Apple's file preview does not run scripts, and iOS cannot open a local file in Safari. |
+| A computer, any browser                               | The working app.                                                                                          |
+| Any phone, from the Artifact link (once it is shared) | The working app, in Safari or Chrome.                                                                     |
 
 **The still preview** is a copy of the real screens, captured from the running
 app when the file is built: Home, Match, Matchday, Passport (as the demo
@@ -31,9 +31,9 @@ some refuse storage to a file handed over by another app. The app then keeps
 them until it is closed.
 
 So on Android the file is the app. On an iPhone, a file can only ever be the
-preview; the working app on an iPhone needs the file to be hosted at a web
-address. Hosting it is a decision for whoever owns the concept, because it
-carries the club's name and crest. It has not been hosted.
+preview; the working app on an iPhone needs a web address. The app is
+published at one, as a private claude.ai Artifact: see
+[As a claude.ai Artifact](#as-a-claudeai-artifact) below.
 
 ## Sending it on WhatsApp
 
@@ -42,8 +42,8 @@ carries the club's name and crest. It has not been hosted.
 3. iPhone: tap the document to see the preview.
 
 WhatsApp shows a file attachment with its name and size. The title,
-description and image a link preview shows come from a web address, so they
-appear only if the file is hosted and the link is sent instead.
+description and image a link preview shows come from a web address, not from
+an attached file.
 
 ## What is embedded
 
@@ -80,6 +80,8 @@ from the running app.
 | `single/shell.css`            | The splash and the still preview's frame.                                                                                                                                                                                    |
 | `single/build.mjs`            | Compresses the images, exports the bundle, captures the preview, writes the file.                                                                                                                                            |
 | `single/check.mjs`            | The checks below.                                                                                                                                                                                                            |
+| `single/artifact.css`         | Styles added only to the Artifact build: the notice bar, the themed ground, the safe-area rule.                                                                                                                              |
+| `single/check-artifact.mjs`   | The Artifact build's checks, in a stand-in for its viewer.                                                                                                                                                                   |
 
 Two things the app itself gained from this work. Storage that is refused (a
 browser with site data blocked, or a file handed over by another app) no
@@ -131,6 +133,47 @@ screen size, touch input and browser identity. 34 of 34 pass.
 
 The HTML also parses with no errors (parse5).
 
+## As a claude.ai Artifact
+
+The same app is published as a claude.ai Artifact:
+<https://claude.ai/artifact/SNQeBZiz39bYLRoBfHjyVM> (21 November 2026). It is
+**private**: only its owner can open it until they share it from the page's
+Share menu. Anyone it is shared with gets the working app in their browser,
+iPhone included.
+
+```sh
+npm run single:artifact          # writes single/.cache/Scarlets-One-Concept.html
+npm run single:check:artifact    # runs it in a stand-in for the viewer
+```
+
+To update the published page, rebuild and publish that file to the same
+address.
+
+An Artifact wraps the page in its own document and runs it in a locked-down
+frame, so this build differs from the file in five ways:
+
+- **It says what it is on every screen.** A bar at the top reads "Concept.
+  Not an official Scarlets product. All data is demo data." A link can travel
+  further than a file someone chose to send.
+- **It is page content only.** The Artifact supplies the document, so there is
+  no wrapper of its own, and its title is the name "Scarlets One Concept".
+- **Its history stays in the page.** The viewer owns the address bar and the
+  Back button. The app's own back buttons work as before.
+- **Official pages open as links.** The viewer refuses `window.open` for most
+  people, so Tickets and the other link-outs follow a real link in a new tab.
+- **It follows the viewer's light or dark setting**, and leaves the space
+  around a phone's system bars to the viewer.
+
+Checked on 21 November 2026, 12 of 12, in a stand-in for the viewer: a
+sandboxed frame with no storage of its own, under a content policy with no
+`eval` and no outside hosts. It starts, the notice stays on screen, Tickets
+follows a link to the official ticket page, images show as they scroll into
+view, the page address never changes, the theme follows both ways, and it
+makes no request beyond the page itself.
+
+The stand-in is built from the published rules for Artifacts. The real viewer
+has not been driven by these checks.
+
 ## Not verified
 
 - **No physical phone has opened this file.** Every row above is Chromium
@@ -142,6 +185,9 @@ The HTML also parses with no errors (parse5).
   how Apple's file preview lays it out is untested. If that preview ignores
   the page's width setting, the preview shows as a 390 px column, centred on a
   wider screen.
+- **The published Artifact has not been opened by these checks**, only a
+  stand-in for its viewer. Inside the Claude phone app the space around the
+  system bars is untested.
 - **WhatsApp itself has not been used.** Opening from WhatsApp on Android is
   represented by opening the file from storage, and by refusing storage and
   history changes, which is how a browser can treat a file handed to it by

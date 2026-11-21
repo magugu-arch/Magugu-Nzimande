@@ -57,8 +57,12 @@ internet, so it can be sent as a WhatsApp document or copied to a phone.
 
 - **Android:** open it with Chrome and it is the working app.
 - **iPhone:** a file preview cannot run an app, so it shows a still copy of
-  the real screens: the tabs switch and the pages scroll. The working app on
-  an iPhone needs the file hosted at a web address, which has not been done.
+  the real screens: the tabs switch and the pages scroll.
+- **Any phone, by link:** the same app is published as a private claude.ai
+  Artifact, <https://claude.ai/artifact/SNQeBZiz39bYLRoBfHjyVM>. Once its
+  owner shares it, the link opens the working app in a browser, iPhone
+  included. It carries a "not an official Scarlets product" notice on every
+  screen.
 
 ```sh
 npm run single:build    # rebuild the file

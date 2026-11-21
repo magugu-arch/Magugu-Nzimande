@@ -13,11 +13,13 @@
 //      (once each), the icon font and the app.
 //
 // Flags: --skip-export reuses the last web bundle.
+//        --target=artifact writes page content for a claude.ai Artifact
+//        instead of a complete document; --out=<path> says where.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const require = createRequire(import.meta.url);
@@ -29,10 +31,28 @@ const root = join(here, '..');
 const mobile = join(root, 'apps', 'mobile');
 const cache = join(here, '.cache');
 const exportDir = join(mobile, 'dist-single');
-const output = join(root, 'Scarlets_One.html');
 const args = new Set(process.argv.slice(2));
+const option = (name) => {
+  const hit = process.argv.slice(2).find((arg) => arg.startsWith(`--${name}=`));
+  return hit ? hit.slice(name.length + 3) : null;
+};
+/**
+ * `file`: a complete HTML document to send or copy to a phone.
+ * `artifact`: the same app as page content for a claude.ai Artifact, which
+ * supplies its own document wrapper and has its own rules (see artifact.css
+ * and the artifact section of runtime.js).
+ */
+const target = option('target') ?? 'file';
+if (!['file', 'artifact'].includes(target)) throw new Error(`Unknown --target=${target}`);
+const output = option('out')
+  ? resolve(option('out'))
+  : target === 'artifact'
+    ? join(cache, 'Scarlets-One-Concept.html')
+    : join(root, 'Scarlets_One.html');
 
 const TITLE = 'Scarlets One (concept)';
+/** An Artifact's title is its name in a gallery: a short name, no brackets. */
+const ARTIFACT_TITLE = 'Scarlets One Concept';
 const DESCRIPTION =
   'Scarlets One is a supporter app concept for Scarlets Rugby: fixtures, Match Centre, matchday planning, Passport and the Fan Zone in one place. Not an official Scarlets product. All data is demo data.';
 const SHORT_DESCRIPTION =
@@ -159,9 +179,24 @@ async function icons() {
   };
 }
 
-function head({ icon, fontsCss, mediaCss, staticCss, built }) {
+function head({ icon, fontsCss, mediaCss, staticCss, built, to }) {
   const shell = readFileSync(join(here, 'shell.css'), 'utf8');
-  const bootScript = readFileSync(join(here, 'boot.js'), 'utf8');
+  const bootScript = `window.__SO_TARGET__=${JSON.stringify(to)};\n${readFileSync(join(here, 'boot.js'), 'utf8')}`;
+  const styles = `<style id="so-shell">${shell}${to === 'artifact' ? readFileSync(join(here, 'artifact.css'), 'utf8') : ''}</style>
+<style id="so-static-css">${staticCss}</style>
+<style id="so-fonts">${fontsCss}</style>
+<style id="so-media">${mediaCss}</style>`;
+  if (to === 'artifact') {
+    // The Artifact supplies the document, charset and viewport. The title has
+    // to sit in the first few kilobytes, so it comes first.
+    return `<title>${escapeHtml(ARTIFACT_TITLE)}</title>
+<meta name="description" content="${escapeHtml(DESCRIPTION)}">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="${WINE}">
+<!-- SCARLETS ONE: a supporter app concept. Not an official Scarlets product. All data is demo data. Built ${built} from scarlets-one/ (npm run single:build -- --target=artifact). -->
+<script>${inlineScript(bootScript)}</script>
+${styles}`;
+  }
   return `<!doctype html>
 <html lang="en-GB">
 <head>
@@ -198,27 +233,32 @@ function head({ icon, fontsCss, mediaCss, staticCss, built }) {
 <meta name="twitter:description" content="${escapeHtml(SHORT_DESCRIPTION)}">
 <link rel="icon" type="image/png" href="${icon.favicon}">
 <link rel="apple-touch-icon" href="${icon.touch}">
-<style id="so-shell">${shell}</style>
-<style id="so-static-css">${staticCss}</style>
-<style id="so-fonts">${fontsCss}</style>
-<style id="so-media">${mediaCss}</style>
+${styles}
 </head>`;
 }
 
-function about(mediaCount) {
+function about(mediaCount, to) {
+  const how =
+    to === 'artifact'
+      ? `<h2>You are looking at the preview</h2>
+<p>The working app did not start in this viewer, so it is showing a still copy instead. The five tabs at the bottom switch and every page scrolls. Buttons inside a page do nothing here.</p>
+<h2>To use the working app</h2>
+<p>Open this page in an up-to-date browser such as Chrome, Safari, Edge or Firefox, or reload it.</p>`
+      : `<h2>You are looking at the preview</h2>
+<p>This viewer shows a still copy of the app. The five tabs at the bottom switch and every page scrolls. Buttons inside a page do nothing here.</p>
+<h2>To use the working app</h2>
+<p><strong>Android:</strong> open this same file with Chrome. When your phone asks how to open it, choose Chrome, not HTML Viewer.</p>
+<p><strong>Computer:</strong> open the file in any browser.</p>
+<p><strong>iPhone and iPad:</strong> the Files and WhatsApp previews can only show this still copy. The working app runs on an iPhone from a web link in Safari, not from a file.</p>`;
+  const where = to === 'artifact' ? 'on this page' : 'in this file';
   return `<div class="so-frame so-about" data-frame="about">
 <div class="so-about-body">
 <i class="so-m so-m-01-crest so-about-crest" role="img" aria-label="Scarlets crest"></i>
 <h1>Scarlets One</h1>
 <p class="so-lead">A supporter app concept. Not an official Scarlets product.</p>
-<h2>You are looking at the preview</h2>
-<p>This viewer shows a still copy of the app. The five tabs at the bottom switch and every page scrolls. Buttons inside a page do nothing here.</p>
-<h2>To use the working app</h2>
-<p><strong>Android:</strong> open this same file with Chrome. When your phone asks how to open it, choose Chrome, not HTML Viewer.</p>
-<p><strong>Computer:</strong> open the file in any browser.</p>
-<p><strong>iPhone and iPad:</strong> the Files and WhatsApp previews can only show this still copy. The working app runs on an iPhone from a web link in Safari, not from a file.</p>
+${how}
 <h2>What is real and what is not</h2>
-<p>Every fixture, score, reward and venue detail is demo data and is labelled DEMO. The ${mediaCount} images are concept material until the club confirms rights and approval. Nothing in this file is loaded from the internet, and nothing you do in it is sent anywhere.</p>
+<p>Every fixture, score, reward and venue detail is demo data and is labelled DEMO. The ${mediaCount} images are concept material until the club confirms rights and approval. Nothing ${where} is loaded from another site, and nothing you do in it is sent anywhere.</p>
 <div class="so-actions">
 <label class="so-button" for="so-t-home">Back to the app preview</label>
 <label class="so-button so-button-quiet" for="so-t-library">Image library (${mediaCount} images)</label>
@@ -227,7 +267,7 @@ function about(mediaCount) {
 </div>`;
 }
 
-function staticSection(frames, mediaCount) {
+function staticSection(frames, mediaCount, to) {
   const radios = FRAMES.map(
     (frame) =>
       `<input class="so-radio" type="radio" name="so-tab" id="so-t-${frame}" aria-label="Show ${frame}"${frame === 'home' ? ' checked' : ''}>`,
@@ -237,22 +277,31 @@ function staticSection(frames, mediaCount) {
     .join('\n');
   return `<div id="so-static" aria-label="Still preview of the Scarlets One app concept">
 ${radios}
-<div class="so-strip"><span>Scarlets One · concept preview</span><label for="so-t-about">About this file</label><label class="so-strip-back" for="so-t-home">Back to preview</label></div>
+<div class="so-strip"><span>Scarlets One · concept preview</span><label for="so-t-about">${to === 'artifact' ? 'About this preview' : 'About this file'}</label><label class="so-strip-back" for="so-t-home">Back to preview</label></div>
 <div class="so-frames">
 ${body}
-${about(mediaCount)}
+${about(mediaCount, to)}
 </div>
 </div>`;
 }
 
-function page({ headHtml, staticHtml, runtime, bundle }) {
-  return `${headHtml}
-<body>
-<div id="so-splash" role="status" aria-label="Scarlets One is starting"><i class="so-m so-m-01-crest"></i><span>Scarlets One</span><small>Concept. Not an official Scarlets product.</small></div>
+function page({ headHtml, staticHtml, runtime, bundle, to }) {
+  const body = `<div id="so-splash" role="status" aria-label="Scarlets One is starting"><i class="so-m so-m-01-crest"></i><span>Scarlets One</span><small>Concept. Not an official Scarlets product.</small></div>
 <div id="root"></div>
 ${staticHtml}
 <script>${inlineScript(runtime)}</script>
-<script>${inlineScript(bundle)}</script>
+<script>${inlineScript(bundle)}</script>`;
+  if (to === 'artifact') {
+    // A link can travel further than a file someone chose to send, so the
+    // hosted page says what it is on every screen, not only the first.
+    return `${headHtml}
+<div id="so-concept" role="note">Concept. Not an official Scarlets product. All data is demo data.</div>
+${body}
+`;
+  }
+  return `${headHtml}
+<body>
+${body}
 </body>
 </html>
 `;
@@ -469,11 +518,13 @@ mkdirSync(cache, { recursive: true });
 const stagePath = join(cache, 'stage.html');
 writeFileSync(
   stagePath,
+  // Always a complete document: the capture opens it straight from disk.
   page({
-    headHtml: head({ icon, fontsCss, mediaCss, staticCss: '', built }),
+    headHtml: head({ icon, fontsCss, mediaCss, staticCss: '', built, to: 'file' }),
     staticHtml: '',
     runtime,
     bundle,
+    to: 'file',
   }),
 );
 log('capturing the still preview');
@@ -485,10 +536,12 @@ log(
 );
 
 const html = page({
-  headHtml: head({ icon, fontsCss, mediaCss, staticCss: stills.css, built }),
-  staticHtml: staticSection(stills.frames, media.length),
+  headHtml: head({ icon, fontsCss, mediaCss, staticCss: stills.css, built, to: target }),
+  staticHtml: staticSection(stills.frames, media.length, target),
   runtime,
   bundle,
+  to: target,
 });
+mkdirSync(dirname(output), { recursive: true });
 writeFileSync(output, html);
-log(`wrote ${output}: ${mb(Buffer.byteLength(html))}`);
+log(`wrote ${output} (${target}): ${mb(Buffer.byteLength(html))}`);

@@ -2,7 +2,7 @@
   "name": "scarlets-one",
   "version": "0.1.0",
   "private": true,
-  "description": "Scarlets One — supporter app concept. Not an official Scarlets product.",
+  "description": "Scarlets One \u2014 supporter app concept. Not an official Scarlets product.",
   "workspaces": [
     "apps/*",
     "packages/*",
@@ -17,6 +17,8 @@
     "mobile:export": "npm run export:web -w @scarlets/mobile",
     "single:build": "node single/build.mjs",
     "single:check": "node single/check.mjs",
+    "single:artifact": "node single/build.mjs --target=artifact",
+    "single:check:artifact": "node single/check-artifact.mjs",
     "admin": "npm run dev -w @scarlets/admin",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint . && npm run lint -w @scarlets/admin",

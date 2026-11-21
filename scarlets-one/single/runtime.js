@@ -11,6 +11,8 @@
  *    they become object URLs the app can use as image sources.
  * 3. Once the app has drawn, the still preview is removed (single/boot.js
  *    brings it back instead if the app never starts).
+ * 4. Published as an Artifact, the page follows that viewer's rules for
+ *    history, links and theme.
  */
 (function () {
   'use strict';
@@ -163,6 +165,103 @@
 
   window.__SO_NAV__ = { location: location, history: history };
 
+  /* --------------------------------------------------------------- artifact */
+
+  // Published as a claude.ai Artifact, the page runs inside a viewer with its
+  // own rules. Three of them change how the app has to behave.
+  if (window.__SO_TARGET__ === 'artifact') {
+    // 1. The viewer owns the address bar and the Back button, and passes only
+    //    a plain #name to the page. Keep the app's history in the page.
+    switchToMemory();
+
+    // 2. window.open returns null for most viewers; a link opens in a new tab.
+    //    The app opens official pages with window.open, so fall back to
+    //    following a real link.
+    var nativeOpen = window.open;
+    window.open = function (url, name, features) {
+      var opened = null;
+      try {
+        opened = nativeOpen.call(window, url, name || '_blank', features);
+      } catch (error) {
+        opened = null;
+      }
+      if (opened || !/^https?:/i.test(String(url))) return opened;
+      var link = doc.createElement('a');
+      link.href = String(url);
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.style.display = 'none';
+      doc.body.appendChild(link);
+      link.click();
+      doc.body.removeChild(link);
+      return null;
+    };
+
+    // 3. The viewer's light or dark choice arrives as data-theme on the root
+    //    element, not as the system setting the app listens to. Answer the
+    //    app's one colour-scheme question from both.
+    var nativeMatchMedia = window.matchMedia;
+    if (typeof nativeMatchMedia === 'function') {
+      var DARK = '(prefers-color-scheme: dark)';
+      var system = nativeMatchMedia.call(window, DARK);
+      var listeners = [];
+      var isDark = function () {
+        var chosen = html.getAttribute('data-theme');
+        if (chosen === 'dark') return true;
+        if (chosen === 'light') return false;
+        return system.matches;
+      };
+      var last = isDark();
+      var notify = function () {
+        var now = isDark();
+        if (now === last) return;
+        last = now;
+        var current = listeners.slice();
+        for (var i = 0; i < current.length; i += 1) current[i]({ matches: now, media: DARK });
+      };
+      var add = function (listener) {
+        if (typeof listener === 'function' && listeners.indexOf(listener) < 0) {
+          listeners.push(listener);
+        }
+      };
+      var remove = function (listener) {
+        var at = listeners.indexOf(listener);
+        if (at >= 0) listeners.splice(at, 1);
+      };
+      var bridged = {
+        media: DARK,
+        onchange: null,
+        get matches() {
+          return isDark();
+        },
+        addListener: add,
+        removeListener: remove,
+        addEventListener: function (type, listener) {
+          if (type === 'change') add(listener);
+        },
+        removeEventListener: function (type, listener) {
+          if (type === 'change') remove(listener);
+        },
+        dispatchEvent: function () {
+          return true;
+        },
+      };
+      if (system.addEventListener) system.addEventListener('change', notify);
+      else if (system.addListener) system.addListener(notify);
+      if (typeof MutationObserver === 'function') {
+        new MutationObserver(notify).observe(html, {
+          attributes: true,
+          attributeFilter: ['data-theme'],
+        });
+      }
+      window.matchMedia = function (query) {
+        return String(query).replace(/\s+/g, ' ').trim() === DARK
+          ? bridged
+          : nativeMatchMedia.call(window, query);
+      };
+    }
+  }
+
   /* ------------------------------------------------------------------ media */
 
   function unwrap(value) {
@@ -231,15 +330,9 @@
   function ready() {
     if (boot.started) return;
     boot.started = true;
-    if (boot.failed) {
-      // The fallback gave up on a slow start, but the app did arrive: show it.
-      var viewport = doc.querySelector('meta[name="viewport"]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
-      }
-      html.className = 'js';
-    }
-    html.className = html.className + ' so-ready';
+    // The fallback may have given up on a slow start. The app did arrive: show it.
+    if (boot.failed && boot.showApp) boot.showApp();
+    if (boot.setClass) boot.setClass('so-ready', true);
     setTimeout(function () {
       var ids = ['so-static', 'so-static-css', 'so-splash'];
       // Object URLs hold their own copy. Without them the photos are still
