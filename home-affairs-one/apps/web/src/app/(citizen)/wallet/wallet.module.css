@@ -1,0 +1,137 @@
+/* Hero ------------------------------------------------------------------ */
+.hero {
+  display: grid;
+  gap: var(--space-5);
+  align-items: center;
+  padding-bottom: var(--space-6);
+}
+.heroPhoto {
+  width: 100%;
+  max-width: 13rem;
+}
+@media (min-width: 48rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 19rem);
+    gap: var(--space-7);
+  }
+  .heroPhoto {
+    max-width: none;
+    margin-top: var(--space-6);
+  }
+}
+
+/* The "future capability" label, made hard to miss. */
+.concept > p {
+  padding: var(--space-4);
+  border: 1px solid var(--gold-200);
+  border-inline-start: 4px solid var(--gold-500);
+  background: var(--gold-50);
+  font-size: var(--text-base);
+}
+
+/* Concept tiles: plain panels with words. Deliberately not card-shaped. */
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+}
+.tileText {
+  color: var(--ink-700);
+  font-size: var(--text-sm);
+}
+.tileProve {
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-strong);
+  font-size: var(--text-sm);
+}
+
+/* Selective disclosure walk-through -------------------------------------- */
+.share {
+  display: grid;
+  gap: var(--space-4);
+}
+.shareFields {
+  display: grid;
+  gap: var(--space-4);
+}
+@media (min-width: 40rem) {
+  .shareFields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+.consent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.question {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+/* Verify without a scan --------------------------------------------------- */
+.verify {
+  display: grid;
+  gap: var(--space-5);
+  align-items: center;
+}
+.verifyText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 40rem;
+}
+.verifyText h2 {
+  font-size: var(--text-2xl);
+}
+.verifyPhoto {
+  width: 100%;
+  max-width: 20rem;
+}
+@media (min-width: 48rem) {
+  .verify {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    gap: var(--space-7);
+  }
+}
+.points {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: 1.2rem;
+}
+.muted {
+  color: var(--color-text-muted);
+}
+
+/* Launch requirements ----------------------------------------------------- */
+.checklist {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border-strong);
+}
+.check {
+  display: grid;
+  gap: var(--space-2) var(--space-4);
+  justify-items: start;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+@media (min-width: 40rem) {
+  .check {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

@@ -1,0 +1,124 @@
+/* Shared by the call-back and complaint / feedback forms. */
+.page {
+  padding-bottom: var(--space-7);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Error summary: focused after a failed submit */
+.summary {
+  padding: var(--space-4);
+  border: 2px solid var(--red-600);
+  border-radius: var(--radius-sm);
+  background: var(--red-50);
+}
+.summaryTitle {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.summary ul {
+  display: grid;
+  margin: var(--space-2) 0 0;
+  padding-inline-start: 1.2rem;
+}
+.summaryLink {
+  min-height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--red-700);
+  font-weight: 700;
+  text-align: start;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+.summaryLink:hover {
+  text-decoration-thickness: 0.12em;
+}
+.trace {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Message field with its character count */
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.count {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.promise {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Confirmation */
+.confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.next h2 {
+  font-size: var(--text-xl);
+}
+.next ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: 1.2rem;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Recent requests */
+.requests {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  list-style: none;
+}
+.requests > li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+.requests > li + li {
+  border-top: 1px solid var(--color-border);
+}
+.requestTopic {
+  font-weight: 700;
+  line-height: 1.35;
+}
+.requestMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

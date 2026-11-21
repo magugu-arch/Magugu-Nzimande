@@ -3,7 +3,10 @@ import type { ReactNode } from 'react';
 import { StaffShell } from './StaffShell';
 
 export const metadata: Metadata = {
-  title: { default: 'Staff console', template: '%s · Staff console · Home Affairs One (concept)' },
+  title: {
+    default: 'Staff console · Home Affairs One (concept)',
+    template: '%s · Staff console · Home Affairs One (concept)',
+  },
 };
 
 /** The staff console sits outside the citizen route group, with its own shell. */

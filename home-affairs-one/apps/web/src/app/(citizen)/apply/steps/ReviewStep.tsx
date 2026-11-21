@@ -77,7 +77,7 @@ export function ReviewStep({ flow }: { flow: ApplicationFlow }) {
                       flow.goTo(step.id);
                     }}
                   >
-                    Change<span className="visually-hidden"> {step.title.toLowerCase()}</span>
+                    Change <span className="visually-hidden">{step.title.toLowerCase()}</span>
                   </AppLink>
                 </div>
                 <DescriptionList

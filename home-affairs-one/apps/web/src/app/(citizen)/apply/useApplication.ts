@@ -104,7 +104,11 @@ export function useApplication({
   const [nav, setNav] = useState(0);
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
   const [flash, setFlash] = useState<FlashMessage | null>(null);
-  /** Only ever set by the person ticking the box. Not saved, not restored. */
+  /**
+   * Only ever set by the person ticking the box. Not saved, not restored, and
+   * cleared when an answer changes afterwards: the declaration is about the
+   * answers as they stand, so it has to be made again.
+   */
   const [declared, setDeclared] = useState(false);
   const [problems, setProblems] = useState<{ list: FieldProblem[]; nonce: number }>({
     list: [],
@@ -256,6 +260,7 @@ export function useApplication({
 
   function setAnswer(fieldId: string, value: AnswerValue) {
     setAnswers((current) => ({ ...current, [fieldId]: value }));
+    setDeclared(false);
     setProblems((current) =>
       current.list.some((problem) => problem.fieldId === fieldId)
         ? { ...current, list: current.list.filter((problem) => problem.fieldId !== fieldId) }
@@ -337,6 +342,7 @@ export function useApplication({
     try {
       const updated = await attachMutation.mutateAsync({ draftId: draft.draftId, field });
       setDraft(updated);
+      setDeclared(false);
       setProblems((current) => ({
         ...current,
         list: current.list.filter((problem) => problem.fieldId !== field.id),
@@ -357,6 +363,7 @@ export function useApplication({
         evidenceId: item.evidenceId,
       });
       setDraft(updated);
+      setDeclared(false);
       announce('Synthetic placeholder removed.');
     } catch {
       // Shown beside the button.

@@ -205,6 +205,22 @@ describe('the guided application journey', () => {
 
     await stepHeading('Review and declaration');
     await user.click(screen.getByRole('checkbox', { name: /I confirm that the information/ }));
+
+    // Changing an answer after ticking clears the tick: the declaration is made again.
+    await user.click(screen.getByRole('link', { name: 'Change about your passport' }));
+    await stepHeading('About your passport');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'What do you need?' }),
+      'Renewal',
+    );
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+    await stepHeading('Supporting evidence');
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+    await stepHeading('Review and declaration');
+    expect(screen.getByText('Renewal')).toBeInTheDocument();
+    const declaration = screen.getByRole('checkbox', { name: /I confirm that the information/ });
+    expect(declaration).not.toBeChecked();
+    await user.click(declaration);
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     await stepHeading('Confirm it is you');
@@ -212,9 +228,10 @@ describe('the guided application journey', () => {
     const notice = await screen.findByRole('alert');
     expect(notice).toHaveTextContent('This account cannot confirm with a passkey yet');
     expect(notice).toHaveTextContent('Your draft is saved');
-    expect(
-      screen.getByRole('link', { name: 'See how to verify your account' }),
-    ).toHaveAttribute('href', '/profile/security/');
+    expect(screen.getByRole('link', { name: 'See how to verify your account' })).toHaveAttribute(
+      'href',
+      '/profile/security/',
+    );
     expect(screen.getByRole('link', { name: 'Find a service point' })).toHaveAttribute(
       'href',
       '/service-points/',
