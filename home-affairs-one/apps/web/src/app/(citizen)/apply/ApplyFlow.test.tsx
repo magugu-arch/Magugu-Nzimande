@@ -1,12 +1,10 @@
 import { DEMO } from '@hao/api-contracts';
-import { createAuthClient } from '@hao/auth-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { findService } from '@/lib/catalogue';
 import { getGateway } from '@/lib/gateway';
-import { PrefsProvider } from '@/lib/prefs';
 import { SessionProvider, useSession } from '@/lib/session';
 import { ApplyFlow } from './ApplyFlow';
 
@@ -17,36 +15,42 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/apply/',
 }));
 
+let sessionApi: ReturnType<typeof useSession> | null = null;
+
+/** Stands in for the page: the guard has run and the service is known. */
 function Harness({ code }: { code: string }) {
-  const { session } = useSession();
+  const api = useSession();
+  sessionApi = api;
   const service = findService(code);
-  if (!session || !service) return null;
-  return <ApplyFlow service={service} session={session} initialDraft={null} />;
+  if (!api.session || !service) return null;
+  return <ApplyFlow service={service} session={api.session} initialDraft={null} />;
 }
 
-function renderFlow(code: string) {
+/** Renders the flow for a demo person signed in the way the sign-in screen does it. */
+async function renderFlow(
+  code: string,
+  personToken: string,
+  method: 'passkey' | 'verified-contact',
+) {
+  const gateway = getGateway();
+  gateway.platform.settings.set({ latencyMs: 0 });
+  const account = await gateway.identity.getAccount(personToken);
   const client = new QueryClient({
     defaultOptions: {
       queries: { retry: false, networkMode: 'always' },
       mutations: { retry: false, networkMode: 'always' },
     },
   });
-  return render(
+  render(
     <QueryClientProvider client={client}>
-      <PrefsProvider>
-        <SessionProvider>
-          <Harness code={code} />
-        </SessionProvider>
-      </PrefsProvider>
+      <SessionProvider>
+        <Harness code={code} />
+      </SessionProvider>
     </QueryClientProvider>,
   );
-}
-
-async function signIn(personToken: string, method: 'passkey' | 'verified-contact') {
-  const gateway = getGateway();
-  gateway.platform.settings.set({ latencyMs: 0 });
-  const account = await gateway.identity.getAccount(personToken);
-  createAuthClient({ storage: window.sessionStorage }).signInCitizen(account, method);
+  act(() => {
+    sessionApi?.signInCitizen(account, method);
+  });
 }
 
 const stepHeading = (name: string) => screen.findByRole('heading', { level: 2, name });
@@ -61,8 +65,7 @@ describe('the guided application journey', () => {
 
   it('takes a verified person from "Start" to "Application received", one step at a time', async () => {
     const user = userEvent.setup();
-    await signIn(DEMO.persons.thandi, 'passkey');
-    renderFlow('SMART_ID_REPLACEMENT');
+    await renderFlow('SMART_ID_REPLACEMENT', DEMO.persons.thandi, 'passkey');
 
     // Before you start: content first, nothing saved yet.
     await stepHeading('Before you start');
@@ -154,8 +157,7 @@ describe('the guided application journey', () => {
 
   it('does not dead-end a person who signed in with a one-time code', async () => {
     const user = userEvent.setup();
-    await signIn(DEMO.persons.thandi, 'verified-contact');
-    renderFlow('ADULT_PASSPORT');
+    await renderFlow('ADULT_PASSPORT', DEMO.persons.thandi, 'verified-contact');
 
     await stepHeading('Before you start');
     await user.click(screen.getByRole('button', { name: 'Start' }));
