@@ -1,0 +1,30 @@
+{
+  "name": "@scarlets/admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/sync-media.mjs",
+    "dev": "node scripts/next.mjs dev --port 3100",
+    "prebuild": "node scripts/sync-media.mjs",
+    "build": "node scripts/next.mjs build",
+    "start": "node scripts/next.mjs start --port 3100",
+    "typecheck": "node scripts/next.mjs typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@scarlets/adapters": "*",
+    "@scarlets/domain": "*",
+    "@scarlets/ui": "*",
+    "next": "^16.4.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "~19.2.2",
+    "@types/react-dom": "~19.2.2",
+    "eslint-config-next": "^16.4.6"
+  }
+}

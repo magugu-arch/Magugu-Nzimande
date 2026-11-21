@@ -1,0 +1,10 @@
+node_modules
+dist
+.expo
+.next
+*.generated.ts
+next-env.d.ts
+apps/admin/public/media
+apps/mobile/expo-env.d.ts
+tests/e2e/.artifacts
+package-lock.json

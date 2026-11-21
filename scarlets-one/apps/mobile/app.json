@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "Scarlets One",
+    "slug": "scarlets-one-concept",
+    "description": "Scarlets One: a supporter app concept. Not an official Scarlets product.",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "scarletsone",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F6F2EC",
+    "primaryColor": "#C8102E",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.concept.scarletsone",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "app.concept.scarletsone",
+      "adaptiveIcon": {
+        "backgroundColor": "#F6F2EC",
+        "foregroundImage": "./assets/adaptive-foreground.png"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png",
+      "name": "Scarlets One (concept)",
+      "shortName": "Scarlets One",
+      "lang": "en",
+      "themeColor": "#3B101B",
+      "backgroundColor": "#F6F2EC",
+      "description": "Scarlets One: a supporter app concept. Not an official Scarlets product."
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#F6F2EC",
+          "imageWidth": 220,
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#191619"
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Scarlets One opens your photos so you can choose one to send to Fan Cam.",
+          "cameraPermission": "Scarlets One uses the camera so you can take a photo for Fan Cam.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-localization",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

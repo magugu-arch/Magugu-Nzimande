@@ -10,5 +10,9 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|standard-navigation|@tanstack/.*)',
   ],
+  // Scarlets One is a separate workspace with its own test runners. Without
+  // these, Jest crawls its node_modules and tries to run its Vitest suites.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/scarlets-one/'],
+  modulePathIgnorePatterns: ['<rootDir>/scarlets-one/'],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
 };

@@ -1,0 +1,108 @@
+name: Scarlets One
+
+# The supporter-app concept in scarlets-one/. It is its own npm workspace with
+# its own lockfile, so it is checked on its own and only when it changes.
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'scarlets-one/**'
+      - '.github/workflows/scarlets-one.yml'
+  pull_request:
+    paths:
+      - 'scarlets-one/**'
+      - '.github/workflows/scarlets-one.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: scarlets-one
+
+jobs:
+  verify:
+    name: Typecheck, lint, format and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: scarlets-one/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck every workspace
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      # Domain rules, mock providers, API contract, app screens, admin console
+      # rules, and the database schema with its row-level security (run
+      # against an in-process PostgreSQL).
+      - name: Test
+        run: npm test
+
+  build:
+    name: Build, bundle and run the journeys
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: scarlets-one/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Metro compiling for both platforms is the last thing that can fail
+      # before a build server is involved.
+      - name: Bundle the app for iOS and Android
+        working-directory: scarlets-one/apps/mobile
+        run: |
+          npx expo export --platform ios --output-dir /tmp/scarlets-ios
+          npx expo export --platform android --output-dir /tmp/scarlets-android
+
+      - name: Export the web build
+        run: npm run mobile:export
+
+      - name: Build the operations console
+        run: npm run build:admin
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Onboarding, fixture viewing, the ticket link-out, the matchday guide,
+      # Passport and membership, and Fan Zone voting, in a phone-sized browser.
+      - name: Supporter journeys
+        run: npm run e2e
+
+      # Roles enforced in the browser and by URL, and changes audited.
+      - name: Console roles and audit log
+        run: npm run e2e:admin
+
+      - name: Keep the failure screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scarlets-one-e2e
+          path: scarlets-one/tests/e2e/.artifacts
+          if-no-files-found: ignore

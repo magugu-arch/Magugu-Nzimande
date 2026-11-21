@@ -1,0 +1,5 @@
+.next/
+next-env.d.ts
+*.tsbuildinfo
+# copied from ../../assets/reference by scripts/sync-media.mjs
+public/media/

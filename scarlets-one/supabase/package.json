@@ -1,0 +1,13 @@
+{
+  "name": "@scarlets/db",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Postgres schema, row-level security and their tests.",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.17"
+  }
+}

@@ -22,6 +22,9 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // Scarlets One is its own workspace with its own dependencies, lint
+      // config and CI job (.github/workflows/scarlets-one.yml).
+      'scarlets-one/**',
     ],
   },
   {

@@ -1,0 +1,44 @@
+{
+  "name": "scarlets-one",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Scarlets One \u2014 supporter app concept. Not an official Scarlets product.",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "supabase"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "mobile": "npm run start -w @scarlets/mobile",
+    "mobile:web": "npm run web -w @scarlets/mobile",
+    "mobile:export": "npm run export:web -w @scarlets/mobile",
+    "admin": "npm run dev -w @scarlets/admin",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . && npm run lint -w @scarlets/admin",
+    "format": "prettier --write \"{apps,packages,supabase,tests,scripts}/**/*.{ts,tsx,mjs,mts,js,css}\" \"*.{js,json}\"",
+    "format:check": "prettier --check \"{apps,packages,supabase,tests,scripts}/**/*.{ts,tsx,mjs,mts,js,css}\" \"*.{js,json}\"",
+    "test": "npm run test --workspaces --if-present",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "assets:build": "python3 -I scripts/build_assets.py",
+    "e2e": "node tests/e2e/smoke.mjs",
+    "build:admin": "npm run build -w @scarlets/admin",
+    "e2e:admin": "node tests/e2e/admin-smoke.mjs"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-test-renderer": "19.2.3"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.1",
+    "eslint-config-prettier": "^10.1.8",
+    "playwright": "1.63.0",
+    "prettier": "^3.9.6",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.1"
+  }
+}
