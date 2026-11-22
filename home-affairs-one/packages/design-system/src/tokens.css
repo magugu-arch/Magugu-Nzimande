@@ -1,89 +1,127 @@
 /*
  * Home Affairs One — design tokens.
  *
- * The palette is the proposed direction from the product brief (§9). It is not
- * official DHA brand guidance. `tokens.ts` mirrors the brand values for docs
- * and tests; a unit test keeps the two in step.
+ * "After dark": the brief's palette (§9) arranged as a dark, editorial theme —
+ * Midnight Navy taken down to ink for the page, Warm Gold as the single accent,
+ * ivory type. It is not official DHA brand guidance. Every shape is square:
+ * there are no rounded corners, pills or arches anywhere in the product.
+ *
+ * `tokens.ts` mirrors the brand values for docs and tests; a unit test keeps
+ * the two in step and checks the text/background pairs below for contrast.
  */
 :root {
-  /* Brand palette */
-  --navy-950: #0a1c2e;
-  --navy-900: #102a43; /* Midnight Navy */
+  color-scheme: dark;
+
+  /* Brand palette — fills and rules. White text sits on the 600s and navies. */
+  --navy-950: #0a1622;
+  --navy-900: #102a43; /* Midnight Navy: brand bands */
   --navy-800: #183b5c;
   --navy-700: #24507a;
-  --navy-100: #dce6f0;
-  --navy-50: #eef3f8;
+  --navy-100: #22324a; /* raised line, skeletons, photo placeholder */
+  --navy-50: #172539; /* raised surface: hover, selected, neutral tags */
 
   --blue-700: #0e4f84;
   --blue-600: #1261a0; /* Action Blue */
-  --blue-100: #d9e8f5;
-  --blue-50: #edf4fa;
+  --blue-500: #4a9be0;
+  --blue-100: #1f4166;
+  --blue-50: #0e2138;
 
   --teal-700: #0b5c56;
   --teal-600: #0f766e; /* Teal */
-  --teal-100: #d3ebe8;
-  --teal-50: #eaf5f4;
+  --teal-100: #1b4c48;
+  --teal-50: #0a2221;
 
   --green-700: #14664a;
   --green-600: #1a7f5a; /* Success Green */
-  --green-100: #d6eee4;
-  --green-50: #ecf7f2;
+  --green-500: #36b37e;
+  --green-100: #1d4d39;
+  --green-50: #0b2119;
 
   --gold-700: #7f5d06;
-  --gold-500: #d5a52a; /* Warm Gold */
+  --gold-500: #d5a52a; /* Warm Gold: the accent */
+  --gold-400: #e9c35b;
   --gold-200: #f1dc9f;
-  --gold-100: #f8ebc8;
-  --gold-50: #fdf7e7;
+  --gold-line: #6a5520;
+  --gold-100: #2e2610;
+  --gold-50: #1e190b;
 
   --red-700: #a52e2e;
   --red-600: #c83b3b; /* Error Red */
-  --red-100: #f7dada;
-  --red-50: #fcf0f0;
+  --red-500: #ef6a62;
+  --red-100: #63292b;
+  --red-50: #2a1113;
 
   /* Neutrals */
-  --ink-900: #102a43;
-  --ink-700: #334e68;
-  --ink-600: #486581;
-  --line: #d6dfe8;
-  --line-strong: #b7c4d1;
-  --surface: #ffffff;
-  --surface-sunken: #f2f6f9; /* Surface */
-  --page: #f7f9fb;
+  --ink-900: #f4f1ea; /* ivory */
+  --ink-700: #c5ced9;
+  --ink-600: #a8b3c2;
+  --line: #253348;
+  --line-strong: #76849a;
+  --surface: #101b2b;
+  --surface-sunken: #0c1622;
+  --page: #070c14;
+  /* The brief's light Surface. Used when the product is printed. */
+  --paper: #f2f6f9;
+
+  /* Text on tinted and plain surfaces */
+  --text-info: #9ccbf3;
+  --text-accent: #e6c15c;
+  --text-success: #7fd3aa;
+  --text-danger: #ffa49b;
+  --text-teal: #74d1c6;
+  --on-accent: #0a121d; /* ink on gold */
 
   /* Semantic colour */
   --color-text: var(--ink-900);
   --color-text-muted: var(--ink-600);
   --color-text-inverse: #ffffff;
   --color-text-inverse-muted: #c9d8e6;
-  --color-link: var(--blue-600);
-  --color-link-hover: var(--blue-700);
+  --color-info-text: var(--text-info);
+  --color-accent-text: var(--text-accent);
+  --color-success-text: var(--text-success);
+  --color-danger-text: var(--text-danger);
+  --color-teal-text: var(--text-teal);
+  --color-on-accent: var(--on-accent);
+  --color-link: var(--text-accent);
+  --color-link-hover: var(--gold-200);
   --color-border: var(--line);
   --color-border-strong: var(--line-strong);
+  --color-rule: var(--ink-700);
   --color-page: var(--page);
   --color-surface: var(--surface);
   --color-surface-sunken: var(--surface-sunken);
+  --color-surface-raised: var(--navy-50);
   --color-brand: var(--navy-900);
-  --color-action: var(--blue-600);
-  --color-action-hover: var(--blue-700);
-  --color-focus: #1261a0;
-  --color-focus-on-dark: #f1dc9f;
+  --color-action: var(--gold-500);
+  --color-action-hover: var(--gold-400);
+  --color-focus: #8fc7ff;
+  --color-focus-on-dark: #8fc7ff;
+  /* Floating chrome: the bars are a translucent layer that content scrolls under. */
+  --chrome: rgb(7 12 20 / 0.72);
+  --chrome-solid: #0a111b;
+  --chrome-line: rgb(255 255 255 / 0.09);
 
   /* Typography */
   --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   --font-body:
     'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible', 'Segoe UI', system-ui,
     -apple-system, sans-serif;
+  --font-mono:
+    ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   --text-xs: 0.8125rem;
   --text-sm: 0.9063rem;
   --text-base: 1.0313rem;
   --text-lg: 1.1875rem;
-  --text-xl: 1.4375rem;
-  --text-2xl: 1.8125rem;
-  --text-3xl: 2.3125rem;
-  --text-hero: clamp(2.25rem, 1.4rem + 3.6vw, 3.875rem);
-  --leading-tight: 1.14;
+  --text-xl: 1.5rem;
+  --text-2xl: clamp(1.75rem, 1.45rem + 1.4vw, 2.25rem);
+  --text-3xl: clamp(2.125rem, 1.6rem + 2.5vw, 3.125rem);
+  --text-hero: clamp(2.875rem, 1.55rem + 6.4vw, 5.5rem);
+  --leading-tight: 1.06;
   --leading-snug: 1.3;
-  --leading-body: 1.55;
+  --leading-body: 1.6;
+  /* Labels: eyebrows, tags and buttons are set small, wide and uppercase. */
+  --tracking-label: 0.14em;
+  --tracking-button: 0.09em;
 
   /* Space (4px base) */
   --space-1: 0.25rem;
@@ -96,36 +134,36 @@
   --space-8: 4rem;
   --space-9: 6rem;
 
-  /* Shape */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 22px;
-  --radius-pill: 999px;
-  /* The arch: "one front door". Used to mask feature photographs. */
-  --radius-arch: 999px 999px var(--radius-md) var(--radius-md);
+  /* Shape: square. The names stay so components keep one vocabulary. */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-pill: 0;
+  --radius-arch: 0;
 
-  /* Elevation — soft, navy-tinted */
-  --shadow-sm: 0 1px 2px rgb(16 42 67 / 0.06), 0 1px 1px rgb(16 42 67 / 0.04);
-  --shadow-md: 0 6px 18px -6px rgb(16 42 67 / 0.14), 0 2px 4px rgb(16 42 67 / 0.05);
-  --shadow-lg: 0 24px 48px -20px rgb(16 42 67 / 0.28), 0 4px 10px rgb(16 42 67 / 0.06);
+  /* Elevation: on ink, depth comes from lighter surfaces; shadows only lift overlays. */
+  --shadow-sm: 0 1px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 14px 32px -14px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 36px 72px -24px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.06);
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 0.8, 0.26, 1);
+  --duration-press: 100ms;
   --duration-fast: 140ms;
   --duration-base: 240ms;
-  --duration-slow: 480ms;
+  --duration-slow: 560ms;
 
   /* Layout */
   --content-max: 72rem;
   --content-narrow: 44rem;
   /* Never less than 16px, and clear of a system bar at either side of a phone. */
   --gutter: max(
-    clamp(1rem, 0.5rem + 2.4vw, 2rem),
+    clamp(1.125rem, 0.5rem + 2.6vw, 2.25rem),
     env(safe-area-inset-left, 0px),
     env(safe-area-inset-right, 0px)
   );
   --touch-target: 2.75rem; /* 44px */
-  --topbar-height: 3.75rem;
+  --topbar-height: 4rem;
   --tabbar-height: 4.25rem;
 }
 
@@ -139,17 +177,62 @@
 
 /* Higher contrast preference, also honoured from the operating system. */
 :root[data-contrast='more'] {
-  --color-text-muted: var(--ink-900);
-  --color-border: #7b8794;
-  --color-border-strong: #486581;
-  --color-surface-sunken: #ffffff;
-  --color-page: #ffffff;
-  --line: #7b8794;
+  --color-text-muted: #e8edf3;
+  --color-border: #9aa7b8;
+  --color-border-strong: #d0d8e2;
+  --color-surface: #05080d;
+  --color-surface-sunken: #000000;
+  --color-page: #000000;
+  --line: #9aa7b8;
+  --chrome: #000000;
+  --chrome-line: #9aa7b8;
 }
 @media (prefers-contrast: more) {
   :root:not([data-contrast='standard']) {
-    --color-text-muted: var(--ink-900);
-    --color-border: #7b8794;
-    --color-border-strong: #486581;
+    --color-text-muted: #e8edf3;
+    --color-border: #9aa7b8;
+    --color-border-strong: #d0d8e2;
+    --chrome: #000000;
+    --chrome-line: #9aa7b8;
+  }
+}
+
+/* People who ask for less transparency get solid bars. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --chrome: var(--chrome-solid);
+  }
+}
+
+/* On paper the theme turns over: dark type on the brief's light surface. */
+@media print {
+  :root {
+    color-scheme: light;
+    --ink-900: #102a43;
+    --ink-700: #334e68;
+    --ink-600: #486581;
+    --line: #d6dfe8;
+    --line-strong: #b7c4d1;
+    --surface: #ffffff;
+    --surface-sunken: var(--paper);
+    --page: #ffffff;
+    --navy-50: #eef3f8;
+    --navy-100: #dce6f0;
+    --blue-50: #edf4fa;
+    --blue-100: #d9e8f5;
+    --teal-50: #eaf5f4;
+    --teal-100: #d3ebe8;
+    --green-50: #ecf7f2;
+    --green-100: #d6eee4;
+    --gold-50: #fdf7e7;
+    --gold-100: #f8ebc8;
+    --gold-line: #f1dc9f;
+    --red-50: #fcf0f0;
+    --red-100: #f7dada;
+    --text-info: #0e4f84;
+    --text-accent: #7f5d06;
+    --text-success: #14664a;
+    --text-danger: #a52e2e;
+    --text-teal: #0b5c56;
   }
 }

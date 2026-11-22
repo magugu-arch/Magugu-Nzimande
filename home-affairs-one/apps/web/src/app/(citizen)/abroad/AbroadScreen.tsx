@@ -180,13 +180,7 @@ export function AbroadScreen() {
             regulations, identity capture and delivery allow.
           </FutureNotice>
         </PageHeader>
-        <Photo
-          asset="A52"
-          ratio="16 / 9"
-          shape="soft"
-          sizes="(min-width: 60rem) 34rem, 100vw"
-          priority
-        />
+        <Photo asset="A52" ratio="16 / 9" sizes="(min-width: 60rem) 34rem, 100vw" priority />
       </div>
 
       <Stack gap={8}>
@@ -275,7 +269,7 @@ export function AbroadScreen() {
 
         <div className={styles.editorials}>
           <section className={styles.editorial} aria-labelledby="collecting-heading">
-            <Photo asset="A17" ratio="4 / 3" shape="soft" sizes="(min-width: 60rem) 32rem, 100vw" />
+            <Photo asset="A17" ratio="4 / 3" sizes="(min-width: 60rem) 32rem, 100vw" />
             <div className={styles.editorialText}>
               <h2 id="collecting-heading">Collecting your document</h2>
               <p>
@@ -302,7 +296,7 @@ export function AbroadScreen() {
             className={`${styles.editorial} ${styles.editorialFlip}`}
             aria-labelledby="travel-heading"
           >
-            <Photo asset="A15" ratio="4 / 3" shape="soft" sizes="(min-width: 60rem) 32rem, 100vw" />
+            <Photo asset="A15" ratio="4 / 3" sizes="(min-width: 60rem) 32rem, 100vw" />
             <div className={styles.editorialText}>
               <h2 id="travel-heading">Travel-ready</h2>
               <p>

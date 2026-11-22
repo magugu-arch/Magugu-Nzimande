@@ -151,6 +151,28 @@ DHA. Each can be reversed; "Superseded" entries will be kept, not deleted.
   also means none of the AI guardrails are tested. See `docs/privacy/ai-use.md`.
 - **Status.** Accepted.
 
+### ADR-014 — "After dark": a dark editorial theme, square shapes and parallax
+
+- **Context.** The brief (§9) proposes a light palette with rounded cards. The product owner asked
+  for a more premium look after a dark editorial reference — full-bleed photography, a serif
+  headline with an italic accent, small monospaced labels, square blocks — and asked for every
+  pill and arch shape to go and for parallax to be added.
+- **Decision.** Keep the brief's hues and rearrange them as one dark theme: Midnight Navy taken
+  down to ink for the page, ivory type, Warm Gold as the single accent (buttons, links, rules, the
+  mark). Every radius token is `0`; the arch mask and the arch in the mark are retired, and the
+  mark is redrawn as a square doorway. Photographs drift as they cross the screen, using CSS
+  scroll-driven animations with a small scripted fallback, and stand still under reduced motion.
+  Eyebrows, tags and buttons are set small, wide and uppercase in CSS; the copy itself stays in
+  sentence case. The top and bottom bars are translucent layers the page scrolls under.
+- **Consequences.** This departs from the brief's light palette. There is one theme: no light
+  option yet, although printing turns the page light. Uppercase labels read less easily at length,
+  so button labels must stay short. Text and background pairs, control borders and the zero radii
+  are held by unit tests; parallax, reduced motion and "no rounded corners" by browser tests. The
+  look has not been tested with low-vision users or in bright sunlight, and should be before a
+  pilot. A box that clips must use `overflow: hidden; overflow: clip;` or photographs inside it
+  stop drifting.
+- **Status.** Accepted for the prototype. To be confirmed with DHA brand and accessibility owners.
+
 ## Decisions still to be made with DHA
 
 The brief (Appendix B, "Release architecture decisions to record") lists these. The prototype makes

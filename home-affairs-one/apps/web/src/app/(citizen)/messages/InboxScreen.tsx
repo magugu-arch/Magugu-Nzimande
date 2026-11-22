@@ -188,7 +188,7 @@ export function InboxScreen() {
 
         <aside className={styles.aside} aria-label="Staying safe">
           <div className={styles.photoWrap}>
-            <Photo asset="A33" ratio="4 / 5" shape="arch" sizes="20rem" />
+            <Photo asset="A33" ratio="4 / 5" sizes="20rem" />
           </div>
           <Card tone="brand" className={styles.safety}>
             <ShieldCheck aria-hidden="true" size={28} />

@@ -6,8 +6,8 @@
 }
 .skeleton {
   display: block;
-  border-radius: 8px;
-  background: linear-gradient(90deg, var(--navy-50) 25%, #f8fafc 37%, var(--navy-50) 63%);
+  border-radius: 0;
+  background: linear-gradient(90deg, var(--navy-50) 25%, var(--navy-100) 37%, var(--navy-50) 63%);
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
 }
@@ -25,7 +25,7 @@
   gap: var(--space-3);
   padding: var(--space-6) var(--space-5);
   border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
 }
 .stateIcon {
@@ -33,9 +33,9 @@
   place-items: center;
   width: 3rem;
   height: 3rem;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--navy-50);
-  color: var(--navy-900);
+  color: var(--color-text);
 }
 .stateIcon svg {
   width: 1.5rem;
@@ -71,17 +71,17 @@
   background: var(--red-50);
 }
 .stateError .stateIcon {
-  background: #fff;
-  color: var(--red-600);
+  background: var(--color-surface);
+  color: var(--color-danger-text);
 }
 .stateOffline {
   border-style: solid;
-  border-color: var(--gold-200);
+  border-color: var(--gold-line);
   background: var(--gold-50);
 }
 .stateOffline .stateIcon {
-  background: #fff;
-  color: var(--gold-700);
+  background: var(--color-surface);
+  color: var(--color-accent-text);
 }
 .stateUnavailable {
   border-style: solid;
@@ -102,7 +102,7 @@
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--color-surface-sunken);
   border: 1px dashed var(--color-border-strong);
   color: var(--ink-700);
@@ -116,7 +116,7 @@
   margin-top: 0.15rem;
 }
 .sample strong {
-  color: var(--navy-900);
+  color: var(--color-text);
 }
 
 /* Timeline */
@@ -160,7 +160,7 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: 50%;
+  border-radius: 0;
   border: 2px solid var(--color-border-strong);
   background: var(--color-surface);
   color: var(--ink-600);
@@ -170,7 +170,7 @@
   height: 1.05rem;
 }
 .timelineDone .marker {
-  border-color: var(--green-600);
+  border-color: var(--green-500);
   background: var(--green-600);
   color: #fff;
 }
@@ -182,8 +182,8 @@
 .currentDot {
   width: 0.625rem;
   height: 0.625rem;
-  border-radius: 50%;
-  background: var(--gold-700);
+  border-radius: 0;
+  background: var(--gold-500);
 }
 .timelineText {
   padding-top: 0.2rem;
@@ -237,7 +237,7 @@
 }
 .stepperBar li {
   height: 6px;
-  border-radius: 3px;
+  border-radius: 0;
   background: var(--navy-100);
 }
 .stepperBar li[data-state='done'] {
@@ -253,14 +253,14 @@
   max-height: calc(100dvh - 2rem);
   padding: 0;
   border: 0;
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background: var(--color-surface);
   color: var(--color-text);
   box-shadow: var(--shadow-lg);
 }
 .dialog::backdrop {
-  background: rgb(10 28 46 / 0.55);
-  backdrop-filter: blur(2px);
+  background: rgb(3 6 10 / 0.72);
+  backdrop-filter: blur(8px);
 }
 .dialogHead {
   display: flex;

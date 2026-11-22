@@ -197,7 +197,7 @@ function CaseView({ item, token }: { item: ApplicationCase; token: string }) {
           {completed ? (
             <Card tone="success">
               <div className={cx(styles.media, styles.mediaRound)}>
-                <Photo asset="A53" ratio="1 / 1" shape="circle" sizes="5rem" decorative />
+                <Photo asset="A53" ratio="1 / 1" parallax={false} sizes="5rem" decorative />
                 <div className={styles.card}>
                   <h2>Nothing more to do</h2>
                   <p>This application is complete. The record stays in your history.</p>
@@ -436,13 +436,7 @@ function NextStep({
       return (
         <Card tone="attention">
           <div className={cx(styles.media, styles.mediaWide)}>
-            <Photo
-              asset="A17"
-              ratio="4 / 3"
-              shape="soft"
-              sizes="(min-width: 36rem) 12rem, 100vw"
-              decorative
-            />
+            <Photo asset="A17" ratio="4 / 3" sizes="(min-width: 36rem) 12rem, 100vw" decorative />
             <div className={styles.card}>
               <h2>Ready to collect</h2>
               <p>{sentence(action.description)}</p>

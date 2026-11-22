@@ -52,6 +52,7 @@
   gap: var(--space-2);
   height: 100%;
   overflow: hidden;
+  overflow: clip;
   isolation: isolate;
 }
 /* The arch motif, large and faint, as a watermark. */
@@ -64,7 +65,7 @@
   width: 12rem;
   height: 15rem;
   border: 1.75rem solid rgb(255 255 255 / 0.06);
-  border-radius: 999px 999px 0 0;
+  border-radius: 0;
 }
 .identityLabel {
   color: var(--gold-200);
@@ -115,6 +116,7 @@
 .finder {
   display: grid;
   overflow: hidden;
+  overflow: clip;
 }
 .finderBody {
   display: flex;

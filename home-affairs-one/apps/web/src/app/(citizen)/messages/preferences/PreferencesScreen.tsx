@@ -317,7 +317,7 @@ export function PreferencesScreen() {
         </div>
 
         <aside className={shared.photoAside} aria-label="About your contact choices">
-          <Photo asset="A29" ratio="4 / 3" shape="soft" sizes="20rem" />
+          <Photo asset="A29" ratio="4 / 3" sizes="20rem" />
         </aside>
       </div>
 

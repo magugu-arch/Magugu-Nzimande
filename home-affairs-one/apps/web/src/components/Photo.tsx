@@ -1,8 +1,9 @@
 'use client';
 
 import { cx } from '@hao/design-system';
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useRef } from 'react';
 import { assetSrcSet, assetUrl, getAsset } from '@/lib/assets';
+import { useParallax } from '@/lib/parallax';
 import { usePrefs } from '@/lib/prefs';
 import styles from './Photo.module.css';
 
@@ -16,8 +17,11 @@ export interface PhotoProps {
   ratio?: string;
   /** How wide the image is drawn, for the browser to pick a file. */
   sizes?: string;
-  /** `arch` is the "one front door" mask for portrait feature images. */
-  shape?: 'rounded' | 'soft' | 'arch' | 'square' | 'circle';
+  /**
+   * Photographs drift a little as they cross the screen. `'deep'` is the
+   * stronger version for a full-width hero; `false` keeps a small image still.
+   */
+  parallax?: boolean | 'deep';
   /** Above-the-fold images load eagerly; everything else is lazy. */
   priority?: boolean;
   /**
@@ -33,13 +37,13 @@ export interface PhotoProps {
  * The only way photographs appear in the app. Alt text, focal point and
  * responsive sizes come from the asset manifest, so a crop on a small screen
  * keeps the subject in frame. With "Use less data" on, only the smallest file
- * is ever requested.
+ * is ever requested. Frames are always square-cornered.
  */
 export function Photo({
   asset: assetId,
   ratio,
   sizes = '(min-width: 60rem) 40vw, 100vw',
-  shape = 'rounded',
+  parallax = true,
   priority = false,
   decorative = false,
   className,
@@ -50,10 +54,18 @@ export function Photo({
   const smallest = asset.widths[0] ?? asset.width;
   const largest = asset.widths[asset.widths.length - 1] ?? asset.width;
   const aspectRatio = ratio === 'native' ? `${asset.width} / ${asset.height}` : ratio;
+  const frame = useRef<HTMLSpanElement>(null);
+  useParallax(frame, parallax !== false);
 
   return (
     <span
-      className={cx(styles.frame, shape !== 'rounded' && styles[shape], className)}
+      ref={frame}
+      className={cx(
+        styles.frame,
+        parallax !== false && styles.parallax,
+        parallax === 'deep' && styles.deep,
+        className,
+      )}
       style={
         {
           '--photo-color': asset.color,

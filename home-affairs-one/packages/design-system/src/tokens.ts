@@ -1,6 +1,7 @@
 /**
  * Brand values from the product brief (§9), mirrored from tokens.css for docs
- * and tests. The CSS file is what the browser uses.
+ * and tests. The CSS file is what the browser uses. The product arranges them
+ * as a dark theme: ink page, ivory type, Warm Gold as the single accent.
  */
 export const brandColors = {
   midnightNavy: '#102a43',
@@ -13,12 +14,12 @@ export const brandColors = {
 } as const;
 
 export const brandColorUse: Record<keyof typeof brandColors, string> = {
-  midnightNavy: 'Navigation, headings, trust surfaces.',
-  actionBlue: 'Primary buttons, links, focus states.',
+  midnightNavy: 'Brand bands and panels; taken down to ink for the page.',
+  actionBlue: 'Informational fills and markers.',
   teal: 'Secondary emphasis and informational tags.',
   successGreen: 'Completed and verified states.',
-  warmGold: 'Attention and waiting states.',
-  surface: 'Cards and panels.',
+  warmGold: 'The accent: primary buttons, links, rules, the mark; attention states.',
+  surface: 'Paper: the light surface the product turns to when it is printed.',
   errorRed: 'Critical error and destructive action only.',
 };
 
@@ -29,6 +30,6 @@ export const brandColorVar: Record<keyof typeof brandColors, string> = {
   teal: '--teal-600',
   successGreen: '--green-600',
   warmGold: '--gold-500',
-  surface: '--surface-sunken',
+  surface: '--paper',
   errorRed: '--red-600',
 };

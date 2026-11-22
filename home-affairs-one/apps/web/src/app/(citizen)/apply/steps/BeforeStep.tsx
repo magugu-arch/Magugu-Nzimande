@@ -56,13 +56,7 @@ export function BeforeStep({ flow }: { flow: ApplicationFlow }) {
 
       {service.needsServicePoint ? (
         <Card padding="flush" className={styles.photoCard}>
-          <Photo
-            asset="A24"
-            ratio="16 / 9"
-            shape="square"
-            sizes="(min-width: 60rem) 44rem, 100vw"
-            decorative
-          />
+          <Photo asset="A24" ratio="16 / 9" sizes="(min-width: 60rem) 44rem, 100vw" decorative />
           <div className={styles.photoCardBody}>
             <h3>Part of this is done in person</h3>
             <p>

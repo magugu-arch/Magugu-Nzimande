@@ -27,7 +27,7 @@ import {
 export function ReviewAside() {
   return (
     <div className={styles.reviewAside}>
-      <Photo asset="A58" ratio="4 / 5" shape="arch" sizes="17rem" />
+      <Photo asset="A58" ratio="4 / 5" sizes="17rem" />
       <p>
         Take your time reading it through. Nothing is sent until you press “Submit application” on
         the last step.

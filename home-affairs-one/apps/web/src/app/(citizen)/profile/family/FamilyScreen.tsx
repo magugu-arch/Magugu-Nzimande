@@ -141,7 +141,6 @@ export function FamilyScreen() {
           <Photo
             asset="A21"
             ratio="4 / 5"
-            shape="arch"
             className={styles.featurePhoto}
             sizes="(min-width: 48rem) 18rem, 14rem"
           />
@@ -203,7 +202,6 @@ export function FamilyScreen() {
           <Photo
             asset="A40"
             ratio="4 / 5"
-            shape="arch"
             className={styles.featurePhoto}
             sizes="(min-width: 48rem) 18rem, 14rem"
           />

@@ -189,7 +189,6 @@ export function PrivacyScreen() {
         <Photo
           asset="A43"
           ratio="4 / 5"
-          shape="arch"
           className={styles.headPhoto}
           sizes="(min-width: 48rem) 17rem, 12rem"
         />
@@ -265,7 +264,7 @@ export function PrivacyScreen() {
         <Section title="On this device" id="device">
           <Card tone="sunken">
             <div className={styles.device}>
-              <Photo asset="A51" ratio="1 / 1" shape="circle" sizes="6rem" decorative />
+              <Photo asset="A51" ratio="1 / 1" parallax={false} sizes="6rem" decorative />
               <Stack gap={2}>
                 <p>
                   This prototype keeps its sample data in your browser only. Nothing is sent

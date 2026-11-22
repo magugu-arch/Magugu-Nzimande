@@ -1,13 +1,14 @@
 /**
- * The product mark: an arch — "one front door" — on a navy tile, with a gold
- * threshold. It is an abstract shape, deliberately unlike any official emblem.
+ * The product mark: a doorway — "one front door" — cut square into a gold
+ * tile, standing on its threshold. It is an abstract shape, deliberately
+ * unlike any official emblem, and it has no rounded corners.
  */
 export function BrandMark({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <rect width="32" height="32" rx="9" fill="#102a43" />
-      <path d="M10.5 24.5V15a5.5 5.5 0 0 1 11 0v9.5z" fill="#fff" />
-      <rect x="7.5" y="23.75" width="17" height="2.25" rx="1.125" fill="#d5a52a" />
+      <rect width="32" height="32" fill="#d5a52a" />
+      <rect x="11" y="7" width="10" height="16" fill="#070c14" />
+      <rect x="7" y="23" width="18" height="2" fill="#070c14" />
     </svg>
   );
 }

@@ -3,8 +3,9 @@
  * Renders the app icons from the product mark. Run once after changing the
  * mark; the outputs in apps/web/public/icons are committed.
  *
- * The mark is an abstract arch ("one front door"). It is deliberately unlike
- * any official emblem and must stay that way.
+ * The mark is a square doorway ("one front door") cut into a gold tile. It is
+ * deliberately unlike any official emblem and must stay that way. It has no
+ * rounded corners; a home screen applies its own mask.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -14,14 +15,14 @@ const out = path.resolve(import.meta.dirname, '..', 'apps', 'web', 'public', 'ic
 mkdirSync(out, { recursive: true });
 
 /** `pad` is the safe-zone inset (0–1) used for maskable icons. */
-const mark = (pad = 0, radius = 9) => {
+const mark = (pad = 0) => {
   const scale = 1 - pad * 2;
   const offset = 16 * pad * 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="${radius}" fill="#102a43"/>
+  <rect width="32" height="32" fill="#d5a52a"/>
   <g transform="translate(${offset / 2} ${offset / 2}) scale(${scale})">
-    <path d="M10.5 24.5V15a5.5 5.5 0 0 1 11 0v9.5z" fill="#fff"/>
-    <rect x="7.5" y="23.75" width="17" height="2.25" rx="1.125" fill="#d5a52a"/>
+    <rect x="11" y="7" width="10" height="16" fill="#070c14"/>
+    <rect x="7" y="23" width="18" height="2" fill="#070c14"/>
   </g>
 </svg>`;
 };
@@ -32,6 +33,6 @@ const png = (svg, size, name) =>
 
 await png(mark(), 192, 'icon-192.png');
 await png(mark(), 512, 'icon-512.png');
-await png(mark(0.14, 0), 512, 'maskable-512.png');
-await png(mark(0.08, 0), 180, 'apple-touch-icon.png');
+await png(mark(0.14), 512, 'maskable-512.png');
+await png(mark(0.08), 180, 'apple-touch-icon.png');
 console.log('icons written to', out);

@@ -35,7 +35,7 @@
 /* The mark's tile is navy too, so it gets a hairline to sit on the bar. */
 .brandMark {
   flex: none;
-  border-radius: 9px;
+  border-radius: 0;
   box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.4);
 }
 .brandText {
@@ -130,7 +130,7 @@
   gap: 0.5rem;
   min-height: var(--touch-target);
   padding: 0 0.75rem;
-  border-radius: 8px;
+  border-radius: 0;
   color: var(--color-text-inverse-muted);
   font-size: var(--text-sm);
   font-weight: 700;
@@ -150,7 +150,7 @@
   inset-inline: 0.75rem;
   bottom: 0.25rem;
   height: 2.5px;
-  border-radius: 2px;
+  border-radius: 0;
   background: var(--gold-500);
 }
 .navLink svg {
@@ -162,7 +162,7 @@
 /* The slim line under the bar. */
 .official {
   background: var(--gold-50);
-  border-bottom: 1px solid var(--gold-200);
+  border-bottom: 1px solid var(--gold-line);
   color: var(--ink-900);
   font-size: var(--text-xs);
   font-weight: 600;
@@ -178,7 +178,7 @@
   flex: none;
   width: 1rem;
   height: 1rem;
-  color: var(--gold-700);
+  color: var(--color-accent-text);
 }
 
 .main {
@@ -231,7 +231,7 @@
   width: 100%;
   padding: var(--space-4);
   border: 1.5px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
   text-align: start;
   cursor: pointer;
@@ -267,9 +267,10 @@
 /* Data table: a real table on wide screens, one card per row below 60rem. */
 .tableWrap {
   overflow: hidden;
+  overflow: clip;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 0;
 }
 .table {
   width: 100%;
@@ -346,7 +347,7 @@
     padding: var(--space-3) var(--space-4);
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: 0;
   }
   .table tbody tr + tr > * {
     border-top: 0;
@@ -385,8 +386,8 @@
   padding: var(--space-4) var(--space-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-top: 3px solid var(--navy-900);
-  border-radius: var(--radius-md);
+  border-top: 3px solid var(--color-rule);
+  border-radius: 0;
 }
 .tile dt {
   color: var(--ink-700);
@@ -429,14 +430,15 @@
   grid-column: 1 / -1;
   height: 0.625rem;
   overflow: hidden;
+  overflow: clip;
   background: var(--navy-50);
-  border-radius: var(--radius-pill);
+  border-radius: 0;
 }
 .barFill {
   display: block;
   height: 100%;
   background: var(--blue-600);
-  border-radius: var(--radius-pill);
+  border-radius: 0;
 }
 
 .headerRow {

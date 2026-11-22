@@ -51,7 +51,7 @@
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--navy-900);
   color: var(--color-text-inverse);
   font-size: var(--text-sm);
@@ -78,7 +78,7 @@
   padding: 0;
   list-style: none;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
 }
 .requirements li {
@@ -114,7 +114,7 @@
   flex: none;
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--blue-600);
+  color: var(--color-info-text);
 }
 
 .cautions {
@@ -157,7 +157,7 @@
   gap: 0.125rem;
   padding: var(--space-3) var(--space-4);
   border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--color-surface-sunken);
 }
 .destinationLabel {

@@ -35,10 +35,10 @@
   margin-top: 0.2rem;
 }
 .yes svg {
-  color: var(--green-600);
+  color: var(--color-success-text);
 }
 .no svg {
-  color: var(--red-600);
+  color: var(--color-danger-text);
 }
 
 /* The rules -------------------------------------------------------------- */
@@ -74,7 +74,7 @@
 .ruleList li::before {
   content: counter(rule);
   grid-row: span 2;
-  color: var(--gold-700);
+  color: var(--color-accent-text);
   font-family: var(--font-display);
   font-size: var(--text-xl);
   line-height: 1.2;

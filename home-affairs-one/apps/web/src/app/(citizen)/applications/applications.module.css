@@ -4,9 +4,9 @@
   min-width: 1.75rem;
   margin-inline-start: 0.375rem;
   padding: 0.125rem 0.5rem;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--navy-50);
-  color: var(--navy-900);
+  color: var(--color-text);
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 700;
@@ -15,7 +15,7 @@
 }
 
 .confirm:focus-visible {
-  border-radius: var(--radius-sm);
+  border-radius: 0;
 }
 
 /* Drafts: a row with its own actions, so it is not one big link. */
@@ -27,8 +27,9 @@
   list-style: none;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   overflow: hidden;
+  overflow: clip;
 }
 .draft {
   display: grid;
@@ -46,9 +47,9 @@
   place-items: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--gold-100);
-  color: var(--navy-900);
+  color: var(--color-text);
 }
 .draftIcon svg {
   width: 1.25rem;

@@ -68,18 +68,19 @@ const CHANNELS = [
 export default function WelcomePage() {
   return (
     <>
-      <Container>
-        <section className={styles.hero} aria-labelledby="hero-heading">
-          <Photo
-            asset="A12"
-            className={styles.heroPhoto}
-            sizes="(min-width: 72rem) 72rem, 100vw"
-            shape="square"
-            priority
-          />
-          <div className={`${styles.heroText} on-dark`}>
+      <section className={styles.hero} aria-labelledby="hero-heading">
+        <Photo
+          asset="A12"
+          className={styles.heroPhoto}
+          style={{ height: 'var(--hero-photo)' }}
+          sizes="100vw"
+          parallax="deep"
+          priority
+        />
+        <Container>
+          <div className={styles.heroText}>
             <span className="rise">
-              <Eyebrow inverse>A concept for South Africa</Eyebrow>
+              <Eyebrow>A concept for South Africa</Eyebrow>
             </span>
             <h1 id="hero-heading" className="rise" style={{ '--rise-index': 1 } as CSSProperties}>
               One trusted front door to <em>Home Affairs</em> services.
@@ -88,20 +89,23 @@ export default function WelcomePage() {
               Apply, track and get help in one secure place — on your phone, on the web, or with a
               person beside you.
             </p>
-            <Cluster gap={3} className="rise" style={{ '--rise-index': 3 } as CSSProperties}>
-              <LinkButton href="/sign-in/" variant="inverse" size="lg">
+            <div
+              className={`${styles.heroActions} rise`}
+              style={{ '--rise-index': 3 } as CSSProperties}
+            >
+              <LinkButton href="/sign-in/" size="lg" iconEnd={<ArrowRight aria-hidden="true" />}>
                 Sign in to the demo
               </LinkButton>
-              <LinkButton href="/services/" variant="inverseOutline" size="lg">
+              <LinkButton href="/services/" variant="secondary" size="lg">
                 Explore services
               </LinkButton>
-            </Cluster>
+            </div>
             <p className={`${styles.heroNote} rise`} style={{ '--rise-index': 4 } as CSSProperties}>
               The demo signs you in as a synthetic person. Nothing here is a real record.
             </p>
           </div>
-        </section>
-      </Container>
+        </Container>
+      </section>
 
       <Container as="section" className={styles.section} aria-labelledby="what-heading">
         <div className={styles.sectionHead}>
@@ -176,10 +180,10 @@ export default function WelcomePage() {
         </Cluster>
       </Container>
 
-      <section className={`${styles.band} on-dark`} aria-labelledby="everyone-heading">
+      <section className={styles.band} aria-labelledby="everyone-heading">
         <Container className={styles.bandGrid}>
           <div className={styles.bandText}>
-            <Eyebrow inverse>Accessible by default</Eyebrow>
+            <Eyebrow>Accessible by default</Eyebrow>
             <h2 id="everyone-heading">A service that includes everyone</h2>
             <p>
               Digital is a choice, not a condition. Every journey has an in-person route, and the
@@ -208,12 +212,10 @@ export default function WelcomePage() {
               </li>
             </ul>
             <Cluster gap={3}>
-              <LinkButton href="/profile/accessibility/" variant="inverse">
-                Accessibility settings
-              </LinkButton>
+              <LinkButton href="/profile/accessibility/">Accessibility settings</LinkButton>
               <LinkButton
                 href="/service-points/"
-                variant="inverseOutline"
+                variant="secondary"
                 iconStart={<MapPinned aria-hidden="true" />}
               >
                 Find a service point
@@ -279,15 +281,20 @@ export default function WelcomePage() {
               </p>
             </Notice>
           </div>
-          <Photo asset="A07" ratio="4 / 3" shape="soft" sizes="(min-width: 60rem) 34rem, 100vw" />
+          <Photo asset="A07" ratio="4 / 3" sizes="(min-width: 60rem) 34rem, 100vw" />
         </div>
       </Container>
 
       <Container as="section" className={styles.section} aria-labelledby="life-heading">
         <div className={styles.life}>
           <div className={styles.lifePhotos}>
-            <Photo asset="A01" ratio="3 / 4" shape="arch" sizes="(min-width: 60rem) 15rem, 45vw" />
-            <Photo asset="A10" ratio="3 / 4" shape="arch" sizes="(min-width: 60rem) 15rem, 45vw" />
+            <Photo asset="A01" ratio="3 / 4" sizes="(min-width: 60rem) 15rem, 45vw" />
+            <Photo
+              asset="A10"
+              ratio="3 / 4"
+              parallax="deep"
+              sizes="(min-width: 60rem) 15rem, 45vw"
+            />
           </div>
           <div className={styles.lifeText}>
             <Eyebrow>Built around life, not forms</Eyebrow>
@@ -308,13 +315,7 @@ export default function WelcomePage() {
 
       <Container as="section" className={styles.section} aria-labelledby="install-heading">
         <div className={styles.install}>
-          <Photo
-            asset="A56"
-            ratio="3 / 4"
-            shape="arch"
-            className={styles.installPhoto}
-            sizes="13rem"
-          />
+          <Photo asset="A56" ratio="3 / 4" className={styles.installPhoto} sizes="13rem" />
           <div className={styles.installText}>
             <Eyebrow>Take it with you</Eyebrow>
             <h2 id="install-heading">Keep Home Affairs One on your home screen</h2>

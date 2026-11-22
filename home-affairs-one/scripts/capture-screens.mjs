@@ -81,6 +81,8 @@ try {
     const personas = [...new Set(wanted.map((screen) => screen.persona))];
     for (const persona of personas) {
       const context = await browser.newContext({
+        // Still frames: no entrance animations or parallax, so every slice shows the settled layout.
+        reducedMotion: 'reduce',
         ...options,
         deviceScaleFactor: scale,
         reducedMotion: 'reduce',
@@ -107,6 +109,20 @@ try {
           continue;
         }
         await page.waitForTimeout(700);
+        // Walk the page once so lazily loaded photographs are in the picture.
+        await page.evaluate(async () => {
+          const step = window.innerHeight;
+          for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+            window.scrollTo(0, y);
+            await new Promise((resolve) => setTimeout(resolve, 60));
+          }
+          window.scrollTo(0, 0);
+          await Promise.all(
+            [...document.images]
+              .filter((img) => !img.complete)
+              .map((img) => img.decode().catch(() => {})),
+          );
+        });
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - window.innerWidth,
         );

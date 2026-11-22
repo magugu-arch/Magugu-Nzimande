@@ -158,7 +158,7 @@ function ShareWalkthrough({ partners }: { partners: Partner[] }) {
         }
       >
         <div className={styles.consent}>
-          <Photo asset="A43" ratio="16 / 9" shape="soft" sizes="30rem" decorative />
+          <Photo asset="A43" ratio="16 / 9" sizes="30rem" decorative />
           <div>
             <Tag icon={<CircleDashed aria-hidden="true" />}>Concept only</Tag>
           </div>
@@ -233,7 +233,6 @@ export function WalletScreen() {
         <Photo
           asset="A59"
           ratio="4 / 5"
-          shape="arch"
           className={styles.heroPhoto}
           sizes="(min-width: 48rem) 19rem, 13rem"
           priority
@@ -342,7 +341,6 @@ export function WalletScreen() {
           <Photo
             asset="A54"
             ratio="1 / 1"
-            shape="soft"
             className={styles.verifyPhoto}
             sizes="(min-width: 48rem) 20rem, 100vw"
           />

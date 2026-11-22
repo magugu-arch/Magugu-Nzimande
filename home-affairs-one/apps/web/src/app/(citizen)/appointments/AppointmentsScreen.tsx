@@ -93,7 +93,7 @@ function MyAppointments({ token }: { token: string }) {
       <PhotoHeader
         title="My appointments"
         lede="Times you have booked at a service point, and what happened to earlier ones."
-        photo={<Photo asset="A42" ratio="4 / 5" shape="soft" sizes="11rem" />}
+        photo={<Photo asset="A42" ratio="4 / 5" sizes="11rem" />}
       />
 
       <QueryBoundary

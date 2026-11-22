@@ -110,6 +110,16 @@ These come from the brief and are binding on every change (`CLAUDE.md`, `.claude
 Several of these are enforced by tests (`tests/security`, `tests/integration`) rather than by
 convention.
 
+## Design
+
+The look is dark and editorial: an ink page, ivory type and Warm Gold as the single accent, built
+from the brief's own palette. Headlines are set in a serif with an italic accent; labels are
+small, wide and monospaced. **Nothing has a rounded corner** — no pills, arches or circles.
+Photographs run edge to edge and drift as you scroll (parallax), and stand still for anyone who
+asks for reduced motion. The reasoning and its trade-offs are in ADR-014
+(`docs/architecture/decisions.md`); the rules for building screens are in
+`docs/design/building-screens.md`.
+
 ## Photographs
 
 The 60 supplied photographs are illustrative, AI-generated concept images. They do not show real
@@ -184,6 +194,8 @@ file; and the image lookup, for embedded copies.
 - It is a prototype: nothing is secured by a server. Sign-in is a stand-in and the route guards
   are usability aids, not controls.
 - English only. The other official languages need professionally reviewed translations.
+- One dark theme. There is no light option yet (printing turns the page light), and the look has
+  not been tested with low-vision users or in bright sunlight.
 - WCAG 2.2 AA is the target. Automated checks run in CI; the manual checks in
   `docs/runbooks/manual-accessibility-testing.md` have not been carried out with real users or
   assistive-technology testers.

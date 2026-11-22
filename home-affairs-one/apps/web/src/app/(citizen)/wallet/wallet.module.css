@@ -23,7 +23,7 @@
 /* The "future capability" label, made hard to miss. */
 .concept > p {
   padding: var(--space-4);
-  border: 1px solid var(--gold-200);
+  border: 1px solid var(--gold-line);
   border-inline-start: 4px solid var(--gold-500);
   background: var(--gold-50);
   font-size: var(--text-base);

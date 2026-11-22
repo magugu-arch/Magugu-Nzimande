@@ -37,7 +37,7 @@ export function PhotoCard({
   return (
     <Card as="article" padding="flush" interactive className={styles.photoCard}>
       {/* The title names the destination; the photo is context, so it is hidden from screen readers. */}
-      <Photo asset={asset} ratio={ratio} sizes={sizes} shape="square" decorative />
+      <Photo asset={asset} ratio={ratio} sizes={sizes} decorative />
       <div className={styles.photoCardBody}>
         <Heading className={styles.photoCardTitle}>
           <AppLink href={href} className={stretchedLinkClass}>

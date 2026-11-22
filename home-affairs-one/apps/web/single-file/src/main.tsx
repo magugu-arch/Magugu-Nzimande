@@ -1,5 +1,6 @@
 import '@fontsource-variable/atkinson-hyperlegible-next/index.css';
 import '@fontsource-variable/fraunces/opsz.css';
+import '@fontsource-variable/fraunces/opsz-italic.css';
 import '@hao/design-system/tokens.css';
 import '@hao/design-system/base.css';
 import { applyPrefs, loadPrefs } from '@hao/accessibility';

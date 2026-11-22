@@ -11,8 +11,8 @@
 /* Error summary: focused after a failed submit */
 .summary {
   padding: var(--space-4);
-  border: 2px solid var(--red-600);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--red-500);
+  border-radius: 0;
   background: var(--red-50);
 }
 .summaryTitle {
@@ -31,7 +31,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--red-700);
+  color: var(--color-danger-text);
   font-weight: 700;
   text-align: start;
   text-decoration: underline;
@@ -96,8 +96,9 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
+  overflow: clip;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
   list-style: none;
 }

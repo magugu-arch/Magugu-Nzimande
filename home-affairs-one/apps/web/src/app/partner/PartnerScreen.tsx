@@ -124,7 +124,7 @@ function PartnerSignIn() {
           </p>
         </Stack>
         <div className={styles.hero}>
-          <Photo asset="A60" ratio="3 / 2" shape="soft" sizes="(min-width: 60rem) 22rem, 100vw" />
+          <Photo asset="A60" ratio="3 / 2" sizes="(min-width: 60rem) 22rem, 100vw" />
         </div>
       </Split>
     </Container>
@@ -317,7 +317,7 @@ function PartnerWorkspace({ partnerRef }: { partnerRef: string }) {
 
         <aside className={styles.aside} aria-label="How verification works">
           <Stack gap={3}>
-            <Photo asset="A54" ratio="1 / 1" shape="soft" sizes="(min-width: 60rem) 22rem, 100vw" />
+            <Photo asset="A54" ratio="1 / 1" sizes="(min-width: 60rem) 22rem, 100vw" />
             <h2 className={styles.asideTitle}>Check without a scan</h2>
             <p>
               You ask a question and get an answer, instead of receiving a copy of a document. The

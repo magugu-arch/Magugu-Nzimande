@@ -56,7 +56,6 @@ export function AccessibilityScreen() {
         <Photo
           asset="A04"
           ratio="4 / 5"
-          shape="arch"
           className={styles.headPhoto}
           sizes="(min-width: 48rem) 17rem, 12rem"
         />
@@ -129,7 +128,7 @@ export function AccessibilityScreen() {
                   exactly the same; only the photographs get lighter.
                 </p>
               </div>
-              <Photo asset="A08" ratio="3 / 2" shape="soft" sizes="13rem" />
+              <Photo asset="A08" ratio="3 / 2" sizes="13rem" />
             </div>
           </Card>
         </Section>

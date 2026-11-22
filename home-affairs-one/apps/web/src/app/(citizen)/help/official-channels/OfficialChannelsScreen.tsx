@@ -158,14 +158,7 @@ export function OfficialChannelsScreen() {
         </div>
 
         <aside className={styles.aside} aria-label="A moment to check">
-          <Photo
-            asset="A50"
-            ratio="4 / 5"
-            shape="arch"
-            className={styles.asidePhoto}
-            sizes="20rem"
-            priority
-          />
+          <Photo asset="A50" ratio="4 / 5" className={styles.asidePhoto} sizes="20rem" priority />
           <Eyebrow>Pause before you tap</Eyebrow>
           <p className={styles.small}>
             If a message makes you hesitate, trust that. Close it, open the app yourself and check

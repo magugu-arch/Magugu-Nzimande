@@ -125,12 +125,7 @@ export function HelpScreen() {
         <Section title="Help that fits you" id="fits">
           <div className={styles.editorials}>
             <article className={styles.editorial}>
-              <Photo
-                asset="A40"
-                ratio="4 / 3"
-                shape="soft"
-                sizes="(min-width: 60rem) 32rem, 100vw"
-              />
+              <Photo asset="A40" ratio="4 / 3" sizes="(min-width: 60rem) 32rem, 100vw" />
               <div className={styles.editorialText}>
                 <h3>Someone you trust can help you</h3>
                 <p>
@@ -149,12 +144,7 @@ export function HelpScreen() {
             </article>
 
             <article className={`${styles.editorial} ${styles.editorialFlip}`}>
-              <Photo
-                asset="A27"
-                ratio="4 / 3"
-                shape="soft"
-                sizes="(min-width: 60rem) 32rem, 100vw"
-              />
+              <Photo asset="A27" ratio="4 / 3" sizes="(min-width: 60rem) 32rem, 100vw" />
               <div className={styles.editorialText}>
                 <h3>Help by voice, in your language</h3>
                 <p>

@@ -302,7 +302,7 @@ export function HomeScreen() {
             {completed ? (
               <Card tone="success" padding="compact">
                 <div className={styles.completed}>
-                  <Photo asset="A53" ratio="1 / 1" shape="circle" sizes="6rem" decorative />
+                  <Photo asset="A53" ratio="1 / 1" parallax={false} sizes="6rem" decorative />
                   <div>
                     <p style={{ fontWeight: 700 }}>Completed: {completed.serviceTitle}</p>
                     <p style={{ fontSize: 'var(--text-sm)', color: 'var(--ink-700)' }}>
@@ -320,7 +320,6 @@ export function HomeScreen() {
               <Photo
                 asset="A02"
                 ratio="16 / 9"
-                shape="square"
                 sizes="(min-width: 60rem) 26rem, 100vw"
                 decorative
               />
@@ -387,12 +386,7 @@ export function HomeScreen() {
                 </LinkButton>
               </div>
             </div>
-            <Photo
-              asset="A01"
-              ratio="16 / 10"
-              shape="soft"
-              sizes="(min-width: 60rem) 30rem, 100vw"
-            />
+            <Photo asset="A01" ratio="16 / 10" sizes="(min-width: 60rem) 30rem, 100vw" />
           </Grid>
         </Card>
       </div>

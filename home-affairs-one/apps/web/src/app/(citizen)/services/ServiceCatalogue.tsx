@@ -143,8 +143,8 @@ export function ServiceCatalogue({ groups }: { groups: CatalogueGroup[] }) {
                 <Photo
                   asset={group.assetId}
                   ratio="4 / 5"
-                  shape="arch"
                   sizes="5rem"
+                  parallax={false}
                   className={styles.groupPhoto}
                   decorative
                 />

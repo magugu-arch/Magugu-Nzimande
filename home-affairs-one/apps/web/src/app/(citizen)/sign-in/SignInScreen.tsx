@@ -160,7 +160,7 @@ export function SignInScreen() {
                       <Photo
                         asset="A11"
                         ratio="1 / 1"
-                        shape="circle"
+                        parallax={false}
                         className={styles.passkeyPhoto}
                         sizes="6rem"
                         decorative
@@ -267,7 +267,6 @@ export function SignInScreen() {
             <Photo
               asset={step === 'choose' ? 'A06' : 'A14'}
               ratio="4 / 5"
-              shape="arch"
               className={styles.asidePhoto}
               sizes="20rem"
               priority

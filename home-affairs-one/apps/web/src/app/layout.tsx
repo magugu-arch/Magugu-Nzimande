@@ -1,5 +1,6 @@
 import '@fontsource-variable/atkinson-hyperlegible-next/index.css';
 import '@fontsource-variable/fraunces/opsz.css';
+import '@fontsource-variable/fraunces/opsz-italic.css';
 import '@hao/design-system/tokens.css';
 import '@hao/design-system/base.css';
 import { prefsBootScript } from '@hao/accessibility';
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#102a43',
+  themeColor: '#070c14',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',

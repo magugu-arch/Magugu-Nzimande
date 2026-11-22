@@ -38,7 +38,7 @@
   gap: var(--space-4);
   padding: var(--space-5);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
 }
 .filtersTitle,
@@ -170,8 +170,9 @@
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  overflow: clip;
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background-color: var(--teal-50);
   background-image:
     linear-gradient(var(--navy-100) 1px, transparent 1px),
@@ -207,14 +208,14 @@
   height: var(--touch-target);
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
   cursor: pointer;
   transform: translate(-50%, -50%);
 }
 .pin:focus-visible {
   z-index: 3;
-  border-radius: 50%;
+  border-radius: 0;
 }
 .pinStatic {
   cursor: default;
@@ -225,7 +226,7 @@
   width: 2.25rem;
   height: 2.25rem;
   border: 2px solid var(--color-surface);
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--navy-900);
   box-shadow: var(--shadow-md);
   color: var(--color-text-inverse);
@@ -247,7 +248,7 @@
 .pinSelected:hover .pinDot {
   border-color: var(--navy-900);
   background: var(--gold-500);
-  color: var(--navy-950);
+  color: var(--color-text);
   transform: scale(1.18);
 }
 
@@ -257,8 +258,9 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
+  overflow: clip;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
   list-style: none;
 }
@@ -293,7 +295,7 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--navy-900);
   color: var(--color-text-inverse);
   font-size: var(--text-sm);
@@ -301,7 +303,7 @@
 }
 .mapItemSelected .mapItemNumber {
   background: var(--gold-500);
-  color: var(--navy-950);
+  color: var(--color-text);
   outline: 2px solid var(--navy-900);
 }
 .mapItemText {
@@ -331,9 +333,9 @@
   place-items: center;
   width: 3rem;
   height: 3rem;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--color-surface);
-  color: var(--navy-900);
+  color: var(--color-text);
 }
 .abroadText {
   display: flex;
@@ -415,7 +417,7 @@
   width: 1.2em;
   height: 1.2em;
   margin-top: 0.2em;
-  color: var(--green-700);
+  color: var(--color-success-text);
 }
 .columns {
   display: grid;

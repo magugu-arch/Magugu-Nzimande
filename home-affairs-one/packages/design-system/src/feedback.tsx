@@ -17,19 +17,12 @@ import styles from './feedback.module.css';
 
 /* Skeleton --------------------------------------------------------- */
 
-export function Skeleton({
-  width = '100%',
-  height = '1rem',
-  radius,
-}: {
-  width?: string;
-  height?: string;
-  radius?: string;
-}) {
+/** A square-cornered placeholder block. Like everything else, it has no rounding. */
+export function Skeleton({ width = '100%', height = '1rem' }: { width?: string; height?: string }) {
   return (
     <span
       className={styles.skeleton}
-      style={{ width, height, borderRadius: radius } as CSSProperties}
+      style={{ width, height } as CSSProperties}
       aria-hidden="true"
     />
   );
@@ -41,7 +34,7 @@ export function LoadingState({ label = 'Loading', rows = 3 }: { label?: string; 
     <div className={styles.skeletonStack} role="status" aria-live="polite">
       <span className="visually-hidden">{label}…</span>
       {Array.from({ length: rows }, (_, index) => (
-        <Skeleton key={index} height="5.25rem" radius="14px" />
+        <Skeleton key={index} height="5.25rem" />
       ))}
     </div>
   );

@@ -1,87 +1,114 @@
-/* Hero ---------------------------------------------------------------- */
+/*
+ * Hero ----------------------------------------------------------------
+ * A full-bleed photograph that fades into the page, with the headline set
+ * over its lower edge. The photograph drifts as the page scrolls.
+ */
 .hero {
+  /* The photograph's height; the headline starts over its lower edge. */
+  --hero-photo: min(62svh, 34rem);
+  --hero-overlap: 6.5rem;
   position: relative;
-  display: grid;
-  margin-top: var(--space-4);
+  padding-top: calc(var(--hero-photo) - var(--hero-overlap));
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--navy-950);
-  color: #fff;
+  overflow: clip;
   isolation: isolate;
 }
 .heroPhoto {
-  border-radius: 0;
-  aspect-ratio: 5 / 4;
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -2;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: calc(var(--hero-photo) + 1px);
+  background: linear-gradient(
+    to top,
+    var(--color-page) 0%,
+    rgb(7 12 20 / 0.92) 16%,
+    rgb(7 12 20 / 0.55) 34%,
+    rgb(7 12 20 / 0.12) 62%,
+    rgb(7 12 20 / 0.3) 100%
+  );
 }
 .heroText {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-6) var(--space-5) var(--space-6);
+  gap: var(--space-5);
+  padding-block: 0 var(--space-6);
 }
 .heroText h1 {
+  max-width: 15ch;
   font-size: var(--text-hero);
-  font-weight: 540;
-  letter-spacing: -0.02em;
-  line-height: 1.04;
-}
-.heroText h1 em {
-  color: var(--gold-200);
-  font-style: italic;
-  font-weight: 480;
+  font-weight: 380;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
 }
 .heroLede {
   max-width: 34rem;
-  color: var(--color-text-inverse-muted);
+  color: var(--ink-700);
   font-size: var(--text-lg);
-  line-height: 1.45;
+  line-height: 1.6;
+}
+.heroActions {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 .heroNote {
-  color: var(--color-text-inverse-muted);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
+}
+@media (min-width: 36rem) {
+  .heroActions {
+    display: flex;
+    flex-wrap: wrap;
+  }
 }
 @media (min-width: 60rem) {
   .hero {
-    min-height: 35rem;
-    align-items: center;
+    display: grid;
+    align-items: end;
+    --hero-photo: 100%;
+    min-height: min(calc(100svh - 6rem), 46rem);
+    padding-top: 0;
   }
   .heroPhoto {
-    position: absolute;
     inset: 0;
-    z-index: -2;
-    aspect-ratio: auto;
-    height: 100%;
   }
-  /* The photograph was composed with a darker left third for the headline. */
-  .hero::before {
-    content: '';
-    position: absolute;
+  /* The photograph was composed with a quieter left third for the headline. */
+  .hero::after {
     inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-      90deg,
-      rgb(10 28 46 / 0.96) 0%,
-      rgb(10 28 46 / 0.9) 34%,
-      rgb(10 28 46 / 0.55) 52%,
-      rgb(10 28 46 / 0) 74%
-    );
+    height: auto;
+    background:
+      linear-gradient(to top, var(--color-page) 0%, rgb(7 12 20 / 0) 34%),
+      linear-gradient(
+        90deg,
+        rgb(7 12 20 / 0.94) 0%,
+        rgb(7 12 20 / 0.86) 34%,
+        rgb(7 12 20 / 0.42) 58%,
+        rgb(7 12 20 / 0.08) 82%
+      );
   }
   .heroText {
-    max-width: 36rem;
-    padding: var(--space-8) var(--space-7);
+    max-width: 44rem;
+    padding-block: var(--space-9) var(--space-8);
   }
 }
 
 /* Sections ------------------------------------------------------------ */
 .section {
   padding-block: var(--space-8) 0;
+  counter-reset: feature;
 }
 .sectionHead {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
   max-width: 44rem;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-7);
 }
 .sectionHead h2 {
   font-size: var(--text-3xl);
@@ -90,19 +117,28 @@
   color: var(--color-text-muted);
   font-size: var(--text-lg);
 }
-
 .feature {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding-top: var(--space-4);
-  border-top: 2px solid var(--navy-900);
+  border-top: 1px solid var(--color-border-strong);
+}
+.feature::before {
+  counter-increment: feature;
+  content: counter(feature, decimal-leading-zero);
+  margin-bottom: var(--space-4);
+  color: var(--color-accent-text);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: var(--tracking-label);
 }
 .feature svg {
   width: 1.75rem;
   height: 1.75rem;
   margin-bottom: var(--space-2);
-  color: var(--blue-600);
+  color: var(--color-text);
+  stroke-width: 1.4;
 }
 .feature p {
   color: var(--color-text-muted);
@@ -110,14 +146,15 @@
 
 /* Inclusion band ------------------------------------------------------ */
 .band {
-  margin-top: var(--space-8);
-  padding-block: var(--space-8);
-  background: var(--navy-900);
-  color: #fff;
+  margin-top: var(--space-9);
+  padding-block: var(--space-9);
+  background: var(--color-surface-sunken);
+  border-block: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 .bandGrid {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-7);
   align-items: center;
 }
 .bandText {
@@ -128,27 +165,30 @@
 .bandText h2 {
   font-size: var(--text-3xl);
 }
-.bandText > p {
-  color: var(--color-text-inverse-muted);
+.bandText > p:not(:first-child) {
+  color: var(--color-text-muted);
   font-size: var(--text-lg);
 }
 .checks {
   display: grid;
-  gap: var(--space-3);
-  margin: 0;
+  gap: 0;
+  margin: var(--space-2) 0;
   padding: 0;
   list-style: none;
+  border-top: 1px solid var(--color-border);
 }
 .checks li {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: var(--space-3);
+  gap: var(--space-4);
   align-items: start;
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 .checks svg {
-  width: 1.375rem;
-  height: 1.375rem;
-  margin-top: 0.15rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.2rem;
   color: var(--gold-500);
 }
 .collage {
@@ -164,25 +204,25 @@
 }
 .collageB {
   grid-column: 4 / span 3;
-  margin-top: var(--space-5);
+  margin-top: var(--space-6);
 }
 @media (min-width: 60rem) {
   .bandGrid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    gap: var(--space-8);
+    gap: var(--space-9);
   }
 }
 
 /* Channels ------------------------------------------------------------ */
 .channels {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-7);
   align-items: start;
 }
 .channelList {
   display: grid;
   gap: 0;
-  margin: 0;
+  margin: 0 0 var(--space-5);
   padding: 0;
   list-style: none;
   border-top: 1px solid var(--color-border-strong);
@@ -196,10 +236,11 @@
 }
 .channelList svg {
   grid-row: span 2;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.375rem;
+  height: 1.375rem;
   margin-top: 0.2rem;
-  color: var(--navy-900);
+  color: var(--gold-500);
+  stroke-width: 1.6;
 }
 .channelList strong {
   font-size: var(--text-base);
@@ -211,24 +252,29 @@
 @media (min-width: 60rem) {
   .channels {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: var(--space-8);
+    gap: var(--space-9);
   }
 }
 
-/* Life band ----------------------------------------------------------- */
+/*
+ * Life band -----------------------------------------------------------
+ * Two portrait photographs, offset, drifting at different rates as the page
+ * scrolls — the second sits lower and moves further.
+ */
 .life {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-7);
   align-items: center;
 }
 .lifePhotos {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-  max-width: 30rem;
+  gap: var(--space-3);
+  align-items: start;
+  max-width: 34rem;
 }
 .lifePhotos > :last-child {
-  margin-top: var(--space-7);
+  margin-top: var(--space-8);
 }
 .lifeText {
   display: flex;
@@ -238,7 +284,7 @@
 .lifeText h2 {
   font-size: var(--text-3xl);
 }
-.lifeText p {
+.lifeText > p:not(:first-child) {
   max-width: 34rem;
   color: var(--color-text-muted);
   font-size: var(--text-lg);
@@ -246,7 +292,7 @@
 @media (min-width: 60rem) {
   .life {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
-    gap: var(--space-8);
+    gap: var(--space-9);
   }
 }
 
@@ -256,14 +302,15 @@
   gap: var(--space-5);
   align-items: center;
   overflow: hidden;
+  overflow: clip;
   padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  background: var(--gold-50);
-  border: 1px solid var(--gold-200);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-inline-start: 2px solid var(--gold-500);
 }
 .installPhoto {
   max-width: 13rem;
-  justify-self: center;
+  justify-self: start;
 }
 .installText {
   display: flex;
@@ -284,6 +331,8 @@
 .closing {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
   max-width: 46rem;
+  padding-top: var(--space-7);
+  border-top: 1px solid var(--color-border);
 }

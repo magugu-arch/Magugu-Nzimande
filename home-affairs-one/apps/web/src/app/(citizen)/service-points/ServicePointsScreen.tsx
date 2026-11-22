@@ -151,7 +151,6 @@ export function ServicePointsScreen() {
         <Photo
           asset="A38"
           ratio="16 / 9"
-          shape="soft"
           className={styles.headPhoto}
           sizes="(min-width: 60rem) 28rem, 100vw"
           priority

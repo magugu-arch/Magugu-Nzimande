@@ -28,26 +28,27 @@ const photo = (
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:Display;src:url(data:font/woff2;base64,${font('fraunces', 'fraunces-latin-opsz-normal.woff2')}) format('woff2');font-weight:100 900}
+@font-face{font-family:Display;font-style:italic;src:url(data:font/woff2;base64,${font('fraunces', 'fraunces-latin-opsz-italic.woff2')}) format('woff2');font-weight:100 900}
 @font-face{font-family:Body;src:url(data:font/woff2;base64,${font('atkinson-hyperlegible-next', 'atkinson-hyperlegible-next-latin-wght-normal.woff2')}) format('woff2');font-weight:200 800}
 *{box-sizing:border-box;margin:0}
-body{width:1200px;height:630px;position:relative;overflow:hidden;background:#0a1c2e;color:#fff;font-family:Body,sans-serif}
+body{width:1200px;height:630px;position:relative;overflow:hidden;background:#070c14;color:#f4f1ea;font-family:Body,sans-serif}
 .photo{position:absolute;inset:0;background:url(data:image/jpeg;base64,${photo}) 72% 30%/cover}
-.shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,28,46,.97) 0%,rgba(10,28,46,.92) 36%,rgba(10,28,46,.5) 56%,rgba(10,28,46,0) 76%)}
-.text{position:absolute;left:64px;top:56px;bottom:56px;width:600px;display:flex;flex-direction:column}
-.brand{display:flex;align-items:center;gap:14px;font:600 30px/1 Display,serif;letter-spacing:-.01em}
-.brand em{color:#f1dc9f;font-style:normal}
-.eyebrow{margin-top:auto;display:flex;align-items:center;gap:12px;color:#f1dc9f;font-size:19px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
-.eyebrow::before{content:'';width:34px;height:3px;border-radius:3px;background:#d5a52a}
-h1{margin-top:18px;font:540 66px/1.04 Display,serif;letter-spacing:-.02em}
-h1 em{color:#f1dc9f;font-weight:480}
-.pill{margin-top:30px;align-self:flex-start;padding:10px 18px;border-radius:999px;background:#f8ebc8;color:#102a43;font-size:21px;font-weight:700}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,12,20,.97) 0%,rgba(7,12,20,.9) 38%,rgba(7,12,20,.46) 58%,rgba(7,12,20,.06) 80%)}
+.text{position:absolute;left:64px;top:56px;bottom:56px;width:640px;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:16px;font:440 31px/1 Display,serif;letter-spacing:-.015em}
+.brand em{color:#e6c15c;font-style:italic;font-weight:400}
+.eyebrow{margin-top:auto;display:flex;align-items:center;gap:16px;color:#e6c15c;font:500 16px/1.4 ui-monospace,Menlo,Consolas,'Liberation Mono',monospace;letter-spacing:.16em;text-transform:uppercase}
+.eyebrow::before{content:'';width:44px;height:1px;background:#d5a52a}
+h1{margin-top:22px;font:380 76px/.98 Display,serif;letter-spacing:-.03em}
+h1 em{color:#e6c15c;font-style:italic;font-weight:380}
+.label{margin-top:34px;align-self:flex-start;padding:10px 16px;border:1px solid #6a5520;background:rgba(30,25,11,.86);color:#e6c15c;font:500 15px/1.4 ui-monospace,Menlo,Consolas,'Liberation Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
 </style></head><body>
 <div class="photo"></div><div class="shade"></div>
 <div class="text">
-  <div class="brand"><svg width="46" height="46" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#183b5c"/><path d="M10.5 24.5V15a5.5 5.5 0 0 1 11 0v9.5z" fill="#fff"/><rect x="7.5" y="23.75" width="17" height="2.25" rx="1.125" fill="#d5a52a"/></svg>Home Affairs <em>One</em></div>
+  <div class="brand"><svg width="44" height="44" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d5a52a"/><rect x="11" y="7" width="10" height="16" fill="#070c14"/><rect x="7" y="23" width="18" height="2" fill="#070c14"/></svg>Home Affairs <em>One</em></div>
   <div class="eyebrow">A concept for South Africa</div>
   <h1>One trusted front door to <em>Home Affairs</em> services.</h1>
-  <div class="pill">Concept prototype · not an official service</div>
+  <div class="label">Concept prototype · not an official service</div>
 </div></body></html>`;
 
 const browser = await chromium.launch({

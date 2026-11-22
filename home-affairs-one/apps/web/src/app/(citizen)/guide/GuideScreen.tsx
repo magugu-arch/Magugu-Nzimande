@@ -262,7 +262,7 @@ export function GuideScreen() {
             about an application.
           </FutureNotice>
         </div>
-        <Photo asset="A32" ratio="4 / 5" shape="arch" sizes="15rem" className={styles.headPhoto} />
+        <Photo asset="A32" ratio="4 / 5" sizes="15rem" className={styles.headPhoto} />
       </div>
 
       <div className={styles.body}>

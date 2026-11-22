@@ -1,8 +1,15 @@
+/* Photographs are always square-cornered: no rounding, arches or circles. */
 .frame {
   position: relative;
   display: block;
+  /*
+   * `clip`, not `hidden`: a hidden box is a scroll container, and the drift below
+   * would then be measured against this frame instead of the page. `hidden`
+   * stays as the fallback for browsers without `clip`. The same pair is used
+   * on every clipped box in the product, so a photograph can sit inside one.
+   */
   overflow: hidden;
-  border-radius: var(--radius-md);
+  overflow: clip;
   background-color: var(--photo-color, var(--navy-100));
 }
 .frame img {
@@ -10,15 +17,59 @@
   height: 100%;
   object-fit: cover;
 }
-.arch {
-  border-radius: var(--radius-arch);
+
+/*
+ * Parallax. The photograph is drawn a little larger than its frame and drifts
+ * as the frame crosses the screen, so it moves more slowly than the page.
+ * Only `transform` changes, so the browser can do it without layout or paint.
+ */
+.parallax {
+  --parallax-shift: 5%;
+  --parallax-scale: 1.12;
 }
-.square {
-  border-radius: 0;
+.deep {
+  --parallax-shift: 9%;
+  --parallax-scale: 1.2;
 }
-.circle {
-  border-radius: 50%;
+@keyframes drift {
+  from {
+    transform: translate3d(0, calc(var(--parallax-shift) * -1), 0) scale(var(--parallax-scale));
+  }
+  to {
+    transform: translate3d(0, var(--parallax-shift), 0) scale(var(--parallax-scale));
+  }
 }
-.soft {
-  border-radius: var(--radius-lg);
+/* Where the browser can tie an animation to scrolling, it runs off the main thread. */
+@supports (animation-timeline: view()) {
+  .parallax img {
+    animation: drift linear both;
+    animation-timeline: view();
+  }
+}
+/* Elsewhere, lib/parallax.ts feeds `--parallax` (−1 entering … 1 leaving). */
+:global(:root[data-parallax='js']) .parallax img {
+  transform: translate3d(0, calc(var(--parallax, 0) * var(--parallax-shift)), 0)
+    scale(var(--parallax-scale));
+}
+/* Only frames on screen are promoted, so a long page does not hold a layer per photograph. */
+:global(:root[data-parallax='js']) .parallax[data-in-view] img {
+  will-change: transform;
+}
+
+/* Reduced motion means a still photograph, not a slower one. */
+@media (prefers-reduced-motion: reduce) {
+  .parallax img {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+:global(:root[data-motion='reduce']) .parallax img {
+  animation: none !important;
+  transform: none !important;
+}
+@media print {
+  .parallax img {
+    animation: none !important;
+    transform: none !important;
+  }
 }

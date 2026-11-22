@@ -118,6 +118,7 @@
 .photoCard {
   display: grid;
   overflow: hidden;
+  overflow: clip;
 }
 .photoCardBody {
   display: flex;
@@ -152,7 +153,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.375rem;
-  color: var(--red-700);
+  color: var(--color-danger-text);
   font-size: var(--text-sm);
   font-weight: 700;
 }
@@ -180,14 +181,14 @@
   align-items: start;
   padding: var(--space-4);
   border: 1.5px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface-sunken);
 }
 .evidenceCard > svg {
   width: 1.5rem;
   height: 1.5rem;
   margin-top: 0.125rem;
-  color: var(--green-700);
+  color: var(--color-success-text);
 }
 .evidenceCard > button {
   grid-column: 1 / -1;
@@ -216,7 +217,7 @@
 
 /* Error summary and other regions that take focus */
 .summary {
-  border-radius: var(--radius-md);
+  border-radius: 0;
   scroll-margin-top: calc(var(--topbar-height) + var(--space-4));
 }
 .summaryList {

@@ -6,8 +6,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f7f9fb",
-  "theme_color": "#102a43",
+  "background_color": "#070c14",
+  "theme_color": "#070c14",
   "lang": "en-ZA",
   "categories": ["government", "utilities"],
   "icons": [

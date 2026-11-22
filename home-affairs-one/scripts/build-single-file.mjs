@@ -48,6 +48,8 @@ const version = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')
 
 /** One embedded size per photograph: sharp on a phone, light enough to share. */
 const EMBED_WIDTH = 640;
+const HERO_WIDTH = 960;
+const HERO_ASSETS = new Set(['A12']);
 
 if (!existsSync(path.join(derivatives, `A01-${EMBED_WIDTH}.webp`))) {
   execFileSync('node', [path.join(root, 'scripts', 'derive-assets.mjs')], { stdio: 'inherit' });
@@ -55,7 +57,9 @@ if (!existsSync(path.join(derivatives, `A01-${EMBED_WIDTH}.webp`))) {
 
 const embedded = {};
 for (const asset of manifest.assets) {
-  const width = asset.widths.includes(EMBED_WIDTH) ? EMBED_WIDTH : asset.widths[0];
+  // The welcome hero is full-bleed, so it is embedded larger than the rest.
+  const wanted = HERO_ASSETS.has(asset.id) ? HERO_WIDTH : EMBED_WIDTH;
+  const width = asset.widths.includes(wanted) ? wanted : asset.widths[0];
   const bytes = readFileSync(path.join(derivatives, `${asset.id}-${width}.webp`));
   embedded[asset.id] = `data:image/webp;base64,${bytes.toString('base64')}`;
 }
@@ -192,7 +196,7 @@ const metadata = [
   '<meta name="application-name" content="Home Affairs One (concept)" />',
   // A prototype that looks like a public service must never be indexed as one.
   '<meta name="robots" content="noindex, nofollow" />',
-  '<meta name="theme-color" content="#102a43" />',
+  '<meta name="theme-color" content="#070c14" />',
   '<meta name="color-scheme" content="light" />',
   '<meta name="format-detection" content="telephone=no" />',
   '<meta name="mobile-web-app-capable" content="yes" />',
@@ -244,33 +248,34 @@ const noscript = `<noscript>
       <style>
         /* Scripts are off, so the app will never replace its loading line: hide it. */
         #root{display:none}
-        .sp{font:17px/1.55 -apple-system,'Segoe UI',system-ui,sans-serif;color:#102a43;background:#f7f9fb;margin:0}
+        .sp{font:17px/1.6 -apple-system,'Segoe UI',system-ui,sans-serif;color:#f4f1ea;background:#070c14;margin:0}
         .sp *{box-sizing:border-box}
-        .sp header{background:#0a1c2e;color:#c9d8e6;font-size:13px;padding:10px 16px;text-align:center}
-        .sp header b{color:#f1dc9f;letter-spacing:.04em;text-transform:uppercase}
-        .sp main{max-width:44rem;margin:0 auto;padding:16px}
-        .sp .hero{background:#0a1c2e;color:#fff;border-radius:22px;overflow:hidden}
+        .sp header{background:#0a111b;border-bottom:1px solid #253348;color:#a8b3c2;font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.05em;text-transform:uppercase;padding:10px 16px;text-align:center}
+        .sp header b{color:#e6c15c;font-weight:500;letter-spacing:.14em}
+        .sp main{max-width:44rem;margin:0 auto;padding:0 18px 16px}
+        .sp .hero{margin:0 -18px}
         .sp .hero img,.sp article img{display:block;width:100%;height:auto}
-        .sp .hero div{padding:24px 20px 28px}
-        .sp h1{font:600 2.1rem/1.08 Georgia,'Times New Roman',serif;margin:0 0 12px}
-        .sp h2{font:600 1.5rem/1.2 Georgia,'Times New Roman',serif;margin:36px 0 12px}
+        .sp .hero div{padding:26px 18px 6px}
+        .sp h1{font:400 2.5rem/1.02 Georgia,'Times New Roman',serif;letter-spacing:-.02em;margin:0 0 14px}
+        .sp h1 em{color:#e6c15c}
+        .sp h2{font:400 1.75rem/1.1 Georgia,'Times New Roman',serif;letter-spacing:-.015em;margin:44px 0 14px}
         .sp h3{font-size:1.1rem;margin:14px 16px 4px}
-        .sp .hero p{color:#c9d8e6;margin:0}
-        .sp .note{background:#fdf7e7;border:1px solid #f1dc9f;border-left:4px solid #d5a52a;border-radius:8px;padding:14px 16px;margin:20px 0}
-        .sp .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr))}
-        .sp article{background:#fff;border:1px solid #d6dfe8;border-radius:14px;overflow:hidden}
-        .sp article p{color:#486581;font-size:.95rem;margin:0 16px 18px}
+        .sp .hero p{color:#c5ced9;margin:0}
+        .sp .note{background:#1e190b;border:1px solid #6a5520;border-left:2px solid #d5a52a;padding:14px 16px;margin:24px 0}
+        .sp .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr))}
+        .sp article{background:#101b2b;border:1px solid #253348}
+        .sp article p{color:#a8b3c2;font-size:.95rem;margin:0 16px 18px}
         .sp ul{padding-left:1.2rem}
         .sp li{margin:.35rem 0}
-        .sp footer{color:#486581;font-size:.9rem;margin:36px 0 24px}
+        .sp footer{border-top:1px solid #253348;color:#a8b3c2;font-size:.9rem;margin:40px 0 24px;padding-top:20px}
       </style>
       <div class="sp">
         <header><b>Concept prototype</b> · Not an official Department of Home Affairs service. All people, cases and places are synthetic.</header>
         <main>
           <div class="hero">
-            <img src="${embedded.A12}" alt="A woman smiles at her phone as she leaves a modern service building." width="640" height="358" />
+            <img src="${embedded.A12}" alt="A woman smiles at her phone as she leaves a modern service building." width="960" height="537" />
             <div>
-              <h1>One trusted front door to Home Affairs services.</h1>
+              <h1>One trusted front door to <em>Home Affairs</em> services.</h1>
               <p>Apply, track and get help in one secure place — on your phone, on the web, or with a person beside you.</p>
             </div>
           </div>

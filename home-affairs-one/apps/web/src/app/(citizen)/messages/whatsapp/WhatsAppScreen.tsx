@@ -510,7 +510,7 @@ export function WhatsAppScreen() {
           </Notice>
         </div>
         <aside className={shared.photoAside} aria-label="About this channel">
-          <Photo asset="A57" ratio="4 / 3" shape="soft" sizes="20rem" />
+          <Photo asset="A57" ratio="4 / 3" sizes="20rem" />
         </aside>
       </div>
 

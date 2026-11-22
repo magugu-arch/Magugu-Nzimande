@@ -120,6 +120,14 @@ that explains the gate when off. Never present a gated capability as live.
 - Mobile first: design at 360 px. The bottom tab bar is fixed, so never put a fixed footer of your
   own at the bottom; a sticky primary button must sit above it.
 - One dominant action per screen (`Button`/`LinkButton` primary), others `secondary` or `quiet`.
+- The look is dark and editorial: an ink page, ivory type, and Warm Gold as the only accent.
+  Nothing has a rounded corner — every radius token is `0`. Do not add `border-radius`, pills,
+  arches or circles.
+- Headings are Fraunces at regular weight. Wrap one or two words in `<em>` for the gold italic
+  accent. Eyebrows, tags and buttons are small, wide and uppercase: that is CSS only, so write
+  labels in sentence case and keep button labels short.
+- A box that clips its content uses `overflow: hidden; overflow: clip;` — both, in that order. A
+  plain `hidden` box is a scroll container, and a photograph inside it would stop drifting.
 
 ### Design system (`@hao/design-system`)
 
@@ -150,8 +158,11 @@ pixel font sizes. Icons come from `lucide-react`, always with `aria-hidden="true
   from `assets/manifest.json`.
 - Add `decorative` when the text next to the image already says what it shows (most cards). Leave
   it off for hero and editorial images, so the manifest's alt text is read.
-- Shapes: `rounded` (default), `soft`, `arch` (portrait feature images — the "one front door"
-  motif), `circle`, `square` (flush inside a card).
+- Frames are always square-cornered. There are no rounded, arched or circular photographs.
+- Photographs drift a little as they cross the screen (parallax), so they move more slowly than
+  the page. It is on by default. Pass `parallax="deep"` for a full-width hero, and
+  `parallax={false}` for thumbnails and other small images. It stops for anyone who asks for
+  reduced motion, in the operating system or in Profile → Accessibility.
 - Photographs are context, never information. A status, name, place, date or instruction must be
   real text rendered by the app. Never caption a generic building, vehicle or person as a real
   office, official vehicle or named individual.

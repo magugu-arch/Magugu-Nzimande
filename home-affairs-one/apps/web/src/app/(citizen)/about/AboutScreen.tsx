@@ -79,7 +79,7 @@ function Gallery() {
       {ALL_ASSETS.map((asset) => (
         <li key={asset.id}>
           <Card padding="flush" className={styles.shot}>
-            <Photo asset={asset.id} ratio="4 / 3" sizes="12rem" shape="square" decorative />
+            <Photo asset={asset.id} ratio="4 / 3" sizes="12rem" parallax={false} decorative />
             <div className={styles.shotBody}>
               <p className={styles.shotId}>{asset.id}</p>
               <p>{asset.subject}</p>
@@ -122,13 +122,7 @@ export function AboutScreen() {
           title="A working concept, shown honestly"
           lede="Home Affairs One is an idea you can click through. It shows how one front door to identity and civic services could feel — and it is careful not to pretend to be more than that."
         />
-        <Photo
-          asset="A55"
-          ratio="16 / 10"
-          shape="soft"
-          sizes="(min-width: 60rem) 36rem, 100vw"
-          priority
-        />
+        <Photo asset="A55" ratio="16 / 10" sizes="(min-width: 60rem) 36rem, 100vw" priority />
       </div>
 
       <Stack gap={8}>
@@ -181,7 +175,6 @@ export function AboutScreen() {
           <Photo
             asset="A51"
             ratio="1 / 1"
-            shape="soft"
             className={styles.rulesPhoto}
             sizes="(min-width: 60rem) 24rem, 100vw"
           />
@@ -191,7 +184,6 @@ export function AboutScreen() {
           <Photo
             asset="A10"
             ratio="3 / 4"
-            shape="arch"
             className={styles.storyPhoto}
             sizes="(min-width: 48rem) 18rem, 14rem"
           />

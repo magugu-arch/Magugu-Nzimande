@@ -52,6 +52,9 @@ tests/              contract, integration, e2e, accessibility, security
 - Accessibility is a WCAG 2.2 AA target: real headings, labels on every control, visible focus,
   44px touch targets, no information by colour alone, respects reduced motion and text size.
 - Plain language. Action labels ("Apply for a passport"), sentence case, no internal jargon.
+- The look is dark and editorial (ADR-014): ink page, ivory type, gold accent. **No rounded
+  corners anywhere** — radius tokens are `0`; never add pills, arches or circles. Clipping boxes
+  use `overflow: hidden; overflow: clip;` so photographs keep their parallax.
 
 ## Commands (run from this folder)
 

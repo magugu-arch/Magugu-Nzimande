@@ -42,7 +42,7 @@
   width: 100%;
   padding: var(--space-4);
   border: 1.5px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--color-surface);
   text-align: start;
   cursor: pointer;
@@ -99,7 +99,7 @@
 .method h3 svg {
   width: 1.375rem;
   height: 1.375rem;
-  color: var(--blue-600);
+  color: var(--color-info-text);
 }
 .waiting {
   display: flex;

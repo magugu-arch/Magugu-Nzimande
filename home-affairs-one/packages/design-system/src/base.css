@@ -40,9 +40,9 @@ blockquote {
 h1,
 h2 {
   font-family: var(--font-display);
-  font-weight: 560;
+  font-weight: 400;
   font-optical-sizing: auto;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.022em;
   line-height: var(--leading-tight);
   text-wrap: balance;
 }
@@ -54,12 +54,18 @@ h2 {
 }
 h3 {
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: 650;
   line-height: var(--leading-snug);
 }
 h4 {
   font-size: var(--text-base);
   font-weight: 700;
+}
+h1 em,
+h2 em {
+  color: var(--color-accent-text);
+  font-style: italic;
+  font-weight: 380;
 }
 p {
   text-wrap: pretty;
@@ -97,9 +103,8 @@ textarea {
 
 /* One focus treatment everywhere: a 3px ring with a gap so it reads on any surface. */
 :focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
 }
 .on-dark :focus-visible,
 .on-dark:focus-visible {
@@ -110,8 +115,8 @@ textarea {
 }
 
 ::selection {
-  background: var(--gold-200);
-  color: var(--navy-950);
+  background: var(--gold-500);
+  color: var(--color-on-accent);
 }
 
 /* Hosts that draw under the status bar: keep a band behind it, and hide what the host cannot do. */
@@ -121,7 +126,7 @@ body::before {
   inset: 0 0 auto;
   z-index: 60;
   height: env(safe-area-inset-top, 0px);
-  background: var(--navy-950);
+  background: var(--chrome-solid);
 }
 :root[data-host='artifact'] [data-needs='print'] {
   display: none;
@@ -146,15 +151,14 @@ body::before {
   top: var(--space-2);
   z-index: 100;
   padding: var(--space-3) var(--space-4);
-  background: var(--navy-900);
-  color: #fff;
-  border-radius: var(--radius-sm);
+  background: var(--gold-500);
+  color: var(--color-on-accent);
   font-weight: 700;
   transform: translateY(-200%);
 }
 .skip-link:focus {
   transform: none;
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 /* Page-load reveal. One orchestrated entrance; switched off for reduced motion. */

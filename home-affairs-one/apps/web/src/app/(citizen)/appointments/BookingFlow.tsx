@@ -761,13 +761,7 @@ function ConfirmedStep({
   return (
     <div className={styles.step}>
       <Card tone="success" padding="flush">
-        <Photo
-          asset="A49"
-          ratio="5 / 2"
-          shape="square"
-          sizes="(min-width: 48rem) 44rem, 100vw"
-          decorative
-        />
+        <Photo asset="A49" ratio="5 / 2" sizes="(min-width: 48rem) 44rem, 100vw" decorative />
         <div className={styles.confirmedBody}>
           <h2 ref={heading} tabIndex={-1} className={styles.focusTarget}>
             {fresh ? 'Appointment confirmed' : 'Your appointment is booked'}
