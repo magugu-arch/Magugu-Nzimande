@@ -9,6 +9,7 @@ import {
 } from '@hao/accessibility';
 import { FLAG_PROFILES, type FeatureFlag, type FeatureFlags } from '@hao/shared-types';
 import { useCallback, useSyncExternalStore } from 'react';
+import { safeStorage } from './storage';
 
 const FLAGS_KEY = 'hao.flags.v1';
 const PROFILE = process.env.NEXT_PUBLIC_FLAG_PROFILE === 'pilot' ? 'pilot' : 'prototype';
@@ -29,7 +30,7 @@ const listeners = new Set<() => void>();
 
 function loadFlags(): FeatureFlags {
   try {
-    const raw = window.localStorage.getItem(FLAGS_KEY);
+    const raw = safeStorage('local').getItem(FLAGS_KEY);
     return raw
       ? { ...DEFAULT_FLAGS, ...(JSON.parse(raw) as Partial<FeatureFlags>) }
       : DEFAULT_FLAGS;
@@ -39,7 +40,7 @@ function loadFlags(): FeatureFlags {
 }
 
 function getSnapshot(): Settings {
-  settings ??= { prefs: loadPrefs(window.localStorage), flags: loadFlags() };
+  settings ??= { prefs: loadPrefs(safeStorage('local')), flags: loadFlags() };
   return settings;
 }
 
@@ -63,7 +64,7 @@ export function usePrefs() {
   const setPrefs = useCallback((patch: Partial<AccessibilityPrefs>) => {
     const currentSettings = getSnapshot();
     const next = { ...currentSettings.prefs, ...patch };
-    savePrefs(window.localStorage, next);
+    savePrefs(safeStorage('local'), next);
     applyPrefs(document.documentElement, next);
     update({ ...currentSettings, prefs: next });
   }, []);
@@ -76,11 +77,11 @@ export function useFlags() {
   const setFlag = useCallback((flag: FeatureFlag, enabled: boolean) => {
     const currentSettings = getSnapshot();
     const next = { ...currentSettings.flags, [flag]: enabled };
-    window.localStorage.setItem(FLAGS_KEY, JSON.stringify(next));
+    safeStorage('local').setItem(FLAGS_KEY, JSON.stringify(next));
     update({ ...currentSettings, flags: next });
   }, []);
   const resetFlags = useCallback(() => {
-    window.localStorage.removeItem(FLAGS_KEY);
+    safeStorage('local').removeItem(FLAGS_KEY);
     update({ ...getSnapshot(), flags: DEFAULT_FLAGS });
   }, []);
   return { flags, setFlag, resetFlags };

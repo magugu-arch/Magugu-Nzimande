@@ -10,6 +10,7 @@ import {
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import { getGateway } from './gateway';
 import { useHydrated } from './hydration';
+import { safeStorage } from './storage';
 
 interface SessionContextValue {
   /** `null` while signed out. Check `ready` first: before it is true the session is unknown. */
@@ -37,7 +38,7 @@ function syncActor(session: Session | null) {
 
 function auth(): AuthClient {
   if (!client) {
-    client = createAuthClient({ storage: window.sessionStorage });
+    client = createAuthClient({ storage: safeStorage('session') });
     current = client.getSession();
     syncActor(current);
     client.subscribe((next) => {

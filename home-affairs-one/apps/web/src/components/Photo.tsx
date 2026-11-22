@@ -65,7 +65,7 @@ export function Photo({
     >
       <img
         src={assetUrl(asset.id, prefs.dataSaver ? smallest : largest)}
-        srcSet={prefs.dataSaver ? undefined : assetSrcSet(asset)}
+        srcSet={prefs.dataSaver ? undefined : assetSrcSet(asset) || undefined}
         sizes={prefs.dataSaver ? undefined : sizes}
         width={asset.width}
         height={asset.height}

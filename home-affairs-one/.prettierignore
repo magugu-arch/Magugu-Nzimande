@@ -12,3 +12,6 @@ apps/web/next-env.d.ts
 docs/product/home-affairs-one-brief.md
 docs/design/asset-manifest.md
 .shots
+apps/web/single-file/.build
+apps/web/single-file/src/generated
+share

@@ -2,7 +2,7 @@
   "name": "home-affairs-one",
   "version": "0.1.0",
   "private": true,
-  "description": "Home Affairs One — a non-production concept prototype. Not an official Department of Home Affairs product.",
+  "description": "Home Affairs One \u2014 a non-production concept prototype. Not an official Department of Home Affairs product.",
   "workspaces": [
     "apps/web",
     "packages/*",
@@ -26,7 +26,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run assets:check"
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run assets:check",
+    "build:single": "node scripts/build-single-file.mjs",
+    "check:single": "node scripts/check-single-file.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

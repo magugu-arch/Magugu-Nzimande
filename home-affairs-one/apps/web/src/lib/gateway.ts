@@ -1,5 +1,7 @@
 import { createGateway, type Gateway } from '@hao/api-gateway';
+import { SESSION_KEY } from '@hao/auth-client';
 import { createLocalPlatform } from '@hao/local-platform';
+import { safeStorage } from './storage';
 
 let instance: Gateway | null = null;
 
@@ -13,7 +15,7 @@ export function getGateway(): Gateway {
     throw new Error('getGateway() is browser-only. Call it inside a query or an effect.');
   }
   if (!instance) {
-    instance = createGateway(createLocalPlatform({ storage: window.localStorage }));
+    instance = createGateway(createLocalPlatform({ storage: safeStorage('local') }));
   }
   return instance;
 }
@@ -21,6 +23,6 @@ export function getGateway(): Gateway {
 /** Wipes every piece of demo data on this device and reloads with fresh sample data. */
 export function resetDemoData(): void {
   getGateway().platform.store.clear();
-  window.sessionStorage.clear();
+  safeStorage('session').removeItem(SESSION_KEY);
   window.location.reload();
 }
