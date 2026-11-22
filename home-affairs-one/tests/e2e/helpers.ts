@@ -10,7 +10,7 @@ export interface Screen {
 }
 
 export const SCREENS: Screen[] = JSON.parse(
-  readFileSync(path.join(import.meta.dirname, '..', 'routes.json'), 'utf8'),
+  readFileSync(path.resolve(__dirname, '..', 'routes.json'), 'utf8'),
 ) as Screen[];
 
 /** Screens grouped by who is looking at them, so each test signs in once. */

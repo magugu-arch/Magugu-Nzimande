@@ -34,7 +34,10 @@ for (const [persona, screens] of screensByPersona()) {
         );
         expect.soft(overflow, `${screen.name}: horizontal overflow in px`).toBeLessThanOrEqual(1);
         await expect
-          .soft(page.getByText('Something went wrong'), `${screen.name}: error state`)
+          .soft(
+            page.getByRole('heading', { name: 'Something went wrong', exact: true }),
+            `${screen.name}: error state`,
+          )
           .toHaveCount(0);
       });
     }

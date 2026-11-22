@@ -1,0 +1,59 @@
+name: Home Affairs One
+
+# The prototype lives in its own folder with its own toolchain, so it only runs
+# when that folder (or this workflow) changes.
+on:
+  push:
+    paths:
+      - 'home-affairs-one/**'
+      - '.github/workflows/home-affairs-one.yml'
+  pull_request:
+    paths:
+      - 'home-affairs-one/**'
+      - '.github/workflows/home-affairs-one.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: home-affairs-one
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build and browser checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: home-affairs-one/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Typecheck, lint, formatting, unit + contract + integration + security
+      # tests, and the check that all 60 photographs are present, unchanged and used.
+      - name: Verify
+        run: npm run verify
+
+      # Derives the responsive images, then builds the static export.
+      - name: Build
+        run: npm run build
+
+      - name: Check every image derivative exists
+        run: node scripts/check-assets.mjs --derived
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Every screen on a phone and a desktop, the sign-in journeys, and axe.
+      - name: Browser checks
+        run: npm run test:e2e

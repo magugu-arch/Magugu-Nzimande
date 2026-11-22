@@ -130,13 +130,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Search aria-hidden="true" />
             </AppLink>
             {!ready ? null : signedIn && session ? (
-              <AppLink
-                href="/profile/"
-                className={styles.account}
-                aria-label={`Profile: ${session.displayName}`}
-              >
+              <AppLink href="/profile/" className={styles.account}>
+                {/* Named from its content, so the visible text is always part of the name. */}
+                <span className="visually-hidden">Profile for {session.displayName}</span>
                 <Avatar initials={session.initials} />
-                <span className={styles.accountName}>{session.givenName}</span>
+                <span className={styles.accountName} aria-hidden="true">
+                  {session.givenName}
+                </span>
               </AppLink>
             ) : (
               <LinkButton href="/sign-in/" size="sm">
