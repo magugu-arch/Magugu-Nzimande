@@ -1,0 +1,2273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Home Affairs One — Digital Service Proposal and Investment</title>
+    <meta name="author" content="Legacy Leverage Creative Agency" />
+    <style>
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: normal;
+        font-weight: 100 900;
+        src: url('../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: italic;
+        font-weight: 100 900;
+        src: url('../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-opsz-italic.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson';
+        font-style: normal;
+        font-weight: 200 800;
+        src: url('../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2')
+          format('woff2');
+      }
+      /* One 1440 × 810 page per slide. Ink page, ivory type, gold as the single accent, square corners. */
+      @page {
+        size: 1440px 810px;
+        margin: 0;
+      }
+      :root {
+        --ink: #070c14;
+        --surface: #101b2b;
+        --raised: #172539;
+        --line: #253348;
+        --line-2: #3a4a61;
+        --ivory: #f4f1ea;
+        --soft: #c5ced9;
+        --muted: #a8b3c2;
+        --gold: #d5a52a;
+        --gold-text: #e6c15c;
+        --wash: #1e190b;
+        --gold-line: #6a5520;
+        --display: 'Fraunces', Georgia, serif;
+        --body: 'Atkinson', 'Segoe UI', system-ui, sans-serif;
+        --mono:
+          ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      html,
+      body {
+        background: #000;
+      }
+      body {
+        color: var(--ivory);
+        font: 14.5px/1.5 var(--body);
+        -webkit-font-smoothing: antialiased;
+      }
+      .page {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 1440px;
+        height: 810px;
+        padding: 32px 56px 32px;
+        overflow: hidden;
+        background: var(--ink);
+        break-after: page;
+      }
+      .mono,
+      .top,
+      .kicker,
+      .sub,
+      .tag,
+      .bl-top,
+      .bl-foot,
+      .parts,
+      .th,
+      .strip b {
+        font-family: var(--mono);
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 10.5px;
+        line-height: 1;
+      }
+      .top .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ivory);
+      }
+      .top .brand i {
+        width: 11px;
+        height: 11px;
+        background: var(--gold);
+      }
+      .top .brand span {
+        color: var(--muted);
+      }
+      .head {
+        display: grid;
+        grid-template-columns: 1.32fr 1fr;
+        gap: 56px;
+        align-items: end;
+        padding: 24px 0 22px;
+      }
+      .head.solo {
+        grid-template-columns: 1fr;
+      }
+      .kicker {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 14px;
+        color: var(--gold-text);
+        font-size: 11px;
+        line-height: 1.4;
+      }
+      .kicker::before {
+        content: '';
+        width: 36px;
+        height: 1px;
+        background: var(--gold);
+      }
+      h1 {
+        font: 400 43px/1.05 var(--display);
+        letter-spacing: -0.022em;
+      }
+      h1 em,
+      h2 em,
+      .wordmark em {
+        color: var(--gold-text);
+        font-style: italic;
+        font-weight: 380;
+      }
+      .lede {
+        max-width: 33em;
+        color: var(--soft);
+        font-size: 18px;
+        line-height: 1.45;
+      }
+      .body {
+        display: grid;
+        flex: 1;
+        gap: 14px;
+        min-height: 0;
+      }
+      .c3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .c4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .c6 {
+        grid-template-columns: repeat(6, 1fr);
+      }
+      .c7 {
+        grid-template-columns: repeat(7, 1fr);
+      }
+      .r2 {
+        grid-template-rows: 1fr 1fr;
+      }
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        min-width: 0;
+        min-height: 0;
+        padding: 20px 22px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+      .card h3 {
+        padding-right: 24px;
+        font: 700 14px/1.3 var(--body);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+      .card p,
+      .card li {
+        color: var(--soft);
+        font-size: 15.5px;
+        line-height: 1.45;
+      }
+      .card .end {
+        margin-top: auto;
+      }
+      .sub {
+        color: var(--gold-text);
+        font-size: 11px;
+        line-height: 1.45;
+        letter-spacing: 0.13em;
+      }
+      .arrow {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 13px;
+        height: 13px;
+        fill: none;
+        stroke: var(--muted);
+        stroke-width: 1.4;
+      }
+      .card.hi {
+        border-color: var(--gold);
+        background: var(--gold);
+        color: var(--ink);
+      }
+      .card.hi p,
+      .card.hi li {
+        color: #1a2130;
+      }
+      .card.hi .sub,
+      .card.hi .num {
+        color: #3f3005;
+      }
+      .card.hi .arrow {
+        stroke: var(--ink);
+      }
+      .num {
+        color: var(--gold-text);
+        font: 500 12px/1 var(--mono);
+        letter-spacing: 0.12em;
+      }
+      .big {
+        font: 380 44px/1 var(--display);
+        letter-spacing: -0.03em;
+      }
+      /* Headline figures keep their size inside a card, where paragraphs are otherwise small. */
+      .card p.big {
+        color: inherit;
+        font-size: 44px;
+        line-height: 1;
+      }
+      .big small {
+        font: 400 20px/1 var(--display);
+        letter-spacing: -0.01em;
+      }
+      ul.tick {
+        display: grid;
+        gap: 6px;
+        padding: 0;
+        list-style: none;
+      }
+      ul.tick li {
+        position: relative;
+        padding-left: 16px;
+      }
+      ul.tick li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.62em;
+        width: 7px;
+        height: 1.5px;
+        background: currentColor;
+      }
+      .strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 14px;
+        padding: 11px 16px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--soft);
+        font-size: 15px;
+      }
+      .strip b {
+        flex: none;
+        padding: 5px 8px;
+        background: var(--gold);
+        color: var(--ink);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+      }
+      .strip strong {
+        color: var(--ivory);
+      }
+      .photo {
+        position: relative;
+        overflow: hidden;
+        background: var(--raised);
+      }
+      .photo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .tag {
+        padding: 4px 7px;
+        border: 1px solid rgb(255 255 255 / 0.4);
+        background: rgb(7 12 20 / 0.6);
+        color: var(--ivory);
+        font-size: 9px;
+        line-height: 1.3;
+        letter-spacing: 0.14em;
+      }
+      .photo .tag {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+      }
+
+      /* Full-bleed pages: cover, part openers, close. */
+      .bleed {
+        padding: 0;
+      }
+      .bleed .bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .bleed .shade {
+        position: absolute;
+        inset: 0;
+      }
+      .s-left {
+        background:
+          linear-gradient(to top, rgb(7 12 20 / 0.95) 0%, rgb(7 12 20 / 0) 42%),
+          linear-gradient(
+            90deg,
+            rgb(7 12 20 / 0.96) 0%,
+            rgb(7 12 20 / 0.86) 36%,
+            rgb(7 12 20 / 0.4) 60%,
+            rgb(7 12 20 / 0.1) 84%
+          );
+      }
+      .s-bottom {
+        background: linear-gradient(
+          to top,
+          rgb(7 12 20 / 0.97) 0%,
+          rgb(7 12 20 / 0.9) 30%,
+          rgb(7 12 20 / 0.45) 58%,
+          rgb(7 12 20 / 0.28) 100%
+        );
+      }
+      .bl-top {
+        position: absolute;
+        top: 34px;
+        left: 56px;
+        right: 56px;
+        display: flex;
+        justify-content: space-between;
+        color: var(--ivory);
+        font-size: 10.5px;
+        line-height: 1;
+      }
+      .bleed > .tag {
+        position: absolute;
+        top: 64px;
+        left: 56px;
+      }
+      .bl-main {
+        position: absolute;
+        left: 56px;
+        bottom: 128px;
+        width: 840px;
+      }
+      .bl-side {
+        position: absolute;
+        right: 56px;
+        bottom: 128px;
+        width: 420px;
+        color: var(--soft);
+        font-size: 18px;
+        line-height: 1.5;
+      }
+      .xl {
+        font-size: 68px;
+        font-weight: 380;
+        line-height: 0.98;
+        letter-spacing: -0.03em;
+      }
+      .wordmark {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 30px;
+        font: 440 24px/1 var(--display);
+        letter-spacing: -0.015em;
+      }
+      .for {
+        display: inline-block;
+        margin-top: 28px;
+        padding: 9px 14px;
+        border: 1px solid var(--gold-line);
+        background: rgb(30 25 11 / 0.86);
+        color: var(--gold-text);
+        font: 500 11px/1.4 var(--mono);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .bl-foot {
+        position: absolute;
+        left: 56px;
+        right: 56px;
+        bottom: 32px;
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 32px;
+        padding-top: 16px;
+        border-top: 1px solid rgb(255 255 255 / 0.2);
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.7;
+        text-align: right;
+      }
+      .parts {
+        display: flex;
+        gap: 8px;
+        font-size: 10px;
+        line-height: 1;
+        letter-spacing: 0.14em;
+      }
+      .parts span {
+        padding: 8px 11px;
+        border: 1px solid rgb(255 255 255 / 0.28);
+        color: var(--ivory);
+      }
+      .parts .on {
+        border-color: var(--gold);
+        background: var(--gold);
+        color: var(--ink);
+      }
+
+      /* Tables */
+      .tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14.5px;
+      }
+      .tbl th {
+        padding: 0 0 9px;
+        border-bottom: 1px solid var(--line-2);
+        color: var(--muted);
+        font: 500 9.5px/1.3 var(--mono);
+        letter-spacing: 0.14em;
+        text-align: left;
+        text-transform: uppercase;
+      }
+      .tbl td {
+        padding: 9px 14px 9px 0;
+        border-bottom: 1px solid var(--line);
+        color: var(--soft);
+        line-height: 1.4;
+        vertical-align: top;
+      }
+      .tbl td:first-child {
+        color: var(--ivory);
+        font-weight: 700;
+      }
+      .tbl .r {
+        padding-right: 0;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .tbl .caps {
+        font-size: 12.5px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .tbl.roomy td {
+        padding-block: 15px;
+      }
+      .tbl tr.total td {
+        border-bottom: 0;
+        color: var(--ivory);
+        font-weight: 700;
+      }
+
+      /* Phones and screens: the product as it is. */
+      .phones {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 14px;
+      }
+      .phone {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+      }
+      .phone img {
+        display: block;
+        width: 100%;
+        max-width: 178px;
+        border: 5px solid #000;
+        outline: 1px solid var(--line-2);
+      }
+      .phone span {
+        color: var(--muted);
+        font: 500 10px/1 var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      /* Costing rows */
+      .cost {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 44px;
+      }
+      .cost .hd,
+      .cost .row {
+        display: grid;
+        grid-template-columns: 26px 1fr 52px 100px;
+        gap: 12px;
+        align-items: baseline;
+      }
+      .cost .hd {
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--line-2);
+        color: var(--muted);
+        font: 500 9.5px/1.3 var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .cost .row {
+        padding: 11px 0 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .cost .row b {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        line-height: 1.3;
+        text-transform: uppercase;
+      }
+      .cost .row small {
+        display: block;
+        color: var(--muted);
+        font-size: 12.5px;
+        line-height: 1.35;
+      }
+      .cost .n {
+        color: var(--gold-text);
+        font: 500 11px/1.3 var(--mono);
+      }
+      .cost .r {
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .totals {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1.25fr;
+        margin-top: 12px;
+        border: 1px solid var(--gold);
+      }
+      .totals div {
+        display: grid;
+        gap: 5px;
+        padding: 11px 18px;
+        border-right: 1px solid var(--gold-line);
+        background: var(--wash);
+      }
+      .totals div:last-child {
+        border-right: 0;
+        background: var(--gold);
+        color: var(--ink);
+      }
+      .totals small {
+        color: var(--gold-text);
+        font: 500 9.5px/1.3 var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .totals div:last-child small {
+        color: #3f3005;
+      }
+      .totals b {
+        font: 400 23px/1 var(--display);
+        letter-spacing: -0.015em;
+        font-variant-numeric: lining-nums;
+      }
+      .fine {
+        margin-top: 9px;
+        color: var(--muted);
+        font-size: 12.5px;
+        line-height: 1.45;
+      }
+
+      /* The audit scale: logarithmic, R1m to R1bn. */
+      .scale {
+        display: grid;
+        gap: 15px;
+        align-content: center;
+      }
+      .scale .nm {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 7px;
+        font-size: 15px;
+      }
+      .scale .nm b {
+        font-weight: 700;
+      }
+      .scale .nm span {
+        color: var(--soft);
+        font-variant-numeric: tabular-nums;
+      }
+      .track {
+        position: relative;
+        height: 20px;
+        border-right: 1px solid var(--line-2);
+        background:
+          linear-gradient(90deg, var(--line-2) 1px, transparent 1px) 0 0 / 33.333% 100%,
+          #0c1622;
+      }
+      .track i {
+        position: absolute;
+        inset-block: 5px;
+        background: var(--muted);
+      }
+      .track.ours i {
+        inset-block: 0;
+        width: 5px;
+        margin-left: -2.5px;
+        background: var(--gold);
+      }
+      .track.done i {
+        background: var(--line-2);
+      }
+      .axis {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        color: var(--muted);
+        font: 500 9.5px/1.3 var(--mono);
+        letter-spacing: 0.08em;
+      }
+
+      /* Timeline */
+      .gantt {
+        display: grid;
+        grid-template-columns: 206px repeat(18, 1fr);
+        row-gap: 12px;
+        align-items: center;
+        font-size: 12.5px;
+      }
+      .gantt .m {
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--line-2);
+        color: var(--muted);
+        font: 500 9.5px/1.3 var(--mono);
+        text-align: center;
+      }
+      .gantt .lbl {
+        padding-right: 10px;
+        color: var(--soft);
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        line-height: 1.25;
+        text-transform: uppercase;
+      }
+      .gantt .bar {
+        height: 12px;
+        background: var(--muted);
+      }
+      .gantt .bar.g {
+        background: var(--gold);
+      }
+      .gantt .bar.w {
+        background: var(--ivory);
+      }
+      .gantt .gate {
+        grid-row: 2 / span 15;
+        align-self: stretch;
+        justify-self: end;
+        width: 1px;
+        background: var(--gold);
+      }
+
+      /* Architecture layers */
+      .layers {
+        display: grid;
+        gap: 9px;
+        align-content: stretch;
+      }
+      .layer {
+        display: grid;
+        grid-template-columns: 178px 1fr;
+        gap: 18px;
+        align-items: center;
+        padding: 15px 20px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+      .layer b {
+        font-size: 13.5px;
+        letter-spacing: 0.09em;
+        line-height: 1.3;
+        text-transform: uppercase;
+      }
+      .layer p {
+        color: var(--soft);
+        font-size: 15px;
+        line-height: 1.45;
+      }
+      .layer.key {
+        border-color: var(--gold-line);
+        background: var(--wash);
+      }
+      .down {
+        justify-self: center;
+        color: var(--gold-text);
+        font: 12px/1 var(--mono);
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute">
+      <symbol id="arr" viewBox="0 0 14 14"><path d="M3 11 11 3M5 3h6v6" /></symbol>
+      <symbol id="mark" viewBox="0 0 32 32">
+        <rect width="32" height="32" fill="#d5a52a" />
+        <rect x="11" y="7" width="10" height="16" fill="#070c14" />
+        <rect x="7" y="23" width="18" height="2" fill="#070c14" />
+      </symbol>
+    </svg>
+
+    <!-- 01 Cover -->
+    <section class="page bleed">
+      <img class="bg" src="../.build/img/A12.jpg" style="object-position: 70% 28%" alt="" />
+      <div class="shade s-left"></div>
+      <div class="bl-top">
+        <span>Digital service proposal and investment</span><span>November 2026</span>
+      </div>
+      <span class="tag">Concept image</span>
+      <div class="bl-main">
+        <div class="wordmark">
+          <svg width="34" height="34"><use href="#mark" /></svg
+          ><span>Home Affairs <em>One</em></span>
+        </div>
+        <h1 class="xl">One trusted front door<br />to <em>Home Affairs</em> services.</h1>
+        <p class="for">Prepared for the Department of Home Affairs</p>
+      </div>
+      <p class="bl-side">
+        A proposal to design, build and launch one app for identity and civic services, from a first
+        release to every province.
+      </p>
+      <div class="bl-foot">
+        <nav class="parts" data-current="0"></nav>
+        <span
+          >Prepared by Legacy Leverage Creative Agency<br />22 November 2026 · A proposal, not a
+          department document</span
+        >
+      </div>
+    </section>
+
+    <!-- 02 Executive summary -->
+    <section class="page" data-section="Executive summary">
+      <div class="head">
+        <div>
+          <p class="kicker">Executive summary</p>
+          <h1>One app for identity and civic services. Built once, <em>taken national.</em></h1>
+        </div>
+        <p class="lede">
+          People apply, track, get official messages and find help in one secure place. The
+          department gets one front door it owns, on the systems it already runs.
+        </p>
+      </div>
+      <div class="body c3 r2">
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <p class="big">R41 000 000</p>
+          <h3>To design, build and launch nationally</h3>
+          <p class="end">
+            One fixed price, excluding VAT. Itemised on page <span data-ref="costing"></span>.
+          </p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <p class="big">18 months</p>
+          <h3>From signature to handover</h3>
+          <p class="end">
+            A go or re-scope gate at week 8, a pilot at month 9, national launch at month 15.
+          </p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <p class="big">54 screens</p>
+          <h3>Already designed, coded and tested</h3>
+          <p class="end">The build starts from a working prototype, not from a blank page.</p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <h3>Built on the systems you run</h3>
+          <p class="end">
+            The app connects to existing systems through one integration layer. Nothing in the back
+            office is replaced.
+          </p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <h3>Code and data: the department's</h3>
+          <p class="end">
+            Source code is handed over stage by stage. Personal information stays in the
+            department's environment, under POPIA.
+          </p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <h3>A gate before the build</h3>
+          <p class="end">
+            At week 8, system owners, interfaces and test access are confirmed before build money is
+            spent.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 The opportunity -->
+    <section class="page" data-section="The opportunity">
+      <div class="head">
+        <div>
+          <p class="kicker">The opportunity</p>
+          <h1>Why one front door, and why it is worth <em>more than an app.</em></h1>
+        </div>
+        <p class="lede">
+          A service finder, an application desk, a status board, a secure inbox and a help line in
+          one. Every journey that moves into it is one fewer errand done twice.
+        </p>
+      </div>
+      <div class="body c3 r2">
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">01</span>
+          <h3>One place to start</h3>
+          <p class="end">
+            People look for what they need to do, such as replacing an ID or registering a birth,
+            not for a form. One catalogue says what happens at each step.
+          </p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">02</span>
+          <h3>Status people can trust</h3>
+          <p class="end">
+            One timeline for each application, driven by what actually happened. "Received" never
+            implies "approved".
+          </p>
+        </div>
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">03</span>
+          <h3>Fewer wasted trips</h3>
+          <p class="end">
+            Before leaving home, a person knows what to bring, where to go and when. The in-person
+            step is booked, not queued for.
+          </p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">04</span>
+          <h3>One conversation, every channel</h3>
+          <p class="end">
+            The secure inbox holds the detail. SMS, email and WhatsApp only point back to it, with a
+            masked reference.
+          </p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">05</span>
+          <h3>A person, always</h3>
+          <p class="end">
+            Digital is a choice, not a condition. Every journey keeps an in-person route, and a
+            call-back carries the context with it.
+          </p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">06</span>
+          <h3>A channel the department owns</h3>
+          <p class="end">
+            Official notices come from one verified place, so people can tell a real message from a
+            fake one.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 The strategy on a page -->
+    <section class="page" data-section="The strategy">
+      <div class="head">
+        <div>
+          <p class="kicker">The strategy on a page</p>
+          <h1>Four results a public service can count. One app moves <em>all of them.</em></h1>
+        </div>
+        <p class="lede">
+          Each part of the app moves one of four measures. Baselines are taken in the first month,
+          and targets are agreed with the department in discovery.
+        </p>
+      </div>
+      <div class="body c4">
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">+</span>
+          <h3>Fewer avoidable visits</h3>
+          <ul class="tick end">
+            <li>Clear requirements before travel</li>
+            <li>Booked in-person steps</li>
+            <li>Collection notices</li>
+          </ul>
+          <p class="sub">Measured by visits for each completed application</p>
+        </div>
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">+</span>
+          <h3>Fewer "where is it?" contacts</h3>
+          <ul class="tick end">
+            <li>One timeline for each application</li>
+            <li>Notices sent before people ask</li>
+            <li>A secure inbox for the detail</li>
+          </ul>
+          <p class="sub">Measured by status enquiries for each application</p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">+</span>
+          <h3>More applications right first time</h3>
+          <ul class="tick end">
+            <li>Guided steps that say why we ask</li>
+            <li>Checks before submission</li>
+            <li>Save, leave and resume</li>
+          </ul>
+          <p class="sub">Measured by applications returned for correction</p>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">+</span>
+          <h3>More trust in official channels</h3>
+          <ul class="tick end">
+            <li>One verified inbox</li>
+            <li>"We will never ask for your PIN"</li>
+            <li>A way to report a fake</li>
+          </ul>
+          <p class="sub">Measured by notices read in the inbox</p>
+        </div>
+      </div>
+      <p class="strip">
+        <b>North star</b>
+        <span
+          ><strong>Completed applications with no avoidable visit and no status enquiry.</strong>
+          Every feature, notice and service point is judged by it.</span
+        >
+      </p>
+    </section>
+
+    <!-- 05 Who it serves -->
+    <section class="page" data-section="Who it serves">
+      <div class="head">
+        <div>
+          <p class="kicker">Who it serves</p>
+          <h1>Six people the service <em>is built for.</em></h1>
+        </div>
+        <p class="lede">
+          Each has an errand they want done. The app does it for them, and the department gets a
+          cleaner application in return.
+        </p>
+      </div>
+      <div class="body c6" style="grid-template-rows: 1fr">
+        <div class="card" style="padding: 0; gap: 0">
+          <div class="photo" style="height: 236px"><img src="../.build/img/A19.jpg" alt="" /></div>
+          <div style="display: grid; gap: 8px; padding: 16px 18px">
+            <h3>The applicant</h3>
+            <p><b>Wants</b> to apply once and know where it stands.</p>
+            <p class="sub">Gets guided steps and one timeline</p>
+          </div>
+        </div>
+        <div class="card" style="padding: 0; gap: 0">
+          <div class="photo" style="height: 236px"><img src="../.build/img/A09.jpg" alt="" /></div>
+          <div style="display: grid; gap: 8px; padding: 16px 18px">
+            <h3>The parent or guardian</h3>
+            <p><b>Wants</b> to act for a child, safely.</p>
+            <p class="sub">Gets a linked profile with clear authority</p>
+          </div>
+        </div>
+        <div class="card hi" style="padding: 0; gap: 0">
+          <div class="photo" style="height: 236px"><img src="../.build/img/A23.jpg" alt="" /></div>
+          <div style="display: grid; gap: 8px; padding: 16px 18px">
+            <h3>The first-timer</h3>
+            <p><b>Wants</b> plain words and no surprises.</p>
+            <p class="sub">Gets every step explained before it starts</p>
+          </div>
+        </div>
+        <div class="card" style="padding: 0; gap: 0">
+          <div class="photo" style="height: 236px"><img src="../.build/img/A15.jpg" alt="" /></div>
+          <div style="display: grid; gap: 8px; padding: 16px 18px">
+            <h3>The citizen abroad</h3>
+            <p><b>Wants</b> the same service from a mission.</p>
+            <p class="sub">Gets times shown in both time zones</p>
+          </div>
+        </div>
+        <div class="card" style="padding: 0; gap: 0">
+          <div class="photo" style="height: 236px"><img src="../.build/img/A40.jpg" alt="" /></div>
+          <div style="display: grid; gap: 8px; padding: 16px 18px">
+            <h3>The person who prefers a person</h3>
+            <p><b>Wants</b> help beside them.</p>
+            <p class="sub">Gets service points, call-back and assisted steps</p>
+          </div>
+        </div>
+        <div class="card" style="padding: 0; gap: 0">
+          <div class="photo" style="height: 236px"><img src="../.build/img/A47.jpg" alt="" /></div>
+          <div style="display: grid; gap: 8px; padding: 16px 18px">
+            <h3>The official</h3>
+            <p><b>Wants</b> a clean case and a clear queue.</p>
+            <p class="sub">Gets a console where only people decide</p>
+          </div>
+        </div>
+      </div>
+      <p class="fine">
+        Photographs are illustrative concept images. They do not show real offices, staff, citizens
+        or documents.
+      </p>
+    </section>
+
+    <!-- 06 Part one -->
+    <section class="page bleed">
+      <img class="bg" src="../.build/img/A07.jpg" style="object-position: 60% 40%" alt="" />
+      <div class="shade s-bottom"></div>
+      <div class="bl-top"><span>Part one</span><span data-pageno></span></div>
+      <span class="tag">Concept image</span>
+      <div class="bl-main">
+        <h1 class="xl">The service.<br /><em>Everything else follows.</em></h1>
+      </div>
+      <p class="bl-side">
+        People open an app that gets their errand done. The department's queue, audit trail and
+        reporting run underneath, on the trust that earns.
+      </p>
+      <div class="bl-foot">
+        <nav class="parts" data-current="1"></nav>
+        <span>Home Affairs One<br />Digital service proposal and investment</span>
+      </div>
+    </section>
+
+    <!-- 07 The service 1 of 2 -->
+    <section class="page" data-section="The service · 1 of 2">
+      <div class="head solo">
+        <div>
+          <p class="kicker">The service · Apply and track</p>
+          <h1>From "what do I need?" to "it is ready", <em>in one place.</em></h1>
+        </div>
+      </div>
+      <div class="body" style="grid-template-rows: 150px 1fr">
+        <div class="photo">
+          <img src="../.build/img/A14.jpg" style="object-position: 50% 30%" alt="" /><span
+            class="tag"
+            >Concept image</span
+          >
+        </div>
+        <div class="body c3">
+          <div class="card">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>The service catalogue</h3>
+            <p class="sub">Organised by what people need to do</p>
+            <p class="end">
+              Thirteen services in the first release, agreed in discovery. Each page says what
+              happens, step by step, and what to have ready. Content is versioned and approved by
+              its service owner.
+            </p>
+          </div>
+          <div class="card">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>Guided applications</h3>
+            <p class="sub">Short steps, saved as you go</p>
+            <p class="end">
+              Each step says why a detail is needed. People can stop and resume. They review and
+              declare for themselves: nothing is submitted on anyone's behalf.
+            </p>
+          </div>
+          <div class="card hi">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>One timeline</h3>
+            <p class="sub">What happened, what is next</p>
+            <p class="end">
+              Every application shows each update and the next step, in the same words staff see.
+              Timeframes appear only when they come from live operational data.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 The service 2 of 2 -->
+    <section class="page" data-section="The service · 2 of 2">
+      <div class="head solo">
+        <div>
+          <p class="kicker">The service · Contact and help</p>
+          <h1>Reach people safely. <em>Let them reach a person.</em></h1>
+        </div>
+      </div>
+      <div class="body" style="grid-template-rows: 150px 1fr">
+        <div class="photo">
+          <img src="../.build/img/A34.jpg" style="object-position: 35% 34%" alt="" /><span
+            class="tag"
+            >Concept image</span
+          >
+        </div>
+        <div class="body c3">
+          <div class="card">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>Secure inbox and channels</h3>
+            <p class="sub">The detail stays inside</p>
+            <p class="end">
+              Official notices live in the inbox. App alerts, SMS, email and WhatsApp are opt-in
+              reminders that carry a masked reference and a secure link, never case detail.
+            </p>
+          </div>
+          <div class="card">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>Appointments and service points</h3>
+            <p class="sub">Book, change or cancel</p>
+            <p class="end">
+              People choose an approved service point and a time, with accessibility details for
+              each one. Abroad, times show in both time zones.
+            </p>
+          </div>
+          <div class="card hi">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>Help from a person</h3>
+            <p class="sub">Nobody explains twice</p>
+            <p class="end">
+              Call-back and complaint requests carry only the context the person agrees to share, so
+              an adviser starts where the person left off.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 The journey -->
+    <section class="page" data-section="The journey">
+      <div class="head">
+        <div>
+          <p class="kicker">The journey</p>
+          <h1>From first tap to collection, <em>one connected flow.</em></h1>
+        </div>
+        <p class="lede">
+          Each step is something the person wants to do. Each one also hands the department
+          something it can use.
+        </p>
+      </div>
+      <div class="body c7">
+        <div class="card">
+          <span class="num">01</span>
+          <h3>Find</h3>
+          <div class="end" style="display: grid; gap: 8px">
+            <p class="sub">The person</p>
+            <p>Searches by what they need to do.</p>
+            <p class="sub">The department gets</p>
+            <p>Fewer misdirected enquiries.</p>
+          </div>
+        </div>
+        <div class="card">
+          <span class="num">02</span>
+          <h3>Sign in</h3>
+          <div class="end" style="display: grid; gap: 8px">
+            <p class="sub">The person</p>
+            <p>Signs in at the level the task needs.</p>
+            <p class="sub">The department gets</p>
+            <p>A verified account.</p>
+          </div>
+        </div>
+        <div class="card">
+          <span class="num">03</span>
+          <h3>Apply</h3>
+          <div class="end" style="display: grid; gap: 8px">
+            <p class="sub">The person</p>
+            <p>Answers guided steps and declares.</p>
+            <p class="sub">The department gets</p>
+            <p>A complete application.</p>
+          </div>
+        </div>
+        <div class="card">
+          <span class="num">04</span>
+          <h3>Pay</h3>
+          <div class="end" style="display: grid; gap: 8px">
+            <p class="sub">The person</p>
+            <p>Pays through the approved gateway.</p>
+            <p class="sub">The department gets</p>
+            <p>A reconciled reference.</p>
+          </div>
+        </div>
+        <div class="card hi">
+          <span class="num">05</span>
+          <h3>Attend</h3>
+          <div class="end" style="display: grid; gap: 8px">
+            <p class="sub">The person</p>
+            <p>Books the in-person step where it suits them.</p>
+            <p class="sub">The department gets</p>
+            <p>A planned visit.</p>
+          </div>
+        </div>
+        <div class="card">
+          <span class="num">06</span>
+          <h3>Track</h3>
+          <div class="end" style="display: grid; gap: 8px">
+            <p class="sub">The person</p>
+            <p>Sees every update on one timeline.</p>
+            <p class="sub">The department gets</p>
+            <p>Fewer status enquiries.</p>
+          </div>
+        </div>
+        <div class="card">
+          <span class="num">07</span>
+          <h3>Collect</h3>
+          <div class="end" style="display: grid; gap: 8px">
+            <p class="sub">The person</p>
+            <p>Is told when and where it is ready.</p>
+            <p class="sub">The department gets</p>
+            <p>An auditable handover.</p>
+          </div>
+        </div>
+      </div>
+      <p class="strip">
+        <b>Underneath</b>
+        <span
+          ><strong>Every step writes to one audit trail.</strong> It holds opaque references only,
+          never personal information.</span
+        >
+      </p>
+    </section>
+
+    <!-- 10 Proof before payment -->
+    <section class="page" data-section="Proof before payment">
+      <div class="head">
+        <div>
+          <p class="kicker">Proof before payment</p>
+          <h1>The app already works. This investment <em>takes it live.</em></h1>
+        </div>
+        <p class="lede">
+          A working service built from the brief, running on labelled sample data, with all 60
+          supplied images reviewed. These are screens from it, not drawings.
+        </p>
+      </div>
+      <div class="body" style="grid-template-rows: auto 1fr">
+        <div class="phones">
+          <div class="phone">
+            <img src="../.build/screens/welcome.jpg" alt="" /><span>Welcome</span>
+          </div>
+          <div class="phone">
+            <img src="../.build/screens/service.jpg" alt="" /><span>A service</span>
+          </div>
+          <div class="phone"><img src="../.build/screens/home.jpg" alt="" /><span>Home</span></div>
+          <div class="phone">
+            <img src="../.build/screens/apply.jpg" alt="" /><span>Apply</span>
+          </div>
+          <div class="phone">
+            <img src="../.build/screens/track.jpg" alt="" /><span>Track</span>
+          </div>
+          <div class="phone">
+            <img src="../.build/screens/messages.jpg" alt="" /><span>Messages</span>
+          </div>
+        </div>
+        <div class="body c4">
+          <div class="card">
+            <h3>54 screens</h3>
+            <p class="end">For citizens, staff and accredited partners, on phone and desktop.</p>
+          </div>
+          <div class="card">
+            <h3>436 automated checks</h3>
+            <p class="end">388 unit tests and 48 browser tests, all passing on every change.</p>
+          </div>
+          <div class="card">
+            <h3>No serious accessibility errors</h3>
+            <p class="end">
+              Automated checks on every screen. Testing with disabled people is in the plan.
+            </p>
+          </div>
+          <div class="card hi">
+            <h3>One offline file</h3>
+            <p class="end">The whole prototype opens from a single file, with no connection.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 Part two -->
+    <section class="page bleed">
+      <img class="bg" src="../.build/img/A45.jpg" style="object-position: 50% 36%" alt="" />
+      <div class="shade s-bottom"></div>
+      <div class="bl-top"><span>Part two</span><span data-pageno></span></div>
+      <span class="tag">Concept image</span>
+      <div class="bl-main">
+        <h1 class="xl">How it is built.<br /><em>Safe by design.</em></h1>
+      </div>
+      <p class="bl-side">
+        Every connection to a department system is a contract with a stand-in behind it. The build
+        replaces the stand-ins with real systems one at a time, each behind a gate.
+      </p>
+      <div class="bl-foot">
+        <nav class="parts" data-current="2"></nav>
+        <span>Home Affairs One<br />Digital service proposal and investment</span>
+      </div>
+    </section>
+
+    <!-- 12 Architecture -->
+    <section class="page" data-section="Architecture">
+      <div class="head">
+        <div>
+          <p class="kicker">Architecture on a page</p>
+          <h1>Screens never touch a system directly. <em>One gateway does.</em></h1>
+        </div>
+        <p class="lede">
+          Four layers, each with one job. A fault in one system shows a clear message and a way
+          forward, not a broken screen.
+        </p>
+      </div>
+      <div class="body" style="grid-template-columns: 1.7fr 1fr">
+        <div class="layers">
+          <div class="layer">
+            <b>The apps</b>
+            <p>
+              Web, iPhone and Android for the public. A separate console for staff. A sandbox for
+              partners.
+            </p>
+          </div>
+          <span class="down">↓</span>
+          <div class="layer key">
+            <b>One gateway</b>
+            <p>
+              Time limits, retries, protection against double submission, a reference for every
+              request, safe error messages and an audit record.
+            </p>
+          </div>
+          <span class="down">↓</span>
+          <div class="layer">
+            <b>Nine services, nine contracts</b>
+            <p>
+              Identity, catalogue, workflow, appointments, notifications, payments, WhatsApp, audit
+              and support.
+            </p>
+          </div>
+          <span class="down">↓</span>
+          <div class="layer">
+            <b>Department systems</b>
+            <p>
+              Existing systems and approved providers, each reached through one adapter. Up to six
+              connections in this price.
+            </p>
+          </div>
+        </div>
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <h3>Swap, do not rewrite</h3>
+          <p>
+            All nine contracts are written and tested today against stand-ins. Connecting a real
+            system changes one adapter. The screens do not change.
+          </p>
+          <ul class="tick end">
+            <li>Work continues while a system owner prepares access</li>
+            <li>Each connection is tested on its own, then switched on</li>
+            <li>A system that is down degrades one feature, not the app</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 Guardrails -->
+    <section class="page" data-section="Guardrails">
+      <div class="head">
+        <div>
+          <p class="kicker">Guardrails, built in</p>
+          <h1>Nine rules the build <em>cannot break.</em></h1>
+        </div>
+        <p class="lede">
+          They come from the brief and bind every change. Several are already held by automated
+          tests, not by convention.
+        </p>
+      </div>
+      <div class="body c3" style="grid-template-rows: repeat(3, 1fr); gap: 12px">
+        <div class="card" style="padding: 15px 20px; gap: 6px">
+          <span class="num">01</span>
+          <h3>No invented facts</h3>
+          <p>Fees, requirements and timeframes come only from content its owner has approved.</p>
+        </div>
+        <div class="card" style="padding: 15px 20px; gap: 6px">
+          <span class="num">02</span>
+          <h3>Synthetic data until go-live</h3>
+          <p>No real records in design, testing or demonstrations.</p>
+        </div>
+        <div class="card" style="padding: 15px 20px; gap: 6px">
+          <span class="num">03</span>
+          <h3>No imitation of official marks</h3>
+          <p>No seals, certificates, cards or codes are drawn or generated.</p>
+        </div>
+        <div class="card hi" style="padding: 15px 20px; gap: 6px">
+          <span class="num">04</span>
+          <h3>AI assists, never decides</h3>
+          <p>Guidance is quoted with its source. Every decision is recorded by an official.</p>
+        </div>
+        <div class="card" style="padding: 15px 20px; gap: 6px">
+          <span class="num">05</span>
+          <h3>Outside channels carry no detail</h3>
+          <p>A masked reference and a secure link only. Never documents or PINs.</p>
+        </div>
+        <div class="card" style="padding: 15px 20px; gap: 6px">
+          <span class="num">06</span>
+          <h3>Nothing is attested for the person</h3>
+          <p>Declarations need the person's own tick. Nothing submits itself.</p>
+        </div>
+        <div class="card" style="padding: 15px 20px; gap: 6px">
+          <span class="num">07</span>
+          <h3>New capabilities stay switched off</h3>
+          <p>Wallet and biometric features sit behind flags until they are approved.</p>
+        </div>
+        <div class="card" style="padding: 15px 20px; gap: 6px">
+          <span class="num">08</span>
+          <h3>No personal information in logs</h3>
+          <p>Audit records hold opaque references, never names or numbers.</p>
+        </div>
+        <div class="card" style="padding: 15px 20px; gap: 6px">
+          <span class="num">09</span>
+          <h3>Accessibility is a release condition</h3>
+          <p>WCAG 2.2 AA is the target, tested with disabled people before each wave.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 The staff side -->
+    <section class="page" data-section="The staff side">
+      <div class="head">
+        <div>
+          <p class="kicker">The other side of the counter</p>
+          <h1>People decide. <em>The system records.</em></h1>
+        </div>
+        <p class="lede">
+          Officials get their own console, with its own sign-in. It shows the minimum each task
+          needs and records every action.
+        </p>
+      </div>
+      <div class="body" style="grid-template-columns: 1.18fr 1fr">
+        <div class="photo" style="border: 1px solid var(--line-2)">
+          <img src="../.build/screens/staff-queue.jpg" style="object-position: top left" alt="" />
+          <span class="tag">Screen from the working prototype · sample data</span>
+        </div>
+        <div class="body" style="grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr">
+          <div class="card">
+            <h3>Work queue</h3>
+            <p class="end">
+              Longest-waiting first, with status in the same words the applicant sees.
+            </p>
+          </div>
+          <div class="card hi">
+            <h3>Human-only decisions</h3>
+            <p class="end">
+              The system never approves or refuses. An authorised official records each decision.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Audit trail</h3>
+            <p class="end">Who did what, to which record, when and with what result.</p>
+          </div>
+          <div class="card">
+            <h3>Partner checks</h3>
+            <p class="end">
+              An accredited institution gets a yes or a no, with consent. Never a copy.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15 Inclusion -->
+    <section class="page" data-section="Inclusion">
+      <div class="head">
+        <div>
+          <p class="kicker">Accessible by default</p>
+          <h1>Digital is a choice, <em>not a condition.</em></h1>
+        </div>
+        <p class="lede">
+          Every journey has an in-person route, and the app is built to work for the person in front
+          of it.
+        </p>
+      </div>
+      <div class="body" style="grid-template-columns: 1fr 1.5fr">
+        <div class="photo">
+          <img src="../.build/img/A55.jpg" style="object-position: 30% 55%" alt="" /><span
+            class="tag"
+            >Concept image</span
+          >
+        </div>
+        <div class="body" style="grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr">
+          <div class="card">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>Works for the person using it</h3>
+            <p class="end">
+              Screen readers, keyboards, larger text, higher contrast and reduced motion.
+            </p>
+          </div>
+          <div class="card">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>Low data and offline</h3>
+            <p class="end">
+              A low-data mode for costly connections. Drafts stay on the device. Offline is said
+              plainly.
+            </p>
+          </div>
+          <div class="card hi">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>Eleven official languages</h3>
+            <p class="end">
+              English and two more at the pilot. All eleven by national launch, professionally
+              translated and reviewed.
+            </p>
+          </div>
+          <div class="card">
+            <svg class="arrow"><use href="#arr" /></svg>
+            <h3>Always an in-person route</h3>
+            <p class="end">
+              Service points sit in the same finder, and someone a person trusts can help them.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16 Part three -->
+    <section class="page bleed">
+      <img class="bg" src="../.build/img/A39.jpg" style="object-position: 50% 50%" alt="" />
+      <div class="shade s-bottom"></div>
+      <div class="bl-top"><span>Part three</span><span data-pageno></span></div>
+      <span class="tag">Concept image</span>
+      <div class="bl-main">
+        <h1 class="xl">National rollout.<br /><em>Pilot, prove, then everywhere.</em></h1>
+      </div>
+      <p class="bl-side">
+        The same build goes national in three waves. Each wave opens only when the one before it has
+        met its measures.
+      </p>
+      <div class="bl-foot">
+        <nav class="parts" data-current="3"></nav>
+        <span>Home Affairs One<br />Digital service proposal and investment</span>
+      </div>
+    </section>
+
+    <!-- 17 Three waves -->
+    <section class="page" data-section="Rollout">
+      <div class="head">
+        <div>
+          <p class="kicker">Rollout in three waves</p>
+          <h1>Three waves, <em>each behind a gate.</em></h1>
+        </div>
+        <p class="lede">
+          One build, widened in steps. The department chooses the pilot region and service points in
+          discovery.
+        </p>
+      </div>
+      <div class="body c3">
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">Months 9 to 11</span>
+          <p class="big">Pilot</p>
+          <h3>One region, proven end to end</h3>
+          <ul class="tick end">
+            <li>Selected service points and their staff</li>
+            <li>Three services working against real systems</li>
+            <li>English and two more languages</li>
+            <li>Measures baselined</li>
+          </ul>
+        </div>
+        <div class="card">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">Months 12 to 14</span>
+          <p class="big">Expand</p>
+          <h3>More provinces, more services</h3>
+          <ul class="tick end">
+            <li>Services added as each connection is proven</li>
+            <li>The staff console in more offices</li>
+            <li>Further languages</li>
+            <li>Second and third security test rounds</li>
+          </ul>
+        </div>
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <span class="num">Month 15</span>
+          <p class="big">National</p>
+          <h3>Every province, and missions abroad</h3>
+          <ul class="tick end">
+            <li>All thirteen first-release services</li>
+            <li>All eleven official languages</li>
+            <li>Three months of close support, to month 18</li>
+            <li>Handover of code, documents and runbooks</li>
+          </ul>
+        </div>
+      </div>
+      <p class="strip">
+        <b>The gates</b>
+        <span
+          ><strong>Each wave opens on evidence:</strong> completion rate, error rate, and every
+          accessibility and security finding closed.</span
+        >
+      </p>
+    </section>
+
+    <!-- 18 Launch readiness -->
+    <section class="page" data-section="Launch readiness">
+      <div class="head">
+        <div>
+          <p class="kicker">Launch readiness</p>
+          <h1>A launch fails quietly when the app is ready <em>and the counter is not.</em></h1>
+        </div>
+        <p class="lede">
+          The plan starts with the people at the counter and on the phones, not with an advert.
+        </p>
+      </div>
+      <div class="body" style="grid-template-rows: 132px 1fr">
+        <div class="photo">
+          <img src="../.build/img/A41.jpg" style="object-position: 45% 36%" alt="" /><span
+            class="tag"
+            >Concept image</span
+          >
+        </div>
+        <div class="body c3">
+          <div class="card">
+            <span class="num">Weeks −8 to 0</span>
+            <h3>Prepare</h3>
+            <ul class="tick end">
+              <li>Briefing packs for service-point staff and contact-centre advisers</li>
+              <li>Help scripts and an assisted-digital guide</li>
+              <li>Materials on how to recognise the official channels</li>
+            </ul>
+          </div>
+          <div class="card hi">
+            <span class="num">Days 1 to 30</span>
+            <h3>Launch</h3>
+            <ul class="tick end">
+              <li>Our team on the floor at pilot service points</li>
+              <li>A daily review of issues with the product owner</li>
+              <li>A public status page</li>
+            </ul>
+          </div>
+          <div class="card">
+            <span class="num">Days 31 to 90</span>
+            <h3>Settle</h3>
+            <ul class="tick end">
+              <li>Measures reported every week</li>
+              <li>Fixes released every two weeks</li>
+              <li>Training refreshed from what staff report</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 19 Measurement -->
+    <section class="page" data-section="Measurement">
+      <div class="head">
+        <div>
+          <p class="kicker">Measurement</p>
+          <h1>Every measure is counted the same way, <em>every month.</em></h1>
+        </div>
+        <p class="lede">
+          Service results, not download counts. Each measure serves one of the four results the app
+          is there to move.
+        </p>
+      </div>
+      <div class="body" style="grid-template-columns: 1.9fr 1fr">
+        <table class="tbl roomy" style="align-self: start">
+          <tr>
+            <th>What is measured</th>
+            <th>How it is counted</th>
+            <th>Result it serves</th>
+          </tr>
+          <tr>
+            <td class="caps">Visits for each completed application</td>
+            <td>Appointment and collection events against completed cases</td>
+            <td>Fewer avoidable visits</td>
+          </tr>
+          <tr>
+            <td class="caps">Status enquiries for each application</td>
+            <td>Help requests tagged as status, against open cases</td>
+            <td>Fewer "where is it?" contacts</td>
+          </tr>
+          <tr>
+            <td class="caps">Applications returned for correction</td>
+            <td>Workflow events asking the person for more information</td>
+            <td>Right first time</td>
+          </tr>
+          <tr>
+            <td class="caps">Time from start to submission</td>
+            <td>From a draft being created to it being submitted</td>
+            <td>Right first time</td>
+          </tr>
+          <tr>
+            <td class="caps">Notices read in the secure inbox</td>
+            <td>Read events in the inbox, by type of notice</td>
+            <td>Trust in official channels</td>
+          </tr>
+          <tr>
+            <td class="caps">Assisted completions</td>
+            <td>Applications finished with help at a service point</td>
+            <td>Inclusion</td>
+          </tr>
+          <tr>
+            <td class="caps">Findings still open</td>
+            <td>The accessibility and security registers</td>
+            <td>Release conditions</td>
+          </tr>
+        </table>
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <h3>No value is claimed here</h3>
+          <p>
+            This proposal puts no rand figure on these results. The department's own volumes and
+            costs set that number, and we will not guess them.
+          </p>
+          <ul class="tick end">
+            <li>Baselines in month one</li>
+            <li>Targets agreed in discovery</li>
+            <li>A report to the product owner every month</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 20 Part four -->
+    <section class="page bleed">
+      <img class="bg" src="../.build/img/A60.jpg" style="object-position: 50% 34%" alt="" />
+      <div class="shade s-bottom"></div>
+      <div class="bl-top"><span>Part four</span><span data-pageno></span></div>
+      <span class="tag">Concept image</span>
+      <div class="bl-main">
+        <h1 class="xl">The investment.<br /><em>R41 000 000, through to national.</em></h1>
+      </div>
+      <p class="bl-side">
+        One fixed price for design, build, pilot and national launch. Itemised, paid against gates
+        and reported every month.
+      </p>
+      <div class="bl-foot">
+        <nav class="parts" data-current="4"></nav>
+        <span>Home Affairs One<br />Digital service proposal and investment</span>
+      </div>
+    </section>
+
+    <!-- 21 The costing audit -->
+    <section class="page" data-section="The costing audit">
+      <div class="head">
+        <div>
+          <p class="kicker">The costing audit</p>
+          <h1>What a service like this costs, <em>and where this proposal sits.</em></h1>
+        </div>
+        <p class="lede">
+          We costed the build three ways at public market rates before pricing it. The audit is
+          published with the prototype, with its working shown.
+        </p>
+      </div>
+      <div class="body" style="grid-template-columns: 1.5fr 1fr">
+        <div class="card" style="gap: 0; padding: 26px 28px; justify-content: space-between">
+          <div class="scale" style="gap: 24px">
+            <div>
+              <p class="nm"><b>Concept prototype</b><span>R1.1m – R3.1m · already built</span></p>
+              <div class="track done"><i style="left: 1.4%; width: 15%"></i></div>
+            </div>
+            <div>
+              <p class="nm"><b>Working pilot, conventional team</b><span>R14m – R41m</span></p>
+              <div class="track"><i style="left: 38.2%; width: 15.6%"></i></div>
+            </div>
+            <div>
+              <p class="nm">
+                <b>National service, conventional programme</b><span>R230m – R680m</span>
+              </p>
+              <div class="track"><i style="left: 78.7%; width: 15.7%"></i></div>
+            </div>
+            <div>
+              <p class="nm">
+                <b style="color: var(--gold-text)">This proposal: first national release</b
+                ><span style="color: var(--gold-text)">R41m, fixed</span>
+              </p>
+              <div class="track ours"><i style="left: 53.8%"></i></div>
+              <p class="axis">
+                <span>R1m</span><span>R10m</span><span>R100m</span><span>R1bn</span>
+              </p>
+            </div>
+          </div>
+          <p class="fine" style="margin-top: 16px">
+            The axis is logarithmic: each gridline is ten times the last.
+            <strong>Not like for like.</strong> The conventional national figure covers every
+            capability in the brief, built and run by a large programme. This proposal covers the
+            first national release set out on page <span data-ref="costing"></span>, and the costs
+            on page <span data-ref="covers"></span> sit outside it.
+          </p>
+        </div>
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <h3>Why R41 million holds</h3>
+          <ul class="tick end" style="gap: 9px">
+            <li><b>The front of house exists.</b> 54 screens are designed, coded and tested.</li>
+            <li>
+              <b>A small senior team.</b> Sixteen to twenty people working with AI assistance, not
+              squads of sixty.
+            </li>
+            <li>
+              <b>A fixed first release.</b> Thirteen services, nine contracts, up to six system
+              connections.
+            </li>
+            <li><b>Existing systems stay.</b> Nothing in the back office is replaced.</li>
+            <li>
+              <b>Running costs are separate</b> and stated on page <span data-ref="covers"></span>.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 22 The costing, itemised -->
+    <section class="page" data-section="The costing" id="costing">
+      <div class="head solo" style="padding: 20px 0 16px">
+        <div>
+          <p class="kicker">The costing</p>
+          <h1>First national release, <em>R41 000 000, itemised.</em></h1>
+        </div>
+      </div>
+      <div class="cost">
+        <div>
+          <p class="hd">
+            <span></span><span>Deliverable</span><span class="r">Days</span
+            ><span class="r">Price</span>
+          </p>
+          <p class="row">
+            <span class="n">01</span
+            ><span
+              ><b>Discovery and system owners</b
+              ><small>Ends in a go or re-scope decision at week 8</small></span
+            ><span class="r">160</span><span class="r">R883 200</span>
+          </p>
+          <p class="row">
+            <span class="n">02</span
+            ><span
+              ><b>Service design and content</b
+              ><small>Thirteen services, approved by their owners</small></span
+            ><span class="r">350</span><span class="r">R1 932 000</span>
+          </p>
+          <p class="row">
+            <span class="n">03</span
+            ><span
+              ><b>Design system and accessibility</b
+              ><small>Components, patterns, WCAG 2.2 AA</small></span
+            ><span class="r">240</span><span class="r">R1 324 800</span>
+          </p>
+          <p class="row">
+            <span class="n">04</span
+            ><span
+              ><b>Identity, sign-in and recovery</b
+              ><small>The approved provider, assurance levels, step-up</small></span
+            ><span class="r">480</span><span class="r">R2 649 600</span>
+          </p>
+          <p class="row">
+            <span class="n">05</span
+            ><span
+              ><b>Guided applications</b
+              ><small>Thirteen services, save and resume, declaration</small></span
+            ><span class="r">720</span><span class="r">R3 974 400</span>
+          </p>
+          <p class="row">
+            <span class="n">06</span
+            ><span
+              ><b>Workflow, status and timeline</b
+              ><small>Event-driven status, next actions, withdrawal</small></span
+            ><span class="r">410</span><span class="r">R2 263 200</span>
+          </p>
+          <p class="row">
+            <span class="n">07</span
+            ><span
+              ><b>Appointments and service points</b
+              ><small>Finder, booking, missions abroad</small></span
+            ><span class="r">360</span><span class="r">R1 987 200</span>
+          </p>
+          <p class="row">
+            <span class="n">08</span
+            ><span
+              ><b>Inbox, notifications and consent</b
+              ><small>Secure inbox, opt-in channels, consent receipts</small></span
+            ><span class="r">420</span><span class="r">R2 318 400</span>
+          </p>
+        </div>
+        <div>
+          <p class="hd">
+            <span></span><span>Deliverable</span><span class="r">Days</span
+            ><span class="r">Price</span>
+          </p>
+          <p class="row">
+            <span class="n">09</span
+            ><span
+              ><b>Payments and receipts</b
+              ><small>One approved gateway, reconciliation references</small></span
+            ><span class="r">260</span><span class="r">R1 435 200</span>
+          </p>
+          <p class="row">
+            <span class="n">10</span
+            ><span
+              ><b>Staff console, audit and reporting</b
+              ><small>Queues, human-only decisions, audit trail</small></span
+            ><span class="r">500</span><span class="r">R2 760 000</span>
+          </p>
+          <p class="row">
+            <span class="n">11</span
+            ><span><b>Mobile apps</b><small>iPhone and Android, from one codebase</small></span
+            ><span class="r">450</span><span class="r">R2 484 000</span>
+          </p>
+          <p class="row">
+            <span class="n">12</span
+            ><span
+              ><b>Integration layer and adapters</b
+              ><small>Up to six system connections</small></span
+            ><span class="r">600</span><span class="r">R3 312 000</span>
+          </p>
+          <p class="row">
+            <span class="n">13</span
+            ><span
+              ><b>Platform, security and operations</b
+              ><small>Environments, monitoring, runbooks</small></span
+            ><span class="r">400</span><span class="r">R2 208 000</span>
+          </p>
+          <p class="row">
+            <span class="n">14</span
+            ><span
+              ><b>Eleven official languages</b
+              ><small>Build, layout and review in every language</small></span
+            ><span class="r">200</span><span class="r">R1 104 000</span>
+          </p>
+          <p class="row">
+            <span class="n">15</span
+            ><span
+              ><b>Testing, pilot and national rollout</b
+              ><small>Three waves, launch support, three months' care</small></span
+            ><span class="r">400</span><span class="r">R2 208 000</span>
+          </p>
+          <p class="row">
+            <span class="n">16</span
+            ><span
+              ><b>Programme and delivery</b
+              ><small>Planning, reporting, gates and handover</small></span
+            ><span class="r">300</span><span class="r">R1 656 000</span>
+          </p>
+        </div>
+      </div>
+      <div class="totals">
+        <div><small>6 250 days at R5 520</small><b>R34 500 000</b></div>
+        <div><small>Bought in</small><b>R3 500 000</b></div>
+        <div><small>Risk reserve, released at gates</small><b>R3 000 000</b></div>
+        <div><small>Total, excluding VAT</small><b>R41 000 000</b></div>
+      </div>
+      <p class="fine">
+        Bought in: independent security testing, three rounds, R1 200 000 · accessibility audit and
+        testing with disabled people, R450 000 · translation and language review, R700 000 · privacy
+        assessment and legal review, R350 000 · research recruitment, R300 000 · environments,
+        devices and tooling, R500 000. Unused reserve is returned.
+      </p>
+    </section>
+
+    <!-- 23 What it covers -->
+    <section class="page" data-section="What it covers" id="covers">
+      <div class="head">
+        <div>
+          <p class="kicker">What it covers</p>
+          <h1>What R41 million covers, <em>and what it does not.</em></h1>
+        </div>
+        <p class="lede">
+          A fixed price is only honest with its edges drawn. These are the edges, and what running
+          the service costs each year after handover.
+        </p>
+      </div>
+      <div class="body c3">
+        <div class="card">
+          <h3>In the price</h3>
+          <ul class="tick end">
+            <li>Discovery, service design and content for thirteen services</li>
+            <li>Web, iPhone and Android apps, and the staff console</li>
+            <li>Sign-in through the department's approved identity provider</li>
+            <li>One integration layer with up to six system connections</li>
+            <li>Eleven official languages</li>
+            <li>Three security test rounds and an accessibility audit</li>
+            <li>Pilot, national launch and three months of close support</li>
+            <li>Source code, documents and runbooks</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Not in the price</h3>
+          <ul class="tick end">
+            <li>Modernising or replacing back-office systems</li>
+            <li>Hosting, messaging fees and software licences</li>
+            <li>Hardware and connectivity at service points</li>
+            <li>Counter and contact-centre staff</li>
+            <li>Paid media</li>
+            <li>
+              Switching on capabilities that need new legal approval, such as a wallet or biometric
+              checks
+            </li>
+            <li>More than six system connections or thirteen services</li>
+            <li>Running the service after month 18</li>
+          </ul>
+        </div>
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <h3>After handover, each year</h3>
+          <p class="big" style="font-size: 36px">R7.3m <small>a year</small></p>
+          <p>A support and improvement team of six: 1 320 days at R5 520.</p>
+          <p class="big" style="font-size: 36px; margin-top: 8px">
+            R19m – R63m <small>a year</small>
+          </p>
+          <p class="end">
+            Hosting, messaging, security assurance and licences at national volume, from our audit.
+            These are passed through at cost and depend on volume and on the department's own
+            agreements.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 24 Timeline and payments -->
+    <section class="page" data-section="Timeline and payments">
+      <div class="head solo" style="padding: 20px 0 16px">
+        <div>
+          <p class="kicker">Timeline and payments</p>
+          <h1>Eighteen months to national, <em>with a gate before the build.</em></h1>
+        </div>
+      </div>
+      <div class="body" style="grid-template-columns: 1.62fr 1fr; gap: 36px">
+        <div class="gantt">
+          <span></span>
+          <span class="m">1</span><span class="m">2</span><span class="m">3</span
+          ><span class="m">4</span><span class="m">5</span><span class="m">6</span
+          ><span class="m">7</span><span class="m">8</span><span class="m">9</span
+          ><span class="m">10</span><span class="m">11</span><span class="m">12</span
+          ><span class="m">13</span><span class="m">14</span><span class="m">15</span
+          ><span class="m">16</span><span class="m">17</span><span class="m">18</span>
+          <span class="gate" style="grid-column: 3"></span>
+          <span class="lbl" style="grid-row: 2">Discovery and system owners</span
+          ><span class="bar g" style="grid-row: 2; grid-column: 2 / 4"></span>
+          <span class="lbl" style="grid-row: 3">Service design and content</span
+          ><span class="bar" style="grid-row: 3; grid-column: 2 / 10"></span>
+          <span class="lbl" style="grid-row: 4">Design system, accessibility</span
+          ><span class="bar" style="grid-row: 4; grid-column: 3 / 8"></span>
+          <span class="lbl" style="grid-row: 5">Identity and sign-in</span
+          ><span class="bar" style="grid-row: 5; grid-column: 4 / 10"></span>
+          <span class="lbl" style="grid-row: 6">Applications and workflow</span
+          ><span class="bar" style="grid-row: 6; grid-column: 4 / 13"></span>
+          <span class="lbl" style="grid-row: 7">Appointments, inbox, payments</span
+          ><span class="bar" style="grid-row: 7; grid-column: 5 / 12"></span>
+          <span class="lbl" style="grid-row: 8">Staff console and audit</span
+          ><span class="bar" style="grid-row: 8; grid-column: 5 / 13"></span>
+          <span class="lbl" style="grid-row: 9">Mobile apps</span
+          ><span class="bar" style="grid-row: 9; grid-column: 6 / 14"></span>
+          <span class="lbl" style="grid-row: 10">Integration and adapters</span
+          ><span class="bar" style="grid-row: 10; grid-column: 4 / 15"></span>
+          <span class="lbl" style="grid-row: 11">Eleven languages</span
+          ><span class="bar" style="grid-row: 11; grid-column: 9 / 16"></span>
+          <span class="lbl" style="grid-row: 12">Security and access testing</span
+          ><span class="bar w" style="grid-row: 12; grid-column: 8 / 9"></span
+          ><span class="bar w" style="grid-row: 12; grid-column: 12 / 13"></span
+          ><span class="bar w" style="grid-row: 12; grid-column: 15 / 16"></span>
+          <span class="lbl" style="grid-row: 13">Wave 1 · Pilot</span
+          ><span class="bar g" style="grid-row: 13; grid-column: 10 / 13"></span>
+          <span class="lbl" style="grid-row: 14">Wave 2 · Expand</span
+          ><span class="bar g" style="grid-row: 14; grid-column: 13 / 16"></span>
+          <span class="lbl" style="grid-row: 15">Wave 3 · National launch</span
+          ><span class="bar g" style="grid-row: 15; grid-column: 16 / 17"></span>
+          <span class="lbl" style="grid-row: 16">Close support and handover</span
+          ><span class="bar" style="grid-row: 16; grid-column: 17 / 20"></span>
+          <span class="fine" style="grid-row: 17; grid-column: 1 / -1; margin-top: 6px"
+            >Months from signature. The gold line is the week-8 gate: go, or re-scope. Gold bars are
+            the gate and the three waves; ivory bars are independent test rounds.</span
+          >
+        </div>
+        <div style="display: grid; gap: 14px; align-content: start">
+          <table class="tbl">
+            <tr>
+              <th>Five milestone payments</th>
+              <th class="r">Share</th>
+              <th class="r">Amount</th>
+            </tr>
+            <tr>
+              <td class="caps">On signature</td>
+              <td class="r">15%</td>
+              <td class="r">R6 150 000</td>
+            </tr>
+            <tr>
+              <td class="caps">Week-8 gate passed</td>
+              <td class="r">20%</td>
+              <td class="r">R8 200 000</td>
+            </tr>
+            <tr>
+              <td class="caps">Pilot live, month 9</td>
+              <td class="r">25%</td>
+              <td class="r">R10 250 000</td>
+            </tr>
+            <tr>
+              <td class="caps">National launch, month 15</td>
+              <td class="r">25%</td>
+              <td class="r">R10 250 000</td>
+            </tr>
+            <tr>
+              <td class="caps">Handover, month 18</td>
+              <td class="r">15%</td>
+              <td class="r">R6 150 000</td>
+            </tr>
+            <tr class="total">
+              <td class="caps">Total, excluding VAT</td>
+              <td class="r">100%</td>
+              <td class="r">R41 000 000</td>
+            </tr>
+          </table>
+          <div class="card hi" style="padding: 16px 20px">
+            <h3>Nothing is paid for work you have not seen</h3>
+            <p>
+              Each payment follows a demonstration against the acceptance checks for that stage.
+              Payment terms follow the department's supply-chain rules.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 25 Protection -->
+    <section class="page" data-section="Protection">
+      <div class="head solo" style="padding: 20px 0 16px">
+        <div>
+          <p class="kicker">Protection</p>
+          <h1>How the investment <em>is protected.</em></h1>
+        </div>
+      </div>
+      <div class="body" style="grid-template-columns: 1.75fr 1fr; gap: 28px">
+        <table class="tbl roomy" style="align-self: start">
+          <tr>
+            <th style="width: 31%">Risk</th>
+            <th>How we manage it</th>
+          </tr>
+          <tr>
+            <td class="caps">Systems differ from our assumption</td>
+            <td>
+              Week-8 gate: owners, interfaces and test access are confirmed before build money is
+              spent, and the scope is reset with you if needed.
+            </td>
+          </tr>
+          <tr>
+            <td class="caps">A connection is late</td>
+            <td>
+              The app runs against its stand-in until the real system is ready. Other work does not
+              wait.
+            </td>
+          </tr>
+          <tr>
+            <td class="caps">Security findings</td>
+            <td>
+              Three independent test rounds. Findings are closed before each wave opens, from the
+              risk reserve.
+            </td>
+          </tr>
+          <tr>
+            <td class="caps">Content is not approved in time</td>
+            <td>
+              Only approved services go live. The catalogue is versioned, so a service is added
+              without a release.
+            </td>
+          </tr>
+          <tr>
+            <td class="caps">People are left behind</td>
+            <td>
+              Every journey keeps an in-person route, and assisted completion is measured from the
+              pilot.
+            </td>
+          </tr>
+          <tr>
+            <td class="caps">Scope grows</td>
+            <td>
+              A fixed day rate of R5 520 and written change control. Nothing is added without a
+              price.
+            </td>
+          </tr>
+          <tr>
+            <td class="caps">We become unavailable</td>
+            <td>
+              Source code, documents and runbooks are handed over at every stage, not only at the
+              end.
+            </td>
+          </tr>
+        </table>
+        <div class="card hi">
+          <svg class="arrow"><use href="#arr" /></svg>
+          <h3>What this rests on</h3>
+          <ul class="tick end" style="gap: 8px">
+            <li>A named product owner with the authority to decide</li>
+            <li>System owners available from week 1, and test access by week 8</li>
+            <li>Approved content for each service before its build starts</li>
+            <li>One identity provider, approved by the department</li>
+            <li>A hosting environment decided by month 3</li>
+            <li>Sign-off within ten working days at each gate</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 26 Next step -->
+    <section class="page bleed">
+      <img class="bg" src="../.build/img/A53.jpg" style="object-position: 62% 30%" alt="" />
+      <div class="shade s-left"></div>
+      <div class="bl-top"><span>Next step</span><span>To talk</span></div>
+      <span class="tag">Concept image</span>
+      <div class="bl-main">
+        <h1 class="xl">See the working app —<br /><em>here and now.</em></h1>
+        <p class="for">Book a walkthrough</p>
+      </div>
+      <p class="bl-side">
+        Approve discovery and it starts within ten working days. The week-8 gate confirms the plan
+        before build money is spent.
+      </p>
+      <div class="bl-foot" style="text-align: left">
+        <span style="color: var(--ivory)"
+          >Magugu S. Nzimande · Founder &amp; CEO &nbsp;&nbsp; +27 73 225 7761 &nbsp;&nbsp;
+          info@legacyleverage.co.za &nbsp;&nbsp; www.legacyleverage.co.za</span
+        >
+        <span style="text-align: right"
+          >Concept imagery · sample content<br />Not a department document ·
+          <span data-pageno></span
+        ></span>
+      </div>
+    </section>
+
+    <script>
+      const pages = [...document.querySelectorAll('.page')];
+      const total = String(pages.length).padStart(2, '0');
+      const PARTS = ['The service', 'How it is built', 'National rollout', 'The investment'];
+      pages.forEach((page, index) => {
+        const n = String(index + 1).padStart(2, '0');
+        if (page.dataset.section) {
+          const top = document.createElement('div');
+          top.className = 'top';
+          top.innerHTML = `<span class="brand"><i></i>Home Affairs One <span>· Digital service proposal and investment</span></span><span>${page.dataset.section}</span><span>${n} / ${total}</span>`;
+          page.prepend(top);
+        }
+        page
+          .querySelectorAll('[data-pageno]')
+          .forEach((el) => (el.textContent = `${n} / ${total}`));
+        page.querySelectorAll('nav.parts').forEach((nav) => {
+          nav.innerHTML = PARTS.map(
+            (name, part) =>
+              `<span class="${Number(nav.dataset.current) === part + 1 ? 'on' : ''}">${name}</span>`,
+          ).join('');
+        });
+      });
+      document.querySelectorAll('[data-ref]').forEach((el) => {
+        el.textContent = String(pages.indexOf(document.getElementById(el.dataset.ref)) + 1);
+      });
+    </script>
+  </body>
+</html>

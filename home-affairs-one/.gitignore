@@ -18,3 +18,6 @@ apps/web/public/assets/home-affairs-one/
 # Single-file build: intermediate output and generated modules (the finished file is in share/)
 apps/web/single-file/.build/
 apps/web/single-file/src/generated/
+
+# Proposal deck: prepared photographs and screen captures (the finished PDF is in share/)
+proposal/.build/

@@ -152,12 +152,13 @@ To host under a sub-path (for example GitHub Pages), build with
 
 ## Share it
 
-| What                     | Where                                                                                                                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Single-file app**      | `share/Home_Affairs_One_Concept_Prototype.html` — about 4.5 MB. Scripts, styles, fonts, link-preview metadata and all 60 photographs are embedded. Works offline and makes no requests.                 |
-| **Interactive Artifact** | https://claude.ai/artifact/NhACnhfDPah6Sdty9rodYk — private until its owner shares it from the page's Share menu.                                                                                       |
-| **Social preview image** | `share/og-image.jpg` (1200 × 630), for link previews once the app is hosted.                                                                                                                            |
-| **Build-cost audit**     | `share/Home_Affairs_One_Build_Cost_Audit.html` — what it costs to build an app like this, at three price points. The reference version is `docs/product/build-cost-audit.md`. An estimate, not a quote. |
+| What                     | Where                                                                                                                                                                                                                                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Single-file app**      | `share/Home_Affairs_One_Concept_Prototype.html` — about 4.5 MB. Scripts, styles, fonts, link-preview metadata and all 60 photographs are embedded. Works offline and makes no requests.                                                                                                            |
+| **Interactive Artifact** | https://claude.ai/artifact/NhACnhfDPah6Sdty9rodYk — private until its owner shares it from the page's Share menu.                                                                                                                                                                                  |
+| **Social preview image** | `share/og-image.jpg` (1200 × 630), for link previews once the app is hosted.                                                                                                                                                                                                                       |
+| **Build-cost audit**     | `share/Home_Affairs_One_Build_Cost_Audit.html` — what it costs to build an app like this, at three price points. The reference version is `docs/product/build-cost-audit.md`. An estimate, not a quote.                                                                                            |
+| **Proposal deck**        | `share/Home_Affairs_One_Proposal.pdf` — a 26-slide proposal to the department: the service, how it is built, national rollout and the investment. Built by `npm run build:proposal` from `proposal/src/deck.html`, with real screens captured from the app. A proposal, not a department document. |
 
 | On       | How it opens                                                                                                                                                                                                                           |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -169,6 +170,7 @@ To host under a sub-path (for example GitHub Pages), build with
 npm run build:single   # writes share/Home_Affairs_One_Concept_Prototype.html
 npm run check:single   # opens that file from disk and walks every screen, with and without scripts
 npm run build:audit    # writes share/Home_Affairs_One_Build_Cost_Audit.html
+npm run build:proposal # writes share/Home_Affairs_One_Proposal.pdf (build the app first)
 node scripts/make-og-image.mjs
 # once hosted, rebuild so link previews carry the address and image:
 node scripts/build-single-file.mjs --site-url https://your-host/ --og-image-url https://your-host/og-image.jpg

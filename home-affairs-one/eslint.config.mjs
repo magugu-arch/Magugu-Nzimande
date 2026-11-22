@@ -27,7 +27,7 @@ export default defineConfig([
   },
   {
     // CLI scripts print by design.
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'proposal/**/*.mjs'],
     rules: { 'no-console': 'off' },
   },
   prettier,
