@@ -48,6 +48,7 @@ function ServiceWorkerRegistrar() {
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production' || !('serviceWorker' in navigator)) return;
     // The single-file build has nothing to cache and no address to register against.
+    if (process.env.NEXT_PUBLIC_SINGLE_FILE) return;
     if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
     navigator.serviceWorker.register(withBasePath('/sw.js')).catch(() => undefined);
   }, []);

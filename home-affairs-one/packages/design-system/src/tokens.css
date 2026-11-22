@@ -118,7 +118,12 @@
   /* Layout */
   --content-max: 72rem;
   --content-narrow: 44rem;
-  --gutter: clamp(1rem, 0.5rem + 2.4vw, 2rem);
+  /* Never less than 16px, and clear of a system bar at either side of a phone. */
+  --gutter: max(
+    clamp(1rem, 0.5rem + 2.4vw, 2rem),
+    env(safe-area-inset-left, 0px),
+    env(safe-area-inset-right, 0px)
+  );
   --touch-target: 2.75rem; /* 44px */
   --topbar-height: 3.75rem;
   --tabbar-height: 4.25rem;

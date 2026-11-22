@@ -1,15 +1,24 @@
 /**
  * Stand-in for the framework's navigation hooks, for the single-file build.
  *
- * Routes live in the URL hash (`file.html#/services/`), so the whole app works
- * from one file with no server. A hash that is not a route (`#main`,
+ * From a file, routes live in the URL hash (`file.html#/services/`), so the
+ * whole app works with no server; a hash that is not a route (`#main`,
  * `#identity`) is treated as an ordinary in-page anchor.
+ *
+ * Inside a host frame that only passes plain `#name` hashes (a published
+ * Artifact), routes are kept in memory instead and the hash is left alone.
  */
 import { useMemo, useSyncExternalStore } from 'react';
 
+/** `hash` for a file opened from disk or a web host; `memory` inside a host frame. */
+export const ROUTER_MODE: 'hash' | 'memory' =
+  process.env.HAO_ROUTER === 'memory' ? 'memory' : 'hash';
+
 const listeners = new Set<() => void>();
+const visited: string[] = [];
 
 function readRoute(): string {
+  if (ROUTER_MODE === 'memory') return '/';
   const hash = typeof window === 'undefined' ? '' : window.location.hash;
   return hash.startsWith('#/') ? hash.slice(1) : '/';
 }
@@ -32,7 +41,7 @@ function goToAnchor(id: string) {
   target.focus({ preventScroll: true });
 }
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && ROUTER_MODE === 'hash') {
   window.addEventListener('hashchange', () => {
     const hash = window.location.hash;
     if (hash.length > 1 && !hash.startsWith('#/')) {
@@ -70,18 +79,34 @@ function toHref(href: string): string {
   return href.startsWith('/') ? href : `/${href}`;
 }
 
+/** Go to a route. In memory mode this is the only way routes change. */
+export function navigate(href: string, options: { replace?: boolean } = {}) {
+  const next = toHref(href);
+  if (ROUTER_MODE === 'memory') {
+    if (!options.replace && next !== route) visited.push(route);
+    setRoute(next);
+    return;
+  }
+  if (options.replace) {
+    window.history.replaceState(null, '', `#${next}`);
+    setRoute(next);
+  } else {
+    window.location.hash = next;
+  }
+}
+
 export function useRouter() {
   return useMemo(
     () => ({
       push(href: string) {
-        window.location.hash = toHref(href);
+        navigate(href);
       },
       replace(href: string) {
-        window.history.replaceState(null, '', `#${toHref(href)}`);
-        setRoute(toHref(href));
+        navigate(href, { replace: true });
       },
       back() {
-        window.history.back();
+        if (ROUTER_MODE === 'memory') setRoute(visited.pop() ?? '/');
+        else window.history.back();
       },
       forward() {
         window.history.forward();

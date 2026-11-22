@@ -114,6 +114,19 @@ textarea {
   color: var(--navy-950);
 }
 
+/* Hosts that draw under the status bar: keep a band behind it, and hide what the host cannot do. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--navy-950);
+}
+:root[data-host='artifact'] [data-needs='print'] {
+  display: none;
+}
+
 /* Utilities */
 .visually-hidden {
   position: absolute !important;

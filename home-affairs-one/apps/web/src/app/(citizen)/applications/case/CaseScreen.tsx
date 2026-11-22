@@ -606,6 +606,7 @@ function PaymentCard({ query }: { query: UseQueryResult<PaymentRecord | null, Ga
                 <Button
                   variant="secondary"
                   className="no-print"
+                  data-needs="print"
                   iconStart={<Printer aria-hidden="true" />}
                   onClick={() => window.print()}
                 >

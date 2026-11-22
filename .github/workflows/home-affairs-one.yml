@@ -57,3 +57,10 @@ jobs:
       # Every screen on a phone and a desktop, the sign-in journeys, and axe.
       - name: Browser checks
         run: npm run test:e2e
+
+      # The shareable single-file build: rebuild it, open it straight from disk
+      # and walk every screen, with scripts on and off.
+      - name: Single-file app
+        run: |
+          npm run build:single
+          npm run check:single

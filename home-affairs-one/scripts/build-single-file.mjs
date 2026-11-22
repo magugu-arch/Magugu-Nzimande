@@ -10,6 +10,7 @@
  * (iPhone's file preview), a static preview of the concept is shown instead.
  *
  *   node scripts/build-single-file.mjs [--site-url https://…/] [--og-image-url https://…/og-image.jpg]
+ *                                      [--artifact-out /path/page.html]
  *
  * Pass both URLs once the file is hosted, so link previews (WhatsApp, iMessage)
  * show the title, description and preview image.
@@ -34,6 +35,7 @@ const option = (name) => {
 };
 const siteUrl = option('site-url');
 const ogImageUrl = option('og-image-url');
+const artifactOut = option('artifact-out');
 
 const manifest = JSON.parse(
   readFileSync(path.join(web, 'src', 'generated', 'asset-manifest.json'), 'utf8'),
@@ -146,18 +148,32 @@ ${pages
 /* 3. Bundle                                                           */
 /* ------------------------------------------------------------------ */
 
-await build({ configFile: path.join(target, 'vite.config.mts') });
-
 const buildDir = path.join(target, '.build');
-let html = readFileSync(path.join(buildDir, 'index.html'), 'utf8');
 
-const scriptTag = html.match(/<script[^>]*src="([^"]+)"[^>]*><\/script>/);
-const styleTag = html.match(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/);
-if (!scriptTag || !styleTag) throw new Error('Could not find the bundled script or stylesheet.');
-const script = readFileSync(path.join(buildDir, scriptTag[1]), 'utf8');
-const style = readFileSync(path.join(buildDir, styleTag[1]), 'utf8');
-if (/url\((?!["']?data:)/.test(style))
-  throw new Error('The stylesheet still points at an external file.');
+/** Bundles the app and returns its one script and one stylesheet as text. */
+async function bundle(router) {
+  process.env.HAO_ROUTER = router;
+  await build({ configFile: path.join(target, 'vite.config.mts') });
+  const page = readFileSync(path.join(buildDir, 'index.html'), 'utf8');
+  const scriptTag = page.match(/<script[^>]*src="([^"]+)"[^>]*><\/script>/);
+  const styleTag = page.match(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/);
+  if (!scriptTag || !styleTag) throw new Error('Could not find the bundled script or stylesheet.');
+  const script = readFileSync(path.join(buildDir, scriptTag[1]), 'utf8');
+  const style = readFileSync(path.join(buildDir, styleTag[1]), 'utf8');
+  if (/url\((?!["']?data:)/.test(style))
+    throw new Error('The stylesheet still points at an external file.');
+  // A closing script tag inside the bundle would end the inline script early.
+  return {
+    page,
+    scriptTag: scriptTag[0],
+    styleTag: styleTag[0],
+    style,
+    script: script.replace(/<\/script/gi, '<\\/script'),
+  };
+}
+
+const { page, scriptTag, styleTag, style, script } = await bundle('hash');
+let html = page;
 
 /* ------------------------------------------------------------------ */
 /* 4. Metadata                                                         */
@@ -284,16 +300,11 @@ const noscript = `<noscript>
 /* ------------------------------------------------------------------ */
 
 html = html
-  .replace(styleTag[0], () => `<style>${style}</style>`)
-  .replace(scriptTag[0], () => '')
+  .replace(styleTag, () => `<style>${style}</style>`)
+  .replace(scriptTag, () => '')
   .replace('<!--METADATA-->', () => metadata)
   .replace('<!--NOSCRIPT-->', () => noscript)
-  // A closing script tag inside the bundle would end the inline script early.
-  .replace(
-    '</body>',
-    () =>
-      `<script type="module">${script.replace(/<\/script/gi, '<\\/script')}</script>\n  </body>`,
-  );
+  .replace('</body>', () => `<script type="module">${script}</script>\n  </body>`);
 
 if (/(src|href)="\.\/(assets|src)\//.test(html))
   throw new Error('The file still references a separate file.');
@@ -307,3 +318,26 @@ console.log(
       ? `, link preview for ${siteUrl}`
       : ', no site URL (pass --site-url and --og-image-url once hosted)'),
 );
+
+/* ------------------------------------------------------------------ */
+/* 7. Optional: the same app as a page fragment for a host frame       */
+/* ------------------------------------------------------------------ */
+
+if (artifactOut) {
+  // The host supplies the document shell, so this is content only: a title,
+  // the styles, the mount point and the script. Routes are kept in memory,
+  // because the host's address only carries plain `#name` anchors.
+  const framed = await bundle('memory');
+  const fragment = [
+    '<title>Home Affairs One Concept</title>',
+    '<meta name="claude:viewport-fit-sides" content="cover">',
+    `<style>${framed.style}</style>`,
+    '<div id="root"><p style="font: 1rem system-ui, sans-serif; padding: 2rem; color: #102a43">Loading Home Affairs One (concept prototype)…</p></div>',
+    `<script type="module">${framed.script}</script>`,
+  ].join('\n');
+  mkdirSync(path.dirname(path.resolve(artifactOut)), { recursive: true });
+  writeFileSync(path.resolve(artifactOut), fragment);
+  console.log(
+    `artifact page: ${artifactOut} — ${(Buffer.byteLength(fragment) / 1024 / 1024).toFixed(2)} MB`,
+  );
+}

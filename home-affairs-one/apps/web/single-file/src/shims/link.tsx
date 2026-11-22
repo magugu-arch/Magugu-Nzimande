@@ -1,4 +1,5 @@
-import type { AnchorHTMLAttributes, ReactNode } from 'react';
+import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from 'react';
+import { ROUTER_MODE, navigate } from './navigation';
 
 interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
   href: string;
@@ -19,8 +20,19 @@ export default function Link({
   ...rest
 }: LinkProps) {
   const internal = href.startsWith('/');
+  const { onClick, ...anchor } = rest;
+
+  // Inside a host frame the address cannot carry a route, so the click is handled here.
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    onClick?.(event);
+    if (!internal || ROUTER_MODE !== 'memory' || event.defaultPrevented) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+    event.preventDefault();
+    navigate(href);
+  };
+
   return (
-    <a href={internal ? `#${href}` : href} {...rest}>
+    <a href={internal ? `#${href}` : href} onClick={handleClick} {...anchor}>
       {children}
     </a>
   );

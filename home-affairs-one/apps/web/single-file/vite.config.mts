@@ -32,6 +32,9 @@ export default defineConfig({
     'process.env.NEXT_PUBLIC_BASE_PATH': '""',
     'process.env.NEXT_PUBLIC_FLAG_PROFILE': '"prototype"',
     'process.env.NODE_ENV': '"production"',
+    'process.env.NEXT_PUBLIC_SINGLE_FILE': '"1"',
+    // `hash` for the shareable file, `memory` for a host frame (see shims/navigation.ts).
+    'process.env.HAO_ROUTER': JSON.stringify(process.env.HAO_ROUTER ?? 'hash'),
   },
   build: {
     outDir: path.join(here, '.build'),

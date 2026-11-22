@@ -8,6 +8,9 @@ import { Providers } from '@/lib/providers';
 import { safeStorage } from '@/lib/storage';
 import { Router } from './router';
 
+// Lets the styles hide what a host cannot do (an Artifact cannot open the print dialog).
+document.documentElement.dataset.host = process.env.HAO_ROUTER === 'memory' ? 'artifact' : 'file';
+
 // Saved text-size and contrast choices apply before the first screen is drawn.
 applyPrefs(document.documentElement, loadPrefs(safeStorage('local')));
 
