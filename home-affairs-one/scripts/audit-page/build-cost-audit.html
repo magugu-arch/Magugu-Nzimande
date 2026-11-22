@@ -1,0 +1,1056 @@
+<title>Home Affairs One Cost Audit</title>
+<meta name="claude:viewport-fit-sides" content="cover" />
+<style>
+  /*FONTS*/
+  /* Layout: one reading column. Each tier is a ledger entry — a figure, its place on a shared
+     scale, what it buys, and the rows that add up to it. Square corners throughout. */
+  :root {
+    color-scheme: dark;
+    --ink: #070c14;
+    --surface: #101b2b;
+    --sunken: #0c1622;
+    --line: #253348;
+    --line-strong: #76849a;
+    --ivory: #f4f1ea;
+    --soft: #c5ced9;
+    --muted: #a8b3c2;
+    --gold: #d5a52a;
+    --gold-text: #e6c15c;
+    --gold-wash: #1e190b;
+    --gold-line: #6a5520;
+    --focus: #8fc7ff;
+    --display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    --body: 'Atkinson Hyperlegible Next Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--ivory);
+    font: 1.0625rem/1.6 var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  p,
+  ul,
+  ol,
+  dl,
+  dd,
+  figure {
+    margin: 0;
+  }
+  a {
+    color: var(--gold-text);
+    text-underline-offset: 0.18em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  .wrap {
+    max-width: 46rem;
+    margin-inline: auto;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+  }
+  .ribbon {
+    border-bottom: 1px solid var(--line);
+    background: #0a111b;
+    color: var(--muted);
+    font: 0.75rem/1.45 var(--mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .ribbon .wrap {
+    padding-block: 0.5rem;
+    text-align: center;
+  }
+  .ribbon b {
+    color: var(--gold-text);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+  }
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    color: var(--gold-text);
+    font: 500 0.75rem/1.5 var(--mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .label::before {
+    content: '';
+    flex: none;
+    width: 2.25rem;
+    height: 1px;
+    background: var(--gold);
+  }
+  header.top {
+    display: grid;
+    gap: 1.5rem;
+    padding-block: 2.5rem 3rem;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font: 440 1.25rem/1 var(--display);
+    letter-spacing: -0.015em;
+  }
+  .brand em,
+  h1 em,
+  h2 em {
+    color: var(--gold-text);
+    font-style: italic;
+    font-weight: 380;
+  }
+  h1 {
+    font: 380 clamp(2.625rem, 1.5rem + 5.6vw, 4.5rem) / 0.98 var(--display);
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .lede {
+    max-width: 36rem;
+    color: var(--soft);
+    font-size: 1.1875rem;
+  }
+  .meta {
+    color: var(--muted);
+    font: 0.75rem/1.5 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  section {
+    display: grid;
+    gap: 1.25rem;
+    padding-block: 3rem;
+    border-top: 1px solid var(--line);
+  }
+  section > * {
+    min-width: 0;
+  }
+  h2 {
+    font: 400 clamp(1.875rem, 1.4rem + 2.2vw, 2.625rem) / 1.06 var(--display);
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+  h3 {
+    font: 650 1.0625rem/1.35 var(--body);
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .small {
+    font-size: 0.9375rem;
+  }
+
+  /* The shared scale: each tier's range on one logarithmic axis, R1m to R1bn. */
+  .scale {
+    display: grid;
+    gap: 1.25rem;
+    padding: 1.5rem 1.25rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .scale-row {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .scale-name {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    font-size: 0.9375rem;
+  }
+  .scale-name b {
+    font-weight: 650;
+  }
+  .scale-name span {
+    color: var(--soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .track {
+    position: relative;
+    height: 1.125rem;
+    background:
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 33.333% 100%,
+      var(--sunken);
+    border-right: 1px solid var(--line);
+  }
+  .track .range {
+    position: absolute;
+    inset-block: 0.25rem;
+    background: var(--gold);
+  }
+  .track .likely {
+    position: absolute;
+    inset-block: 0;
+    width: 3px;
+    margin-left: -1.5px;
+    background: var(--ivory);
+  }
+  .axis {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font: 0.6875rem/1.4 var(--mono);
+    letter-spacing: 0.06em;
+  }
+  .scale figcaption {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+  .key {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.5rem;
+    margin-right: 0.25rem;
+    background: var(--gold);
+  }
+  .key.pin {
+    width: 3px;
+    height: 0.75rem;
+    background: var(--ivory);
+    vertical-align: -0.1rem;
+  }
+
+  /* A tier's headline figure. */
+  .figure {
+    font: 380 clamp(2.5rem, 1.5rem + 5vw, 4rem) / 1 var(--display);
+    letter-spacing: -0.03em;
+    font-variant-numeric: lining-nums;
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .facts span {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--soft);
+    font: 500 0.6875rem/1.4 var(--mono);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .facts .likely-fact {
+    border-color: var(--gold-line);
+    background: var(--gold-wash);
+    color: var(--gold-text);
+  }
+
+  /* Ledger rows: a label and a figure, with a total. */
+  .rows {
+    display: grid;
+    border-top: 1px solid var(--line-strong);
+  }
+  .rows > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.625rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9375rem;
+  }
+  .rows dt {
+    min-width: 0;
+    color: var(--soft);
+  }
+  .rows dd {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .rows .head {
+    color: var(--muted);
+    font: 500 0.6875rem/1.4 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .rows .head dt {
+    color: var(--muted);
+  }
+  .rows .total {
+    border-bottom: 0;
+    font-weight: 700;
+  }
+  .rows .total dt {
+    color: var(--ivory);
+  }
+  .sums {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+  .sums > div {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .sums .mid {
+    border-color: var(--gold-line);
+    background: var(--gold-wash);
+  }
+  .sums small {
+    color: var(--muted);
+    font: 500 0.6875rem/1.4 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .sums b {
+    font: 400 1.625rem/1.1 var(--display);
+    letter-spacing: -0.015em;
+  }
+  .sums span {
+    color: var(--muted);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .note {
+    padding: 1rem 1.125rem;
+    border: 1px solid var(--gold-line);
+    border-left: 2px solid var(--gold);
+    background: var(--gold-wash);
+    font-size: 0.9375rem;
+  }
+  .plain {
+    padding: 1rem 1.125rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-size: 0.9375rem;
+  }
+  .pairs {
+    display: grid;
+    border-top: 1px solid var(--line-strong);
+  }
+  .pairs > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.125rem 1rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9375rem;
+  }
+  .pairs h3 {
+    grid-column: 1 / -1;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    color: var(--soft);
+  }
+  .pairs p {
+    font-variant-numeric: tabular-nums;
+  }
+  .pairs small {
+    display: block;
+    color: var(--muted);
+    font: 500 0.6875rem/1.4 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .pairs .total {
+    border-bottom: 0;
+    font-weight: 700;
+  }
+  .pairs .total h3 {
+    color: var(--ivory);
+    font-weight: 700;
+  }
+  ol.drivers {
+    display: grid;
+    gap: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: driver;
+    border-top: 1px solid var(--line-strong);
+  }
+  ol.drivers li {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: 0.25rem 0.75rem;
+    padding-block: 0.875rem;
+    border-bottom: 1px solid var(--line);
+    counter-increment: driver;
+  }
+  ol.drivers li::before {
+    content: counter(driver, decimal-leading-zero);
+    grid-row: span 2;
+    padding-top: 0.2rem;
+    color: var(--gold-text);
+    font: 0.75rem/1.5 var(--mono);
+    letter-spacing: 0.1em;
+  }
+  ol.drivers p {
+    color: var(--muted);
+    font-size: 0.9375rem;
+  }
+  ul.list {
+    display: grid;
+    gap: 0.375rem;
+    padding-left: 1.125rem;
+    color: var(--soft);
+  }
+  ul.list li::marker {
+    color: var(--gold);
+  }
+  ul.sources {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+  }
+  footer {
+    padding-block: 2rem 4rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+</style>
+<!--BODY-->
+<div class="ribbon">
+  <div class="wrap">
+    <b>Independent estimate</b> · Not a quote · Not from or endorsed by the Department of Home
+    Affairs
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect width="32" height="32" fill="#d5a52a" />
+        <rect x="11" y="7" width="10" height="16" fill="#070c14" />
+        <rect x="7" y="23" width="18" height="2" fill="#070c14" />
+      </svg>
+      <span>Home Affairs <em>One</em></span>
+    </div>
+    <p class="label">Build-cost audit</p>
+    <h1>What it costs to build an app <em>like this.</em></h1>
+    <p class="lede">
+      Three price points, from a clickable concept to a service for the whole country. Ranges are in
+      rand and exclude VAT.
+    </p>
+    <p class="meta">Prepared 22 November 2026 · Concept prototype</p>
+  </header>
+
+  <section aria-labelledby="short-answer">
+    <p class="label">The short answer</p>
+    <h2 id="short-answer">Each step costs ten to fifteen times the one before.</h2>
+    <p class="muted">
+      The step is not more screens. It is connecting to real systems, proving the service is secure,
+      and running it for millions of people.
+    </p>
+    <figure class="scale">
+      <div class="scale-row">
+        <p class="scale-name"><b>Tier 1 · Concept prototype</b><span>R1.1m – R3.1m</span></p>
+        <div class="track">
+          <span class="range" style="left: 1.4%; width: 15%"></span
+          ><span class="likely" style="left: 9.3%"></span>
+        </div>
+      </div>
+      <div class="scale-row">
+        <p class="scale-name"><b>Tier 2 · Working pilot</b><span>R14m – R41m</span></p>
+        <div class="track">
+          <span class="range" style="left: 38.2%; width: 15.6%"></span
+          ><span class="likely" style="left: 46.6%"></span>
+        </div>
+      </div>
+      <div class="scale-row">
+        <p class="scale-name"><b>Tier 3 · National service</b><span>R230m – R680m</span></p>
+        <div class="track">
+          <span class="range" style="left: 78.7%; width: 15.7%"></span
+          ><span class="likely" style="left: 87.3%"></span>
+        </div>
+        <div class="axis" aria-hidden="true">
+          <span>R1m</span><span>R10m</span><span>R100m</span><span>R1bn</span>
+        </div>
+      </div>
+      <figcaption>
+        <span class="key"></span>Range, low to high. <span class="key pin"></span>Most likely. The
+        axis is logarithmic: each gridline is ten times the last.
+      </figcaption>
+    </figure>
+    <p class="small muted">
+      A lighter option sits below Tier 1: a pitch prototype of about 20 key screens in a design
+      file, with no code, at R250k – R700k over 3–5 weeks.
+    </p>
+  </section>
+
+  <section aria-labelledby="audited">
+    <p class="label">What was audited</p>
+    <h2 id="audited">The prototype, measured.</h2>
+    <dl class="rows">
+      <div>
+        <dt>Screens, for citizens, staff and partners</dt>
+        <dd>54</dd>
+      </div>
+      <div>
+        <dt>Design-system components</dt>
+        <dd>41</dd>
+      </div>
+      <div>
+        <dt>Mock services behind typed contracts</dt>
+        <dd>10</dd>
+      </div>
+      <div>
+        <dt>Sample services in the catalogue</dt>
+        <dd>13</dd>
+      </div>
+      <div>
+        <dt>Lines of application code</dt>
+        <dd>28,400</dd>
+      </div>
+      <div>
+        <dt>Lines of styling</dt>
+        <dd>7,250</dd>
+      </div>
+      <div>
+        <dt>Unit tests</dt>
+        <dd>388</dd>
+      </div>
+      <div>
+        <dt>Browser and accessibility tests</dt>
+        <dd>48</dd>
+      </div>
+      <div>
+        <dt>Photographs with alt text</dt>
+        <dd>60</dd>
+      </div>
+    </dl>
+    <p>
+      The prototype is about <strong>a tenth of the effort of a working pilot</strong>: roughly 275
+      person-days against 2,730. It is the front of house — what the service should feel like. The
+      other nine-tenths are the parts a person never sees.
+    </p>
+    <dl class="rows">
+      <div class="head">
+        <dt>Against a production service</dt>
+        <dd>Today</dd>
+      </div>
+      <div>
+        <dt>Design and flows</dt>
+        <dd>Done for a concept</dd>
+      </div>
+      <div>
+        <dt>Accessibility</dt>
+        <dd>Automated checks only</dd>
+      </div>
+      <div>
+        <dt>Security</dt>
+        <dd>None: no server</dd>
+      </div>
+      <div>
+        <dt>Integrations</dt>
+        <dd>None: all mocked</dd>
+      </div>
+      <div>
+        <dt>Content</dt>
+        <dd>Sample only</dd>
+      </div>
+      <div>
+        <dt>Languages</dt>
+        <dd>English</dd>
+      </div>
+      <div>
+        <dt>Native apps</dt>
+        <dd>None: web only</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="method">
+    <p class="label">How the numbers are built</p>
+    <h2 id="method">Effort, times a day rate, plus what you buy in.</h2>
+    <dl class="rows">
+      <div class="head">
+        <dt>Blended rate per person-day</dt>
+        <dd>Excl. VAT</dd>
+      </div>
+      <div>
+        <dt>Low: a small studio or freelancers</dt>
+        <dd>R5,000</dd>
+      </div>
+      <div>
+        <dt>Working figure for Tiers 1 and 2</dt>
+        <dd>R6,800</dd>
+      </div>
+      <div>
+        <dt>High: an established consultancy</dt>
+        <dd>R9,000</dd>
+      </div>
+      <div>
+        <dt>Tier 3, low / likely / high</dt>
+        <dd>R6,000 / R7,500 / R9,500</dd>
+      </div>
+    </dl>
+    <p class="small muted">
+      Salary surveys for 2026 put senior developers in South Africa at roughly R50,000 to R100,000 a
+      month. Agencies bill at about twice the cost of employment, and a team blends senior,
+      mid-level and junior people. Directory listings for South African agencies mostly show
+      US$25–$49 an hour. Contingency is 15% for the pilot and 20% for the national service.
+    </p>
+    <p class="note">
+      <strong>Replace these rates with real supplier rates</strong> before using any figure in a
+      proposal. Every total below scales with them.
+    </p>
+  </section>
+
+  <section aria-labelledby="tier-1">
+    <p class="label">Tier 1 · Concept prototype</p>
+    <h2 id="tier-1" class="figure">R1.1m – R3.1m</h2>
+    <p class="facts">
+      <span class="likely-fact">Most likely R1.9m</span><span>10–14 weeks</span
+      ><span>5–6 people</span>
+    </p>
+    <p>
+      A clickable, coded prototype like this one: 54 screens, a design system, mock services, sample
+      content, tests and documents. No real data and no server.
+    </p>
+    <dl class="rows">
+      <div class="head">
+        <dt>Work</dt>
+        <dd>Person-days</dd>
+      </div>
+      <div>
+        <dt>Discovery and service mapping</dt>
+        <dd>10 – 15</dd>
+      </div>
+      <div>
+        <dt>Flows and screen design</dt>
+        <dd>25 – 40</dd>
+      </div>
+      <div>
+        <dt>Visual design and design system</dt>
+        <dd>25 – 40</dd>
+      </div>
+      <div>
+        <dt>Art direction and 60 photographs</dt>
+        <dd>10 – 20</dd>
+      </div>
+      <div>
+        <dt>Front-end build with mock services</dt>
+        <dd>70 – 110</dd>
+      </div>
+      <div>
+        <dt>Content design</dt>
+        <dd>15 – 25</dd>
+      </div>
+      <div>
+        <dt>Accessibility</dt>
+        <dd>8 – 15</dd>
+      </div>
+      <div>
+        <dt>Testing and automation</dt>
+        <dd>20 – 30</dd>
+      </div>
+      <div>
+        <dt>Documentation</dt>
+        <dd>10 – 15</dd>
+      </div>
+      <div>
+        <dt>Product and delivery management</dt>
+        <dd>20 – 30</dd>
+      </div>
+      <div class="total">
+        <dt>Total</dt>
+        <dd>213 – 340</dd>
+      </div>
+    </dl>
+    <div class="sums">
+      <div><small>Low</small><b>R1.07m</b><span>213 days × R5,000</span></div>
+      <div class="mid"><small>Most likely</small><b>R1.87m</b><span>275 days × R6,800</span></div>
+      <div><small>High</small><b>R3.06m</b><span>340 days × R9,000</span></div>
+    </div>
+    <p class="small muted">Add R50k – R200k if the photographs are commissioned or licensed.</p>
+  </section>
+
+  <section aria-labelledby="tier-2">
+    <p class="label">Tier 2 · Working pilot</p>
+    <h2 id="tier-2" class="figure">R14m – R41m</h2>
+    <p class="facts">
+      <span class="likely-fact">Most likely R25m</span><span>9–12 months</span
+      ><span>10–14 people</span>
+    </p>
+    <p>
+      A real service for one region, or 50,000 to 250,000 people. Web and mobile apps, sign-in
+      through an approved identity provider, three services working end to end against existing
+      systems, a secure inbox, appointments, payments, a staff console and an audit trail, in two or
+      three languages.
+    </p>
+    <dl class="rows">
+      <div class="head">
+        <dt>Team</dt>
+        <dd>Person-months</dd>
+      </div>
+      <div>
+        <dt>Product, delivery and analysis</dt>
+        <dd>16 – 26</dd>
+      </div>
+      <div>
+        <dt>Design, research and content</dt>
+        <dd>14 – 22</dd>
+      </div>
+      <div>
+        <dt>Mobile apps</dt>
+        <dd>14 – 24</dd>
+      </div>
+      <div>
+        <dt>Web front end</dt>
+        <dd>8 – 14</dd>
+      </div>
+      <div>
+        <dt>Back end and workflow</dt>
+        <dd>20 – 32</dd>
+      </div>
+      <div>
+        <dt>Identity and integration</dt>
+        <dd>8 – 14</dd>
+      </div>
+      <div>
+        <dt>Testing and test automation</dt>
+        <dd>10 – 16</dd>
+      </div>
+      <div>
+        <dt>Platform, operations and security</dt>
+        <dd>10 – 12</dd>
+      </div>
+      <div class="total">
+        <dt>Total</dt>
+        <dd>100 – 160</dd>
+      </div>
+    </dl>
+    <dl class="rows">
+      <div class="head">
+        <dt>Bought in</dt>
+        <dd>Range</dd>
+      </div>
+      <div>
+        <dt>Security testing, two rounds</dt>
+        <dd>R0.5m – R1.4m</dd>
+      </div>
+      <div>
+        <dt>Accessibility audit with disabled people</dt>
+        <dd>R0.2m – R0.6m</dd>
+      </div>
+      <div>
+        <dt>Privacy and legal work</dt>
+        <dd>R0.2m – R0.6m</dd>
+      </div>
+      <div>
+        <dt>Research recruitment</dt>
+        <dd>R0.2m – R0.7m</dd>
+      </div>
+      <div>
+        <dt>Translation</dt>
+        <dd>R0.1m – R0.4m</dd>
+      </div>
+      <div>
+        <dt>Cloud and tooling during the build</dt>
+        <dd>R0.6m – R1.5m</dd>
+      </div>
+      <div>
+        <dt>Devices, app stores, licences</dt>
+        <dd>R0.2m – R0.3m</dd>
+      </div>
+      <div class="total">
+        <dt>Total</dt>
+        <dd>R2.0m – R5.5m</dd>
+      </div>
+    </dl>
+    <div class="sums">
+      <div><small>Low</small><b>R14.4m</b><span>R10.5m labour + R2.0m, + 15%</span></div>
+      <div class="mid">
+        <small>Most likely</small><b>R25.4m</b><span>R18.6m labour + R3.5m, + 15%</span>
+      </div>
+      <div><small>High</small><b>R41.1m</b><span>R30.2m labour + R5.5m, + 15%</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="tier-3">
+    <p class="label">Tier 3 · National service</p>
+    <h2 id="tier-3" class="figure">R230m – R680m</h2>
+    <p class="facts">
+      <span class="likely-fact">Most likely R415m</span><span>2.5–3 years</span
+      ><span>60–90 people at peak</span>
+    </p>
+    <p>
+      The brief's full scope: every service in the catalogue, all eleven official languages, service
+      points and missions abroad, a wallet, partner verification, and operations around the clock.
+    </p>
+    <dl class="rows">
+      <div class="head">
+        <dt>Team</dt>
+        <dd>Person-years</dd>
+      </div>
+      <div>
+        <dt>Identity, sign-in and recovery</dt>
+        <dd>14 – 26</dd>
+      </div>
+      <div>
+        <dt>Applications and workflow</dt>
+        <dd>24 – 44</dd>
+      </div>
+      <div>
+        <dt>Appointments and service points</dt>
+        <dd>10 – 18</dd>
+      </div>
+      <div>
+        <dt>Messaging and consent</dt>
+        <dd>10 – 18</dd>
+      </div>
+      <div>
+        <dt>Payments and receipts</dt>
+        <dd>8 – 14</dd>
+      </div>
+      <div>
+        <dt>Staff console and case tools</dt>
+        <dd>14 – 26</dd>
+      </div>
+      <div>
+        <dt>Apps, design system, languages</dt>
+        <dd>16 – 30</dd>
+      </div>
+      <div>
+        <dt>Platform, reliability, security</dt>
+        <dd>14 – 26</dd>
+      </div>
+      <div>
+        <dt>Data and reporting</dt>
+        <dd>5 – 9</dd>
+      </div>
+      <div>
+        <dt>Programme and assurance</dt>
+        <dd>5 – 9</dd>
+      </div>
+      <div class="total">
+        <dt>Total</dt>
+        <dd>120 – 220</dd>
+      </div>
+    </dl>
+    <div class="sums">
+      <div><small>Low</small><b>R232m</b><span>R158m labour + R35m, + 20%</span></div>
+      <div class="mid">
+        <small>Most likely</small><b>R415m</b><span>R281m labour + R65m, + 20%</span>
+      </div>
+      <div><small>High</small><b>R684m</b><span>R460m labour + R110m, + 20%</span></div>
+    </div>
+    <p class="plain">
+      <strong>A reference point, not a comparison.</strong> The UK government budgeted £305m over
+      three years for GOV.UK One Login, which covers sign-in and identity checking only. UK labour
+      costs several times what South African labour does, so the figure does not transfer. It shows
+      that a national identity service is a programme of this order, not a larger app project.
+    </p>
+  </section>
+
+  <section aria-labelledby="running">
+    <p class="label">After the build</p>
+    <h2 id="running">Running it, each year.</h2>
+    <div class="pairs">
+      <div>
+        <h3>Team to run and improve it</h3>
+        <p><small>Pilot</small>R6.6m – R15.8m</p>
+        <p><small>National</small>R53m – R125m</p>
+      </div>
+      <div>
+        <h3>Cloud and disaster recovery</h3>
+        <p><small>Pilot</small>R0.6m – R1.8m</p>
+        <p><small>National</small>R8m – R25m</p>
+      </div>
+      <div>
+        <h3>Messaging: SMS, WhatsApp, email</h3>
+        <p><small>Pilot</small>R0.5m – R2.0m</p>
+        <p><small>National</small>R5m – R20m</p>
+      </div>
+      <div>
+        <h3>Security and assurance</h3>
+        <p><small>Pilot</small>R0.6m – R1.5m</p>
+        <p><small>National</small>R3m – R8m</p>
+      </div>
+      <div>
+        <h3>Licences and tools</h3>
+        <p><small>Pilot</small>R0.3m – R1.0m</p>
+        <p><small>National</small>R3m – R10m</p>
+      </div>
+      <div class="total">
+        <h3>Total a year</h3>
+        <p><small>Pilot</small>R9m – R22m</p>
+        <p><small>National</small>R70m – R190m</p>
+      </div>
+    </div>
+    <p class="small muted">
+      Messaging is driven by volume. SMS costs the most per message and in-app notifications the
+      least, which is one reason the design sends people back to the secure inbox.
+    </p>
+  </section>
+
+  <section aria-labelledby="drivers">
+    <p class="label">Sensitivity</p>
+    <h2 id="drivers">What moves the number most.</h2>
+    <ol class="drivers">
+      <li>
+        <h3>Connecting to existing systems</h3>
+        <p>
+          The largest unknown. Each system needs an owner, a tested interface and a fallback for
+          when it is down.
+        </p>
+      </li>
+      <li>
+        <h3>How strongly identity must be proven</h3>
+        <p>A verified account costs far more than a basic one. Biometric checks cost more again.</p>
+      </li>
+      <li>
+        <h3>Native apps or web only</h3>
+        <p>Two app stores add build, testing and release work to every change.</p>
+      </li>
+      <li>
+        <h3>Languages</h3>
+        <p>Eleven official languages multiply content, testing and support.</p>
+      </li>
+      <li>
+        <h3>Low-data and offline use</h3>
+        <p>Worth it for reach. It adds engineering and testing.</p>
+      </li>
+      <li>
+        <h3>Security and assurance</h3>
+        <p>Independent testing, monitoring and audit recur every year.</p>
+      </li>
+      <li>
+        <h3>Pace</h3>
+        <p>Running teams in parallel shortens the calendar and raises the cost.</p>
+      </li>
+      <li>
+        <h3>Procurement route</h3>
+        <p>
+          One prime contractor, several specialists, or an in-house team each price differently.
+        </p>
+      </li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="excluded">
+    <p class="label">Scope</p>
+    <h2 id="excluded">What these figures leave out.</h2>
+    <ul class="list">
+      <li>Modernising the back-office systems the service would connect to</li>
+      <li>Hardware, connectivity and kiosks at service points</li>
+      <li>Staff training and change management</li>
+      <li>Legal drafting and any regulatory change</li>
+      <li>Contact-centre staff</li>
+      <li>Public awareness and marketing</li>
+      <li>VAT</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="ai">
+    <p class="label">A note on method</p>
+    <h2 id="ai">What AI-assisted delivery changes.</h2>
+    <p>
+      This prototype was built with AI assistance in days, not the 10–14 weeks estimated above for a
+      conventional team. That saving is real at Tier 1, where the work is design exploration,
+      front-end code, tests and documents.
+    </p>
+    <p>
+      It does not carry through in proportion. In Tiers 2 and 3 most of the cost is integration,
+      security assurance, research with real people, governance and operations. A cautious planning
+      assumption is 10–25% off the engineering effort, not off the total.
+    </p>
+  </section>
+
+  <section aria-labelledby="next">
+    <p class="label">Next step</p>
+    <h2 id="next">From estimate to quote.</h2>
+    <p>
+      A 6–8 week discovery, at about <strong>R1.2m – R2.5m</strong>, would replace these ranges with
+      a priced proposal. It would confirm the scope of the first release, test each integration with
+      its system owner, settle the security architecture and procurement route, and produce a
+      delivery plan.
+    </p>
+  </section>
+
+  <section aria-labelledby="limits">
+    <p class="label">Read this before quoting a number</p>
+    <h2 id="limits">Limits of this audit.</h2>
+    <ul class="list">
+      <li>
+        The effort figures are judgement, built from the size of this prototype and the brief's
+        scope. They have not been checked against supplier quotes.
+      </li>
+      <li>
+        The rates rest on public salary surveys and directory listings, which are self-reported and
+        vary in method.
+      </li>
+      <li>No exchange rate is applied. Directory rates are in US dollars as found.</li>
+      <li>The national tier is the least certain. Treat it as an order of magnitude.</li>
+      <li>Nothing here describes what any real Home Affairs system costs.</li>
+    </ul>
+    <h3>Sources</h3>
+    <ul class="sources">
+      <li>
+        <a
+          href="https://www.offerzen.com/blog/software-developer-salary-south-africa"
+          target="_blank"
+          rel="noopener noreferrer"
+          >OfferZen — software developer salaries in South Africa</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://za.indeed.com/career/senior-developer/salaries"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Indeed — senior developer salaries in South Africa</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://www.payscale.com/research/ZA/Job=Senior_Software_Developer/Salary"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Payscale — senior software developer salary in South Africa</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://www.goodfirms.co/directory/country/top-software-development-companies/south-africa"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GoodFirms — software development companies in South Africa</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://superbcompanies.com/categories/mobile-app-development-companies-in-south-africa/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >SuperbCompanies — mobile app developers in South Africa</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://civilserviceworld.com/news/article/one-login-expected-to-cost-305m-and-deliver-175bn-benefits"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Civil Service World — One Login expected to cost £305m</a
+        >
+      </li>
+    </ul>
+  </section>
+
+  <footer>
+    Home Affairs One is a design concept. It is not connected to any Home Affairs system, and this
+    audit is an independent estimate of what building a service like it could cost.
+  </footer>
+</div>

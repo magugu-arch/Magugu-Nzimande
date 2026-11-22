@@ -152,11 +152,12 @@ To host under a sub-path (for example GitHub Pages), build with
 
 ## Share it
 
-| What                     | Where                                                                                                                                                                                   |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Single-file app**      | `share/Home_Affairs_One_Concept_Prototype.html` — about 4.5 MB. Scripts, styles, fonts, link-preview metadata and all 60 photographs are embedded. Works offline and makes no requests. |
-| **Interactive Artifact** | https://claude.ai/artifact/NhACnhfDPah6Sdty9rodYk — private until its owner shares it from the page's Share menu.                                                                       |
-| **Social preview image** | `share/og-image.jpg` (1200 × 630), for link previews once the app is hosted.                                                                                                            |
+| What                     | Where                                                                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Single-file app**      | `share/Home_Affairs_One_Concept_Prototype.html` — about 4.5 MB. Scripts, styles, fonts, link-preview metadata and all 60 photographs are embedded. Works offline and makes no requests.                 |
+| **Interactive Artifact** | https://claude.ai/artifact/NhACnhfDPah6Sdty9rodYk — private until its owner shares it from the page's Share menu.                                                                                       |
+| **Social preview image** | `share/og-image.jpg` (1200 × 630), for link previews once the app is hosted.                                                                                                                            |
+| **Build-cost audit**     | `share/Home_Affairs_One_Build_Cost_Audit.html` — what it costs to build an app like this, at three price points. The reference version is `docs/product/build-cost-audit.md`. An estimate, not a quote. |
 
 | On       | How it opens                                                                                                                                                                                                                           |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -167,6 +168,7 @@ To host under a sub-path (for example GitHub Pages), build with
 ```bash
 npm run build:single   # writes share/Home_Affairs_One_Concept_Prototype.html
 npm run check:single   # opens that file from disk and walks every screen, with and without scripts
+npm run build:audit    # writes share/Home_Affairs_One_Build_Cost_Audit.html
 node scripts/make-og-image.mjs
 # once hosted, rebuild so link previews carry the address and image:
 node scripts/build-single-file.mjs --site-url https://your-host/ --og-image-url https://your-host/og-image.jpg
@@ -178,16 +180,17 @@ file; and the image lookup, for embedded copies.
 
 ## Documentation
 
-|                                                 |                                                                       |
-| ----------------------------------------------- | --------------------------------------------------------------------- |
-| `docs/product/home-affairs-one-brief.md`        | The brief, converted from the approved Word document                  |
-| `docs/product/open-questions.md`                | Numbered questions that need DHA decisions                            |
-| `docs/design/building-screens.md`               | How every screen is put together                                      |
-| `docs/design/asset-manifest.md`                 | The 60-image register                                                 |
-| `docs/architecture/overview.md`, `decisions.md` | Target and prototype architecture; decision log                       |
-| `docs/security/`                                | Threat-model outline, data classification, secure development         |
-| `docs/privacy/`                                 | Privacy notes and the responsible-AI position                         |
-| `docs/runbooks/`                                | Local development, manual accessibility testing, release and rollback |
+|                                                 |                                                                              |
+| ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| `docs/product/home-affairs-one-brief.md`        | The brief, converted from the approved Word document                         |
+| `docs/product/open-questions.md`                | Numbered questions that need DHA decisions                                   |
+| `docs/product/build-cost-audit.md`              | What it costs to build an app like this: three tiers, with the working shown |
+| `docs/design/building-screens.md`               | How every screen is put together                                             |
+| `docs/design/asset-manifest.md`                 | The 60-image register                                                        |
+| `docs/architecture/overview.md`, `decisions.md` | Target and prototype architecture; decision log                              |
+| `docs/security/`                                | Threat-model outline, data classification, secure development                |
+| `docs/privacy/`                                 | Privacy notes and the responsible-AI position                                |
+| `docs/runbooks/`                                | Local development, manual accessibility testing, release and rollback        |
 
 ## Known limits
 

@@ -28,7 +28,8 @@
     "test:e2e": "playwright test",
     "verify": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run assets:check",
     "build:single": "node scripts/build-single-file.mjs",
-    "check:single": "node scripts/check-single-file.mjs"
+    "check:single": "node scripts/check-single-file.mjs",
+    "build:audit": "node scripts/build-audit-page.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
