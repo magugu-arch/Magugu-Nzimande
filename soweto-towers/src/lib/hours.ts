@@ -15,7 +15,7 @@ export type DayHours = {
 /** Per-day overrides staff set in the console (closures, special hours). */
 export type HoursOverride = { date: Ymd; closed?: boolean; opensAt?: Hm; note?: string };
 
-const LAST_START_BEFORE_SUNSET_MIN = 30;
+export const LAST_START_BEFORE_SUNSET_MIN = 30;
 
 export function dayHours(date: Ymd, overrides: HoursOverride[] = []): DayHours {
   const sunset = sunsetHm(date);

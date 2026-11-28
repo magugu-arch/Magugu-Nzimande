@@ -26,6 +26,10 @@
  *   their section without following the "#" link (app previewers that show
  *   the file in a frame break "#" links), and the menu closes when a section
  *   is chosen or Escape is pressed.
+ * - A booking planner (scripts/share-page/planner.js, shown where scripts
+ *   run): adventure, people, a calendar and times by the website's rules,
+ *   and the request sent on WhatsApp or by email. Without scripts, the
+ *   booking buttons open WhatsApp and email with a template, as before.
  * - Metadata for search and link previews (title, description, Open Graph,
  *   Twitter, geo tags, JSON-LD) points at the live site, so the same file can
  *   also be hosted as-is.
@@ -45,6 +49,7 @@ import { rand } from '../src/lib/format';
 import { weeklyHoursSummary } from '../src/lib/hours';
 import { sunsetHm } from '../src/lib/sun';
 import { formatDate, ymdInSast } from '../src/lib/time';
+import { buildPlanData } from './share-page/plan-data';
 
 const SITE = 'https://sowetotowers.co.za';
 const root = path.resolve(import.meta.dirname, '..');
@@ -95,6 +100,12 @@ const icon = {
     '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.04 2.5a9.43 9.43 0 0 0-8.1 14.27L2.5 21.5l4.86-1.4A9.44 9.44 0 1 0 12.04 2.5Zm0 17.1a7.66 7.66 0 0 1-3.9-1.07l-.28-.17-2.88.83.84-2.8-.19-.29a7.67 7.67 0 1 1 6.41 3.5Zm4.2-5.74c-.23-.12-1.36-.67-1.57-.75-.21-.08-.36-.12-.52.12-.15.23-.6.75-.73.9-.14.15-.27.17-.5.06a6.3 6.3 0 0 1-3.13-2.74c-.24-.4.24-.38.68-1.26.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.4h-.44a.85.85 0 0 0-.62.29 2.6 2.6 0 0 0-.81 1.93 4.5 4.5 0 0 0 .95 2.4 10.3 10.3 0 0 0 3.95 3.49c1.47.63 2.04.69 2.78.58.45-.07 1.36-.56 1.55-1.1.2-.54.2-1 .14-1.1-.06-.1-.21-.16-.44-.27Z"/></svg>',
   phone:
     '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16.5v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.5 5.2 2 2 0 0 1 5.5 3h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L9.5 10.7a16 16 0 0 0 3.8 3.8l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg>',
+  calendar:
+    '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  chevronLeft:
+    '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 6-6 6 6 6"/></svg>',
+  chevronRight:
+    '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 6 6 6-6 6"/></svg>',
   mail: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>',
   pin: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 1 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
   check:
@@ -135,6 +146,12 @@ const enhance = `(() => {
 // -------------------------------------------------------------- assets
 
 const font = (await readFile(path.join(root, 'src', 'fonts', 'archivo-latin-wght-normal.woff2'))).toString('base64');
+
+// The booking planner: its script and data (scripts/share-page/).
+const plannerJs = await readFile(path.join(import.meta.dirname, 'share-page', 'planner.js'), 'utf8');
+if (/<\/script/i.test(plannerJs)) throw new Error('planner.js must not contain a closing script tag');
+const planData = buildPlanData();
+const planJson = JSON.stringify(planData).replace(/</g, '\\u003c');
 
 // Identity option 01, the S + T monogram, drawn from the identity document's own artwork.
 const headerLockup = stLockupSvg({ height: 40 });
@@ -178,7 +195,7 @@ const adventureCards = activities
     const enquiry = a.booking.mode === 'enquiry';
     const cta = enquiry
       ? `<a class="link" href="${wa('Hi Soweto Towers! I am a skydiver and would like to base jump from the towers.\nNumber of freefalls: \nPreferred date: ')}">${icon.whatsapp}Apply on WhatsApp</a>`
-      : `<a class="link" href="${wa(bookText(`the ${a.name}`))}">${icon.whatsapp}Book on WhatsApp</a>`;
+      : `<a class="link" href="${wa(bookText(`the ${a.name}`))}" data-plan="${a.id === 'bungee-jump' ? 'the-jump' : a.id}" data-plan-label="Choose a time">${icon.whatsapp}Book on WhatsApp</a>`;
     return `<li class="card">
   <div class="card__media">${img(cards.get(a.id)!)}${a.badge ? `<span class="badge">${esc(a.badge)}</span>` : ''}</div>
   <div class="card__body">
@@ -226,10 +243,27 @@ const bundleCards = packages
   <h3>${esc(p.name)}</h3>
   <p class="price price--big">${rand(p.price)}<small>per person${p.saving ? ` · save ${rand(p.saving)}` : ''}</small></p>
   <ul class="ticks">${p.includes.map((i) => `<li>${icon.check}${esc(i)}</li>`).join('')}</ul>
-  <a class="btn ${p.recommended ? 'btn--primary' : 'btn--ink'} btn--block" href="${wa(bookText(`the ${p.name} bundle`))}">${icon.whatsapp}Book ${esc(p.name)}</a>
+  <a class="btn ${p.recommended ? 'btn--primary' : 'btn--ink'} btn--block" href="${wa(bookText(`the ${p.name} bundle`))}" data-plan="${p.id}" data-plan-label="Book ${esc(p.name)}">${icon.whatsapp}Book ${esc(p.name)}</a>
 </li>`,
   )
   .join('\n');
+
+// The booking planner's choices (each one a radio drawn as a card).
+const planOptionsHtml = planData.options
+  .map((o) => {
+    const each = planData.prices[o.id]![o.min - 1]! / o.min;
+    return `<label class="opt">
+            <input type="radio" name="what" value="${o.id}"${o.recommended ? ' checked' : ''}>
+            <span class="opt__name">${esc(o.name)}${o.recommended ? ' <span class="opt__tag">Most popular</span>' : ''}</span>
+            <span class="opt__price">${rand(each)}</span>
+            <span class="opt__note">${esc(o.note)}</span>
+          </label>`;
+  })
+  .join('\n          ');
+const openingLine = esc(
+  `Open Thursday from ${site.weeklyOpening[4]} and Friday to Sunday from ${site.weeklyOpening[5]}, till sunset. Closed Monday to Wednesday.`,
+);
+const bookMailto = `mailto:${site.email}?subject=${encodeURIComponent('Booking request')}&body=${encodeURIComponent(BOOK_TEXT.replace(/\n/g, '\r\n'))}`;
 
 const bungee = activities.find((a) => a.id === 'bungee-jump')!;
 const scad = activities.find((a) => a.id === 'scad-freefall')!;
@@ -344,6 +378,8 @@ const css = /* css */ `
 }
 @supports (transition-timing-function: linear(0, 1)) { :root { --spring: ${spring}; } }
 *, *::before, *::after { box-sizing: border-box; }
+/* hidden always wins over a component's own display (the planner and its scriptless fallback rely on it). */
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; }
 /* In-page links land each section right under the header, and keyboard focus
    never hides beneath it. This is scroll-margin on the page's own targets, not
@@ -448,6 +484,96 @@ ${Array.from({ length: 12 }, (_, i) => `.sheet__list li:nth-child(${i + 1}) { --
 @media (max-height: 700px) { .sheet__list a { min-height: 44px; font-size: 1.0625rem; } }
 @media (max-height: 520px) { .sheet__card { width: min(640px, 100% - 2 * var(--gutter)); gap: 10px; } .sheet__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 4px; } }
 .menu-off { position: fixed; top: 50%; left: 0; width: 1px; height: 1px; pointer-events: none; }
+
+/* Booking planner (scripts/share-page/planner.js). Without scripts the
+   section shows WhatsApp and email buttons instead (.plan-fallback). */
+.plan-fallback { display: grid; gap: 16px; max-width: 680px; padding: 24px 22px; border-radius: var(--r-lg); background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); }
+.plan { display: grid; gap: 16px; align-items: start; }
+@media (min-width: 980px) { .plan { grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; } .plan__summary { position: sticky; top: calc(64px + env(safe-area-inset-top) + 20px); } }
+.plan__steps { display: grid; gap: 12px; min-width: 0; }
+.plan__step { min-width: 0; margin: 0; padding: 20px 16px; border: 0; border-radius: var(--r-lg); background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); }
+@media (min-width: 560px) { .plan__step { padding: 24px 22px; } }
+.plan__step legend { float: left; display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 16px; padding: 0; font-size: 1.25rem; font-weight: 700; line-height: 1.2; letter-spacing: -.012em; }
+.plan__step legend + * { clear: both; }
+.plan__n { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--black); color: var(--on-dark); font-size: .9375rem; font-weight: 700; transition: background-color .3s ease; }
+.plan__step.is-done .plan__n { background: var(--crimson); }
+.plan__opt { margin-left: auto; font-size: .875rem; font-weight: 500; letter-spacing: 0; color: var(--ink-2); }
+.plan__hint { margin-top: 12px; font-size: .9375rem; line-height: 1.45; color: var(--ink-2); }
+/* A step a send button points back to: one soft crimson pulse. */
+.plan__step.is-missing { animation: plan-nudge .9s ease-out; }
+@keyframes plan-nudge { 0%, 100% { box-shadow: inset 0 0 0 1px var(--line); } 25% { box-shadow: inset 0 0 0 3px var(--crimson); } }
+
+.opts { display: grid; gap: 8px; }
+@media (min-width: 640px) { .opts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.opt { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; align-content: start; gap: 2px 12px; min-height: 64px; padding: 12px 16px; border-radius: var(--r-md); background: var(--bone); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color .25s ease, color .25s ease, box-shadow .25s ease, transform .12s ease-out; }
+.opt:active { transform: scale(.98); }
+.opt input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.opt__name { font-weight: 650; line-height: 1.25; }
+.opt__price { font-weight: 700; font-variant-numeric: tabular-nums; }
+.opt__note { grid-column: 1 / -1; font-size: .875rem; line-height: 1.35; color: var(--ink-2); }
+.opt__tag { display: inline-block; margin-left: 4px; font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--crimson-text); }
+.opt.is-checked { background: var(--black); color: var(--on-dark); box-shadow: 0 16px 30px -20px rgb(21 20 18 / .8); }
+.opt.is-checked .opt__note { color: var(--on-dark-2); }
+.opt.is-checked .opt__tag { color: var(--crimson-soft); }
+.opt:has(input:focus-visible), .slot:has(input:focus-visible) { outline: 3px solid var(--crimson); outline-offset: 3px; }
+
+.qty { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: var(--bone); box-shadow: inset 0 0 0 1px var(--line); }
+.qty__btn { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--paper); box-shadow: 0 1px 2px rgb(21 20 18 / .14), inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: 1.375rem; font-weight: 600; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .12s ease-out, opacity .2s; }
+.qty__btn:active { transform: scale(.9); }
+.qty__btn:disabled { opacity: .35; cursor: default; transform: none; }
+.qty__n { min-width: 3.2ch; text-align: center; font-size: 1.375rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.cal { max-width: 440px; }
+.cal__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.cal__month { font-size: 1.0625rem; font-weight: 700; }
+.cal__nav { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--bone); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .12s ease-out, opacity .2s; }
+.cal__nav:active { transform: scale(.9); }
+.cal__nav:disabled { opacity: .3; cursor: default; transform: none; }
+.cal__dow, .cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.cal__dow span { padding-block: 6px; text-align: center; font-size: .75rem; font-weight: 700; color: var(--ink-2); }
+.cal__day { position: relative; aspect-ratio: 1; padding: 0; border: 0; border-radius: 50%; background: var(--bone); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: 1rem; font-weight: 650; font-variant-numeric: tabular-nums; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color .2s ease, color .2s ease, transform .12s ease-out; }
+.cal__day:hover { background: var(--chip); }
+.cal__day:active { transform: scale(.9); }
+.cal__day:disabled { background: none; box-shadow: none; color: rgb(21 20 18 / .4); font-weight: 500; cursor: default; transform: none; }
+.cal__day.is-closed { text-decoration: line-through; text-decoration-color: rgb(21 20 18 / .25); }
+.cal__day.is-today::after { content: ""; position: absolute; left: 50%; bottom: 14%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--crimson); }
+.cal__day[aria-pressed="true"] { background: var(--crimson); box-shadow: 0 10px 20px -12px rgb(200 16 46 / .9); color: #fff; }
+.cal__day[aria-pressed="true"]::after { background: #fff; }
+
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.slots:empty { display: none; }
+.slot { position: relative; display: grid; place-items: center; align-content: center; gap: 1px; min-height: 52px; padding: 6px 4px; border-radius: 14px; background: var(--bone); box-shadow: inset 0 0 0 1px var(--line); font-weight: 650; font-variant-numeric: tabular-nums; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color .2s ease, color .2s ease, transform .12s ease-out; }
+.slot:active { transform: scale(.94); }
+.slot input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.slot small { font-size: .75rem; font-weight: 700; letter-spacing: .04em; color: var(--crimson-text); }
+.slot.is-checked { background: var(--crimson); box-shadow: 0 10px 20px -12px rgb(200 16 46 / .9); color: #fff; }
+.slot.is-checked small { color: #fff; }
+/* New times arrive one after another, from where the eye already is. */
+.slot.is-new { animation: plan-in .5s var(--spring) both; animation-delay: calc(var(--i, 0) * 16ms); }
+@keyframes plan-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+
+.fields { display: grid; gap: 12px; }
+@media (min-width: 640px) { .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } .field--wide { grid-column: 1 / -1; } }
+.field { display: grid; gap: 6px; font-size: .9375rem; font-weight: 600; }
+.field input, .field textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 0; border-radius: 14px; background: var(--bone); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: 1.0625rem; font-weight: 450; transition: box-shadow .2s ease; }
+.field textarea { min-height: 88px; resize: vertical; }
+.field input:focus, .field textarea:focus { outline: none; box-shadow: inset 0 0 0 2px var(--black); }
+
+.plan__summary { display: grid; gap: 14px; padding: 24px 22px; border-radius: var(--r-lg); background: var(--black); color: var(--on-dark); box-shadow: 0 30px 60px -34px rgb(21 20 18 / .75); }
+.plan__summary :focus-visible { outline-color: var(--on-dark); }
+.plan__summary h3 { font-size: 1.3125rem; }
+.sum { display: grid; gap: 12px; margin: 0; }
+.sum div { display: grid; gap: 2px; }
+.sum dt { font-size: .8125rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--on-dark-2); }
+.sum dd { margin: 0; font-weight: 600; line-height: 1.35; }
+.sum__total { padding-top: 12px; border-top: 1px solid var(--line-dark); }
+.sum__total dd { font-size: 2.25rem; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
+.plan__each { font-size: .9375rem; color: var(--on-dark-2); }
+.plan__status { min-height: 1.5em; font-weight: 650; color: var(--crimson-soft); }
+.plan__status:empty { display: none; }
+.plan__send { display: grid; gap: 10px; }
+.plan__send .btn[aria-disabled="true"] { opacity: .5; box-shadow: none; }
+.plan__fine { font-size: .875rem; line-height: 1.45; color: var(--on-dark-2); }
 
 /* Buttons: feedback on press, 44px+ targets */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border-radius: 999px; font-size: 1rem; font-weight: 650; line-height: 1.2; letter-spacing: .005em; text-decoration: none; text-align: center; -webkit-tap-highlight-color: transparent; transition: transform .12s ease-out, background-color .2s; }
@@ -648,17 +774,21 @@ footer a { color: var(--on-dark); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn, .jump a, details summary::after { transition: none; } .btn:active, .jump a:active { transform: none; }
   /* The menu fades in and out in place: no growing, sliding or turning. The X still shows, just without the turn. */
   .sheet__card, .sheet__list li, .toggle a:active, .toggle__state:active + .toggle__face, .sheet__list a:hover .i { transform: none; }
-  .bars span, .sheet__list .i { transition: none; } }
+  .bars span, .sheet__list .i { transition: none; }
+  .opt:active, .qty__btn:active, .cal__nav:active, .cal__day:active, .slot:active { transform: none; }
+  .slot.is-new, .plan__step.is-missing { animation: none; } }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) { .bar { background: var(--bone); } .hero__panel { background: var(--black); } }
 @media (prefers-reduced-transparency: reduce) { .bar { background: var(--bone); -webkit-backdrop-filter: none; backdrop-filter: none; } .sheet__card { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; } .hero__panel { background: var(--black); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 @media (prefers-contrast: more) {
   .card, .bundle, .tile, .panel, .rules div, .faq details, details.more, .jump a, .note, .toggle a, .toggle__face { box-shadow: inset 0 0 0 2px var(--ink); }
   .sheet__card { background: var(--paper); box-shadow: 0 0 0 2px var(--ink), 0 34px 70px -28px rgb(21 20 18 / .55); }
   .sheet__list .i { color: var(--ink); }
+  .plan__step, .plan-fallback, .opt, .qty, .cal__nav, .cal__day:not(:disabled), .slot, .field input, .field textarea { box-shadow: inset 0 0 0 2px var(--ink); }
+  .plan__hint, .opt__note, .cal__dow span, .plan__opt { color: var(--ink); }
   .muted, .lede, .facts span, .hours dd, .price small, .hint, .addons, .rules dd, .faq details p { color: var(--ink); }
   .dark .lede, .dark .muted, .hero__panel .lede, .band .lede, .card--dark p, .contact-list, footer { color: var(--on-dark); }
 }
-@media print { .bar, .jump, .skip, .hint, .watermark, .sheet { display: none; } .rail { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); overflow: visible; margin: 0; padding: 0; } .card, .bundle, .panel, .tile { break-inside: avoid; } section { padding-block: 28px; } }
+@media print { .bar, .jump, .skip, .hint, .watermark, .sheet, .plan { display: none; } .rail { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); overflow: visible; margin: 0; padding: 0; } .card, .bundle, .panel, .tile { break-inside: avoid; } section { padding-block: 28px; } }
 `;
 
 const minCss = css
@@ -729,7 +859,7 @@ const html = `<!doctype html>
   <div class="wrap bar__in">
     <a class="brand" href="#top">${headerLockup}</a>
     <div class="bar__end">
-      <a class="btn btn--primary btn--sm" href="${wa(BOOK_TEXT)}">${icon.whatsapp}Book</a>
+      <a class="btn btn--primary btn--sm" href="${wa(BOOK_TEXT)}" data-plan="" data-plan-label="Book">${icon.whatsapp}Book</a>
       <div class="toggle">
         <input class="toggle__state" type="checkbox" id="menu-toggle" aria-label="Menu" aria-controls="menu">
         <span class="toggle__face" aria-hidden="true">${bars}</span>
@@ -748,7 +878,7 @@ const html = `<!doctype html>
       ${navItems.map(([id, label]) => `<li><a href="#${id}">${label}${icon.arrow}</a></li>`).join('\n      ')}
     </ul>
     <div class="sheet__actions">
-      <a class="btn btn--primary btn--sm" href="${wa('Hi Soweto Towers! ')}">${icon.whatsapp}WhatsApp</a>
+      <a class="btn btn--primary btn--sm" href="#book">${icon.calendar}Book</a>
       <a class="btn btn--light btn--sm" href="tel:${site.phone.e164}">${icon.phone}Call</a>
     </div>
   </div>
@@ -769,7 +899,7 @@ const html = `<!doctype html>
       <h1 id="hero-title">Soweto, from the top.</h1>
       <p class="lede">A 100m bungee from the bridge between the painted cooling towers, a freefall inside the tower, a zipline over the Orlando Dam and a 360° view of the city that raised you.</p>
       <div class="actions">
-        <a class="btn btn--primary" href="${wa(BOOK_TEXT)}">${icon.whatsapp}Book on WhatsApp</a>
+        <a class="btn btn--primary" href="${wa(BOOK_TEXT)}" data-plan="" data-plan-label="Book a time">${icon.whatsapp}Book on WhatsApp</a>
         <a class="btn btn--ghost" href="#adventures">See prices</a>
       </div>
       <ul class="chips" aria-label="At a glance">
@@ -811,6 +941,91 @@ ${bundleCards}
     <p class="addons">Add to any adventure: ${Object.values(addons)
       .map((x) => `${esc(x.name.toLowerCase().replace(/^full hd/, 'full HD'))} ${rand(x.price)}`)
       .join(' · ')}, per person, per activity. Video is already included with the ${esc(scad.name)} and the straightjacket bungee.</p>
+  </div>
+</section>
+
+<section id="book" aria-labelledby="book-title">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Book</p>
+      <h2 id="book-title">Pick your day.</h2>
+      <p class="lede">Choose the adventure, the day and the time, then send it to the crew on WhatsApp or by email. They confirm your slot and how to pay.</p>
+    </div>
+
+    <div class="plan-fallback" data-plan-fallback>
+      <p>Send the crew the adventure, the day, the time and how many of you are coming. They reply with your slot and how to pay.</p>
+      <p class="muted small">${openingLine}</p>
+      <div class="actions">
+        <a class="btn btn--primary" href="${wa(BOOK_TEXT)}">${icon.whatsapp}Book on WhatsApp</a>
+        <a class="btn btn--light" href="${esc(bookMailto)}">${icon.mail}Book by email</a>
+      </div>
+    </div>
+
+    <div class="plan" data-plan-form hidden>
+      <div class="plan__steps">
+        <fieldset class="plan__step is-done" data-step="what">
+          <legend><span class="plan__n" aria-hidden="true">1</span>Choose your adventure</legend>
+          <div class="opts">
+          ${planOptionsHtml}
+          </div>
+        </fieldset>
+
+        <fieldset class="plan__step is-done" data-step="people">
+          <legend><span class="plan__n" aria-hidden="true">2</span>How many people?</legend>
+          <div class="qty">
+            <button type="button" class="qty__btn" data-qty-minus aria-label="One fewer">−</button>
+            <output class="qty__n" data-qty aria-live="polite">1</output>
+            <button type="button" class="qty__btn" data-qty-plus aria-label="One more">+</button>
+          </div>
+          <p class="plan__hint" data-qty-hint></p>
+        </fieldset>
+
+        <fieldset class="plan__step" data-step="day">
+          <legend><span class="plan__n" aria-hidden="true">3</span>Pick a day</legend>
+          <div class="cal">
+            <div class="cal__head">
+              <button type="button" class="cal__nav" data-prev aria-label="Previous month">${icon.chevronLeft}</button>
+              <p class="cal__month" data-month aria-live="polite"></p>
+              <button type="button" class="cal__nav" data-next aria-label="Next month">${icon.chevronRight}</button>
+            </div>
+            <div class="cal__dow" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+            <div class="cal__grid" data-grid role="group" aria-label="Days"></div>
+          </div>
+          <p class="plan__hint">${openingLine}</p>
+        </fieldset>
+
+        <fieldset class="plan__step" data-step="time">
+          <legend><span class="plan__n" aria-hidden="true">4</span>Pick a time</legend>
+          <div class="slots" data-times></div>
+          <p class="plan__hint" data-time-note>Pick a day to see the times.</p>
+        </fieldset>
+
+        <fieldset class="plan__step" data-step="details">
+          <legend><span class="plan__n" aria-hidden="true">5</span>Your details <span class="plan__opt">optional</span></legend>
+          <div class="fields">
+            <label class="field"><span>Name</span><input name="name" type="text" autocomplete="name"></label>
+            <label class="field"><span>Phone</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel"></label>
+            <label class="field field--wide"><span>Anything the crew should know?</span><textarea name="note" rows="2"></textarea></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="plan__summary">
+        <h3 id="plan-sum-title">Your booking</h3>
+        <dl class="sum">
+          <div><dt>Adventure</dt><dd data-sum-what></dd></div>
+          <div><dt>When</dt><dd data-sum-when></dd></div>
+          <div class="sum__total"><dt>Estimated total</dt><dd data-sum-total></dd></div>
+        </dl>
+        <p class="plan__each" data-sum-each></p>
+        <p class="plan__status" data-status role="status"></p>
+        <div class="plan__send">
+          <a class="btn btn--primary btn--block" data-send="whatsapp" href="${wa(BOOK_TEXT)}" target="_blank" rel="noopener">${icon.whatsapp}Send on WhatsApp</a>
+          <a class="btn btn--light btn--block" data-send="email" href="${esc(bookMailto)}">${icon.mail}Send by email</a>
+        </div>
+        <p class="plan__fine">Nothing is booked or paid yet. The crew replies to confirm your time and how to pay.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -982,6 +1197,9 @@ ${bundleCards}
     <p class="small">© ${year} ${esc(site.name)}. ${esc(site.hashtags.join(' '))}</p>
   </div>
 </footer>
+<script type="application/json" id="plan-data">${planJson}</script>
+<template id="plan-cta-icon">${icon.calendar}</template>
+<script>${plannerJs}</script>
 <script>${enhance}</script>
 </body>
 </html>
