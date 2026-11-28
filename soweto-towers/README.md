@@ -162,6 +162,19 @@ Example body for `booking_confirmed`: _Sawubona {{1}}! {{2}} is booked for {{3}}
 
 ---
 
+## Shareable one-file page
+
+`share/Soweto-Towers.html` is the whole story on a single page (adventures and prices, bundles, safety, groups, gifts, Chaf-Pozi, hours and directions, questions, contact), in one file of under 1 MB:
+
+- **Everything is inside the file:** photos, font and icons. It opens with no internet connection.
+- **No JavaScript.** It works in WhatsApp's document viewer on iPhone, in Android browsers and in Files or Quick Look.
+- **Booking buttons open WhatsApp** with a message already filled in. Phone, email and map buttons open the right apps.
+- **Title, description, share-image tags and structured data are included**, so the same file can also be put online as it is.
+
+Send it as a document on WhatsApp or email. After changing prices, hours or content, rebuild it with `npm run share:page`; it reads the same content files as the website.
+
+---
+
 ## Configuration
 
 Every setting is listed with an explanation in [`.env.example`](./.env.example). Copy it to `.env.local` and fill in what you have; anything left empty falls back to the simulated behaviour described above.
@@ -234,6 +247,7 @@ Prices, contacts, hours and rules come from the current sowetotowers.co.za pages
 | `npm run assets:import`                           | Import new key images into `public/images/`, then run `npm run assets:manifest`                                                                                                                                                                                                                                                                                                                                                     |
 | `npm run assets:icons`                            | Regenerate favicon, app icons and the maskable icon from the brand mark                                                                                                                                                                                                                                                                                                                                                             |
 | `npm run assets:og`                               | Regenerate the share images in `public/og/`                                                                                                                                                                                                                                                                                                                                                                                         |
+| `npm run share:page`                              | Rebuild the one-file page `share/Soweto-Towers.html`                                                                                                                                                                                                                                                                                                                                                                                |
 | `npm run format`                                  | Prettier                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 CI (`.github/workflows/soweto-towers.yml`) runs typecheck, lint, unit tests, a production build and the browser tests on every push that touches this folder.

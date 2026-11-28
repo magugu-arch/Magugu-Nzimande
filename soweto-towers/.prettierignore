@@ -6,3 +6,4 @@ drizzle/meta
 package-lock.json
 src/content/images.generated.ts
 tests/e2e/shots
+share
