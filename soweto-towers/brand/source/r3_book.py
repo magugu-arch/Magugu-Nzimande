@@ -12,6 +12,9 @@ Layout rules (all in mm, page 297 x 210):
   - one scale per option on the system page, so lockups compare at their true sizes
   - app-icon corners are drawn into the artwork, never clipped by CSS (clips can
     render with a notch in some PDF viewers)
+  - flat and opaque: no shadows, stands, gradients, opacity or translucent colours, so
+    the PDF is pure vector with no transparency (check_pdf.py proves it). Translucent
+    colours are written as their opaque mix on the known background.
 Every element is tagged data-o (object) or data-t (text) so check_layout.js
 can prove that nothing overlaps.
 """
@@ -59,7 +62,7 @@ def lab(x, y, t, anchor="start"):
     return f'<text x="{f(x)}" y="{f(y)}" text-anchor="{anchor}">{t}</text>'
 
 
-GUIDE = 'fill="none" stroke="rgba(243,239,231,.22)" stroke-width=".3" stroke-dasharray="1.4 1.4"'
+GUIDE = 'fill="none" stroke="#464441" stroke-width=".3" stroke-dasharray="1.4 1.4"'   # Bone at 22% on Tower Black, opaque
 EXT = 10.0          # every construction guide extends exactly this far past what it measures
 
 
@@ -77,10 +80,10 @@ def con_monogram(mono, red):
     labels = (lab(x1, top - w / 2 - 4, "bridge", "end") + lab(x0, top - w / 2 - 4, f"Rt = {Rt / Rb:.2f} Rb") +
               lab(xs + w / 2 + 3, base - g["short"] + 1.6, "drop") + lab(xs + w / 2 + 3, top + w / 2 + w * 0.5 + 2, "½ w cut"))
     return (f'<svg class="con" viewBox="{vb}" role="img" aria-label="Construction of the monogram">'
+            f'{mono.body({"ink": "#272623", "acc": "#4B131A"})}'
             f'<g {GUIDE}>{guides}</g>'
-            f'{mono.body({"ink": "rgba(243,239,231,.08)", "acc": "rgba(200,16,46,.3)"})}'
             f'<g fill="none" stroke="{BONE}" stroke-width=".35">' + "".join(f'<path d="{d}"/>' for _, d, _ in mono.items) +
-            f'</g><g font-size="4.4" fill="rgba(243,239,231,.82)" style="font-stretch:110%;letter-spacing:.04em">{labels}</g></svg>')
+            f'</g><g font-size="4.4" fill="#CBC8C1" style="font-stretch:110%;letter-spacing:.04em">{labels}</g></svg>')
 
 
 def con_tower_t(make, red):
@@ -105,9 +108,9 @@ def con_tower_t(make, red):
     x_r = LX + 3 + max(label_w(t, 4.6) for _, _, t in pts)
     pad = 16
     return (f'<svg class="con" viewBox="{f(x_l - pad)} {f(-cap * k - 16)} {f(x_r - x_l + 2 * pad)} {f(cap * k + 32)}" role="img" aria-label="Construction of the tower T">'
-            + "".join(f'<path d="{d}" fill="rgba(243,239,231,.08)" stroke="{BONE}" stroke-width=".35"/>' for d in parts)
-            + f'<g stroke="rgba(243,239,231,.45)" stroke-width=".3">{leaders}</g><g fill="{red}">{dots}</g>'
-            f'<g font-size="4.6" fill="rgba(243,239,231,.85)" style="font-stretch:110%;letter-spacing:.04em">{tx}</g></svg>')
+            + "".join(f'<path d="{d}" fill="#272623" stroke="{BONE}" stroke-width=".35"/>' for d in parts)
+            + f'<g stroke="#797772" stroke-width=".3">{leaders}</g><g fill="{red}">{dots}</g>'
+            f'<g font-size="4.6" fill="#D2CEC7" style="font-stretch:110%;letter-spacing:.04em">{tx}</g></svg>')
 
 
 def con_loop(lp, red):
@@ -122,13 +125,13 @@ def con_loop(lp, red):
     # inside the stroke, so no guide fragment shows in the cut or past the ends
     return (f'<svg class="con" viewBox="{f(-xo - pad)} {f(-r - w / 2 - pad)} {f(2 * xo + 2 * pad)} {f(2 * r + w + 2 * pad)}" role="img" aria-label="Construction of the Loop">'
             f'<defs><clipPath id="loop-ink">{lp.body({"ink": "#000", "acc": "#000"})}</clipPath></defs>'
-            f'<g {GUIDE}><g clip-path="url(#loop-ink)"><circle cx="{f(-D)}" cy="0" r="{f(r)}"/><circle cx="{f(D)}" cy="0" r="{f(r)}"/>'
-            f'<line x1="{f(t1[0])}" y1="{f(t1[1])}" x2="{f(t2[0])}" y2="{f(t2[1])}"/></g>'
-            f'<line x1="{f(-xo - EXT)}" y1="0" x2="{f(xo + EXT)}" y2="0"/></g>'
-            f'{lp.body({"ink": "rgba(200,16,46,.28)", "acc": "rgba(200,16,46,.28)"})}'
+            f'{lp.body({"ink": "#47131A", "acc": "#47131A"})}'
+            f'<g {GUIDE}><line x1="{f(-xo - EXT)}" y1="0" x2="{f(xo + EXT)}" y2="0"/>'
+            f'<g clip-path="url(#loop-ink)" stroke="#6A363C"><circle cx="{f(-D)}" cy="0" r="{f(r)}"/><circle cx="{f(D)}" cy="0" r="{f(r)}"/>'
+            f'<line x1="{f(t1[0])}" y1="{f(t1[1])}" x2="{f(t2[0])}" y2="{f(t2[1])}"/></g></g>'
             f'<g fill="none" stroke="#e0485f" stroke-width=".4">' + "".join(f'<path d="{d}"/>' for _, d, _ in lp.items) + "</g>"
             f'<circle cx="{f(-D)}" cy="0" r=".8" fill="{BONE}"/><circle cx="{f(D)}" cy="0" r=".8" fill="{BONE}"/>'
-            f'<g font-size="4.6" fill="rgba(243,239,231,.85)" style="font-stretch:110%;letter-spacing:.04em">'
+            f'<g font-size="4.6" fill="#D2CEC7" style="font-stretch:110%;letter-spacing:.04em">'
             f'{lab(-D, r + w / 2 + 9, "rim", "middle")}{lab(D, r + w / 2 + 9, "rim", "middle")}'
             f'{lab(0, -r - w / 2 - 6, "bridge", "middle")}</g></svg>')
 
@@ -153,19 +156,20 @@ def render(opts, font_path, WAYS, PAL, tower_t, cache):
     def page(body, cls=""):
         pages.append(f'<div class="pw"><section class="page {cls}">{body}</section></div>')
 
-    def loop_pattern(ink, cell=160.0, scale=0.82):
+    def loop_pattern(ink, cols=4, rows=2, cell=160.0, scale=0.82):
+        """The Loop pattern as inline vector art: whole motifs on a grid, horizontal and upright in
+        a checker, solid ink and no background, so nothing in it can render as a translucent image."""
         out = []
-        for (cx, cy, art) in ((cell / 2, cell / 2, o3["sym"]), (cell * 1.5, cell / 2, o3["upright"]),
-                              (cell / 2, cell * 1.5, o3["upright"]), (cell * 1.5, cell * 1.5, o3["sym"])):
-            mx, my = (art.bb[0] + art.bb[2]) / 2, (art.bb[1] + art.bb[3]) / 2
-            t = Art()
-            t.place(art, cx - mx * scale, cy - my * scale, scale)
-            out.append(t.body({"ink": ink, "acc": ink}))
-        s = cell * 2
-        # motifs only, no background: the band's own colour shows through, so no tile edge can show
-        svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {f(s)} {f(s)}" width="{f(s)}" height="{f(s)}">'
-               f'{"".join(out)}</svg>')
-        return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
+        for r_ in range(rows):
+            for c_ in range(cols):
+                art = o3["sym"] if (c_ + r_) % 2 == 0 else o3["upright"]
+                cx, cy = cell * (c_ + 0.5), cell * (r_ + 0.5)
+                mx, my = (art.bb[0] + art.bb[2]) / 2, (art.bb[1] + art.bb[3]) / 2
+                t = Art()
+                t.place(art, cx - mx * scale, cy - my * scale, scale)
+                out.append(t.body({"ink": ink, "acc": ink}))
+        return (f'<svg class="wb-pat" viewBox="0 0 {f(cell * cols)} {f(cell * rows)}" aria-hidden="true">'
+                f'{"".join(out)}</svg>')
 
     PAT_RED = loop_pattern("#b80e2a")
     PAT_DARK = loop_pattern("#1c1a18")
@@ -266,7 +270,7 @@ def render(opts, font_path, WAYS, PAL, tower_t, cache):
             n_ = f'<span class="wb-n{" wide" if wide else ""}">{inl(name, BONE_ONLY, "lk")}</span>'
             body_ = (n_ + s_) if o["n"] == 2 else (s_ + n_)
             # the pattern runs in its own field of two whole tiles (4 x 2 motifs), centred between name and label
-            pat = f'<i class="wb-pat" style="background-image:url({img})"></i>' if img else ""
+            pat = img or ""
             return f'<div class="wb{" has-pat" if img else ""}" data-o style="{st}color:{BONE}">{body_}{pat}<b>{label}</b></div>'
         if o["n"] == 1:
             bands = band(RED, None, "Jumper", {"ink": BONE, "acc": BLACK}) + band(BLACK, None, "Spectator", REV)
@@ -296,7 +300,8 @@ def render(opts, font_path, WAYS, PAL, tower_t, cache):
         post_bg, post_way, post_h = ((RED, {"ink": BONE, "acc": BLACK}, "13mm") if o["n"] == 1 else
                                      (BLACK, {"ink": RED, "acc": RED}, "9mm") if o["n"] == 2 else (BLACK, REV, "10mm"))
         post = (f'<div class="post" data-o style="background:{post_bg}"><div style="height:{post_h}">{inl(sym, post_way, "lk")}</div>'
-                f'<b>Open Friday to Sunday,<br>10:00 until sunset.</b><span>sowetotowers.co.za</span></div>')
+                f'<b>Open Friday to Sunday,<br>10:00 until sunset.</b>'
+                f'<span style="color:{"#E6ACAF" if post_bg == RED else "#B0ADA7"}">sowetotowers.co.za</span></div>')   # Bone at 70%, opaque
         page(f"""{hd(num + " · " + o['title'] + " · Digital")}
           <div class="ct studio" data-o>
             <div class="it" style="left:16mm;top:36.5mm">{browser}<p class="cap" data-t>Website</p></div>
@@ -378,7 +383,7 @@ h1,h2,h3{text-wrap:balance}
 .hd.right{right:14mm;left:auto}
 .ft{bottom:9mm;right:14mm;display:flex;justify-content:space-between}
 .ft .pn{color:var(--black);letter-spacing:.12em}
-.light{color:rgba(243,239,231,.55)}
+.light{color:#8F8D87}
 .ct{position:absolute;left:14mm;top:22mm;width:269mm;height:168mm}
 .field{position:absolute;top:0;bottom:0;display:grid;place-items:center}
 .field.paper{background:var(--paper)}
@@ -420,7 +425,7 @@ h3{font-size:12pt;line-height:1.2}
 .con-wrap{width:132mm}
 .con{width:100%;height:auto}
 .con text{font-family:"Archivo",sans-serif}
-.field-cap{position:absolute;left:14mm;bottom:9mm;font-stretch:118%;font-size:5.8pt;line-height:1;letter-spacing:.26em;text-transform:uppercase;color:rgba(243,239,231,.45)}
+.field-cap{position:absolute;left:14mm;bottom:9mm;font-stretch:118%;font-size:5.8pt;line-height:1;letter-spacing:.26em;text-transform:uppercase;color:#797772}
 .lrs{display:flex;flex-direction:column;gap:9mm}
 .lr{display:flex;flex-direction:column;gap:6.5mm}
 .lr-art{align-self:flex-start;max-width:97mm}
@@ -430,27 +435,28 @@ h3{font-size:12pt;line-height:1.2}
 /* colour */
 .cgrid{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:3mm}
 .cf{position:relative;display:grid;place-items:center;padding:14mm 8mm 8mm}
-.cf > span{position:absolute;left:6mm;top:6mm;font-stretch:118%;font-size:5.6pt;line-height:1;letter-spacing:.24em;text-transform:uppercase;opacity:.75}
+.cf > span{position:absolute;left:6mm;top:6mm;font-stretch:118%;font-size:5.6pt;line-height:1;letter-spacing:.24em;text-transform:uppercase}
+/* tile labels: each colour is the label colour at 75% on its tile, mixed to an opaque value */
+.c-bone > span,.c-studio > span{color:#4D4B47}.c-black > span{color:#BBB8B2}.c-red > span{color:#F1C3CB}.c-white > span{color:#504F4D}
 .cf .lk{width:auto;max-width:100%;height:auto;max-height:34mm}
-.c-bone{background:var(--bone);grid-column:span 2;box-shadow:inset 0 0 0 .25mm rgba(21,20,18,.1)}
+.c-bone{background:var(--bone);grid-column:span 2;outline:.25mm solid #DDD9D2;outline-offset:-.25mm}
 .c-bone .lk{max-height:46mm;max-width:70%}
 .c-black{background:var(--black);color:var(--bone)}
 .c-red{background:var(--red);color:#fff}
-.c-white{background:#fff;box-shadow:inset 0 0 0 .25mm rgba(21,20,18,.1)}
-.c-studio{background:radial-gradient(130% 110% at 30% 15%,#f1ece3 0%,#e4ddd1 60%,#d8d0c3 100%)}
+.c-white{background:#fff;outline:.25mm solid #E3E1DD;outline-offset:-.25mm}
+.c-studio{background:#E7E1D7}
 .isizes{display:flex;align-items:flex-end;gap:5mm}
 .isz{display:flex;flex-direction:column;align-items:center;gap:2mm}
-.isz > div{border-radius:22.5%;box-shadow:0 .2mm .5mm rgba(0,0,0,.12),0 2mm 5mm rgba(0,0,0,.1)}
+.isz > div{flex:none}
 .isz .ic{width:100%;height:100%}
 .isz figcaption{font-size:5pt;line-height:1;color:var(--muted)}
 
-/* studio + objects */
-.studio{background:radial-gradient(120% 100% at 28% 12%,#f2ede5 0%,#e6dfd3 50%,#d8d0c3 100%)}
+/* objects stand directly on the page: no stand, no shadow, no transparency.
+   Drop shadows print as translucent images that some PDF viewers draw as grey boxes. */
 .it{position:absolute}
 .cap{margin-top:3mm;font-stretch:118%;font-size:5.4pt;line-height:1;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
-.bc,.vch,.wb,.browser,.phone,.post{box-shadow:0 .2mm .5mm rgba(30,22,12,.1),0 2.5mm 6mm rgba(30,22,12,.12),0 10mm 22mm rgba(30,22,12,.1)}
 .bc{width:85mm;height:55mm;border-radius:.8mm;position:relative;overflow:hidden}
-.bc.front{background:var(--paper)}
+.bc.front{background:var(--paper);outline:.25mm solid #DCD6CB;outline-offset:-.25mm}   /* hairline drawn inside the edge: nothing shifts */
 .bc.center{display:grid;place-items:center}
 .bc.center .lk{width:100%;height:auto}
 .bc-mono{position:absolute;left:7mm;top:7mm;width:10mm;height:auto}
@@ -466,7 +472,7 @@ h3{font-size:12pt;line-height:1.2}
 .vsym{height:100%;width:auto}
 .vch-act{font-weight:450;font-size:17pt;letter-spacing:-.03em;line-height:1}
 .vch-act small{display:block;font-stretch:118%;font-weight:450;font-size:5pt;letter-spacing:.26em;text-transform:uppercase;color:#e0485f;margin-bottom:2mm}
-.vch-row{display:flex;gap:7mm;font-size:5.2pt;color:rgba(243,239,231,.6)}
+.vch-row{display:flex;gap:7mm;font-size:5.2pt;color:#9A9792}
 .vch-row b{display:block;font-size:6.8pt;font-weight:500;color:var(--bone)}
 .vch-stub{background:var(--red);padding:5mm;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start}
 .code{width:20mm;height:20mm}
@@ -475,41 +481,42 @@ h3{font-size:12pt;line-height:1.2}
 .wb{width:136mm;height:23mm;border-radius:1.6mm;display:flex;align-items:center;gap:5mm;padding:0 7mm;overflow:hidden;white-space:nowrap}
 .wb-s{flex:none}.wb-s .lk,.wb-n .lk{width:100%;height:auto}
 .wb-n{width:38mm;flex:none}.wb-n.wide{width:46mm}
-.wb-pat{flex:none;align-self:stretch;width:46mm;margin:0 auto;background-size:23mm 23mm;background-repeat:repeat}
+.wb-pat{flex:none;width:46mm;height:23mm;margin:0 auto}
 .wb.has-pat b{margin-left:0;width:24mm;text-align:right}   /* fixed label slot: the pattern sits in the same place on every band */
 .wb b{margin-left:auto;font-stretch:118%;font-weight:500;font-size:5.4pt;letter-spacing:.26em;text-transform:uppercase}
 .browser{width:132mm;height:88mm;border-radius:2mm;overflow:hidden;background:var(--black);color:var(--bone);display:flex;flex-direction:column}
 .b-bar{height:6mm;flex:none;background:#2a2724;display:flex;align-items:center;gap:1.5mm;padding:0 3mm}
-.b-bar i{width:1.8mm;height:1.8mm;border-radius:50%;background:rgba(243,239,231,.22)}
-.b-bar span{margin:0 auto;font-size:4.4pt;color:rgba(243,239,231,.55);background:rgba(243,239,231,.08);padding:.7mm 7mm;border-radius:1.2mm}
-.s-nav{height:13mm;flex:none;display:flex;align-items:center;gap:5mm;padding:0 6mm;box-shadow:inset 0 -.2mm 0 rgba(243,239,231,.08)}
+.b-bar i{width:1.8mm;height:1.8mm;border-radius:50%;background:#56534F}
+.b-bar span{margin:0 auto;font-size:4.4pt;color:#A09C96;background:#3A3734;padding:.7mm 7mm;border-radius:1.2mm}
+.s-nav{height:13mm;flex:none;display:flex;align-items:center;gap:5mm;padding:0 6mm;border-bottom:.2mm solid #272623}
 .s-logo{height:6.5mm;width:auto;max-width:48mm}
-.s-nav ul{display:flex;gap:4mm;list-style:none;margin:0 0 0 auto;padding:0;font-size:5pt;color:rgba(243,239,231,.75)}
+.s-nav ul{display:flex;gap:4mm;list-style:none;margin:0 0 0 auto;padding:0;font-size:5pt;color:#BBB8B2}
 .btn{background:var(--red);color:#fff;font-size:4.8pt;font-weight:500;padding:1.6mm 3mm;border-radius:10mm;white-space:nowrap}
 .s-hero{flex:1;display:grid;grid-template-columns:68mm 1fr;align-items:center;gap:6mm;padding:0 8mm}
 .s-txt h4{font-weight:450;font-size:17pt;line-height:1.05;letter-spacing:-.035em;text-transform:none;font-stretch:100%;color:var(--bone)}
-.s-txt p{font-size:5.8pt;line-height:1.6;color:rgba(243,239,231,.7);margin:3.5mm 0 4.5mm}
+.s-txt p{font-size:5.8pt;line-height:1.6;color:#B0ADA7;margin:3.5mm 0 4.5mm}
 .chips{display:flex;flex-wrap:wrap;gap:1.6mm}
-.chips span{display:inline-flex;align-items:center;gap:1.4mm;font-size:4.8pt;padding:1.4mm 2.6mm;border-radius:10mm;background:rgba(243,239,231,.07);color:rgba(243,239,231,.85)}
+.chips span{display:inline-flex;align-items:center;gap:1.4mm;font-size:4.8pt;padding:1.4mm 2.6mm;border-radius:10mm;background:#252321;color:#D4D0C9}
 .chips i{width:1.6mm;height:1.6mm;border-radius:50%}
 .s-deco{display:grid;place-items:center}
 .s-deco .lk{width:100%;height:auto;max-height:44mm}
-.phone{width:42.8mm;height:88mm;border-radius:6.5mm;background:linear-gradient(165deg,#2c2925,#11100e);padding:11mm 3.4mm 1.8mm;border:1.1mm solid #151412;display:flex;flex-direction:column;justify-content:space-between}
+.phone{width:42.8mm;height:88mm;border-radius:6.5mm;background:#1F1D1B;padding:11mm 3.4mm 1.8mm;border:1.1mm solid #151412;display:flex;flex-direction:column;justify-content:space-between}
 .ph-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2.6mm 1.9mm}
 /* dock: 1.8 mm from the screen edge on three sides, corner concentric with the screen (5.4 - 1.8) */
-.ph-dock{display:grid;grid-template-columns:repeat(4,1fr);gap:1.9mm;margin:0 -1.6mm;padding:1.6mm;border-radius:3.6mm;background:rgba(243,239,231,.06)}
+.ph-dock{display:grid;grid-template-columns:repeat(4,1fr);gap:1.9mm;margin:0 -1.6mm;padding:1.6mm;border-radius:3.6mm;background:#2C2A27}
 .aic{width:100%;aspect-ratio:1;border-radius:22.5%}
 .aic .ic{width:100%;height:100%}
-.aic.ph{background:rgba(243,239,231,.08)}
+.aic.ph{background:#302E2B}
+.ph-dock .aic.ph{background:#3C3A36}
 .post{width:50mm;height:50mm;border-radius:1.4mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5mm;text-align:center;color:var(--bone);padding:5mm}
 .post .lk{height:100%;width:auto}
 .post b{font-weight:450;font-size:8.6pt;line-height:1.15;letter-spacing:-.02em}
-.post span{font-size:4.6pt;letter-spacing:.06em;opacity:.7}
+.post span{font-size:4.6pt;letter-spacing:.06em}
 
 /* compare */
 .cmps{display:grid;grid-template-columns:repeat(3,1fr);gap:14mm;align-content:center}
 .cmp-art{height:60mm;display:flex;align-items:center;justify-content:center;background:var(--paper)}
 .cmp-art .lk{width:auto;max-width:80%}
-.cmp-ic{width:13mm;height:13mm;border-radius:22.5%;margin:7mm 0 7mm;box-shadow:0 .2mm .5mm rgba(0,0,0,.12),0 2mm 5mm rgba(0,0,0,.1)}
+.cmp-ic{width:13mm;height:13mm;border-radius:22.5%;margin:7mm 0 7mm}
 .cmp-ic .ic{width:100%;height:100%}
 """

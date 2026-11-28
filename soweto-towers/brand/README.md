@@ -68,3 +68,9 @@ Before exporting a PDF, run `node source/check_layout.js round-3/index.html`. It
 every object and text block on every page and fails if anything overlaps, leaves the page or
 enters the margin bands. It also checks every rendered line of text, including the small type
 inside the mockups, and fails if a line touches another or is cut off by its container.
+
+After exporting, run `.venv/bin/python source/check_pdf.py round-3/soweto-towers-identity-options.pdf`.
+It fails if the PDF holds any raster image or transparency (soft masks, opacity, blend modes).
+Drop shadows, gradients and translucent colours export from Chromium as exactly these, and some
+viewers, iOS among them, draw them as grey boxes stacked over the artwork. The deck uses none:
+every object stands flat on the page in opaque colour.
