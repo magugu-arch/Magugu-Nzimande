@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "node tests/e2e/booking.mjs ${BASE_URL:-http://localhost:3000} && node tests/e2e/flows.mjs ${BASE_URL:-http://localhost:3000} && node tests/e2e/admin.mjs ${BASE_URL:-http://localhost:3000} && node tests/e2e/slow-network.mjs ${BASE_URL:-http://localhost:3000}",
