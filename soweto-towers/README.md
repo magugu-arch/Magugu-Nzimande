@@ -254,7 +254,9 @@ Prices, contacts, hours and rules come from the current sowetotowers.co.za pages
 
 CI (`.github/workflows/soweto-towers.yml`) runs typecheck, lint, unit tests, a production build and the browser tests on every push that touches this folder.
 
-`package.json` overrides the esbuild inside drizzle-kit's old loader (`@esbuild-kit/core-utils`) to 0.25.12, the version drizzle-kit itself runs, which clears npm audit's advisory for esbuild 0.24 and older. `drizzle-kit generate` and `check` work with it; remove the override once drizzle-kit drops that loader.
+`package.json` overrides the esbuild inside drizzle-kit's old loader (`@esbuild-kit/core-utils`) to 0.25.12, the version drizzle-kit itself runs, which clears npm audit's advisory for esbuild 0.24 and older. `drizzle-kit generate` and `check` work with it; remove the override once drizzle-kit drops that loader. That loader is also the source of the two "Merged into tsx" notices from `npm ci`: drizzle-kit 0.31.11, its latest stable release, still depends on it.
+
+Linting runs on ESLint 10 (ESLint 9 has reached end of life). Three plugins inside `eslint-config-next` (eslint-plugin-react 7.37.5, eslint-plugin-import 2.32.0 and eslint-plugin-jsx-a11y 6.10.2) haven't widened their ESLint peer range past 9 yet, so `package.json` overrides that range to the project's own ESLint. Before switching, every rule they enable was tested by linting files built to break each one: ESLint 9 and 10 reported identical findings, with no crashes and no install warnings. Remove the three overrides once those plugins list ESLint 10 themselves (`npm ls eslint` shows them marked "overridden" until then).
 
 ---
 
