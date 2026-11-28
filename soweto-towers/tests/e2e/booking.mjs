@@ -7,13 +7,14 @@
 import { chromium, devices } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { siteOnly } from './site-only.mjs';
 
 const base = process.argv[2] ?? 'http://localhost:3000';
 const shots = process.argv[3] ?? path.resolve(import.meta.dirname, 'shots');
 await mkdir(shots, { recursive: true });
 
 const browser = await chromium.launch();
-const context = await browser.newContext({ ...devices['iPhone 15'] });
+const context = await siteOnly(await browser.newContext({ ...devices['iPhone 15'] }), base);
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));

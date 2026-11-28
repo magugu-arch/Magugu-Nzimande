@@ -14,6 +14,7 @@ import { createHmac } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { siteOnly } from './site-only.mjs';
 
 const base = process.argv[2] ?? 'http://localhost:3000';
 const shots = process.argv[3] ?? path.resolve(import.meta.dirname, 'shots');
@@ -38,7 +39,11 @@ function totp(secret, at = Date.now()) {
 
 const browser = await chromium.launch();
 const octet = () => Math.floor(Math.random() * 250) + 2;
-const device = () => browser.newContext({ viewport: { width: 1360, height: 900 }, extraHTTPHeaders: { 'x-real-ip': `10.${octet()}.${octet()}.${octet()}` } });
+const device = async () =>
+  siteOnly(
+    await browser.newContext({ viewport: { width: 1360, height: 900 }, extraHTTPHeaders: { 'x-real-ip': `10.${octet()}.${octet()}.${octet()}` } }),
+    base,
+  );
 const errors = [];
 const watch = (page) => {
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));

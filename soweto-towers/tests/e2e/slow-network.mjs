@@ -11,6 +11,7 @@
  * Usage: node tests/e2e/slow-network.mjs <baseUrl>. Exits non-zero on failure.
  */
 import { chromium } from 'playwright';
+import { siteOnly } from './site-only.mjs';
 
 const base = process.argv[2] ?? 'http://localhost:3000';
 const browser = await chromium.launch();
@@ -18,7 +19,10 @@ const octet = () => Math.floor(Math.random() * 250) + 2;
 let failed = 0;
 
 async function slowPage() {
-  const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 }, extraHTTPHeaders: { 'x-real-ip': `10.${octet()}.${octet()}.${octet()}` } });
+  const ctx = await siteOnly(
+    await browser.newContext({ viewport: { width: 1360, height: 900 }, extraHTTPHeaders: { 'x-real-ip': `10.${octet()}.${octet()}.${octet()}` } }),
+    base,
+  );
   const page = await ctx.newPage();
   await page.route('**/_next/static/chunks/**', async (route) => {
     await new Promise((r) => setTimeout(r, 3000));

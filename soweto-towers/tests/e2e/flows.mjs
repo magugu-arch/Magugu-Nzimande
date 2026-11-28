@@ -14,6 +14,7 @@
 import { chromium, devices } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { siteOnly } from './site-only.mjs';
 
 const base = process.argv[2] ?? 'http://localhost:3000';
 const shots = process.argv[3] ?? path.resolve(import.meta.dirname, 'shots');
@@ -45,7 +46,7 @@ const buyer = { name: 'Naledi Dlamini', phone: '083 555 0192', email: `naledi.${
 
 try {
   // ── 1. Buy a voucher on desktop ────────────────────────────────────────────
-  const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 }, extraHTTPHeaders: visitor });
+  const desktop = await siteOnly(await browser.newContext({ viewport: { width: 1440, height: 900 }, extraHTTPHeaders: visitor }), base);
   page = watch(await desktop.newPage());
   let code = '';
   let voucherUrl = '';
@@ -98,7 +99,7 @@ try {
   await desktop.close();
 
   // ── 2. Redeem on an iPhone ────────────────────────────────────────────────
-  const phone = await browser.newContext({ ...devices['iPhone 15'], extraHTTPHeaders: visitor });
+  const phone = await siteOnly(await browser.newContext({ ...devices['iPhone 15'], extraHTTPHeaders: visitor }), base);
   page = watch(await phone.newPage());
   const next = () => page.locator('[class*="mobileBar"] button.btn--primary').click();
   let ref = '';
