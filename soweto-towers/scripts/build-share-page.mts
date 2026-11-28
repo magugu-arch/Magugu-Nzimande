@@ -12,6 +12,11 @@
  *   text and 700 for headings, a 17px base that follows the reader's text
  *   size on iPhone, body text at 7:1 contrast or better and no text
  *   below 4.5:1.
+ * - Parallax from CSS alone (scroll-driven animations): photos drift more
+ *   slowly than the page inside their frames, and on phones the opening
+ *   photo holds still while the panel slides up over it. Text never moves
+ *   apart from the finger. Off with Reduce Motion; browsers without
+ *   scroll-driven animations show still photos.
  * - No JavaScript at all. WhatsApp's document viewer on iPhone (Quick Look)
  *   and some Android viewers switch scripts off, so every part works without:
  *   in-page links, native <details> for questions, CSS-only scrolling rails.
@@ -341,7 +346,7 @@ section { padding-block: clamp(56px, 10vw, 112px); }
 
 /* Hero: photo, then a panel that overlaps its foot; a glass panel over the photo on wide screens */
 .hero { padding-top: clamp(12px, 2vw, 24px); padding-bottom: 0; }
-.hero__media { border-radius: var(--r-xl); overflow: hidden; background: var(--black); }
+.hero__media { border-radius: var(--r-xl); overflow: hidden; overflow: clip; isolation: isolate; background: var(--black); }
 .hero__media img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
 .hero__panel { position: relative; margin: -72px 10px 0; padding: 26px 22px 24px; border-radius: var(--r-xl); background: var(--black); color: var(--on-dark); display: grid; gap: 18px; box-shadow: 0 30px 60px -30px rgb(0 0 0 / .6); }
 .hero__panel .lede { color: var(--on-dark-2); }
@@ -376,8 +381,9 @@ section { padding-block: clamp(56px, 10vw, 112px); }
   .rail { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; margin-inline: 0; padding: 0; }
   .hint { display: none; }
 }
-.card { display: flex; flex-direction: column; background: var(--paper); border-radius: var(--r-lg); overflow: hidden; box-shadow: inset 0 1px 0 rgb(255 255 255 / .7), 0 18px 40px -28px rgb(21 20 18 / .45); }
-.card__media { position: relative; }
+/* Frames clip with overflow: clip, not hidden: a hidden box counts as a scroll container and would capture the rail's parallax timeline. */
+.card { display: flex; flex-direction: column; background: var(--paper); border-radius: var(--r-lg); overflow: hidden; overflow: clip; box-shadow: inset 0 1px 0 rgb(255 255 255 / .7), 0 18px 40px -28px rgb(21 20 18 / .45); }
+.card__media { position: relative; overflow: hidden; overflow: clip; isolation: isolate; }
 .card__media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .card__body { flex: 1; display: grid; gap: 12px; grid-template-rows: auto auto 1fr auto auto; padding: 20px 18px 14px; }
 .card--cta .card__body { grid-template-rows: auto 1fr auto; gap: 14px; padding: 26px 22px 22px; min-height: 280px; }
@@ -409,7 +415,8 @@ section { padding-block: clamp(56px, 10vw, 112px); }
 
 /* Image + text */
 .split { display: grid; gap: clamp(22px, 4vw, 56px); align-items: center; }
-.split__media img { width: 100%; border-radius: var(--r-xl); aspect-ratio: 4 / 5; object-fit: cover; }
+.split__media { border-radius: var(--r-xl); overflow: hidden; overflow: clip; isolation: isolate; }
+.split__media img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
 .split__text { display: grid; gap: 18px; }
 @media (min-width: 900px) {
   .split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -429,7 +436,8 @@ details[open] > summary::after { transform: translateY(2px) rotate(225deg); }
 details.more ul { display: grid; gap: 6px; padding: 0 18px 18px 36px; list-style: disc; color: var(--ink-2); }
 
 /* Groups */
-.wide-img { width: 100%; border-radius: var(--r-xl); aspect-ratio: 16 / 10; object-fit: cover; margin-bottom: clamp(20px, 3vw, 32px); }
+.wide-img { border-radius: var(--r-xl); overflow: hidden; overflow: clip; isolation: isolate; aspect-ratio: 16 / 10; margin-bottom: clamp(20px, 3vw, 32px); }
+.wide-img img { width: 100%; height: 100%; object-fit: cover; }
 .tiles { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 900px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 380px) { .tiles { grid-template-columns: 1fr; } }
@@ -478,6 +486,44 @@ footer .wrap { display: grid; gap: 14px; }
 footer .brand { justify-self: start; margin-bottom: 12px; }
 footer a { color: var(--on-dark); }
 .watermark { position: absolute; z-index: -1; right: -48px; bottom: -64px; pointer-events: none; }
+
+/* Parallax, from scrolling alone (no script). Text and buttons always move 1:1 with the finger; only photos
+   lag behind inside their frames, so the page gains depth without ever feeling loose. On phones the opening
+   photo holds still while the panel slides up over it like a sheet, and sinks back as it is covered.
+   Off when the reader asks for reduced motion. Browsers without scroll-driven animations keep still photos.
+   Durations are 1ms because a scroll timeline sets the pace; Firefox needs a non-zero one to run at all. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  @media (max-width: 999px) {
+    .hero__media { position: sticky; top: calc(64px + env(safe-area-inset-top) + clamp(12px, 2vw, 24px)); }
+    .hero__panel { z-index: 1; }
+  }
+  @supports (animation-timeline: view()) {
+    .split__media, .wide-img, .hero__media { view-timeline: --frame block; }
+    .split__media img, .wide-img img { animation: st-drift 1ms linear both; animation-timeline: --frame; }
+    .band { view-timeline: --band block; }
+    .band > img { animation: st-drift-deep 1ms linear both; animation-timeline: --band; }
+    footer { view-timeline: --foot block; }
+    .watermark { animation: st-rise 1ms linear both; animation-timeline: --foot; animation-range: entry 0% entry 100%; }
+    @media (max-width: 899px) {
+      .card__media { view-timeline: --card inline; }
+      .card__media img { animation: st-drift-x 1ms linear both; animation-timeline: --card; }
+    }
+    @media (max-width: 999px) {
+      .hero__media { transform-origin: 50% 0; animation: st-sink 1ms linear both; animation-timeline: scroll(root block); animation-range: 0px 400px; }
+      .hero__media::after { content: ""; position: absolute; inset: 0; background: var(--black); opacity: 0; pointer-events: none; animation: st-dim 1ms linear both; animation-timeline: scroll(root block); animation-range: 0px 400px; }
+    }
+    @media (min-width: 1000px) {
+      .hero__media img { animation: st-hero 1ms linear both; animation-timeline: --frame; animation-range: exit 0% exit 100%; }
+    }
+  }
+}
+@keyframes st-drift { from { transform: translateY(-6%) scale(1.14); } to { transform: translateY(6%) scale(1.14); } }
+@keyframes st-drift-deep { from { transform: translateY(-9%) scale(1.2); } to { transform: translateY(9%) scale(1.2); } }
+@keyframes st-drift-x { from { transform: translateX(-6%) scale(1.14); } to { transform: translateX(6%) scale(1.14); } }
+@keyframes st-hero { from { transform: scale(1.16); } to { transform: translateY(7%) scale(1.16); } }
+@keyframes st-rise { from { transform: translateY(30%); } }
+@keyframes st-sink { to { transform: scale(.92); } }
+@keyframes st-dim { to { opacity: .45; } }
 
 /* Accessibility preferences */
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn, .jump a, details summary::after { transition: none; } .btn:active, .jump a:active { transform: none; } }
@@ -665,7 +711,7 @@ ${bundleCards}
       <h2 id="groups-title">Bring the whole crew.</h2>
       <p class="lede">Birthdays, team days, school outings and tour groups. Thursdays and Fridays are the quietest days at the towers, which makes them the best days for groups.</p>
     </div>
-    ${img(groups, { className: 'wide-img' })}
+    <div class="wide-img">${img(groups)}</div>
     <ul class="tiles">
       <li class="tile"><h3>Celebrations</h3><p class="muted small">Birthdays and bucket lists. Birthday cake is welcome.</p></li>
       <li class="tile"><h3>Team days</h3><p class="muted small">Paid upfront, with invoicing for companies.</p></li>
@@ -713,7 +759,7 @@ ${bundleCards}
       <p class="eyebrow">Plan your visit</p>
       <h2 id="visit-title">Everything before the step.</h2>
     </div>
-    ${img(visit, { className: 'wide-img' })}
+    <div class="wide-img">${img(visit)}</div>
     <div class="panels">
       <div class="panel">
         <h3>Opening hours</h3>
