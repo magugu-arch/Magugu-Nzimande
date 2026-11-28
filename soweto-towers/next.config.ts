@@ -1,9 +1,12 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
-// Note: while this app lives inside a larger repository, Next warns about two
-// lockfiles and picks the outer folder as the workspace root. That is harmless.
-// Don't silence it with `turbopack.root` pointing here: in Next 16.4 the dev
-// server then watches its own log files in .next/dev and reloads in a loop.
+// This app lives inside a larger repository with a lockfile of its own, so the
+// workspace root is the repository root. Naming it here stops Next warning that
+// it had to infer it, and changes nothing else: it is the folder Next picks
+// anyway. Don't point it at this folder instead: in Next 16.4 the dev server
+// then watches its own log files in .next/dev and reloads in a loop.
+const workspaceRoot = path.join(__dirname, '..');
 
 const isDev = process.env.NODE_ENV === 'development';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
@@ -74,6 +77,8 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   poweredByHeader: false,
   serverExternalPackages: ['@electric-sql/pglite'],
+  turbopack: { root: workspaceRoot },
+  outputFileTracingRoot: workspaceRoot,
   outputFileTracingIncludes: {
     '/**': ['./drizzle/**/*'],
   },

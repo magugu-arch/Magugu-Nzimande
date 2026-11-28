@@ -254,6 +254,8 @@ Prices, contacts, hours and rules come from the current sowetotowers.co.za pages
 
 CI (`.github/workflows/soweto-towers.yml`) runs typecheck, lint, unit tests, a production build and the browser tests on every push that touches this folder.
 
+`package.json` overrides the esbuild inside drizzle-kit's old loader (`@esbuild-kit/core-utils`) to 0.25.12, the version drizzle-kit itself runs, which clears npm audit's advisory for esbuild 0.24 and older. `drizzle-kit generate` and `check` work with it; remove the override once drizzle-kit drops that loader.
+
 ---
 
 ## Known limits
