@@ -11,4 +11,7 @@ module.exports = {
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|standard-navigation|@tanstack/.*)',
   ],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
+  // soweto-towers/ is a separate Next.js project with its own test runner.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/soweto-towers/'],
+  modulePathIgnorePatterns: ['<rootDir>/soweto-towers/'],
 };

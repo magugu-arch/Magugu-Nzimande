@@ -1,0 +1,31 @@
+.banner {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 50;
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.45);
+}
+
+.banner a {
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+@media (min-width: 900px) {
+  .banner {
+    left: 24px;
+    right: auto;
+    max-width: 460px;
+  }
+}

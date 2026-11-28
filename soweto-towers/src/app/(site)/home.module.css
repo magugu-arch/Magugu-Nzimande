@@ -1,0 +1,576 @@
+/* ---------- Hero ---------- */
+
+.heroWrap {
+  padding-top: clamp(10px, 1.6vw, 20px);
+}
+
+.heroContainer {
+  width: min(100% - 2 * clamp(10px, 2vw, 24px), 1440px);
+}
+
+.hero {
+  position: relative;
+  min-height: min(86svh, 900px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(12px, 2vw, 28px);
+  background: var(--charcoal);
+}
+
+.heroImage {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.heroImage img {
+  --focus: 50% 40%;
+}
+
+@media (min-width: 900px) {
+  .heroImage img {
+    --focus: 65% 45%;
+  }
+}
+
+.heroBadge {
+  position: absolute;
+  top: clamp(14px, 2vw, 28px);
+  right: clamp(14px, 2vw, 28px);
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 0.9375rem;
+}
+
+.heroPanel {
+  width: 100%;
+  display: grid;
+  gap: 18px 40px;
+  padding: clamp(20px, 3vw, 44px);
+}
+
+.heroText {
+  display: grid;
+  gap: 14px;
+}
+
+.heroEyebrow {
+  color: var(--coral);
+}
+
+.heroSide {
+  display: grid;
+  gap: 20px;
+  align-content: end;
+}
+
+.heroLede {
+  font-size: clamp(1.05rem, 0.5vw + 0.95rem, 1.3rem);
+  line-height: 1.45;
+  color: var(--on-dark-2);
+  max-width: 40ch;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.heroGhost {
+  color: var(--on-dark);
+}
+
+.heroPills {
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (min-width: 960px) {
+  .heroPanel {
+    grid-template-columns: 1.25fr 1fr;
+  }
+  .heroPills {
+    display: flex;
+    grid-column: 1 / -1;
+  }
+  .heroSide {
+    justify-items: end;
+    text-align: right;
+  }
+  .heroActions {
+    justify-content: flex-end;
+  }
+}
+
+/* Phones: photo first, then the panel overlapping its foot, so the jumper stays in view. */
+@media (max-width: 899px) {
+  .hero {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    background: none;
+    overflow: visible;
+  }
+  .heroImage {
+    position: relative;
+    display: block;
+    height: min(64svh, 560px);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+  }
+  .heroImage img {
+    --focus: 50% 72%;
+  }
+  .heroPanel {
+    position: relative;
+    margin: -64px 10px 0;
+    width: auto;
+    background: rgb(26 26 28 / 0.9);
+  }
+  .heroActions :global(.btn) {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------- Proof row ---------- */
+
+/* Phones: a swipeable row (native momentum); desktop: four across. */
+.proof {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(250px, 76%);
+  gap: 12px;
+  margin-top: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 12px;
+}
+
+.proof::-webkit-scrollbar {
+  display: none;
+}
+
+.proof > * {
+  scroll-snap-align: start;
+}
+
+.proofCard {
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  font-size: 0.9375rem;
+  line-height: 1.3;
+}
+
+.proofCard svg {
+  flex: none;
+  color: var(--orange);
+}
+
+.proofCard :global(.price) {
+  font-size: 1.9rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (min-width: 900px) {
+  .proof {
+    grid-auto-flow: row;
+    grid-template-columns: 1.3fr repeat(3, minmax(0, 1fr));
+    overflow: visible;
+    padding-bottom: 0;
+  }
+}
+
+/* ---------- Adventure rail ---------- */
+
+.railWrap {
+  overflow: hidden;
+}
+
+.rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min(74vw, 300px);
+  gap: 14px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: max(var(--gutter), (100vw - var(--max)) / 2);
+  padding: 8px max(var(--gutter), (100vw - var(--max)) / 2) 24px;
+  scrollbar-width: none;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.railItem {
+  scroll-snap-align: start;
+}
+
+.railFallback {
+  height: 420px;
+}
+
+.adventuresSection {
+  padding-bottom: clamp(24px, 3vw, 48px);
+}
+
+.moreLink {
+  margin-top: 24px;
+}
+
+/* ---------- Split (image + copy) ---------- */
+
+.split {
+  display: grid;
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+}
+
+.splitMedia {
+  aspect-ratio: 4 / 4.6;
+}
+
+.splitBody {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+}
+
+@media (min-width: 960px) {
+  .split {
+    grid-template-columns: 1fr 1fr;
+  }
+  .splitReverse .splitMedia {
+    order: 2;
+  }
+}
+
+.safeList {
+  display: grid;
+  gap: 16px;
+  margin: 6px 0 8px;
+}
+
+.safeList li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.safeList svg {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  color: var(--orange);
+}
+
+.safeList div {
+  display: grid;
+  gap: 2px;
+}
+
+.safeList span {
+  color: var(--ink-2);
+}
+
+/* ---------- Scream Clip ---------- */
+
+.clipSection {
+  background: linear-gradient(180deg, transparent, var(--canvas-deep) 30%, var(--canvas-deep) 70%, transparent);
+}
+
+.clip {
+  display: grid;
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+}
+
+.clipBody {
+  display: grid;
+  gap: 20px;
+}
+
+.clipMedia {
+  aspect-ratio: 4 / 5;
+}
+
+@media (min-width: 960px) {
+  .clip {
+    grid-template-columns: 1.15fr 1fr;
+  }
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.steps li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  box-shadow: var(--shadow-card);
+}
+
+.steps li div {
+  display: grid;
+  gap: 2px;
+}
+
+.steps li span:not(.stepNum) {
+  color: var(--ink-2);
+}
+
+.stepNum {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--rust);
+  font-size: 1.1rem;
+  min-width: 28px;
+}
+
+.steps .stepDark {
+  background: linear-gradient(180deg, #3d3d3f, var(--charcoal));
+  color: var(--on-dark);
+}
+
+.steps .stepDark .stepNum {
+  color: var(--coral);
+}
+
+.steps .stepDark span:not(.stepNum) {
+  color: var(--on-dark-2);
+}
+
+/* ---------- Groups bento ---------- */
+
+.bento {
+  display: grid;
+  gap: clamp(12px, 1.6vw, 20px);
+}
+
+.bentoBig,
+.bentoWide {
+  position: relative;
+  display: block;
+  min-height: 380px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--on-dark);
+  text-decoration: none;
+  background: var(--canvas-deep);
+}
+
+.bentoBig img,
+.bentoWide img {
+  transition: transform 1.2s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .bentoBig:hover img,
+  .bentoWide:hover img {
+    transform: scale(1.04);
+  }
+}
+
+.bentoShade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0) 35%, rgb(12 12 14 / 0.85) 100%);
+}
+
+.bentoText {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 22px;
+  z-index: 2;
+  display: grid;
+  gap: 6px;
+}
+
+.bentoText :global(.eyebrow) {
+  color: var(--coral);
+}
+
+.bentoText > span:last-child:not(:global(.h3)) {
+  color: rgb(244 243 239 / 0.86);
+}
+
+.bentoCard {
+  min-height: 220px;
+  justify-content: flex-end;
+}
+
+@media (min-width: 960px) {
+  .bento {
+    grid-template-columns: 1.1fr 1fr 1fr;
+    grid-template-rows: 300px 260px;
+  }
+  .bentoBig {
+    grid-row: 1 / 3;
+    min-height: 0;
+  }
+  .bentoWide {
+    grid-column: 2 / 4;
+    min-height: 0;
+  }
+}
+
+/* ---------- Gift ---------- */
+
+.gift {
+  display: grid;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  box-shadow: var(--shadow-card);
+}
+
+.giftMedia {
+  position: relative;
+  min-height: 320px;
+}
+
+.giftBody {
+  display: grid;
+  gap: 16px;
+  align-content: center;
+  justify-items: start;
+  padding: clamp(24px, 4vw, 56px);
+}
+
+.giftBody > svg {
+  color: var(--orange);
+}
+
+@media (min-width: 960px) {
+  .gift {
+    grid-template-columns: 1fr 1fr;
+    min-height: 520px;
+  }
+}
+
+/* ---------- Panorama ---------- */
+
+.panorama {
+  position: relative;
+  min-height: clamp(460px, 52vw, 640px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(12px, 2vw, 28px);
+}
+
+.panorama > img {
+  z-index: -1;
+}
+
+.panoramaPanel {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+  max-width: 560px;
+  padding: clamp(22px, 3vw, 40px);
+}
+
+.panoramaPanel p:not(:global(.eyebrow)) {
+  color: var(--on-dark-2);
+}
+
+/* ---------- Plan ---------- */
+
+.hours {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.hours div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.hours dt {
+  font-weight: 600;
+}
+
+.hours dd {
+  margin: 0;
+  text-align: right;
+  color: var(--ink-2);
+}
+
+.bring {
+  display: grid;
+  gap: 8px;
+  padding-left: 1.1em;
+  list-style: disc;
+  color: var(--on-dark-2);
+}
+
+.faq {
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+  margin-top: clamp(28px, 4vw, 48px);
+}
+
+.faq > div {
+  width: 100%;
+}
+
+/* ---------- Ready ---------- */
+
+.ready {
+  position: relative;
+  min-height: clamp(520px, 70vw, 760px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  isolation: isolate;
+  display: grid;
+  place-items: end start;
+  padding: clamp(24px, 5vw, 72px);
+  color: var(--on-dark);
+}
+
+.ready > img {
+  z-index: -2;
+}
+
+.readyShade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgb(10 10 12 / 0.05) 20%, rgb(10 10 12 / 0.75) 100%);
+}
+
+.readyBody {
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+}

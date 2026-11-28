@@ -1,0 +1,132 @@
+.skeleton {
+  min-height: 420px;
+}
+
+.private {
+  margin-bottom: clamp(40px, 6vw, 80px);
+  gap: 16px;
+  padding: clamp(28px, 4vw, 48px);
+}
+
+.private p:not(:global(.eyebrow)) {
+  color: var(--on-dark-2);
+  max-width: 56ch;
+}
+
+/* ---------- Detail ---------- */
+
+.hero {
+  position: relative;
+  min-height: clamp(360px, 46vw, 560px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(12px, 2vw, 24px);
+  margin-top: clamp(12px, 2vw, 24px);
+}
+
+.hero > img {
+  z-index: -1;
+}
+
+.heroPanel {
+  display: grid;
+  gap: 12px;
+  padding: clamp(20px, 3vw, 36px);
+  max-width: 760px;
+}
+
+.heroPanel :global(.eyebrow) {
+  color: var(--coral);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.body {
+  display: grid;
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+  padding-block: clamp(28px, 5vw, 64px) 96px;
+}
+
+@media (min-width: 1000px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
+}
+
+.text {
+  display: grid;
+  gap: 16px;
+  font-size: 1.0625rem;
+}
+
+.ticketCard {
+  gap: 14px;
+}
+
+@media (min-width: 1000px) {
+  .ticketCard {
+    position: sticky;
+    top: calc(var(--header-h) + 20px);
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(30 32 32 / 0.06);
+}
+
+.stepper button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+  cursor: pointer;
+}
+
+.stepper button:disabled {
+  opacity: 0.4;
+}
+
+.stepper output {
+  min-width: 36px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.errors {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fbe9e5;
+  color: #8f2215;
+  font-weight: 600;
+}
+
+.spaces {
+  font-weight: 600;
+  color: var(--ink-2);
+}

@@ -1,0 +1,55 @@
+.grid {
+  align-items: stretch;
+}
+
+.card {
+  min-height: 360px;
+}
+
+.price {
+  font-size: clamp(2.6rem, 3.4vw + 1rem, 3.6rem);
+  line-height: 1;
+  margin-top: 6px;
+}
+
+.flag {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rust);
+}
+
+:global(.card--dark) .flag {
+  color: var(--coral);
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.list svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--orange);
+}
+
+.cta {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 1.5px;
+}

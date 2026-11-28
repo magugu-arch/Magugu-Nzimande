@@ -1,0 +1,61 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink);
+}
+
+.paper {
+  color: var(--on-dark);
+}
+
+.mark {
+  flex: none;
+}
+
+.words {
+  display: grid;
+  line-height: 1;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.line {
+  margin-top: 4px;
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  color: var(--ink-3);
+}
+
+.paper .line {
+  color: var(--on-dark-3);
+}
+
+@media (max-width: 400px) {
+  .name {
+    font-size: 12.5px;
+    letter-spacing: 0.1em;
+  }
+  .line {
+    font-size: 8px;
+    letter-spacing: 0.2em;
+  }
+}
+
+@media (min-width: 900px) {
+  .name {
+    font-size: 15px;
+    letter-spacing: 0.16em;
+  }
+  .line {
+    font-size: 9.5px;
+  }
+}

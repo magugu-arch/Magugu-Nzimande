@@ -1,0 +1,152 @@
+/* ---------- Plain header (no photo) ---------- */
+
+.plain {
+  display: grid;
+  gap: 20px;
+  padding-top: clamp(16px, 2.4vw, 28px);
+  padding-bottom: clamp(12px, 2vw, 24px);
+}
+
+.plainBody {
+  display: grid;
+  gap: 24px 48px;
+  align-items: end;
+  padding-top: clamp(12px, 3vw, 40px);
+}
+
+.plainText {
+  display: grid;
+  gap: 16px;
+  max-width: 62rem;
+}
+
+.plainAside {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 960px) {
+  .plainBody:has(.plainAside) {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
+
+/* ---------- Photo hero ---------- */
+
+.wrap {
+  padding-top: clamp(10px, 1.6vw, 18px);
+}
+
+.crumbRow {
+  padding-bottom: 10px;
+}
+
+.heroContainer {
+  width: min(100% - 2 * clamp(10px, 2vw, 24px), 1440px);
+}
+
+.hero {
+  position: relative;
+  min-height: min(68svh, 680px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(12px, 2vw, 28px);
+  background: var(--charcoal);
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  /* Read by the photo's object-position: the phone crop by default, the wide crop from 900px. */
+  --focus-now: var(--hero-focus);
+}
+
+/* A compact panel on the side away from the subject (data-panel), so the photo
+   keeps its point: the jumper, the faces, the harness. */
+.panel {
+  width: clamp(460px, 46%, 620px);
+  display: grid;
+  gap: 20px 40px;
+  padding: clamp(20px, 3vw, 40px);
+}
+
+.hero[data-panel='right'] {
+  justify-content: flex-end;
+}
+
+.panel :global(.h1) {
+  font-size: clamp(2.3rem, 2.6vw + 0.9rem, 3.6rem);
+}
+
+@media (min-width: 900px) {
+  .media {
+    --focus-now: var(--hero-focus-wide);
+  }
+}
+
+.text {
+  display: grid;
+  gap: 14px;
+  align-content: end;
+}
+
+.eyebrow {
+  color: var(--coral);
+}
+
+.lede {
+  font-size: clamp(1.05rem, 0.45vw + 0.95rem, 1.28rem);
+  line-height: 1.45;
+  color: var(--on-dark-2);
+  max-width: 46ch;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.aside {
+  display: grid;
+  gap: 12px;
+  align-content: end;
+}
+
+/* The price (aside) sits under the actions, divided by a hairline. */
+.aside {
+  padding-top: 16px;
+  border-top: 1px solid var(--line-dark);
+}
+
+/* Phones: the photo, then the panel overlapping its foot, so the subject stays visible. */
+@media (max-width: 899px) {
+  .hero {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    background: none;
+    overflow: visible;
+  }
+  .media {
+    position: relative;
+    height: min(48svh, 420px);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+  }
+  .panel {
+    position: relative;
+    margin: -56px 10px 0;
+    width: auto;
+    background: rgb(26 26 28 / 0.92);
+  }
+  .actions :global(.btn) {
+    flex: 1 1 auto;
+  }
+}

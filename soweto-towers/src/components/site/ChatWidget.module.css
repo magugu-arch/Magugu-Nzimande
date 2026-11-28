@@ -1,0 +1,239 @@
+.launcher {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  z-index: 35;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--charcoal);
+  color: var(--on-dark);
+  box-shadow: 0 14px 30px -12px rgb(0 0 0 / 0.55);
+  cursor: pointer;
+  transition: transform 0.12s ease-out;
+}
+
+.launcher:active {
+  transform: scale(0.95);
+}
+
+.launcherLabel {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--orange);
+  color: #121212;
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: grid;
+  place-items: center;
+}
+
+.panel {
+  position: fixed;
+  z-index: 45;
+  inset: auto 0 0 0;
+  height: min(78dvh, 640px);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -20px 60px -20px rgb(0 0 0 / 0.45);
+  transform-origin: bottom right;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 14px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sub {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(30 32 32 / 0.06);
+  cursor: pointer;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  max-width: 86%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  display: grid;
+  gap: 8px;
+}
+
+.theirs {
+  align-self: flex-start;
+  background: var(--paper-2);
+  border-bottom-left-radius: 6px;
+}
+
+.theirs a {
+  color: var(--rust);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.mine {
+  align-self: flex-end;
+  background: var(--charcoal);
+  color: var(--on-dark);
+  border-bottom-right-radius: 6px;
+}
+
+.from {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rust);
+}
+
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.topics :global(.pill) {
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  min-height: 36px;
+}
+
+.compose {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.input,
+.contact {
+  width: 100%;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 18px;
+  background: #fff;
+  font-size: 1rem;
+  padding: 10px 14px;
+}
+
+.input {
+  flex: 1;
+  resize: none;
+  max-height: 120px;
+  line-height: 1.35;
+}
+
+.contact {
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.input:focus,
+.contact:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+
+.error {
+  color: #a3261b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+@media (min-width: 900px) {
+  .launcher {
+    bottom: max(24px, env(safe-area-inset-bottom));
+    right: 24px;
+  }
+  .panel {
+    inset: auto 24px 88px auto;
+    width: 380px;
+    border-radius: 24px;
+    box-shadow: 0 30px 70px -24px rgb(0 0 0 / 0.5);
+  }
+}
+
+@media (max-width: 899px) {
+  .launcherLabel {
+    display: none;
+  }
+  .launcher {
+    width: 52px;
+    padding: 0;
+    justify-content: center;
+  }
+  .launcherOpen {
+    display: none;
+  }
+}
