@@ -57,12 +57,20 @@ try {
 
   await step('pick the first open date and a time', async () => {
     await page.getByRole('heading', { name: 'When are you coming?' }).waitFor();
-    const day = page.locator('button[role="gridcell"]:not([disabled])').first();
-    await day.waitFor({ timeout: 20000 });
-    await day.click();
-    const slot = page.locator('[class*="slotGrid"] button:not([disabled])').nth(2);
-    await slot.waitFor({ timeout: 20000 });
-    await slot.click();
+    // Late in the day, today may have only a time or two left, or none with
+    // room for two people, so take the first day that has an open time.
+    const days = page.locator('button[role="gridcell"]:not([disabled])');
+    await days.first().waitFor({ timeout: 20000 });
+    const slots = page.locator('[class*="slotGrid"] button:not([disabled])');
+    const loading = page.getByText('Loading times…');
+    const shown = await days.count();
+    for (let i = 0; ; i++) {
+      if (i === shown) throw new Error(`none of the ${shown} open days has a time for two`);
+      await days.nth(i).click();
+      await loading.waitFor({ state: 'detached', timeout: 20000 });
+      if ((await slots.count()) > 0) break;
+    }
+    await slots.first().click();
     await shot('when');
     await next();
   });
