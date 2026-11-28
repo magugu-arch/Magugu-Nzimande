@@ -8,6 +8,10 @@ Layout rules (all in mm, page 297 x 210):
   - objects stand upright on a grid, never overlap, and carry their own
     caption on a shared baseline
   - no decorative rules
+  - type never sits on a pattern: a pattern runs in its own field of whole tiles
+  - one scale per option on the system page, so lockups compare at their true sizes
+  - app-icon corners are drawn into the artwork, never clipped by CSS (clips can
+    render with a notch in some PDF viewers)
 Every element is tagged data-o (object) or data-t (text) so check_layout.js
 can prove that nothing overlaps.
 """
@@ -15,9 +19,17 @@ import base64, random
 from geom import f
 import vec
 from kit import Art, tile, TT, BLACK, BONE, WHITE
+from wordmark import Text
 
 DATE = "November 2026"
 OPTICAL = {"cover": {1: 20, 2: 13.5, 3: 15}, "intro": {1: 25, 2: 17, 3: 19}, "compare": {1: 36, 2: 0, 3: 34}}
+ICON_R = 0.225      # app-icon corner radius as a share of its side, drawn into the artwork (no CSS clipping)
+LBL = None          # label face for construction drawings, set in render(); measures label widths
+
+
+def label_w(t, size):
+    """Advance width of a construction label in SVG units (Archivo 400, width 110, +0.04em tracking)."""
+    return LBL.layout(t, size * LBL.cap / LBL.upm, 0.04)[1]
 
 
 def inl(art, way, cls="lk", pad=None, label="Soweto Towers", style=""):
@@ -88,7 +100,11 @@ def con_tower_t(make, red):
     leaders = "".join(f'<line x1="{f(px + 2)}" y1="{f(py)}" x2="{f(LX)}" y2="{f(py)}"/>' for px, py, _ in pts)
     dots = "".join(f'<circle cx="{f(px)}" cy="{f(py)}" r=".8"/>' for px, py, _ in pts)
     tx = "".join(lab(LX + 3, py + 1.6, t) for _, py, t in pts)
-    return (f'<svg class="con" viewBox="-14 {f(-cap * k - 16)} {f(LX + 74)} {f(cap * k + 32)}" role="img" aria-label="Construction of the tower T">'
+    # centre the whole group (letter, leaders and measured labels) in the view box
+    x_l = min(bx0 * k, cx - hy.w(0))
+    x_r = LX + 3 + max(label_w(t, 4.6) for _, _, t in pts)
+    pad = 16
+    return (f'<svg class="con" viewBox="{f(x_l - pad)} {f(-cap * k - 16)} {f(x_r - x_l + 2 * pad)} {f(cap * k + 32)}" role="img" aria-label="Construction of the tower T">'
             + "".join(f'<path d="{d}" fill="rgba(243,239,231,.08)" stroke="{BONE}" stroke-width=".35"/>' for d in parts)
             + f'<g stroke="rgba(243,239,231,.45)" stroke-width=".3">{leaders}</g><g fill="{red}">{dots}</g>'
             f'<g font-size="4.6" fill="rgba(243,239,231,.85)" style="font-stretch:110%;letter-spacing:.04em">{tx}</g></svg>')
@@ -100,16 +116,14 @@ def con_loop(lp, red):
     p1 = vec.pt(-D, 0, r, -90 + a)
     t1 = (-p1[0], p1[1])                                 # tangent points of the (mirrored) bridge
     t2 = (p1[0], -p1[1])
-    ux, uy = t2[0] - t1[0], t2[1] - t1[1]
-    n = (ux * ux + uy * uy) ** 0.5
-    ux, uy = ux / n, uy / n
-    e0 = (t1[0] - ux * (EXT + w / 2), t1[1] - uy * (EXT + w / 2))
-    e1 = (t2[0] + ux * (EXT + w / 2), t2[1] + uy * (EXT + w / 2))
     xo = D + r + w / 2
     pad = 24
+    # the centreline (two rim circles and the bridge between its tangent points) is shown only
+    # inside the stroke, so no guide fragment shows in the cut or past the ends
     return (f'<svg class="con" viewBox="{f(-xo - pad)} {f(-r - w / 2 - pad)} {f(2 * xo + 2 * pad)} {f(2 * r + w + 2 * pad)}" role="img" aria-label="Construction of the Loop">'
-            f'<g {GUIDE}><circle cx="{f(-D)}" cy="0" r="{f(r)}"/><circle cx="{f(D)}" cy="0" r="{f(r)}"/>'
-            f'<line x1="{f(e0[0])}" y1="{f(e0[1])}" x2="{f(e1[0])}" y2="{f(e1[1])}"/>'
+            f'<defs><clipPath id="loop-ink">{lp.body({"ink": "#000", "acc": "#000"})}</clipPath></defs>'
+            f'<g {GUIDE}><g clip-path="url(#loop-ink)"><circle cx="{f(-D)}" cy="0" r="{f(r)}"/><circle cx="{f(D)}" cy="0" r="{f(r)}"/>'
+            f'<line x1="{f(t1[0])}" y1="{f(t1[1])}" x2="{f(t2[0])}" y2="{f(t2[1])}"/></g>'
             f'<line x1="{f(-xo - EXT)}" y1="0" x2="{f(xo + EXT)}" y2="0"/></g>'
             f'{lp.body({"ink": "rgba(200,16,46,.28)", "acc": "rgba(200,16,46,.28)"})}'
             f'<g fill="none" stroke="#e0485f" stroke-width=".4">' + "".join(f'<path d="{d}"/>' for _, d, _ in lp.items) + "</g>"
@@ -120,7 +134,9 @@ def con_loop(lp, red):
 
 
 # ------------------------------------------------------------------ render
-def render(opts, P, font_path, WAYS, PAL, tower_t):
+def render(opts, font_path, WAYS, PAL, tower_t, cache):
+    global LBL
+    LBL = Text(font_path, cache, wght=400, wdth=110)
     font64 = base64.b64encode(open(font_path, "rb").read()).decode()
     RED, PAPER = PAL["red"], PAL["paper"]
     COL, REV, MW, MB = WAYS["colour"], WAYS["reverse"], WAYS["white"], WAYS["black"]
@@ -137,7 +153,7 @@ def render(opts, P, font_path, WAYS, PAL, tower_t):
     def page(body, cls=""):
         pages.append(f'<div class="pw"><section class="page {cls}">{body}</section></div>')
 
-    def loop_pattern(ink, bg, cell=160.0, scale=0.82):
+    def loop_pattern(ink, cell=160.0, scale=0.82):
         out = []
         for (cx, cy, art) in ((cell / 2, cell / 2, o3["sym"]), (cell * 1.5, cell / 2, o3["upright"]),
                               (cell / 2, cell * 1.5, o3["upright"]), (cell * 1.5, cell * 1.5, o3["sym"])):
@@ -146,15 +162,16 @@ def render(opts, P, font_path, WAYS, PAL, tower_t):
             t.place(art, cx - mx * scale, cy - my * scale, scale)
             out.append(t.body({"ink": ink, "acc": ink}))
         s = cell * 2
+        # motifs only, no background: the band's own colour shows through, so no tile edge can show
         svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {f(s)} {f(s)}" width="{f(s)}" height="{f(s)}">'
-               f'<rect width="{f(s)}" height="{f(s)}" fill="{bg}"/>{"".join(out)}</svg>')
+               f'{"".join(out)}</svg>')
         return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
 
-    PAT_RED = loop_pattern("#b80e2a", RED)
-    PAT_DARK = loop_pattern("#1c1a18", BLACK)
+    PAT_RED = loop_pattern("#b80e2a")
+    PAT_DARK = loop_pattern("#1c1a18")
 
     def icon_svg(o):
-        s = tile(o["icon_sym"], o["icon_way"], o["icon_bg"], fill=o["icon_fill"], by=o["icon_by"])
+        s = tile(o["icon_sym"], o["icon_way"], o["icon_bg"], fill=o["icon_fill"], by=o["icon_by"], radius=f(1024 * ICON_R))
         return s.replace(' xmlns="http://www.w3.org/2000/svg"', "").replace("<svg ", '<svg class="ic" ', 1)
 
     sym_rev = {1: REV, 2: BONE_ONLY, 3: REV}
@@ -199,7 +216,14 @@ def render(opts, P, font_path, WAYS, PAL, tower_t):
         rows = [(alt, nm["alt"], "For square and portrait formats: posters, social, merchandise." if o["n"] == 2 else "For wide spaces: the website header, email and vehicles." if o["n"] == 3 else "For square and portrait formats: posters, social, merchandise."),
                 (altd, nm["alt_desc"], "Where people meet the brand for the first time: signs, print and press."),
                 third]
-        rows_html = "".join(f'<div class="lr"><div class="lr-art" data-o>{inl(a, COL)}</div><div class="lr-t" data-t><h4>{t}</h4><p>{d}</p></div></div>' for a, t, d in rows)
+        # One scale per option, so every version is shown at its true size relative to the others:
+        # the widest fits the 97 mm column, the tallest stays within 30 mm. The tower-T pair is drawn
+        # in different units from its lockups, so it is set on its own at 16 mm high.
+        shared = [r[0] for r in rows] if o["n"] != 2 else [r[0] for r in rows[:2]]
+        k = min(min(97.0 / a.w for a in shared), min(30.0 / a.h for a in shared))
+        sizes_mm = [a.w * k for a in shared] + ([rows[2][0].w * 16.0 / rows[2][0].h] if o["n"] == 2 else [])
+        rows_html = "".join(f'<div class="lr"><div class="lr-art" data-o style="width:{w_:.2f}mm">{inl(a, COL, pad=0)}</div>'
+                            f'<div class="lr-t" data-t><h4>{t}</h4><p>{d}</p></div></div>' for (a, t, d), w_ in zip(rows, sizes_mm))
         page(f"""<div class="field dark" data-o style="left:0;width:172mm"><div class="con-wrap">{con}</div><p class="field-cap" data-t>Construction</p></div>
           {hd(num + " · " + o['title'] + " · The system", RC)}
           <div class="rc" style="left:{RC}mm"><div class="lrs">{rows_html}</div></div>{ft(n0 + 1, RC)}""")
@@ -227,22 +251,23 @@ def render(opts, P, font_path, WAYS, PAL, tower_t):
         else:
             front = f'<div class="bc front center" data-o><div style="width:34mm">{inl(prim, COL)}</div></div>'
             mark = f'<div class="bc-mk" style="width:14mm">{inl(sym, REV, "lk")}</div>'
-            back_bg = f'background-image:url({PAT_DARK});background-size:26mm;'
+            back_bg = ""                                  # type never sits on the pattern
         back = (f'<div class="bc back" data-o style="{back_bg}"><div class="bc-txt"><b>Name Surname</b><span>Role</span>'
                 f'<span class="gap">+27 71 674 4343</span><span>info@sowetotowers.co.za</span><span>sowetotowers.co.za</span>'
                 f'<span class="gap">Cnr Sheffield Rd &amp; Chris Hani Rd, Orlando East</span></div>{mark}</div>')
         vh = {1: "12mm", 2: "8mm", 3: "9mm"}[o["n"]]
-        voucher = (f'<div class="vch" data-o><div class="vch-main"><div class="vch-top"><div style="height:{vh}">{inl(sym, sym_rev[o["n"]], "lk vsym")}</div>'
-                   f'{inl(P["Bungee"], {"ink": BONE, "acc": RED}, "vp", 0, "Bungee")}</div>'
+        voucher = (f'<div class="vch" data-o><div class="vch-main"><div class="vch-top"><div style="height:{vh}">{inl(sym, sym_rev[o["n"]], "lk vsym")}</div></div>'
                    f'<div class="vch-act"><small>Activity voucher</small>Bungee jump</div>'
                    f'<div class="vch-row"><span>Height<b>100 m</b></span><span>From<b>The bridge</b></span><span>Valid<b>365 days</b></span></div></div>'
                    f'<div class="vch-stub">{qr(BLACK)}<span>Admit one</span></div></div>')
         def band(bg, img, label, sym_way, show_sym=True, wide=False):
-            st = f"background-color:{bg};" + (f"background-image:url({img});background-size:22mm;" if img else "")
+            st = f"background-color:{bg};"
             s_ = (f'<span class="wb-s" style="width:{8 if o["n"] == 2 else 5.5}mm">{inl(sym, sym_way, "lk")}</span>' if show_sym else "")
             n_ = f'<span class="wb-n{" wide" if wide else ""}">{inl(name, BONE_ONLY, "lk")}</span>'
             body_ = (n_ + s_) if o["n"] == 2 else (s_ + n_)
-            return f'<div class="wb" data-o style="{st}color:{BONE}">{body_}<b>{label}</b></div>'
+            # the pattern runs in its own field of two whole tiles (4 x 2 motifs), centred between name and label
+            pat = f'<i class="wb-pat" style="background-image:url({img})"></i>' if img else ""
+            return f'<div class="wb{" has-pat" if img else ""}" data-o style="{st}color:{BONE}">{body_}{pat}<b>{label}</b></div>'
         if o["n"] == 1:
             bands = band(RED, None, "Jumper", {"ink": BONE, "acc": BLACK}) + band(BLACK, None, "Spectator", REV)
         elif o["n"] == 2:
@@ -266,11 +291,12 @@ def render(opts, P, font_path, WAYS, PAL, tower_t):
                    f'<div class="s-deco">{inl(sym, deco_way, "lk", 0, "")}</div></div></div>')
         apps = "".join(f'<div class="app"><div class="aic">{icon_svg(o)}</div></div>' if i == 5
                        else '<div class="app"><div class="aic ph"></div></div>' for i in range(24))
-        phone = f'<div class="phone" data-o><div class="ph-grid">{apps}</div></div>'
+        dock = "".join('<div class="app"><div class="aic ph"></div></div>' for _ in range(4))
+        phone = f'<div class="phone" data-o><div class="ph-grid">{apps}</div><div class="ph-dock">{dock}</div></div>'
         post_bg, post_way, post_h = ((RED, {"ink": BONE, "acc": BLACK}, "13mm") if o["n"] == 1 else
                                      (BLACK, {"ink": RED, "acc": RED}, "9mm") if o["n"] == 2 else (BLACK, REV, "10mm"))
         post = (f'<div class="post" data-o style="background:{post_bg}"><div style="height:{post_h}">{inl(sym, post_way, "lk")}</div>'
-                f'<b>Open Friday to Sunday, 10:00 until sunset.</b><span>sowetotowers.co.za</span></div>')
+                f'<b>Open Friday to Sunday,<br>10:00 until sunset.</b><span>sowetotowers.co.za</span></div>')
         page(f"""{hd(num + " · " + o['title'] + " · Digital")}
           <div class="ct studio" data-o>
             <div class="it" style="left:16mm;top:36.5mm">{browser}<p class="cap" data-t>Website</p></div>
@@ -334,6 +360,8 @@ html,body{margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust
 body{font-family:"Archivo",sans-serif;color:var(--black);background:#cfc8bc;-webkit-font-smoothing:antialiased;font-kerning:normal}
 svg{display:block;max-width:100%}
 p,h1,h2,h3,h4,figure{margin:0}
+p,h4{text-wrap:pretty}
+h1,h2,h3{text-wrap:balance}
 @media screen{
   body{padding:28px 0}
   .pw{width:calc(297mm * var(--s));height:calc(210mm * var(--s));margin:0 auto 24px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 18px 40px rgba(0,0,0,.16);overflow:hidden}
@@ -394,9 +422,9 @@ h3{font-size:12pt;line-height:1.2}
 .con text{font-family:"Archivo",sans-serif}
 .field-cap{position:absolute;left:14mm;bottom:9mm;font-stretch:118%;font-size:5.8pt;line-height:1;letter-spacing:.26em;text-transform:uppercase;color:rgba(243,239,231,.45)}
 .lrs{display:flex;flex-direction:column;gap:9mm}
-.lr{display:flex;flex-direction:column;gap:4mm}
-.lr-art{height:22mm;display:flex;align-items:center;align-self:flex-start;max-width:97mm}
-.lr-art .lk{height:100%;width:auto;max-width:97mm}
+.lr{display:flex;flex-direction:column;gap:6.5mm}
+.lr-art{align-self:flex-start;max-width:97mm}
+.lr-art .lk{width:100%;height:auto}
 .lr-t p{margin-top:1.6mm;font-size:7.6pt;line-height:1.55;color:var(--ink2)}
 
 /* colour */
@@ -412,7 +440,7 @@ h3{font-size:12pt;line-height:1.2}
 .c-studio{background:radial-gradient(130% 110% at 30% 15%,#f1ece3 0%,#e4ddd1 60%,#d8d0c3 100%)}
 .isizes{display:flex;align-items:flex-end;gap:5mm}
 .isz{display:flex;flex-direction:column;align-items:center;gap:2mm}
-.isz > div{border-radius:22.5%;overflow:hidden;box-shadow:0 .2mm .5mm rgba(0,0,0,.12),0 2mm 5mm rgba(0,0,0,.1)}
+.isz > div{border-radius:22.5%;box-shadow:0 .2mm .5mm rgba(0,0,0,.12),0 2mm 5mm rgba(0,0,0,.1)}
 .isz .ic{width:100%;height:100%}
 .isz figcaption{font-size:5pt;line-height:1;color:var(--muted)}
 
@@ -435,7 +463,7 @@ h3{font-size:12pt;line-height:1.2}
 .vch{display:grid;grid-template-columns:1fr 30mm;width:136mm;height:55mm;background:var(--black);color:var(--bone);border-radius:2mm;overflow:hidden}
 .vch-main{padding:6mm 7mm;display:flex;flex-direction:column;justify-content:space-between}
 .vch-top{display:flex;justify-content:space-between;align-items:flex-start}
-.vsym{height:100%;width:auto}.vp{width:7.5mm;height:7.5mm}
+.vsym{height:100%;width:auto}
 .vch-act{font-weight:450;font-size:17pt;letter-spacing:-.03em;line-height:1}
 .vch-act small{display:block;font-stretch:118%;font-weight:450;font-size:5pt;letter-spacing:.26em;text-transform:uppercase;color:#e0485f;margin-bottom:2mm}
 .vch-row{display:flex;gap:7mm;font-size:5.2pt;color:rgba(243,239,231,.6)}
@@ -447,6 +475,8 @@ h3{font-size:12pt;line-height:1.2}
 .wb{width:136mm;height:23mm;border-radius:1.6mm;display:flex;align-items:center;gap:5mm;padding:0 7mm;overflow:hidden;white-space:nowrap}
 .wb-s{flex:none}.wb-s .lk,.wb-n .lk{width:100%;height:auto}
 .wb-n{width:38mm;flex:none}.wb-n.wide{width:46mm}
+.wb-pat{flex:none;align-self:stretch;width:46mm;margin:0 auto;background-size:23mm 23mm;background-repeat:repeat}
+.wb.has-pat b{margin-left:0;width:24mm;text-align:right}   /* fixed label slot: the pattern sits in the same place on every band */
 .wb b{margin-left:auto;font-stretch:118%;font-weight:500;font-size:5.4pt;letter-spacing:.26em;text-transform:uppercase}
 .browser{width:132mm;height:88mm;border-radius:2mm;overflow:hidden;background:var(--black);color:var(--bone);display:flex;flex-direction:column}
 .b-bar{height:6mm;flex:none;background:#2a2724;display:flex;align-items:center;gap:1.5mm;padding:0 3mm}
@@ -464,9 +494,11 @@ h3{font-size:12pt;line-height:1.2}
 .chips i{width:1.6mm;height:1.6mm;border-radius:50%}
 .s-deco{display:grid;place-items:center}
 .s-deco .lk{width:100%;height:auto;max-height:44mm}
-.phone{width:42.8mm;height:88mm;border-radius:6.5mm;background:linear-gradient(165deg,#2c2925,#11100e);padding:11mm 3.4mm 3mm;border:1.1mm solid #151412}
+.phone{width:42.8mm;height:88mm;border-radius:6.5mm;background:linear-gradient(165deg,#2c2925,#11100e);padding:11mm 3.4mm 1.8mm;border:1.1mm solid #151412;display:flex;flex-direction:column;justify-content:space-between}
 .ph-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2.6mm 1.9mm}
-.aic{width:100%;aspect-ratio:1;border-radius:23%;overflow:hidden}
+/* dock: 1.8 mm from the screen edge on three sides, corner concentric with the screen (5.4 - 1.8) */
+.ph-dock{display:grid;grid-template-columns:repeat(4,1fr);gap:1.9mm;margin:0 -1.6mm;padding:1.6mm;border-radius:3.6mm;background:rgba(243,239,231,.06)}
+.aic{width:100%;aspect-ratio:1;border-radius:22.5%}
 .aic .ic{width:100%;height:100%}
 .aic.ph{background:rgba(243,239,231,.08)}
 .post{width:50mm;height:50mm;border-radius:1.4mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5mm;text-align:center;color:var(--bone);padding:5mm}
@@ -478,6 +510,6 @@ h3{font-size:12pt;line-height:1.2}
 .cmps{display:grid;grid-template-columns:repeat(3,1fr);gap:14mm;align-content:center}
 .cmp-art{height:60mm;display:flex;align-items:center;justify-content:center;background:var(--paper)}
 .cmp-art .lk{width:auto;max-width:80%}
-.cmp-ic{width:13mm;height:13mm;border-radius:22.5%;overflow:hidden;margin:7mm 0 7mm;box-shadow:0 .2mm .5mm rgba(0,0,0,.12),0 2mm 5mm rgba(0,0,0,.1)}
+.cmp-ic{width:13mm;height:13mm;border-radius:22.5%;margin:7mm 0 7mm;box-shadow:0 .2mm .5mm rgba(0,0,0,.12),0 2mm 5mm rgba(0,0,0,.1)}
 .cmp-ic .ic{width:100%;height:100%}
 """

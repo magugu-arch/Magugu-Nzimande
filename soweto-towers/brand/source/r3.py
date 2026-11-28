@@ -175,5 +175,5 @@ os.makedirs(CACHE, exist_ok=True)
 json.dump(jobs, open(f"{CACHE}/r3-jobs.json", "w"), indent=1)
 
 import r3_book
-open(f"{OUT}/index.html", "w").write(r3_book.render(OPTS, A.pictograms(w=3.2), SRC, WAYS, PAL, TOWER_T))
+open(f"{OUT}/index.html", "w").write(r3_book.render(OPTS, SRC, WAYS, PAL, TOWER_T, CACHE))
 print("round 3 built:", ", ".join(o["title"] for o in OPTS))

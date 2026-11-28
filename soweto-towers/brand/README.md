@@ -66,4 +66,5 @@ PNGs and `favicon.ico` are rendered from the SVGs with headless Chromium and Ima
 
 Before exporting a PDF, run `node source/check_layout.js round-3/index.html`. It measures
 every object and text block on every page and fails if anything overlaps, leaves the page or
-enters the margin bands.
+enters the margin bands. It also checks every rendered line of text, including the small type
+inside the mockups, and fails if a line touches another or is cut off by its container.

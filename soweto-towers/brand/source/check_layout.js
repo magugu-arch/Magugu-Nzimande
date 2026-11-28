@@ -7,6 +7,9 @@
 //   3. text blocks may not touch each other
 //   4. everything stays on the page
 //   5. nothing but header, footer and full-bleed fields enters the margin bands
+// and, for every rendered line of text on the page (inside mockups too, tagged or not):
+//   6. no line touches a line of another text element (lines of one heading may share leading)
+//   7. no line is cut off by a container that clips its overflow
 // Exits 1 and lists every violation, or prints a clean pass per page.
 const { chromium } = require('playwright');
 const path = require('path');
@@ -47,6 +50,32 @@ const path = require('path');
           if (q.top < top - TOL || q.bottom > bot + TOL) errs.push(`${name(e)} enters a margin band`);
         });
       }
+      // 6 and 7: every rendered line of text
+      const lines = [];
+      const walk = document.createTreeWalker(pg, NodeFilter.SHOW_TEXT);
+      for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+        if (!n.textContent.trim()) continue;
+        const rg = document.createRange();
+        rg.selectNodeContents(n);
+        [...rg.getClientRects()].forEach((q) => { if (q.width > 0.5 && q.height > 0.5) lines.push({ q, el: n.parentElement, t: n.textContent.trim().slice(0, 28) }); });
+      }
+      // lines of one text block (a heading and its inline spans) may share leading; any other pair may not touch
+      const block = (el) => {
+        if (el instanceof SVGElement) return el;
+        while (el.parentElement && getComputedStyle(el).display === 'inline') el = el.parentElement;
+        return el;
+      };
+      lines.forEach((L) => { L.b = block(L.el); });
+      lines.forEach((a, x) => lines.forEach((b, y) => {
+        if (y > x && a.b !== b.b && hit(a.q, b.q)) errs.push(`line "${a.t}" overlaps line "${b.t}"`);
+      }));
+      const inside = (a, b) => a.left >= b.left - TOL && a.right <= b.right + TOL && a.top >= b.top - TOL && a.bottom <= b.bottom + TOL;
+      lines.forEach((L) => {
+        for (let p = L.el; p && p !== pg.parentElement; p = p.parentElement) {
+          const cs = getComputedStyle(p);
+          if ([cs.overflow, cs.overflowX, cs.overflowY].some((v) => v === 'hidden' || v === 'clip') && !inside(L.q, r(p))) { errs.push(`line "${L.t}" is cut off by ${name(p)}`); break; }
+        }
+      });
       out.push({ page: i + 1, objects: objs.length, texts: txts.length, errs });
     });
     return out;
@@ -54,7 +83,7 @@ const path = require('path');
   let bad = 0;
   for (const p of report) {
     if (p.errs.length) { bad += p.errs.length; console.log(`page ${p.page}: ${p.errs.length} problem(s)`); p.errs.forEach((e) => console.log('   - ' + e)); }
-    else console.log(`page ${p.page}: clean (${p.objects} objects, ${p.texts} text blocks)`);
+    else console.log(`page ${p.page}: clean (${p.objects} objects, ${p.texts} text blocks, every text line)`);
   }
   await browser.close();
   console.log(bad ? `\n${bad} problem(s)` : '\nall pages clean');
