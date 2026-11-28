@@ -2,7 +2,7 @@
   display: grid;
   border-radius: var(--radius-xl);
   overflow: hidden;
-  background: linear-gradient(180deg, #3d3d3f, var(--charcoal));
+  background: linear-gradient(180deg, var(--charcoal-top), var(--charcoal));
   color: var(--on-dark);
   text-decoration: none;
   box-shadow: var(--shadow-dark);
@@ -10,7 +10,7 @@
 }
 
 .lead :global(.eyebrow) {
-  color: var(--coral);
+  color: var(--on-dark);
 }
 
 .lead :global(.lede) {

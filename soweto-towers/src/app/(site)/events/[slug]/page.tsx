@@ -64,7 +64,7 @@ export default async function EventPage({ params }: PageProps<'/events/[slug]'>)
             <span className="pill">
               <Clock width={16} height={16} /> {hmInSast(start)}–{hmInSast(end)}
             </span>
-            <span className="pill pill--orange">{e.price ? `${rand(e.price)} per ticket` : 'Free · RSVP'}</span>
+            <span className="pill pill--crimson">{e.price ? `${rand(e.price)} per ticket` : 'Free · RSVP'}</span>
           </div>
         </div>
       </section>

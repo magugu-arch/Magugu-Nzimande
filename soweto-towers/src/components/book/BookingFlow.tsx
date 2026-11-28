@@ -242,7 +242,8 @@ export function BookingFlow({ catalog }: { catalog: LiveActivity[] }) {
 
   return (
     <div className={styles.flow}>
-      <ol className={styles.progress} aria-label="Booking steps">
+      {/* Scrolls sideways on narrow phones, so it takes focus: keyboard users can scroll it too. */}
+      <ol className={styles.progress} aria-label="Booking steps" tabIndex={0}>
         {STEPS.map((label, i) => (
           <li key={label} className={`${i === step ? styles.current : ''} ${i < step ? styles.done : ''}`} aria-current={i === step ? 'step' : undefined}>
             <button type="button" disabled={i >= step} onClick={() => go(i as StepIndex)}>
@@ -317,7 +318,7 @@ export function BookingFlow({ catalog }: { catalog: LiveActivity[] }) {
                             <input type="radio" name="package" checked={draft.packageId === p.id} onChange={() => set({ packageId: p.id, scadTime: null })} />
                             <span className={styles.pkgName}>
                               {p.name}
-                              {p.recommended && <span className="badge badge--orange">Recommended</span>}
+                              {p.recommended && <span className="badge badge--crimson">Recommended</span>}
                             </span>
                             <span className="price">{rand(p.price)}</span>
                             <span className={styles.pkgBlurb}>

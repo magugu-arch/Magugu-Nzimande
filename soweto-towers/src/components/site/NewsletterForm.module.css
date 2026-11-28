@@ -32,8 +32,8 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--coral);
-  box-shadow: 0 0 0 3px rgb(243 160 126 / 0.25);
+  border-color: var(--crimson-soft);
+  box-shadow: 0 0 0 3px rgb(244 124 140 / 0.25);
 }
 
 .consent {
@@ -43,7 +43,7 @@
 
 .error {
   font-size: 0.8125rem;
-  color: var(--coral);
+  color: var(--crimson-soft);
   font-weight: 600;
 }
 

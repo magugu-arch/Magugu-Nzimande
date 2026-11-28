@@ -22,7 +22,7 @@ async function Ticket({ params, searchParams }: { params: Promise<{ ref: string 
   if (!d) notFound();
   const b = d.booking;
   const url = absoluteUrl(`/ticket/${b.ref}?t=${b.ticketToken}`);
-  const qr = await QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#1E2020', light: '#00000000' } });
+  const qr = await QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#151412', light: '#00000000' } });
   const slots = d.items.filter((i) => i.slotTime && (i.kind === 'activity' || i.kind === 'event'));
   const addons = d.items.filter((i) => i.kind === 'addon');
   const paid = b.status === 'paid';

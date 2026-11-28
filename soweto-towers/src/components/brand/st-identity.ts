@@ -57,7 +57,7 @@ export const stDescriptor = {
 };
 
 /** Spacing from the document: horizontal lockup and stacked lockups. */
-const LOCKUP = {
+export const stLockup = {
   /** Horizontal: gap from the mark to the two-line wordmark, and its drop from the mark's top. */
   gap: 30.07,
   dy: 22.2,
@@ -89,10 +89,10 @@ export function stLockupSvg({
   text = s,
   title = 'Soweto Towers',
 }: { height: number } & Ink & { title?: string }): string {
-  const vw = stMark.width + LOCKUP.gap + stWordmarkTwoLine.width;
+  const vw = stMark.width + stLockup.gap + stWordmarkTwoLine.width;
   const vh = stMark.height;
   const w = Math.round((height * vw) / vh);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${height}" viewBox="0 0 ${vw.toFixed(2)} ${vh}" role="img" aria-label="${title}"><path ${fill(s)} d="${stMark.s}"/><path ${fill(t)} d="${stMark.t}"/><g transform="translate(${(stMark.width + LOCKUP.gap).toFixed(2)} ${LOCKUP.dy})"><path ${fill(text)} d="${stWordmarkTwoLine.d}"/></g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${height}" viewBox="0 0 ${vw.toFixed(2)} ${vh}" role="img" aria-label="${title}"><path ${fill(s)} d="${stMark.s}"/><path ${fill(t)} d="${stMark.t}"/><g transform="translate(${(stMark.width + stLockup.gap).toFixed(2)} ${stLockup.dy})"><path ${fill(text)} d="${stWordmarkTwoLine.d}"/></g></svg>`;
 }
 
 /** Stacked lockup: the mark over "SOWETO TOWERS", optionally with the descriptor. `width` is in px. */
@@ -104,16 +104,16 @@ export function stStackedSvg({
   descriptor = false,
   title = 'Soweto Towers',
 }: { width: number; descriptor?: boolean } & Ink & { title?: string }): string {
-  const scale = LOCKUP.stackedMarkWidth / stMark.width;
+  const scale = stLockup.stackedMarkWidth / stMark.width;
   const markH = stMark.height * scale;
   const vw = stWordmark.width;
-  const wordY = markH + LOCKUP.stackedGap;
-  const vh = wordY + stWordmark.height + (descriptor ? LOCKUP.descriptorGap + stDescriptor.height : 0);
+  const wordY = markH + stLockup.stackedGap;
+  const vh = wordY + stWordmark.height + (descriptor ? stLockup.descriptorGap + stDescriptor.height : 0);
   const h = Math.round((width * vh) / vw);
-  const markX = (vw - LOCKUP.stackedMarkWidth) / 2;
+  const markX = (vw - stLockup.stackedMarkWidth) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${h}" viewBox="0 0 ${vw} ${vh.toFixed(2)}" role="img" aria-label="${title}${descriptor ? ', Vertical Adventure Centre' : ''}"><g transform="translate(${markX.toFixed(2)} 0) scale(${scale.toFixed(4)})"><path ${fill(s)} d="${stMark.s}"/><path ${fill(t)} d="${stMark.t}"/></g><g transform="translate(0 ${wordY.toFixed(2)})"><path ${fill(text)} d="${stWordmark.d}"/></g>${
     descriptor
-      ? `<g transform="translate(0 ${(wordY + stWordmark.height + LOCKUP.descriptorGap).toFixed(2)})"><path ${fill(text)} d="${stDescriptor.d}"/></g>`
+      ? `<g transform="translate(0 ${(wordY + stWordmark.height + stLockup.descriptorGap).toFixed(2)})"><path ${fill(text)} d="${stDescriptor.d}"/></g>`
       : ''
   }</svg>`;
 }

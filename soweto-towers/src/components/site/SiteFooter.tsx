@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Logo } from '@/components/brand/Logo';
+import { LogoStacked } from '@/components/brand/Logo';
 import { ArrowUpRight, FacebookGlyph, InstagramGlyph, Mail, Phone, Pin, TikTokGlyph, WhatsAppGlyph, YouTubeGlyph } from '@/components/ui/icons';
 import { footerColumns, legalNav } from '@/content/nav';
 import { directions, site, whatsappLink } from '@/content/site';
@@ -22,7 +22,7 @@ export async function SiteFooter() {
       <div className="container">
         <div className={styles.top}>
           <div className={styles.brandCol}>
-            <Logo tone="paper" size={40} />
+            <LogoStacked tone="paper" width={220} descriptor />
             <p className={`h2 ${styles.tagline}`}>Soweto, from the top.</p>
             <p className={styles.aka}>
               Soweto Towers is the adventure centre on the Orlando Towers, the painted cooling towers of the old Orlando Power Station in Orlando East, Soweto.

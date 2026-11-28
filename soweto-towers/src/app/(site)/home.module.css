@@ -58,7 +58,7 @@
 }
 
 .heroEyebrow {
-  color: var(--coral);
+  color: var(--crimson-soft);
 }
 
 .heroSide {
@@ -130,7 +130,7 @@
     position: relative;
     margin: -64px 10px 0;
     width: auto;
-    background: rgb(26 26 28 / 0.9);
+    background: rgb(21 20 18 / 0.9);
   }
   .heroActions :global(.btn) {
     flex: 1 1 100%;
@@ -172,7 +172,7 @@
 
 .proofCard svg {
   flex: none;
-  color: var(--orange);
+  color: var(--crimson);
 }
 
 .proofCard :global(.price) {
@@ -272,7 +272,7 @@
   flex: none;
   width: 28px;
   height: 28px;
-  color: var(--orange);
+  color: var(--crimson);
 }
 
 .safeList div {
@@ -341,18 +341,18 @@
 .stepNum {
   font-family: var(--font-display);
   font-weight: 600;
-  color: var(--rust);
+  color: var(--crimson-text);
   font-size: 1.1rem;
   min-width: 28px;
 }
 
 .steps .stepDark {
-  background: linear-gradient(180deg, #3d3d3f, var(--charcoal));
+  background: linear-gradient(180deg, var(--charcoal-top), var(--charcoal));
   color: var(--on-dark);
 }
 
 .steps .stepDark .stepNum {
-  color: var(--coral);
+  color: var(--crimson-soft);
 }
 
 .steps .stepDark span:not(.stepNum) {
@@ -409,11 +409,11 @@
 }
 
 .bentoText :global(.eyebrow) {
-  color: var(--coral);
+  color: var(--on-dark);
 }
 
 .bentoText > span:last-child:not(:global(.h3)) {
-  color: rgb(244 243 239 / 0.86);
+  color: rgb(243 239 231 / 0.86);
 }
 
 .bentoCard {
@@ -460,7 +460,7 @@
 }
 
 .giftBody > svg {
-  color: var(--orange);
+  color: var(--crimson);
 }
 
 @media (min-width: 960px) {
@@ -566,7 +566,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, rgb(10 10 12 / 0.05) 20%, rgb(10 10 12 / 0.75) 100%);
+  background: linear-gradient(180deg, rgb(21 20 18 / 0.05) 20%, rgb(21 20 18 / 0.75) 100%);
 }
 
 .readyBody {

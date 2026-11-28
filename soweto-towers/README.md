@@ -294,7 +294,7 @@ tests/e2e/           Playwright browser tests
 
 ## Brand
 
-- **New look:** a SOWETO TOWERS wordmark set in Exo 2, and a mark drawn from the two towers, the bridge and the jumper. The source is `src/components/brand/`.
-- **Palette:** concrete greys, charcoal and a sunset orange.
+- **Logo: identity option 01, the S + T monogram.** An S drawn from two circles whose top stroke runs on as the T's crossbar (the bridge), with the T's stem in crimson (the drop). The artwork is taken from the identity options document and lives in `src/components/brand/st-identity.ts`; `Logo.tsx` draws the horizontal lockup (header), the stacked lockup with VERTICAL ADVENTURE CENTRE (footer) and the monogram (crew console, vouchers). Icons and share images are generated from the same artwork (`npm run assets:icons`, `npm run assets:og`).
+- **Palette:** bone `#F3EFE7` and paper `#FAF8F4` surfaces, tower black `#151412` for text and dark cards, and one accent, crimson `#C8102E` (`#B10E28` for crimson text on light, `#F47C8C` on dark). Tokens are in `src/app/globals.css`.
+- **Type:** Archivo (in `src/fonts/`, SIL Open Font License) for headings and text alike. Text is 17px at weight 450, headings are bold sentence case with tight tracking, and small labels are tracked capitals after a crimson stroke, the T's drop. Nothing on a public page is smaller than 12px.
 - **Previous emblem:** kept at `public/brand/legacy-emblem.png` in case it should come back.
-- **Identity option 01, the S + T monogram:** used on the shareable page. Its artwork (taken from the identity options document), colours and lockups are in `src/components/brand/st-identity.ts`, and its typeface, Archivo, is in `src/fonts/` (SIL Open Font License). The website itself still uses the look above.

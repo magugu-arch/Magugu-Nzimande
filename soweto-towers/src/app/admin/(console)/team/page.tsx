@@ -30,7 +30,7 @@ async function TwoStep({ me, enabled }: { me: StaffSession; enabled: boolean }) 
     margin: 1,
     width: 184,
     errorCorrectionLevel: 'M',
-    color: { dark: '#1F1F21', light: '#FFFFFF' },
+    color: { dark: '#151412', light: '#FFFFFF' },
   });
   return (
     <div className={styles.totpSetup}>

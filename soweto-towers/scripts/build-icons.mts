@@ -1,5 +1,6 @@
 /**
- * Generates every icon from the one mark geometry:
+ * Generates every icon from the S + T monogram (identity option 01), using the
+ * app icon from the identity document: the bone S and crimson drop on tower black.
  *   src/app/icon.svg        SVG favicon (modern browsers)
  *   src/app/favicon.ico     16/32/48 px PNG-in-ICO for everything else
  *   src/app/apple-icon.png  180 px home-screen icon for iPhone and iPad
@@ -10,7 +11,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import { markSvg } from '../src/components/brand/mark-paths';
+import { stAppIconSvg, stMark } from '../src/components/brand/st-identity';
 
 const root = path.resolve(import.meta.dirname, '..');
 const appDir = path.join(root, 'src', 'app');
@@ -19,8 +20,8 @@ await mkdir(iconDir, { recursive: true });
 
 const png = (svg: string, size: number) => sharp(Buffer.from(svg)).resize(size, size).png({ compressionLevel: 9 }).toBuffer();
 
-// Favicon SVG: rounded tile so it reads on light and dark tab strips alike.
-const tile = markSvg({ size: 64, background: 'charcoal', radius: 14, inset: 0.02 });
+// Favicon: a rounded tile with the mark a little larger than on the app icon, so it reads at 16 px.
+const tile = stAppIconSvg({ size: 64, radius: 0.22, inset: 0.14 });
 await writeFile(path.join(appDir, 'icon.svg'), tile);
 
 // favicon.ico holding PNG images (supported by every browser since IE Vista era).
@@ -48,20 +49,21 @@ const dir = icoImages.map((img, i) => {
 await writeFile(path.join(appDir, 'favicon.ico'), Buffer.concat([header, ...dir, ...icoImages]));
 
 // iOS draws its own rounded mask: full-bleed square, no transparency.
-const square = markSvg({ size: 512, background: 'charcoal', radius: 0, inset: 0.08 });
-await writeFile(path.join(appDir, 'apple-icon.png'), await png(square, 180));
+await writeFile(path.join(appDir, 'apple-icon.png'), await png(stAppIconSvg({ size: 512, radius: 0, inset: 0.2 }), 180));
 
-// Install icons. "any" icons carry their own rounded corners.
-const rounded = markSvg({ size: 512, background: 'charcoal', radius: 14, inset: 0.06 });
+// Install icons. "any" icons carry their own rounded corners, as in the identity document.
+const rounded = stAppIconSvg({ size: 512, radius: 0.22, inset: 0.2 });
 await writeFile(path.join(iconDir, 'icon-192.png'), await png(rounded, 192));
 await writeFile(path.join(iconDir, 'icon-512.png'), await png(rounded, 512));
 
-// Maskable: platform crops to a circle/squircle, so keep the mark inside the 80% safe zone.
-const maskable = markSvg({ size: 512, background: 'charcoal', radius: 0, inset: 0.2 });
-await writeFile(path.join(iconDir, 'icon-maskable-512.png'), await png(maskable, 512));
+// Maskable: platforms crop to a circle or squircle, so keep the mark inside the 80% safe zone.
+await writeFile(path.join(iconDir, 'icon-maskable-512.png'), await png(stAppIconSvg({ size: 512, radius: 0, inset: 0.28 }), 512));
 
 // Android notification badge: a white silhouette on transparent (Android ignores colour).
-const badge = markSvg({ size: 96, background: 'none', detail: '#FFFFFF' }).replaceAll('url(#tw)', '#FFFFFF');
-await writeFile(path.join(iconDir, 'badge-96.png'), await png(badge, 96));
+const b = 96;
+const markH = b * 0.72;
+const k = markH / stMark.height;
+const badge = `<svg xmlns="http://www.w3.org/2000/svg" width="${b}" height="${b}" viewBox="0 0 ${b} ${b}"><g transform="translate(${((b - stMark.width * k) / 2).toFixed(2)} ${((b - markH) / 2).toFixed(2)}) scale(${k.toFixed(4)})"><path fill="#FFFFFF" d="${stMark.s}"/><path fill="#FFFFFF" d="${stMark.t}"/></g></svg>`;
+await writeFile(path.join(iconDir, 'badge-96.png'), await png(badge, b));
 
 console.log('Icons written: icon.svg, favicon.ico, apple-icon.png, public/icons/*');

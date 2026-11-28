@@ -104,7 +104,7 @@ export function GiftForm({ catalog }: { catalog: { id: ActivityId; name: string;
                   >
                     <span className={styles.optionName}>{o.name}</span>
                     <span className="price">{rand(o.price)}</span>
-                    {o.note && <span className="badge badge--orange">{o.note}</span>}
+                    {o.note && <span className="badge badge--crimson">{o.note}</span>}
                   </button>
                 );
               })}

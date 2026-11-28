@@ -23,10 +23,9 @@
 
 .launcherLabel {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.8125rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-weight: 650;
+  font-size: 0.9375rem;
+  letter-spacing: 0;
 }
 
 .badge {
@@ -37,8 +36,8 @@
   height: 22px;
   padding: 0 6px;
   border-radius: 11px;
-  background: var(--orange);
-  color: #121212;
+  background: var(--crimson);
+  color: var(--on-crimson);
   font-weight: 700;
   font-size: 0.75rem;
   display: grid;
@@ -70,9 +69,8 @@
 
 .title {
   font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: -0.005em;
 }
 
 .sub {
@@ -87,7 +85,7 @@
   height: 40px;
   border: 0;
   border-radius: 50%;
-  background: rgb(30 32 32 / 0.06);
+  background: rgb(21 20 18 / 0.06);
   cursor: pointer;
 }
 
@@ -118,7 +116,7 @@
 }
 
 .theirs a {
-  color: var(--rust);
+  color: var(--crimson-text);
   font-weight: 600;
   text-underline-offset: 3px;
 }
@@ -132,11 +130,11 @@
 
 .from {
   font-family: var(--font-display);
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--rust);
+  color: var(--crimson-text);
 }
 
 .topics {
@@ -191,7 +189,7 @@
 .input:focus,
 .contact:focus {
   outline: none;
-  border-color: var(--orange);
+  border-color: var(--crimson);
 }
 
 .error {

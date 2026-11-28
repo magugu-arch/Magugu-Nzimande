@@ -1,6 +1,6 @@
 /**
- * Line icons drawn on a 24px grid with a 1.6 stroke, so they sit with the
- * thin Exo 2 headings. Decorative by default (aria-hidden); pass `title` to label.
+ * Line icons drawn on a 24px grid with a 1.9 stroke, so they sit with the
+ * bold Archivo text. Decorative by default (aria-hidden); pass `title` to label.
  */
 import type { SVGProps } from 'react';
 
@@ -14,7 +14,7 @@ function Svg({ title, size = 24, children, ...rest }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.6}
+      strokeWidth={1.9}
       strokeLinecap="round"
       strokeLinejoin="round"
       role={title ? 'img' : undefined}

@@ -13,7 +13,7 @@ export function AdventureCard({ activity, price, sizes }: { activity: Activity; 
     <Link href={`/adventures/${activity.id}` as Route} className={styles.card}>
       <Photo slug={activity.cardImage ?? activity.image} sizes={sizes ?? '(min-width: 1040px) 300px, 72vw'} />
       <span className={styles.shade} aria-hidden />
-      <span className={`badge ${activity.booking.mode === 'enquiry' ? '' : 'badge--orange'} ${styles.price}`}>{label}</span>
+      <span className={`badge ${activity.booking.mode === 'enquiry' ? '' : 'badge--crimson'} ${styles.price}`}>{label}</span>
       <span className={styles.body}>
         <span className={styles.name}>{activity.name}</span>
         <span className={styles.short}>{activity.short}</span>

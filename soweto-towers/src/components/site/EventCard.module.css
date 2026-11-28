@@ -51,11 +51,11 @@
 }
 
 .date span:last-child {
-  font-weight: 600;
-  font-size: 0.75rem;
+  font-weight: 700;
+  font-size: 0.8125rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--rust);
+  color: var(--crimson-text);
   align-self: start;
   margin-top: 2px;
 }

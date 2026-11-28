@@ -21,7 +21,7 @@ async function Voucher({ params, searchParams }: { params: Promise<{ code: strin
   const v = await getVoucherForPage(code, t ?? '');
   if (!v) notFound();
   const bookUrl = absoluteUrl(`/book?voucher=${v.code}`);
-  const qr = await QRCode.toString(bookUrl, { type: 'svg', margin: 0, color: { dark: '#F4F3EF', light: '#00000000' } });
+  const qr = await QRCode.toString(bookUrl, { type: 'svg', margin: 0, color: { dark: '#F3EFE7', light: '#00000000' } });
   const expires = formatDate(ymdInSast(v.expiresAt));
   const usable = v.status === 'active' && v.balance > 0 && v.expiresAt > new Date();
   return (

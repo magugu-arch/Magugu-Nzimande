@@ -205,7 +205,7 @@ async function Denied({ searchParams }: { searchParams: Promise<Record<string, s
 
 export default function TodayPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return (
-    <Suspense fallback={<div className={styles.skeleton} aria-label="Loading today" />}>
+    <Suspense fallback={<div className={styles.skeleton} role="status" aria-busy="true" aria-label="Loading today" />}>
       <Denied searchParams={searchParams} />
     </Suspense>
   );

@@ -151,7 +151,8 @@ export default function HomePage() {
       </section>
 
       {/* ---------- Proof row ---------- */}
-      <section className={`container ${styles.proof}`} aria-label="At a glance">
+      {/* Scrolls sideways on phones, so it takes focus: keyboard users can scroll it too. */}
+      <section className={`container ${styles.proof}`} aria-label="At a glance" tabIndex={0}>
         <div className={`card card--dark ${styles.proofCard}`}>
           <Suspense
             fallback={
@@ -378,7 +379,7 @@ export default function HomePage() {
           <div className={styles.panorama}>
             <Photo slug="soweto-dusk-panorama" sizes="(min-width: 1320px) 1280px, 100vw" />
             <div className={`glass-dark ${styles.panoramaPanel} reveal`}>
-              <p className="eyebrow" style={{ color: 'var(--coral)' }}>
+              <p className="eyebrow" style={{ color: 'var(--crimson-soft)' }}>
                 No jump required
               </p>
               <h2 id="view-title" className="h2">
@@ -489,7 +490,7 @@ export default function HomePage() {
             <Photo slug="bungee-pov-edge" sizes="(min-width: 1320px) 1280px, 100vw" />
             <div className={styles.readyShade} />
             <div className={styles.readyBody}>
-              <p className="eyebrow" style={{ color: 'var(--coral)' }}>
+              <p className="eyebrow" style={{ color: 'var(--crimson-soft)' }}>
                 #100mClub
               </p>
               <h2 id="ready-title" className="display">

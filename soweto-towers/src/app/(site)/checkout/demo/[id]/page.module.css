@@ -34,7 +34,7 @@
   justify-content: space-between;
   padding: 16px 18px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #3d3d3f, #1f1f21);
+  background: linear-gradient(135deg, var(--charcoal-top), var(--charcoal-lo));
   color: var(--on-dark);
   font-family: var(--font-display);
   letter-spacing: 0.08em;

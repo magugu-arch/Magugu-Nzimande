@@ -1,7 +1,7 @@
 /**
- * Share images (1200 × 630 JPEG) for every page, rendered in Chromium with the
- * real Exo 2 font and the brand mark. Kept small (target < 300 KB) because
- * WhatsApp drops large preview images.
+ * Share images (1200 × 630 JPEG) for every page, rendered in Chromium with
+ * Archivo and the S + T logo (identity option 01). Kept small (target < 300 KB)
+ * because WhatsApp drops large preview images.
  *
  *   npx tsx scripts/og-images.mts
  */
@@ -9,7 +9,7 @@ import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import sharp from 'sharp';
-import { markSvg } from '../src/components/brand/mark-paths';
+import { stColors, stLockupSvg } from '../src/components/brand/st-identity';
 
 type Spec = { file: string; image: string; eyebrow: string; title: string; sub: string; badge?: string };
 
@@ -142,8 +142,9 @@ const root = path.resolve(import.meta.dirname, '..');
 const outDir = path.join(root, 'public', 'og');
 await mkdir(outDir, { recursive: true });
 
-const font = (await readFile(path.join(root, 'src', 'fonts', 'exo-2-latin-wght-normal.woff2'))).toString('base64');
-const mark = markSvg({ size: 64, background: 'none' });
+const font = (await readFile(path.join(root, 'src', 'fonts', 'archivo-latin-wght-normal.woff2'))).toString('base64');
+// The reverse lockup: bone S and name, crimson drop, on the dark shade.
+const lockup = stLockupSvg({ height: 58, s: stColors.bone, t: stColors.crimson, text: stColors.bone });
 
 const html = async (s: Spec) => {
   const bg = (
@@ -153,22 +154,22 @@ const html = async (s: Spec) => {
       .toBuffer()
   ).toString('base64');
   return `<!doctype html><html><head><meta charset="utf-8"><style>
-@font-face{font-family:'Exo 2';src:url(data:font/woff2;base64,${font}) format('woff2');font-weight:100 900}
-*{box-sizing:border-box}body{margin:0;width:1200px;height:630px;overflow:hidden;font-family:'Exo 2',sans-serif;background:#1f1f21}
+@font-face{font-family:'Archivo';src:url(data:font/woff2;base64,${font}) format('woff2');font-weight:100 900}
+*{box-sizing:border-box}body{margin:0;width:1200px;height:630px;overflow:hidden;font-family:'Archivo',sans-serif;background:#151412}
 .bg{position:absolute;inset:0;background:url(data:image/jpeg;base64,${bg}) center/cover}
-.shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,18,20,.9) 0%,rgba(18,18,20,.66) 42%,rgba(18,18,20,.08) 78%),linear-gradient(0deg,rgba(18,18,20,.55),transparent 40%)}
-.c{position:absolute;left:64px;top:54px;bottom:52px;width:700px;display:flex;flex-direction:column;justify-content:space-between;color:#F4F3EF}
-.brand{display:flex;align-items:center;gap:14px}.brand svg{width:58px;height:58px}
-.name{font-weight:600;letter-spacing:.16em;font-size:22px;text-transform:uppercase;line-height:1}.line{margin-top:6px;font-size:13px;letter-spacing:.28em;color:#A9AAA6;text-transform:uppercase}
-.eyebrow{color:#F3A07E;font-weight:600;letter-spacing:.2em;font-size:19px;text-transform:uppercase}
-h1{font-weight:300;font-size:${s.title.length > 26 ? 66 : 82}px;line-height:.95;text-transform:uppercase;margin:16px 0 0;letter-spacing:-.005em}
-.sub{font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-size:25px;color:#D3D4D0;margin-top:20px;line-height:1.3}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(21,20,18,.92) 0%,rgba(21,20,18,.7) 42%,rgba(21,20,18,.08) 78%),linear-gradient(0deg,rgba(21,20,18,.55),transparent 40%)}
+.c{position:absolute;left:64px;top:54px;bottom:52px;width:700px;display:flex;flex-direction:column;justify-content:space-between;color:#F3EFE7}
+.brand svg{display:block}
+.eyebrow{display:flex;align-items:center;gap:14px;font-weight:700;letter-spacing:.16em;font-size:19px;text-transform:uppercase}
+.eyebrow::before{content:'';width:6px;height:26px;border-radius:6px;background:#C8102E}
+h1{font-weight:700;font-size:${s.title.length > 26 ? 60 : 76}px;line-height:1.02;margin:18px 0 0;letter-spacing:-.03em;text-wrap:balance}
+.sub{font-size:25px;font-weight:450;color:#CBC4B8;margin-top:20px;line-height:1.3}
 .foot{display:flex;gap:10px;align-items:center}
-.pill{padding:10px 18px;border-radius:999px;background:rgba(52,52,54,.92);font-size:16px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
-.badge{position:absolute;right:54px;top:54px;padding:12px 24px;border-radius:999px;background:linear-gradient(#EE6A34,#E3501C);color:#121212;font-weight:700;font-size:30px;letter-spacing:.02em}
+.pill{padding:10px 18px;border-radius:999px;background:rgba(21,20,18,.88);font-size:17px;font-weight:600}
+.badge{position:absolute;right:54px;top:54px;padding:12px 24px;border-radius:999px;background:linear-gradient(#D81E3C,#C8102E);color:#FFFFFF;font-weight:700;font-size:30px;letter-spacing:-.01em}
 </style></head><body><div class="bg"></div><div class="shade"></div>
 ${s.badge ? `<div class="badge">${s.badge}</div>` : ''}
-<div class="c"><div class="brand">${mark}<div><div class="name">Soweto Towers</div><div class="line">From the top</div></div></div>
+<div class="c"><div class="brand">${lockup}</div>
 <div><div class="eyebrow">${s.eyebrow}</div><h1>${s.title}</h1><div class="sub">${s.sub}</div></div>
 <div class="foot"><span class="pill">sowetotowers.co.za</span><span class="pill">Orlando East, Soweto</span></div></div></body></html>`;
 };

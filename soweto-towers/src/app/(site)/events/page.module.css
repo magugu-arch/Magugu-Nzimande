@@ -39,7 +39,7 @@
 }
 
 .heroPanel :global(.eyebrow) {
-  color: var(--coral);
+  color: var(--on-dark);
 }
 
 .meta {
@@ -91,7 +91,7 @@
   gap: 4px;
   padding: 4px;
   border-radius: 999px;
-  background: rgb(30 32 32 / 0.06);
+  background: rgb(21 20 18 / 0.06);
 }
 
 .stepper button {

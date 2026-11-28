@@ -106,20 +106,19 @@
 
 .option :global(.badge) {
   min-height: 22px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .optionOn {
-  border-color: var(--orange);
-  box-shadow: 0 0 0 3px rgb(227 80 28 / 0.16);
+  border-color: var(--crimson);
+  box-shadow: 0 0 0 3px rgb(200 16 46 / 0.16);
 }
 
 .optionName {
   font-family: var(--font-display);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.875rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  font-size: 0.9375rem;
 }
 
 .qty {
@@ -135,7 +134,7 @@
   gap: 4px;
   padding: 4px;
   border-radius: 999px;
-  background: rgb(30 32 32 / 0.06);
+  background: rgb(21 20 18 / 0.06);
 }
 
 .stepper button {
@@ -182,8 +181,8 @@
 }
 
 .pillOn {
-  border-color: var(--orange);
-  background: rgb(227 80 28 / 0.08);
+  border-color: var(--crimson);
+  background: rgb(200 16 46 / 0.08);
 }
 
 .grid2 {
@@ -221,7 +220,7 @@
   aspect-ratio: 1.6 / 1;
   align-content: space-between;
   color: var(--on-dark);
-  background: radial-gradient(120% 90% at 100% 0%, rgb(238 106 52 / 0.55), transparent 55%), linear-gradient(160deg, #3d3d3f, #1f1f21);
+  background: radial-gradient(120% 90% at 100% 0%, rgb(216 30 60 / 0.55), transparent 55%), linear-gradient(160deg, var(--charcoal-top), var(--charcoal-lo));
   box-shadow: var(--shadow-dark);
   /* clip (not hidden) so the card can grow past its ratio when a message is added */
   overflow: clip;
@@ -235,11 +234,11 @@
 
 .voucherBrand {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-size: 0.8125rem;
-  color: var(--coral);
+  color: var(--crimson-soft);
 }
 
 .voucherFor {
@@ -249,10 +248,10 @@
 
 .voucherLabel {
   font-family: var(--font-display);
-  font-weight: 300;
+  font-weight: 700;
   font-size: clamp(1.6rem, 4vw, 2.1rem);
-  text-transform: uppercase;
   line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .voucherMsg {

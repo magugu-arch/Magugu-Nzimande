@@ -6,9 +6,10 @@ import './globals.css';
 import { HydrationSignal } from '@/components/site/HydrationSignal';
 import { bootScript } from '@/lib/boot-script';
 
-const exo2 = localFont({
-  src: '../fonts/exo-2-latin-wght-normal.woff2',
-  variable: '--font-exo2',
+// Archivo, the typeface of the S + T identity: one variable file for every weight.
+const archivo = localFont({
+  src: '../fonts/archivo-latin-wght-normal.woff2',
+  variable: '--font-archivo',
   weight: '100 900',
   display: 'swap',
   preload: true,
@@ -74,12 +75,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   colorScheme: 'light',
-  themeColor: '#1F1F21',
+  themeColor: '#151412',
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en-ZA" className={exo2.variable} data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="en-ZA" className={archivo.variable} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         {/* Marks JS as available (reveals are opt-in) and holds form taps that land before hydration. */}
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />

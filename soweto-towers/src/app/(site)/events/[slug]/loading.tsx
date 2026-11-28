@@ -3,7 +3,7 @@ import styles from '../page.module.css';
 /** Shown the instant an event is tapped, while the page streams in. */
 export default function LoadingEvent() {
   return (
-    <div className="container" aria-busy="true" aria-label="Loading event">
+    <div className="container" role="status" aria-busy="true" aria-label="Loading event">
       <div className={`${styles.hero} skeleton skeleton--dark`}>
         <div className={`glass-dark ${styles.heroPanel}`} style={{ width: 'min(100%, 560px)' }}>
           <span className="skeleton skeleton--dark skeleton--text" style={{ width: 120 }} />

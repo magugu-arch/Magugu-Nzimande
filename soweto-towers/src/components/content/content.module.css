@@ -19,11 +19,11 @@
 
 .factLabel {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--rust);
+  color: var(--crimson-text);
 }
 
 .factValue {
@@ -118,7 +118,7 @@
   width: 20px;
   height: 20px;
   margin-top: 2px;
-  color: var(--orange);
+  color: var(--crimson);
 }
 
 .dots {
@@ -129,7 +129,7 @@
 }
 
 .dots li::marker {
-  color: var(--orange);
+  color: var(--crimson);
 }
 
 /* ---------- Numbered steps ---------- */
@@ -160,7 +160,7 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.15rem;
-  color: var(--rust);
+  color: var(--crimson-text);
   min-width: 30px;
 }
 
@@ -205,11 +205,11 @@
 
 .table thead th {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--rust);
+  color: var(--crimson-text);
 }
 
 .table tbody tr:last-child th,
@@ -301,15 +301,15 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--orange-hi), var(--orange));
-  color: #121212;
+  background: linear-gradient(180deg, var(--crimson-hi), var(--crimson));
+  color: var(--on-crimson);
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
 .memberLead .avatar {
-  background: linear-gradient(180deg, #3d3d3f, var(--charcoal));
+  background: linear-gradient(180deg, var(--charcoal-top), var(--charcoal));
   color: var(--on-dark);
 }
 
@@ -443,7 +443,7 @@
 }
 
 .articleBody li::marker {
-  color: var(--orange);
+  color: var(--crimson);
 }
 
 /* ---------- Grid helpers ---------- */
@@ -527,7 +527,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, rgb(10 10 12 / 0.05) 15%, rgb(10 10 12 / 0.78) 100%);
+  background: linear-gradient(180deg, rgb(21 20 18 / 0.05) 15%, rgb(21 20 18 / 0.78) 100%);
 }
 
 .bandBody {
@@ -542,7 +542,7 @@
 }
 
 .bandBody :global(.eyebrow) {
-  color: var(--coral);
+  color: var(--on-dark);
 }
 
 /* ---------- Section on a slightly deeper canvas ---------- */
@@ -687,10 +687,10 @@
     display: block;
     margin-bottom: 2px;
     font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 0.6875rem;
+    font-weight: 700;
+    font-size: 0.75rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--rust);
+    color: var(--crimson-text);
   }
 }

@@ -10,7 +10,7 @@ import { sendEmail, sendPushToTopic, sendWhatsAppTemplate, staffInbox } from './
  * staff alerts. WhatsApp template names match README → WhatsApp templates.
  */
 
-const BRAND = '#E3501C';
+const BRAND = '#C8102E';
 
 function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -29,22 +29,22 @@ export function emailLayout({
   cta?: { label: string; url: string };
   footnote?: string;
 }): { html: string; text: string } {
-  const body = paragraphs.map((p) => `<p style="margin:0 0 14px;font-size:16px;line-height:1.5;color:#1E2020">${esc(p)}</p>`).join('');
+  const body = paragraphs.map((p) => `<p style="margin:0 0 14px;font-size:17px;line-height:1.55;color:#151412">${esc(p)}</p>`).join('');
   const button = cta
-    ? `<p style="margin:24px 0"><a href="${cta.url}" style="display:inline-block;background:${BRAND};color:#121212;text-decoration:none;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px;padding:14px 22px;border-radius:999px">${esc(cta.label)}</a></p>`
+    ? `<p style="margin:24px 0"><a href="${cta.url}" style="display:inline-block;background:${BRAND};color:#FFFFFF;text-decoration:none;font-weight:700;font-size:16px;padding:15px 24px;border-radius:999px">${esc(cta.label)}</a></p>`
     : '';
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(heading)}</title></head>
-<body style="margin:0;background:#E2E3DE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
+<body style="margin:0;background:#F3EFE7;font-family:Archivo,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
 <span style="display:none;max-height:0;overflow:hidden">${esc(preheader)}</span>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#F9F9F7;border-radius:24px;padding:32px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FAF8F4;border-radius:24px;padding:32px">
 <tr><td>
-<p style="margin:0 0 6px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#A23E18;font-weight:700">Soweto Towers · From the top</p>
-<h1 style="margin:0 0 18px;font-size:28px;line-height:1.1;text-transform:uppercase;font-weight:400;color:#1E2020">${esc(heading)}</h1>
+<p style="margin:0 0 10px;padding-left:10px;border-left:4px solid ${BRAND};font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#151412;font-weight:700">Soweto Towers · From the top</p>
+<h1 style="margin:0 0 18px;font-size:28px;line-height:1.15;letter-spacing:-.02em;font-weight:700;color:#151412">${esc(heading)}</h1>
 ${body}${button}
-${footnote ? `<p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#5B5D5C">${esc(footnote)}</p>` : ''}
+${footnote ? `<p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#5E5952">${esc(footnote)}</p>` : ''}
 </td></tr></table>
-<p style="font-size:12px;color:#5B5D5C;margin:16px 0 0">${esc(site.address.street)}, ${esc(site.address.suburb)}, ${esc(site.address.city)} · ${esc(site.phone.display)}</p>
+<p style="font-size:12px;color:#5E5952;margin:16px 0 0">${esc(site.address.street)}, ${esc(site.address.suburb)}, ${esc(site.address.city)} · ${esc(site.phone.display)}</p>
 </td></tr></table></body></html>`;
   const text = [heading.toUpperCase(), '', ...paragraphs, cta ? `\n${cta.label}: ${cta.url}` : '', footnote ? `\n${footnote}` : ''].join('\n').trim();
   return { html, text };

@@ -38,8 +38,9 @@ export function ConsoleNavView({ isAdmin, inboxCount, pathname }: { isAdmin: boo
               <Link href={i.href} className={styles.navLink} aria-current={active(i.href) ? 'page' : undefined}>
                 {i.label}
                 {i.inbox && inboxCount > 0 && (
-                  <span className={styles.count} aria-label={`${inboxCount} waiting`}>
-                    {inboxCount}
+                  <span className={styles.count}>
+                    <span aria-hidden="true">{inboxCount}</span>
+                    <span className="visually-hidden">{inboxCount} waiting</span>
                   </span>
                 )}
               </Link>

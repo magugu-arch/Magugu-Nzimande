@@ -8,10 +8,10 @@
   align-items: center;
   gap: 12px;
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 700;
   font-size: clamp(1.6rem, 1.6vw + 1rem, 2.2rem);
   line-height: 1.1;
-  text-transform: uppercase;
+  letter-spacing: -0.025em;
 }
 
 .heading :global(.dot) {
@@ -42,7 +42,7 @@
 
 .sun svg {
   flex: none;
-  color: var(--coral);
+  color: var(--crimson-soft);
 }
 
 .card :global(.btn) {

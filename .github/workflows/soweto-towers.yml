@@ -32,7 +32,7 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
 
     steps:
-      # The v5 actions run on Node 24; the v4 ones run on Node 20, which
+      # These action versions run on Node 24; older ones run on Node 20, which
       # GitHub has deprecated and flags on every run.
       - uses: actions/checkout@v5
 
@@ -84,7 +84,7 @@ jobs:
 
       - name: Screenshots
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: e2e-screenshots
           path: soweto-towers/tests/e2e/shots

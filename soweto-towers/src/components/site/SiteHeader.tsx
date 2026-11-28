@@ -62,7 +62,7 @@ export function SiteHeaderView({ pathname }: { pathname: string | null }) {
     <header className={`${styles.header} ${scrolled || open ? styles.scrolled : ''}`}>
       <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} aria-label="Soweto Towers, home">
-          <Logo />
+          <Logo title={null} />
         </Link>
 
         <nav aria-label="Main" className={styles.nav}>

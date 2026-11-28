@@ -11,8 +11,8 @@
 /* Scroll edge effect instead of a hard divider: a soft shadow only once content passes under. */
 .scrolled {
   box-shadow:
-    0 1px 0 rgb(30 32 32 / 0.08),
-    0 12px 24px -20px rgb(30 32 32 / 0.35);
+    0 1px 0 rgb(21 20 18 / 0.08),
+    0 12px 24px -20px rgb(21 20 18 / 0.35);
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -54,10 +54,9 @@
   padding: 0 12px;
   border-radius: var(--radius-pill);
   font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 0.8125rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: 0;
   text-decoration: none;
   color: var(--ink-2);
   transition:
@@ -67,12 +66,12 @@
 
 .navLink:hover {
   color: var(--ink);
-  background: rgb(30 32 32 / 0.06);
+  background: rgb(21 20 18 / 0.06);
 }
 
 .navLink[aria-current='page'] {
   color: var(--ink);
-  background: rgb(30 32 32 / 0.08);
+  background: rgb(21 20 18 / 0.08);
 }
 
 .actions {
@@ -88,7 +87,7 @@
   height: 44px;
   border: 0;
   border-radius: 50%;
-  background: rgb(30 32 32 / 0.06);
+  background: rgb(21 20 18 / 0.06);
   cursor: pointer;
   transition:
     transform 0.12s ease-out,
@@ -125,15 +124,15 @@
   display: block;
   padding: 8px 0;
   font-family: var(--font-display);
-  font-weight: 300;
+  font-weight: 700;
   font-size: clamp(1.9rem, 8vw, 2.6rem);
   line-height: 1.05;
-  text-transform: uppercase;
   text-decoration: none;
+  letter-spacing: -0.03em;
 }
 
 .sheetPrimary a[aria-current='page'] {
-  color: var(--rust);
+  color: var(--crimson-text);
 }
 
 .sheetSecondary {
