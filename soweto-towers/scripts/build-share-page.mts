@@ -19,7 +19,9 @@
  *   scroll-driven animations show still photos.
  * - No JavaScript at all. WhatsApp's document viewer on iPhone (Quick Look)
  *   and some Android viewers switch scripts off, so every part works without:
- *   in-page links, native <details> for questions, CSS-only scrolling rails.
+ *   in-page links, native <details> for questions, CSS-only scrolling rails,
+ *   and the menu beside Book (a link to #menu shown with :target, so choosing
+ *   a section closes it; it grows from its button on a spring curve).
  * - Metadata for search and link previews (title, description, Open Graph,
  *   Twitter, geo tags, JSON-LD) points at the live site, so the same file can
  *   also be hosted as-is.
@@ -96,6 +98,9 @@ const icon = {
   arrow:
     '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
 };
+
+// The menu button's two bars (they turn into an X in CSS).
+const bars = '<span class="bars" aria-hidden="true"><span></span><span></span></span>';
 
 // -------------------------------------------------------------- assets
 
@@ -275,6 +280,20 @@ const description = `Bungee jump 100m between the painted Soweto Towers (Orlando
 
 // ---------------------------------------------------------------- styles
 
+// A critically damped spring (it settles without overshoot) as a CSS easing:
+// x(t) = 1 − (1 + ωt)·e^(−ωt), with ω = 2π / 0.4 s, sampled over the 0.5 s the
+// menu's transitions run for. Browsers without linear() get a close bezier.
+const SPRING_S = 0.5;
+const spring = (() => {
+  const w = (2 * Math.PI) / 0.4;
+  const steps = 24;
+  const points = Array.from({ length: steps + 1 }, (_, i) => {
+    const t = (i / steps) * SPRING_S;
+    return i === steps ? 1 : 1 - (1 + w * t) * Math.exp(-w * t);
+  });
+  return `linear(${points.map((p) => +p.toFixed(4)).join(', ')})`;
+})();
+
 const css = /* css */ `
 @font-face { font-family: "Archivo"; src: url(data:font/woff2;base64,${font}) format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
 :root {
@@ -285,11 +304,17 @@ const css = /* css */ `
   --line: rgb(21 20 18 / .13); --line-dark: rgb(243 239 231 / .16);
   --r-xl: 28px; --r-lg: 22px; --r-md: 16px; --gutter: clamp(16px, 4vw, 40px); --max: 1200px;
   --font: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --spring: cubic-bezier(.25, 1, .4, 1); --spring-s: ${SPRING_S}s;
   color-scheme: light;
 }
+@supports (transition-timing-function: linear(0, 1)) { :root { --spring: ${spring}; } }
 *, *::before, *::after { box-sizing: border-box; }
-/* In-page links land each section right under the header. */
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: calc(64px + env(safe-area-inset-top)); }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; }
+/* In-page links land each section right under the header, and keyboard focus
+   never hides beneath it. This is scroll-margin on the page's own targets, not
+   scroll-padding on html: with scroll-padding, Chrome scrolls the page even for
+   the menu's fixed-position targets, so opening the menu would jump. */
+#main, :is(main, footer) :is([id], a, button, summary, [tabindex]) { scroll-margin-top: calc(64px + env(safe-area-inset-top)); }
 /* iPhone and iPad: start from the reader's own text size (Dynamic Type). Not on a Mac, where it would make the text smaller. */
 @supports (font: -apple-system-body) and (-webkit-touch-callout: none) { html { font: -apple-system-body; } }
 body { margin: 0; font-family: var(--font); font-size: 1.0625rem; font-weight: 450; line-height: 1.6; color: var(--ink); background: var(--bone); }
@@ -329,6 +354,53 @@ section { padding-block: clamp(56px, 10vw, 112px); }
 .bar__in { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; }
 .brand { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: none; }
 .brand svg { display: block; flex: none; }
+.bar__end { display: flex; align-items: center; gap: 8px; }
+/* 320px phones: logo, Book and the menu button fit with slightly tighter spacing. */
+@media (max-width: 359px) { .bar__in { gap: 8px; } .bar__end { gap: 6px; } .bar__end .btn { padding-inline: 14px; } }
+.vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+
+/* Menu, with no JavaScript (WhatsApp's iPhone viewer runs none). The button is
+   a link to #menu and :target shows the panel. Choosing a section moves the
+   target, so the panel closes as the page scrolls there. The X, a tap outside
+   and Back close it too. The panel and both targets are position: fixed, so
+   opening and closing never scroll the page. */
+.toggle { position: relative; flex: none; width: 44px; height: 44px; }
+.toggle a { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; color: var(--ink); background: rgb(21 20 18 / .06); box-shadow: inset 0 0 0 1px var(--line); -webkit-tap-highlight-color: transparent; transition: opacity .2s ease, transform .12s ease-out, background-color .2s, visibility 0s; }
+.toggle a:hover { background: rgb(21 20 18 / .1); }
+.toggle a:active { transform: scale(.92); }
+.toggle__close, body:has(#menu:target) .toggle__open { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s linear .2s; }
+body:has(#menu:target) .toggle__close { opacity: 1; visibility: visible; transition: opacity .2s ease, visibility 0s; }
+/* Two bars that turn into an X. Both links draw them, so the cross-fade reads as one icon changing. */
+.bars { position: relative; width: 18px; height: 12px; }
+.bars span { position: absolute; left: 0; right: 0; height: 2px; border-radius: 2px; background: currentColor; transition: transform var(--spring-s) var(--spring); }
+.bars span:first-child { top: 2px; }
+.bars span:last-child { bottom: 2px; }
+body:has(#menu:target) .bars span:first-child { transform: translateY(3px) rotate(45deg); }
+body:has(#menu:target) .bars span:last-child { transform: translateY(-3px) rotate(-45deg); }
+
+.sheet { position: fixed; inset: calc(64px + env(safe-area-inset-top)) 0 0; z-index: 19; visibility: hidden; transition: visibility 0s linear var(--spring-s); }
+.sheet:target { visibility: visible; transition: visibility 0s; }
+.sheet:focus { outline: none; }
+.sheet__scrim { position: absolute; inset: 0; background: rgb(21 20 18 / .2); opacity: 0; transition: opacity .3s ease; -webkit-tap-highlight-color: transparent; }
+.sheet:target .sheet__scrim { opacity: 1; }
+/* Lined up with the header's right edge, and grown from the menu button (its centre is 22px in from the right, 40px above the panel). */
+.sheet__card { position: absolute; top: 8px; right: max(var(--gutter), (100% - var(--max)) / 2); width: min(360px, 100% - 2 * var(--gutter)); max-height: calc(100% - 20px - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 14px; padding: 18px 8px 8px; border-radius: var(--r-lg); background: rgb(250 248 244 / .9); -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px); box-shadow: inset 0 1px 0 rgb(255 255 255 / .8), 0 0 0 1px var(--line), 0 34px 70px -28px rgb(21 20 18 / .55); transform-origin: calc(100% - 22px) -40px; opacity: 0; transform: translateY(-8px) scale(.94); transition: opacity .2s ease, transform var(--spring-s) var(--spring); }
+.sheet:target .sheet__card { opacity: 1; transform: none; }
+.sheet__title { padding-inline: 14px; }
+.sheet__list a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 14px; border-radius: 14px; font-size: 1.1875rem; font-weight: 650; line-height: 1.2; letter-spacing: -.012em; text-decoration: none; -webkit-tap-highlight-color: transparent; transition: background-color .15s; }
+.sheet__list a:hover, .sheet__list a:active { background: rgb(21 20 18 / .07); }
+.sheet__list .i { width: 1.05em; height: 1.05em; color: var(--ink-2); transition: transform .3s var(--spring); }
+.sheet__list a:hover .i { transform: translateX(3px); }
+/* Rows arrive one after another as the panel opens, and leave together. */
+.sheet__list li { opacity: 0; transform: translateY(-6px); transition: opacity .18s ease, transform var(--spring-s) var(--spring); }
+.sheet:target .sheet__list li { opacity: 1; transform: none; transition-delay: calc(40ms + var(--i, 0) * 18ms); }
+${Array.from({ length: 12 }, (_, i) => `.sheet__list li:nth-child(${i + 1}) { --i: ${i}; }`).join(' ')}
+.sheet__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 6px 6px; }
+.sheet__actions .btn { padding-inline: 12px; }
+/* Short screens (iPhone SE, phones on their side): tighter rows, then columns, never under 44px to tap. */
+@media (max-height: 700px) { .sheet__list a { min-height: 44px; font-size: 1.0625rem; } }
+@media (max-height: 520px) { .sheet__card { width: min(640px, 100% - 2 * var(--gutter)); gap: 10px; } .sheet__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 4px; } }
+.menu-off { position: fixed; top: 50%; left: 0; width: 1px; height: 1px; pointer-events: none; }
 
 /* Buttons: feedback on press, 44px+ targets */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border-radius: 999px; font-size: 1rem; font-weight: 650; line-height: 1.2; letter-spacing: .005em; text-decoration: none; text-align: center; -webkit-tap-highlight-color: transparent; transition: transform .12s ease-out, background-color .2s; }
@@ -526,15 +598,20 @@ footer a { color: var(--on-dark); }
 @keyframes st-dim { to { opacity: .45; } }
 
 /* Accessibility preferences */
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn, .jump a, details summary::after { transition: none; } .btn:active, .jump a:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn, .jump a, details summary::after { transition: none; } .btn:active, .jump a:active { transform: none; }
+  /* The menu fades in and out in place: no growing, sliding or turning. The X still shows, just without the turn. */
+  .sheet__card, .sheet__list li, .toggle a:active, .sheet__list a:hover .i { transform: none; }
+  .bars span, .sheet__list .i { transition: none; } }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) { .bar { background: var(--bone); } .hero__panel { background: var(--black); } }
-@media (prefers-reduced-transparency: reduce) { .bar { background: var(--bone); -webkit-backdrop-filter: none; backdrop-filter: none; } .hero__panel { background: var(--black); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@media (prefers-reduced-transparency: reduce) { .bar { background: var(--bone); -webkit-backdrop-filter: none; backdrop-filter: none; } .sheet__card { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; } .hero__panel { background: var(--black); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 @media (prefers-contrast: more) {
-  .card, .bundle, .tile, .panel, .rules div, .faq details, details.more, .jump a, .note { box-shadow: inset 0 0 0 2px var(--ink); }
+  .card, .bundle, .tile, .panel, .rules div, .faq details, details.more, .jump a, .note, .toggle a { box-shadow: inset 0 0 0 2px var(--ink); }
+  .sheet__card { background: var(--paper); box-shadow: 0 0 0 2px var(--ink), 0 34px 70px -28px rgb(21 20 18 / .55); }
+  .sheet__list .i { color: var(--ink); }
   .muted, .lede, .facts span, .hours dd, .price small, .hint, .addons, .rules dd, .faq details p { color: var(--ink); }
   .dark .lede, .dark .muted, .hero__panel .lede, .band .lede, .card--dark p, .contact-list, footer { color: var(--on-dark); }
 }
-@media print { .bar, .jump, .skip, .hint, .watermark { display: none; } .rail { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); overflow: visible; margin: 0; padding: 0; } .card, .bundle, .panel, .tile { break-inside: avoid; } section { padding-block: 28px; } }
+@media print { .bar, .jump, .skip, .hint, .watermark, .sheet { display: none; } .rail { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); overflow: visible; margin: 0; padding: 0; } .card, .bundle, .panel, .tile { break-inside: avoid; } section { padding-block: 28px; } }
 `;
 
 const minCss = css
@@ -604,9 +681,29 @@ const html = `<!doctype html>
 <header class="bar">
   <div class="wrap bar__in">
     <a class="brand" href="#top">${headerLockup}</a>
-    <a class="btn btn--primary btn--sm" href="${wa(BOOK_TEXT)}">${icon.whatsapp}Book</a>
+    <div class="bar__end">
+      <a class="btn btn--primary btn--sm" href="${wa(BOOK_TEXT)}">${icon.whatsapp}Book</a>
+      <div class="toggle">
+        <a class="toggle__open" href="#menu">${bars}<span class="vh">Menu</span></a>
+        <a class="toggle__close" href="#menu-closed">${bars}<span class="vh">Close menu</span></a>
+      </div>
+    </div>
   </div>
 </header>
+<nav class="sheet" id="menu" aria-label="Menu" tabindex="-1">
+  <a class="sheet__scrim" href="#menu-closed" tabindex="-1" aria-hidden="true"><span class="vh">Close menu</span></a>
+  <div class="sheet__card">
+    <p class="eyebrow sheet__title">On this page</p>
+    <ul class="sheet__list">
+      ${navItems.map(([id, label]) => `<li><a href="#${id}">${label}${icon.arrow}</a></li>`).join('\n      ')}
+    </ul>
+    <div class="sheet__actions">
+      <a class="btn btn--primary btn--sm" href="${wa('Hi Soweto Towers! ')}">${icon.whatsapp}WhatsApp</a>
+      <a class="btn btn--light btn--sm" href="tel:${site.phone.e164}">${icon.phone}Call</a>
+    </div>
+  </div>
+</nav>
+<span class="menu-off" id="menu-closed"></span>
 
 <main id="main">
 <section class="hero" id="top" aria-labelledby="hero-title">

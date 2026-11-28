@@ -169,6 +169,7 @@ Example body for `booking_confirmed`: _Sawubona {{1}}! {{2}} is booked for {{3}}
 - **Everything is inside the file:** photos, font and icons. It opens with no internet connection.
 - **Identity option 01:** the S + T monogram, Archivo type, and bone, tower black and crimson. Text is set larger and heavier than usual for reading on a phone (17px at weight 450, headings at 700).
 - **No JavaScript.** It works in WhatsApp's document viewer on iPhone, in Android browsers and in Files or Quick Look.
+- **A menu beside Book**, built without scripts: the button's two bars turn into an X, and a frosted panel grows from it with every section plus WhatsApp and Call. Choosing a section closes it as the page scrolls there; the X, a tap outside and Back close it too. Opening and closing never move the page. With Reduce Motion it simply fades.
 - **Parallax from CSS alone:** photos drift more slowly than the page inside their frames, the adventure photos slide sideways as the cards are swiped, and on phones the opening photo holds still while the panel slides up over it. Text always moves with the finger. It uses scroll-driven animations (Chrome and Android, and Safari from version 26); elsewhere, and whenever Reduce Motion is on, the photos stay still.
 - **Booking buttons open WhatsApp** with a message already filled in. Phone, email and map buttons open the right apps.
 - **Title, description, share-image tags and structured data are included**, so the same file can also be put online as it is.
