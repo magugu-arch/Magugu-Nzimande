@@ -367,7 +367,7 @@ OPTIONS = [
      "icon_bg": BLACK, "icon_way": {"ink": BONE, "acc": RED}, "icon_fill": 0.64},
     {"n": 2, "slug": "st-monogram", "title": "S + T monogram", "fn": opt_st,
      "line": "Soweto, bridged to Towers.",
-     "idea": "An S built from two circles. Its top stroke runs straight on to become the T’s crossbar, the bridge, and the T’s stem in red is the drop, stopping short of the ground. One continuous line, like your infinity reference.",
+     "idea": "An S built from two circles. Its top stroke runs straight on to become the T’s crossbar, the bridge, and the T’s stem in red is the drop, stopping short of the ground. One continuous line, one weight, round ends.",
      "best": "Ownable initials. Strong on an app icon, embroidery, a cap or a wristband.",
      "watch": "It doesn’t show the towers, so the name has to sit beside it until people know it.",
      "icon_bg": BLACK, "icon_way": {"ink": BONE, "acc": RED}, "icon_fill": 0.56},
@@ -439,4 +439,8 @@ json.dump(jobs, open(f"{CACHE}/option-jobs.json", "w"), indent=1)
 
 import options_page
 open(f"{OUT}/index.html", "w").write(options_page.render(OPTIONS, PAIR, SRC, WAY_COL, WAY_REV, tile))
+
+# print layout for the PDF deck (rendered to PDF with headless Chromium)
+import options_pdf
+open(f"{CACHE}/options-print.html", "w").write(options_pdf.render(OPTIONS, PAIR, SRC, WAY_COL, WAY_REV, tile))
 print("built", len(OPTIONS), "options")

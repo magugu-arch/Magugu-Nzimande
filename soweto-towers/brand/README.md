@@ -4,6 +4,8 @@
 
 - **`options/index.html`** has six logo options (round 2), side by side, with a recommendation.
   Each option has its own folder of SVG and PNG artwork.
+- **`options/soweto-towers-logo-options.pdf`** is the same presentation as a 10-page A4
+  landscape PDF, ready to send.
 - **`index.html`** has the full guidelines for option 01, The Jump, which is already built
   out as a complete system. Its files are in `logo/` and `icons/`.
 
@@ -57,4 +59,6 @@ FONT=package/files/archivo-latin-wdth-normal.woff2
 ```
 
 The PNGs and `favicon.ico` are rendered from the SVGs with headless Chromium and
-ImageMagick, using the job lists written to `/tmp/st-cache`.
+ImageMagick, using the job lists written to `/tmp/st-cache`. `options.py` also writes
+`/tmp/st-cache/options-print.html`, which headless Chromium prints to the PDF deck
+(`page.pdf({ preferCSSPageSize: true, printBackground: true })`).
