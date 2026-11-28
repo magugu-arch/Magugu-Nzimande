@@ -167,6 +167,7 @@ Example body for `booking_confirmed`: _Sawubona {{1}}! {{2}} is booked for {{3}}
 `share/Soweto-Towers.html` is the whole story on a single page (adventures and prices, bundles, safety, groups, gifts, Chaf-Pozi, hours and directions, questions, contact), in one file of under 1 MB:
 
 - **Everything is inside the file:** photos, font and icons. It opens with no internet connection.
+- **Identity option 01:** the S + T monogram, Archivo type, and bone, tower black and crimson. Text is set larger and heavier than usual for reading on a phone (17px at weight 450, headings at 700).
 - **No JavaScript.** It works in WhatsApp's document viewer on iPhone, in Android browsers and in Files or Quick Look.
 - **Booking buttons open WhatsApp** with a message already filled in. Phone, email and map buttons open the right apps.
 - **Title, description, share-image tags and structured data are included**, so the same file can also be put online as it is.
@@ -293,3 +294,4 @@ tests/e2e/           Playwright browser tests
 - **New look:** a SOWETO TOWERS wordmark set in Exo 2, and a mark drawn from the two towers, the bridge and the jumper. The source is `src/components/brand/`.
 - **Palette:** concrete greys, charcoal and a sunset orange.
 - **Previous emblem:** kept at `public/brand/legacy-emblem.png` in case it should come back.
+- **Identity option 01, the S + T monogram:** used on the shareable page. Its artwork (taken from the identity options document), colours and lockups are in `src/components/brand/st-identity.ts`, and its typeface, Archivo, is in `src/fonts/` (SIL Open Font License). The website itself still uses the look above.
