@@ -15,11 +15,19 @@ sys.path.insert(0, HERE)
 from geom import f
 import vec
 import kit
-from kit import Art, tile, line_art, tower_t_paths, RED, BLACK, BONE, WHITE
+from kit import Art, tile, line_art, tower_t_paths, BLACK, BONE, WHITE
+from wordmark import Text
 
 SRC, OUT, CACHE = sys.argv[1], sys.argv[2], sys.argv[3]
 kit.init(SRC, CACHE)
 import ci_assets as A
+
+# Round-3 palette: a deeper crimson and muted activity colours
+RED = "#C8102E"                                  # Pantone 186 C
+PAL = {"red": RED, "black": BLACK, "bone": BONE, "paper": "#FAF8F4",
+       "sky": "#2F5A8A", "gold": "#C9A24A", "green": "#3E6E55", "concrete": "#A29C92"}
+LIGHT = Text(SRC, CACHE, wght=440, wdth=118)     # the name beside a symbol: lighter, so the symbol leads
+TOWER_T = tower_t_paths(flare=2.35, throat=0.86)  # subtler tower T's
 
 WAYS = {
     "colour":  {"ink": BLACK, "acc": RED},
@@ -41,12 +49,12 @@ def as_role(art, role):
 
 
 def plain(cap, track=0.2):
-    return line_art("SOWETO TOWERS", cap, track=track)
+    return line_art("SOWETO TOWERS", cap, track=track, txt=LIGHT)
 
 
 def plain_two(cap):
-    n1 = line_art("SOWETO", cap)
-    return n1, line_art("TOWERS", cap, width=n1.w)
+    n1 = line_art("SOWETO", cap, txt=LIGHT)
+    return n1, line_art("TOWERS", cap, width=n1.w, txt=LIGHT)
 
 
 def horizontal_two_lines(sym, k=0.2, gap=0.3):
@@ -74,12 +82,12 @@ def horizontal_one_line(sym, k=0.17, gap=0.32):
 
 
 def stacked(sym, name, gap_k=0.34, desc=False):
-    d = line_art("VERTICAL ADVENTURE CENTRE", name.h * 0.5, width=name.w) if desc else None
+    d = line_art("VERTICAL ADVENTURE CENTRE", name.h * 0.5, width=name.w, txt=LIGHT) if desc else None
     return kit.stacked(sym, name, gap_k=gap_k, desc=d)
 
 
 # ================================================================= option 1: S + T monogram
-mono = A.monogram()
+mono = A.monogram(w=9.6)
 o1 = {
     "n": 1, "slug": "st-monogram", "title": "S + T monogram", "line": "Soweto, bridged to Towers.",
     "idea": "An S drawn from two circles. Its top stroke runs straight on to become the T’s crossbar, the bridge, and the T’s stem in red is the drop, stopping short of the ground. One continuous line, one weight, round ends. The name sits beside it in widely spaced capitals.",
@@ -95,14 +103,15 @@ o1 = {
 }
 
 # ================================================================= option 2: Two T's
-make_t = tower_t_paths()
-logo2 = A.name_line(30.0, track=0.16)
-n1, n2 = A.name_two_lines(30.0)
+make_t = TOWER_T
+logo2 = line_art("SOWETO TOWERS", 30.0, track=0.16, tower_t=TOWER_T)
+n1 = line_art("SOWETO", 30.0, tower_t=TOWER_T)
+n2 = line_art("TOWERS", 30.0, width=n1.w, tower_t=TOWER_T)
 st2 = Art()
 st2.place(n1, 0, 0)
 st2.place(n2, 0, 30.0 * 1.75)
 st2.bb = [0, 0, n1.w, 30.0 * 2.75]
-desc2 = line_art("VERTICAL ADVENTURE CENTRE", 30.0 * 0.42, width=logo2.w)
+desc2 = line_art("VERTICAL ADVENTURE CENTRE", 30.0 * 0.42, width=logo2.w, txt=LIGHT)
 ld2 = Art()
 ld2.place(logo2, 0, 0)
 ld2.place(desc2, 0, 30.0 * 2.0)
@@ -123,8 +132,8 @@ o2 = {
 }
 
 # ================================================================= option 3: The Loop
-loop = as_role(A.loop(), "acc")
-upright = as_role(A.loop(vertical=True), "acc")
+loop = as_role(A.loop(w=11.0), "acc")
+upright = as_role(A.loop(w=11.0, vertical=True), "acc")
 o3 = {
     "n": 3, "slug": "the-loop", "title": "The Loop", "line": "Seen from above.",
     "idea": "From the air, the two towers are two rims and the bridge runs between them. The Loop draws that view in one red line, with one cut where the line meets itself. It also reads as a loop without end, and turned upright it becomes the S of Soweto.",
@@ -166,5 +175,5 @@ os.makedirs(CACHE, exist_ok=True)
 json.dump(jobs, open(f"{CACHE}/r3-jobs.json", "w"), indent=1)
 
 import r3_book
-open(f"{OUT}/index.html", "w").write(r3_book.render(OPTS, A.pictograms(), SRC, WAYS))
+open(f"{OUT}/index.html", "w").write(r3_book.render(OPTS, A.pictograms(w=3.2), SRC, WAYS, PAL, TOWER_T))
 print("round 3 built:", ", ".join(o["title"] for o in OPTS))

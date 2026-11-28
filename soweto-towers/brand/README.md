@@ -17,7 +17,10 @@ Each option folder (`round-3/option-N-*/`) holds `svg/` masters and `png/` expor
 `logo`, `logo-alt`, `logo-descriptor`, `symbol` (and `symbol-upright` for the Loop) in
 `colour`, `reverse`, `black` and `white`, plus `app-icon`.
 
-All three share one palette and one typeface, so the comparison is about the idea.
+All three share one palette and one typeface, so the comparison is about the idea. The
+monogram and the Loop are drawn with a fine line, the names beside them are set at a light
+weight (Archivo 440, extended) so the symbol leads, and the two-T logotype keeps weight 500
+so it can stand alone.
 
 ## Earlier rounds
 
@@ -28,15 +31,16 @@ All three share one palette and one typeface, so the comparison is about the ide
 
 ## Colour
 
-| Name         | HEX       | RGB          | CMYK         | Print          |
-| ------------ | --------- | ------------ | ------------ | -------------- |
-| Drop Red     | `#DA291C` | 218 41 28    | 0 95 100 0   | Pantone 485 C  |
-| Tower Black  | `#151412` | 21 20 18     | 60 50 50 100 | Rich black     |
-| Bone         | `#F3EFE7` | 243 239 231  | 3 4 8 0      | Natural white  |
+| Name         | HEX       | RGB          | CMYK          | Print          |
+| ------------ | --------- | ------------ | ------------- | -------------- |
+| Crimson      | `#C8102E` | 200 16 46    | 0 100 80 5    | Pantone 186 C  |
+| Tower Black  | `#151412` | 21 20 18     | 60 50 50 100  | Rich black     |
+| Bone         | `#F3EFE7` | 243 239 231  | 3 4 8 0       | Natural white  |
 
-Mural palette (codes activities): Highveld Sky `#1D5FD0`, Mural Gold `#F2B33D`, Kasi Green
-`#1F8A5B` and Concrete `#8F8A82`. The CMYK values are starting points, so approve colour on a
-printed proof.
+Round 3 moves the red from the orange-leaning Pantone 485 C (`#DA291C`, still used in
+`options/` and `archive/`) to a deeper crimson, and mutes the activity colours: Highveld Sky
+`#2F5A8A`, Mural Gold `#C9A24A`, Kasi Green `#3E6E55` and Concrete `#A29C92`. The CMYK values
+are starting points, so approve colour on a printed proof.
 
 ## Type
 
