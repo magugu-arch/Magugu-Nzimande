@@ -17,11 +17,15 @@
  *   photo holds still while the panel slides up over it. Text never moves
  *   apart from the finger. Off with Reduce Motion; browsers without
  *   scroll-driven animations show still photos.
- * - No JavaScript at all. WhatsApp's document viewer on iPhone (Quick Look)
- *   and some Android viewers switch scripts off, so every part works without:
+ * - Works with scripts off. WhatsApp's document viewer on iPhone (Quick Look)
+ *   and some Android viewers switch them off, so every part works without:
  *   in-page links, native <details> for questions, CSS-only scrolling rails,
- *   and the menu beside Book (a link to #menu shown with :target, so choosing
- *   a section closes it; it grows from its button on a spring curve).
+ *   and the menu beside Book (a checkbox drawn as a button, so it opens in
+ *   any viewer; it grows from its button on a spring curve).
+ * - One small optional script: where scripts run, in-page links scroll to
+ *   their section without following the "#" link (app previewers that show
+ *   the file in a frame break "#" links), and the menu closes when a section
+ *   is chosen or Escape is pressed.
  * - Metadata for search and link previews (title, description, Open Graph,
  *   Twitter, geo tags, JSON-LD) points at the live site, so the same file can
  *   also be hosted as-is.
@@ -101,6 +105,32 @@ const icon = {
 
 // The menu button's two bars (they turn into an X in CSS).
 const bars = '<span class="bars" aria-hidden="true"><span></span><span></span></span>';
+
+// Optional. Everything works without it. Where scripts run, in-page links
+// scroll to their section without following the "#" link, which also makes
+// them work in app previewers whose frames break "#" links, and choosing a
+// section or pressing Escape closes the menu. Once the page has a #target
+// (a "#" link has already worked natively), links are left to the browser.
+const enhance = `(() => {
+  const toggle = document.getElementById('menu-toggle');
+  const still = matchMedia('(prefers-reduced-motion: reduce)');
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (document.querySelector(':target')) return;
+    const section = document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)));
+    if (!section) return;
+    e.preventDefault();
+    toggle.checked = false;
+    section.scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth', block: 'start' });
+    if (!section.hasAttribute('tabindex')) section.setAttribute('tabindex', '-1');
+    section.focus({ preventScroll: true });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && toggle.checked) { toggle.checked = false; toggle.focus(); }
+    if (e.key === 'Enter' && e.target === toggle) { e.preventDefault(); toggle.click(); }
+  });
+})();`;
 
 // -------------------------------------------------------------- assets
 
@@ -284,6 +314,11 @@ const description = `Bungee jump 100m between the painted Soweto Towers (Orlando
 // x(t) = 1 − (1 + ωt)·e^(−ωt), with ω = 2π / 0.4 s, sampled over the 0.5 s the
 // menu's transitions run for. Browsers without linear() get a close bezier.
 const SPRING_S = 0.5;
+
+// When the menu is open: the checkbox is ticked and the page has no #target
+// yet, or #menu is the target (links mode, after a section link has worked).
+const MENU_OPEN_BODY = ':is(body:not(:has(:target)):has(#menu-toggle:checked), body:has(#menu:target))';
+const MENU_OPEN = `${MENU_OPEN_BODY} .sheet`;
 const spring = (() => {
   const w = (2 * Math.PI) / 0.4;
   const steps = 24;
@@ -359,33 +394,45 @@ section { padding-block: clamp(56px, 10vw, 112px); }
 @media (max-width: 359px) { .bar__in { gap: 8px; } .bar__end { gap: 6px; } .bar__end .btn { padding-inline: 14px; } }
 .vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 
-/* Menu, with no JavaScript (WhatsApp's iPhone viewer runs none). The button is
-   a link to #menu and :target shows the panel. Choosing a section moves the
-   target, so the panel closes as the page scrolls there. The X, a tap outside
-   and Back close it too. The panel and both targets are position: fixed, so
-   opening and closing never scroll the page. */
+/* Menu. It has to work where scripts don't run (WhatsApp's iPhone viewer) and
+   where "#" links don't (app previewers show the file in a frame, where
+   "#menu" points at the previewer's own page and replaces this one). So the
+   button is a real checkbox, drawn as a round button: tapping it never follows
+   a link. Choosing a section closes the panel: where scripts run, the few
+   lines at the end of the page do it; without scripts, the section link sets
+   :target, and once the page has a target the button switches to links
+   (#menu, #menu-closed) that close the panel on every choice. The panel and
+   those targets are position: fixed, so opening and closing never scroll. */
 .toggle { position: relative; flex: none; width: 44px; height: 44px; }
-.toggle a { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; color: var(--ink); background: rgb(21 20 18 / .06); box-shadow: inset 0 0 0 1px var(--line); -webkit-tap-highlight-color: transparent; transition: opacity .2s ease, transform .12s ease-out, background-color .2s, visibility 0s; }
-.toggle a:hover { background: rgb(21 20 18 / .1); }
-.toggle a:active { transform: scale(.92); }
-.toggle__close, body:has(#menu:target) .toggle__open { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s linear .2s; }
-body:has(#menu:target) .toggle__close { opacity: 1; visibility: visible; transition: opacity .2s ease, visibility 0s; }
-/* Two bars that turn into an X. Both links draw them, so the cross-fade reads as one icon changing. */
+.toggle__state { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; border-radius: 50%; opacity: 0; cursor: pointer; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; }
+.toggle__face, .toggle a { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; color: var(--ink); background: rgb(21 20 18 / .06); box-shadow: inset 0 0 0 1px var(--line); -webkit-tap-highlight-color: transparent; transition: opacity .2s ease, transform .12s ease-out, background-color .2s, visibility 0s; }
+.toggle__state:hover + .toggle__face, .toggle a:hover { background: rgb(21 20 18 / .1); }
+.toggle__state:active + .toggle__face, .toggle a:active { transform: scale(.92); }
+.toggle__state:focus-visible + .toggle__face { outline: 3px solid var(--crimson); outline-offset: 3px; }
+/* Links mode, once the page has a #target (so "#" links work in this viewer). */
+.toggle a, body:has(#menu:target) .toggle__open { visibility: hidden; opacity: 0; transition: opacity .2s ease, visibility 0s linear .2s; }
+body:has(:target) .toggle__state, body:has(:target) .toggle__face { display: none; }
+body:has(:target):not(:has(#menu:target)) .toggle__open, body:has(#menu:target) .toggle__close { visibility: visible; opacity: 1; transition: opacity .2s ease, visibility 0s; }
+/* Two bars that turn into an X. In links mode both links draw them, so the cross-fade reads as one icon changing. */
 .bars { position: relative; width: 18px; height: 12px; }
 .bars span { position: absolute; left: 0; right: 0; height: 2px; border-radius: 2px; background: currentColor; transition: transform var(--spring-s) var(--spring); }
 .bars span:first-child { top: 2px; }
 .bars span:last-child { bottom: 2px; }
-body:has(#menu:target) .bars span:first-child { transform: translateY(3px) rotate(45deg); }
-body:has(#menu:target) .bars span:last-child { transform: translateY(-3px) rotate(-45deg); }
+${MENU_OPEN_BODY} .bars span:first-child { transform: translateY(3px) rotate(45deg); }
+${MENU_OPEN_BODY} .bars span:last-child { transform: translateY(-3px) rotate(-45deg); }
 
 .sheet { position: fixed; inset: calc(64px + env(safe-area-inset-top)) 0 0; z-index: 19; visibility: hidden; transition: visibility 0s linear var(--spring-s); }
-.sheet:target { visibility: visible; transition: visibility 0s; }
+${MENU_OPEN} { visibility: visible; transition: visibility 0s; }
 .sheet:focus { outline: none; }
 .sheet__scrim { position: absolute; inset: 0; background: rgb(21 20 18 / .2); opacity: 0; transition: opacity .3s ease; -webkit-tap-highlight-color: transparent; }
-.sheet:target .sheet__scrim { opacity: 1; }
+${MENU_OPEN} .sheet__scrim { opacity: 1; }
+/* A tap outside closes it: the checkbox's label without a target, a link to #menu-closed with one. */
+body:has(:target) .sheet__scrim--box, body:not(:has(:target)) .sheet__scrim--link { display: none; }
+/* Where scripts move focus to the chosen section, the section itself shows no ring. */
+#main:focus, main section:focus { outline: none; }
 /* Lined up with the header's right edge, and grown from the menu button (its centre is 22px in from the right, 40px above the panel). */
 .sheet__card { position: absolute; top: 8px; right: max(var(--gutter), (100% - var(--max)) / 2); width: min(360px, 100% - 2 * var(--gutter)); max-height: calc(100% - 20px - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 14px; padding: 18px 8px 8px; border-radius: var(--r-lg); background: rgb(250 248 244 / .9); -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px); box-shadow: inset 0 1px 0 rgb(255 255 255 / .8), 0 0 0 1px var(--line), 0 34px 70px -28px rgb(21 20 18 / .55); transform-origin: calc(100% - 22px) -40px; opacity: 0; transform: translateY(-8px) scale(.94); transition: opacity .2s ease, transform var(--spring-s) var(--spring); }
-.sheet:target .sheet__card { opacity: 1; transform: none; }
+${MENU_OPEN} .sheet__card { opacity: 1; transform: none; }
 .sheet__title { padding-inline: 14px; }
 .sheet__list a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 14px; border-radius: 14px; font-size: 1.1875rem; font-weight: 650; line-height: 1.2; letter-spacing: -.012em; text-decoration: none; -webkit-tap-highlight-color: transparent; transition: background-color .15s; }
 .sheet__list a:hover, .sheet__list a:active { background: rgb(21 20 18 / .07); }
@@ -393,7 +440,7 @@ body:has(#menu:target) .bars span:last-child { transform: translateY(-3px) rotat
 .sheet__list a:hover .i { transform: translateX(3px); }
 /* Rows arrive one after another as the panel opens, and leave together. */
 .sheet__list li { opacity: 0; transform: translateY(-6px); transition: opacity .18s ease, transform var(--spring-s) var(--spring); }
-.sheet:target .sheet__list li { opacity: 1; transform: none; transition-delay: calc(40ms + var(--i, 0) * 18ms); }
+${MENU_OPEN} .sheet__list li { opacity: 1; transform: none; transition-delay: calc(40ms + var(--i, 0) * 18ms); }
 ${Array.from({ length: 12 }, (_, i) => `.sheet__list li:nth-child(${i + 1}) { --i: ${i}; }`).join(' ')}
 .sheet__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 6px 6px; }
 .sheet__actions .btn { padding-inline: 12px; }
@@ -600,12 +647,12 @@ footer a { color: var(--on-dark); }
 /* Accessibility preferences */
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn, .jump a, details summary::after { transition: none; } .btn:active, .jump a:active { transform: none; }
   /* The menu fades in and out in place: no growing, sliding or turning. The X still shows, just without the turn. */
-  .sheet__card, .sheet__list li, .toggle a:active, .sheet__list a:hover .i { transform: none; }
+  .sheet__card, .sheet__list li, .toggle a:active, .toggle__state:active + .toggle__face, .sheet__list a:hover .i { transform: none; }
   .bars span, .sheet__list .i { transition: none; } }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) { .bar { background: var(--bone); } .hero__panel { background: var(--black); } }
 @media (prefers-reduced-transparency: reduce) { .bar { background: var(--bone); -webkit-backdrop-filter: none; backdrop-filter: none; } .sheet__card { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; } .hero__panel { background: var(--black); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 @media (prefers-contrast: more) {
-  .card, .bundle, .tile, .panel, .rules div, .faq details, details.more, .jump a, .note, .toggle a { box-shadow: inset 0 0 0 2px var(--ink); }
+  .card, .bundle, .tile, .panel, .rules div, .faq details, details.more, .jump a, .note, .toggle a, .toggle__face { box-shadow: inset 0 0 0 2px var(--ink); }
   .sheet__card { background: var(--paper); box-shadow: 0 0 0 2px var(--ink), 0 34px 70px -28px rgb(21 20 18 / .55); }
   .sheet__list .i { color: var(--ink); }
   .muted, .lede, .facts span, .hours dd, .price small, .hint, .addons, .rules dd, .faq details p { color: var(--ink); }
@@ -684,6 +731,8 @@ const html = `<!doctype html>
     <div class="bar__end">
       <a class="btn btn--primary btn--sm" href="${wa(BOOK_TEXT)}">${icon.whatsapp}Book</a>
       <div class="toggle">
+        <input class="toggle__state" type="checkbox" id="menu-toggle" aria-label="Menu" aria-controls="menu">
+        <span class="toggle__face" aria-hidden="true">${bars}</span>
         <a class="toggle__open" href="#menu">${bars}<span class="vh">Menu</span></a>
         <a class="toggle__close" href="#menu-closed">${bars}<span class="vh">Close menu</span></a>
       </div>
@@ -691,7 +740,8 @@ const html = `<!doctype html>
   </div>
 </header>
 <nav class="sheet" id="menu" aria-label="Menu" tabindex="-1">
-  <a class="sheet__scrim" href="#menu-closed" tabindex="-1" aria-hidden="true"><span class="vh">Close menu</span></a>
+  <label class="sheet__scrim sheet__scrim--box" for="menu-toggle" aria-hidden="true"><span class="vh">Close menu</span></label>
+  <a class="sheet__scrim sheet__scrim--link" href="#menu-closed" tabindex="-1" aria-hidden="true"><span class="vh">Close menu</span></a>
   <div class="sheet__card">
     <p class="eyebrow sheet__title">On this page</p>
     <ul class="sheet__list">
@@ -932,6 +982,7 @@ ${bundleCards}
     <p class="small">© ${year} ${esc(site.name)}. ${esc(site.hashtags.join(' '))}</p>
   </div>
 </footer>
+<script>${enhance}</script>
 </body>
 </html>
 `;
