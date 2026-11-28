@@ -63,3 +63,7 @@ FONT=package/files/archivo-latin-wdth-normal.woff2
 PNGs and `favicon.ico` are rendered from the SVGs with headless Chromium and ImageMagick
 (job lists in `/tmp/st-cache`). Each PDF is its `index.html` printed by Chromium with
 `page.pdf({ preferCSSPageSize: true, printBackground: true })`.
+
+Before exporting a PDF, run `node source/check_layout.js round-3/index.html`. It measures
+every object and text block on every page and fails if anything overlaps, leaves the page or
+enters the margin bands.
