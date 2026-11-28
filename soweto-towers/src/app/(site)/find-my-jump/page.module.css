@@ -1,0 +1,43 @@
+.page {
+  display: grid;
+  gap: clamp(20px, 4vw, 56px);
+  align-items: start;
+  padding-block: clamp(16px, 3vw, 40px) 96px;
+}
+
+@media (min-width: 960px) {
+  .page {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 4 / 4.4;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--canvas-deep);
+}
+
+.body {
+  display: grid;
+  gap: 16px;
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.form {
+  gap: 14px;
+}
+
+.result {
+  gap: 12px;
+}
+
+.clips {
+  display: grid;
+  gap: 8px;
+}

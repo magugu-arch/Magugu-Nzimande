@@ -1,0 +1,192 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgb(226 227 222 / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  transition: box-shadow 0.3s var(--ease-out);
+}
+
+/* Scroll edge effect instead of a hard divider: a soft shadow only once content passes under. */
+.scrolled {
+  box-shadow:
+    0 1px 0 rgb(21 20 18 / 0.08),
+    0 12px 24px -20px rgb(21 20 18 / 0.35);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .header {
+    background: var(--canvas);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--header-h);
+}
+
+.brand {
+  display: inline-flex;
+  text-decoration: none;
+  flex: none;
+  border-radius: 10px;
+}
+
+.nav {
+  display: none;
+}
+
+.nav ul {
+  display: flex;
+  gap: 2px;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: 0;
+  text-decoration: none;
+  color: var(--ink-2);
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.navLink:hover {
+  color: var(--ink);
+  background: rgb(21 20 18 / 0.06);
+}
+
+.navLink[aria-current='page'] {
+  color: var(--ink);
+  background: rgb(21 20 18 / 0.08);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menuButton {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(21 20 18 / 0.06);
+  cursor: pointer;
+  transition:
+    transform 0.12s ease-out,
+    background-color 0.2s;
+}
+
+.menuButton:active {
+  transform: scale(0.94);
+}
+
+.sheet {
+  position: fixed;
+  inset: calc(var(--header-h) + env(safe-area-inset-top)) 0 0 0;
+  z-index: 39;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgb(226 227 222 / 0.94);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+}
+
+.sheetInner {
+  display: grid;
+  gap: 28px;
+  padding-block: 20px calc(32px + env(safe-area-inset-bottom));
+}
+
+.sheetPrimary {
+  display: grid;
+  gap: 2px;
+}
+
+.sheetPrimary a {
+  display: block;
+  padding: 8px 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 8vw, 2.6rem);
+  line-height: 1.05;
+  text-decoration: none;
+  letter-spacing: -0.03em;
+}
+
+.sheetPrimary a[aria-current='page'] {
+  color: var(--crimson-text);
+}
+
+.sheetSecondary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+}
+
+.sheetSecondary a {
+  display: block;
+  padding: 8px 0;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sheetActions {
+  display: grid;
+  gap: 12px;
+}
+
+.sheetContact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 1100px) {
+  .nav {
+    display: block;
+  }
+  .menuButton {
+    display: none;
+  }
+}
+
+.bookShort {
+  display: none;
+}
+
+/* Phones: the button says "Book" so logo, button and menu fit a 320px screen. */
+@media (max-width: 520px) {
+  .bookLong {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .bookShort {
+    display: inline;
+  }
+  .book {
+    padding: 0 16px;
+  }
+}

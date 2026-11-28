@@ -49,3 +49,7 @@ coverage/
 .audit-*/
 .preview-web/
 .preview-shots/
+
+# Next.js output: soweto-towers/ can write dev files here while Next treats this
+# folder as its workspace root (two lockfiles). Its own output stays in soweto-towers/.next.
+/.next/

@@ -22,6 +22,8 @@ module.exports = defineConfig([
       '.audit-*/**',
       '.preview-web/**',
       '.preview-shots/**',
+      // A separate Next.js project with its own ESLint config, dependencies and CI job.
+      'soweto-towers/**',
     ],
   },
   {

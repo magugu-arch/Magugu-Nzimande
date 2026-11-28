@@ -1,0 +1,51 @@
+.card {
+  gap: 12px;
+  scroll-margin-top: calc(var(--header-h) + 24px);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 1.6vw + 1rem, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.heading :global(.dot) {
+  width: 12px;
+  height: 12px;
+}
+
+.go {
+  color: var(--go-on-dark);
+}
+.hold {
+  color: var(--hold);
+}
+.stop {
+  color: var(--stop);
+}
+.idle {
+  color: var(--on-dark-3);
+}
+
+.sun {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.9375rem;
+  color: var(--on-dark-2);
+}
+
+.sun svg {
+  flex: none;
+  color: var(--crimson-soft);
+}
+
+.card :global(.btn) {
+  justify-self: start;
+  margin-top: 6px;
+}

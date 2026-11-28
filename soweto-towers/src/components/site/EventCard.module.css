@@ -1,0 +1,78 @@
+.card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  transition:
+    transform 0.5s var(--ease-out),
+    box-shadow 0.5s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+.card:active {
+  transform: scale(0.985);
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--canvas-deep);
+}
+
+.date {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 62px;
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  line-height: 1;
+  box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.5);
+}
+
+.date span:first-child {
+  font-weight: 700;
+  font-size: 1.5rem;
+  align-self: end;
+}
+
+.date span:last-child {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--crimson-text);
+  align-self: start;
+  margin-top: 2px;
+}
+
+.body {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 22px 24px 26px;
+}
+
+.when {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.summary {
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}

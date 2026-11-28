@@ -1,0 +1,50 @@
+.page {
+  padding-block: clamp(28px, 6vw, 80px);
+  display: grid;
+  justify-items: center;
+}
+
+.card {
+  width: min(100%, 460px);
+  gap: 14px;
+}
+
+.badge {
+  justify-self: start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fff3cd;
+  color: #6b4e00;
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.summary {
+  font-weight: 600;
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.fakeCard {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--charcoal-top), var(--charcoal-lo));
+  color: var(--on-dark);
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+}
+
+.paid {
+  font-weight: 700;
+}
+
+.note {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}

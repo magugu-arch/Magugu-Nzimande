@@ -1,0 +1,75 @@
+.card {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5.6;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--canvas-deep);
+  color: var(--on-dark);
+  text-decoration: none;
+  isolation: isolate;
+  box-shadow: var(--shadow-card);
+  transition:
+    transform 0.5s var(--ease-out),
+    box-shadow 0.5s var(--ease-out);
+}
+
+.card img {
+  transition: transform 1.2s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
+  .card:hover img {
+    transform: scale(1.04);
+  }
+}
+
+.card:active {
+  transform: scale(0.985);
+  transition-duration: 0.12s;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.08) 0%, rgb(0 0 0 / 0) 30%, rgb(0 0 0 / 0.15) 55%, rgb(12 12 14 / 0.82) 100%);
+  z-index: 1;
+}
+
+.price {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 0.875rem;
+}
+
+.body {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 1.35rem;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+.short {
+  font-size: 0.9375rem;
+  color: rgb(243 239 231 / 0.86);
+  line-height: 1.35;
+}

@@ -1,0 +1,66 @@
+.form {
+  display: grid;
+  gap: 18px;
+}
+
+.row {
+  display: grid;
+  gap: 18px;
+}
+
+@media (min-width: 640px) {
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .row3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.optional {
+  font-weight: 450;
+  color: var(--ink-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+}
+
+.formError {
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgb(192 57 43 / 0.08);
+  color: #a3261b;
+  font-weight: 600;
+}
+
+.success {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: clamp(22px, 3vw, 32px);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  box-shadow: var(--shadow-card);
+}
+
+.success svg {
+  width: 32px;
+  height: 32px;
+  color: var(--go);
+}
+
+.success p:first-of-type {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: -0.015em;
+}
+
+.note {
+  font-size: 0.875rem;
+  color: var(--ink-3);
+}
